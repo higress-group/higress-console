@@ -59,7 +59,7 @@ const Login: React.FC = () => {
   return (
     <div className={styles.container}>
       <LoginForm
-        title="ICE Pro"
+        title="ICE"
         logo={<img alt="logo" src={logo} />}
         subTitle="基于 ice.js 3 开箱即用的中后台模板"
         onFinish={async (values) => {

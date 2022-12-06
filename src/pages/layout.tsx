@@ -20,7 +20,7 @@ export default function Layout() {
       menu={{ defaultOpenAll: true }}
       className={styles.layout}
       logo={<img src={logo} alt="logo" />}
-      title="ICE Pro"
+      title=""
       location={{
         pathname: location.pathname,
       }}

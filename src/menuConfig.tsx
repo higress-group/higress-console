@@ -8,13 +8,23 @@ const asideMenuConfig: MenuDataItem[] = [
     icon: <DashboardOutlined />,
   },
   {
-    name: '表单',
-    path: '/form',
+    name: '服务来源',
+    path: '/service-source',
     icon: <FormOutlined />,
   },
   {
-    name: '列表',
-    path: '/list',
+    name: '服务列表',
+    path: '/service-list',
+    icon: <TableOutlined />,
+  },
+  {
+    name: '路由配置',
+    path: '/router',
+    icon: <TableOutlined />,
+  },
+  {
+    name: '域名管理',
+    path: '/domain',
     icon: <TableOutlined />,
   },
   {

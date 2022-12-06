@@ -1,1 +1,4 @@
 node_modules
+.ice
+build
+.DS_Store
