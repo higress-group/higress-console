@@ -10,7 +10,7 @@
     "@ant-design/pro-table": "^3.0.17",
     "@ice/runtime": "^1.0.0",
     "antd": "^4.24.0",
-    "lodash": "^4.17.21",
+    "axios": "^1.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -21,6 +21,9 @@
     "@ice/plugin-store": "^1.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "ahooks": "^3.7.2",
+    "lodash": "^4.17.21",
+    "qs": "^6.11.0",
     "typescript": "^4.8.4"
   },
   "scripts": {
