@@ -5,14 +5,6 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Table } from 'antd';
 import { getGatewayServices } from '@/services';
 
-interface GithubRepoItem {
-  url: string;
-  id: number;
-  name: string;
-  star: string;
-  description: string;
-}
-
 const dataSource = [
   {
     key: '1',
