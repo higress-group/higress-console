@@ -6,12 +6,5 @@ declare namespace Service {
     name?: string,
   }
 
-  interface Item {
-    id: string,
-    name: string,
-    protocol: string,
-    ports: number[],
-  }
-
 }
 

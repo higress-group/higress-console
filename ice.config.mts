@@ -9,7 +9,7 @@ export default defineConfig(() => ({
   ssg: false,
   proxy: {
     '/api': {
-      target: 'http://121.199.61.62',
+      target: 'http://47.117.68.79/',
       changeOrigin: true,
       pathRewrite: { '^/api' : '' },
     },

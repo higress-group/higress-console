@@ -28,7 +28,7 @@ request.interceptors.response.use(
   (response) => {
     const { status, data } = response;
 
-    console.log("response====", response);
+    // console.log("response====", response);
     if (status === 200 && data && data.success !== false) {
       return Promise.resolve(response.data.data);
     } else {
@@ -37,7 +37,7 @@ request.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.log("error====", error);
+    // console.log("error====", error);
 
     const { message, config } = error;
     Modal.warning({

@@ -1,57 +1,58 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { definePageConfig } from 'ice';
 import { Button } from 'antd';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Table } from 'antd';
 import { getGatewayServices } from '@/services';
+import { ServiceItem } from '@/interfaces/service';
+import { useRequest } from 'ahooks';
 
-const dataSource = [
-  {
-    key: '1',
-    name: '胡彦斌',
-    age: 32,
-    address: '西湖区湖底公园1号',
-  },
-  {
-    key: '2',
-    name: '胡彦祖',
-    age: 42,
-    address: '西湖区湖底公园1号',
-  },
-];
-
-const columns = [
-  {
-    title: '姓名',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: '年龄',
-    dataIndex: 'age',
-    key: 'age',
-  },
-  {
-    title: '住址',
-    dataIndex: 'address',
-    key: 'address',
-  },
-];
 
 const TableList: React.FC = () => {
+  const columns = [
+    {
+      title: '服务名',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: '命名空间',
+      dataIndex: 'namespace',
+      key: 'namespace',
+    },
+    {
+      title: '服务地址',
+      dataIndex: 'endPoints',
+      key: 'endPoints',
+      cell: (value) => (
+        <div>
+          { value && value.map(ip => <div>{ip}</div>)}
+        </div>
+      ),
+    },
+  ];
+
+  const [dataSource, setDataSource] = useState<ServiceItem[]>([]);
+  
+  const getServiceList = async (factor): Promise<ServiceItem[]> => (getGatewayServices(factor));
+
+  const { loading, run } = useRequest(getServiceList, {
+    manual: true,
+    onSuccess: (result, params) => setDataSource(result),
+  });
 
   useEffect(() => {
-    getServiceList();
+    run({ pageNum: 1, pageSize: 10 });
   }, []);
-
-  const getServiceList = async () => {
-    const res = await getGatewayServices({ pageNum: 1, pageSize: 10 });
-    console.log('res===', res);
-  };
 
   return (
     <PageContainer>
-      <Table dataSource={dataSource} columns={columns} />;
+      <Table
+        loading={loading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={false}
+      />
     </PageContainer>
   );
 };
