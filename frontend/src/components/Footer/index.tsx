@@ -6,27 +6,27 @@ const Footer: React.FC = () => {
 
   return (
     <DefaultFooter
-      copyright={`${currentYear} ice.js & Ant Design`}
-      links={[
-        {
-          key: 'ice.js',
-          title: 'ice.js',
-          href: 'https://v3.ice.work',
-          blankTarget: true,
-        },
-        {
-          key: 'github',
-          title: <GithubOutlined />,
-          href: 'https://github.com/alibaba/ice',
-          blankTarget: true,
-        },
-        {
-          key: 'Ant Design',
-          title: 'Ant Design',
-          href: 'https://ant.design',
-          blankTarget: true,
-        },
-      ]}
+      copyright={`Copyright ${currentYear} Higress`}
+      // links={[
+      //   {
+      //     key: 'ice.js',
+      //     title: 'ice.js',
+      //     href: 'https://v3.ice.work',
+      //     blankTarget: true,
+      //   },
+      //   {
+      //     key: 'github',
+      //     title: <GithubOutlined />,
+      //     href: 'https://github.com/alibaba/ice',
+      //     blankTarget: true,
+      //   },
+      //   {
+      //     key: 'Ant Design',
+      //     title: 'Ant Design',
+      //     href: 'https://ant.design',
+      //     blankTarget: true,
+      //   },
+      // ]}
     />
   );
 };

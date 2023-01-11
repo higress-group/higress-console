@@ -9,7 +9,7 @@ const request = axios.create({
   timeout: 5 * 1000,
   baseURL: "/api",
   headers: {
-    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    "Content-Type": "application/json",
   },
 });
 
