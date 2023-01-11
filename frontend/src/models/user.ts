@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { UserInfo } from 'frontend/src/interfaces/user';
+import { UserInfo } from '@/interfaces/user';
 import { createModel } from 'ice';
 
 interface ModelState {

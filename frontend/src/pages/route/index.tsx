@@ -22,6 +22,12 @@ interface RouteFormProps {
   services: string,
 }
 
+const FitType = {
+  PRE: '前缀匹配',
+  EQUAL: '精确匹配',
+  ERGULAR: '正则匹配',
+};
+
 const RouteTableList: React.FC = () => {
   const columns = [
     {
@@ -31,9 +37,18 @@ const RouteTableList: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: '服务类型',
-      dataIndex: 'destinationType',
-      key: 'destinationType',
+      title: '路由条件',
+      dataIndex: 'routePredicates',
+      key: 'routePredicates',
+      render: (value) => {
+        const _pathPredicates = value["pathPredicates"];
+        const { type, path } = _pathPredicates;
+        return (
+          <div>
+            {`${FitType[type]} ｜ ${path}`}
+          </div>
+        );
+      },
     },
     {
       title: '目标服务',

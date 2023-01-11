@@ -1,5 +1,5 @@
 import { createStore } from 'ice';
-import user from 'frontend/src/models/user';
+import user from '../src/models/user';
 
 export default createStore({
   user,

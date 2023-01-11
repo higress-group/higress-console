@@ -4,17 +4,11 @@ import { message, Alert } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { ProFormCheckbox, ProFormText, LoginForm } from '@ant-design/pro-form';
 import styles from './index.module.css';
-<<<<<<< Updated upstream:frontend/src/pages/login/index.tsx
-import type { LoginParams, LoginResult } from 'frontend/src/interfaces/user';
-import { login, fetchUserInfo } from 'frontend/src/services';
-import store from 'frontend/src/store';
-import logo from 'frontend/src/assets/logo.png';
-=======
 import type { LoginParams, LoginResult } from '@/interfaces/user';
 import { login, fetchUserInfo } from '@/services';
 import store from '@/store';
 import logo from '@/assets/logo.png';
->>>>>>> Stashed changes:src/pages/login/index.tsx
+
 
 const LoginMessage: React.FC<{
   content: string;
