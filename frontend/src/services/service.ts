@@ -1,4 +1,4 @@
-import request from "./request";
+import request from './request';
 import { ServiceItem, ServiceFactor } from '@/interfaces/service';
 
 

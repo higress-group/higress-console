@@ -4,8 +4,8 @@ import { LogoutOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Avatar } from 'antd';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import styles from './index.module.css';
-import { logout } from 'frontend/src/services/user';
-import store from 'frontend/src/store';
+import { logout } from '@/services';
+import store from '@/store';
 
 interface AvatarDropdownProps {
   name: string;

@@ -1,4 +1,4 @@
-import type { LoginParams, LoginResult } from 'frontend/src/interfaces/user';
+import type { LoginParams, LoginResult } from '@/interfaces/user';
 
 const waitTime = (time = 1000) => {
   return new Promise((resolve) => {

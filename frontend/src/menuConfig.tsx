@@ -14,7 +14,7 @@ const asideMenuConfig: MenuDataItem[] = [
   },
   {
     name: '路由配置',
-    path: '/router',
+    path: '/route',
     icon: <DeploymentUnitOutlined />,
   },
   {
