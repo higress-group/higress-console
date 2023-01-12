@@ -83,7 +83,7 @@ const RouteTableList: React.FC = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<RouteItem>();
   const [openDrawer, setOpenDrawer] = useState(false);
-  const formRef = useRef();
+  const formRef = useRef(null);
 
   
   const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoute(factor));

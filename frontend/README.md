@@ -1,4 +1,4 @@
-# ice.js 3 Pro Scaffold
+# higress console
 
 ## Usage
 
