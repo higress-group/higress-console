@@ -35,11 +35,13 @@ const ServiceTableList: React.FC = () => {
 
   const [dataSource, setDataSource] = useState<ServiceItem[]>([]);
   const [namespaces, setNamespaces] = useState<OptionItem[]>();
+  const servicesRef = useRef<ServiceItem[] | null>();
   const [form] = Form.useForm();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   const getServiceList = async (factor: ServiceFactor): Promise<ServiceItem[]> => (getGatewayServices(factor));
 
-  const { loading, run } = useRequest(getServiceList, {
+  const { loading, run, refresh } = useRequest(getServiceList, {
     manual: true,
     onSuccess: (result, params) => {
       const _os = new Set();
@@ -54,6 +56,7 @@ const ServiceTableList: React.FC = () => {
           _os.add(namespace);
         }
       });
+      servicesRef.current = result;
       setDataSource(result);
       setNamespaces(_namespaces);
     },
@@ -65,20 +68,29 @@ const ServiceTableList: React.FC = () => {
 
   const onSearch = () => {
     const values = form.getFieldsValue();
+    setIsLoading(true);
     const factor = {};
     const { name, namespace } = values;
+    let _dataSource: ServiceItem[]  = servicesRef.current as ServiceItem[];
     if (name) {
       Object.assign(factor, { name });
+      _dataSource =_dataSource && _dataSource.filter((service: ServiceItem) => {
+        const { name: _name } = service;
+        return _name.indexOf(name) > -1;
+      });
     }
     if (namespace) {
       Object.assign(factor, { namespace });
+      _dataSource = _dataSource && _dataSource.filter((service: ServiceItem) => {
+        const { namespace: _namespace } = service;
+        return _namespace == namespace;
+      })
     }
-    run(factor);
+    setDataSource(_dataSource);
+    setIsLoading(false);
   };
 
   const onReset = () => form.resetFields();
-
-  const onRefresh = () => run({});
 
   return (
     <PageContainer>
@@ -134,13 +146,13 @@ const ServiceTableList: React.FC = () => {
             </Button>
             <Button
               icon={<RedoOutlined />}
-              onClick={onRefresh}
+              onClick={refresh}
             />
           </Col>
         </Row>
       </Form>
       <Table
-        loading={loading}
+        loading={loading || isLoading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}
