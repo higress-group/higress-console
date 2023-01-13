@@ -114,8 +114,8 @@ interface FactorGroupProps {
   onChange: (record) => void;
 }
 
-const FactorGroup: React.FC = ({ onChange }) => {
-  const [dataSource, setDataSource] = useState<DataType[]>([]);
+const FactorGroup: React.FC = ({ value, onChange }) => {
+  const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
     {

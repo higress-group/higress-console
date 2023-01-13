@@ -15,9 +15,9 @@ export interface Predicates {
 }
 
 export interface RouteItem {
-  id: number,
+  id?: number,
   name: string,
-  destinationType: string,
+  destinationType?: string,
   routePredicates: Predicates,
   services: Service[],
 }

@@ -39,13 +39,18 @@ export const ErrorComp = ({ content, options, res }) => {
               )
             }
             {
+              get(options, 'headers') && (
+                <div>headers: {`${JSON.stringify(options.headers)}`}</div>
+              )
+            }
+            {
               get(options, 'params') && (
                 <div>params: {`${JSON.stringify(options.params)}`}</div>
               )
             }
             {
-              get(options, 'headers') && (
-                <div>headers: {`${JSON.stringify(options.headers)}`}</div>
+              get(options, 'data') && (
+                <div>data: {`${options.data}`}</div>
               )
             }
           </div>
