@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Table, Col, Form, Input, Row, Select, Button, Modal, Space, Drawer } from 'antd';
-import { getGatewayRoute, addGatewayRoute, deleteGatewayRoute } from '@/services';
+import { getGatewayRoute, addGatewayRoute, deleteGatewayRoute, updateGatewayRoute } from '@/services';
 import { RouteResponse, RouteItem } from '@/interfaces/route';
 import { useRequest } from 'ahooks';
 import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import RouteForm from './components/RouteForm';
+import { uniqueId } from "lodash";
 
 interface PathProps {
   type: string,
@@ -70,7 +71,7 @@ const RouteTableList: React.FC = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          {/* <a>编辑</a> */}
+          <a onClick={() => onEditDrawer(record)}>编辑</a>
           <a onClick={() => onShowModal(record)}>删除</a>
         </Space>
       ),
@@ -81,14 +82,14 @@ const RouteTableList: React.FC = () => {
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<RouteItem>();
+  const [currentRoute, setCurrentRoute] = useState<RouteItem | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
 
   
   const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoute(factor));
 
-  const { loading, run } = useRequest(getRouteList, {
+  const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
     onSuccess: (result, params) => {
       const { list: _dataSource } = result;
@@ -100,11 +101,15 @@ const RouteTableList: React.FC = () => {
     run({ });
   }, []);
 
-  const onRefresh = () => run({ });
+  const onEditDrawer = (route: RouteItem) => {
+    setCurrentRoute(route);
+    setOpenDrawer(true);
+  };
 
-
-
-  const onShowDrawer = () => setOpenDrawer(true);
+  const onShowDrawer = () => {
+    setOpenDrawer(true);
+    setCurrentRoute(null);
+  }
 
   const handleDrawerOK = async () => {
     try {
@@ -125,7 +130,12 @@ const RouteTableList: React.FC = () => {
       Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path} });
       const data = {};
       Object.assign(data, { name, routePredicates, services: [{ name: services }] })
-      await addGatewayRoute(data);
+      if (currentRoute) {
+        const _id = currentRoute.id || parseInt(uniqueId(), 10);
+        await updateGatewayRoute({ id: _id, ...data } as RouteItem);
+      } else {
+        await addGatewayRoute(data as RouteItem);
+      }
       setOpenDrawer(false);
       run({ });
 
@@ -134,9 +144,12 @@ const RouteTableList: React.FC = () => {
     }
   };
 
-  const handleDrawerCancel = () => setOpenDrawer(false);
+  const handleDrawerCancel = () => {
+    setOpenDrawer(false);
+    setCurrentRoute(null);
+  };
 
-  const onShowModal = (route) => {
+  const onShowModal = (route: RouteItem) => {
     setCurrentRoute(route);
     setOpenModal(true);
   };
@@ -150,7 +163,10 @@ const RouteTableList: React.FC = () => {
     run({ });
   };
 
-  const handleModalCancel = () => setOpenModal(false);
+  const handleModalCancel = () => {
+    setOpenModal(false);
+    setCurrentRoute(null);
+  };
 
   return (
     <PageContainer>
@@ -177,7 +193,7 @@ const RouteTableList: React.FC = () => {
           <Col span={20} style={{ textAlign: 'right' }}>
             <Button
               icon={<RedoOutlined />}
-              onClick={onRefresh}
+              onClick={refresh}
             />
           </Col>
         </Row>
@@ -198,7 +214,7 @@ const RouteTableList: React.FC = () => {
         <p>确定删除 <span style={{ color: '#0070cc' }}>{ (currentRoute && currentRoute.name) || ''} </span>吗？</p>
       </Modal>
       <Drawer
-        title="创建路由"
+        title={currentRoute ? "编辑路由" : "创建路由"}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
@@ -212,7 +228,7 @@ const RouteTableList: React.FC = () => {
           </Space>
         }
       >
-        <RouteForm ref={formRef} />
+        <RouteForm ref={formRef} value={currentRoute} />
       </Drawer>
 
     </PageContainer>

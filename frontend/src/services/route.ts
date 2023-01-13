@@ -1,5 +1,5 @@
 import request from './request';
-import { RouteResponse } from '@/interfaces/route';
+import { RouteResponse, RouteItem } from '@/interfaces/route';
 
 
 export const getGatewayRoute = (
@@ -10,7 +10,7 @@ export const getGatewayRoute = (
 
 
 export const addGatewayRoute = (
-  payload: any = { }
+  payload: RouteItem
 ) : Promise<any> => {
   return request.post<any, any>("/v1/route/add", payload);
 };
@@ -22,4 +22,10 @@ export const deleteGatewayRoute = (
   return request.get<any, any>("/v1/route/delete", {
     params: payload
   });
+};
+
+export const updateGatewayRoute = (
+  payload: RouteItem
+) : Promise<any> => {
+  return request.post<any, any>("/v1/route/update", payload);
 };

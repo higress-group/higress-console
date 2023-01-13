@@ -4,6 +4,7 @@ import FactorGroup from '../FactorGroup';
 import { getGatewayServices } from '@/services';
 import { useRequest } from 'ahooks';
 import { OptionItem } from '@/interfaces/service';
+import { uniqueId } from "lodash";
 
 const { Option } = Select;
 const MethodOptions = [
@@ -20,12 +21,14 @@ const MethodOptions = [
 
 const RouteForm: React.FC = forwardRef((props, ref) => {
 
+  const { value } = props;
   const [form] = Form.useForm();
   const [serviceOptions, setServiceOptions] = useState<OptionItem[]>([]);
   const servicesRef = useRef(new Map());
   const { data = [] } = useRequest(getGatewayServices);
 
   useEffect(() => {
+    form.resetFields();
     const _serviceOptions: OptionItem[] = [];
     data && data.forEach(service => {
       const { name } = service;
@@ -36,7 +39,29 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       servicesRef.current.set(name, service);
     });
     setServiceOptions(_serviceOptions);
-  }, [data]);
+
+    if (value) {
+      const { name, routePredicates, services } = value;
+      const { pathPredicates, methodPredicates, headerPredicates, queryPredicates } = routePredicates;
+      const { type, path, ignoreCase } = pathPredicates;
+      const [service] = services;
+      const { name: _name } = service;
+      const _headerPredicates = headerPredicates && headerPredicates.map((header) => {
+        return { ...header, uid: uniqueId() };
+      });
+      const _queryPredicates = queryPredicates && queryPredicates.map((query) => {
+        return { ...query, uid: uniqueId() };
+      });
+      form.setFieldsValue({ 
+        name, 
+        pathPredicates: { type, path, ignoreCase: ignoreCase ? [] : ['ignore'] },
+        methodPredicates,
+        headerPredicates: _headerPredicates,
+        queryPredicates: _queryPredicates,
+        services: _name,
+      });
+    }
+  }, [data, value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
