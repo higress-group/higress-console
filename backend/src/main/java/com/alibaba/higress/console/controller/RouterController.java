@@ -44,7 +44,7 @@ public class RouterController {
     }
     
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public Result<Route> update(Route route) {
+    public Result<Route> update(@RequestBody Route route) {
         mockData.put(route.getName(), route);
         //TODO
         return Result.successReturn(route);
