@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
 
   return (
     <DefaultFooter
-      copyright={`Copyright ${currentYear} Higress`}
+      copyright={`copyright ${currentYear} Higress`}
       // links={[
       //   {
       //     key: 'ice.js',
