@@ -86,7 +86,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         ]}
       >
         <Input
-          showCount 
+          showCount
+          allowClear
           maxLength={63} 
           placeholder="包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾" 
         />

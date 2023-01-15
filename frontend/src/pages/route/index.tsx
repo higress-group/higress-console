@@ -29,7 +29,7 @@ const FitType = {
   ERGULAR: '正则匹配',
 };
 
-const RouteTableList: React.FC = () => {
+const RouteList: React.FC = () => {
   const columns = [
     {
       title: '路由名称',
@@ -235,6 +235,6 @@ const RouteTableList: React.FC = () => {
   );
 };
 
-export default RouteTableList;
+export default RouteList;
 
 

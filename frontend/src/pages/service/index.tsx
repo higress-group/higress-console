@@ -7,7 +7,7 @@ import { useRequest } from 'ahooks';
 import { RedoOutlined } from '@ant-design/icons';
 
 
-const ServiceTableList: React.FC = () => {
+const ServiceList: React.FC = () => {
   const columns = [
     {
       title: '服务名称',
@@ -161,5 +161,5 @@ const ServiceTableList: React.FC = () => {
   );
 };
 
-export default ServiceTableList;
+export default ServiceList;
 
