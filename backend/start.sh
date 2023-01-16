@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar  /app/higress-console-0.0.1-SNAPSHOT.jar
+java $JVM_ARGS -jar /app/higress-console-0.0.1-SNAPSHOT.jar
