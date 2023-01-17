@@ -7,7 +7,7 @@ import { includes } from "lodash";
 
 const request = axios.create({
   timeout: 5 * 1000,
-  baseURL: "/api",
+  baseURL: process.env.NODE_ENV === "development" ? "/api" : "",
   headers: {
     "Content-Type": "application/json",
   },
