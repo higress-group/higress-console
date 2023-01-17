@@ -9,10 +9,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -139,57 +138,51 @@ public class KubernetesClientService {
     }
     
     public boolean checkInCluster() {
+        if(inCluster == null) {
+            return false;
+        }
         return inCluster;
     }
     
-    public void inClusterListPod() throws ApiException, IOException {
-        // loading the in-cluster config, including:
-        //   1. service-account CA
-        //   2. service-account bearer-token
-        //   3. service-account namespace
-        //   4. master endpoints(ip, port) from pre-set environment variables
-        ApiClient client = ClientBuilder.cluster().build();
-    
-        // if you prefer not to refresh service account token, please use:
-        // ApiClient client = ClientBuilder.oldCluster().build();
-    
-        // set the global default api-client to the in-cluster one from above
-        Configuration.setDefaultApiClient(client);
-    
-        // the CoreV1Api loads default api-client from global configuration.
-        CoreV1Api api = new CoreV1Api();
-    
-        // invokes the CoreV1Api client
-        V1PodList list =
-                api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
-        for (V1Pod item : list.getItems()) {
-            System.out.println(item.getMetadata().getName());
+    /**
+     * use CustomObjectsApi
+     * https://github.com/kubernetes-client/java/blob/master/kubernetes/docs/CustomObjectsApi.md
+     */
+    public Object getIngress(String name) {
+        ApiClient defaultClient = client;
+        CustomObjectsApi apiInstance = new CustomObjectsApi(defaultClient);
+        String group = "networking.k8s.io"; // String | the custom resource's group
+        String version = "v1"; // String | the custom resource's version
+        String plural = "ingresses"; // String | the custom resource's plural name. For TPRs this would be lowercase plural kind.
+        try {
+            Object result = apiInstance.getClusterCustomObject(group, version, plural, name);
+            //TODO
+            return result;
+            
+        } catch (ApiException e) {
+            log.error("getIngress Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
         }
     }
     
-    public void kubeConfigFileListPod() throws ApiException, IOException {
-    
-        // file path to your KubeConfig
-    
-//        String kubeConfigPath = System.getenv("HOME") + "/.kube/config";
-        String kubeConfigPath = CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
+    public Object listIngress() {
+        ApiClient defaultClient = client;
+        CustomObjectsApi apiInstance = new CustomObjectsApi(defaultClient);
+        String group = "networking.k8s.io"; // String | the custom resource's group
+        String version = "v1"; // String | the custom resource's version
+        String plural = "ingresses"; // String | the custom resource's plural name. For TPRs this would be lowercase plural kind.
+        try {
+            Object result = apiInstance.listClusterCustomObject(group, version, plural,
+                    null, null, null, null, null,null, null, null, null, null);
+            //TODO
+            return result;
         
-        // loading the out-of-cluster config, a kubeconfig from file-system
-        ApiClient client =
-                ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
-    
-        // set the global default api-client to the in-cluster one from above
-        Configuration.setDefaultApiClient(client);
-    
-        // the CoreV1Api loads default api-client from global configuration.
-        CoreV1Api api = new CoreV1Api();
-    
-        // invokes the CoreV1Api client
-        V1PodList list =
-                api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
-        for (V1Pod item : list.getItems()) {
-            System.out.println(item.getMetadata().getName());
+        } catch (ApiException e) {
+            log.error("listIngress Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
         }
     }
-
+    
 }
