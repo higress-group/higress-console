@@ -30,9 +30,6 @@ export const storeConfig = defineStoreConfig(async (appData) => {
   };
 });
 
-export const request = defineRequestConfig(() => ({
-  baseURL: '/api',
-}));
 
 export const dataLoader = defineDataLoader(async () => {
   const userInfo = await getUserInfo();
