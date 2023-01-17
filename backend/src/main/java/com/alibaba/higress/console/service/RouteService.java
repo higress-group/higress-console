@@ -8,5 +8,11 @@ import com.alibaba.higress.console.controller.dto.Route;
 public interface RouteService {
     
     Result<PageResult<Route>> list(CommonPageQuery<Route> query);
-    //TODO
+    
+    Result<Route> add(Route route);
+    
+    Result<Route> update(Route route);
+    
+    Result<Route> delete(String name);
+    
 }

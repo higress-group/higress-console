@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController("RouterController")
@@ -23,9 +21,6 @@ public class RouterController {
     @Resource
     private RouteService routeService;
     
-    //FIXME
-    private ConcurrentHashMap<String, Route> mockData = new ConcurrentHashMap<>();
-    
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public Result<PageResult<Route>> list(@RequestBody CommonPageQuery<Route> query) {
         //TODO
@@ -34,27 +29,19 @@ public class RouterController {
     
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Result<Route> add(@RequestBody Route route) {
-        
-        mockData.put(route.getName(), route);
         //TODO
-        
-        return Result.successReturn(route);
+        return routeService.add(route);
     }
     
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public Result<Route> update(@RequestBody Route route) {
-        mockData.put(route.getName(), route);
         //TODO
-        return Result.successReturn(route);
+        return routeService.update(route);
     }
     
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
     public Result<Route> delete(@RequestParam("name") String name) {
-        Route delete = mockData.get(name);
-        if(delete != null) {
-            mockData.remove(name);
-        }
         //TODO
-        return Result.successReturn(delete);
+        return routeService.delete(name);
     }
 }

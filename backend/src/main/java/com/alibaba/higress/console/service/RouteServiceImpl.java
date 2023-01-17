@@ -24,9 +24,34 @@ public class RouteServiceImpl implements RouteService{
         List<Route> list = new ArrayList<>(mockData.values());
     
         //ingress datasource
+        //kubernetesClientService.listIngress()
         
-        
-    
         return Result.successPageReturn(list, query.getPageNumber(), query.getPageSize(), (int)count);
+    }
+    
+    @Override
+    public Result<Route> add(Route route) {
+    
+        mockData.put(route.getName(), route);
+        //TODO
+    
+        return Result.successReturn(route);
+    }
+    
+    @Override
+    public Result<Route> update(Route route) {
+        mockData.put(route.getName(), route);
+        //TODO
+        return Result.successReturn(route);
+    }
+    
+    @Override
+    public Result<Route> delete(String name) {
+        Route delete = mockData.get(name);
+        if(delete != null) {
+            mockData.remove(name);
+        }
+        //TODO
+        return Result.successReturn(delete);
     }
 }
