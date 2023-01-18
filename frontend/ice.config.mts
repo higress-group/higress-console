@@ -7,13 +7,13 @@ import auth from '@ice/plugin-auth';
 export default defineConfig(() => ({
   ssr: false,
   ssg: false,
-  // proxy: {
-  //   '/api': {
-  //     target: 'http://47.117.68.79/',
-  //     changeOrigin: true,
-  //     pathRewrite: { '^/api' : '' },
-  //   },
-  // },
+  proxy: {
+    '/api': {
+      target: 'http://47.117.68.79/',
+      changeOrigin: true,
+      pathRewrite: { '^/api' : '' },
+    },
+  },
   plugins: [
     request(),
     store(),

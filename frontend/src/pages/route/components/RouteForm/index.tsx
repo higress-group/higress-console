@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { Form, Input, Select, Checkbox } from 'antd';
 import FactorGroup from '../FactorGroup';
-import { getGatewayServices } from '@/services';
+import { getGatewayServices, getGatewayDomain } from '@/services';
 import { useRequest } from 'ahooks';
 import { OptionItem } from '@/interfaces/service';
+import { DomainResponse } from '@/interfaces/domain';
 import { uniqueId } from "lodash";
 
 const { Option } = Select;
@@ -24,24 +25,30 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const { value } = props;
   const [form] = Form.useForm();
   const [serviceOptions, setServiceOptions] = useState<OptionItem[]>([]);
+  const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const servicesRef = useRef(new Map());
-  const { data = [] } = useRequest(getGatewayServices);
+  const { data: _services = [] } = useRequest(getGatewayServices);
+  const { data: _response = { list: [] } } = useRequest(getGatewayDomain);
 
   useEffect(() => {
     form.resetFields();
     const _serviceOptions: OptionItem[] = [];
-    data && data.forEach(service => {
+    _services && _services.forEach(service => {
       const { name } = service;
-      _serviceOptions.push({
-        label: name,
-        value: name,
-      });
+      _serviceOptions.push({ label: name, value: name });
       servicesRef.current.set(name, service);
     });
     setServiceOptions(_serviceOptions);
+    const _domainOptions: OptionItem[] = [];
+    const { list: _domain } = _response as DomainResponse;
+    _domain && _domain.forEach(domain => {
+      const { name } = domain;
+      _domainOptions.push({ label: name, value: name });
+    });
+    setDomainOptions(_domainOptions);
 
     if (value) {
-      const { name, routePredicates, services } = value;
+      const { name, domainList, routePredicates, services } = value;
       const { pathPredicates, methodPredicates, headerPredicates, queryPredicates } = routePredicates;
       const { type, path, ignoreCase } = pathPredicates;
       const [service] = services;
@@ -54,6 +61,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       });
       form.setFieldsValue({ 
         name, 
+        domainList,
         pathPredicates: { type, path, ignoreCase: ignoreCase ? [] : ['ignore'] },
         methodPredicates,
         headerPredicates: _headerPredicates,
@@ -61,7 +69,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         services: _name,
       });
     }
-  }, [data, value]);
+  }, [_services, _response, value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
@@ -88,8 +96,28 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <Input
           showCount
           allowClear
+          disabled={value}
           maxLength={63} 
           placeholder="包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾" 
+        />
+      </Form.Item>
+      <Form.Item 
+        label="域名" 
+        required 
+        name='domainList'
+        rules={[
+          { 
+            required: true, 
+            message: '请选择域名' 
+          }
+        ]}
+      >
+        <Select
+          showSearch
+          allowClear
+          mode="multiple"
+          placeholder="搜索域名名称域名"
+          options={domainOptions}
         />
       </Form.Item>
       <Form.Item 
