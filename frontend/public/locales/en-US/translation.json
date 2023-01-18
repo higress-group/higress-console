@@ -1,0 +1,197 @@
+{
+  "menu": {
+    "serviceSources": "Service Sources",
+    "serviceList": "Service List",
+    "routeConfig": "Route Config",
+    "domainManagement": "Domain Management"
+  },
+  "index": {
+    "title": "Higress Console"
+  },
+  "login": {
+    "title": "Login",
+    "loginSuccess": "Login successful!",
+    "loginFailed": "Login failed. Please try again.",
+    "incorrectCredentials": "Incorrect username or password (admin/ice).",
+    "autoLogin": "Auto login",
+    "forgotPassword": "Forgot password",
+    "usernamePlaceholder": "Username: admin or user",
+    "usernameRequired": "Please input the username!",
+    "passwordPlaceholder": "Password: ice",
+    "passwordRequired": "Please input the password!"
+  },
+  "domain": {
+    "columns": {
+      "name": "Domain",
+      "protocol": "Protocol",
+      "certificate": "Certificate",
+      "action": "Action"
+    },
+    "createDomain": "Create Domain",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentDomainName}}</1>?",
+    "domainForm": {
+      "name": "Domain",
+      "nameTooltip": "Both full domain (e.g.: hello.com) and wildcard domain (e.g.: *.hello.com) are supported. Manage the protocol and certificates for a given domain independently here. And route configurations can isolate with each other by different domains.",
+      "nameRequired": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*)，No longer than 256 characters.",
+      "namePlaceholder": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*)，No longer than 256 characters.",
+      "protocol": "Protocol",
+      "protocolTooltip": "Following protocols are supported: HTTP (port 80) and HTTPS (port 443) protocols，An SSL certificate must be specified when using HTTPS protocol.",
+      "protocolRequired": "Please choose a protocol",
+      "protocolPlaceholder": "Please choose a protocol",
+      "certificate": "Certificate",
+      "certificateTooltip": "Only certificates provided by SSL Certificates Service of Alibaba Clound are supported now.",
+      "certificateRequired": "Please input the certificate identifier.",
+      "certificatePlaceholder": "Please input the certificate identifier.",
+      "mustHttps": "Force HTTPS",
+      "mustHttpsTooltip": "Only certificates provided by SSL Certificates Service of Alibaba Clound are supported now.",
+      "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service"
+    }
+  },
+  "service": {
+    "columns": {
+      "name": "Service Name",
+      "namespace": "Namespace",
+      "endpoints": "Service Endpoints"
+    },
+    "namePlaceholder": "Please input the service name.",
+    "namespacePlaceholder": "Please input the namespace."
+  },
+  "serviceSource": {},
+  "route": {
+    "columns": {
+      "name": "Route Name",
+      "routePredicates": "Route Predicates",
+      "services": "Service",
+      "action": "Action"
+    },
+    "fitTypes": {
+      "PRE": "Prefix",
+      "EQUAL": "Equal",
+      "REGULAR": "Regex"
+    },
+    "createRoute": "Create Route",
+    "editRoute": "Edit Route",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
+    "factorGroup": {
+      "columns": {
+        "key": "Key",
+        "type": "Condition",
+        "value": "Value",
+        "operation": "Action"
+      },
+      "parameter": "Parameter"
+    },
+    "routeForm": {
+      "routeName": "Route Name",
+      "routeNameTip": "Using a name related to the business scenario is recommended. e.g.: user-default, user-gray, etc.",
+      "routeNameRequired": "Only following characters are allowed: lower-case letters, numbers and special characters (- .). And the name can not begin or end with a special character.",
+      "routeNamePlaceholder": "Only following characters are allowed: lower-case letters, numbers and special characters (- .). And the name can not begin or end with a special character.",
+      "domain": "Domain",
+      "domainRequired": "Please select a domain.",
+      "domainSearchPlaceholder": "Search domain by name",
+      "fitType": "Fit Type",
+      "fitTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
+      "path": "Path",
+      "pathPredicatesRequired": "Please select a path matching predicate.",
+      "pathMatcherRequired": "Please input the path match target.",
+      "pathMatcherPlacedholder": "Path match target. e.g.: /user",
+      "caseSensitive": "Case Sensitive",
+      "method": "Method",
+      "methodMatcherPlaceholder": "HTTP method to match. Multiple selections are allowed. If left blank, it will match all the HTTP methods.",
+      "header": "Request Header",
+      "headerTooltip": "The relation among different arguments is \"and\".",
+      "query": "Query Parameter",
+      "queryTooltip": "The relation among different arguments is \"and\".",
+      "targetService": "Target Service",
+      "targetServiceRequired": "Please choose the target service.",
+      "targetServiceNamedPlaceholder": "Search target service by name"
+    }
+  },
+  "chart": {
+    "area": {
+      "defaultData": {
+        "subTitle": "Request Count",
+        "des": "Week on Week: "
+      }
+    },
+    "bar": {
+      "defaultData": {
+        "subTitle": "Total Sales",
+        "des": "Week on Week: "
+      }
+    },
+    "groupBar": {
+      "defaultData": {
+        "title": "Consumer Data",
+        "category_1": "Category 1",
+        "category_2": "Category 2",
+        "category_3": "Category 3",
+        "category_4": "Category 4",
+        "category_5": "Category 5",
+        "shop_1": "Shop 1",
+        "shop_2": "Shop 2",
+        "shop_3": "Shop 3"
+      }
+    },
+    "line": {
+      "defaultData": {
+        "subTitle": "Stop Activity Results",
+        "des": "Week on Week: "
+      }
+    },
+    "pie": {
+      "defaultData": {
+        "title": "Sales Percentage by Category",
+        "sample_1": "Sample 1",
+        "sample_2": "Sample 2",
+        "sample_3": "Sample 3",
+        "sample_4": "Sample 4",
+        "sample_5": "Sample 5"
+      },
+      "category_1": "Category 1",
+      "category_2": "Category 2",
+      "category_3": "Category 3"
+    },
+    "rank": {
+      "defaultData": {
+        "title": "Area Sales",
+        "asia": "Asia",
+        "europe": "Europe",
+        "africa": "Africa",
+        "america": "America",
+        "category_1": "Category 1",
+        "category_2": "Category 2",
+        "des": "Week on Week"
+      }
+    },
+    "typebar": {
+      "defaultData": {
+        "subTitle": "Merchant Sales",
+        "des": "Week on Week: "
+      }
+    }
+  },
+  "exception": {
+    "info": "Error details (Error code: <1>{{code}}</1>)"
+  },
+  "error": {
+    "404": {
+      "title": "404",
+      "subTitle": "Page Not Found"
+    }
+  },
+  "misc": {
+    "language": "Language",
+    "logout": "Logout",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "reset": "Reset",
+    "return": "Return",
+    "error": "Error",
+    "close": "Close",
+    "tbd": "Still in development. To be released soon..."
+  }
+}

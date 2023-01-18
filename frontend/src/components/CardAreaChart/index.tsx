@@ -1,8 +1,9 @@
-import * as React from 'react';
-import { Card } from 'antd';
 import { TinyArea } from '@ant-design/charts';
-import mock from './mock';
+import { Card } from 'antd';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
+import mock from './mock';
 
 interface CardConfig {
   title: string | React.ReactNode;
@@ -16,10 +17,10 @@ interface CardConfig {
 
 const DEFAULT_DATA: CardConfig = {
   title: '',
-  subTitle: '访问量',
+  subTitle: 'chart.area.defaultData.subTitle',
   value: mock.value,
   chartData: mock.saleList,
-  des: '周同比:',
+  des: 'chart.area.defaultData.des',
   rate: '12.0',
   chartHeight: 100,
 };
@@ -29,16 +30,18 @@ interface CardAreaChartProps {
 }
 
 const CardAreaChart: React.FunctionComponent<CardAreaChartProps> = (props): JSX.Element => {
+  const { t } = useTranslation();
+
   const {
     cardConfig = DEFAULT_DATA,
   } = props;
   const { title, subTitle, value, chartData, des, rate, chartHeight } = cardConfig;
 
   return (
-    <Card title={title} className={styles.areaChart}>
-      <div className={styles.cardSubTitle}>{subTitle}</div>
+    <Card title={typeof title === 'string' ? t(title) : title} className={styles.areaChart}>
+      <div className={styles.cardSubTitle}>{typeof subTitle === 'string' ? t(subTitle) : subTitle}</div>
       <div className={styles.cardValue}>{value}</div>
-      <div className={styles.cardDes}>{des}<span>{rate}↑</span></div>
+      <div className={styles.cardDes}>{t(des)}<span>{rate}↑</span></div>
       <TinyArea
         data={chartData!}
         width={10}

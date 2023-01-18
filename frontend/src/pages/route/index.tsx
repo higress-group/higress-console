@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { RouteItem, RouteResponse } from '@/interfaces/route';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoute, updateGatewayRoute } from '@/services';
+import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Col, Form, Input, Row, Select, Button, Modal, Space, Drawer } from 'antd';
-import { getGatewayRoute, addGatewayRoute, deleteGatewayRoute, updateGatewayRoute } from '@/services';
-import { RouteResponse, RouteItem } from '@/interfaces/route';
 import { useRequest } from 'ahooks';
-import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import RouteForm from './components/RouteForm';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import { uniqueId } from "lodash";
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
+import RouteForm from './components/RouteForm';
 
 interface PathProps {
   type: string,
@@ -24,22 +25,18 @@ interface RouteFormProps {
   services: string,
 }
 
-const FitType = {
-  PRE: '前缀匹配',
-  EQUAL: '精确匹配',
-  ERGULAR: '正则匹配',
-};
-
 const RouteList: React.FC = () => {
+  const { t } = useTranslation();
+
   const columns = [
     {
-      title: '路由名称',
+      title: t('route.columns.name'),
       dataIndex: 'name',
       key: 'name',
       ellipsis: true,
     },
     {
-      title: '路由条件',
+      title: t('route.columns.routePredicates'),
       dataIndex: 'routePredicates',
       key: 'routePredicates',
       render: (value) => {
@@ -47,33 +44,33 @@ const RouteList: React.FC = () => {
         const { type, path } = _pathPredicates;
         return (
           <div>
-            {`${FitType[type]} ｜ ${path}`}
+            {`${t('route.fitTypes.' + type)} ｜ ${path}`}
           </div>
         );
       },
     },
     {
-      title: '目标服务',
+      title: t('route.columns.services'),
       dataIndex: 'services',
       key: 'services',
       ellipsis: true,
       render: (value) => {
         return value && value.map(service => {
           const { name } = service;
-          return (<div>{ name }</div>);
+          return (<div>{name}</div>);
         });
       },
     },
     {
-      title: '操作',
+      title: t('route.columns.action'),
       dataIndex: 'action',
       key: 'action',
       width: 140,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditDrawer(record)}>编辑</a>
-          <a onClick={() => onShowModal(record)}>删除</a>
+          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
       ),
     },
@@ -87,7 +84,6 @@ const RouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
 
-  
   const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoute(factor));
 
   const { loading, run, refresh } = useRequest(getRouteList, {
@@ -119,8 +115,8 @@ const RouteList: React.FC = () => {
       const {
         name,
         domainList,
-        headerPredicates = [], 
-        methodPredicates = [], 
+        headerPredicates = [],
+        methodPredicates = [],
         queryPredicates = [],
         pathPredicates = {},
         services,
@@ -129,7 +125,7 @@ const RouteList: React.FC = () => {
       const { ignoreCase = [], type, path } = pathPredicates as PathProps;
       // ignoreCase不包含‘ignore’， _ignoreCase为true
       const _ignoreCase = !ignoreCase.includes("ignore");
-      Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path} });
+      Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path } });
       const data = {};
       Object.assign(data, { name, domainList, routePredicates, services: [{ name: services }] })
       if (currentRoute) {
@@ -174,11 +170,11 @@ const RouteList: React.FC = () => {
     <PageContainer>
       <Form
         form={form}
-        style={{ 
-          background: '#fff', 
-          height: 64, 
-          paddingTop: 16, 
-          marginBottom: 16, 
+        style={{
+          background: '#fff',
+          height: 64,
+          paddingTop: 16,
+          marginBottom: 16,
           paddingLeft: 16,
           paddingRight: 16,
         }}
@@ -189,7 +185,7 @@ const RouteList: React.FC = () => {
               type="primary"
               onClick={onShowDrawer}
             >
-              创建路由
+              {t('route.createRoute')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
@@ -207,16 +203,20 @@ const RouteList: React.FC = () => {
         pagination={false}
       />
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }}/>删除</div>}
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
         onCancel={handleModalCancel}
       >
-        <p>确定删除 <span style={{ color: '#0070cc' }}>{ (currentRoute && currentRoute.name) || ''} </span>吗？</p>
+        <p>
+          <Trans t={t} i18nKey="route.deleteConfirmation">
+            确定删除 <span style={{ color: '#0070cc' }}>{{currentRouteName: (currentRoute && currentRoute.name) || ''}}</span> 吗？
+          </Trans>
+        </p>
       </Modal>
       <Drawer
-        title={currentRoute ? "编辑路由" : "创建路由"}
+        title={t(currentRoute ? "route.editRoute" : "route.createRoute")}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
@@ -225,14 +225,13 @@ const RouteList: React.FC = () => {
           <Space>
             <Button onClick={handleDrawerCancel}>取消</Button>
             <Button type="primary" onClick={handleDrawerOK}>
-              确定
+              {t('misc.confirm')}
             </Button>
           </Space>
         }
       >
         <RouteForm ref={formRef} value={currentRoute} />
       </Drawer>
-
     </PageContainer>
   );
 };

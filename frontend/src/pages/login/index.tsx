@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { history, useAuth } from 'ice';
-import { message, Alert } from 'antd';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { ProFormCheckbox, ProFormText, LoginForm } from '@ant-design/pro-form';
-import styles from './index.module.css';
-import type { LoginParams, LoginResult } from '@/interfaces/user';
-import { login, fetchUserInfo } from '@/services';
-import store from '@/store';
 import logo from '@/assets/logo.png';
+import type { LoginParams, LoginResult } from '@/interfaces/user';
+import { fetchUserInfo, login } from '@/services';
+import store from '@/store';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
+import { Alert, message } from 'antd';
+import { history, useAuth } from 'ice';
+import React, { useState } from 'react';
+import styles from './index.module.css';
 
+import { useTranslation } from 'react-i18next';
 
 const LoginMessage: React.FC<{
   content: string;
@@ -26,6 +27,8 @@ const LoginMessage: React.FC<{
 };
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
+
   const [loginResult, setLoginResult] = useState<LoginResult>({});
   const [, userDispatcher] = store.useModel('user');
   const [, setAuth] = useAuth();
@@ -39,7 +42,7 @@ const Login: React.FC = () => {
     try {
       const result = await login(values);
       if (result.success) {
-        message.success('登录成功！');
+        message.success(t('login.loginSuccess'));
         setAuth({
           admin: result.userType === 'admin',
           user: result.userType === 'user',
@@ -53,7 +56,7 @@ const Login: React.FC = () => {
       // 如果失败去设置用户错误信息，显示提示信息
       setLoginResult(result);
     } catch (error) {
-      message.error('登录失败，请重试！');
+      message.error(t('login.loginFailed'));
       console.log(error);
     }
   }
@@ -69,7 +72,7 @@ const Login: React.FC = () => {
       >
         {loginResult.success === false && (
           <LoginMessage
-            content="账户或密码错误(admin/ice)"
+            content={t('login.incorrectCredentials')}
           />
         )}
         <ProFormText
@@ -78,11 +81,11 @@ const Login: React.FC = () => {
             size: 'large',
             prefix: <UserOutlined className={'prefixIcon'} />,
           }}
-          placeholder={'用户名: admin or user'}
+          placeholder={t('login.usernamePlaceholder')}
           rules={[
             {
               required: true,
-              message: '请输入用户名!',
+              message: t('login.usernameRequired'),
             },
           ]}
         />
@@ -92,11 +95,11 @@ const Login: React.FC = () => {
             size: 'large',
             prefix: <LockOutlined className={'prefixIcon'} />,
           }}
-          placeholder={'密码: ice'}
+          placeholder={t('login.passwordPlaceholder')}
           rules={[
             {
               required: true,
-              message: '请输入密码！',
+              message: t('login.passwordRequired'),
             },
           ]}
         />
@@ -106,14 +109,14 @@ const Login: React.FC = () => {
           }}
         >
           <ProFormCheckbox noStyle name="autoLogin">
-            自动登录
+            {t('login.autoLogin')}
           </ProFormCheckbox>
           <a
             style={{
               float: 'right',
             }}
           >
-            忘记密码
+            {t('login.forgotPassword')}
           </a>
         </div>
       </LoginForm>
@@ -122,8 +125,9 @@ const Login: React.FC = () => {
 };
 
 export const getConfig = () => {
+  const { t } = useTranslation();
   return {
-    title: '登录',
+    title: t('login.title'),
   };
 };
 
