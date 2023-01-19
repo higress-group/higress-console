@@ -12,7 +12,15 @@ Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能�
 
 此项目包含前端（NodeJS）、后端（Java）两个部分，前端（frontend）部分在构建完成后会随着后端代码（SpringBoot）一起部署。
 
-## Quick Start
+## 配合 Higress 安装
+
+在 Higress 安装完之后执行以下安装命令
+
+```bash
+kubectl apply -f deploy/install.yaml
+```
+
+## 本地启动
 
 ### Frontend
 
@@ -54,28 +62,6 @@ sh bulid.sh
 #### 第三步、 部署 & 启动
 ```bash
 sh start.sh 
-```
-注：在 kubernetes 中部署需添加环境变量，用于标识当前的运行环境，并挂载 Token，用于访问 istio 的 API。
-
-```yaml
-spec:
-  containers:
-    env:
-    - name: JVM_ARGS
-      value: -Dspring.profiles.active=k8s
-    - volumeMounts:
-        - mountPath: /var/run/secrets/access-token
-          name: access-token
-
-  volumes:
-    - name: access-token
-      projected:
-        defaultMode: 420
-        sources:
-          - serviceAccountToken:
-              audience: istio-ca
-              expirationSeconds: 3600
-              path: token
 ```
 
 #### 第四步、 访问
