@@ -1,11 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Table, Col, Form, Input, Row, Select, Button, Modal, Space, Drawer } from 'antd';
-import { getGatewayRoute, addGatewayRoute, deleteGatewayRoute, updateGatewayRoute } from '@/services';
+import { getGatewayDomain, addGatewayDomain, deleteGatewayDomain, updateGatewayDoamin } from '@/services';
+import { DomainItem, DomainResponse } from '@/interfaces/domain';
 import { useRequest } from 'ahooks';
 import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { uniqueId } from "lodash";
 import DomainForm from './components/DomainForm';
+
+interface DomainFormProps {
+  name: string,
+  protocol: string,
+  certIdentifier?: string,
+  mustHttps?: Array<any>,
+}
 
 
 const DomainList: React.FC = () => {
@@ -17,11 +25,6 @@ const DomainList: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-    },
-    {
       title: '协议',
       dataIndex: 'protocol',
       key: 'protocol',
@@ -30,6 +33,7 @@ const DomainList: React.FC = () => {
       title: '证书',
       dataIndex: 'certIdentifier',
       key: 'certIdentifier',
+      render: (value) => (value || '-'),
     },
     {
       title: '操作',
@@ -39,8 +43,8 @@ const DomainList: React.FC = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a>编辑</a>
-          <a>删除</a>
+          <a onClick={() => onEditDrawer(record)}>编辑</a>
+          <a onClick={() => onShowModal(record)}>删除</a>
         </Space>
       ),
     },
@@ -48,14 +52,84 @@ const DomainList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef(null);
-  const [dataSource, setDataSource] = useState([]);
+  const [dataSource, setDataSource] = useState<DomainItem[]>([]);
+  const [currentDomain, setCurrentDomain] = useState<DomainItem | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const onShowDrawer = () => setOpenDrawer(true);
+  const getDomainList = async (factor): Promise<DomainResponse> => (getGatewayDomain(factor));
+  const { loading, run, refresh } = useRequest(getDomainList, {
+    manual: true,
+    onSuccess: (result, params) => {
+      const { list: _dataSource } = result;
+      setDataSource(_dataSource);
+    },
+  });
 
-  const handleDrawerOK = async () => {};
+  useEffect(() => {
+    run({});
+  }, []);
 
-  const handleDrawerCancel = () => setOpenDrawer(false);
+
+  const onEditDrawer = (domain: DomainItem) => {
+    setCurrentDomain(domain);
+    setOpenDrawer(true);
+  };
+
+  const onShowDrawer = () => {
+    setOpenDrawer(true);
+    setCurrentDomain(null);
+  };
+
+  const handleDrawerOK = async () => {
+    try {
+      const values: DomainFormProps = formRef.current && await formRef.current.handleSubmit();
+      const { name, protocol, certIdentifier, mustHttps } = values;
+      const data = { name, protocol };
+      if (values.certIdentifier) {
+        Object.assign(data, { certIdentifier });
+      }
+      if (values.mustHttps) {
+        Object.assign(data, { mustHttps: !!mustHttps?.length });
+      }
+      if (currentDomain) {
+        const _id = currentDomain.id || parseInt(uniqueId(), 10);
+        await updateGatewayDoamin({ id: _id, ...data } as DomainItem);
+      } else {
+        await addGatewayDomain(data as DomainItem);
+      }
+      setOpenDrawer(false);
+      refresh();
+
+    } catch (errInfo) {
+      console.log('Save failed:', errInfo);
+    }
+  };
+
+  const handleDrawerCancel = () => {
+    setOpenDrawer(false);
+    setCurrentDomain(null);
+  };
+
+  const onShowModal = (domain: DomainItem) => {
+    setCurrentDomain(domain);
+    setOpenModal(true);
+  };
+
+  const handleModalOk = async () => {
+    setConfirmLoading(true);
+    await deleteGatewayDomain({ name: currentDomain?.name });
+    setConfirmLoading(false);
+    setOpenModal(false);
+    // 重新刷新
+    refresh();
+  };
+
+  const handleModalCancel = () => {
+    setOpenModal(false);
+    setCurrentDomain(null);
+  };
 
 
   return (
@@ -83,17 +157,26 @@ const DomainList: React.FC = () => {
           <Col span={20} style={{ textAlign: 'right' }}>
             <Button
               icon={<RedoOutlined />}
-              // onClick={refresh}
+              onClick={refresh}
             />
           </Col>
         </Row>
       </Form>
       <Table
-        // loading={loading}
+        loading={loading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}
       />
+      <Modal
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }}/>删除</div>}
+        open={openModal}
+        onOk={handleModalOk}
+        confirmLoading={confirmLoading}
+        onCancel={handleModalCancel}
+      >
+        <p>确定删除 <span style={{ color: '#0070cc' }}>{ (currentDomain && currentDomain.name) || ''} </span>吗？</p>
+      </Modal>
       <Drawer
         title="创建域名"
         placement='right'
@@ -109,7 +192,7 @@ const DomainList: React.FC = () => {
           </Space>
         }
       >
-        <DomainForm ref={formRef} />
+        <DomainForm ref={formRef} value={currentDomain} />
       </Drawer>
 
     </PageContainer>

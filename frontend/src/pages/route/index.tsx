@@ -16,6 +16,7 @@ interface PathProps {
 
 interface RouteFormProps {
   name: string,
+  domainList: Array<string>,
   headerPredicates: Array<any>,
   methodPredicates: Array<string>,
   pathPredicates: PathProps,
@@ -98,7 +99,7 @@ const RouteList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({ });
+    run({});
   }, []);
 
   const onEditDrawer = (route: RouteItem) => {
@@ -117,6 +118,7 @@ const RouteList: React.FC = () => {
       const routePredicates = {};
       const {
         name,
+        domainList,
         headerPredicates = [], 
         methodPredicates = [], 
         queryPredicates = [],
@@ -129,7 +131,7 @@ const RouteList: React.FC = () => {
       const _ignoreCase = !ignoreCase.includes("ignore");
       Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path} });
       const data = {};
-      Object.assign(data, { name, routePredicates, services: [{ name: services }] })
+      Object.assign(data, { name, domainList, routePredicates, services: [{ name: services }] })
       if (currentRoute) {
         const _id = currentRoute.id || parseInt(uniqueId(), 10);
         await updateGatewayRoute({ id: _id, ...data } as RouteItem);
@@ -137,7 +139,7 @@ const RouteList: React.FC = () => {
         await addGatewayRoute(data as RouteItem);
       }
       setOpenDrawer(false);
-      run({ });
+      refresh();
 
     } catch (errInfo) {
       console.log('Save failed:', errInfo);
@@ -160,7 +162,7 @@ const RouteList: React.FC = () => {
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新
-    run({ });
+    refresh();
   };
 
   const handleModalCancel = () => {
