@@ -13,6 +13,8 @@ public class Route {
     
     private String name;
     
+    private List<String> domainList;
+    
     private RoutePredicates routePredicates;
     
     private DestinationTypeEnum destinationType;

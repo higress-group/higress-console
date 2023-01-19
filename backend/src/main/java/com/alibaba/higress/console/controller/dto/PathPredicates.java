@@ -6,7 +6,10 @@ import lombok.Data;
 public class PathPredicates {
 
     private String path;
-
+    
+    /**
+     * see RoutePredicatesTypeEnum
+     */
     private String type;
 
     private Boolean ignoreCase;
