@@ -4,7 +4,7 @@ import type { MenuDataItem } from '@ant-design/pro-layout';
 const asideMenuConfig: MenuDataItem[] = [
   {
     name: '服务来源',
-    path: '/',
+    path: '/service-source',
     icon: <FullscreenExitOutlined />,
   },
   {
