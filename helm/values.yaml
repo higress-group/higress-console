@@ -1,0 +1,44 @@
+namespace: higress-system
+replicaCount: 1
+
+image:
+  repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console
+  pullPolicy: Always
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+dnsPolicy: ClusterFirst
+restartPolicy: Always
+schedulerName: default-scheduler
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+nodeSelector: {}
+affinity: {}
+tolerations: {}
