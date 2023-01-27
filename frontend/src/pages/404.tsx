@@ -11,7 +11,7 @@ const NoFoundPage: React.FC = () => {
     title={t('error.404.title')}
     subTitle={t('error.404.subTitle')}
     extra={
-      <Button type="primary" onClick={() => history?.push('/dashboard')}>
+      <Button type="primary" onClick={() => history?.push('/')}>
         {t('misc.return')}
       </Button>
     }
