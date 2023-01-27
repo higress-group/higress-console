@@ -1,7 +1,8 @@
-import * as React from 'react';
-import { Radio, Card } from 'antd';
-import type { RadioChangeEvent } from 'antd';
 import { Pie } from '@ant-design/charts';
+import type { RadioChangeEvent } from 'antd';
+import { Card, Radio } from 'antd';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
 
 const { useState } = React;
@@ -14,33 +15,28 @@ interface CardConfig {
 }
 
 const DEFAULT_DATA: CardConfig = {
-  title: '销售额类别占比',
+  title: 'chart.pie.defaultData.title',
   value: 183112,
   chartData: [
     {
-      type: '事例一',
+      type: 'chart.pie.defaultData.sample_1',
       value: 40,
-      title: '事例一 | 40.00%     ¥4,544',
     },
     {
-      type: '事例二',
+      type: 'chart.pie.defaultData.sample_2',
       value: 21,
-      title: '事例二 | 22.12%     ¥2,344',
     },
     {
-      type: '事例三',
+      type: 'chart.pie.defaultData.sample_3',
       value: 17,
-      title: '事例三 | 16.59%     ¥3,512',
     },
     {
-      type: '事例四',
+      type: 'chart.pie.defaultData.sample_4',
       value: 13,
-      title: '事例四 | 13.11%     ¥2,341',
     },
     {
-      type: '事例五',
+      type: 'chart.pie.defaultData.sample_5',
       value: 9,
-      title: '事例五 |  9.29%     ¥1,231',
     },
   ],
   chartHeight: 500,
@@ -51,20 +47,31 @@ export interface CardPieChartProps {
 }
 
 const CardPieChart: React.FunctionComponent<CardPieChartProps> = (props): JSX.Element => {
+  const { t } = useTranslation();
+
   const {
     cardConfig = DEFAULT_DATA,
   } = props;
 
-  const { title, chartData, chartHeight } = cardConfig;
+  let { title, chartData, chartHeight } = cardConfig;
+
+  if (Array.isArray(chartData)) {
+    for (let i = 0, n = chartData.length; i < n; ++i) {
+      const item = chartData[i];
+      chartData[i] = Object.assign({}, item, {
+        type: typeof item.type === 'string' ? t(item.type) : item.type,
+        title: typeof item.title === 'string' ? t(item.title) : item.title,
+      });
+    }
+  }
 
   const [type, setType] = useState('one');
   const changeType = (e: RadioChangeEvent) => {
     setType(e.target.value);
   };
 
-
   return (
-    <Card title={title}>
+    <Card title={typeof title === 'string' ? t(title) : title}>
       <Radio.Group
         value={type}
         onChange={changeType}
@@ -72,13 +79,13 @@ const CardPieChart: React.FunctionComponent<CardPieChartProps> = (props): JSX.El
         optionType="button"
       >
         <Radio value="one" className={styles.radioFlex}>
-          类目一
+          {t('chart.pie.category_1')}
         </Radio>
         <Radio value="two" className={styles.radioFlex}>
-          类目二
+          {t('chart.pie.category_2')}
         </Radio>
         <Radio value="three" className={styles.radioFlex}>
-          类目三
+          {t('chart.pie.category_3')}
         </Radio>
       </Radio.Group>
       <Pie

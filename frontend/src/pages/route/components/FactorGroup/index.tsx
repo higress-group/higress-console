@@ -1,17 +1,12 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Form, Input, Select, Popconfirm, Table } from 'antd';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Table } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { uniqueId } from "lodash";
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
-
-const FitOptions = [
-  { label: '前缀匹配', value: 'PRE' },
-  { label: '精确匹配', value: 'EQUAL' },
-  { label: '正则匹配', value: 'ERGULAR' },
-];
 
 interface Item {
   key: string;
@@ -25,6 +20,12 @@ interface EditableRowProps {
 }
 
 const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
+  const { t } = useTranslation();
+
+  const fitOptions = ['PRE', 'EQUAL', 'REGULAR'].map(v => {
+    return { label: t('route.fitTypes.' + v), value: v }
+  });
+
   const [form] = Form.useForm();
   return (
     <Form form={form} component={false}>
@@ -75,9 +76,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
   let childNode = children;
 
-  const node = nodeType === 'select' ? 
-   (<Select ref={inputRef} options={FitOptions} />)
-   : (<Input ref={inputRef} onPressEnter={save} onBlur={save} />);
+  const node = nodeType === 'select' ?
+    (<Select ref={inputRef} options={fitOptions} />)
+    : (<Input ref={inputRef} onPressEnter={save} onBlur={save} />);
 
   if (editable) {
     childNode = (
@@ -119,23 +120,23 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
     {
-      title: 'key',
+      title: t('route.factorGroup.columns.key'),
       dataIndex: 'key',
       editable: true,
     },
     {
-      title: '条件',
+      title: t('route.factorGroup.columns.type'),
       dataIndex: 'type',
       width: 130,
       editable: true,
     },
     {
-      title: '值',
+      title: t('route.factorGroup.columns.value'),
       dataIndex: 'value',
       editable: true,
     },
     {
-      title: '操作',
+      title: t('route.factorGroup.columns.operation'),
       dataIndex: 'operation',
       width: 60,
       render: (_, record: { uid: number }) =>
@@ -201,7 +202,6 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
     };
   });
 
-
   return (
     <div>
       <Table
@@ -213,7 +213,7 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
         pagination={false}
       />
       <Button onClick={handleAdd} type="link">
-        <PlusOutlined />参数
+        <PlusOutlined />{t('route.factorGroup.parameter')}
       </Button>
     </div>
   );

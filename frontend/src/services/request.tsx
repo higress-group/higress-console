@@ -1,9 +1,7 @@
 import { Modal } from "antd";
 import axios from "axios";
+import { useTranslation } from 'react-i18next';
 import { ErrorComp } from './exception';
-import qs from "qs";
-import { includes } from "lodash";
-
 
 const request = axios.create({
   timeout: 5 * 1000,
@@ -39,11 +37,13 @@ request.interceptors.response.use(
   (error) => {
     // console.log("error====", error);
 
+    const { t } = useTranslation();
+
     const { message, config } = error;
     Modal.warning({
-      title: "错误",
+      title: t('misc.error'),
       content: <ErrorComp content={message} options={config} res={error} />,
-      okText: "关闭",
+      okText: t('misc.close'),
       width: 560,
     });
 

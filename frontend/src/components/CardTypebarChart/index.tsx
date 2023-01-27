@@ -1,8 +1,9 @@
-import * as React from 'react';
-import { Card } from 'antd';
 import { RingProgress } from '@ant-design/charts';
-import mock from './mock';
+import { Card } from 'antd';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
+import mock from './mock';
 
 interface CardConfig {
   title?: string | React.ReactNode;
@@ -15,10 +16,10 @@ interface CardConfig {
 }
 
 const DEFAULT_DATA: CardConfig = {
-  subTitle: '商品销售',
+  subTitle: 'chart.typebar.defaultData.subTitle',
   value: mock.value,
   chartData: mock.salePercent,
-  des: '周同比:',
+  des: 'chart.typebar.defaultData.des',
   rate: '10.1',
   chartHeight: 100,
 };
@@ -28,11 +29,22 @@ export interface CardTypebarChartProps {
 }
 
 const CardTypebarChart: React.FunctionComponent<CardTypebarChartProps> = (props: CardTypebarChartProps): JSX.Element => {
+  const { t } = useTranslation();
+
   const {
     cardConfig = DEFAULT_DATA,
   } = props;
 
-  const { title, subTitle, value, des, rate, chartHeight, chartData } = cardConfig;
+  let { title, subTitle, value, des, rate, chartHeight, chartData } = cardConfig;
+  if (typeof title === 'string') {
+    title = t(title) || title;
+  }
+  if (typeof subTitle === 'string') {
+    subTitle = t(subTitle) || subTitle;
+  }
+  if (des) {
+    des = t(des) || des;
+  }
 
   return (
     <Card title={title}>

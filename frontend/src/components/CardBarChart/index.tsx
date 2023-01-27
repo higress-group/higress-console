@@ -1,8 +1,9 @@
-import * as React from 'react';
-import { Card } from 'antd';
-import mock from './mock';
-import styles from './index.module.css';
 import { TinyColumn } from '@ant-design/charts';
+import { Card } from 'antd';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from './index.module.css';
+import mock from './mock';
 
 interface CardConfig {
   title?: string | React.ReactNode;
@@ -15,10 +16,10 @@ interface CardConfig {
 }
 
 const DEFAULT_DATA: CardConfig = {
-  subTitle: '总销售额',
+  subTitle: 'chart.bar.defaultData.subTitle',
   value: mock.value,
   chartData: mock.saleList,
-  des: '周同比:',
+  des: 'chart.bar.defaultData.des',
   rate: 10.1,
   chartHeight: 100,
 };
@@ -28,6 +29,8 @@ export interface CardBarChartProps {
 }
 
 const CardBarChart: React.FunctionComponent<CardBarChartProps> = (props: CardBarChartProps): JSX.Element => {
+  const { t } = useTranslation();
+
   const {
     cardConfig = DEFAULT_DATA,
   } = props;
@@ -35,10 +38,10 @@ const CardBarChart: React.FunctionComponent<CardBarChartProps> = (props: CardBar
   const { title, subTitle, value, chartData, des, rate, chartHeight } = cardConfig;
 
   return (
-    <Card title={title}>
-      <div className={styles.cardSubTitle}>{subTitle}</div>
+    <Card title={typeof title === 'string' ? t(title) : title}>
+      <div className={styles.cardSubTitle}>{typeof subTitle === 'string' ? t(subTitle) : subTitle}</div>
       <div className={styles.cardValue}>{value}</div>
-      <div className={styles.cardDes}>{des}<span>{rate}↑</span></div>
+      <div className={styles.cardDes}>{typeof des === 'string' ? t(des) : des}<span>{rate}↑</span></div>
       <TinyColumn
         data={chartData!}
         width={10}

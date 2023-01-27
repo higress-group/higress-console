@@ -1,8 +1,11 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { RightOutlined } from '@ant-design/icons';
 import { get } from 'lodash';
+import { useTranslation, Trans } from 'react-i18next';
 
 export const ErrorComp = ({ content, options, res }) => {
+  const { t } = useTranslation();
+
   const [isShow, setIsShow] = useState(false);
   return (
     <div style={{ lineHeight: '20px', width: 420, fontSize: 12 }}>
@@ -11,7 +14,9 @@ export const ErrorComp = ({ content, options, res }) => {
         options && res && (
           <div>
             <span>
-              错误详情（错误码：<span style={{ color: '#0077cc' }}>{res && res.code}</span>）
+              <Trans t={t} i18nKey="exception.info">
+                错误详情（错误码：<span style={{ color: '#0077cc' }}>{{code: res && res.code}}</span>）
+              </Trans>
             </span>
             <RightOutlined
               onClick={() => setIsShow(!isShow)}

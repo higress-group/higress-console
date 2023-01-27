@@ -3,22 +3,22 @@ import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
   {
-    name: '服务来源',
+    name: 'menu.serviceSources',
     path: '/service-source',
     icon: <FullscreenExitOutlined />,
   },
   {
-    name: '服务列表',
+    name: 'menu.serviceList',
     path: '/service',
     icon: <UnorderedListOutlined />,
   },
   {
-    name: '路由配置',
+    name: 'menu.routeConfig',
     path: '/route',
     icon: <DeploymentUnitOutlined />,
   },
   {
-    name: '域名管理',
+    name: 'menu.domainManagement',
     path: '/domain',
     icon: <GlobalOutlined />,
   },

@@ -1,14 +1,17 @@
-import { Outlet, Link, useLocation } from 'ice';
-import ProLayout from '@ant-design/pro-layout';
-import { asideMenuConfig } from '@/menuConfig';
-import AvatarDropdown from '@/components/AvatarDropdown';
-import styles from './layout.module.css';
-import Footer from '@/components/Footer';
-import store from '@/store';
 import logo from '@/assets/logo.png';
+import AvatarDropdown from '@/components/AvatarDropdown';
+import Footer from '@/components/Footer';
+import LanguageDropdown from '@/components/LanguageDropdown';
+import { asideMenuConfig } from '@/menuConfig';
+import store from '@/store';
+import ProLayout from '@ant-design/pro-layout';
+import { Link, Outlet, useLocation } from 'ice';
+import { useTranslation } from 'react-i18next';
+import styles from './layout.module.css';
 
 export default function Layout() {
   const location = useLocation();
+  const { t } = useTranslation();
   const [userState] = store.useModel('user');
 
   if (['/login'].includes(location.pathname)) {
@@ -26,9 +29,14 @@ export default function Layout() {
       }}
       layout="mix"
       rightContentRender={() => (
-        <AvatarDropdown avatar={userState.currentUser.avatar} name={userState.currentUser.name} />
+        <div style={{display: 'flex'}}>
+          <LanguageDropdown />
+          <AvatarDropdown avatar={userState.currentUser.avatar} name={userState.currentUser.name} />
+        </div>
       )}
-      menuDataRender={() => asideMenuConfig}
+      menuDataRender={() => {
+        return asideMenuConfig.map(c => Object.assign({}, c, {name: t(c.name)}))
+      }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {
           return defaultDom;

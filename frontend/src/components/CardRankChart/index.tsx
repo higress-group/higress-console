@@ -1,5 +1,6 @@
+import { Card, Col, Divider, Row } from 'antd';
 import * as React from 'react';
-import { Card, Row, Col, Divider } from 'antd';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
 
 interface DataItem {
@@ -18,18 +19,32 @@ export interface CardRankChartProps {
 }
 
 const DEFAULT_DATA: CardConfig = {
-  title: '区域销售',
+  title: 'chart.rank.defaultData.title',
   dataSource: [
-    { name: '亚洲', rate: '40%', color: '#2B7FFB' },
-    { name: '欧洲', rate: '30%', color: '#00D6CB' },
-    { name: '南非', rate: '20%', color: '#F0C330' },
-    { name: '美洲', rate: '10%', color: '#3840D9' },
+    { name: 'chart.rank.defaultData.asia', rate: '40%', color: '#2B7FFB' },
+    { name: 'chart.rank.defaultData.europe', rate: '30%', color: '#00D6CB' },
+    { name: 'chart.rank.defaultData.africa', rate: '20%', color: '#F0C330' },
+    { name: 'chart.rank.defaultData.america', rate: '10%', color: '#3840D9' },
   ],
 };
 
 const CardRankChart: React.FunctionComponent<CardRankChartProps> = (props: CardRankChartProps): JSX.Element => {
+  const { t } = useTranslation();
+
   const { cardConfig = DEFAULT_DATA } = props;
-  const { title, dataSource } = cardConfig;
+  let { title, dataSource } = cardConfig;
+  if (typeof title === 'string') {
+    title = t(title) || title;
+  }
+  if (Array.isArray(dataSource)) {
+    for (let i = 0, n = dataSource.length; i < n; ++i) {
+      const item = dataSource[i];
+      dataSource[i] = Object.assign({}, item, {
+        name: typeof item.name === 'string' ? t(item.name) : item.name,
+      });
+    }
+  }
+
   return (
     <Card title={title}>
       <Row>
@@ -57,23 +72,23 @@ const CardRankChart: React.FunctionComponent<CardRankChartProps> = (props: CardR
           <div className={styles.subCard}>
             <Divider type="vertical" className={styles.subDiv} />
             <div className={styles.subBody}>
-              <div className={styles.subName}>亚洲</div>
+              <div className={styles.subName}>{t('chart.rank.defaultData.asia')}</div>
               <Divider type="horizontal" />
               <div
                 className={styles.subMain}
               >
                 <div>
-                  <div className={styles.subTypeName}>商品类目1</div>
+                  <div className={styles.subTypeName}>{t('chart.rank.defaultData.category_1')}</div>
                   <div className={styles.subTypeValue}>6,123</div>
                 </div>
                 <Divider type="vertical" className={styles.subMainDiv} />
                 <div>
-                  <div className={styles.subTypeName}>商品类目2</div>
+                  <div className={styles.subTypeName}>{t('chart.rank.defaultData.category_2')}</div>
                   <div className={styles.subTypeValue}>1,324</div>
                 </div>
               </div>
               <div className={styles.subFooter}>
-                <div>周同比</div>
+                <div>{t('chart.rank.defaultData.des')}</div>
                 <div>45%↑</div>
               </div>
             </div>

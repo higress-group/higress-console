@@ -1,12 +1,14 @@
 import { Card, Result } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export default function SourcePage() {
+  const { t } = useTranslation();
   return (
     <Card bordered={false}>
       <Result
         status="403"
         title=""
-        subTitle="页面开发中，即将推出..."
+        subTitle={t('misc.tbd')}
       />
     </Card>
   );

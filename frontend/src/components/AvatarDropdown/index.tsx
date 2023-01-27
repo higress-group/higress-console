@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect } from 'react';
-import { history } from 'ice';
-import { LogoutOutlined } from '@ant-design/icons';
-import { Dropdown, Menu, Avatar } from 'antd';
-import type { MenuInfo } from 'rc-menu/lib/interface';
-import styles from './index.module.css';
 import { logout } from '@/services';
 import store from '@/store';
+import { LogoutOutlined } from '@ant-design/icons';
+import { Avatar, Dropdown } from 'antd';
+import { history } from 'ice';
+import type { MenuInfo } from 'rc-menu/lib/interface';
+import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from './index.module.css';
 
 interface AvatarDropdownProps {
   name: string;
@@ -14,6 +15,8 @@ interface AvatarDropdownProps {
 
 const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   const [, userDispatcher] = store.useModel('user');
+
+  const { t } = useTranslation();
 
   const loginOut = async () => {
     await logout();
@@ -35,7 +38,7 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   const menu = {
     items: [
       {
-        key: 'logout', label: '退出登录', icon: <LogoutOutlined />, onClick: onMenuClick, className: styles.menu,
+        key: 'logout', label: t('misc.logout'), icon: <LogoutOutlined />, onClick: onMenuClick, className: styles.menu,
       },
     ],
   };
