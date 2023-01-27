@@ -1,5 +1,6 @@
 export interface ServiceItem {
   id?: string,
+  key?: string
   name: string,
   namespace: string,
   endPoints: string[],

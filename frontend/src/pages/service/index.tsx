@@ -47,7 +47,8 @@ const ServiceList: React.FC = () => {
       const _os = new Set();
       const _namespaces: Array<OptionItem> = [];
       result && result.forEach(service => {
-        const { namespace } = service;
+        const { name, namespace } = service;
+        service.key = name;
         if (!_os.has(namespace)) {
           _namespaces.push({
             label: namespace,
@@ -125,7 +126,6 @@ const ServiceList: React.FC = () => {
               <Select
                 showSearch
                 allowClear
-                defaultValue=''
                 placeholder="请输入命名空间"
                 options={namespaces}
               />

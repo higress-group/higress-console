@@ -63,6 +63,9 @@ const DomainList: React.FC = () => {
     manual: true,
     onSuccess: (result, params) => {
       const { list: _dataSource } = result;
+      _dataSource.forEach(i => {
+        i.key || (i.key = i.id || (i.name + '_' + i.protocol))
+      })
       setDataSource(_dataSource);
     },
   });
@@ -140,7 +143,7 @@ const DomainList: React.FC = () => {
           background: '#fff', 
           height: 64, 
           paddingTop: 16, 
-          marginBottom: 16, 
+          marginBottom: 16,
           paddingLeft: 16,
           paddingRight: 16,
         }}
@@ -200,5 +203,3 @@ const DomainList: React.FC = () => {
 };
 
 export default DomainList;
-
-
