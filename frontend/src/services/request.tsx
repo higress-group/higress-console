@@ -1,6 +1,6 @@
 import { Modal } from "antd";
 import axios from "axios";
-import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import { ErrorComp } from './exception';
 
 const request = axios.create({
@@ -24,31 +24,37 @@ request.interceptors.request.use((config) => {
 
 request.interceptors.response.use(
   (response) => {
-    const { status, data } = response;
+    const { status, config, data } = response;
 
     // console.log("response====", response);
-    if (status === 200 && data && data.success !== false) {
-      return Promise.resolve(response.data.data);
-    } else {
-
+    if (status === 200) {
+      if (!data) {
+        showErrorModal('Missing response data.', config);
+        return Promise.reject(response);
+      }
+      if (data.success !== false) {
+        return Promise.resolve(data.data);
+      }
+      showErrorModal(data.message, config, data.status);
+      return Promise.reject(response);
     }
     return response;
   },
   (error) => {
     // console.log("error====", error);
-
-    const { t } = useTranslation();
-
-    const { message, config } = error;
-    Modal.warning({
-      title: t('misc.error'),
-      content: <ErrorComp content={message} options={config} res={error} />,
-      okText: t('misc.close'),
-      width: 560,
-    });
-
+    const { message, config, code } = error;
+    showErrorModal(message, config, code);
     return Promise.reject(error);
   }
 );
+
+function showErrorModal(message: string, config: object, code?: number) {
+  Modal.warning({
+    title: i18next.t('misc.error'),
+    content: <ErrorComp content={message} options={config} code={code} />,
+    okText: i18next.t('misc.close'),
+    width: 560,
+  });
+}
 
 export default request;

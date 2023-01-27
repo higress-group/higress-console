@@ -23,25 +23,21 @@ public class RouterController {
     
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public Result<PageResult<Route>> list(@RequestBody CommonPageQuery<Route> query) {
-        //TODO
         return routeService.list(query);
     }
     
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Result<Route> add(@RequestBody Route route) {
-        //TODO
         return routeService.add(route);
     }
     
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public Result<Route> update(@RequestBody Route route) {
-        //TODO
         return routeService.update(route);
     }
     
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
     public Result<Route> delete(@RequestParam("name") String name) {
-        //TODO
         return routeService.delete(name);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +22,11 @@ public class DomainController {
     
     //FIXME mock datasource
     private ConcurrentHashMap<String, Domain> mockData = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void initialize() {
+        mockData.put("www.test.com", Domain.builder().id(1L).name("www.test.com").build());
+    }
     
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public Result<PageResult<Domain>> list(@RequestBody CommonPageQuery<Domain> query) {
@@ -28,7 +34,7 @@ public class DomainController {
         int count = mockData.size();
         List<Domain> list = new ArrayList<>(mockData.values());
         
-        return Result.successPageReturn(list, query.getPageNumber(), query.getPageSize(), (int)count);
+        return Result.successPageReturn(list, query.getPageNumber(), query.getPageSize(), count);
     }
     
     @RequestMapping(value = "/add", method = RequestMethod.POST)

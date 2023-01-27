@@ -61,10 +61,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const _queryPredicates = queryPredicates && queryPredicates.map((query) => {
         return { ...query, uid: uniqueId() };
       });
-      form.setFieldsValue({ 
-        name, 
+      form.setFieldsValue({
+        name,
         domainList,
-        pathPredicates: { type, path, ignoreCase: ignoreCase ? [] : ['ignore'] },
+        pathPredicates: { type, path, ignoreCase: ignoreCase === true ? ['ignore'] : [] },
         methodPredicates,
         headerPredicates: _headerPredicates,
         queryPredicates: _queryPredicates,
@@ -83,10 +83,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       form={form}
       layout="vertical"
     >
-      <Form.Item 
+      <Form.Item
         label={t('route.routeForm.routeName')}
-        required 
-        name='name' 
+        required
+        name='name'
         tooltip={t('route.routeForm.routeNameTip')}
         rules={[
           {
@@ -99,17 +99,17 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           disabled={value}
-          maxLength={63} 
+          maxLength={63}
           placeholder={t('route.routeForm.routeNamePlaceholder')}
         />
       </Form.Item>
-      <Form.Item 
+      <Form.Item
         label={t('route.routeForm.domain')}
-        required 
+        required
         name='domainList'
         rules={[
-          { 
-            required: true, 
+          {
+            required: true,
             message: t('route.routeForm.domainRequired')
           }
         ]}
@@ -122,9 +122,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           options={domainOptions}
         />
       </Form.Item>
-      <Form.Item 
+      <Form.Item
         label={t('route.routeForm.fitType')}
-        required 
+        required
         tooltip={t('route.routeForm.fitTypeTooltip')}
       >
         <Form.Item label={t('route.routeForm.path')} required>
@@ -133,13 +133,13 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               name={['pathPredicates', 'type']}
               noStyle
               rules={[
-                { 
-                  required: true, 
+                {
+                  required: true,
                   message: t('route.routeForm.pathPredicatesRequired')
                 }
               ]}
             >
-              <Select 
+              <Select
                 style={{ width: '20%' }}
                 placeholder={t('route.routeForm.fitType')}
               >
@@ -152,8 +152,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               name={['pathPredicates', 'path']}
               noStyle
               rules={[
-                { 
-                  required: true, 
+                {
+                  required: true,
                   message: t('route.routeForm.pathMatcherRequired')
                 }
               ]}
@@ -164,10 +164,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               name={['pathPredicates', 'ignoreCase']}
               noStyle
             >
-              <Checkbox.Group 
+              <Checkbox.Group
                 options={[
                   {
-                    label: t('route.routeForm.caseSensitive'), value: 'ignore'
+                    label: t('route.routeForm.caseInsensitive'), value: 'ignore'
                   }
                 ]}
                 style={{ width: '18%', display: 'inline-flex', marginLeft: 12, marginTop: 4 }}
@@ -175,7 +175,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             </Form.Item>
           </Input.Group>
         </Form.Item>
-        <Form.Item 
+        <Form.Item
           label={t('route.routeForm.method')}
           name='methodPredicates'
         >
@@ -187,27 +187,27 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             options={MethodOptions}
           />
         </Form.Item>
-        <Form.Item 
+        <Form.Item
           label={t('route.routeForm.header')}
-          name='headerPredicates' 
+          name='headerPredicates'
           tooltip={t('route.routeForm.headerTooltip')}
         >
           <FactorGroup />
         </Form.Item>
-        <Form.Item 
+        <Form.Item
           label={t('route.routeForm.query')}
-          name='queryPredicates' 
+          name='queryPredicates'
           tooltip={t('route.routeForm.queryTooltip')}
         >
           <FactorGroup />
         </Form.Item>
-        <Form.Item 
+        <Form.Item
           label={t('route.routeForm.targetService')}
-          required 
+          required
           name='services'
           rules={[
-            { 
-              required: true, 
+            {
+              required: true,
               message: t('route.routeForm.targetServiceRequired')
             }
           ]}
