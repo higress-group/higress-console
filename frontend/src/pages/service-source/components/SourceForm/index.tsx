@@ -47,18 +47,18 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         label="注册中心类型"
         required
         name='type'
-        tooltip="注册中心类型，可选项：nacos,nacos2,zookeeper,consul,eureka"
+        tooltip="注册中心类型，可选项：nacos,nacos2.x,zookeeper"
       >
         <Select
           allowClear
           placeholder="请选择类型"
           onChange={(v) => setSourceType(v)}
         >
-          <Option value="nacos2">nacos2</Option>
+          <Option value="nacos2">nacos2.x</Option>
           <Option value="nacos">nacos</Option>
           <Option value="zookeeper">zookeeper</Option>
-          <Option value="consul">consul</Option>
-          <Option value="eureka">eureka</Option>
+          {/* <Option value="consul">consul</Option>
+          <Option value="eureka">eureka</Option> */}
         </Select>
       </Form.Item>
       <Form.Item

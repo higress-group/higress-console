@@ -14,7 +14,7 @@ import { SourceItem, SourceResponse } from '@/interfaces/source';
 export const getServiceSources = (
   payload: any = { }
 ) : Promise<SourceResponse> => {
-  return request.post<any, SourceResponse>("/v1/service-sources/list", payload);
+  return request.get<any, SourceResponse>("/v1/service-sources", payload);
 };
 
 /**
@@ -25,7 +25,7 @@ export const getServiceSources = (
 export const addServiceSources = (
   payload: SourceItem
 ) : Promise<any> => {
-  return request.post<any, any>("/v1/service-sources/add", payload);
+  return request.post<any, any>(`/v1/service-sources/${payload.name}`, payload);
 };
 
 /**
@@ -36,7 +36,7 @@ export const addServiceSources = (
 export const deleteServiceSources = (
   payload: { name: string | undefined }
 ) : Promise<any> => {
-  return request.get<any, any>("/v1/service-sources/delete", {
+  return request.delete<any, any>(`/v1/service-sources/${payload.name}`, {
     params: payload
   });
 };
@@ -49,5 +49,5 @@ export const deleteServiceSources = (
 export const updateServiceSources = (
   payload: SourceItem
 ) : Promise<any> => {
-  return request.post<any, any>("/v1/service-sources/update", payload);
+  return request.post<any, any>(`/v1/service-sources/${payload.name}`, payload);
 };

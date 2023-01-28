@@ -31,7 +31,7 @@ export interface SourceFormProps {
  * Service Source Get List Request Response
  */
 export interface SourceResponse {
-  list: SourceItem[],
+  data: SourceItem[],
   pageNumber: number,
   pageSize: number,
   totalSize: number,

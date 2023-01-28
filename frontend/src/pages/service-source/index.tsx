@@ -61,7 +61,7 @@ const SourceList: React.FC = () => {
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
     onSuccess: (result, params) => {
-      const { list: _dataSource } = result;
+      const { data: _dataSource } = result;
       _dataSource.forEach(i => {
         i.key || (i.key = i.id || (i.name + '_' + i.type))
       })
