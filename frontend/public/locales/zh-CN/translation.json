@@ -1,0 +1,197 @@
+{
+  "menu": {
+    "serviceSources": "服务来源",
+    "serviceList": "服务列表",
+    "routeConfig": "路由配置",
+    "domainManagement": "域名管理"
+  },
+  "index": {
+    "title": "Higress Console"
+  },
+  "login": {
+    "title": "登录",
+    "loginSuccess": "登录成功！'",
+    "loginFailed": "登录失败，请重试！",
+    "incorrectCredentials": "账户或密码错误(admin/ice)",
+    "autoLogin": "自动登录",
+    "forgotPassword": "忘记密码",
+    "usernamePlaceholder": "用户名: admin or user",
+    "usernameRequired": "请输入用户名！",
+    "passwordPlaceholder": "密码: ice",
+    "passwordRequired": "请输入密码！"
+  },
+  "domain": {
+    "columns": {
+      "name": "域名",
+      "protocol": "协议",
+      "certificate": "证书",
+      "action": "操作"
+    },
+    "createDomain": "创建域名",
+    "deleteConfirmation": "确定删除 <1>{{currentDomainName}}</1> 吗？",
+    "domainForm": {
+      "name": "域名",
+      "nameTooltip": "支持完整域名（例如：hello.com）或模糊域名（例如：*.hello.com），独立管理该域名的协议及证书，且域名能将路由配置相互隔离",
+      "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "protocol": "协议",
+      "protocolTooltip": "目前支持HTTP（80端口）和HTTPS（443端口）协议，HTTPS协议必须关联SSL证书",
+      "protocolRequired": "请选择协议",
+      "protocolPlaceholder": "请选择协议",
+      "certificate": "证书",
+      "certificateTooltip": "目前支持阿里云SSL证书服务上的证书",
+      "certificateRequired": "请输入证书",
+      "certificatePlaceholder": "请输入证书",
+      "mustHttps": "是否强制HTTPS",
+      "mustHttpsTooltip": "目前支持阿里云SSL证书服务上的证书",
+      "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）"
+    }
+  },
+  "service": {
+    "columns": {
+      "name": "服务名称",
+      "namespace": "命名空间",
+      "endpoints": "服务地址"
+    },
+    "namePlaceholder": "请输入服务名称",
+    "namespacePlaceholder": "请输入命名空间"
+  },
+  "serviceSource": {},
+  "route": {
+    "columns": {
+      "name": "路由名称",
+      "routePredicates": "路由条件",
+      "services": "目标服务",
+      "action": "操作"
+    },
+    "fitTypes": {
+      "PRE": "前缀匹配",
+      "EQUAL": "精确匹配",
+      "REGULAR": "正则匹配"
+    },
+    "createRoute": "创建路由",
+    "editRoute": "编辑路由",
+    "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
+    "factorGroup": {
+      "columns": {
+        "key": "Key",
+        "type": "条件",
+        "value": "值",
+        "operation": "操作"
+      },
+      "parameter": "参数"
+    },
+    "routeForm": {
+      "routeName": "路由名称",
+      "routeNameTip": "推荐结合业务场景命名，例如user-default、user-gray等",
+      "routeNameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
+      "routeNamePlaceholder": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
+      "domain": "域名",
+      "domainRequired": "请选择域名",
+      "domainSearchPlaceholder": "搜索域名名称域名",
+      "fitType": "匹配规则",
+      "fitTypeTooltip": "规则之间是“与”关系，即填写的规则越多匹配的范围越小",
+      "path": "路径（Path）",
+      "pathPredicatesRequired": "请选择路径匹配规则",
+      "pathMatcherRequired": "请输入路径匹配值",
+      "pathMatcherPlacedholder": "路径匹配值，如：/user",
+      "caseSensitive": "大小写敏感",
+      "method": "方法（Method）",
+      "methodMatcherPlaceholder": "方法匹配值，可多选，不填则匹配所有的HTTP方法",
+      "header": "请求头（Header）",
+      "headerTooltip": "多个参数之间是“与”关系",
+      "query": "请求参数（Query）",
+      "queryTooltip": "多个参数之间是“与”关系",
+      "targetService": "目标服务",
+      "targetServiceRequired": "请选择目标服务",
+      "targetServiceNamedPlaceholder": "搜索服务名称选择服务"
+    }
+  },
+  "chart": {
+    "area": {
+      "defaultData": {
+        "subTitle": "访问量",
+        "des": "周同比："
+      }
+    },
+    "bar": {
+      "defaultData": {
+        "subTitle": "总销售额",
+        "des": "周同比："
+      }
+    },
+    "groupBar": {
+      "defaultData": {
+        "title": "消费数据",
+        "category_1": "品类一",
+        "category_2": "品类二",
+        "category_3": "品类三",
+        "category_4": "品类四",
+        "category_5": "品类五",
+        "shop_1": "门店一",
+        "shop_2": "门店二",
+        "shop_3": "门店三"
+      }
+    },
+    "line": {
+      "defaultData": {
+        "subTitle": "门店活动效果",
+        "des": "周同比："
+      }
+    },
+    "pie": {
+      "defaultData": {
+        "title": "销售额类别占比",
+        "sample_1": "事例一",
+        "sample_2": "事例二",
+        "sample_3": "事例三",
+        "sample_4": "事例四",
+        "sample_5": "事例五"
+      },
+      "category_1": "类目一",
+      "category_2": "类目二",
+      "category_3": "类目三"
+    },
+    "rank": {
+      "defaultData": {
+        "title": "区域销售",
+        "asia": "亚洲",
+        "europe": "欧洲",
+        "africa": "非洲",
+        "america": "美洲",
+        "category_1": "商品类目1",
+        "category_2": "商品类目2",
+        "des": "周同比"
+      }
+    },
+    "typebar": {
+      "defaultData": {
+        "subTitle": "商品销售",
+        "des": "周同比："
+      }
+    }
+  },
+  "exception": {
+    "info": "错误详情（错误码：<1>{{code}}</1>）"
+  },
+  "error": {
+    "404": {
+      "title": "404",
+      "subTitle": "你访问的页面不存在"
+    }
+  },
+  "misc": {
+    "language": "语言",
+    "logout": "退出登录",
+    "confirm": "确定",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "search": "查询",
+    "reset": "重置",
+    "return": "返回",
+    "error": "错误",
+    "close": "关闭",
+    "tbd": "页面开发中，即将推出..."
+  }
+}

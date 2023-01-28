@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Col, Form, Input, Row, Select, Button, Modal, Space, Drawer } from 'antd';
-import { getGatewayDomain, addGatewayDomain, deleteGatewayDomain, updateGatewayDoamin } from '@/services';
 import { DomainItem, DomainResponse } from '@/interfaces/domain';
+import { addGatewayDomain, deleteGatewayDomain, getGatewayDomain, updateGatewayDoamin } from '@/services';
+import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import { uniqueId } from "lodash";
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
 
 interface DomainFormProps {
@@ -15,36 +16,37 @@ interface DomainFormProps {
   mustHttps?: Array<any>,
 }
 
-
 const DomainList: React.FC = () => {
+  const { t } = useTranslation();
+
   const columns = [
     {
-      title: '域名',
+      title: t('domain.columns.name'),
       dataIndex: 'name',
       key: 'name',
       ellipsis: true,
     },
     {
-      title: '协议',
+      title: t('domain.columns.protocol'),
       dataIndex: 'protocol',
       key: 'protocol',
     },
     {
-      title: '证书',
+      title: t('domain.columns.certificate'),
       dataIndex: 'certIdentifier',
       key: 'certIdentifier',
       render: (value) => (value || '-'),
     },
     {
-      title: '操作',
+      title: t('domain.columns.action'),
       dataIndex: 'action',
       key: 'action',
       width: 140,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditDrawer(record)}>编辑</a>
-          <a onClick={() => onShowModal(record)}>删除</a>
+          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
       ),
     },
@@ -73,7 +75,6 @@ const DomainList: React.FC = () => {
   useEffect(() => {
     run({});
   }, []);
-
 
   const onEditDrawer = (domain: DomainItem) => {
     setCurrentDomain(domain);
@@ -134,7 +135,6 @@ const DomainList: React.FC = () => {
     setCurrentDomain(null);
   };
 
-
   return (
     <PageContainer>
       <Form
@@ -154,7 +154,7 @@ const DomainList: React.FC = () => {
               type="primary"
               onClick={onShowDrawer}
             >
-              创建域名
+              {t('domain.createDomain')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
@@ -172,25 +172,29 @@ const DomainList: React.FC = () => {
         pagination={false}
       />
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }}/>删除</div>}
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }}/>{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
         onCancel={handleModalCancel}
       >
-        <p>确定删除 <span style={{ color: '#0070cc' }}>{ (currentDomain && currentDomain.name) || ''} </span>吗？</p>
+        <p>
+          <Trans t={t} i18nKey="domain.deleteConfirmation">
+            确定删除 <span style={{ color: '#0070cc' }}>{{currentDomainName: (currentDomain && currentDomain.name) || ''}}</span> 吗？
+          </Trans>
+        </p>
       </Modal>
       <Drawer
-        title="创建域名"
+        title={t('domain.createDomain')}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}
         extra={
           <Space>
-            <Button onClick={handleDrawerCancel}>取消</Button>
+            <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
             <Button type="primary" onClick={handleDrawerOK}>
-              确定
+              {t('misc.confirm')}
             </Button>
           </Space>
         }

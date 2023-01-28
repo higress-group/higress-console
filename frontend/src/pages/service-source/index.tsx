@@ -7,8 +7,10 @@ import { SourceFormProps, SourceFormRef, SourceItem, SourceResponse } from '@/in
 import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/source';
 import { uniqueId } from "lodash";
 import SourceForm from './components/SourceForm';
+import { useTranslation } from 'react-i18next';
 
 const SourceList: React.FC = () => {
+  const { t } = useTranslation();
   const columns = [
     {
       title: '注册中心类型',

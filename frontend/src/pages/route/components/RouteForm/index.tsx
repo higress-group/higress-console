@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { Form, Input, Select, Checkbox } from 'antd';
-import FactorGroup from '../FactorGroup';
-import { getGatewayServices, getGatewayDomain } from '@/services';
-import { useRequest } from 'ahooks';
-import { OptionItem } from '@/interfaces/service';
 import { DomainResponse } from '@/interfaces/domain';
+import { OptionItem } from '@/interfaces/service';
+import { getGatewayDomain, getGatewayServices } from '@/services';
+import { useRequest } from 'ahooks';
+import { Checkbox, Form, Input, Select } from 'antd';
 import { uniqueId } from "lodash";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import FactorGroup from '../FactorGroup';
 
 const { Option } = Select;
 const MethodOptions = [
@@ -21,6 +22,7 @@ const MethodOptions = [
 ];
 
 const RouteForm: React.FC = forwardRef((props, ref) => {
+  const { t } = useTranslation();
 
   const { value } = props;
   const [form] = Form.useForm();
@@ -82,14 +84,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       layout="vertical"
     >
       <Form.Item 
-        label="路由名称" 
+        label={t('route.routeForm.routeName')}
         required 
         name='name' 
-        tooltip="推荐结合业务场景命名，例如user-default、user-gray等"
+        tooltip={t('route.routeForm.routeNameTip')}
         rules={[
           {
             required: true,
-            message: '包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾',
+            message: t('route.routeForm.routeNameRequired')
           },
         ]}
       >
@@ -98,17 +100,17 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           allowClear
           disabled={value}
           maxLength={63} 
-          placeholder="包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾" 
+          placeholder={t('route.routeForm.routeNamePlaceholder')}
         />
       </Form.Item>
       <Form.Item 
-        label="域名" 
+        label={t('route.routeForm.domain')}
         required 
         name='domainList'
         rules={[
           { 
             required: true, 
-            message: '请选择域名' 
+            message: t('route.routeForm.domainRequired')
           }
         ]}
       >
@@ -116,16 +118,16 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           showSearch
           allowClear
           mode="multiple"
-          placeholder="搜索域名名称域名"
+          placeholder={t('route.routeForm.domainSearchPlaceholder')}
           options={domainOptions}
         />
       </Form.Item>
       <Form.Item 
-        label="匹配规则" 
+        label={t('route.routeForm.fitType')}
         required 
-        tooltip="规则之间是“与”关系，即填写的规则越多匹配的范围越小"
+        tooltip={t('route.routeForm.fitTypeTooltip')}
       >
-        <Form.Item label="路径（Path）" required>
+        <Form.Item label={t('route.routeForm.path')} required>
           <Input.Group compact>
             <Form.Item
               name={['pathPredicates', 'type']}
@@ -133,17 +135,17 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 { 
                   required: true, 
-                  message: '请选择路径匹配规则' 
+                  message: t('route.routeForm.pathPredicatesRequired')
                 }
               ]}
             >
               <Select 
                 style={{ width: '20%' }}
-                placeholder="匹配规则"
+                placeholder={t('route.routeForm.fitType')}
               >
-                <Option value="PRE">前缀匹配</Option>
-                <Option value="EQUAL">精确匹配</Option>
-                <Option value="ERGULAR">正则匹配</Option>
+                <Option value="PRE">{t('route.fitTypes.PRE')}</Option>
+                <Option value="EQUAL">{t('route.fitTypes.EQUAL')}</Option>
+                <Option value="REGULAR">{t('route.fitTypes.REGULAR')}</Option>
               </Select>
             </Form.Item>
             <Form.Item
@@ -152,11 +154,11 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 { 
                   required: true, 
-                  message: '请输入路径匹配值' 
+                  message: t('route.routeForm.pathMatcherRequired')
                 }
               ]}
             >
-              <Input style={{ width: '60%' }} placeholder="路径匹配值，如：/user" />
+              <Input style={{ width: '60%' }} placeholder={t('route.routeForm.pathMatcherPlacedholder')} />
             </Form.Item>
             <Form.Item
               name={['pathPredicates', 'ignoreCase']}
@@ -165,7 +167,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               <Checkbox.Group 
                 options={[
                   {
-                    label: '大小写敏感', value: 'ignore'
+                    label: t('route.routeForm.caseSensitive'), value: 'ignore'
                   }
                 ]}
                 style={{ width: '18%', display: 'inline-flex', marginLeft: 12, marginTop: 4 }}
@@ -174,46 +176,46 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           </Input.Group>
         </Form.Item>
         <Form.Item 
-          label="方法（Method）" 
+          label={t('route.routeForm.method')}
           name='methodPredicates'
         >
           <Select
             mode="multiple"
             allowClear
             style={{ width: '100%' }}
-            placeholder="方法匹配值，可多选，不填则匹配所以的HTTP方法"
+            placeholder={t('route.routeForm.methodMatcherPlaceholder')}
             options={MethodOptions}
           />
         </Form.Item>
         <Form.Item 
-          label="请求头（Header）" 
+          label={t('route.routeForm.header')}
           name='headerPredicates' 
-          tooltip="多个参数之间是“与”关系"
+          tooltip={t('route.routeForm.headerTooltip')}
         >
           <FactorGroup />
         </Form.Item>
         <Form.Item 
-          label="请求参数（Query）" 
+          label={t('route.routeForm.query')}
           name='queryPredicates' 
-          tooltip="多个参数之间是“与”关系"
+          tooltip={t('route.routeForm.queryTooltip')}
         >
           <FactorGroup />
         </Form.Item>
         <Form.Item 
-          label="目标服务" 
+          label={t('route.routeForm.targetService')}
           required 
           name='services'
           rules={[
             { 
               required: true, 
-              message: '请选择目标服务' 
+              message: t('route.routeForm.targetServiceRequired')
             }
           ]}
         >
           <Select
             showSearch
             allowClear
-            placeholder="搜索服务名称选择服务"
+            placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
             options={serviceOptions}
           />
         </Form.Item>

@@ -1,18 +1,21 @@
-import { history } from 'ice';
 import { Button, Result } from 'antd';
+import { history } from 'ice';
 import React from 'react';
 
-const NoFoundPage: React.FC = () => (
-  <Result
+import { useTranslation } from 'react-i18next';
+
+const NoFoundPage: React.FC = () => {
+  const { t } = useTranslation();
+  return <Result
     status="404"
-    title="404"
-    subTitle="你访问的页面不存在"
+    title={t('error.404.title')}
+    subTitle={t('error.404.subTitle')}
     extra={
       <Button type="primary" onClick={() => history?.push('/dashboard')}>
-        返回
+        {t('misc.return')}
       </Button>
     }
   />
-);
+};
 
 export default NoFoundPage;

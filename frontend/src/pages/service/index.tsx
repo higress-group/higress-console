@@ -1,31 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Col, Form, Input, Row, Select, Button } from 'antd';
+import { OptionItem, ServiceFactor, ServiceItem } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
-import { ServiceItem, ServiceFactor, OptionItem } from '@/interfaces/service';
-import { useRequest } from 'ahooks';
 import { RedoOutlined } from '@ant-design/icons';
-
+import { PageContainer } from '@ant-design/pro-layout';
+import { useRequest } from 'ahooks';
+import { Button, Col, Form, Input, Row, Select, Table } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ServiceList: React.FC = () => {
+  const { t } = useTranslation();
+
   const columns = [
     {
-      title: '服务名称',
+      title: t('service.columns.name'),
       dataIndex: 'name',
       key: 'name',
       width: 350,
       ellipsis: true,
     },
     {
-      title: '命名空间',
+      title: t('service.columns.namespace'),
       dataIndex: 'namespace',
       key: 'namespace',
       width: 200
     },
     {
-      title: '服务地址',
-      dataIndex: 'endPoints',
-      key: 'endPoints',
+      title: t('service.columns.endpoints'),
+      dataIndex: 'endpoints',
+      key: 'endpoints',
       ellipsis: true,
       render: (value) => {
         return value && value.join(',') || '-';
@@ -38,7 +40,7 @@ const ServiceList: React.FC = () => {
   const servicesRef = useRef<ServiceItem[] | null>();
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
+
   const getServiceList = async (factor: ServiceFactor): Promise<ServiceItem[]> => (getGatewayServices(factor));
 
   const { loading, run, refresh } = useRequest(getServiceList, {
@@ -72,10 +74,10 @@ const ServiceList: React.FC = () => {
     setIsLoading(true);
     const factor = {};
     const { name, namespace } = values;
-    let _dataSource: ServiceItem[]  = servicesRef.current as ServiceItem[];
+    let _dataSource: ServiceItem[] = servicesRef.current as ServiceItem[];
     if (name) {
       Object.assign(factor, { name });
-      _dataSource =_dataSource && _dataSource.filter((service: ServiceItem) => {
+      _dataSource = _dataSource && _dataSource.filter((service: ServiceItem) => {
         const { name: _name } = service;
         return _name.indexOf(name) > -1;
       });
@@ -97,36 +99,36 @@ const ServiceList: React.FC = () => {
     <PageContainer>
       <Form
         form={form}
-        style={{ 
-          background: '#fff', 
-          height: 64, 
-          paddingTop: 16, 
-          marginBottom: 16, 
-          paddingLeft: 16, 
-          paddingRight: 16 
+        style={{
+          background: '#fff',
+          height: 64,
+          paddingTop: 16,
+          marginBottom: 16,
+          paddingLeft: 16,
+          paddingRight: 16
         }}
       >
         <Row gutter={24}>
           <Col span={6}>
             <Form.Item
-              label="服务名称"
+              label={t('service.columns.name')}
               name="name"
             >
               <Input
                 allowClear
-                placeholder="请输入服务名称"
+                placeholder={t('service.namePlaceholder')}
               />
             </Form.Item>
           </Col>
           <Col span={6}>
             <Form.Item
-              label="命名空间"
+              label={t('service.columns.namespace')}
               name="namespace"
             >
               <Select
                 showSearch
                 allowClear
-                placeholder="请输入命名空间"
+                placeholder={t('service.namespacePlaceholder')}
                 options={namespaces}
               />
             </Form.Item>
@@ -136,13 +138,13 @@ const ServiceList: React.FC = () => {
               type="primary"
               onClick={onSearch}
             >
-              查询
+              {t('misc.search')}
             </Button>
             <Button
               style={{ margin: '0 8px' }}
               onClick={onReset}
             >
-              重置
+              {t('misc.reset')}
             </Button>
             <Button
               icon={<RedoOutlined />}
@@ -162,4 +164,3 @@ const ServiceList: React.FC = () => {
 };
 
 export default ServiceList;
-
