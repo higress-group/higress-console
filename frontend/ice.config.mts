@@ -7,6 +7,11 @@ import auth from '@ice/plugin-auth';
 export default defineConfig(() => ({
   ssr: false,
   ssg: false,
+  routes: {
+    defineRoutes: (route) => {
+      route('*', '404.tsx');
+    },
+  },
   proxy: {
     '/api': {
       target: 'http://47.117.68.79/',
