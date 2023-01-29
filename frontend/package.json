@@ -34,7 +34,8 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development && ice start",
-    "build": "cross-env NODE_ENV=production && ice build"
+    "build": "cross-env NODE_ENV=production && ice build",
+    "build-dev": "cross-env NODE_ENV=development && ice build"
   },
   "private": true,
   "originTemplate": "@ice/antd-pro-scaffold"
