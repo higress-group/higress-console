@@ -4,7 +4,7 @@ public enum RoutePredicatesTypeEnum {
 
     EQUAL("exact", 0),
     PRE("prefix", 1),
-    ERGULAR("regex", 2);
+    REGULAR("regex", 2);
 
     private String desc;
 

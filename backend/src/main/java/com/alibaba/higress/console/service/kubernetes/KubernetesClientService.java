@@ -8,9 +8,12 @@ import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.CustomObjectsApi;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Strings;
@@ -28,6 +31,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,10 +40,7 @@ import java.util.Map;
 public class KubernetesClientService {
 
     private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io";
-    private static final String ISTIO_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
-    private static final String INGRESS_GROUP = "networking.k8s.io";
-    private static final String INGRESS_VERSION = "v1";
-    private static final String INGRESS_PLURAL = "ingresses";
+    private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
 
     private ApiClient client;
 
@@ -48,20 +49,23 @@ public class KubernetesClientService {
     @Value("${deploy.inCluster:}")
     private Boolean inCluster;
 
-    @Value("${istio.serviceName:" + CommonKey.HIGRESS_ISTIOD_DEFAULT + "}")
-    private String istioServiceName;
+    @Value("${" + CommonKey.HIGRESS_KUBE_CONFIG_KEY + ":}")
+    private String kubeConfig;
 
-    @Value("${istio.namespace:" + CommonKey.HIGRESS_ISTIOD_NS_DEFAULT + "}")
-    private String istioNamespace;
+    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_DEFAULT + "}")
+    private String controllerServiceName = CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_DEFAULT;
 
-    @Value("${istio.serviceHost:localhost}")
-    private String istioServiceHost;
+    @Value("${" + CommonKey.HIGRESS_NS_KEY + ":" + CommonKey.HIGRESS_NS_DEFAULT + "}")
+    private String controllerNamespace = CommonKey.HIGRESS_NS_DEFAULT;
 
-    @Value("${istio.servicePort:15014}")
-    private int istioServicePort;
+    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_DEFAULT + "}")
+    private String controllerServiceHost = CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_DEFAULT;
 
-    @Value("${istio.accessToken:}")
-    private String istioAccessToken;
+    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_DEFAULT + "}")
+    private int controllerServicePort = CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_DEFAULT;
+
+    @Value("${" + CommonKey.HIGRESS_CONTROLLER_ACCESS_TOKEN_KEY + ":}")
+    private String controllerAccessToken;
 
     @PostConstruct
     public void init() throws IOException {
@@ -69,15 +73,15 @@ public class KubernetesClientService {
             client = ClientBuilder.cluster().build();
             log.info("init KubernetesClientService InCluster");
         } else {
-            String kubeConfigPath = CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
-            client =
-                    ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
+            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
+            try (FileReader reader = new FileReader(kubeConfigPath)) {
+                client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
+            }
             log.info("init KubernetesClientService LoadKubeConfig");
         }
     }
 
     public boolean checkHigress() throws ApiException {
-
         CoreV1Api api = new CoreV1Api(client);
         V1NamespaceList list = api.listNamespace(null, null, null, null, null, null, null, null, null, null);
         for (V1Namespace item : list.getItems()) {
@@ -88,8 +92,7 @@ public class KubernetesClientService {
         return false;
     }
 
-    public String checkIstioService() {
-
+    public String checkControllerService() {
 //        try {
 //            Configuration.setDefaultApiClient(client);
 //            CoreV1Api api = new CoreV1Api();
@@ -103,12 +106,11 @@ public class KubernetesClientService {
 //        } catch (Exception e) {
 //            log.error("CheckIstioService fail use default ", e);
 //        }
-        return inCluster ? istioServiceName + "." + istioNamespace : istioServiceHost;
+        return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
     }
 
     public List<RegistryzService> gatewayServiceList() throws ApiException, IOException {
-
-        Request request = buildIstioRequest("/debug/registryz");
+        Request request = buildControllerRequest("/debug/registryz");
         log.info("gatewayServiceList url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
             if (response.body() != null) {
@@ -124,8 +126,7 @@ public class KubernetesClientService {
     }
 
     public Map<String, Map<String, IstioEndpointShard>> gatewayServiceEndpoint() throws ApiException, IOException {
-
-        Request request = buildIstioRequest("/debug/endpointShardz");
+        Request request = buildControllerRequest("/debug/endpointShardz");
         log.info("gatewayServiceEndpoint url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
             if (response.body() != null) {
@@ -142,39 +143,21 @@ public class KubernetesClientService {
     }
 
     public boolean checkInCluster() {
-
         if (inCluster == null) {
             inCluster = new File(POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH).exists();
         }
         return inCluster;
     }
 
-    /**
-     * use <a href="https://github.com/kubernetes-client/java/blob/master/kubernetes/docs/CustomObjectsApi.md">CustomObjectsApi</a>
-     */
-    public Object getIngress(String name) {
-
-        CustomObjectsApi apiInstance = new CustomObjectsApi(client);
+    public List<V1Ingress> listIngress() {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         try {
-            Object result = apiInstance.getClusterCustomObject(INGRESS_GROUP, INGRESS_VERSION, INGRESS_PLURAL, name);
-            //TODO
-            return result;
-
-        } catch (ApiException e) {
-            log.error("getIngress Status code: " + e.getCode()
-                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
-        }
-    }
-
-    public Object listIngress() {
-
-        CustomObjectsApi apiInstance = new CustomObjectsApi(client);
-        try {
-            Object result = apiInstance.listClusterCustomObject(INGRESS_GROUP, INGRESS_VERSION, INGRESS_PLURAL,
+            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace,
                     null, null, null, null, null, null, null, null, null, null);
-            //TODO
-            return result;
+            if (list == null) {
+                return Collections.emptyList();
+            }
+            return list.getItems();
         } catch (ApiException e) {
             log.error("listIngress Status code: " + e.getCode()
                     + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
@@ -182,10 +165,40 @@ public class KubernetesClientService {
         }
     }
 
-    private Request buildIstioRequest(String path) throws IOException {
+    public V1Ingress getIngress(String name) {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        try {
+            return apiInstance.readNamespacedIngress(name, controllerNamespace, null);
+        } catch (ApiException e) {
+            log.error("getIngress Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
 
-        String istioServiceUrl = checkIstioService();
-        String url = "http://" + istioServiceUrl + ":" + istioServicePort + path;
+    public V1Ingress addIngress(V1Ingress ingress) throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        return apiInstance.createNamespacedIngress(controllerNamespace, ingress, null, null, null, null);
+    }
+
+    public V1Ingress updateIngress(V1Ingress ingress) throws ApiException {
+        V1ObjectMeta metadata = ingress.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("ingress doesn't have a valid metadata.");
+        }
+        metadata.setNamespace(controllerNamespace);
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        return apiInstance.replaceNamespacedIngress(metadata.getName(), metadata.getNamespace(), ingress, null, null, null, null);
+    }
+
+    public void deleteIngress(String name) throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        apiInstance.deleteNamespacedIngress(name, controllerNamespace, null, null, null, null, null, null);
+    }
+
+    private Request buildControllerRequest(String path) throws IOException {
+        String istioServiceUrl = checkControllerService();
+        String url = "http://" + istioServiceUrl + ":" + controllerServicePort + path;
         Request.Builder builder = new Request.Builder().url(url);
         String token = checkInCluster() ? readTokenFromFile() : getTokenFromConfiguration();
         if (!Strings.isNullOrEmpty(token)) {
@@ -195,13 +208,10 @@ public class KubernetesClientService {
     }
 
     private String readTokenFromFile() throws IOException {
-
-        return FileUtils.readFileToString(new File(ISTIO_SERVICE_ACCOUNT_TOKEN_FILE_PATH), Charset.defaultCharset());
+        return FileUtils.readFileToString(new File(CONTROLLER_ACCESS_TOKEN_FILE_PATH), Charset.defaultCharset());
     }
 
     private String getTokenFromConfiguration() {
-
-        return istioAccessToken;
+        return controllerAccessToken;
     }
-
 }

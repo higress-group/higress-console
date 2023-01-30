@@ -1,9 +1,9 @@
-import React, { useState } from "react";
 import { RightOutlined } from '@ant-design/icons';
-import { get } from 'lodash';
-import { useTranslation, Trans } from 'react-i18next';
+import { get, isNil } from 'lodash';
+import { useState } from "react";
+import { Trans, useTranslation } from 'react-i18next';
 
-export const ErrorComp = ({ content, options, res }) => {
+export const ErrorComp = ({ content, options, code }) => {
   const { t } = useTranslation();
 
   const [isShow, setIsShow] = useState(false);
@@ -11,11 +11,11 @@ export const ErrorComp = ({ content, options, res }) => {
     <div style={{ lineHeight: '20px', width: 420, fontSize: 12 }}>
       <div>{content}</div>
       {
-        options && res && (
+        (
           <div>
             <span>
               <Trans t={t} i18nKey="exception.info">
-                错误详情（错误码：<span style={{ color: '#0077cc' }}>{{code: res && res.code}}</span>）
+                错误详情（错误码：<span style={{ color: '#0077cc' }}>{{code : !isNil(code) ? code : 'N/A'}}</span>）
               </Trans>
             </span>
             <RightOutlined
@@ -31,7 +31,7 @@ export const ErrorComp = ({ content, options, res }) => {
         )
       }
       {
-        isShow && (
+        isShow && options && (
           <div style={{ lineHeight: '20px' }}>
             {
               get(options, 'method') && (
