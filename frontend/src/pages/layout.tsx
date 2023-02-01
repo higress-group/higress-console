@@ -2,6 +2,7 @@ import logo from '@/assets/logo.png';
 import AvatarDropdown from '@/components/AvatarDropdown';
 import Footer from '@/components/Footer';
 import LanguageDropdown from '@/components/LanguageDropdown';
+import Navbar from '@/components/Navbar';
 import { asideMenuConfig } from '@/menuConfig';
 import store from '@/store';
 import ProLayout from '@ant-design/pro-layout';
@@ -29,7 +30,8 @@ export default function Layout() {
       }}
       layout="mix"
       rightContentRender={() => (
-        <div style={{display: 'flex'}}>
+        <div style={{display: 'flex', alignItems: 'center'}}>
+          <Navbar/>
           <LanguageDropdown />
           <AvatarDropdown avatar={userState.currentUser.avatar} name={userState.currentUser.name} />
         </div>
