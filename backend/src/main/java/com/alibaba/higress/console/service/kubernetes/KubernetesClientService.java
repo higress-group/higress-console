@@ -11,9 +11,12 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressList;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Strings;
@@ -32,8 +35,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @org.springframework.stereotype.Service
@@ -214,4 +219,42 @@ public class KubernetesClientService {
     private String getTokenFromConfiguration() {
         return controllerAccessToken;
     }
+
+    public List<V1ConfigMap> kubeConfigFileListConfigMap(String namespace) throws ApiException,
+                                                                           IOException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null,
+            null, null, null, null, null, null);
+        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+    }
+
+    public V1ConfigMap kubeConfigFileCreateConfigMap(String namespace,
+                                                     V1ConfigMap configMap) throws ApiException,
+                                                                            IOException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null,
+                null);
+    }
+
+    public V1ConfigMap kubeConfigFileReadConfigMap(String namespace,
+                                                   String name) throws ApiException, IOException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.readNamespacedConfigMap(name, namespace, null);
+    }
+
+    public V1Status kubeConfigFileDeleteConfigMap(String namespace,
+                                                  String name) throws ApiException, IOException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.deleteNamespacedConfigMap(name, namespace, null, null, null, null,
+                null, null);
+    }
+
+    public V1ConfigMap kubeConfigFilePutConfigMap(String namespace,
+                                                  String name,
+                                               V1ConfigMap configMap) throws ApiException, IOException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.replaceNamespacedConfigMap(name, namespace, configMap, null, null, null,
+                null);
+    }
+
 }

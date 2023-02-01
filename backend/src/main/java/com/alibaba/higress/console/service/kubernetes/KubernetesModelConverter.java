@@ -1,8 +1,11 @@
 package com.alibaba.higress.console.service.kubernetes;
 
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.K8sConstantKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Destination;
 import com.alibaba.higress.console.controller.dto.DestinationTypeEnum;
+import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.ParamsPredicates;
 import com.alibaba.higress.console.controller.dto.PathPredicates;
 import com.alibaba.higress.console.controller.dto.Route;
@@ -10,6 +13,7 @@ import com.alibaba.higress.console.controller.dto.RoutePredicates;
 import com.alibaba.higress.console.controller.dto.RoutePredicatesTypeEnum;
 import com.alibaba.higress.console.util.KubernetesUtil;
 import com.google.common.base.Splitter;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -21,11 +25,14 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -103,6 +110,41 @@ public class KubernetesModelConverter {
         return ingress;
     }
 
+    public V1ConfigMap domain2V1ConfigMap(Domain domain) {
+        V1ConfigMap domainConfigMap = new V1ConfigMap();
+        domainConfigMap.apiVersion(K8sConstantKey.K8S_API_VERSION_DEFAULT)
+            .kind(K8sConstantKey.K8S_CONFIGMAP);
+        domainConfigMap.metadata(new V1ObjectMeta());
+        domainConfigMap.getMetadata().setName(transformDomainToInnerDomain(domain.getName()));
+        domainConfigMap.getMetadata().setNamespace(CommonKey.NS_DEFAULT);
+        Map<String, String> configMap = new HashMap<>();
+        configMap.put(CommonKey.DOMAIN, domain.getName());
+        configMap.put(K8sConstantKey.K8S_CERT, domain.getCertIdentifier());
+        configMap.put(K8sConstantKey.K8S_ENABLEHTTPS, String.valueOf(domain.getMustHttps()));
+        domainConfigMap.data(configMap);
+
+        return domainConfigMap;
+    }
+
+    public Domain V1ConfigMap2Domain(V1ConfigMap configMap) {
+        Domain domain = new Domain();
+        domain.setName(configMap.getData().get(CommonKey.DOMAIN));
+        domain.setCertIdentifier(configMap.getData().get(K8sConstantKey.K8S_CERT));
+        domain
+            .setMustHttps(Boolean.valueOf(configMap.getData().get(K8sConstantKey.K8S_ENABLEHTTPS)));
+        return domain;
+    }
+
+    public static String transformDomainToInnerDomain(String name) {
+        if (StringUtils.isNotBlank(name)) {
+            if (name.startsWith(CommonKey.ASTERISK)) {
+                name = name.replaceFirst("\\" + CommonKey.ASTERISK, CommonKey.WILDCARD);
+            }
+            name = CommonKey.DOMAIN_PREFIX + name;
+        }
+        return name;
+    }
+    
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
         if (metadata != null) {
             route.setName(metadata.getName());

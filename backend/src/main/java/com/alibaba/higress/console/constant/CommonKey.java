@@ -28,4 +28,14 @@ public class CommonKey {
 
     public final static String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
 
+    public final static String WILDCARD = "wildcard";
+
+    public final static String DOMAIN = "domain";
+
+    public final static String HORIZONTAL_LINE = "-";
+
+    public final static String ASTERISK = "*";
+
+    public final static String DOMAIN_PREFIX = DOMAIN + HORIZONTAL_LINE;
+
 }
