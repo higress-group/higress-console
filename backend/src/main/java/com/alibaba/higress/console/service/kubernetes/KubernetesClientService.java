@@ -49,22 +49,22 @@ public class KubernetesClientService {
     @Value("${deploy.inCluster:}")
     private Boolean inCluster;
 
-    @Value("${" + CommonKey.HIGRESS_KUBE_CONFIG_KEY + ":}")
+    @Value("${" + CommonKey.KUBE_CONFIG_KEY + ":}")
     private String kubeConfig;
 
-    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_DEFAULT + "}")
-    private String controllerServiceName = CommonKey.HIGRESS_CONTROLLER_SERVICE_NAME_DEFAULT;
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_NAME_KEY + ":" + CommonKey.CONTROLLER_SERVICE_NAME_DEFAULT + "}")
+    private String controllerServiceName = CommonKey.CONTROLLER_SERVICE_NAME_DEFAULT;
 
-    @Value("${" + CommonKey.HIGRESS_NS_KEY + ":" + CommonKey.HIGRESS_NS_DEFAULT + "}")
-    private String controllerNamespace = CommonKey.HIGRESS_NS_DEFAULT;
+    @Value("${" + CommonKey.NS_KEY + ":" + CommonKey.NS_DEFAULT + "}")
+    private String controllerNamespace = CommonKey.NS_DEFAULT;
 
-    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_DEFAULT + "}")
-    private String controllerServiceHost = CommonKey.HIGRESS_CONTROLLER_SERVICE_HOST_DEFAULT;
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_HOST_KEY + ":" + CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT + "}")
+    private String controllerServiceHost = CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT;
 
-    @Value("${" + CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_KEY + ":" + CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_DEFAULT + "}")
-    private int controllerServicePort = CommonKey.HIGRESS_CONTROLLER_SERVICE_PORT_DEFAULT;
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_PORT_KEY + ":" + CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT + "}")
+    private int controllerServicePort = CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT;
 
-    @Value("${" + CommonKey.HIGRESS_CONTROLLER_ACCESS_TOKEN_KEY + ":}")
+    @Value("${" + CommonKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
     private String controllerAccessToken;
 
     @PostConstruct
@@ -73,7 +73,7 @@ public class KubernetesClientService {
             client = ClientBuilder.cluster().build();
             log.info("init KubernetesClientService InCluster");
         } else {
-            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
+            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.KUBE_CONFIG_DEFAULT_PATH;
             try (FileReader reader = new FileReader(kubeConfigPath)) {
                 client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
             }
@@ -85,7 +85,7 @@ public class KubernetesClientService {
         CoreV1Api api = new CoreV1Api(client);
         V1NamespaceList list = api.listNamespace(null, null, null, null, null, null, null, null, null, null);
         for (V1Namespace item : list.getItems()) {
-            if (item.getMetadata() != null && CommonKey.HIGRESS_NS_DEFAULT.equals(item.getMetadata().getName())) {
+            if (item.getMetadata() != null && CommonKey.NS_DEFAULT.equals(item.getMetadata().getName())) {
                 return true;
             }
         }
@@ -98,13 +98,13 @@ public class KubernetesClientService {
 //            CoreV1Api api = new CoreV1Api();
 //            V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
 //            for (V1Service item : list.getItems()) {
-//                if(CommonKey.HIGRESS_ISTIOD_DEFAULT.equals(item.getMetadata().getName())) {
-//                    log.info("Get ISTIOD name {}, namespace {}", item.getMetadata().getName(), item.getMetadata().getNamespace());
+//                if (controllerServiceName.equals(item.getMetadata().getName())) {
+//                    log.info("Get Higress Controller name {}, namespace {}", item.getMetadata().getName(), item.getMetadata().getNamespace());
 //                    return item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
 //                }
 //            }
 //        } catch (Exception e) {
-//            log.error("CheckIstioService fail use default ", e);
+//            log.error("checkControllerService fail use default ", e);
 //        }
         return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
     }
