@@ -20,7 +20,8 @@ public class CommonKey {
 
     public final static String HIGRESS_CONTROLLER_SERVICE_HOST_DEFAULT = "localhost";
 
-    public final static String HIGRESS_CONTROLLER_SERVICE_PORT_KEY = "higress.controller.service.port";
+    // When deployed to a K8s cluster, Higress Controller will inject the value using corresponding environment variable.
+    public final static String HIGRESS_CONTROLLER_SERVICE_PORT_KEY = "higress.controller.service.port.http.monitoring";
 
     public final static int HIGRESS_CONTROLLER_SERVICE_PORT_DEFAULT = 15014;
 
