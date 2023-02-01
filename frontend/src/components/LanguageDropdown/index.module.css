@@ -1,31 +1,25 @@
-.action {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 12px;
+.language-switch {
+  display: inline-block;
+  border: 1px solid #333;
+  color: #333;
+  box-sizing: border-box;
+  min-width: 24px;
+  height: 24px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 2px;
   cursor: pointer;
-  transition: all 0.3s;
-
-
+  font-family: PingFangSC-Medium;
+  font-size: 14px;
+  opacity: 0.6;
+  margin-right: 30px;
   &:hover {
-    background: rgba(0, 0, 0, 0.025);
-  }
-
-  &:global(.opened) {
-    background: rgba(0, 0, 0, 0.025);
+    opacity: 1;
   }
 }
 
-.action > span {
-  vertical-align: middle;
-}
-
-.account > .avatar {
-  margin-right: 8px;
-  vertical-align: top;
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.menu {
-  min-width: 160px;
+@media (max-width: 768px) {
+  .language-switch {
+    margin-right: 0;
+  }
 }
