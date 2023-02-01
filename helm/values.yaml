@@ -28,10 +28,14 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: ""
+    - host: "console.higress.io"
       paths:
         - path: /
-          pathType: ImplementationSpecific
+          pathType: Prefix
+    - host: "demo.higress.io"
+      paths:
+        - path: /
+          pathType: Prefix
   tls: []
 
 resources:
