@@ -9,12 +9,16 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -28,8 +32,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 @Slf4j
 @org.springframework.stereotype.Service
@@ -190,6 +197,99 @@ public class KubernetesClientService {
         for (V1Pod item : list.getItems()) {
             System.out.println(item.getMetadata().getName());
         }
+    }
+
+    public List<V1ConfigMap> kubeConfigFileListConfigMap(String namespace) throws ApiException,
+                                                                           IOException {
+        Function<CoreV1Api, List<V1ConfigMap>> call = new Function<CoreV1Api, List<V1ConfigMap>>() {
+            @SneakyThrows
+            @Override
+            public List<V1ConfigMap> apply(CoreV1Api coreV1Api) {
+                V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(namespace, null, null,
+                    null, null, null, null, null, null, null, null);
+                return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+            }
+        };
+
+        return this.executeKubeConfigCall(call);
+    }
+
+    public V1ConfigMap kubeConfigFileCreateConfigMap(String namespace,
+                                                     V1ConfigMap configMap) throws ApiException,
+                                                                            IOException {
+        Function<CoreV1Api, V1ConfigMap> call = new Function<CoreV1Api, V1ConfigMap>() {
+            @SneakyThrows
+            @Override
+            public V1ConfigMap apply(CoreV1Api coreV1Api) {
+                return coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null,
+                    null);
+            }
+        };
+
+        return this.executeKubeConfigCall(call);
+    }
+
+    public V1ConfigMap kubeConfigFileReadConfigMap(String namespace,
+                                                   String name) throws ApiException, IOException {
+        Function<CoreV1Api, V1ConfigMap> call = new Function<CoreV1Api, V1ConfigMap>() {
+            @SneakyThrows
+            @Override
+            public V1ConfigMap apply(CoreV1Api coreV1Api) {
+                return coreV1Api.readNamespacedConfigMap(name, namespace, null);
+            }
+        };
+
+        return this.executeKubeConfigCall(call);
+    }
+
+    public V1Status kubeConfigFileDeleteConfigMap(String namespace,
+                                                  String name) throws ApiException, IOException {
+        Function<CoreV1Api, V1Status> call = new Function<CoreV1Api, V1Status>() {
+            @SneakyThrows
+            @Override
+            public V1Status apply(CoreV1Api coreV1Api) {
+                return coreV1Api.deleteNamespacedConfigMap(name, namespace, null, null, null, null,
+                    null, null);
+            }
+        };
+
+        return this.executeKubeConfigCall(call);
+    }
+
+    public V1ConfigMap kubeConfigFilePutConfigMap(String namespace,
+                                                  String name,
+                                               V1ConfigMap configMap) throws ApiException, IOException {
+        Function<CoreV1Api, V1ConfigMap> call = new Function<CoreV1Api, V1ConfigMap>() {
+            @SneakyThrows
+            @Override
+            public V1ConfigMap apply(CoreV1Api coreV1Api) {
+                return coreV1Api.replaceNamespacedConfigMap(name, namespace, configMap, null, null, null,
+                    null);
+            }
+        };
+
+        return this.executeKubeConfigCall(call);
+    }
+
+    private <T> T executeKubeConfigCall(Function<CoreV1Api, T> call) throws ApiException,
+                                                                     IOException {
+
+        // file path to your KubeConfig
+
+        //String kubeConfigPath = System.getenv("HOME") + "/.kube/config";
+        String kubeConfigPath = CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
+
+        // loading the out-of-cluster config, a kubeconfig from file-system
+        ApiClient client = ClientBuilder
+            .kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
+
+        // set the global default api-client to the in-cluster one from above
+        Configuration.setDefaultApiClient(client);
+
+        // the CoreV1Api loads default api-client from global configuration.
+        CoreV1Api api = new CoreV1Api();
+
+        return call.apply(api);
     }
 
 }

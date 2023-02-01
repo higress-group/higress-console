@@ -15,5 +15,13 @@ public class CommonKey {
     public final static String HIGRESS_ISTIOD_NS_DEFAULT = "istio-system";
     
     public final static String HIGRESS_ISTIOD_DEFAULT = "istiod";
-    
+
+    public final static String HIGRESS_WILDCARD = "wildcard";
+
+    public final static String HIGRESS_DOMAIN = "domain";
+
+    public final static String HIGRESS_HORIZONTAL_LINE = "-";
+
+    public final static String HIGRESS_ASTERISK = "*";
+
 }
