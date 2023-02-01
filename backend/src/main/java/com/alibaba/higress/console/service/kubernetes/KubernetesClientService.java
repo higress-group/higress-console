@@ -202,7 +202,7 @@ public class KubernetesClientService {
         Request.Builder builder = new Request.Builder().url(url);
         String token = checkInCluster() ? readTokenFromFile() : getTokenFromConfiguration();
         if (!Strings.isNullOrEmpty(token)) {
-            builder.addHeader(HttpHeaders.AUTHORIZATION, "Bear " + token);
+            builder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
         return builder.build();
     }
