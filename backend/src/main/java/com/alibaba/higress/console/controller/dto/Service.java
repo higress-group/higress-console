@@ -17,5 +17,5 @@ public class Service {
     
     private String namespace;
 
-    private List<String> endPoints;
+    private List<String> endpoints;
 }

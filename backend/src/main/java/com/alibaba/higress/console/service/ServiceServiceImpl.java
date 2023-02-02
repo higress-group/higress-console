@@ -19,32 +19,32 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @org.springframework.stereotype.Service
-public class ServiceServiceImpl implements ServiceService{
-    
+public class ServiceServiceImpl implements ServiceService {
+
     @Resource
     private KubernetesClientService kubernetesClientService;
-    
+
     @Override
     public List<Service> getAll() {
-    
+
         List<Service> data = new ArrayList<>();
-        
+
         try {
             List<RegistryzService> serviceList = kubernetesClientService.gatewayServiceList();
-            if(CollectionUtils.isNotEmpty(serviceList)) {
+            if (CollectionUtils.isNotEmpty(serviceList)) {
                 Map<String, Map<String, IstioEndpointShard>> serviceEndpoint = kubernetesClientService.gatewayServiceEndpoint();
-                
-                for(RegistryzService registryzService : serviceList) {
+
+                for (RegistryzService registryzService : serviceList) {
                     Service mock = new Service();
                     String name = registryzService.getHostname();
                     String namespace = registryzService.getAttributes().getNamespace();
                     mock.setName(name);
                     mock.setNamespace(namespace);
-                    
+
                     List<String> endpoints = new ArrayList<>();
-                    if(serviceEndpoint != null) {
+                    if (serviceEndpoint != null) {
                         Map<String, IstioEndpointShard> namespace2Endpoints = serviceEndpoint.get(name);
-                        if(namespace2Endpoints != null) {
+                        if (namespace2Endpoints != null) {
                             IstioEndpointShard endpointShard = namespace2Endpoints.get(namespace);
                             if (endpointShard != null && endpointShard.getShards() != null) {
                                 Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
@@ -56,11 +56,10 @@ public class ServiceServiceImpl implements ServiceService{
                             }
                         }
                     }
-                    mock.setEndPoints(endpoints);
+                    mock.setEndpoints(endpoints);
                     data.add(mock);
                 }
             }
-            
         } catch (ApiException e) {
             log.error("getAll Service ApiException ", e);
         } catch (IOException e) {
@@ -68,5 +67,5 @@ public class ServiceServiceImpl implements ServiceService{
         }
         return data;
     }
-    
+
 }
