@@ -220,11 +220,12 @@ public class KubernetesClientService {
         return controllerAccessToken;
     }
 
-    public List<V1ConfigMap> kubeConfigFileListConfigMap(String namespace) throws ApiException,
-                                                                           IOException {
+    public List<V1ConfigMap> kubeConfigFileListConfigMap(String namespace, String fieldSelector,
+                                                         String labelSelector) throws ApiException,
+                                                                               IOException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null,
-            null, null, null, null, null, null);
+        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(namespace, null, null, null,
+            fieldSelector, labelSelector, null, null, null, null, null);
         return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
     }
 

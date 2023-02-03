@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.console.constant.CommonKey;
@@ -30,6 +32,8 @@ public class DomainServiceImpl implements DomainService {
     @Resource
     private KubernetesModelConverter kubernetesModelConverter;
 
+    private static final String      LABELS = "{\"resourceDefiner\":\"Higress\"}";
+
     @Override
     public void add(Domain domain) throws ApiException, IOException {
         V1ConfigMap domainConfigMap = kubernetesModelConverter.domain2V1ConfigMap(domain);
@@ -39,12 +43,12 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     public List<Domain> getAll() throws ApiException, IOException {
+        String labelSelector = KubernetesConstants.Label.RESOURCE_DEFINER_KEY + "="
+                               + Label.RESOURCE_DEFINER_VALUE;
         List<V1ConfigMap> v1ConfigMaps = kubernetesClientService
-            .kubeConfigFileListConfigMap(CommonKey.NS_DEFAULT);
-        return v1ConfigMaps.stream()
-            .filter(
-                configMap -> configMap.getMetadata().getName().startsWith(CommonKey.DOMAIN_PREFIX))
-            .map(kubernetesModelConverter::V1ConfigMap2Domain).collect(Collectors.toList());
+            .kubeConfigFileListConfigMap(CommonKey.NS_DEFAULT, null, labelSelector);
+        return v1ConfigMaps.stream().map(kubernetesModelConverter::V1ConfigMap2Domain)
+            .collect(Collectors.toList());
     }
 
     @Override
