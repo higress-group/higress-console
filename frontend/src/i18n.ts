@@ -17,12 +17,7 @@ i18n
 
 export default i18n;
 
-export const LANGUAGE_TYPE = {
-  "zh-CN": "zh-CN",
-  "en-US": "en-US",
-};
-
 export const lngs = [
-  { code: LANGUAGE_TYPE["zh-CN"], nativeName: "简体中文" },
-  { code: LANGUAGE_TYPE["en-US"], nativeName: "English (United States)" },
+  { code: "zh-CN", nativeName: "简体中文", switchText: "中", officialSiteCode: "zh-cn" },
+  { code: "en-US", nativeName: "English (United States)", switchText: "En", officialSiteCode: "en-us" },
 ];
