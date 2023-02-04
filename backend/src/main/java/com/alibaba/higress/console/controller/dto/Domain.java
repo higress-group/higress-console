@@ -23,7 +23,7 @@ public class Domain {
      */
     private String protocol;
 
-    private Boolean mustHttps;
+    private String enableHttps;
 
     private String certIdentifier;
 

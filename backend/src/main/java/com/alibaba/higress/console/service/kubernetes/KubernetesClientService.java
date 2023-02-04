@@ -3,6 +3,8 @@ package com.alibaba.higress.console.service.kubernetes;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import com.alibaba.higress.console.controller.dto.istio.IstioEndpointShard;
 import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
 import io.kubernetes.client.openapi.ApiClient;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -201,6 +205,39 @@ public class KubernetesClientService {
         apiInstance.deleteNamespacedIngress(name, controllerNamespace, null, null, null, null, null, null);
     }
 
+    public List<V1ConfigMap> listConfigMap() throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null,
+                null, this.renderDefaultLabelSelector(null), null, null, null, null, null);
+        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+    }
+
+    public V1ConfigMap createConfigMap(V1ConfigMap configMap) throws ApiException {
+        configMap.getMetadata().setLabels(this.renderDefaultLabels(configMap.getMetadata().getLabels()));
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.createNamespacedConfigMap(controllerNamespace, configMap, null, null, null,
+                null);
+    }
+
+    public V1ConfigMap readConfigMap(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
+    }
+
+    public V1Status deleteConfigMap(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null,
+                null, null);
+    }
+
+    public V1ConfigMap putConfigMap(String name,
+                                    V1ConfigMap configMap) throws ApiException {
+        configMap.getMetadata().setLabels(this.renderDefaultLabels(configMap.getMetadata().getLabels()));
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.replaceNamespacedConfigMap(name, controllerNamespace, configMap, null, null, null,
+                null);
+    }
+
     private Request buildControllerRequest(String path) throws IOException {
         String istioServiceUrl = checkControllerService();
         String url = "http://" + istioServiceUrl + ":" + controllerServicePort + path;
@@ -220,42 +257,22 @@ public class KubernetesClientService {
         return controllerAccessToken;
     }
 
-    public List<V1ConfigMap> kubeConfigFileListConfigMap(String namespace, String fieldSelector,
-                                                         String labelSelector) throws ApiException,
-                                                                               IOException {
-        CoreV1Api coreV1Api = new CoreV1Api(client);
-        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(namespace, null, null, null,
-            fieldSelector, labelSelector, null, null, null, null, null);
-        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+    private String renderDefaultLabelSelector(String labelSelector) {
+        if (StringUtils.isNotBlank(labelSelector)) {
+            labelSelector += CommonKey.COMMA;
+        } else {
+            labelSelector = StringUtils.EMPTY;
+        }
+        return labelSelector + (KubernetesConstants.Label.RESOURCE_DEFINER_KEY + CommonKey.EQUALS_SIGN
+                + Label.RESOURCE_DEFINER_VALUE);
     }
 
-    public V1ConfigMap kubeConfigFileCreateConfigMap(String namespace,
-                                                     V1ConfigMap configMap) throws ApiException,
-                                                                            IOException {
-        CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null,
-                null);
+    private Map<String, String> renderDefaultLabels(Map<String, String> labels) {
+        Map<String, String> newLabels = new HashMap<>();
+        if (MapUtils.isNotEmpty(labels)) {
+            newLabels.putAll(labels);
+        }
+        newLabels.put(Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
+        return newLabels;
     }
-
-    public V1ConfigMap kubeConfigFileReadConfigMap(String namespace,
-                                                   String name) throws ApiException, IOException {
-        CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.readNamespacedConfigMap(name, namespace, null);
-    }
-
-    public V1Status kubeConfigFileDeleteConfigMap(String namespace,
-                                                  String name) throws ApiException, IOException {
-        CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.deleteNamespacedConfigMap(name, namespace, null, null, null, null,
-                null, null);
-    }
-
-    public V1ConfigMap kubeConfigFilePutConfigMap(String namespace,
-                                                  String name,
-                                               V1ConfigMap configMap) throws ApiException, IOException {
-        CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.replaceNamespacedConfigMap(name, namespace, configMap, null, null, null,
-                null);
-    }
-
 }

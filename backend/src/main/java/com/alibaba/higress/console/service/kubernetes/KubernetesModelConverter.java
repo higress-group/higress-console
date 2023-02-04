@@ -2,7 +2,6 @@ package com.alibaba.higress.console.service.kubernetes;
 
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
-import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import com.alibaba.higress.console.controller.dto.Destination;
 import com.alibaba.higress.console.controller.dto.DestinationTypeEnum;
 import com.alibaba.higress.console.controller.dto.Domain;
@@ -112,17 +111,12 @@ public class KubernetesModelConverter {
 
     public V1ConfigMap domain2V1ConfigMap(Domain domain) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
-        domainConfigMap.apiVersion(KubernetesConstants.K8S_API_VERSION_DEFAULT)
-            .kind(KubernetesConstants.K8S_CONFIGMAP);
         domainConfigMap.metadata(new V1ObjectMeta());
-        domainConfigMap.getMetadata().setName(transformDomainToInnerDomain(domain.getName()));
-        domainConfigMap.getMetadata().setNamespace(CommonKey.NS_DEFAULT);
-        //设置默认的labels
-        domainConfigMap.getMetadata().setLabels(buildResourceLabels());
+        domainConfigMap.getMetadata().setName(normalizeDomainName(domain.getName()));
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
         configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
-        configMap.put(KubernetesConstants.K8S_ENABLEHTTPS, String.valueOf(domain.getMustHttps()));
+        configMap.put(KubernetesConstants.K8S_ENABLE_HTTPS, domain.getEnableHttps());
         domainConfigMap.data(configMap);
 
         return domainConfigMap;
@@ -130,29 +124,26 @@ public class KubernetesModelConverter {
 
     public Domain V1ConfigMap2Domain(V1ConfigMap configMap) {
         Domain domain = new Domain();
-        domain.setName(configMap.getData().get(CommonKey.DOMAIN));
-        domain.setCertIdentifier(configMap.getData().get(KubernetesConstants.K8S_CERT));
-        domain
-            .setMustHttps(Boolean.valueOf(configMap.getData().get(KubernetesConstants.K8S_ENABLEHTTPS)));
+        Map<String, String> configMapData = configMap.getData();
+        if (Objects.isNull(configMapData)) {
+            throw new IllegalArgumentException("The ConfigMap data is illegal");
+        }
+        domain.setName(configMapData.get(CommonKey.DOMAIN));
+        domain.setCertIdentifier(configMapData.get(KubernetesConstants.K8S_CERT));
+        domain.setEnableHttps(configMapData.get(KubernetesConstants.K8S_ENABLE_HTTPS));
         return domain;
     }
 
-    public static String transformDomainToInnerDomain(String name) {
+    public static String normalizeDomainName(String name) {
         if (StringUtils.isNotBlank(name)) {
             if (name.startsWith(CommonKey.ASTERISK)) {
-                name = name.replaceFirst("\\" + CommonKey.ASTERISK, CommonKey.WILDCARD);
+                name = CommonKey.WILDCARD + name.substring(CommonKey.ASTERISK.length());
             }
             name = CommonKey.DOMAIN_PREFIX + name;
         }
         return name;
     }
     
-    private static Map<String, String> buildResourceLabels() {
-        Map<String, String> labels = new HashMap<>();
-        labels.put(Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
-        return labels;
-    }
-
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
         if (metadata != null) {
             route.setName(metadata.getName());

@@ -32,10 +32,14 @@ public class CommonKey {
 
     public final static String DOMAIN = "domain";
 
-    public final static String HORIZONTAL_LINE = "-";
+    public final static String DASH = "-";
 
     public final static String ASTERISK = "*";
 
-    public final static String DOMAIN_PREFIX = DOMAIN + HORIZONTAL_LINE;
+    public final static String DOMAIN_PREFIX = DOMAIN + DASH;
+
+    public final static String COMMA = ",";
+
+    public final static String EQUALS_SIGN = "=";
 
 }

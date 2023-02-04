@@ -6,10 +6,8 @@ public class KubernetesConstants {
     public static final String MCP_BRIDGE_KIND = "McpBridge";
     public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
 
-    public final static String K8S_API_VERSION_DEFAULT = "v1";
-    public final static String K8S_CONFIGMAP = "ConfigMap";
     public final static String K8S_CERT = "cert";
-    public final static String K8S_ENABLEHTTPS = "enableHttps";
+    public final static String K8S_ENABLE_HTTPS = "enableHttps";
 
     public static class Annotation {
         public static final String INGRESS_USE_REGEX_KEY = "higress.io/use-regex";
