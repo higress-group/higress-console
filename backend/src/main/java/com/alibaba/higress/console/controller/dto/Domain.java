@@ -1,9 +1,16 @@
 package com.alibaba.higress.console.controller.dto;
 
-
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("Gateway Domain")
 public class Domain {
 
     private Long id;
@@ -16,7 +23,7 @@ public class Domain {
      */
     private String protocol;
 
-    private Boolean mustHttps;
+    private String enableHttps;
 
     private String certIdentifier;
 

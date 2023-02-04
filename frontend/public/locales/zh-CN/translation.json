@@ -95,7 +95,7 @@
       "pathPredicatesRequired": "请选择路径匹配规则",
       "pathMatcherRequired": "请输入路径匹配值",
       "pathMatcherPlacedholder": "路径匹配值，如：/user",
-      "caseSensitive": "大小写敏感",
+      "caseInsensitive": "忽略大小写",
       "method": "方法（Method）",
       "methodMatcherPlaceholder": "方法匹配值，可多选，不填则匹配所有的HTTP方法",
       "header": "请求头（Header）",
@@ -192,6 +192,12 @@
     "return": "返回",
     "error": "错误",
     "close": "关闭",
-    "tbd": "页面开发中，即将推出..."
+    "tbd": "页面开发中，即将推出...",
+    "homepage": "首页",
+    "docs": "文档",
+    "developers": "开发者",
+    "blog": "博客",
+    "community": "社区",
+    "download": "下载"
   }
 }

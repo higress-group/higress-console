@@ -1,0 +1,25 @@
+.header-nav-bar {
+  margin-bottom: 0;
+  line-height: 56px;
+}
+
+.header-nav-bar li {
+  margin-right: 20px;
+  display: inline-block;
+  margin-right: 40px;
+  opacity: 0.6;
+  cursor: pointer;
+  &:hover {
+    opacity: 1;
+  }
+}
+.header-nav-bar li > a {
+  color: #333;
+  font-family: Avenir-Medium;
+}
+
+@media (max-width: 768px) {
+  .header-nav-bar {
+    display: none;
+  }
+}

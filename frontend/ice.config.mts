@@ -9,7 +9,9 @@ export default defineConfig(() => ({
   ssg: false,
   routes: {
     defineRoutes: (route) => {
-      route('*', '404.tsx');
+      if (process.platform !== 'win32') {
+        route('*', '404.tsx');
+      }
     },
   },
   proxy: {

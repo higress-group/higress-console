@@ -3,105 +3,128 @@ package com.alibaba.higress.console.service.kubernetes;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import com.alibaba.higress.console.controller.dto.istio.IstioEndpointShard;
 import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.CustomObjectsApi;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressList;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.Strings;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @org.springframework.stereotype.Service
 public class KubernetesClientService {
+
+    private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io";
+    private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
+
     private ApiClient client;
-    
-    public OkHttpClient okHttpClient = new OkHttpClient();
-    
-    @Value("${deploy.inCluster}")
+
+    private final OkHttpClient okHttpClient = new OkHttpClient();
+
+    @Value("${deploy.inCluster:}")
     private Boolean inCluster;
-    
+
+    @Value("${" + CommonKey.KUBE_CONFIG_KEY + ":}")
+    private String kubeConfig;
+
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_NAME_KEY + ":" + CommonKey.CONTROLLER_SERVICE_NAME_DEFAULT + "}")
+    private String controllerServiceName = CommonKey.CONTROLLER_SERVICE_NAME_DEFAULT;
+
+    @Value("${" + CommonKey.NS_KEY + ":" + CommonKey.NS_DEFAULT + "}")
+    private String controllerNamespace = CommonKey.NS_DEFAULT;
+
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_HOST_KEY + ":" + CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT + "}")
+    private String controllerServiceHost = CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT;
+
+    @Value("${" + CommonKey.CONTROLLER_SERVICE_PORT_KEY + ":" + CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT + "}")
+    private int controllerServicePort = CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT;
+
+    @Value("${" + CommonKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
+    private String controllerAccessToken;
+
     @PostConstruct
     public void init() throws IOException {
-        
-        if(checkInCluster()) {
+        if (checkInCluster()) {
             client = ClientBuilder.cluster().build();
             log.info("init KubernetesClientService InCluster");
-        }else {
-            String kubeConfigPath = CommonKey.HIGRESS_KUBE_CONFIG_DEFAULT_PATH;
-            client =
-                    ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(new FileReader(kubeConfigPath))).build();
+        } else {
+            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.KUBE_CONFIG_DEFAULT_PATH;
+            try (FileReader reader = new FileReader(kubeConfigPath)) {
+                client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
+            }
             log.info("init KubernetesClientService LoadKubeConfig");
         }
     }
-    public boolean checkHigress() throws ApiException, IOException{
-        Configuration.setDefaultApiClient(client);
-        CoreV1Api api = new CoreV1Api();
+
+    public boolean checkHigress() throws ApiException {
+        CoreV1Api api = new CoreV1Api(client);
         V1NamespaceList list = api.listNamespace(null, null, null, null, null, null, null, null, null, null);
         for (V1Namespace item : list.getItems()) {
-            if(CommonKey.HIGRESS_NS_DEFAULT.equals(item.getMetadata().getName())) {
+            if (item.getMetadata() != null && CommonKey.NS_DEFAULT.equals(item.getMetadata().getName())) {
                 return true;
             }
         }
         return false;
     }
-    
-    public String checkIstioService() {
-        String istioUrl = "http://" + CommonKey.HIGRESS_ISTIOD_DEFAULT + "." + CommonKey.HIGRESS_ISTIOD_NS_DEFAULT;
-        try {
+
+    public String checkControllerService() {
+//        try {
 //            Configuration.setDefaultApiClient(client);
 //            CoreV1Api api = new CoreV1Api();
 //            V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
 //            for (V1Service item : list.getItems()) {
-//                if(CommonKey.HIGRESS_ISTIOD_DEFAULT.equals(item.getMetadata().getName())) {
-//                    log.info("Get ISTIOD name {}, namespace {}", item.getMetadata().getName(), item.getMetadata().getNamespace());
-//                    return "http://" + item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
+//                if (controllerServiceName.equals(item.getMetadata().getName())) {
+//                    log.info("Get Higress Controller name {}, namespace {}", item.getMetadata().getName(), item.getMetadata().getNamespace());
+//                    return item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
 //                }
 //            }
-            return istioUrl;
-        }catch (Exception e) {
-            log.error("CheckIstioService fail use default ", e);
-            return istioUrl;
-        }
+//        } catch (Exception e) {
+//            log.error("checkControllerService fail use default ", e);
+//        }
+        return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
     }
-    
-    public List<RegistryzService>  gatewayServiceList() throws ApiException, IOException{
-        
-        String resUrl = this.checkIstioService() + ":15014/debug/registryz";
-        
-        log.info("gatewayServiceList url {}", resUrl);
-        
-        String token = "Bearer " + FileUtils.readFileToString(new File("/var/run/secrets/access-token/token"), Charset.defaultCharset());
-        Request request = new Request.Builder()
-                .get()
-                .addHeader("Authorization", token)
-                .url(resUrl)
-                .build();
-        Response response;
-        try {
-            response = okHttpClient.newCall(request).execute();
-            if(response.body() != null) {
+
+    public List<RegistryzService> gatewayServiceList() throws ApiException, IOException {
+        Request request = buildControllerRequest("/debug/registryz");
+        log.info("gatewayServiceList url {}", request.url());
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if (response.body() != null) {
                 String responseString = new String(response.body().bytes());
-                if(StringUtils.isNotEmpty(responseString)) {
+                if (StringUtils.isNotEmpty(responseString)) {
                     return JSON.parseArray(responseString, RegistryzService.class);
                 }
             }
@@ -110,79 +133,146 @@ public class KubernetesClientService {
         }
         return null;
     }
-    
-    public Map<String, Map<String, IstioEndpointShard>> gatewayServiceEndpoint() throws ApiException, IOException{
-        
-        String resUrl = this.checkIstioService() + ":15014/debug/endpointShardz";
-    
-        log.info("gatewayServiceEndpoint url {}", resUrl);
-    
-        String token = "Bearer " + FileUtils.readFileToString(new File("/var/run/secrets/access-token/token"), Charset.defaultCharset());
 
-        Request request = new Request.Builder()
-                .get()
-                .addHeader("Authorization", token)
-                .url(resUrl)
-                .build();
-        Response response;
-        try {
-            response = okHttpClient.newCall(request).execute();
-            String responseString = new String(response.body().bytes());
-            if (StringUtils.isNotEmpty(responseString)) {
-                return JSON.parseObject(responseString, new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
+    public Map<String, Map<String, IstioEndpointShard>> gatewayServiceEndpoint() throws ApiException, IOException {
+        Request request = buildControllerRequest("/debug/endpointShardz");
+        log.info("gatewayServiceEndpoint url {}", request.url());
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if (response.body() != null) {
+                String responseString = new String(response.body().bytes());
+                if (StringUtils.isNotEmpty(responseString)) {
+                    return JSON.parseObject(responseString, new TypeReference<>() {
+                    });
+                }
             }
         } catch (Exception e) {
             log.error("gatewayServiceEndpoint okHttpClient.newCall ", e);
         }
         return null;
     }
-    
+
     public boolean checkInCluster() {
-        if(inCluster == null) {
-            return false;
+        if (inCluster == null) {
+            inCluster = new File(POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH).exists();
         }
         return inCluster;
     }
-    
-    /**
-     * use CustomObjectsApi
-     * https://github.com/kubernetes-client/java/blob/master/kubernetes/docs/CustomObjectsApi.md
-     */
-    public Object getIngress(String name) {
-        ApiClient defaultClient = client;
-        CustomObjectsApi apiInstance = new CustomObjectsApi(defaultClient);
-        String group = "networking.k8s.io"; // String | the custom resource's group
-        String version = "v1"; // String | the custom resource's version
-        String plural = "ingresses"; // String | the custom resource's plural name. For TPRs this would be lowercase plural kind.
+
+    public List<V1Ingress> listIngress() {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         try {
-            Object result = apiInstance.getClusterCustomObject(group, version, plural, name);
-            //TODO
-            return result;
-            
-        } catch (ApiException e) {
-            log.error("getIngress Status code: " + e.getCode()
-                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
-        }
-    }
-    
-    public Object listIngress() {
-        ApiClient defaultClient = client;
-        CustomObjectsApi apiInstance = new CustomObjectsApi(defaultClient);
-        String group = "networking.k8s.io"; // String | the custom resource's group
-        String version = "v1"; // String | the custom resource's version
-        String plural = "ingresses"; // String | the custom resource's plural name. For TPRs this would be lowercase plural kind.
-        try {
-            Object result = apiInstance.listClusterCustomObject(group, version, plural,
-                    null, null, null, null, null,null, null, null, null, null);
-            //TODO
-            return result;
-        
+            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace,
+                    null, null, null, null, null, null, null, null, null, null);
+            if (list == null) {
+                return Collections.emptyList();
+            }
+            return list.getItems();
         } catch (ApiException e) {
             log.error("listIngress Status code: " + e.getCode()
                     + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
             return null;
         }
     }
-    
+
+    public V1Ingress getIngress(String name) {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        try {
+            return apiInstance.readNamespacedIngress(name, controllerNamespace, null);
+        } catch (ApiException e) {
+            log.error("getIngress Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public V1Ingress addIngress(V1Ingress ingress) throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        return apiInstance.createNamespacedIngress(controllerNamespace, ingress, null, null, null, null);
+    }
+
+    public V1Ingress updateIngress(V1Ingress ingress) throws ApiException {
+        V1ObjectMeta metadata = ingress.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("ingress doesn't have a valid metadata.");
+        }
+        metadata.setNamespace(controllerNamespace);
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        return apiInstance.replaceNamespacedIngress(metadata.getName(), metadata.getNamespace(), ingress, null, null, null, null);
+    }
+
+    public void deleteIngress(String name) throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        apiInstance.deleteNamespacedIngress(name, controllerNamespace, null, null, null, null, null, null);
+    }
+
+    public List<V1ConfigMap> listConfigMap() throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null,
+                null, this.renderDefaultLabelSelector(null), null, null, null, null, null);
+        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+    }
+
+    public V1ConfigMap createConfigMap(V1ConfigMap configMap) throws ApiException {
+        configMap.getMetadata().setLabels(this.renderDefaultLabels(configMap.getMetadata().getLabels()));
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.createNamespacedConfigMap(controllerNamespace, configMap, null, null, null,
+                null);
+    }
+
+    public V1ConfigMap readConfigMap(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
+    }
+
+    public V1Status deleteConfigMap(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null,
+                null, null);
+    }
+
+    public V1ConfigMap putConfigMap(String name,
+                                    V1ConfigMap configMap) throws ApiException {
+        configMap.getMetadata().setLabels(this.renderDefaultLabels(configMap.getMetadata().getLabels()));
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.replaceNamespacedConfigMap(name, controllerNamespace, configMap, null, null, null,
+                null);
+    }
+
+    private Request buildControllerRequest(String path) throws IOException {
+        String istioServiceUrl = checkControllerService();
+        String url = "http://" + istioServiceUrl + ":" + controllerServicePort + path;
+        Request.Builder builder = new Request.Builder().url(url);
+        String token = checkInCluster() ? readTokenFromFile() : getTokenFromConfiguration();
+        if (!Strings.isNullOrEmpty(token)) {
+            builder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        }
+        return builder.build();
+    }
+
+    private String readTokenFromFile() throws IOException {
+        return FileUtils.readFileToString(new File(CONTROLLER_ACCESS_TOKEN_FILE_PATH), Charset.defaultCharset());
+    }
+
+    private String getTokenFromConfiguration() {
+        return controllerAccessToken;
+    }
+
+    private String renderDefaultLabelSelector(String labelSelector) {
+        if (StringUtils.isNotBlank(labelSelector)) {
+            labelSelector += CommonKey.COMMA;
+        } else {
+            labelSelector = StringUtils.EMPTY;
+        }
+        return labelSelector + (KubernetesConstants.Label.RESOURCE_DEFINER_KEY + CommonKey.EQUALS_SIGN
+                + Label.RESOURCE_DEFINER_VALUE);
+    }
+
+    private Map<String, String> renderDefaultLabels(Map<String, String> labels) {
+        Map<String, String> newLabels = new HashMap<>();
+        if (MapUtils.isNotEmpty(labels)) {
+            newLabels.putAll(labels);
+        }
+        newLabels.put(Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
+        return newLabels;
+    }
 }

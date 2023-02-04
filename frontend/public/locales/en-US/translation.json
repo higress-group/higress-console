@@ -95,7 +95,7 @@
       "pathPredicatesRequired": "Please select a path matching predicate.",
       "pathMatcherRequired": "Please input the path match target.",
       "pathMatcherPlacedholder": "Path match target. e.g.: /user",
-      "caseSensitive": "Case Sensitive",
+      "caseInsensitive": "Case Insensitive",
       "method": "Method",
       "methodMatcherPlaceholder": "HTTP method to match. Multiple selections are allowed. If left blank, it will match all the HTTP methods.",
       "header": "Request Header",
@@ -192,6 +192,12 @@
     "return": "Return",
     "error": "Error",
     "close": "Close",
-    "tbd": "Still in development. To be released soon..."
+    "tbd": "Still in development. To be released soon...",
+    "homepage": "HOME",
+    "docs": "DOCS",
+    "developers": "DEVELOPERS",
+    "blog": "BLOG",
+    "community": "COMMUNITY",
+    "download": "DOWNLOAD"
   }
 }

@@ -57,7 +57,7 @@ const RouteList: React.FC = () => {
       render: (value) => {
         return value && value.map(service => {
           const { name } = service;
-          return (<div>{name}</div>);
+          return (<div key={name}>{name}</div>);
         });
       },
     },
@@ -90,6 +90,9 @@ const RouteList: React.FC = () => {
     manual: true,
     onSuccess: (result, params) => {
       const { list: _dataSource } = result;
+      _dataSource.forEach(i => {
+        i.key || (i.key = i.id ? i.id + '' : i.name);
+      });
       setDataSource(_dataSource);
     },
   });
@@ -123,8 +126,7 @@ const RouteList: React.FC = () => {
       } = values;
       Object.assign(routePredicates, { headerPredicates, methodPredicates, queryPredicates });
       const { ignoreCase = [], type, path } = pathPredicates as PathProps;
-      // ignoreCase不包含‘ignore’， _ignoreCase为true
-      const _ignoreCase = !ignoreCase.includes("ignore");
+      const _ignoreCase = ignoreCase.includes("ignore");
       Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path } });
       const data = {};
       Object.assign(data, { name, domainList, routePredicates, services: [{ name: services }] })
@@ -211,7 +213,7 @@ const RouteList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{currentRouteName: (currentRoute && currentRoute.name) || ''}}</span> 吗？
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>
       </Modal>
