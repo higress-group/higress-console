@@ -1,20 +1,12 @@
-import { Card, Result } from 'antd';
-import { definePageConfig } from 'ice';
-import { useTranslation } from 'react-i18next';
+import { definePageConfig, useNavigate } from 'ice';
+import { useEffect } from "react";
 
 export default function SourcePage() {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <Card bordered={false}>
-        <Result
-          status="403"
-          title=""
-          subTitle={t('misc.tbd')}
-        />
-      </Card>
-    </div>
-  );
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate('/route', { replace: true });
+  }, []);
+  return;
 }
 
 export const pageConfig = definePageConfig(() => {
