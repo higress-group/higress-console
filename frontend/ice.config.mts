@@ -16,7 +16,7 @@ export default defineConfig(() => ({
   },
   proxy: {
     '/api': {
-      target: 'http://demo.higress.com/',
+      target: 'http://demo.higress.io/',
       changeOrigin: true,
       pathRewrite: { '^/api' : '' },
     },
