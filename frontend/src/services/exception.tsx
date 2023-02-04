@@ -35,27 +35,27 @@ export const ErrorComp = ({ content, options, code }) => {
           <div style={{ lineHeight: '20px' }}>
             {
               get(options, 'method') && (
-                <div>method: {`${options.method}`}</div>
+                <div>Method: {`${options.method}`}</div>
               )
             }
             {
               get(options, 'url') && (
-                <div>requestUrl: {`${window.location.origin}${options.baseURL}${options.url}`}</div>
+                <div>RequestURL: {`${window.location.origin}${options.baseURL}${options.url}`}</div>
               )
             }
             {
               get(options, 'headers') && (
-                <div>headers: {`${JSON.stringify(options.headers)}`}</div>
+                <div>Headers: {`${JSON.stringify(options.headers)}`}</div>
               )
             }
             {
               get(options, 'params') && (
-                <div>params: {`${JSON.stringify(options.params)}`}</div>
+                <div>Params: {`${JSON.stringify(options.params)}`}</div>
               )
             }
             {
               get(options, 'data') && (
-                <div>data: {`${options.data}`}</div>
+                <div>Data: {`${options.data}`}</div>
               )
             }
           </div>

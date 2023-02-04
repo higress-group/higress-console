@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class KubernetesClientServiceTest {
+public class KubernetesClientUpstreamServiceTest {
 
     @Test
     public void checkControllerService() throws IOException {

@@ -2,14 +2,11 @@ package com.alibaba.higress.console.service.kubernetes;
 
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
-import com.alibaba.higress.console.controller.dto.Destination;
-import com.alibaba.higress.console.controller.dto.DestinationTypeEnum;
 import com.alibaba.higress.console.controller.dto.Domain;
-import com.alibaba.higress.console.controller.dto.ParamsPredicates;
-import com.alibaba.higress.console.controller.dto.PathPredicates;
 import com.alibaba.higress.console.controller.dto.Route;
-import com.alibaba.higress.console.controller.dto.RoutePredicates;
-import com.alibaba.higress.console.controller.dto.RoutePredicatesTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.util.KubernetesUtil;
 import com.google.common.base.Splitter;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -25,7 +22,6 @@ import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-@Service
+@org.springframework.stereotype.Service
 public class KubernetesModelConverter {
 
     private static final Splitter lineSplitter = Splitter.on('\n').trimResults().omitEmptyStrings();
@@ -94,7 +90,6 @@ public class KubernetesModelConverter {
 
     public Route ingress2Route(V1Ingress ingress) {
         Route route = new Route();
-        route.setRoutePredicates(new RoutePredicates());
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
         return route;
@@ -109,7 +104,7 @@ public class KubernetesModelConverter {
         return ingress;
     }
 
-    public V1ConfigMap domain2V1ConfigMap(Domain domain) {
+    public V1ConfigMap domain2ConfigMap(Domain domain) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
         domainConfigMap.metadata(new V1ObjectMeta());
         domainConfigMap.getMetadata().setName(normalizeDomainName(domain.getName()));
@@ -122,7 +117,7 @@ public class KubernetesModelConverter {
         return domainConfigMap;
     }
 
-    public Domain V1ConfigMap2Domain(V1ConfigMap configMap) {
+    public Domain configMap2Domain(V1ConfigMap configMap) {
         Domain domain = new Domain();
         Map<String, String> configMapData = configMap.getData();
         if (Objects.isNull(configMapData)) {
@@ -143,7 +138,7 @@ public class KubernetesModelConverter {
         }
         return name;
     }
-    
+
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
         if (metadata != null) {
             route.setName(metadata.getName());
@@ -171,7 +166,7 @@ public class KubernetesModelConverter {
 
         String host = rule.getHost();
         if (!Strings.isNullOrEmpty(host)) {
-            route.setDomainList(Collections.singletonList(host));
+            route.setDomains(Collections.singletonList(host));
         } else if (CollectionUtils.isNotEmpty(spec.getTls())) {
             List<String> tlsHosts = new ArrayList<>();
             for (V1IngressTLS tlsItem : spec.getTls()) {
@@ -179,29 +174,25 @@ public class KubernetesModelConverter {
                     tlsHosts.addAll(tlsItem.getHosts());
                 }
             }
-            route.setDomainList(tlsHosts);
+            route.setDomains(tlsHosts);
         } else {
-            route.setDomainList(Collections.emptyList());
+            route.setDomains(Collections.emptyList());
         }
     }
 
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
-        RoutePredicates routePredicates = new RoutePredicates();
-        routePredicates.setPathPredicates(new PathPredicates());
-        routePredicates.setHeaderPredicates(Collections.emptyList());
-        routePredicates.setMethodPredicates(Collections.emptyList());
-        routePredicates.setQueryPredicates(Collections.emptyList());
-        route.setRoutePredicates(routePredicates);
-        fillPathPredicates(routePredicates.getPathPredicates(), metadata, path);
+        fillPathPredicates(route, metadata, path);
         fillRouteDestinations(route, metadata, path.getBackend());
     }
 
-    private static void fillPathPredicates(PathPredicates pathPredicates, V1ObjectMeta metadata, V1HTTPIngressPath path) {
-        pathPredicates.setPath(path.getPath());
-        RoutePredicatesTypeEnum predicatesType = null;
+    private static void fillPathPredicates(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
+        RoutePredicate pathPredicate = new RoutePredicate();
+        route.setPath(pathPredicate);
+        pathPredicate.setMatchValue(path.getPath());
+        RoutePredicateTypeEnum matchType = null;
         switch (path.getPathType()) {
             case KubernetesConstants.IngressPathType.EXACT:
-                predicatesType = RoutePredicatesTypeEnum.EQUAL;
+                matchType = RoutePredicateTypeEnum.EQUAL;
                 break;
             case KubernetesConstants.IngressPathType.PREFIX:
                 String useRegexValue = null;
@@ -209,13 +200,15 @@ public class KubernetesModelConverter {
                     useRegexValue = metadata.getAnnotations().get(KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY);
                 }
                 if (KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE.equals(useRegexValue)) {
-                    predicatesType = RoutePredicatesTypeEnum.REGULAR;
+                    matchType = RoutePredicateTypeEnum.REGULAR;
                 } else {
-                    predicatesType = RoutePredicatesTypeEnum.PRE;
+                    matchType = RoutePredicateTypeEnum.PRE;
                 }
                 break;
+            default:
+                break;
         }
-        pathPredicates.setType(predicatesType != null ? predicatesType.toString() : null);
+        pathPredicate.setMatchType(matchType != null ? matchType.toString() : null);
     }
 
     private static void fillRouteDestinations(Route route, V1ObjectMeta metadata, V1IngressBackend backend) {
@@ -231,21 +224,19 @@ public class KubernetesModelConverter {
             return;
         }
 
-        List<Destination> destinations = new ArrayList<>();
+        List<UpstreamService> services = new ArrayList<>();
         for (String item : lineSplitter.split(rawDestination)) {
-            Destination destination = buildDestination(item);
-            if (destination != null) {
-                destinations.add(destination);
+            UpstreamService service = buildDestination(item);
+            if (service != null) {
+                services.add(service);
             }
         }
-        route.setServices(destinations);
-        // TODO: Support other destination types.
-        route.setDestinationType(destinations.size() > 1 ? DestinationTypeEnum.Multiple : DestinationTypeEnum.Single);
+        route.setServices(services);
     }
 
-    private static Destination buildDestination(String config) {
+    private static UpstreamService buildDestination(String config) {
         List<String> fields = fieldSplitter.splitToList(config);
-        int weight = 100;
+        int weight = DEFAULT_WEIGHT;
         int addrIndex = 0;
         if (fields.get(0).endsWith("%")) {
             String weightText = fields.get(0);
@@ -280,20 +271,20 @@ public class KubernetesModelConverter {
             subset = fields.get(addrIndex + 1);
         }
 
-        Destination destination = new Destination();
-        destination.setName(host);
-        destination.setServicePort(port);
-        destination.setVersion(subset);
-        destination.setPercent(weight);
-        return destination;
+        UpstreamService service = new UpstreamService();
+        service.setName(host);
+        service.setPort(port);
+        service.setVersion(subset);
+        service.setWeight(weight);
+        return service;
     }
 
     private void fillIngressMetadata(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         metadata.setName(route.getName());
 
-        if (CollectionUtils.isNotEmpty(route.getDomainList())) {
-            for (String domain : route.getDomainList()) {
+        if (CollectionUtils.isNotEmpty(route.getDomains())) {
+            for (String domain : route.getDomains()) {
                 KubernetesUtil.setLabel(ingress, KubernetesConstants.Label.DOMAIN_KEY_PREFIX + domain,
                         KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
             }
@@ -312,100 +303,82 @@ public class KubernetesModelConverter {
         V1IngressRule rule = new V1IngressRule();
         spec.setRules(Collections.singletonList(rule));
 
-        if (CollectionUtils.isNotEmpty(route.getDomainList())) {
-            if (route.getDomainList().size() > 1) {
+        if (CollectionUtils.isNotEmpty(route.getDomains())) {
+            if (route.getDomains().size() > 1) {
                 throw new IllegalArgumentException("Only one domain is allowed.");
             }
-            rule.setHost(route.getDomainList().get(0));
+            rule.setHost(route.getDomains().get(0));
         }
 
         V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
         rule.setHttp(httpRule);
 
-        RoutePredicates routePredicates = route.getRoutePredicates();
-        if (routePredicates == null) {
-            throw new IllegalArgumentException("Missing routePredicates.");
+        if (CollectionUtils.isNotEmpty(route.getMethods())) {
+            throw new IllegalArgumentException("methods is not supported yet.");
         }
 
-        List<String> methodPredicates = routePredicates.getMethodPredicates();
-        if (CollectionUtils.isNotEmpty(methodPredicates)) {
-            throw new IllegalArgumentException("methodPredicates is not supported yet.");
+        if (CollectionUtils.isNotEmpty(route.getHeaders())) {
+            throw new IllegalArgumentException("headers is not supported yet.");
         }
 
-        List<ParamsPredicates> headerPredicates = routePredicates.getHeaderPredicates();
-        if (CollectionUtils.isNotEmpty(headerPredicates)) {
-            throw new IllegalArgumentException("headerPredicates is not supported yet.");
+        if (CollectionUtils.isNotEmpty(route.getUrlParams())) {
+            throw new IllegalArgumentException("urlParams is not supported yet.");
         }
 
-        if (CollectionUtils.isNotEmpty(routePredicates.getQueryPredicates())) {
-            throw new IllegalArgumentException("queryPredicates is not supported yet.");
-        }
-
-        PathPredicates pathPredicates = routePredicates.getPathPredicates();
-        if (pathPredicates != null) {
-            fillHttpPathRule(metadata, httpRule, pathPredicates);
+        RoutePredicate pathPredicate = route.getPath();
+        if (pathPredicate != null) {
+            fillHttpPathRule(metadata, httpRule, pathPredicate);
         }
     }
 
-    private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule, PathPredicates pathPredicates) {
+    private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule, RoutePredicate pathPredicate) {
         V1HTTPIngressPath httpPath = new V1HTTPIngressPath();
         httpRule.setPaths(Collections.singletonList(httpPath));
 
-        httpPath.setPath(pathPredicates.getPath());
-        if (RoutePredicatesTypeEnum.EQUAL.toString().equals(pathPredicates.getType())) {
+        httpPath.setPath(pathPredicate.getMatchValue());
+        String matchType = pathPredicate.getMatchType();
+        if (RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
             httpPath.setPathType(KubernetesConstants.IngressPathType.EXACT);
-        } else if (RoutePredicatesTypeEnum.PRE.toString().equals(pathPredicates.getType())) {
+        } else if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
             httpPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        } else if (RoutePredicatesTypeEnum.REGULAR.toString().equals(pathPredicates.getType())) {
+        } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
             httpPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY,
                     KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE);
         } else {
-            throw new IllegalArgumentException("Unsupported path predicates type: " + pathPredicates.getType());
+            throw new IllegalArgumentException("Unsupported path match type: " + matchType);
         }
 
-        if (Boolean.TRUE.equals(pathPredicates.getIgnoreCase())) {
-            throw new IllegalArgumentException("pathPredicates.ignoreCase is not supported yet.");
+        if (Boolean.FALSE.equals(pathPredicate.getCaseSensitive())) {
+            throw new IllegalArgumentException("path.caseSensitive is not supported yet.");
         }
 
         httpPath.setBackend(DEFAULT_MCP_BRIDGE_BACKEND);
     }
 
     private static void fillIngressDestination(V1ObjectMeta metadata, Route route) {
-        if (CollectionUtils.isEmpty(route.getServices())) {
+        List<UpstreamService> services = route.getServices();
+
+        if (CollectionUtils.isEmpty(services)) {
             return;
         }
 
-        if (route.getDestinationType() != null) {
-            switch (route.getDestinationType()) {
-                case Single:
-                case Multiple:
-                    break;
-                default:
-                    throw new IllegalArgumentException("DestinationType [" + route.getDestinationType() + "] is not supported yet.");
-            }
-        }
-
         StringBuilder valueBuilder = new StringBuilder();
-        if (route.getServices().size() == 1) {
-            Destination service = route.getServices().get(0);
+        if (services.size() == 1) {
+            UpstreamService service = services.get(0);
             valueBuilder.append(service.getName());
-            if (service.getServicePort() != null) {
-                valueBuilder.append(":").append(service.getServicePort());
-            }
-            if (!Strings.isNullOrEmpty(service.getVersion())) {
-                valueBuilder.append(" ").append(service.getVersion());
+            if (service.getPort() != null) {
+                valueBuilder.append(":").append(service.getPort());
             }
         } else {
-            for (Destination service : route.getServices()) {
+            for (UpstreamService service : services) {
                 if (!valueBuilder.isEmpty()) {
                     valueBuilder.append("\n");
                 }
-                int weight = Objects.requireNonNullElse(service.getPercent(), DEFAULT_WEIGHT);
-                valueBuilder.append(weight).append("% ");
+                valueBuilder.append(service.getWeight()).append("% ");
                 valueBuilder.append(service.getName());
-                if (service.getServicePort() != null) {
-                    valueBuilder.append(":").append(service.getServicePort());
+                if (service.getPort() != null) {
+                    valueBuilder.append(":").append(service.getPort());
                 }
                 if (!Strings.isNullOrEmpty(service.getVersion())) {
                     valueBuilder.append(" ").append(service.getVersion());
@@ -416,5 +389,4 @@ public class KubernetesModelConverter {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, valueBuilder.toString());
         }
     }
-
 }

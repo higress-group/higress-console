@@ -1,5 +1,5 @@
-import { DomainResponse } from '@/interfaces/domain';
-import { OptionItem } from '@/interfaces/service';
+import { Domain, DomainResponse } from '@/interfaces/domain';
+import { OptionItem } from '@/interfaces/common';
 import { getGatewayDomain, getGatewayServices } from '@/services';
 import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select } from 'antd';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 
 const { Option } = Select;
+
 const MethodOptions = [
   { label: "GET", value: "GET" },
   { label: "POST", value: "POST" },
@@ -30,7 +31,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const servicesRef = useRef(new Map());
   const { data: _services = [] } = useRequest(getGatewayServices);
-  const { data: _response = { list: [] } } = useRequest(getGatewayDomain);
+  const { data: _domains = [] } = useRequest(getGatewayDomain);
 
   useEffect(() => {
     form.resetFields();
@@ -42,36 +43,34 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     });
     setServiceOptions(_serviceOptions);
     const _domainOptions: OptionItem[] = [];
-    const { list: _domain } = _response as DomainResponse;
-    _domain && _domain.forEach(domain => {
+    const domains = _domains as Domain[];
+    domains && domains.forEach(domain => {
       const { name } = domain;
       _domainOptions.push({ label: name, value: name });
     });
     setDomainOptions(_domainOptions);
 
     if (value) {
-      const { name, domainList, routePredicates, services } = value;
-      const { pathPredicates, methodPredicates, headerPredicates, queryPredicates } = routePredicates;
-      const { type, path, ignoreCase } = pathPredicates;
+      const { name, domains, path, headers, methods, urlParams, services } = value;
       const [service] = services;
       const { name: _name } = service;
-      const _headerPredicates = headerPredicates && headerPredicates.map((header) => {
+      headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
-      const _queryPredicates = queryPredicates && queryPredicates.map((query) => {
+      urlParams && urlParams.map((query) => {
         return { ...query, uid: uniqueId() };
       });
       form.setFieldsValue({
         name,
-        domainList,
-        pathPredicates: { type, path, ignoreCase: ignoreCase === true ? ['ignore'] : [] },
-        methodPredicates,
-        headerPredicates: _headerPredicates,
-        queryPredicates: _queryPredicates,
+        domains: domains || [],
+        path: Object.assign({ ...path }, { ignoreCase: path.caseSensitive === false ? ['ignore'] : [] }),
+        methods: methods || [],
+        headers: headers || [],
+        urlParams: urlParams || [],
         services: _name,
       });
     }
-  }, [_services, _response, value]);
+  }, [_services, _domains, value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
@@ -106,7 +105,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('route.routeForm.domain')}
         required
-        name='domainList'
+        name='domains'
         rules={[
           {
             required: true,
@@ -123,14 +122,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         />
       </Form.Item>
       <Form.Item
-        label={t('route.routeForm.fitType')}
+        label={t('route.routeForm.matchType')}
         required
-        tooltip={t('route.routeForm.fitTypeTooltip')}
+        tooltip={t('route.routeForm.matchTypeTooltip')}
       >
         <Form.Item label={t('route.routeForm.path')} required>
           <Input.Group compact>
             <Form.Item
-              name={['pathPredicates', 'type']}
+              name={['path', 'matchType']}
               noStyle
               rules={[
                 {
@@ -141,15 +140,15 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             >
               <Select
                 style={{ width: '20%' }}
-                placeholder={t('route.routeForm.fitType')}
+                placeholder={t('route.routeForm.matchType')}
               >
-                <Option value="PRE">{t('route.fitTypes.PRE')}</Option>
-                <Option value="EQUAL">{t('route.fitTypes.EQUAL')}</Option>
-                <Option value="REGULAR">{t('route.fitTypes.REGULAR')}</Option>
+                <Option value="PRE">{t('route.matchTypes.PRE')}</Option>
+                <Option value="EQUAL">{t('route.matchTypes.EQUAL')}</Option>
+                <Option value="REGULAR">{t('route.matchTypes.REGULAR')}</Option>
               </Select>
             </Form.Item>
             <Form.Item
-              name={['pathPredicates', 'path']}
+              name={['path', 'matchValue']}
               noStyle
               rules={[
                 {
@@ -161,7 +160,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               <Input style={{ width: '60%' }} placeholder={t('route.routeForm.pathMatcherPlacedholder')} />
             </Form.Item>
             <Form.Item
-              name={['pathPredicates', 'ignoreCase']}
+              name={['path', 'ignoreCase']}
               noStyle
             >
               <Checkbox.Group
@@ -177,7 +176,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.method')}
-          name='methodPredicates'
+          name='methods'
         >
           <Select
             mode="multiple"
@@ -189,14 +188,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.header')}
-          name='headerPredicates'
+          name='headers'
           tooltip={t('route.routeForm.headerTooltip')}
         >
           <FactorGroup />
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.query')}
-          name='queryPredicates'
+          name='urlParams'
           tooltip={t('route.routeForm.queryTooltip')}
         >
           <FactorGroup />

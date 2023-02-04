@@ -13,31 +13,9 @@ import lombok.NoArgsConstructor;
 @ApiModel("Gateway Domain")
 public class Domain {
 
-    private Long id;
-
     private String name;
     
-    /**
-     * HTTP
-     * HTTPS
-     */
-    private String protocol;
-
     private String enableHttps;
 
     private String certIdentifier;
-
-    private String caCertIdentifier;
-
-    private Integer status;
-
-    private String type;
-    
-    private String http2;
-
-    private String tlsMax;
-
-    private String tlsMin;
-
-
 }

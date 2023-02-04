@@ -72,7 +72,7 @@
       "services": "Service",
       "action": "Action"
     },
-    "fitTypes": {
+    "matchTypes": {
       "PRE": "Prefix",
       "EQUAL": "Equal",
       "REGULAR": "Regex"
@@ -97,8 +97,8 @@
       "domain": "Domain",
       "domainRequired": "Please select a domain.",
       "domainSearchPlaceholder": "Search domain by name",
-      "fitType": "Fit Type",
-      "fitTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
+      "matchType": "Match Type",
+      "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
       "path": "Path",
       "pathPredicatesRequired": "Please select a path matching predicate.",
       "pathMatcherRequired": "Please input the path match target.",
@@ -186,6 +186,14 @@
     "404": {
       "title": "404",
       "subTitle": "Page Not Found"
+    }
+  },
+  "request": {
+    "error": {
+      "400": "Bad request",
+      "404": "Resource not found",
+      "409": "Resource already exists",
+      "500": "Internal server error"
     }
   },
   "misc": {
