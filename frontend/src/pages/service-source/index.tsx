@@ -7,42 +7,42 @@ import { SourceFormProps, SourceFormRef, SourceItem, SourceResponse } from '@/in
 import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/source';
 import { uniqueId } from "lodash";
 import SourceForm from './components/SourceForm';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 const SourceList: React.FC = () => {
   const { t } = useTranslation();
   const columns = [
     {
-      title: '注册中心类型',
+      title: t('serviceSource.columns.type'),
       dataIndex: 'type',
       key: 'type',
       ellipsis: true,
     },
     {
-      title: '服务来源名称',
+      title: t('serviceSource.columns.name'),
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: '注册中心地址',
+      title: t('serviceSource.columns.domain'),
       dataIndex: 'domain',
       key: 'domain',
     },
     {
-      title: '注册中心访问端口',
+      title: t('serviceSource.columns.port'),
       dataIndex: 'port',
       key: 'port',
     },
     {
-      title: '操作',
+      title: t('serviceSource.columns.action'),
       dataIndex: 'action',
       key: 'action',
       width: 140,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditDrawer(record)}>编辑</a>
-          <a onClick={() => onShowModal(record)}>删除</a>
+          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
       ),
     },
@@ -148,7 +148,7 @@ const SourceList: React.FC = () => {
               type="primary"
               onClick={onShowDrawer}
             >
-              创建服务来源
+              {t('serviceSource.createServiceSource')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
@@ -166,16 +166,17 @@ const SourceList: React.FC = () => {
         pagination={false}
       />
       <Drawer
-        title="创建服务来源"
+        // title={t('serviceSource.createServiceSource')}
+        title={t(currentDomain ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}
         extra={
           <Space>
-            <Button onClick={handleDrawerCancel}>取消</Button>
+            <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
             <Button type="primary" onClick={handleDrawerOK}>
-              确定
+              {t('misc.confirm')}
             </Button>
           </Space>
         }
@@ -183,13 +184,19 @@ const SourceList: React.FC = () => {
         <SourceForm ref={formRef} value={currentDomain} />
       </Drawer>
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />删除</div>}
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
         onCancel={handleModalCancel}
+        cancelText={t('misc.cancel')}
+        okText={t('misc.confirm')}
       >
-        <p>确定删除 <span style={{ color: '#0070cc' }}>{(currentDomain && currentDomain.name) || ''} </span>吗？</p>
+        <p>
+          <Trans t={t} i18nKey="route.deleteConfirmation">
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentDomain && currentDomain.name) || '' }}</span> 吗？
+          </Trans>
+        </p>
       </Modal>
     </PageContainer>
   );
