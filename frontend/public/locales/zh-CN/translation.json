@@ -56,7 +56,60 @@
     "namePlaceholder": "请输入服务名称",
     "namespacePlaceholder": "请输入命名空间"
   },
-  "serviceSource": {},
+  "serviceSource": {
+    "columns": {
+      "type": "注册中心类型",
+      "name": "服务来源名称",
+      "domain": "注册中心地址",
+      "port": "注册中心访问端口",
+      "action": "操作"
+    },
+    "createServiceSource": "创建服务来源",
+    "editServiceSource": "编辑服务来源",
+    "deleteConfirmation": "确定删除 <1>{{currentDomainName}}</1> 吗？",
+    "serviceSourceForm": {
+      "type": "注册中心类型",
+      "typeTooltip": "目前支持 nacos,nacos2.x,zookeeper",
+      "typePlaceholder": "请选择类型",
+
+      "name": "服务来源名称",
+      "nameTooltip": "",
+      "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+
+      "domain": "注册中心地址",
+      "domainTooltip": "注册中心地址，可以是ip或域名",
+      "domainRequired": "请输入注册中心地址",
+      "domainPlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+
+
+      "port": "注册中心访问端口",
+      "portTooltip": "",
+      "portRequired": "请输入访问端口",
+      "portPlaceholder": "注册中心访问端口",
+
+      "zkServicesPath": "服务注册根路径",
+      "zkServicesPathTooltip": "使用zk时,填写服务注册的根路径,默认监听 /dubbo 和 /services，前者为dubbo 服务默认根路径，后者为SpringCloud服务默认根路径",
+      "zkServicesPathRequired": "",
+      "zkServicesPathPlaceholder": "默认监听 /dubbo 和 /services，前者为dubbo 服务默认根路径，后者为SpringCloud服务默认根路径",
+
+      "nacosNamespaceId": "nacos命名空间id",
+      "nacosNamespaceIdTooltip": "",
+      "nacosNamespaceIdRequired": "",
+      "nacosNamespaceIdPlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+
+      "nacosGroups": "nacos服务分组列表",
+      "nacosGroupsTooltip": "",
+      "nacosGroupsRequired": "",
+      "nacosGroupsPlaceholder": "nacos服务分组列表",
+
+      "consulNamespace": "命名空间",
+      "consulNamespaceTooltip": "使用consul时需要填写命名空间",
+      "consulNamespaceRequired": "",
+      "consulNamespacePlaceholder": "consul命名空间"
+
+    }
+  },
   "route": {
     "columns": {
       "name": "路由名称",
