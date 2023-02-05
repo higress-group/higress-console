@@ -51,7 +51,7 @@ const SourceList: React.FC = () => {
   const [form] = Form.useForm();
   const formRef = useRef<SourceFormRef>(null);
   const [dataSource, setDataSource] = useState<SourceItem[]>([]);
-  const [currentDomain, setCurrentDomain] = useState<SourceItem | null>();
+  const [currentServiceSource, setCurrentServiceSource] = useState<SourceItem | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -74,21 +74,21 @@ const SourceList: React.FC = () => {
   }, []);
 
   const onEditDrawer = (domain: SourceItem) => {
-    setCurrentDomain(domain);
+    setCurrentServiceSource(domain);
     setOpenDrawer(true);
   };
 
   const onShowDrawer = () => {
     setOpenDrawer(true);
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   const handleDrawerOK = async () => {
     try {
       const values: SourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as SourceFormProps;
 
-      if (currentDomain) {
-        const _id = currentDomain.id || parseInt(uniqueId(), 10);
+      if (currentServiceSource) {
+        const _id = currentServiceSource.id || parseInt(uniqueId(), 10);
         await updateServiceSources({ id: _id, ...values } as SourceItem);
       } else {
         await addServiceSources(values as SourceItem);
@@ -106,17 +106,17 @@ const SourceList: React.FC = () => {
   const handleDrawerCancel = () => {
     setOpenDrawer(false);
     formRef.current && formRef.current.reset();
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   const onShowModal = (domain: SourceItem) => {
-    setCurrentDomain(domain);
+    setCurrentServiceSource(domain);
     setOpenModal(true);
   };
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteServiceSources({ name: currentDomain?.name });
+    await deleteServiceSources({ name: currentServiceSource?.name });
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新
@@ -126,7 +126,7 @@ const SourceList: React.FC = () => {
 
   const handleModalCancel = () => {
     setOpenModal(false);
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   return (
@@ -167,7 +167,7 @@ const SourceList: React.FC = () => {
       />
       <Drawer
         // title={t('serviceSource.createServiceSource')}
-        title={t(currentDomain ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
+        title={t(currentServiceSource ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
@@ -181,7 +181,7 @@ const SourceList: React.FC = () => {
           </Space>
         }
       >
-        <SourceForm ref={formRef} value={currentDomain} />
+        <SourceForm ref={formRef} value={currentServiceSource} />
       </Drawer>
       <Modal
         title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
@@ -194,7 +194,7 @@ const SourceList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentDomain && currentDomain.name) || '' }}</span> 吗？
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentServiceSourceName: (currentServiceSource && currentServiceSource.name) || '' }}</span> 吗？
           </Trans>
         </p>
       </Modal>
