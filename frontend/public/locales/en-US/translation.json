@@ -1,4 +1,12 @@
 {
+  "navbar": {
+    "homepage": "HOME",
+    "docs": "DOCS",
+    "developers": "DEVELOPERS",
+    "blog": "BLOG",
+    "community": "COMMUNITY",
+    "download": "DOWNLOAD"
+  },
   "menu": {
     "serviceSources": "Service Sources",
     "serviceList": "Service List",
@@ -244,12 +252,6 @@
     "return": "Return",
     "error": "Error",
     "close": "Close",
-    "tbd": "Still in development. To be released soon...",
-    "homepage": "HOME",
-    "docs": "DOCS",
-    "developers": "DEVELOPERS",
-    "blog": "BLOG",
-    "community": "COMMUNITY",
-    "download": "DOWNLOAD"
+    "tbd": "Still in development. To be released soon..."
   }
 }

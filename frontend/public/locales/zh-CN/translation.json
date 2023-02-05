@@ -1,4 +1,12 @@
 {
+  "navbar": {
+    "homepage": "首页",
+    "docs": "文档",
+    "developers": "开发者",
+    "blog": "博客",
+    "community": "社区",
+    "download": "下载"
+  },
   "menu": {
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
@@ -245,12 +253,6 @@
     "return": "返回",
     "error": "错误",
     "close": "关闭",
-    "tbd": "页面开发中，即将推出...",
-    "homepage": "首页",
-    "docs": "文档",
-    "developers": "开发者",
-    "blog": "博客",
-    "community": "社区",
-    "download": "下载"
+    "tbd": "页面开发中，即将推出..."
   }
 }
