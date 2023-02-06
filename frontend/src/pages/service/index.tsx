@@ -59,7 +59,7 @@ const ServiceList: React.FC = () => {
           _os.add(namespace);
         }
       });
-      servicesRef.current = result;
+      servicesRef.current = result || [];
       setDataSource(result);
       setNamespaces(_namespaces);
     },

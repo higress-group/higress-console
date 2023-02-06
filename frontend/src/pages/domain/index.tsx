@@ -64,7 +64,7 @@ const DomainList: React.FC = () => {
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
     onSuccess: (result: Domain[], params) => {
-      const _dataSource = result;
+      const _dataSource = result || [];
       _dataSource.forEach(i => {
         i.key || (i.key = i.id || i.name);
         i.mustHttps = [];
