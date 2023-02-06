@@ -1,17 +1,25 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.alibaba.higress.console.controller;
 
-import com.alibaba.higress.console.controller.dto.CommonPageQuery;
-import com.alibaba.higress.console.controller.dto.Domain;
-import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.console.controller.dto.PaginatedResult;
-import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.exception.BusinessException;
-import com.alibaba.higress.console.controller.exception.ValidationException;
-import com.alibaba.higress.console.controller.util.ControllerUtil;
-import com.alibaba.higress.console.service.DomainService;
+import javax.annotation.Resource;
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +31,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import javax.validation.constraints.NotBlank;
-import java.util.List;
+import com.alibaba.higress.console.controller.dto.CommonPageQuery;
+import com.alibaba.higress.console.controller.dto.Domain;
+import com.alibaba.higress.console.controller.dto.PaginatedResponse;
+import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.exception.ValidationException;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.console.service.DomainService;
 
 @RestController("DomainsController")
 @RequestMapping("/v1/domains")
@@ -51,7 +63,8 @@ public class DomainsController {
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<Response<Domain>> put(@PathVariable("name") @NotBlank String domainName, @RequestBody Domain domain) {
+    public ResponseEntity<Response<Domain>> put(@PathVariable("name") @NotBlank String domainName,
+        @RequestBody Domain domain) {
         if (StringUtils.isNotEmpty(domain.getName())) {
             domain.setName(domainName);
         } else if (!StringUtils.equals(domainName, domain.getName())) {

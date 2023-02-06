@@ -1,12 +1,23 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.alibaba.higress.console.controller;
 
-import com.alibaba.higress.console.controller.dto.CommonPageQuery;
-import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.dto.Route;
-import com.alibaba.higress.console.controller.exception.ValidationException;
-import com.alibaba.higress.console.controller.util.ControllerUtil;
-import com.alibaba.higress.console.service.RouteService;
+import javax.annotation.Resource;
+import javax.validation.constraints.NotBlank;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,8 +31,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import javax.validation.constraints.NotBlank;
+import com.alibaba.higress.console.controller.dto.CommonPageQuery;
+import com.alibaba.higress.console.controller.dto.PaginatedResponse;
+import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.exception.ValidationException;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.console.service.RouteService;
 
 @RestController("RoutesController")
 @RequestMapping("/v1/routes")
@@ -42,7 +58,8 @@ public class RoutesController {
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<Response<Route>> update(@PathVariable("name") @NotBlank String routeName, @RequestBody Route route) {
+    public ResponseEntity<Response<Route>> update(@PathVariable("name") @NotBlank String routeName,
+        @RequestBody Route route) {
         if (StringUtils.isNotEmpty(route.getName())) {
             route.setName(routeName);
         } else if (!StringUtils.equals(routeName, route.getName())) {

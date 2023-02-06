@@ -1,4 +1,30 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.alibaba.higress.console.service.kubernetes;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
@@ -9,6 +35,7 @@ import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.util.KubernetesUtil;
 import com.google.common.base.Splitter;
+
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
@@ -20,22 +47,12 @@ import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 @org.springframework.stereotype.Service
 public class KubernetesModelConverter {
 
-    private static final Splitter lineSplitter = Splitter.on('\n').trimResults().omitEmptyStrings();
-    private static final Splitter fieldSplitter = Splitter.on(Pattern.compile(" +")).trimResults().omitEmptyStrings();
+    private static final Splitter LINE_SPLITTER = Splitter.on('\n').trimResults().omitEmptyStrings();
+    private static final Splitter FIELD_SPLITTER = Splitter.on(Pattern.compile(" +")).trimResults().omitEmptyStrings();
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
     private static final Integer DEFAULT_WEIGHT = 100;
 
@@ -69,7 +86,7 @@ public class KubernetesModelConverter {
         }
         V1HTTPIngressPath path = httpRule.getPaths().get(0);
         if (!path.getPathType().equals(KubernetesConstants.IngressPathType.EXACT)
-                && !path.getPathType().equals(KubernetesConstants.IngressPathType.PREFIX)) {
+            && !path.getPathType().equals(KubernetesConstants.IngressPathType.PREFIX)) {
             return false;
         }
         V1IngressBackend backend = path.getBackend();
@@ -78,10 +95,9 @@ public class KubernetesModelConverter {
                 return false;
             }
             V1TypedLocalObjectReference resource = path.getBackend().getResource();
-            if (resource != null &&
-                    (!KubernetesConstants.MCP_BRIDGE_API_GROUP.equals(resource.getApiGroup())
-                            || !KubernetesConstants.MCP_BRIDGE_KIND.equals(resource.getKind())
-                            || !KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT.equals(resource.getName()))) {
+            if (resource != null && (!KubernetesConstants.MCP_BRIDGE_API_GROUP.equals(resource.getApiGroup())
+                || !KubernetesConstants.MCP_BRIDGE_KIND.equals(resource.getKind())
+                || !KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT.equals(resource.getName()))) {
                 return false;
             }
         }
@@ -225,7 +241,7 @@ public class KubernetesModelConverter {
         }
 
         List<UpstreamService> services = new ArrayList<>();
-        for (String item : lineSplitter.split(rawDestination)) {
+        for (String item : LINE_SPLITTER.split(rawDestination)) {
             UpstreamService service = buildDestination(item);
             if (service != null) {
                 services.add(service);
@@ -235,7 +251,7 @@ public class KubernetesModelConverter {
     }
 
     private static UpstreamService buildDestination(String config) {
-        List<String> fields = fieldSplitter.splitToList(config);
+        List<String> fields = FIELD_SPLITTER.splitToList(config);
         int weight = DEFAULT_WEIGHT;
         int addrIndex = 0;
         if (fields.get(0).endsWith("%")) {
@@ -286,7 +302,7 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isNotEmpty(route.getDomains())) {
             for (String domain : route.getDomains()) {
                 KubernetesUtil.setLabel(ingress, KubernetesConstants.Label.DOMAIN_KEY_PREFIX + domain,
-                        KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+                    KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
             }
         }
     }
@@ -331,7 +347,8 @@ public class KubernetesModelConverter {
         }
     }
 
-    private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule, RoutePredicate pathPredicate) {
+    private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule,
+        RoutePredicate pathPredicate) {
         V1HTTPIngressPath httpPath = new V1HTTPIngressPath();
         httpRule.setPaths(Collections.singletonList(httpPath));
 
@@ -344,7 +361,7 @@ public class KubernetesModelConverter {
         } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
             httpPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY,
-                    KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE);
+                KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE);
         } else {
             throw new IllegalArgumentException("Unsupported path match type: " + matchType);
         }
@@ -386,7 +403,8 @@ public class KubernetesModelConverter {
             }
         }
         if (!valueBuilder.isEmpty()) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, valueBuilder.toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION,
+                valueBuilder.toString());
         }
     }
 }
