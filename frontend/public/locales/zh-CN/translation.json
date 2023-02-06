@@ -96,7 +96,7 @@
       "routeNamePlaceholder": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
       "domain": "域名",
       "domainRequired": "请选择域名",
-      "domainSearchPlaceholder": "搜索域名名称域名",
+      "domainSearchPlaceholder": "根据域名名称搜索域名",
       "matchType": "匹配规则",
       "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
       "path": "路径（Path）",
