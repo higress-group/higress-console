@@ -74,7 +74,6 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
         ]}
       >
         <Select
-          defaultValue={protocol}
           allowClear
           placeholder={t('domain.domainForm.protocolPlaceholder')}
           onChange={(v) => setProtocol(v)}
