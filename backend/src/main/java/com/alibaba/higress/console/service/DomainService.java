@@ -1,19 +1,19 @@
 package com.alibaba.higress.console.service;
 
+import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.Domain;
-import io.kubernetes.client.openapi.ApiException;
-
-import java.util.List;
+import com.alibaba.higress.console.controller.dto.PaginatedResult;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 
 public interface DomainService {
 
-    void add(Domain domain) throws ApiException;
+    Domain add(Domain domain) throws BusinessException;
 
-    List<Domain> getAll() throws ApiException;
+    PaginatedResult<Domain> list(CommonPageQuery query)throws BusinessException;
 
-    Domain query(String domainName) throws ApiException;
+    Domain query(String domainName) throws BusinessException;
 
-    void delete(String domainName) throws ApiException;
+    void delete(String domainName) throws BusinessException;
 
-    void put(Domain domain) throws ApiException;
+    Domain put(Domain domain) throws BusinessException;
 }

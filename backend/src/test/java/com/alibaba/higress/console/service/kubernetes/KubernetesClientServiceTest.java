@@ -2,7 +2,6 @@ package com.alibaba.higress.console.service.kubernetes;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import org.junit.jupiter.api.Test;
 

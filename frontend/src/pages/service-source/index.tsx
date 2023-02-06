@@ -1,13 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-source';
+import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/service-source';
+import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Col, Form, Row, Button, Modal, Space, Drawer } from 'antd';
 import { useRequest } from 'ahooks';
-import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { SourceFormProps, SourceFormRef, SourceItem, SourceResponse } from '@/interfaces/source';
-import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/source';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import { uniqueId } from "lodash";
-import SourceForm from './components/SourceForm';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import SourceForm from './components/SourceForm';
+
+interface SourceFormRef {
+  reset: () => void,
+  handleSubmit: () => Promise<ServiceSourceFormProps>,
+}
 
 const SourceList: React.FC = () => {
   const { t } = useTranslation();
@@ -50,13 +55,13 @@ const SourceList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef<SourceFormRef>(null);
-  const [dataSource, setDataSource] = useState<SourceItem[]>([]);
-  const [currentDomain, setCurrentDomain] = useState<SourceItem | null>();
+  const [dataSource, setDataSource] = useState<ServiceSource[]>([]);
+  const [currentDomain, setCurrentDomain] = useState<ServiceSource | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (factor): Promise<SourceResponse> => (getServiceSources(factor));
+  const getDomainList = async (): Promise<ServiceSource[]> => (getServiceSources());
 
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
@@ -73,7 +78,7 @@ const SourceList: React.FC = () => {
     run({});
   }, []);
 
-  const onEditDrawer = (domain: SourceItem) => {
+  const onEditDrawer = (domain: ServiceSource) => {
     setCurrentDomain(domain);
     setOpenDrawer(true);
   };
@@ -85,13 +90,13 @@ const SourceList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: SourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as SourceFormProps;
+      const values: ServiceSourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as ServiceSourceFormProps;
 
       if (currentDomain) {
         const _id = currentDomain.id || parseInt(uniqueId(), 10);
-        await updateServiceSources({ id: _id, ...values } as SourceItem);
+        await updateServiceSources({ id: _id, ...values } as ServiceSource);
       } else {
-        await addServiceSources(values as SourceItem);
+        await addServiceSources(values as ServiceSource);
       }
 
       setOpenDrawer(false);
@@ -109,7 +114,7 @@ const SourceList: React.FC = () => {
     setCurrentDomain(null);
   };
 
-  const onShowModal = (domain: SourceItem) => {
+  const onShowModal = (domain: ServiceSource) => {
     setCurrentDomain(domain);
     setOpenModal(true);
   };

@@ -1,19 +1,24 @@
 package com.alibaba.higress.console.service;
 
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.Domain;
+import com.alibaba.higress.console.controller.dto.PaginatedResult;
+import com.alibaba.higress.console.controller.exception.AlreadyExistedException;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.console.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.console.util.KubernetesUtil;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @org.springframework.stereotype.Service
@@ -26,42 +31,68 @@ public class DomainServiceImpl implements DomainService {
     private KubernetesModelConverter kubernetesModelConverter;
 
     @Override
-    public void add(Domain domain) throws ApiException {
-        V1ConfigMap domainConfigMap = kubernetesModelConverter.domain2V1ConfigMap(domain);
-        V1ConfigMap v1ConfigMaps = kubernetesClientService
-                .createConfigMap(domainConfigMap);
+    public Domain add(Domain domain) {
+        V1ConfigMap domainConfigMap = kubernetesModelConverter.domain2ConfigMap(domain);
+        V1ConfigMap newDomainConfigMap;
+        try {
+            newDomainConfigMap = kubernetesClientService.createConfigMap(domainConfigMap);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+                throw new AlreadyExistedException();
+            }
+            throw new BusinessException("Error occurs when adding a new domain.", e);
+        }
+        return kubernetesModelConverter.configMap2Domain(newDomainConfigMap);
     }
 
     @Override
-    public List<Domain> getAll() throws ApiException {
-        List<V1ConfigMap> v1ConfigMaps = kubernetesClientService
-                .listConfigMap();
-        return v1ConfigMaps.stream().map(kubernetesModelConverter::V1ConfigMap2Domain)
-                .collect(Collectors.toList());
+    public PaginatedResult<Domain> list(CommonPageQuery query) {
+        List<V1ConfigMap> configMaps;
+        try {
+            configMaps = kubernetesClientService.listConfigMap();
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing ConfigMap.", e);
+        }
+        List<V1ConfigMap> domainConfigMaps = configMaps.stream()
+                .filter(cm -> StringUtils.startsWith(KubernetesUtil.getObjectName(cm), CommonKey.DOMAIN_PREFIX))
+                .toList();
+        return PaginatedResult.createFromFullList(domainConfigMaps, query, kubernetesModelConverter::configMap2Domain);
     }
 
     @Override
-    public Domain query(String domainName) throws ApiException {
-        V1ConfigMap v1ConfigMap = kubernetesClientService.readConfigMap(
-                KubernetesModelConverter.normalizeDomainName(domainName));
-        return Optional.ofNullable(v1ConfigMap).map(kubernetesModelConverter::V1ConfigMap2Domain)
-                .orElse(null);
+    public Domain query(String domainName) {
+        V1ConfigMap configMap;
+        String normalizedDomainName = KubernetesModelConverter.normalizeDomainName(domainName);
+        try {
+            configMap = kubernetesClientService.readConfigMap(normalizedDomainName);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading the ConfigMap with name: " + normalizedDomainName, e);
+        }
+        return Optional.ofNullable(configMap).map(kubernetesModelConverter::configMap2Domain).orElse(null);
     }
 
     @Override
-    public void delete(String domainName) throws ApiException {
-        V1Status v1Status = kubernetesClientService.deleteConfigMap(
-                KubernetesModelConverter.normalizeDomainName(domainName));
-        if (!StringUtils.equals(v1Status.getStatus(), "Success")) {
-            throw new ApiException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "System error");
+    public void delete(String domainName) {
+        String configMapName = KubernetesModelConverter.normalizeDomainName(domainName);
+        try {
+            kubernetesClientService.deleteConfigMap(configMapName);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when deleting the ConfigMap with name: "
+                    + configMapName, e);
         }
     }
 
     @Override
-    public void put(Domain domain) throws ApiException {
-        V1ConfigMap domainConfigMap = kubernetesModelConverter.domain2V1ConfigMap(domain);
-        V1ConfigMap v1ConfigMaps = kubernetesClientService.putConfigMap(
-                domainConfigMap.getMetadata().getName(), domainConfigMap);
+    public Domain put(Domain domain) {
+        V1ConfigMap domainConfigMap = kubernetesModelConverter.domain2ConfigMap(domain);
+        V1ConfigMap updatedConfigMap;
+        try {
+            updatedConfigMap = kubernetesClientService.replaceConfigMap(domainConfigMap);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when replacing the ConfigMap generated by domain: "
+                    + domain.getName(), e);
+        }
+        return kubernetesModelConverter.configMap2Domain(updatedConfigMap);
     }
 
 }

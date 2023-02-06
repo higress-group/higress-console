@@ -1,35 +1,31 @@
+import { EnableHttpsValue, Protocol } from '@/interfaces/domain';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
-const Protocol = {
-  Http: "HTTP",
-  Https: "HTTPS",
-};
 
 const DomainForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
 
   const { value } = props;
   const [form] = Form.useForm();
-  const [protocol, setProtocol] = useState<string>(Protocol.Http);
+  const [protocol, setProtocol] = useState<string>(Protocol.http);
 
   useEffect(() => {
     form.resetFields();
 
     if (value) {
-      const { name, protocol } = value;
+      const { name, enableHttps } = value;
+      const protocol = enableHttps !== EnableHttpsValue.off ? Protocol.https : Protocol.http;
       setProtocol(protocol);
-      const values = { name, protocol };
+      const values = { name };
       if (value.certIdentifier) {
         Object.assign(values, { certIdentifier: value.certIdentifier });
       }
-      let _mustHttps: boolean[] = [];
-      if (value.mustHttps) {
-        _mustHttps = [true];
-        Object.assign(values, { mustHttps: _mustHttps });
+      if (enableHttps === EnableHttpsValue.force) {
+        Object.assign(values, { mustHttps: [true] });
       }
       form.setFieldsValue(values);
     }
@@ -82,12 +78,12 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
           placeholder={t('domain.domainForm.protocolPlaceholder')}
           onChange={(v) => setProtocol(v)}
         >
-          <Option value={Protocol.Http}>HTTP</Option>
-          <Option value={Protocol.Https}>HTTPS</Option>
+          <Option value={Protocol.http}>HTTP</Option>
+          <Option value={Protocol.https}>HTTPS</Option>
         </Select>
       </Form.Item>
       {
-        protocol === Protocol.Https ? (
+        protocol === Protocol.https ? (
           <div>
             <Form.Item
               label={t('domain.domainForm.certificate')}

@@ -10,11 +10,14 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.resource.ResourceResolverChain;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebMvc
 public class WebMvcInitializer implements WebMvcConfigurer {
+
+    private static final List<String> API_PATH_PREFIXES = Arrays.asList("/v1/");
 
     private static final String HOMEPAGE_PATH = "/index.html";
 
@@ -30,7 +33,7 @@ public class WebMvcInitializer implements WebMvcConfigurer {
                                                                @NonNull List<? extends Resource> locations,
                                                                @NonNull ResourceResolverChain chain) {
                         Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
-                        if (resource == null) {
+                        if (resource == null && API_PATH_PREFIXES.stream().noneMatch(requestPath::startsWith)) {
                             // Resource not found. Fallback to the homepage.
                             resource = super.resolveResourceInternal(request, HOMEPAGE_PATH, locations, chain);
                         }

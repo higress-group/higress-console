@@ -1,14 +1,24 @@
-export interface DomainItem {
-  id?: number,
+export interface Domain {
   name: string,
-  protocol: string,
   certIdentifier?: string,
-  mustHttps?: boolean,
+  enableHttps?: string,
+  [propName: string]: any,
+}
+
+export const Protocol = {
+  http: "HTTP",
+  https: "HTTPS",
+};
+
+export enum EnableHttpsValue {
+  on = 'on',
+  off = 'off',
+  force = 'force',
 }
 
 export interface DomainResponse {
-  list: DomainItem[],
-  pageNumber: number,
+  data: Domain[],
+  pageNum: number,
   pageSize: number,
-  totalSize: number,
+  total: number,
 }

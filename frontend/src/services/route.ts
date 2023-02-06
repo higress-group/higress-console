@@ -1,31 +1,26 @@
 import request from './request';
-import { RouteResponse, RouteItem } from '@/interfaces/route';
-
+import { RouteResponse, Route } from '@/interfaces/route';
 
 export const getGatewayRoute = (
-  payload: any = { }
-) : Promise<RouteResponse> => {
-  return request.post<any, RouteResponse>("/v1/route/list", payload);
+): Promise<RouteResponse> => {
+  return request.get<any, RouteResponse>("/v1/routes");
 };
 
-
 export const addGatewayRoute = (
-  payload: RouteItem
-) : Promise<any> => {
-  return request.post<any, any>("/v1/route/add", payload);
+  payload: Route
+): Promise<any> => {
+  return request.post<any, any>("/v1/routes", payload);
 };
 
 
 export const deleteGatewayRoute = (
-  payload: { name: string | undefined }
-) : Promise<any> => {
-  return request.get<any, any>("/v1/route/delete", {
-    params: payload
-  });
+  name: string
+): Promise<any> => {
+  return request.delete<any, any>(`/v1/routes/${name}`);
 };
 
 export const updateGatewayRoute = (
-  payload: RouteItem
-) : Promise<any> => {
-  return request.post<any, any>("/v1/route/update", payload);
+  payload: Route
+): Promise<any> => {
+  return request.put<any, any>(`/v1/routes/${payload.name}`, payload);
 };
