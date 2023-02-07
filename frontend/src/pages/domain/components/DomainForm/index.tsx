@@ -18,9 +18,9 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
 
     if (value) {
       const { name, enableHttps } = value;
-      const protocol = enableHttps !== EnableHttpsValue.off ? Protocol.https : Protocol.http;
-      setProtocol(protocol);
-      const values = { name };
+      const protocolValue = enableHttps !== EnableHttpsValue.off ? Protocol.https : Protocol.http;
+      setProtocol(protocolValue);
+      const values = { name, protocol: protocolValue };
       if (value.certIdentifier) {
         Object.assign(values, { certIdentifier: value.certIdentifier });
       }

@@ -80,10 +80,10 @@ const RouteList: React.FC = () => {
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
     onSuccess: (result: Route[], params) => {
-      result.forEach(i => {
+      result && result.forEach(i => {
         i.key || (i.key = i.id ? i.id + '' : i.name);
       });
-      setDataSource(result);
+      setDataSource(result || []);
     },
   });
 
