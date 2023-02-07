@@ -1,4 +1,34 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package com.alibaba.higress.console.service.kubernetes;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
@@ -8,6 +38,7 @@ import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import com.alibaba.higress.console.controller.dto.istio.IstioEndpointShard;
 import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
 import com.alibaba.higress.console.util.KubernetesUtil;
+
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -28,22 +59,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @org.springframework.stereotype.Service
@@ -51,8 +66,8 @@ public class KubernetesClientService {
 
     private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io";
     private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
-    private static final String DEFAULT_LABEL_SELECTORS = KubernetesConstants.Label.RESOURCE_DEFINER_KEY + CommonKey.EQUALS_SIGN
-            + Label.RESOURCE_DEFINER_VALUE;
+    private static final String DEFAULT_LABEL_SELECTORS =
+        KubernetesConstants.Label.RESOURCE_DEFINER_KEY + CommonKey.EQUALS_SIGN + Label.RESOURCE_DEFINER_VALUE;
 
     private ApiClient client;
 
@@ -85,7 +100,8 @@ public class KubernetesClientService {
             client = ClientBuilder.cluster().build();
             log.info("init KubernetesClientService InCluster");
         } else {
-            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.KUBE_CONFIG_DEFAULT_PATH;
+            String kubeConfigPath =
+                !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : CommonKey.KUBE_CONFIG_DEFAULT_PATH;
             try (FileReader reader = new FileReader(kubeConfigPath)) {
                 client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
             }
@@ -105,19 +121,21 @@ public class KubernetesClientService {
     }
 
     public String checkControllerService() {
-//        try {
-//            Configuration.setDefaultApiClient(client);
-//            CoreV1Api api = new CoreV1Api();
-//            V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
-//            for (V1Service item : list.getItems()) {
-//                if (controllerServiceName.equals(item.getMetadata().getName())) {
-//                    log.info("Get Higress Controller name {}, namespace {}", item.getMetadata().getName(), item.getMetadata().getNamespace());
-//                    return item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error("checkControllerService fail use default ", e);
-//        }
+        // try {
+        // Configuration.setDefaultApiClient(client);
+        // CoreV1Api api = new CoreV1Api();
+        // V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null,
+        // null);
+        // for (V1Service item : list.getItems()) {
+        // if (controllerServiceName.equals(item.getMetadata().getName())) {
+        // log.info("Get Higress Controller name {}, namespace {}", item.getMetadata().getName(),
+        // item.getMetadata().getNamespace());
+        // return item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
+        // }
+        // }
+        // } catch (Exception e) {
+        // log.error("checkControllerService fail use default ", e);
+        // }
         return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
     }
 
@@ -144,8 +162,7 @@ public class KubernetesClientService {
             if (response.body() != null) {
                 String responseString = new String(response.body().bytes());
                 if (StringUtils.isNotEmpty(responseString)) {
-                    return JSON.parseObject(responseString, new TypeReference<>() {
-                    });
+                    return JSON.parseObject(responseString, new TypeReference<>() {});
                 }
             }
         } catch (Exception e) {
@@ -164,15 +181,15 @@ public class KubernetesClientService {
     public List<V1Ingress> listIngress() {
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         try {
-            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace,
-                    null, null, null, null, DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
+            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
+                DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
             if (list == null) {
                 return Collections.emptyList();
             }
             return list.getItems();
         } catch (ApiException e) {
-            log.error("listIngress Status code: " + e.getCode()
-                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            log.error("listIngress Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                + "Response headers: " + e.getResponseHeaders(), e);
             return null;
         }
     }
@@ -182,8 +199,8 @@ public class KubernetesClientService {
         try {
             return apiInstance.readNamespacedIngress(name, controllerNamespace, null);
         } catch (ApiException e) {
-            log.error("getIngress Status code: " + e.getCode()
-                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            log.error("getIngress Status code: " + e.getCode() + "Reason: " + e.getResponseBody() + "Response headers: "
+                + e.getResponseHeaders(), e);
             return null;
         }
     }
@@ -201,7 +218,8 @@ public class KubernetesClientService {
         }
         renderDefaultLabels(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
-        return apiInstance.replaceNamespacedIngress(metadata.getName(), controllerNamespace, ingress, null, null, null, null);
+        return apiInstance.replaceNamespacedIngress(metadata.getName(), controllerNamespace, ingress, null, null, null,
+            null);
     }
 
     public void deleteIngress(String name) throws ApiException {
@@ -221,16 +239,15 @@ public class KubernetesClientService {
 
     public List<V1ConfigMap> listConfigMap() throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null,
-                null, DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
+        V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null, null,
+            DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
         return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
     }
 
     public V1ConfigMap createConfigMap(V1ConfigMap configMap) throws ApiException {
         renderDefaultLabels(configMap);
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.createNamespacedConfigMap(controllerNamespace, configMap, null, null, null,
-                null);
+        return coreV1Api.createNamespacedConfigMap(controllerNamespace, configMap, null, null, null, null);
     }
 
     public V1ConfigMap readConfigMap(String name) throws ApiException {
@@ -242,8 +259,7 @@ public class KubernetesClientService {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         V1Status status;
         try {
-            status = coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null,
-                    null, null);
+            status = coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null, null, null);
         } catch (ApiException ae) {
             if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
                 // The ConfigMap to be deleted is already gone or never existed.
@@ -261,8 +277,8 @@ public class KubernetesClientService {
         }
         renderDefaultLabels(configMap);
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.replaceNamespacedConfigMap(metadata.getName(), controllerNamespace, configMap, null, null, null,
-                null);
+        return coreV1Api.replaceNamespacedConfigMap(metadata.getName(), controllerNamespace, configMap, null, null,
+            null, null);
     }
 
     private void checkResponseStatus(V1Status status) {

@@ -75,6 +75,20 @@ swagger，访问 swagger 页面了解 API 情况。
 swagger：localhost:8080/swagger-ui/index.html
 ```
 
+## 编码规范
+
+### 前端部分
+
+TBD
+
+### 后端部分
+
+后端项目以阿里巴巴发布的《[Java 开发规范](https://github.com/alibaba/p3c/)》作为其编码规范。大家可以点击链接下载最新的 PDF 文档。
+
+为了确保规范的实施效果，后端项目的 pom 中集成了 P3C-PMD 和 CheckStyle 插件，在执行 Maven 编译时会对编码规范进行检查。如果检查过程中发现了高优先级的问题，插件则会报错，中断编译过程。
+
+同时，每一个源码文件均需要在头部添加 Higress 的开源协议信息。为了便于大家快速添加开源协议文本，项目的 pom 中已经通过 Profile 集成了自动的协议填充插件。大家可以使用 `./mvnw generate-sources -P license` 命令快速在代码文件中填充上协议文本。
+
 ## 功能规划
 
 | 功能        |                描述                 |    认领 |

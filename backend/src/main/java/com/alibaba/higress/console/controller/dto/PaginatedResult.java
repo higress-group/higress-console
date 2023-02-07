@@ -1,14 +1,26 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package com.alibaba.higress.console.controller.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -35,7 +47,8 @@ public class PaginatedResult<T> implements Serializable {
         List<T> data = list;
         if (query != null && query.paginationEnabled()) {
             int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 1;
-            int pageSize = query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
+            int pageSize =
+                query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
             int startIndex = (pageNum - 1) * pageSize;
             data = data.subList(startIndex, Math.min(result.total, startIndex + pageSize));
             result.pageNum = pageNum;
@@ -45,7 +58,8 @@ public class PaginatedResult<T> implements Serializable {
         return result;
     }
 
-    public static <T, V> PaginatedResult<V> createFromFullList(List<T> list, CommonPageQuery query, Function<T, V> converter) {
+    public static <T, V> PaginatedResult<V> createFromFullList(List<T> list, CommonPageQuery query,
+        Function<T, V> converter) {
         if (list == null) {
             list = Collections.emptyList();
         }
@@ -54,7 +68,8 @@ public class PaginatedResult<T> implements Serializable {
         List<T> data = list;
         if (query != null && query.paginationEnabled()) {
             int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 0;
-            int pageSize = query.getPageNum() != null && query.getPageNum() > 0 ? query.getPageNum() : DEFAULT_PAGE_SIZE;
+            int pageSize =
+                query.getPageNum() != null && query.getPageNum() > 0 ? query.getPageNum() : DEFAULT_PAGE_SIZE;
             int startIndex = pageNum * pageSize;
             data = data.subList(startIndex, startIndex + pageSize);
             result.pageNum = pageNum;
