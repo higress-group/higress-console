@@ -1,22 +1,26 @@
 /**
  * Service Source Registry Type
  */
-export interface SourceItem {
-  id?: number,
+export interface ServiceSource {
+  id: string;
   name: string,
   type: string,
   domain: string,
   port: number,
-  consulNamespace?: string,
-  zkServicesPath?: string[],
+  properties: ServiceSourceProperties,
+}
+
+export interface ServiceSourceProperties {
   nacosNamespaceId?: string,
   nacosGroups?: string[],
+  zkServicesPath?: string[],
+  consulNamespace?: string,
 }
 
 /**
  * Service Source Form Props Type
  */
-export interface SourceFormProps {
+export interface ServiceSourceFormProps {
   name: string,
   type: string,
   domain: string,
@@ -30,17 +34,9 @@ export interface SourceFormProps {
 /**
  * Service Source Get List Request Response
  */
-export interface SourceResponse {
-  data: SourceItem[],
-  pageNumber: number,
+export interface ServiceSourceResponse {
+  data: ServiceSource[],
+  pageNum: number,
   pageSize: number,
-  totalSize: number,
-}
-
-/**
- * Service Source Form Ref Type
- */
-export interface SourceFormRef {
-  reset: () => void,
-  handleSubmit: () => Promise<SourceFormProps>,
+  total: number,
 }

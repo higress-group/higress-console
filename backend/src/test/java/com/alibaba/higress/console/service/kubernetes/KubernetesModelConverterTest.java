@@ -1,23 +1,24 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package com.alibaba.higress.console.service.kubernetes;
 
 import com.alibaba.higress.console.constant.KubernetesConstants;
-import com.alibaba.higress.console.controller.dto.Destination;
-import com.alibaba.higress.console.controller.dto.DestinationTypeEnum;
-import com.alibaba.higress.console.controller.dto.ParamsPredicates;
-import com.alibaba.higress.console.controller.dto.PathPredicates;
 import com.alibaba.higress.console.controller.dto.Route;
-import com.alibaba.higress.console.controller.dto.RoutePredicates;
-import com.alibaba.higress.console.controller.dto.RoutePredicatesTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.util.KubernetesUtil;
-import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
-import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressBackend;
-import io.kubernetes.client.openapi.models.V1IngressRule;
-import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
-import io.kubernetes.client.openapi.models.V1IngressSpec;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
+import io.kubernetes.client.openapi.models.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 public class KubernetesModelConverterTest {
@@ -158,13 +158,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, null, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, 100);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -184,13 +183,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 10, null, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, 10);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -210,13 +208,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, 8080, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, null, 100);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -236,13 +233,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination("v1", 100, 8080, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, "v1", 100);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -263,15 +259,14 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Multiple);
-        Destination destination1 = new Destination(null, 20, 8080, "hello1.default.svc.cluster.local");
-        Destination destination2 = new Destination("v1", 30, 18080, "hello2.default.svc.cluster.local");
-        Destination destination3 = new Destination("v2", 50, null, "hello3.default.svc.cluster.local");
-        expectedRoute.setServices(Arrays.asList(destination1, destination2, destination3));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service1 = new UpstreamService("hello1.default.svc.cluster.local", 8080, null, 20);
+        UpstreamService service2 = new UpstreamService("hello2.default.svc.cluster.local", 18080, "v1", 30);
+        UpstreamService service3 = new UpstreamService("hello3.default.svc.cluster.local", null, "v2", 50);
+        expectedRoute.setServices(Arrays.asList(service1, service2, service3));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -291,13 +286,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.EQUAL.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, null, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, 100);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -319,13 +313,12 @@ public class KubernetesModelConverterTest {
 
         Route expectedRoute = buildBasicRoute();
         expectedRoute.setName(metadata.getName());
-        PathPredicates pathPredicates = expectedRoute.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.REGULAR.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath(path.getPath());
-        expectedRoute.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, null, "hello.default.svc.cluster.local");
-        expectedRoute.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = expectedRoute.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue(path.getPath());
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, 100);
+        expectedRoute.setServices(Collections.singletonList(service));
         Assertions.assertEquals(expectedRoute, route);
     }
 
@@ -333,13 +326,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestPrefixPathSingleService() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, null, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, null);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -351,7 +343,7 @@ public class KubernetesModelConverterTest {
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -360,13 +352,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestPrefixPathSingleServiceWithWeight() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 80, null, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", null, null, 15);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -378,7 +369,7 @@ public class KubernetesModelConverterTest {
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -387,13 +378,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestPrefixPathSingleServiceWithPort() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination(null, 100, 8080, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, null, null);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -405,7 +395,7 @@ public class KubernetesModelConverterTest {
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -414,13 +404,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestPrefixPathSingleServiceWithPortAndVersion() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination("v1", 100, 8080, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, "v1", 100);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -428,11 +417,11 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080 v1");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -441,15 +430,14 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestPrefixPathMultipleServices() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.PRE.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Multiple);
-        Destination destination1 = new Destination(null, 20, 8080, "hello1.default.svc.cluster.local");
-        Destination destination2 = new Destination("v1", 30, 18080, "hello2.default.svc.cluster.local");
-        Destination destination3 = new Destination("v2", 50, null, "hello3.default.svc.cluster.local");
-        route.setServices(Arrays.asList(destination1, destination2, destination3));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service1 = new UpstreamService("hello1.default.svc.cluster.local", 8080, null, 20);
+        UpstreamService service2 = new UpstreamService("hello2.default.svc.cluster.local", 18080, "v1", 30);
+        UpstreamService service3 = new UpstreamService("hello3.default.svc.cluster.local", null, "v2", 50);
+        route.setServices(Arrays.asList(service1, service2, service3));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -462,7 +450,7 @@ public class KubernetesModelConverterTest {
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -471,13 +459,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestExactPathSingleService() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.EQUAL.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination("v1", 100, 8080, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, "v1", 100);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -485,11 +472,11 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080 v1");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.EXACT);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -498,13 +485,12 @@ public class KubernetesModelConverterTest {
     public void route2IngressTestRegularPathSingleService() {
         Route route = buildBasicRoute();
         route.setName("test");
-        PathPredicates pathPredicates = route.getRoutePredicates().getPathPredicates();
-        pathPredicates.setType(RoutePredicatesTypeEnum.REGULAR.toString());
-        pathPredicates.setIgnoreCase(null);
-        pathPredicates.setPath("/route_\\d+");
-        route.setDestinationType(DestinationTypeEnum.Single);
-        Destination destination = new Destination("v1", 100, 8080, "hello.default.svc.cluster.local");
-        route.setServices(Collections.singletonList(destination));
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+        pathPredicate.setMatchValue("/route_\\d+");
+        pathPredicate.setCaseSensitive(null);
+        UpstreamService service = new UpstreamService("hello.default.svc.cluster.local", 8080, "v1", 100);
+        route.setServices(Collections.singletonList(service));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
@@ -512,13 +498,13 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080 v1");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_DESTINATION, "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY,
                 KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE);
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-        expectedPath.setPath(pathPredicates.getPath());
+        expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
     }
@@ -563,16 +549,8 @@ public class KubernetesModelConverterTest {
 
     private static Route buildBasicRoute() {
         Route route = new Route();
-
-        RoutePredicates routePredicates = new RoutePredicates();
-        routePredicates.setQueryPredicates(new ArrayList<>());
-        routePredicates.setHeaderPredicates(new ArrayList<>());
-        routePredicates.setMethodPredicates(new ArrayList<>());
-        routePredicates.setPathPredicates(new PathPredicates());
-        route.setRoutePredicates(routePredicates);
-
-        route.setDomainList(new ArrayList<>());
-        route.setServices(new ArrayList<>());
+        route.setDomains(new ArrayList<>());
+        route.setPath(new RoutePredicate());
         return route;
     }
 }

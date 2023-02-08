@@ -1,19 +1,13 @@
-export interface ServiceItem {
-  id?: string,
-  key?: string
+export interface Service {
   name: string,
   namespace: string,
-  endPoints: string[],
+  endpoints: string[],
+  [propName: string]: any,
 }
 
-export interface ServiceFactor {
-  pageNum?: number,
-  pageSize?: number,
-  name?: string,
-  namespace?: string,
-}
-
-export interface OptionItem {
-  label: string,
-  value: string,
+export interface ServiceResponse {
+  data: Service[],
+  pageNum: number,
+  pageSize: number,
+  total: number,
 }

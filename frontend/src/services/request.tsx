@@ -1,4 +1,5 @@
 import { Modal } from "antd";
+import { configConsumerProps } from "antd/lib/config-provider";
 import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
@@ -27,22 +28,30 @@ request.interceptors.response.use(
     const { status, config, data } = response;
 
     // console.log("response====", response);
-    if (status === 200) {
-      if (!data) {
-        showErrorModal('Missing response data.', config);
-        return Promise.reject(response);
-      }
-      if (data.success !== false) {
+    const statusCategory = Math.floor(status / 100);
+    if (statusCategory === 2) {
+      if (data && data.data) {
         return Promise.resolve(data.data);
       }
-      showErrorModal(data.message, config, data.status);
-      return Promise.reject(response);
+      return Promise.resolve(data);
     }
-    return response;
+    return Promise.resolve(response);
   },
   (error) => {
     // console.log("error====", error);
-    const { message, config, code } = error;
+    let { message, config, code } = error;
+    if (error.response) {
+      const { status, data } = error.response;
+      const messageKey = 'request.error.' + status;
+      const localizedMessage = i18next.t(messageKey);
+      if (localizedMessage !== messageKey) {
+        message = localizedMessage;
+      }
+      code = status;
+      if (data) {
+        config.data = typeof data === 'string' ? data : JSON.stringify(data);
+      }
+    }
     showErrorModal(message, config, code);
     return Promise.reject(error);
   }

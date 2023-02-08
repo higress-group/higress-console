@@ -1,4 +1,4 @@
-import { DomainItem, DomainResponse } from '@/interfaces/domain';
+import { Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
 import { addGatewayDomain, deleteGatewayDomain, getGatewayDomain, updateGatewayDoamin } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -54,8 +54,8 @@ const DomainList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef(null);
-  const [dataSource, setDataSource] = useState<DomainItem[]>([]);
-  const [currentDomain, setCurrentDomain] = useState<DomainItem | null>();
+  const [dataSource, setDataSource] = useState<Domain[]>([]);
+  const [currentDomain, setCurrentDomain] = useState<Domain | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -63,11 +63,24 @@ const DomainList: React.FC = () => {
   const getDomainList = async (factor): Promise<DomainResponse> => (getGatewayDomain(factor));
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
-    onSuccess: (result, params) => {
-      const { list: _dataSource } = result;
+    onSuccess: (result: Domain[], params) => {
+      const _dataSource = result || [];
       _dataSource.forEach(i => {
-        i.key || (i.key = i.id || (i.name + '_' + i.protocol))
-      })
+        i.key || (i.key = i.id || i.name);
+        i.mustHttps = [];
+        switch (i.enableHttps) {
+          case EnableHttpsValue.off:
+            i.protocol = Protocol.http;
+            break;
+          case EnableHttpsValue.on:
+            i.protocol = Protocol.https;
+            break;
+          case EnableHttpsValue.force:
+            i.protocol = Protocol.https;
+            i.mustHttps = [true];
+            break;
+        }
+      });
       setDataSource(_dataSource);
     },
   });
@@ -76,7 +89,7 @@ const DomainList: React.FC = () => {
     run({});
   }, []);
 
-  const onEditDrawer = (domain: DomainItem) => {
+  const onEditDrawer = (domain: Domain) => {
     setCurrentDomain(domain);
     setOpenDrawer(true);
   };
@@ -89,23 +102,24 @@ const DomainList: React.FC = () => {
   const handleDrawerOK = async () => {
     try {
       const values: DomainFormProps = formRef.current && await formRef.current.handleSubmit();
-      const { name, protocol, certIdentifier, mustHttps } = values;
-      const data = { name, protocol };
-      if (values.certIdentifier) {
-        Object.assign(data, { certIdentifier });
+      const { name, certIdentifier } = values;
+      const data = { name };
+      let enableHttps = EnableHttpsValue.off;
+      if (values.protocol === Protocol.https) {
+        if (values.certIdentifier) {
+          Object.assign(data, { certIdentifier });
+        }
+        enableHttps = !!values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
       }
-      if (values.mustHttps) {
-        Object.assign(data, { mustHttps: !!mustHttps?.length });
-      }
+      Object.assign(data, { enableHttps });
       if (currentDomain) {
         const _id = currentDomain.id || parseInt(uniqueId(), 10);
-        await updateGatewayDoamin({ id: _id, ...data } as DomainItem);
+        await updateGatewayDoamin({ id: _id, ...data } as Domain);
       } else {
-        await addGatewayDomain(data as DomainItem);
+        await addGatewayDomain(data as Domain);
       }
       setOpenDrawer(false);
       refresh();
-
     } catch (errInfo) {
       console.log('Save failed:', errInfo);
     }
@@ -116,17 +130,19 @@ const DomainList: React.FC = () => {
     setCurrentDomain(null);
   };
 
-  const onShowModal = (domain: DomainItem) => {
+  const onShowModal = (domain: Domain) => {
     setCurrentDomain(domain);
     setOpenModal(true);
   };
 
   const handleModalOk = async () => {
+    if (!currentDomain) {
+      return;
+    }
     setConfirmLoading(true);
-    await deleteGatewayDomain({ name: currentDomain?.name });
+    await deleteGatewayDomain(currentDomain.name);
     setConfirmLoading(false);
     setOpenModal(false);
-    // 重新刷新
     refresh();
   };
 
@@ -139,10 +155,10 @@ const DomainList: React.FC = () => {
     <PageContainer>
       <Form
         form={form}
-        style={{ 
-          background: '#fff', 
-          height: 64, 
-          paddingTop: 16, 
+        style={{
+          background: '#fff',
+          height: 64,
+          paddingTop: 16,
           marginBottom: 16,
           paddingLeft: 16,
           paddingRight: 16,
@@ -172,7 +188,7 @@ const DomainList: React.FC = () => {
         pagination={false}
       />
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }}/>{t('misc.delete')}</div>}
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
@@ -180,7 +196,7 @@ const DomainList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="domain.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{currentDomainName: (currentDomain && currentDomain.name) || ''}}</span> 吗？
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentDomainName: (currentDomain && currentDomain.name) || '' }}</span> 吗？
           </Trans>
         </p>
       </Modal>

@@ -20,12 +20,6 @@ interface EditableRowProps {
 }
 
 const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
-  const { t } = useTranslation();
-
-  const fitOptions = ['PRE', 'EQUAL', 'REGULAR'].map(v => {
-    return { label: t('route.fitTypes.' + v), value: v }
-  });
-
   const [form] = Form.useForm();
   return (
     <Form form={form} component={false}>
@@ -56,9 +50,14 @@ const EditableCell: React.FC<EditableCellProps> = ({
   handleSave,
   ...restProps
 }) => {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(true);
   const inputRef = useRef(null);
   const form = useContext(EditableContext)!;
+
+  const matchOptions = ['PRE', 'EQUAL', 'REGULAR'].map(v => {
+    return { label: t('route.matchTypes.' + v), value: v }
+  });
 
   useEffect(() => {
     form.setFieldsValue({ ...record });
@@ -77,7 +76,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   let childNode = children;
 
   const node = nodeType === 'select' ?
-    (<Select ref={inputRef} options={fitOptions} />)
+    (<Select ref={inputRef} options={matchOptions} />)
     : (<Input ref={inputRef} onPressEnter={save} onBlur={save} />);
 
   if (editable) {
@@ -147,7 +146,6 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
         ) : null,
     },
   ];
-
 
   const handleAdd = () => {
     const newData: DataType = {

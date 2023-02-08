@@ -123,7 +123,7 @@
       "services": "目标服务",
       "action": "操作"
     },
-    "fitTypes": {
+    "matchTypes": {
       "PRE": "前缀匹配",
       "EQUAL": "精确匹配",
       "REGULAR": "正则匹配"
@@ -147,9 +147,9 @@
       "routeNamePlaceholder": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
       "domain": "域名",
       "domainRequired": "请选择域名",
-      "domainSearchPlaceholder": "搜索域名名称域名",
-      "fitType": "匹配规则",
-      "fitTypeTooltip": "规则之间是“与”关系，即填写的规则越多匹配的范围越小",
+      "domainSearchPlaceholder": "根据域名名称搜索域名",
+      "matchType": "匹配规则",
+      "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
       "path": "路径（Path）",
       "pathPredicatesRequired": "请选择路径匹配规则",
       "pathMatcherRequired": "请输入路径匹配值",
@@ -237,6 +237,14 @@
     "404": {
       "title": "404",
       "subTitle": "你访问的页面不存在"
+    }
+  },
+  "request": {
+    "error": {
+      "400": "提交内容不合法",
+      "404": "未找到指定资源",
+      "409": "指定资源已存在",
+      "500": "服务器内部错误"
     }
   },
   "misc": {

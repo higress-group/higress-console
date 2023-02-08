@@ -40,10 +40,10 @@
     "domainForm": {
       "name": "Domain",
       "nameTooltip": "Both full domain (e.g.: hello.com) and wildcard domain (e.g.: *.hello.com) are supported. Manage the protocol and certificates for a given domain independently here. And route configurations can isolate with each other by different domains.",
-      "nameRequired": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*)，No longer than 256 characters.",
-      "namePlaceholder": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*)，No longer than 256 characters.",
+      "nameRequired": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
+      "namePlaceholder": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
       "protocol": "Protocol",
-      "protocolTooltip": "Following protocols are supported: HTTP (port 80) and HTTPS (port 443) protocols，An SSL certificate must be specified when using HTTPS protocol.",
+      "protocolTooltip": "Following protocols are supported: HTTP (port 80) and HTTPS (port 443) protocols. An SSL certificate must be specified when using HTTPS protocol.",
       "protocolRequired": "Please choose a protocol",
       "protocolPlaceholder": "Please choose a protocol",
       "certificate": "Certificate",
@@ -124,7 +124,7 @@
       "services": "Service",
       "action": "Action"
     },
-    "fitTypes": {
+    "matchTypes": {
       "PRE": "Prefix",
       "EQUAL": "Equal",
       "REGULAR": "Regex"
@@ -149,8 +149,8 @@
       "domain": "Domain",
       "domainRequired": "Please select a domain.",
       "domainSearchPlaceholder": "Search domain by name",
-      "fitType": "Fit Type",
-      "fitTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
+      "matchType": "Match Type",
+      "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
       "path": "Path",
       "pathPredicatesRequired": "Please select a path matching predicate.",
       "pathMatcherRequired": "Please input the path match target.",
@@ -238,6 +238,14 @@
     "404": {
       "title": "404",
       "subTitle": "Page Not Found"
+    }
+  },
+  "request": {
+    "error": {
+      "400": "Bad request",
+      "404": "Resource not found",
+      "409": "Resource already exists",
+      "500": "Internal server error"
     }
   },
   "misc": {

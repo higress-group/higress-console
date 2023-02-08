@@ -1,4 +1,4 @@
-import { OptionItem, ServiceFactor, ServiceItem } from '@/interfaces/service';
+import { OptionItem, ServiceFactor, Service } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -30,18 +30,18 @@ const ServiceList: React.FC = () => {
       key: 'endpoints',
       ellipsis: true,
       render: (value) => {
-        return value && value.join(',') || '-';
+        return value && value.join(', ') || '-';
       },
     },
   ];
 
-  const [dataSource, setDataSource] = useState<ServiceItem[]>([]);
+  const [dataSource, setDataSource] = useState<Service[]>([]);
   const [namespaces, setNamespaces] = useState<OptionItem[]>();
-  const servicesRef = useRef<ServiceItem[] | null>();
+  const servicesRef = useRef<Service[] | null>();
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const getServiceList = async (factor: ServiceFactor): Promise<ServiceItem[]> => (getGatewayServices(factor));
+  const getServiceList = async (factor: ServiceFactor): Promise<Service[]> => (getGatewayServices(factor));
 
   const { loading, run, refresh } = useRequest(getServiceList, {
     manual: true,
@@ -59,7 +59,7 @@ const ServiceList: React.FC = () => {
           _os.add(namespace);
         }
       });
-      servicesRef.current = result;
+      servicesRef.current = result || [];
       setDataSource(result);
       setNamespaces(_namespaces);
     },
@@ -74,17 +74,17 @@ const ServiceList: React.FC = () => {
     setIsLoading(true);
     const factor = {};
     const { name, namespace } = values;
-    let _dataSource: ServiceItem[] = servicesRef.current as ServiceItem[];
+    let _dataSource: Service[] = servicesRef.current as Service[];
     if (name) {
       Object.assign(factor, { name });
-      _dataSource = _dataSource && _dataSource.filter((service: ServiceItem) => {
+      _dataSource = _dataSource && _dataSource.filter((service: Service) => {
         const { name: _name } = service;
         return _name.indexOf(name) > -1;
       });
     }
     if (namespace) {
       Object.assign(factor, { namespace });
-      _dataSource = _dataSource && _dataSource.filter((service: ServiceItem) => {
+      _dataSource = _dataSource && _dataSource.filter((service: Service) => {
         const { namespace: _namespace } = service;
         return _namespace == namespace;
       })

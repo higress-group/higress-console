@@ -1,13 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-source';
+import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/service-source';
+import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Table, Col, Form, Row, Button, Modal, Space, Drawer } from 'antd';
 import { useRequest } from 'ahooks';
-import { RedoOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { SourceFormProps, SourceFormRef, SourceItem, SourceResponse } from '@/interfaces/source';
-import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/source';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import { uniqueId } from "lodash";
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import SourceForm from './components/SourceForm';
-import { Trans, useTranslation } from 'react-i18next';
+
+interface SourceFormRef {
+  reset: () => void,
+  handleSubmit: () => Promise<ServiceSourceFormProps>,
+}
 
 const SourceList: React.FC = () => {
   const { t } = useTranslation();
@@ -50,13 +55,13 @@ const SourceList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef<SourceFormRef>(null);
-  const [dataSource, setDataSource] = useState<SourceItem[]>([]);
-  const [currentServiceSource, setCurrentServiceSource] = useState<SourceItem | null>();
+  const [dataSource, setDataSource] = useState<ServiceSource[]>([]);
+  const [currentServiceSource, setCurrentServiceSource] = useState<ServiceSource>({} as ServiceSource);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (factor): Promise<SourceResponse> => (getServiceSources(factor));
+  const getDomainList = async (): Promise<ServiceSource[]> => (getServiceSources({} as ServiceSourceFormProps));
 
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
@@ -73,7 +78,7 @@ const SourceList: React.FC = () => {
     run({});
   }, []);
 
-  const onEditDrawer = (domain: SourceItem) => {
+  const onEditDrawer = (domain: ServiceSource) => {
     setCurrentServiceSource(domain);
     setOpenDrawer(true);
   };
@@ -85,13 +90,13 @@ const SourceList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: SourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as SourceFormProps;
+      const values: ServiceSourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as ServiceSourceFormProps;
 
       if (currentServiceSource) {
         const _id = currentServiceSource.id || parseInt(uniqueId(), 10);
-        await updateServiceSources({ id: _id, ...values } as SourceItem);
+        await updateServiceSources({ id: _id, ...values } as ServiceSource);
       } else {
-        await addServiceSources(values as SourceItem);
+        await addServiceSources(values as ServiceSource);
       }
 
       setOpenDrawer(false);
@@ -109,14 +114,14 @@ const SourceList: React.FC = () => {
     setCurrentServiceSource(null);
   };
 
-  const onShowModal = (domain: SourceItem) => {
+  const onShowModal = (domain: ServiceSource) => {
     setCurrentServiceSource(domain);
     setOpenModal(true);
   };
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteServiceSources({ name: currentServiceSource?.name });
+    await deleteServiceSources(currentServiceSource.name);
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新

@@ -1,28 +1,25 @@
+import { Domain } from '@/interfaces/domain';
 import request from './request';
-import { DomainItem, DomainResponse } from '@/interfaces/domain';
 
 export const getGatewayDomain = (
-  payload: any = { }
-) : Promise<DomainResponse> => {
-  return request.post<any, DomainResponse>("/v1/domain/list", payload);
+) : Promise<Domain[]> => {
+  return request.get<any, Domain[]>("/v1/domains");
 };
 
 export const addGatewayDomain = (
-  payload: DomainItem
+  payload: Domain
 ) : Promise<any> => {
-  return request.post<any, any>("/v1/domain/add", payload);
+  return request.post<any, any>("/v1/domains", payload);
 };
 
 export const deleteGatewayDomain = (
-  payload: { name: string | undefined }
+  name: string 
 ) : Promise<any> => {
-  return request.get<any, any>("/v1/domain/delete", {
-    params: payload
-  });
+  return request.delete<any, any>(`/v1/domains/${name}`);
 };
 
 export const updateGatewayDoamin = (
-  payload: DomainItem
+  payload: Domain
 ) : Promise<any> => {
-  return request.post<any, any>("/v1/domain/update", payload);
+  return request.put<any, any>(`/v1/domains/${payload.name}`, payload);
 };

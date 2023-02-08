@@ -1,27 +1,20 @@
-import { RouteItem, RouteResponse } from '@/interfaces/route';
+import { KeyedRoutePredicate, Route, RoutePredicate, RouteResponse, UpstreamService } from '@/interfaces/route';
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoute, updateGatewayRoute } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
-import { uniqueId } from "lodash";
 import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
-
-interface PathProps {
-  type: string,
-  path: string,
-  ignoreCase: Array<string> | undefined,
-}
 
 interface RouteFormProps {
   name: string,
-  domainList: Array<string>,
-  headerPredicates: Array<any>,
-  methodPredicates: Array<string>,
-  pathPredicates: PathProps,
-  queryPredicates: Array<any>,
+  domains: Array<string>,
+  headers: Array<KeyedRoutePredicate>,
+  methods: Array<string>,
+  path: RoutePredicate,
+  urlParams: Array<KeyedRoutePredicate>,
   services: string,
 }
 
@@ -37,14 +30,12 @@ const RouteList: React.FC = () => {
     },
     {
       title: t('route.columns.routePredicates'),
-      dataIndex: 'routePredicates',
-      key: 'routePredicates',
-      render: (value) => {
-        const _pathPredicates = value["pathPredicates"];
-        const { type, path } = _pathPredicates;
+      dataIndex: 'path',
+      key: 'path',
+      render: (value: RoutePredicate) => {
         return (
           <div>
-            {`${t('route.fitTypes.' + type)} ｜ ${path}`}
+            {`${t('route.matchTypes.' + value.matchType)} ｜ ${value.matchValue}`}
           </div>
         );
       },
@@ -54,7 +45,7 @@ const RouteList: React.FC = () => {
       dataIndex: 'services',
       key: 'services',
       ellipsis: true,
-      render: (value) => {
+      render: (value: UpstreamService[]) => {
         return value && value.map(service => {
           const { name } = service;
           return (<div key={name}>{name}</div>);
@@ -76,11 +67,11 @@ const RouteList: React.FC = () => {
     },
   ];
 
-  const [dataSource, setDataSource] = useState<RouteItem[]>([]);
+  const [dataSource, setDataSource] = useState<Route[]>([]);
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<RouteItem | null>();
+  const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
 
@@ -88,12 +79,11 @@ const RouteList: React.FC = () => {
 
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
-    onSuccess: (result, params) => {
-      const { list: _dataSource } = result;
-      _dataSource.forEach(i => {
+    onSuccess: (result: Route[], params) => {
+      result && result.forEach(i => {
         i.key || (i.key = i.id ? i.id + '' : i.name);
       });
-      setDataSource(_dataSource);
+      setDataSource(result || []);
     },
   });
 
@@ -101,7 +91,7 @@ const RouteList: React.FC = () => {
     run({});
   }, []);
 
-  const onEditDrawer = (route: RouteItem) => {
+  const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
     setOpenDrawer(true);
   };
@@ -111,34 +101,41 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   }
 
+  const normalizeRoutePredicate = (predicate: RoutePredicate) => {
+    predicate.caseSensitive = !predicate.ignoreCase || !predicate.ignoreCase.length;
+  };
+
   const handleDrawerOK = async () => {
     try {
       const values: RouteFormProps = formRef.current && await formRef.current.handleSubmit();
-      const routePredicates = {};
       const {
         name,
-        domainList,
-        headerPredicates = [],
-        methodPredicates = [],
-        queryPredicates = [],
-        pathPredicates = {},
-        services,
+        domains,
+        headers,
+        methods,
+        urlParams,
+        path,
+        services: service
       } = values;
-      Object.assign(routePredicates, { headerPredicates, methodPredicates, queryPredicates });
-      const { ignoreCase = [], type, path } = pathPredicates as PathProps;
-      const _ignoreCase = ignoreCase.includes("ignore");
-      Object.assign(routePredicates, { pathPredicates: { ignoreCase: _ignoreCase, type, path } });
-      const data = {};
-      Object.assign(data, { name, domainList, routePredicates, services: [{ name: services }] })
+      path && normalizeRoutePredicate(path);
+      headers && headers.forEach(h => normalizeRoutePredicate(h));
+      urlParams && urlParams.forEach(h => normalizeRoutePredicate(h));
+      const route: Route = {
+        name,
+        domains,
+        headers,
+        methods,
+        path,
+        urlParams,
+        services: [{ name: service }]
+      };
       if (currentRoute) {
-        const _id = currentRoute.id || parseInt(uniqueId(), 10);
-        await updateGatewayRoute({ id: _id, ...data } as RouteItem);
+        await updateGatewayRoute(route);
       } else {
-        await addGatewayRoute(data as RouteItem);
+        await addGatewayRoute(route);
       }
       setOpenDrawer(false);
       refresh();
-
     } catch (errInfo) {
       console.log('Save failed:', errInfo);
     }
@@ -149,14 +146,17 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   };
 
-  const onShowModal = (route: RouteItem) => {
+  const onShowModal = (route: Route) => {
     setCurrentRoute(route);
     setOpenModal(true);
   };
 
   const handleModalOk = async () => {
+    if (!currentRoute) {
+      return;
+    }
     setConfirmLoading(true);
-    await deleteGatewayRoute({ name: currentRoute?.name });
+    await deleteGatewayRoute(currentRoute.name);
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新

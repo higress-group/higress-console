@@ -2,21 +2,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.5.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
 	<groupId>com.alibaba.higress</groupId>
 	<artifactId>higress-console</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>higress-console</name>
 	<description>Console project for higress</description>
+
 	<properties>
 		<java.version>17</java.version>
 		<nodejs.version>16.19.0</nodejs.version>
+		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
+		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -25,6 +31,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -72,6 +82,49 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.20.0</version>
+				<configuration>
+					<inputEncoding>${plugin.inputEncoding}</inputEncoding>
+					<outputEncoding>${plugin.outputEncoding}</outputEncoding>
+					<targetJdk>${maven.compiler.target}</targetJdk>
+					<printFailingErrors>true</printFailingErrors>
+					<failurePriority>2</failurePriority>
+					<verbose>true</verbose>
+					<rulesets>
+						<ruleset>rulesets/java/ali-comment.xml</ruleset>
+						<ruleset>rulesets/java/ali-concurrent.xml</ruleset>
+						<ruleset>rulesets/java/ali-constant.xml</ruleset>
+						<ruleset>rulesets/java/ali-exception.xml</ruleset>
+						<ruleset>rulesets/java/ali-flowcontrol.xml</ruleset>
+						<ruleset>rulesets/java/ali-naming.xml</ruleset>
+						<ruleset>rulesets/java/ali-oop.xml</ruleset>
+						<ruleset>rulesets/java/ali-orm.xml</ruleset>
+						<ruleset>rulesets/java/ali-other.xml</ruleset>
+						<ruleset>rulesets/java/ali-set.xml</ruleset>
+					</rulesets>
+					<excludes>
+						<exclude>**/FixClassTypeResolver.java</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.alibaba.p3c</groupId>
+						<artifactId>p3c-pmd</artifactId>
+						<version>2.1.1</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
@@ -144,4 +197,83 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>license</id>
+			<properties>
+				<checkstyle.skip>true</checkstyle.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.mycila</groupId>
+						<artifactId>license-maven-plugin</artifactId>
+						<version>4.1</version>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>remove</goal>
+									<goal>format</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<quiet>true</quiet>
+							<header>${user.dir}/style/copyright</header>
+							<includes>
+								<include>**/src/main/java/**</include>
+								<include>**/src/main/resources/**</include>
+								<include>**/src/test/java/**</include>
+								<include>**/src/test/resources/**</include>
+								<include>**/style/*.xml</include>
+							</includes>
+							<excludes>
+								<include>**/src/main/resources/static/**</include>
+								<exclude>**/generated/**</exclude>
+							</excludes>
+							<strictCheck>true</strictCheck>
+							<mapping>
+								<java>SLASHSTAR_STYLE</java>
+								<properties>SCRIPT_STYLE</properties>
+								<xml>XML_STYLE</xml>
+							</mapping>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>checkstyle</id>
+			<activation>
+				<jdk>[1.8,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<version>3.2.1</version>
+						<executions>
+							<execution>
+								<id>validate</id>
+								<phase>compile</phase>
+								<configuration>
+									<configLocation>${user.dir}/style/higress_checkstyle.xml</configLocation>
+									<suppressionsLocation>${user.dir}/style/higress_suppressions.xml</suppressionsLocation>
+									<inputEncoding>${plugin.inputEncoding}</inputEncoding>
+									<outputEncoding>${plugin.outputEncoding}</outputEncoding>
+									<consoleOutput>true</consoleOutput>
+									<failsOnError>true</failsOnError>
+								</configuration>
+								<goals>
+									<goal>checkstyle</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
