@@ -79,41 +79,25 @@
       "type": "Service Source Type",
       "typeTooltip": "nacos,nacos2.x and zookeeper are currently supported",
       "typePlaceholder": "Please select the type",
-
       "name": "Service Source Name",
-      "nameTooltip": "",
       "nameRequired": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*), No longer than 256 characters.",
       "namePlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*), No longer than 256 characters.",
-
       "domain": "Service Source Domain",
       "domainTooltip": "Which can be an IP address or domain name",
       "domainRequired": "Please select the registry address",
       "domainPlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*), No longer than 256 characters.",
-
-
       "port": "Service Source Port",
-      "portTooltip": "",
       "portRequired": "Please input the port",
       "portPlaceholder": "Service Source Port",
-
       "zkServicesPath": "Service Registration Root Path",
       "zkServicesPathTooltip": "When using zk, enter the root path for service registration,The nacos namespace id listens to /dubbo and /services by default. The former is the default root path of the dubbo service, and the latter is the default root path of the SpringCloud service",
-      "zkServicesPathRequired": "",
       "zkServicesPathPlaceholder": "The nacos namespace id listens to /dubbo and /services by default. The former is the default root path of the dubbo service, and the latter is the default root path of the SpringCloud service",
-
       "nacosNamespaceId": "The id of the nacos namespace",
-      "nacosNamespaceIdTooltip": "",
-      "nacosNamespaceIdRequired": "",
       "nacosNamespaceIdPlaceholder": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*), No longer than 256 characters.",
-
       "nacosGroups": "Nacos Service Group List",
-      "nacosGroupsTooltip": "",
-      "nacosGroupsRequired": "",
       "nacosGroupsPlaceholder": "Nacos Service Group List",
-
       "consulNamespace": "Consul Namespace",
       "consulNamespaceTooltip": "There needs to fill in the namespace when using consul",
-      "consulNamespaceRequired": "",
       "consulNamespacePlaceholder": "Consul Namespace"
     }
   },
