@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -84,6 +85,10 @@ public class KubernetesClientService {
 
     @Value("${" + CommonKey.NS_KEY + ":" + CommonKey.NS_DEFAULT + "}")
     private String controllerNamespace = CommonKey.NS_DEFAULT;
+
+    @Value("${" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT
+        + "}")
+    private String controllerIngressClassName = CommonKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
 
     @Value("${" + CommonKey.CONTROLLER_SERVICE_HOST_KEY + ":" + CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT + "}")
     private String controllerServiceHost = CommonKey.CONTROLLER_SERVICE_HOST_DEFAULT;
@@ -206,6 +211,7 @@ public class KubernetesClientService {
     }
 
     public V1Ingress createIngress(V1Ingress ingress) throws ApiException {
+        Objects.requireNonNull(ingress.getSpec()).setIngressClassName(controllerIngressClassName);
         renderDefaultLabels(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.createNamespacedIngress(controllerNamespace, ingress, null, null, null, null);
@@ -216,6 +222,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("ingress doesn't have a valid metadata.");
         }
+        Objects.requireNonNull(ingress.getSpec()).setIngressClassName(controllerIngressClassName);
         renderDefaultLabels(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.replaceNamespacedIngress(metadata.getName(), controllerNamespace, ingress, null, null, null,
