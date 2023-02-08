@@ -31,6 +31,10 @@ public class CommonKey {
 
     public final static String CONTROLLER_SERVICE_NAME_DEFAULT = "higress-controller";
 
+    public final static String CONTROLLER_INGRESS_CLASS_NAME_KEY = CONFIG_KEY_PREFIX + "controller.ingress-class-name";
+
+    public final static String CONTROLLER_INGRESS_CLASS_NAME_DEFAULT  = "higress";
+
     public final static String CONTROLLER_SERVICE_HOST_KEY = CONFIG_KEY_PREFIX + "controller.service.host";
 
     public final static String CONTROLLER_SERVICE_HOST_DEFAULT = "localhost";
