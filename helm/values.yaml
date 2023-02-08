@@ -25,7 +25,7 @@ service:
   port: 8080
 
 ingress:
-  className: ""
+  className: "higress"
   annotations: {}
   hosts:
     - host: "console.higress.io"
