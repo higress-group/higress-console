@@ -1,5 +1,6 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { Form, Input, Select } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
@@ -16,7 +17,7 @@ const SourceType = {
 };
 
 const SourceForm: React.FC = forwardRef((props, ref) => {
-
+  const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
   const [sourceType, setSourceType] = useState<string>(SourceType.Default);
@@ -37,6 +38,14 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     handleSubmit: () => (form.validateFields()),
   }));
 
+  function selectServiceSourceType(type) {
+    setSourceType(type)
+    if (type === 'nacos2' || type === 'nacos') {
+      form.setFieldsValue({
+        nacosGroups: ["DEFAULT_GROUP"]
+      });
+    }
+  }
 
   return (
     <Form
@@ -44,15 +53,15 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       layout="vertical"
     >
       <Form.Item
-        label="注册中心类型"
+        label={t('serviceSource.serviceSourceForm.type')}
         required
         name='type'
-        tooltip="注册中心类型，可选项：nacos,nacos2.x,zookeeper"
+        tooltip={t('serviceSource.serviceSourceForm.nameTooltip')}
       >
         <Select
           allowClear
-          placeholder="请选择类型"
-          onChange={(v) => setSourceType(v)}
+          placeholder={t('serviceSource.serviceSourceForm.typePlaceholder')}
+          onChange={(v) => selectServiceSourceType(v)}
         >
           <Option value="nacos2">nacos2.x</Option>
           <Option value="nacos">nacos</Option>
@@ -62,13 +71,13 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         </Select>
       </Form.Item>
       <Form.Item
-        label="服务来源名称"
+        label={t('serviceSource.serviceSourceForm.name')}
         required
         name='name'
         rules={[
           {
             required: true,
-            message: '支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。',
+            message: t('serviceSource.serviceSourceForm.nameRequired'),
           },
         ]}
       >
@@ -76,18 +85,18 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           maxLength={256}
-          placeholder="支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。"
+          placeholder={t('serviceSource.serviceSourceForm.namePlaceholder')}
         />
       </Form.Item>
       <Form.Item
-        label="注册中心地址"
+        label={t('serviceSource.serviceSourceForm.domain')}
         required
         name='domain'
-        tooltip="注册中心地址，可以是ip或域名"
+        tooltip={t('serviceSource.serviceSourceForm.domainTooltip')}
         rules={[
           {
             required: true,
-            message: '注册中心地址，可以是ip或域名',
+            message: t('serviceSource.serviceSourceForm.domainRequired'),
           },
         ]}
       >
@@ -95,23 +104,23 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           maxLength={256}
-          placeholder="支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。"
+          placeholder={t('serviceSource.serviceSourceForm.domainPlaceholder')}
         />
       </Form.Item>
       <Form.Item
-        label="注册中心访问端口"
+        label={t('serviceSource.serviceSourceForm.port')}
         required
         name='port'
         rules={[
           {
             required: true,
-            message: '注册中心访问端口',
+            message: t('serviceSource.serviceSourceForm.port'),
           },
         ]}
       >
         <Input
           allowClear
-          placeholder="注册中心访问端口"
+          placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
         />
       </Form.Item>
 
@@ -119,52 +128,53 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         sourceType === SourceType.Zookeeper ? (
           <div>
             <Form.Item
-              label="服务注册根路径"
+              label={t('serviceSource.serviceSourceForm.zkServicesPath')}
               name='zkServicesPath'
-              tooltip="使用zk时,填写服务注册的根路径,默认监听 /dubbo 和 /services，前者为dubbo 服务默认根路径，后者为SpringCloud服务默认根路径"
+              tooltip={t('serviceSource.serviceSourceForm.zkServicesPathTooltip')}
             >
               <Select
                 allowClear
                 mode="tags"
-                placeholder="默认监听 /dubbo 和 /services，前者为dubbo 服务默认根路径，后者为SpringCloud服务默认根路径"
+                placeholder={t('serviceSource.serviceSourceForm.zkServicesPathPlaceholder')}
                 options={[]}
               />
             </Form.Item>
           </div>
         ) : (sourceType === SourceType.Nacos || sourceType === SourceType.Nacos2) ? (<div>
           <Form.Item
-            label="nacos命名空间id"
+            label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
             name='nacosNamespaceId'
           >
             <Input
               showCount
               allowClear
               maxLength={256}
-              placeholder="支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。"
+              placeholder={t('serviceSource.serviceSourceForm.nacosNamespaceIdPlaceholder')}
             />
           </Form.Item>
           <Form.Item
-            label="nacos服务分组列表"
+            label={t('serviceSource.serviceSourceForm.nacosGroups')}
             name='nacosGroups'
           >
             <Select
               mode="tags"
               allowClear
+              placeholder={t('serviceSource.serviceSourceForm.nacosGroupsPlaceholder')}
               options={[{ value: "DEFAULT_GROUP" }]}
             />
           </Form.Item>
         </div>) : sourceType === SourceType.Consul ? (
           <div>
             <Form.Item
-              label="命名空间"
+              label={t('serviceSource.serviceSourceForm.consulNamespace')}
               name='consulNamespace'
-              tooltip="使用consul时需要填写命名空间"
+              tooltip={t('serviceSource.serviceSourceForm.consulNamespaceTooltip')}
             >
               <Input
                 showCount
                 allowClear
                 maxLength={256}
-                placeholder="consul命名空间"
+                placeholder={t('serviceSource.serviceSourceForm.consulNamespacePlaceholder')}
               />
             </Form.Item>
           </div>

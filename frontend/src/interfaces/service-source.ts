@@ -2,6 +2,7 @@
  * Service Source Registry Type
  */
 export interface ServiceSource {
+  id: string;
   name: string,
   type: string,
   domain: string,
