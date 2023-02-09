@@ -55,11 +55,13 @@ request.interceptors.response.use(
         }
         return;
       }
-
-      const messageKey = 'request.error.' + status;
-      const localizedMessage = i18next.t(messageKey);
-      if (localizedMessage !== messageKey) {
-        message = localizedMessage;
+      const messageKeys = [`request.error.${status}_${config.method}`, `request.error.${status}`];
+      for (const key of messageKeys) {
+        const localizedMessage = i18next.t(key);
+        if (localizedMessage !== key) {
+          message = localizedMessage;
+          break;
+        }
       }
       code = status;
       if (data) {

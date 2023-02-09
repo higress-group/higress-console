@@ -33,8 +33,8 @@ import lombok.NoArgsConstructor;
 public class ServiceSource {
     private String name;
 
-    // todo
     private String version;
+
     /**
      * nacos,nacos2,zookeeper,consul,eureka
      */

@@ -66,6 +66,7 @@ export interface UpstreamService {
 
 export interface Route {
   name: string,
+  version?: string,
   domains: string[],
   path: RoutePredicate,
   methods?: string[],

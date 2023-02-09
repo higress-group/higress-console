@@ -29,9 +29,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.User;
-import com.alibaba.higress.console.controller.exception.AlreadyExistedException;
 import com.alibaba.higress.console.controller.exception.AuthException;
 import com.alibaba.higress.console.controller.exception.NotFoundException;
+import com.alibaba.higress.console.controller.exception.ResourceConflictException;
 import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SessionUserHelper;
@@ -79,7 +79,7 @@ public class ApiStandardizationAspect {
             String methodName = signature.getName();
             String msg = t.getClass().getSimpleName() + " occurs when calling " + objectName + "." + methodName;
             if (t instanceof AuthException || t instanceof ValidationException || t instanceof NotFoundException
-                || t instanceof AlreadyExistedException) {
+                || t instanceof ResourceConflictException) {
                 log.warn(msg, t);
             } else {
                 log.error(msg, t);
@@ -106,7 +106,7 @@ public class ApiStandardizationAspect {
         if (t instanceof NotFoundException) {
             return HttpStatus.BAD_GATEWAY.value();
         }
-        if (t instanceof AlreadyExistedException) {
+        if (t instanceof ResourceConflictException) {
             return HttpStatus.CONFLICT.value();
         }
         return HttpStatus.INTERNAL_SERVER_ERROR.value();

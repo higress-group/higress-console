@@ -39,6 +39,8 @@ public class Route {
 
     private String name;
 
+    private String version;
+
     private List<String> domains;
 
     private RoutePredicate path;

@@ -130,6 +130,7 @@ const RouteList: React.FC = () => {
         services: [{ name: service }]
       };
       if (currentRoute) {
+        route.version = currentRoute.version;
         await updateGatewayRoute(route);
       } else {
         await addGatewayRoute(route);

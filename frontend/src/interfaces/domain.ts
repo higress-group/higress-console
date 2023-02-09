@@ -1,5 +1,6 @@
 export interface Domain {
   name: string,
+  version?: string,
   certIdentifier?: string,
   enableHttps?: string,
   [propName: string]: any,

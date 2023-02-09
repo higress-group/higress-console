@@ -12,11 +12,11 @@
  */
 package com.alibaba.higress.console.controller.exception;
 
-public class AlreadyExistedException extends RuntimeException {
+public class ResourceConflictException extends RuntimeException {
 
-    public AlreadyExistedException() {}
+    public ResourceConflictException() {}
 
-    public AlreadyExistedException(String message) {
+    public ResourceConflictException(String message) {
         super(message);
     }
 }
