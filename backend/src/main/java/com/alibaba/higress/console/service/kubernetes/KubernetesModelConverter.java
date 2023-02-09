@@ -19,7 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.alibaba.higress.console.controller.dto.McpBridge;
+import com.alibaba.higress.console.controller.dto.RegistryConfig;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -403,5 +409,86 @@ public class KubernetesModelConverter {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION,
                 valueBuilder.toString());
         }
+    }
+
+    public McpBridge v1McpBridge2McpBridge(V1McpBridge v1McpBridge) {
+        McpBridge mcpBridge = new McpBridge();
+        fillMcpBridgeMetadata(mcpBridge, v1McpBridge.getMetadata());
+        fillMcpBridgeInfo(mcpBridge,v1McpBridge.getSpec());
+        return mcpBridge;
+    }
+
+    private static void fillMcpBridgeMetadata(McpBridge mcpBridge,V1ObjectMeta metadata) {
+        if (metadata != null) {
+            mcpBridge.setName(metadata.getName());
+        }
+    }
+
+    private static void fillMcpBridgeInfo(McpBridge mcpBridge,  V1McpBridgeSpec spec) {
+        if (spec == null) {
+            return;
+        }
+        List<V1RegistryConfig> v1Registrys = spec.getRegistries();
+        if (CollectionUtils.isEmpty(v1Registrys)) {
+            return;
+        }
+        List<RegistryConfig> registrys = v1Registrys.stream().map(KubernetesModelConverter::v1RegistryConfig2RegistryConfig).collect(Collectors.toList());
+        mcpBridge.setRegistries(registrys);
+    }
+
+    public static RegistryConfig v1RegistryConfig2RegistryConfig(V1RegistryConfig v1RegistryConfig) {
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setName(v1RegistryConfig.getName());
+        registryConfig.setType(v1RegistryConfig.getType());
+        registryConfig.setPort(v1RegistryConfig.getPort());
+        registryConfig.setDomain(v1RegistryConfig.getDomain());
+        registryConfig.setNacosGroups(v1RegistryConfig.getNacosGroups());
+        registryConfig.setConsulNamespace(v1RegistryConfig.getConsulNamespace());
+        registryConfig.setNacosNamespaceId(v1RegistryConfig.getNacosNamespaceId());
+        registryConfig.setZkServicesPath(v1RegistryConfig.getZkServicesPath());
+        return registryConfig;
+    }
+
+    public V1McpBridge mcpBridge2V1McpBridge(McpBridge mcpBridge) {
+        V1McpBridge v1McpBridge = new V1McpBridge();
+        v1McpBridge.setMetadata(new V1ObjectMeta());
+        v1McpBridge.setSpec(new V1McpBridgeSpec());
+        fillV1McpBridgeMetadata(v1McpBridge, mcpBridge);
+        fillV1McpBridgeSpec(v1McpBridge, mcpBridge);
+        return v1McpBridge;
+    }
+
+    public V1McpBridge mcpBridge2V1McpBridge(McpBridge mcpBridge,V1McpBridge v1McpBridge) {
+        v1McpBridge.setSpec(new V1McpBridgeSpec());
+        fillV1McpBridgeMetadata(v1McpBridge, mcpBridge);
+        fillV1McpBridgeSpec(v1McpBridge, mcpBridge);
+        return v1McpBridge;
+    }
+
+    private void fillV1McpBridgeMetadata(V1McpBridge v1McpBridge, McpBridge mcpBridge) {
+        V1ObjectMeta metadata = Objects.requireNonNull(v1McpBridge.getMetadata());
+        metadata.setName(mcpBridge.getName());
+    }
+
+    private void fillV1McpBridgeSpec(V1McpBridge v1McpBridge, McpBridge mcpBridge) {
+        V1ObjectMeta metadata = Objects.requireNonNull(v1McpBridge.getMetadata());
+        V1McpBridgeSpec spec = Objects.requireNonNull(v1McpBridge.getSpec());
+        if (CollectionUtils.isEmpty(mcpBridge.getRegistries())) {
+            throw new IllegalArgumentException("Missing Registries.");
+        }
+        spec.setRegistries(mcpBridge.getRegistries().stream().map(KubernetesModelConverter::registryConfig2V1RegistryConfig).collect(Collectors.toList()));
+    }
+
+    public static V1RegistryConfig registryConfig2V1RegistryConfig(RegistryConfig registryConfig) {
+        V1RegistryConfig v1RegistryConfig = new V1RegistryConfig();
+        v1RegistryConfig.setName(registryConfig.getName());
+        v1RegistryConfig.setType(registryConfig.getType());
+        v1RegistryConfig.setPort(v1RegistryConfig.getPort());
+        v1RegistryConfig.setDomain(registryConfig.getDomain());
+        v1RegistryConfig.setNacosGroups(registryConfig.getNacosGroups());
+        v1RegistryConfig.setConsulNamespace(registryConfig.getConsulNamespace());
+        v1RegistryConfig.setNacosNamespaceId(registryConfig.getNacosNamespaceId());
+        registryConfig.setZkServicesPath(registryConfig.getZkServicesPath());
+        return v1RegistryConfig;
     }
 }

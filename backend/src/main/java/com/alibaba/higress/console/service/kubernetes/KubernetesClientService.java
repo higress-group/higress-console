@@ -25,6 +25,9 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeList;
+import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -313,5 +316,64 @@ public class KubernetesClientService {
 
     private void renderDefaultLabels(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
+    }
+
+    public List<V1McpBridge> listV1McpBridge() {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.listNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
+                    KubernetesConstants.DEFAULT_VERSION,
+                    controllerNamespace,KubernetesConstants.MCP_BRIDGE_PLURAL, "false", null, null,
+                    null, null, null, null, null, null, null);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            V1McpBridgeList list =  json.deserialize(json.serialize(response), V1McpBridgeList.class);
+            return list.getItems();
+        } catch (ApiException e) {
+            log.error("listMcpBridge Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public V1McpBridge addV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.createNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP, KubernetesConstants.DEFAULT_VERSION,
+                controllerNamespace, KubernetesConstants.MCP_BRIDGE_PLURAL, v1McpBridge, "false", null, null);
+        io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+        return json.deserialize(json.serialize(response), V1McpBridge.class);
+    }
+
+    public V1McpBridge updateV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
+        V1ObjectMeta metadata = v1McpBridge.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("mcpBridge doesn't have a valid metadata.");
+        }
+        metadata.setNamespace(controllerNamespace);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.replaceNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP, KubernetesConstants.DEFAULT_VERSION,
+                controllerNamespace, KubernetesConstants.MCP_BRIDGE_PLURAL,metadata.getName(), v1McpBridge, null, null);
+        io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+        return json.deserialize(json.serialize(response), V1McpBridge.class);
+    }
+
+    public void deleteV1McpBridge(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        customObjectsApi.deleteNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP, KubernetesConstants.DEFAULT_VERSION,
+                controllerNamespace, KubernetesConstants.MCP_BRIDGE_PLURAL,name, null, null, null, null, null);
+    }
+
+    public V1McpBridge getV1McpBridge(String name) {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
+                    KubernetesConstants.DEFAULT_VERSION,
+                    controllerNamespace,KubernetesConstants.MCP_BRIDGE_PLURAL, name);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            return json.deserialize(json.serialize(response), V1McpBridge.class);
+        } catch (ApiException e) {
+            log.error("getMcpBridge Status code: " + e.getCode()
+                    + "Reason: " + e.getResponseBody() + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
     }
 }
