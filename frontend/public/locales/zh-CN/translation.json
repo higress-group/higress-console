@@ -91,7 +91,6 @@
       "portPlaceholder": "注册中心访问端口",
       "zkServicesPath": "服务注册根路径",
       "zkServicesPathTooltip": "使用zk时，填写服务注册的根路径,默认监听/dubbo和/services，前者为dubbo服务默认根路径，后者为SpringCloud服务默认根路径",
-      "zkServicesPathRequired": "",
       "zkServicesPathPlaceholder": "默认监听/dubbo和/services，前者为 dubbo 服务默认根路径，后者为SpringCloud服务默认根路径",
       "nacosNamespaceId": "nacos命名空间id",
       "nacosNamespaceIdPlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
