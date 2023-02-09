@@ -36,8 +36,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.constant.KubernetesConstants.Label;
-import com.alibaba.higress.console.controller.dto.istio.IstioEndpointShard;
-import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
+import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpointShard;
+import com.alibaba.higress.console.service.kubernetes.dto.RegistryzService;
 import com.alibaba.higress.console.util.KubernetesUtil;
 
 import io.kubernetes.client.common.KubernetesObject;
