@@ -14,7 +14,7 @@ Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能�
 
 ## 配合 Higress 安装
 
-在 Higress 安装完之后执行以下安装命令
+在 Higress 安装完之后执行以下安装命令：
 
 ```bash
 kubectl apply -f deploy/install.yaml
@@ -22,72 +22,58 @@ kubectl apply -f deploy/install.yaml
 
 ## 本地启动
 
-### Frontend
+### 前端项目
 
-#### 第一步、 配置 Node 环境
+#### 第一步、配置 Node 环境
 注：建议Node版本选择长期稳定支持版本 16.18.1及以上
 
-#### 第二步、 安装依赖
+#### 第二步、安装依赖
 
 ```bash
 cd frontend && npm install
 ```
 
-#### 第三步、 本地启动
+#### 第三步、本地启动
 
 ```bash
 npm start
 ```
 
-#### 第四步、 打包
+#### 第四步、打包
 
 ```bash
 npm run build
 #打包生成文件 frontend/build
 ```
 
-### Backend
+### 后端项目
 
-#### 第一步、 配置 Java & Maven 环境
+#### 第一步、配置 Java & Maven 环境
 
 注：建议 JDK 版本选择 17 及以上，Maven 版本选择 3.8.6 及以上（可直接使用项目内自带的 Maven Wrapper，即 mvnw）。
 
-#### 第二步、 编译 & 镜像
+#### 第二步、编译 & 镜像
 
 ```bash
 sh bulid.sh 
-#脚本中涉及docker命令，本地调试可注释
+# 脚本中涉及docker命令，本地调试可注释
 ```
 
-#### 第三步、 部署 & 启动
+#### 第三步、部署 & 启动
 ```bash
-sh start.sh 
+sh start.sh --local
 ```
 
-#### 第四步、 访问
+#### 第四步、访问
 
 主页，默认 8080 端口
 ```html
-localhost:8080
+http://localhost:8080
 ```
 swagger，访问 swagger 页面了解 API 情况。
 ```html
-swagger：localhost:8080/swagger-ui/index.html
+http://localhost:8080/swagger-ui/index.html
 ```
-
-## 编码规范
-
-### 前端部分
-
-TBD
-
-### 后端部分
-
-后端项目以阿里巴巴发布的《[Java 开发规范](https://github.com/alibaba/p3c/)》作为其编码规范。大家可以点击链接下载最新的 PDF 文档。
-
-为了确保规范的实施效果，后端项目的 pom 中集成了 P3C-PMD 和 CheckStyle 插件，在执行 Maven 编译时会对编码规范进行检查。如果检查过程中发现了高优先级的问题，插件则会报错，中断编译过程。
-
-同时，每一个源码文件均需要在头部添加 Higress 的开源协议信息。为了便于大家快速添加开源协议文本，项目的 pom 中已经通过 Profile 集成了自动的协议填充插件。大家可以使用 `./mvnw generate-sources -P license` 命令快速在代码文件中填充上协议文本。
 
 ## 功能规划
 
