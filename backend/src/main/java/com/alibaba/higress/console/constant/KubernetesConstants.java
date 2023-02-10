@@ -14,6 +14,7 @@ package com.alibaba.higress.console.constant;
 
 public class KubernetesConstants {
 
+    public static final String PRETTY = "false";
     public static final String MCP_BRIDGE_API_GROUP = "networking.higress.io";
     public static final String MCP_BRIDGE_KIND = "McpBridge";
     public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
