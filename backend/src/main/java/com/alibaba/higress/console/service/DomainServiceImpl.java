@@ -75,7 +75,7 @@ public class DomainServiceImpl implements DomainService {
     @Override
     public Domain query(String domainName) {
         V1ConfigMap configMap;
-        String normalizedDomainName = KubernetesModelConverter.normalizeDomainName(domainName);
+        String normalizedDomainName = kubernetesModelConverter.normalizeDomainName(domainName);
         try {
             configMap = kubernetesClientService.readConfigMap(normalizedDomainName);
         } catch (ApiException e) {
@@ -87,7 +87,7 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     public void delete(String domainName) {
-        String configMapName = KubernetesModelConverter.normalizeDomainName(domainName);
+        String configMapName = kubernetesModelConverter.normalizeDomainName(domainName);
         try {
             kubernetesClientService.deleteConfigMap(configMapName);
         } catch (ApiException e) {

@@ -62,7 +62,7 @@ public class DomainsController {
     @PutMapping("/{name}")
     public ResponseEntity<Response<Domain>> put(@PathVariable("name") @NotBlank String domainName,
         @RequestBody Domain domain) {
-        if (StringUtils.isNotEmpty(domain.getName())) {
+        if (StringUtils.isEmpty(domain.getName())) {
             domain.setName(domainName);
         } else if (!StringUtils.equals(domainName, domain.getName())) {
             throw new ValidationException("Domain name in the URL doesn't match the one in the body.");

@@ -30,6 +30,8 @@ public class CorsConfig {
 
     public static final int DEFAULT_MAX_AGE = 86400;
 
+    private Boolean enabled;
+
     private List<String> allowOrigins;
 
     private List<String> allowMethods;
