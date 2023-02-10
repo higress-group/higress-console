@@ -12,14 +12,14 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.alibaba.higress.console.controller.dto.ServiceSource;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -402,6 +402,90 @@ public class KubernetesModelConverter {
         if (!valueBuilder.isEmpty()) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION,
                 valueBuilder.toString());
+        }
+    }
+
+    public ServiceSource v1RegistryConfig2ServiceSource(V1RegistryConfig v1RegistryConfig) {
+        ServiceSource serviceSource = new ServiceSource();
+        fillServiceSourceInfo(serviceSource, v1RegistryConfig);
+        return serviceSource;
+    }
+
+    public void initV1McpBridge(V1McpBridge v1McpBridge) {
+        v1McpBridge.setMetadata(new V1ObjectMeta());
+        v1McpBridge.getMetadata().setName(V1McpBridge.MCP_BRIDGE_NAME);
+        List<V1RegistryConfig> registries = new ArrayList<>();
+        v1McpBridge.setSpec(new V1McpBridgeSpec());
+        v1McpBridge.getSpec().setRegistries(registries);
+    }
+
+    public void addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
+        Optional<V1RegistryConfig> op = v1McpBridge.getSpec().getRegistries().stream()
+            .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName()))
+            .findFirst();
+        if (op.isPresent()) {
+            fillV1RegistryConfig(op.get(), serviceSource);
+        } else {
+            v1McpBridge.getSpec().getRegistries().add(serviceSource2V1RegistryConfig(serviceSource));
+        }
+    }
+
+    public void removeV1McpBridgeRegistry(V1McpBridge v1McpBridge, String name) {
+        List<V1RegistryConfig> registries = v1McpBridge.getSpec().getRegistries().stream()
+            .filter(r -> !r.getName().equals(name)).collect(Collectors.toList());
+        v1McpBridge.getSpec().setRegistries(registries);
+    }
+
+    private void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
+        if (v1RegistryConfig == null) {
+            return;
+        }
+        serviceSource.setDomain(v1RegistryConfig.getDomain());
+        serviceSource.setType(v1RegistryConfig.getType());
+        serviceSource.setPort(v1RegistryConfig.getPort());
+        serviceSource.setName(v1RegistryConfig.getName());
+        serviceSource.setProperties(new HashMap<>());
+        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())) {
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID,
+                v1RegistryConfig.getNacosNamespaceId());
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS,
+                v1RegistryConfig.getNacosGroups());
+        } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH,
+                v1RegistryConfig.getZkServicesPath());
+        }
+    }
+
+    private static V1RegistryConfig serviceSource2V1RegistryConfig(ServiceSource serviceSource) {
+        if (serviceSource == null) {
+            return null;
+        }
+        V1RegistryConfig v1RegistryConfig = new V1RegistryConfig();
+        fillV1RegistryConfig(v1RegistryConfig, serviceSource);
+        return v1RegistryConfig;
+    }
+
+    private static void fillV1RegistryConfig(V1RegistryConfig v1RegistryConfig, ServiceSource serviceSource) {
+        if (serviceSource == null) {
+            return;
+        }
+        v1RegistryConfig.setDomain(serviceSource.getDomain());
+        v1RegistryConfig.setType(serviceSource.getType());
+        v1RegistryConfig.setPort(serviceSource.getPort());
+        v1RegistryConfig.setName(serviceSource.getName());
+        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
+            v1RegistryConfig.setNacosNamespaceId((String)Optional
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID))
+                .orElse(""));
+            v1RegistryConfig.setNacosGroups((List<String>)Optional
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS))
+                .orElse(new ArrayList<>()));
+        } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
+            v1RegistryConfig.setZkServicesPath((List<String>)Optional
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
+                .orElse(new ArrayList<>()));
         }
     }
 }
