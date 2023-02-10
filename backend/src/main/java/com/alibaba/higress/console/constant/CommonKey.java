@@ -18,6 +18,8 @@ public class CommonKey {
 
     public final static String CONFIG_KEY_PREFIX = "higress-console.";
 
+    public final static String LIST_CONFIG_SEPARATOR = ";";
+
     public final static String KUBE_CONFIG_KEY = CONFIG_KEY_PREFIX + "kube-config";
 
     public final static String KUBE_CONFIG_DEFAULT_PATH =
@@ -27,13 +29,17 @@ public class CommonKey {
 
     public final static String NS_DEFAULT = "higress-system";
 
+    public final static String SYSTEM_NSES_KEY = CONFIG_KEY_PREFIX + "system-ns-list";
+
+    public final static String SYSTEM_NSES = "kube-system";
+
     public final static String CONTROLLER_SERVICE_NAME_KEY = CONFIG_KEY_PREFIX + "controller.service.name";
 
     public final static String CONTROLLER_SERVICE_NAME_DEFAULT = "higress-controller";
 
     public final static String CONTROLLER_INGRESS_CLASS_NAME_KEY = CONFIG_KEY_PREFIX + "controller.ingress-class-name";
 
-    public final static String CONTROLLER_INGRESS_CLASS_NAME_DEFAULT  = "higress";
+    public final static String CONTROLLER_INGRESS_CLASS_NAME_DEFAULT = "higress";
 
     public final static String CONTROLLER_SERVICE_HOST_KEY = CONFIG_KEY_PREFIX + "controller.service.host";
 

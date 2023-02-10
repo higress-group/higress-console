@@ -52,11 +52,16 @@ public class ServiceServiceImpl implements ServiceService {
                 kubernetesClientService.gatewayServiceEndpoint();
             List<Service> services = new ArrayList<>(registryzServices.size());
             for (RegistryzService registryzService : registryzServices) {
+                String namespace = registryzService.getAttributes().getNamespace();
+
+                if  (kubernetesClientService.isSystemNamespace(namespace)) {
+                    continue;
+                }
+
                 Service service = new Service();
                 services.add(service);
 
                 String name = registryzService.getHostname();
-                String namespace = registryzService.getAttributes().getNamespace();
                 service.setName(name);
                 service.setNamespace(namespace);
 

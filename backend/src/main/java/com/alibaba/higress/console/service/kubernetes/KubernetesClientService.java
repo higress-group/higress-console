@@ -17,11 +17,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -86,6 +89,11 @@ public class KubernetesClientService {
     @Value("${" + CommonKey.NS_KEY + ":" + CommonKey.NS_DEFAULT + "}")
     private String controllerNamespace = CommonKey.NS_DEFAULT;
 
+    @Value("#{'${" + CommonKey.SYSTEM_NSES_KEY + ":" + CommonKey.SYSTEM_NSES + "}'.split('"
+        + CommonKey.LIST_CONFIG_SEPARATOR + "')}")
+    private Set<String> systemNses =
+        new HashSet<>(Arrays.asList(CommonKey.SYSTEM_NSES.split(CommonKey.LIST_CONFIG_SEPARATOR)));
+
     @Value("${" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT
         + "}")
     private String controllerIngressClassName = CommonKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
@@ -142,6 +150,10 @@ public class KubernetesClientService {
         // log.error("checkControllerService fail use default ", e);
         // }
         return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
+    }
+
+    public boolean isSystemNamespace(String namespace) {
+        return systemNses.contains(namespace);
     }
 
     public List<RegistryzService> gatewayServiceList() throws ApiException, IOException {
@@ -220,7 +232,7 @@ public class KubernetesClientService {
     public V1Ingress replaceIngress(V1Ingress ingress) throws ApiException {
         V1ObjectMeta metadata = ingress.getMetadata();
         if (metadata == null) {
-            throw new IllegalArgumentException("ingress doesn't have a valid metadata.");
+            throw new IllegalArgumentException("Ingress doesn't have a valid metadata.");
         }
         Objects.requireNonNull(ingress.getSpec()).setIngressClassName(controllerIngressClassName);
         renderDefaultLabels(ingress);
@@ -280,7 +292,7 @@ public class KubernetesClientService {
     public V1ConfigMap replaceConfigMap(V1ConfigMap configMap) throws ApiException {
         V1ObjectMeta metadata = configMap.getMetadata();
         if (metadata == null) {
-            throw new IllegalArgumentException("ingress doesn't have a valid metadata.");
+            throw new IllegalArgumentException("ConfigMap doesn't have a valid metadata.");
         }
         renderDefaultLabels(configMap);
         CoreV1Api coreV1Api = new CoreV1Api(client);
