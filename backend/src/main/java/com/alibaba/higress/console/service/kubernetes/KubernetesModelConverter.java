@@ -140,7 +140,7 @@ public class KubernetesModelConverter {
         return domain;
     }
 
-    public static String normalizeDomainName(String name) {
+    public String normalizeDomainName(String name) {
         if (StringUtils.isNotBlank(name)) {
             if (name.startsWith(CommonKey.ASTERISK)) {
                 name = CommonKey.WILDCARD + name.substring(CommonKey.ASTERISK.length());

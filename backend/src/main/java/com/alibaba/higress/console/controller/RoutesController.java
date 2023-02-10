@@ -57,7 +57,7 @@ public class RoutesController {
     @PutMapping("/{name}")
     public ResponseEntity<Response<Route>> update(@PathVariable("name") @NotBlank String routeName,
         @RequestBody Route route) {
-        if (StringUtils.isNotEmpty(route.getName())) {
+        if (StringUtils.isEmpty(route.getName())) {
             route.setName(routeName);
         } else if (!StringUtils.equals(routeName, route.getName())) {
             throw new ValidationException("Route name in the URL doesn't match the one in the body.");

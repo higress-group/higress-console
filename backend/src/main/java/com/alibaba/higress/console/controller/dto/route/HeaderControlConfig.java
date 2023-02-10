@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.console.controller.dto.route;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,9 +23,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HeaderModifyConfig {
+public class HeaderControlConfig {
 
-    private HeaderModifyStageConfig request;
+    private List<Header> add;
 
-    private HeaderModifyStageConfig response;
+    private List<Header> set;
+
+    private List<String> delete;
 }
