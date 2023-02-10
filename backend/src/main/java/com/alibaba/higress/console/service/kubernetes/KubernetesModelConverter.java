@@ -434,7 +434,7 @@ public class KubernetesModelConverter {
         v1McpBridge.getSpec().setRegistries(registries);
     }
 
-    public void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
+    private void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
         if (v1RegistryConfig == null) {
             return;
         }
@@ -477,11 +477,11 @@ public class KubernetesModelConverter {
             v1RegistryConfig.setNacosNamespaceId((String)Optional
                 .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID))
                 .orElse(""));
-            v1RegistryConfig.setNacosGroups((List)Optional
+            v1RegistryConfig.setNacosGroups((List<String>)Optional
                 .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS))
                 .orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
-            v1RegistryConfig.setZkServicesPath((List)Optional
+            v1RegistryConfig.setZkServicesPath((List<String>)Optional
                 .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
                 .orElse(new ArrayList<>()));
         }
