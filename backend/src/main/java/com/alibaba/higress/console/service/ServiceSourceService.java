@@ -13,15 +13,18 @@
 package com.alibaba.higress.console.service;
 
 import com.alibaba.higress.console.controller.dto.*;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 
-public interface McpBridgeService {
+public interface ServiceSourceService {
 
-    PaginatedResult<McpBridge> list(CommonPageQuery query);
+    PaginatedResult<ServiceSource> list(CommonPageQuery query);
 
-    McpBridge add(McpBridge mcpBridge);
+    ServiceSource addOrUpdate(ServiceSource serviceSource);
 
-    McpBridge update(McpBridge mcpBridge);
+    ServiceSource add(ServiceSource serviceSource);
 
-    void delete(String mcpBridge);
+    void delete(String name);
+
+    ServiceSource query(String name) throws BusinessException;
     
 }
