@@ -12,28 +12,16 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
-import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Domain")
-public class Domain {
+@EqualsAndHashCode(callSuper = true)
+public class RoutePageQuery extends CommonPageQuery {
 
-    public static class EnableHttps {
-        public static final String OFF = "off";
-        public static final String ON = "on";
-        public static final String FORCE = "force";
-    }
-
-    private String name;
-
-    private String enableHttps;
-
-    private String certIdentifier;
+    private String domainName;
 }

@@ -18,12 +18,13 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.RoutePageQuery;
 import com.alibaba.higress.console.controller.exception.AlreadyExistedException;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
@@ -49,8 +50,13 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public PaginatedResult<Route> list(CommonPageQuery query) {
-        List<V1Ingress> ingresses = kubernetesClientService.listIngress();
+    public PaginatedResult<Route> list(RoutePageQuery query) {
+        List<V1Ingress> ingresses;
+        if (query != null && StringUtils.isNotEmpty(query.getDomainName())) {
+            ingresses = kubernetesClientService.listIngressByDomain(query.getDomainName());
+        } else {
+            ingresses = kubernetesClientService.listIngress();
+        }
         if (CollectionUtils.isEmpty(ingresses)) {
             return PaginatedResult.createFromFullList(Collections.emptyList(), query);
         }

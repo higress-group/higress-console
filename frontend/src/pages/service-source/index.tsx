@@ -1,5 +1,5 @@
 import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-source';
-import { addServiceSources, deleteServiceSources, getServiceSources, updateServiceSources } from '@/services/service-source';
+import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -94,9 +94,9 @@ const SourceList: React.FC = () => {
 
       if (currentServiceSource) {
         const _id = currentServiceSource.id || parseInt(uniqueId(), 10);
-        await updateServiceSources({ id: _id, ...values } as ServiceSource);
+        await updateServiceSource({ id: _id, ...values } as ServiceSource);
       } else {
-        await addServiceSources(values as ServiceSource);
+        await addServiceSource(values as ServiceSource);
       }
 
       setOpenDrawer(false);
@@ -121,7 +121,7 @@ const SourceList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteServiceSources(currentServiceSource.name);
+    await deleteServiceSource(currentServiceSource.name);
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新

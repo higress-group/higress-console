@@ -10,14 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.util;
+package com.alibaba.higress.console.service.kubernetes;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import org.apache.commons.lang3.StringUtils;
 
 public class KubernetesUtil {
 
@@ -61,5 +64,25 @@ public class KubernetesUtil {
             metadata.setAnnotations(annotations);
         }
         annotations.put(key, value);
+    }
+
+    public static String normalizeDomainName(String name) {
+        if (StringUtils.isNotBlank(name) && name.startsWith(CommonKey.ASTERISK)) {
+            name = CommonKey.WILDCARD + name.substring(CommonKey.ASTERISK.length());
+        }
+        return name;
+    }
+
+    public static String joinLabelSelectors(String... selectors) {
+        return String.join(CommonKey.COMMA, selectors);
+    }
+
+    public static String buildDomainLabelSelector(String domainName) {
+        return buildLabelSelector(KubernetesConstants.Label.DOMAIN_KEY_PREFIX + normalizeDomainName(domainName),
+            KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+    }
+
+    public static String buildLabelSelector(String name, String value) {
+        return name + CommonKey.EQUALS_SIGN + value;
     }
 }

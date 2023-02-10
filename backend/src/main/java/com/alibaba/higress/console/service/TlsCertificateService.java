@@ -10,30 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.controller.dto;
+package com.alibaba.higress.console.service;
 
-import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.alibaba.higress.console.controller.dto.CommonPageQuery;
+import com.alibaba.higress.console.controller.dto.PaginatedResult;
+import com.alibaba.higress.console.controller.dto.TlsCertificate;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("Gateway Domain")
-public class Domain {
+public interface TlsCertificateService {
 
-    public static class EnableHttps {
-        public static final String OFF = "off";
-        public static final String ON = "on";
-        public static final String FORCE = "force";
-    }
+    PaginatedResult<TlsCertificate> list(CommonPageQuery query);
 
-    private String name;
+    TlsCertificate query(String name);
 
-    private String enableHttps;
+    TlsCertificate add(TlsCertificate certificate);
 
-    private String certIdentifier;
+    TlsCertificate update(TlsCertificate certificate);
+
+    void delete(String name);
 }

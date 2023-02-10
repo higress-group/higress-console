@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,18 +26,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Domain")
-public class Domain {
-
-    public static class EnableHttps {
-        public static final String OFF = "off";
-        public static final String ON = "on";
-        public static final String FORCE = "force";
-    }
+@ApiModel("TLS Certificate")
+public class TlsCertificate {
 
     private String name;
 
-    private String enableHttps;
+    private String version;
 
-    private String certIdentifier;
+    private String cert;
+
+    private String key;
+
+    private List<String> domains;
+
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
+    private LocalDateTime validityStart;
+
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
+    private LocalDateTime validityEnd;
 }
