@@ -13,6 +13,8 @@
 package com.alibaba.higress.console.controller.dto;
 
 import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.controller.util.ValidateUtil;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -33,34 +36,35 @@ import java.util.Map;
 public class ServiceSource {
     private String name;
 
-    //todo
+    // todo
     private String version;
     /**
      * nacos,nacos2,zookeeper,consul,eureka
      */
-    private  String type;
+    private String type;
 
-    private  String domain;
+    private String domain;
 
-    private  Integer port;
+    private Integer port;
 
     private Map<String, Object> properties;
 
-    public boolean valid(){
-        if(StringUtils.isAnyBlank(this.name, this.type, this.domain)){
+    public boolean valid() {
+        if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
             return false;
         }
-        if(null == this.port || null == this.properties){
+        if (null == this.getPort() || null == this.getProperties() || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
-        if((KubernetesConstants.REGISTRY_TYPE_NACOS.equals(this.getType()) ||
-                KubernetesConstants.REGISTRY_TYPE_NACOS2.equals(this.getType()))
-                && (null == this.getProperties().get("nacosNamespaceId") || StringUtils.isBlank((String)this.getProperties().get("nacosNamespaceId")))){
+        if ((V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType()))
+            && (null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID) || StringUtils
+                .isBlank((String)this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)))) {
             return false;
         }
 
-        if(KubernetesConstants.REGISTRY_TYPE_ZK.equals(this.getType())
-                && (null == this.getProperties().get("zkServicesPath") || CollectionUtils.isEmpty((List)this.getProperties().get("zkServicesPath")))){
+        if (V1McpBridge.REGISTRY_TYPE_ZK.equals(this.getType())
+            && null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH)) {
             return false;
         }
         return true;

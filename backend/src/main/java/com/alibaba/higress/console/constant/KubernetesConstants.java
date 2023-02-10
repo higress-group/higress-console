@@ -13,28 +13,9 @@
 package com.alibaba.higress.console.constant;
 
 public class KubernetesConstants {
-
-    public static final String DEFAULT_VERSION = "v1";
-
-    public static final String MCP_BRIDGE_NAME = "default";
-    public static final String MCP_BRIDGE_VERSION = "networking.higress.io/v1";
-
-    public static final String MCP_BRIDGE_PLURAL = "mcpbridges";
     public static final String MCP_BRIDGE_API_GROUP = "networking.higress.io";
     public static final String MCP_BRIDGE_KIND = "McpBridge";
     public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
-
-    public static final String REGISTRY_TYPE_NACOS = "nacos";
-
-    public static final String REGISTRY_TYPE_NACOS2 = "nacos2";
-
-    public static final String REGISTRY_TYPE_NACOS_NACOSGROUPS = "nacosGroups";
-
-    public static final String REGISTRY_TYPE_NACOS_NACOSNAMESPACEID = "nacosNamespaceId";
-
-    public static final String REGISTRY_TYPE_ZK = "zookeeper";
-
-    public static final String REGISTRY_TYPE_ZK_ZKSERVICESPATH = "zkServicesPath";
 
     public final static String K8S_CERT = "cert";
     public final static String K8S_ENABLE_HTTPS = "enableHttps";

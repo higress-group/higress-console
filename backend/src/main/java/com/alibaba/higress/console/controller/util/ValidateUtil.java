@@ -10,21 +10,19 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.service;
+package com.alibaba.higress.console.controller.util;
 
-import com.alibaba.higress.console.controller.dto.*;
-import com.alibaba.higress.console.controller.exception.BusinessException;
+import java.util.regex.Pattern;
 
-public interface ServiceSourceService {
+public class ValidateUtil {
 
-    PaginatedResult<ServiceSource> list(CommonPageQuery query);
+    // 端口号验证 1 ~ 65535
+    public static boolean checkPort(Integer port) {
+        if (null == port) {
+            return false;
+        }
+        String regex = "^([1-9]|[1-9]\\d{1,3}|[1-6][0-5][0-5][0-3][0-5])$";
+        return Pattern.matches(regex, String.valueOf(port));
 
-    ServiceSource addOrUpdate(ServiceSource serviceSource);
-
-    ServiceSource add(ServiceSource serviceSource);
-
-    void delete(String name);
-
-    ServiceSource query(String name);
-
+    }
 }
