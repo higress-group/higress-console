@@ -6,7 +6,7 @@ import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import { uniqueId } from "lodash";
 import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import SourceForm from './components/SourceForm';
 
 interface SourceFormRef {
@@ -18,36 +18,36 @@ const SourceList: React.FC = () => {
   const { t } = useTranslation();
   const columns = [
     {
-      title: '注册中心类型',
+      title: t('serviceSource.columns.type'),
       dataIndex: 'type',
       key: 'type',
       ellipsis: true,
     },
     {
-      title: '服务来源名称',
+      title: t('serviceSource.columns.name'),
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: '注册中心地址',
+      title: t('serviceSource.columns.domain'),
       dataIndex: 'domain',
       key: 'domain',
     },
     {
-      title: '注册中心访问端口',
+      title: t('serviceSource.columns.port'),
       dataIndex: 'port',
       key: 'port',
     },
     {
-      title: '操作',
+      title: t('serviceSource.columns.action'),
       dataIndex: 'action',
       key: 'action',
       width: 140,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditDrawer(record)}>编辑</a>
-          <a onClick={() => onShowModal(record)}>删除</a>
+          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
       ),
     },
@@ -56,12 +56,12 @@ const SourceList: React.FC = () => {
   const [form] = Form.useForm();
   const formRef = useRef<SourceFormRef>(null);
   const [dataSource, setDataSource] = useState<ServiceSource[]>([]);
-  const [currentDomain, setCurrentDomain] = useState<ServiceSource | null>();
+  const [currentServiceSource, setCurrentServiceSource] = useState<ServiceSource>({} as ServiceSource);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (): Promise<ServiceSource[]> => (getServiceSources());
+  const getDomainList = async (): Promise<ServiceSource[]> => (getServiceSources({} as ServiceSourceFormProps));
 
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
@@ -79,21 +79,21 @@ const SourceList: React.FC = () => {
   }, []);
 
   const onEditDrawer = (domain: ServiceSource) => {
-    setCurrentDomain(domain);
+    setCurrentServiceSource(domain);
     setOpenDrawer(true);
   };
 
   const onShowDrawer = () => {
     setOpenDrawer(true);
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   const handleDrawerOK = async () => {
     try {
       const values: ServiceSourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as ServiceSourceFormProps;
 
-      if (currentDomain) {
-        const _id = currentDomain.id || parseInt(uniqueId(), 10);
+      if (currentServiceSource) {
+        const _id = currentServiceSource.id || parseInt(uniqueId(), 10);
         await updateServiceSources({ id: _id, ...values } as ServiceSource);
       } else {
         await addServiceSources(values as ServiceSource);
@@ -111,17 +111,17 @@ const SourceList: React.FC = () => {
   const handleDrawerCancel = () => {
     setOpenDrawer(false);
     formRef.current && formRef.current.reset();
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   const onShowModal = (domain: ServiceSource) => {
-    setCurrentDomain(domain);
+    setCurrentServiceSource(domain);
     setOpenModal(true);
   };
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteServiceSources({ name: currentDomain?.name });
+    await deleteServiceSources(currentServiceSource.name);
     setConfirmLoading(false);
     setOpenModal(false);
     // 重新刷新
@@ -131,7 +131,7 @@ const SourceList: React.FC = () => {
 
   const handleModalCancel = () => {
     setOpenModal(false);
-    setCurrentDomain(null);
+    setCurrentServiceSource(null);
   };
 
   return (
@@ -153,7 +153,7 @@ const SourceList: React.FC = () => {
               type="primary"
               onClick={onShowDrawer}
             >
-              创建服务来源
+              {t('serviceSource.createServiceSource')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
@@ -171,30 +171,37 @@ const SourceList: React.FC = () => {
         pagination={false}
       />
       <Drawer
-        title="创建服务来源"
+        // title={t('serviceSource.createServiceSource')}
+        title={t(currentServiceSource ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
         placement='right'
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}
         extra={
           <Space>
-            <Button onClick={handleDrawerCancel}>取消</Button>
+            <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
             <Button type="primary" onClick={handleDrawerOK}>
-              确定
+              {t('misc.confirm')}
             </Button>
           </Space>
         }
       >
-        <SourceForm ref={formRef} value={currentDomain} />
+        <SourceForm ref={formRef} value={currentServiceSource} />
       </Drawer>
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />删除</div>}
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
         onCancel={handleModalCancel}
+        cancelText={t('misc.cancel')}
+        okText={t('misc.confirm')}
       >
-        <p>确定删除 <span style={{ color: '#0070cc' }}>{(currentDomain && currentDomain.name) || ''} </span>吗？</p>
+        <p>
+          <Trans t={t} i18nKey="route.deleteConfirmation">
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentServiceSourceName: (currentServiceSource && currentServiceSource.name) || '' }}</span> 吗？
+          </Trans>
+        </p>
       </Modal>
     </PageContainer>
   );

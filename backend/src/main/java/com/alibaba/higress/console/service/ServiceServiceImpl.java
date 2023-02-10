@@ -25,11 +25,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Service;
-import com.alibaba.higress.console.controller.dto.istio.IstioEndpoint;
-import com.alibaba.higress.console.controller.dto.istio.IstioEndpointShard;
-import com.alibaba.higress.console.controller.dto.istio.RegistryzService;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpoint;
+import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpointShard;
+import com.alibaba.higress.console.service.kubernetes.dto.RegistryzService;
 
 import lombok.extern.slf4j.Slf4j;
 
