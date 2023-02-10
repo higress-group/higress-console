@@ -30,30 +30,32 @@ public class ServiceSourceController {
     private ServiceSourceService serviceSourceService;
 
     @GetMapping
-    public ResponseEntity<PaginatedResponse<ServiceSource>> list(@RequestParam(required = false)@RequestBody CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<ServiceSource>>
+        list(@RequestParam(required = false) @RequestBody CommonPageQuery query) {
         return ControllerUtil.buildResponseEntity(serviceSourceService.list(query));
     }
 
     @PostMapping()
     public ResponseEntity<Response<ServiceSource>> add(@RequestBody ServiceSource serviceSource) {
-        if(!serviceSource.valid()){
-            throw new ValidationException("serviceSource name in the URL doesn't match the one in the body.");
+        if (!serviceSource.valid()) {
+            throw new ValidationException("serviceSource body is not valid.");
         }
         return ControllerUtil.buildResponseEntity(serviceSourceService.add(serviceSource));
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,@RequestBody ServiceSource serviceSource) {
+    public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
+        @RequestBody ServiceSource serviceSource) {
         serviceSource.setName(name);
-        if(!serviceSource.valid()){
-            throw new ValidationException("serviceSource name in the URL doesn't match the one in the body.");
+        if (!serviceSource.valid()) {
+            throw new ValidationException("serviceSource body is not valid.");
         }
         return ControllerUtil.buildResponseEntity(serviceSourceService.addOrUpdate(serviceSource));
     }
 
     @DeleteMapping("/{name}")
     public void delete(@PathVariable("name") @NotBlank String name) {
-         serviceSourceService.delete(name);
+        serviceSourceService.delete(name);
     }
 
     @GetMapping("/{name}")
