@@ -57,8 +57,11 @@ public class Response<T> implements Serializable {
             return getErrorMessage(throwable.getCause());
         }
         String message = throwable.getMessage();
-        if (throwable instanceof ApiException && StringUtils.isEmpty(throwable.getMessage())) {
-            message = ((ApiException)throwable).getResponseBody();
+        if (throwable instanceof ApiException) {
+            if (StringUtils.isNotEmpty(message)) {
+                message += " - ";
+            }
+            message += ((ApiException)throwable).getResponseBody();
         }
         return throwable.getClass().getName() + ": " + message;
     }
