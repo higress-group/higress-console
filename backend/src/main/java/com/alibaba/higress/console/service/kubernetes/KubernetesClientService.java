@@ -89,10 +89,10 @@ public class KubernetesClientService {
     @Value("${" + CommonKey.NS_KEY + ":" + CommonKey.NS_DEFAULT + "}")
     private String controllerNamespace = CommonKey.NS_DEFAULT;
 
-    @Value("#{'${" + CommonKey.SYSTEM_NSES_KEY + ":" + CommonKey.SYSTEM_NSES + "}'.split('"
+    @Value("#{'${" + CommonKey.PROTECTED_NSES_KEY + ":" + CommonKey.PROTECTED_NSES + "}'.split('"
         + CommonKey.LIST_CONFIG_SEPARATOR + "')}")
-    private Set<String> systemNses =
-        new HashSet<>(Arrays.asList(CommonKey.SYSTEM_NSES.split(CommonKey.LIST_CONFIG_SEPARATOR)));
+    private Set<String> protectedNses =
+        new HashSet<>(Arrays.asList(CommonKey.PROTECTED_NSES.split(CommonKey.LIST_CONFIG_SEPARATOR)));
 
     @Value("${" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":" + CommonKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT
         + "}")
@@ -152,8 +152,8 @@ public class KubernetesClientService {
         return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
     }
 
-    public boolean isSystemNamespace(String namespace) {
-        return systemNses.contains(namespace);
+    public boolean isNamespaceProtected(String namespace) {
+        return controllerNamespace.equals(namespace) || protectedNses.contains(namespace);
     }
 
     public List<RegistryzService> gatewayServiceList() throws ApiException, IOException {

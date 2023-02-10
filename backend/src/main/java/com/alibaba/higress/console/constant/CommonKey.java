@@ -29,9 +29,9 @@ public class CommonKey {
 
     public final static String NS_DEFAULT = "higress-system";
 
-    public final static String SYSTEM_NSES_KEY = CONFIG_KEY_PREFIX + "system-ns-list";
+    public final static String PROTECTED_NSES_KEY = CONFIG_KEY_PREFIX + "protected-ns-list";
 
-    public final static String SYSTEM_NSES = "kube-system";
+    public final static String PROTECTED_NSES = "kube-system" + LIST_CONFIG_SEPARATOR + NS_DEFAULT;
 
     public final static String CONTROLLER_SERVICE_NAME_KEY = CONFIG_KEY_PREFIX + "controller.service.name";
 

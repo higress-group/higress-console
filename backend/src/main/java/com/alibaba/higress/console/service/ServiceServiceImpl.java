@@ -54,7 +54,7 @@ public class ServiceServiceImpl implements ServiceService {
             for (RegistryzService registryzService : registryzServices) {
                 String namespace = registryzService.getAttributes().getNamespace();
 
-                if  (kubernetesClientService.isSystemNamespace(namespace)) {
+                if (kubernetesClientService.isNamespaceProtected(namespace)) {
                     continue;
                 }
 
