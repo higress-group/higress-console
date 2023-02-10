@@ -322,8 +322,8 @@ public class KubernetesClientService {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         try {
             Object response = customObjectsApi.listNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, "false", null, null,
-                null, null, null, null, null, null, null);
+                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL,
+                KubernetesConstants.PRETTY, null, null, null, null, null, null, null, null, null);
             io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
             V1McpBridgeList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
             return list.getItems();
@@ -337,10 +337,9 @@ public class KubernetesClientService {
     public V1McpBridge addV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, v1McpBridge, "false", null,
-            null);
-        io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
-        return json.deserialize(json.serialize(response), V1McpBridge.class);
+            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, v1McpBridge,
+            KubernetesConstants.PRETTY, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
     }
 
     public V1McpBridge updateV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
@@ -353,8 +352,7 @@ public class KubernetesClientService {
         Object response = customObjectsApi.replaceNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
             V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, metadata.getName(),
             v1McpBridge, null, null);
-        io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
-        return json.deserialize(json.serialize(response), V1McpBridge.class);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
     }
 
     public void deleteV1McpBridge(String name) throws ApiException {
@@ -369,8 +367,7 @@ public class KubernetesClientService {
         try {
             Object response = customObjectsApi.getNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
                 V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, name);
-            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
-            return json.deserialize(json.serialize(response), V1McpBridge.class);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
         } catch (ApiException e) {
             log.error("getMcpBridge Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
                 + "Response headers: " + e.getResponseHeaders(), e);

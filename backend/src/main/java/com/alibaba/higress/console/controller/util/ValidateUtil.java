@@ -12,17 +12,19 @@
  */
 package com.alibaba.higress.console.controller.util;
 
-import java.util.regex.Pattern;
-
 public class ValidateUtil {
 
-    // 端口号验证 1 ~ 65535
+    /**
+     * 端口号验证 1 ~ 65535
+     * 
+     * @param port
+     * @return
+     */
     public static boolean checkPort(Integer port) {
         if (null == port) {
             return false;
         }
-        String regex = "^([1-9]|[1-9]\\d{1,3}|[1-6][0-5][0-5][0-3][0-5])$";
-        return Pattern.matches(regex, String.valueOf(port));
+        return port > 1 && port < 65535;
 
     }
 }

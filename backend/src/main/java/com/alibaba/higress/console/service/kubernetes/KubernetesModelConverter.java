@@ -409,7 +409,7 @@ public class KubernetesModelConverter {
         return serviceSource;
     }
 
-    public static void initV1McpBridge(V1McpBridge v1McpBridge) {
+    public void initV1McpBridge(V1McpBridge v1McpBridge) {
         v1McpBridge.setMetadata(new V1ObjectMeta());
         v1McpBridge.getMetadata().setName(V1McpBridge.MCP_BRIDGE_NAME);
         List<V1RegistryConfig> registries = new ArrayList<>();
@@ -417,24 +417,24 @@ public class KubernetesModelConverter {
         v1McpBridge.getSpec().setRegistries(registries);
     }
 
-    public static void addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
+    public void addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
         Optional<V1RegistryConfig> op = v1McpBridge.getSpec().getRegistries().stream()
             .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName()))
             .findFirst();
         if (op.isPresent()) {
-            serviceSource2V1RegistryConfig(op.get(), serviceSource);
+            fillV1RegistryConfig(op.get(), serviceSource);
         } else {
             v1McpBridge.getSpec().getRegistries().add(serviceSource2V1RegistryConfig(serviceSource));
         }
     }
 
-    public static void removeV1McpBridgeRegistry(V1McpBridge v1McpBridge, String name) {
+    public void removeV1McpBridgeRegistry(V1McpBridge v1McpBridge, String name) {
         List<V1RegistryConfig> registries = v1McpBridge.getSpec().getRegistries().stream()
             .filter(r -> !r.getName().equals(name)).collect(Collectors.toList());
         v1McpBridge.getSpec().setRegistries(registries);
     }
 
-    public static void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
+    public void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
         if (v1RegistryConfig == null) {
             return;
         }
@@ -460,27 +460,11 @@ public class KubernetesModelConverter {
             return null;
         }
         V1RegistryConfig v1RegistryConfig = new V1RegistryConfig();
-        v1RegistryConfig.setDomain(serviceSource.getDomain());
-        v1RegistryConfig.setType(serviceSource.getType());
-        v1RegistryConfig.setPort(serviceSource.getPort());
-        v1RegistryConfig.setName(serviceSource.getName());
-        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
-            v1RegistryConfig.setNacosNamespaceId((String)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID))
-                .orElse(""));
-            v1RegistryConfig.setNacosGroups((List)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS))
-                .orElse(new ArrayList<>()));
-        } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
-            v1RegistryConfig.setZkServicesPath((List)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
-                .orElse(new ArrayList<>()));
-        }
+        fillV1RegistryConfig(v1RegistryConfig, serviceSource);
         return v1RegistryConfig;
     }
 
-    private static void serviceSource2V1RegistryConfig(V1RegistryConfig v1RegistryConfig, ServiceSource serviceSource) {
+    private static void fillV1RegistryConfig(V1RegistryConfig v1RegistryConfig, ServiceSource serviceSource) {
         if (serviceSource == null) {
             return;
         }
@@ -501,18 +485,5 @@ public class KubernetesModelConverter {
                 .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
                 .orElse(new ArrayList<>()));
         }
-    }
-
-    public static V1RegistryConfig registryConfig2V1RegistryConfig(RegistryConfig registryConfig) {
-        V1RegistryConfig v1RegistryConfig = new V1RegistryConfig();
-        v1RegistryConfig.setName(registryConfig.getName());
-        v1RegistryConfig.setType(registryConfig.getType());
-        v1RegistryConfig.setPort(v1RegistryConfig.getPort());
-        v1RegistryConfig.setDomain(registryConfig.getDomain());
-        v1RegistryConfig.setNacosGroups(registryConfig.getNacosGroups());
-        v1RegistryConfig.setConsulNamespace(registryConfig.getConsulNamespace());
-        v1RegistryConfig.setNacosNamespaceId(registryConfig.getNacosNamespaceId());
-        registryConfig.setZkServicesPath(registryConfig.getZkServicesPath());
-        return v1RegistryConfig;
     }
 }
