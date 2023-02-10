@@ -12,17 +12,11 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.alibaba.higress.console.controller.dto.McpBridge;
-import com.alibaba.higress.console.controller.dto.RegistryConfig;
+import com.alibaba.higress.console.controller.dto.*;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
@@ -31,8 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
-import com.alibaba.higress.console.controller.dto.Domain;
-import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
@@ -411,72 +403,88 @@ public class KubernetesModelConverter {
         }
     }
 
-    public McpBridge v1McpBridge2McpBridge(V1McpBridge v1McpBridge) {
-        McpBridge mcpBridge = new McpBridge();
-        fillMcpBridgeMetadata(mcpBridge, v1McpBridge.getMetadata());
-        fillMcpBridgeInfo(mcpBridge,v1McpBridge.getSpec());
-        return mcpBridge;
+    public ServiceSource v1RegistryConfig2ServiceSource(V1RegistryConfig v1RegistryConfig) {
+        ServiceSource serviceSource = new ServiceSource();
+        fillServiceSourceInfo(serviceSource, v1RegistryConfig);
+        return serviceSource;
     }
 
-    private static void fillMcpBridgeMetadata(McpBridge mcpBridge,V1ObjectMeta metadata) {
-        if (metadata != null) {
-            mcpBridge.setName(metadata.getName());
-        }
-    }
 
-    private static void fillMcpBridgeInfo(McpBridge mcpBridge,  V1McpBridgeSpec spec) {
-        if (spec == null) {
-            return;
-        }
-        List<V1RegistryConfig> v1Registrys = spec.getRegistries();
-        if (CollectionUtils.isEmpty(v1Registrys)) {
-            return;
-        }
-        List<RegistryConfig> registrys = v1Registrys.stream().map(KubernetesModelConverter::v1RegistryConfig2RegistryConfig).collect(Collectors.toList());
-        mcpBridge.setRegistries(registrys);
-    }
-
-    public static RegistryConfig v1RegistryConfig2RegistryConfig(V1RegistryConfig v1RegistryConfig) {
-        RegistryConfig registryConfig = new RegistryConfig();
-        registryConfig.setName(v1RegistryConfig.getName());
-        registryConfig.setType(v1RegistryConfig.getType());
-        registryConfig.setPort(v1RegistryConfig.getPort());
-        registryConfig.setDomain(v1RegistryConfig.getDomain());
-        registryConfig.setNacosGroups(v1RegistryConfig.getNacosGroups());
-        registryConfig.setConsulNamespace(v1RegistryConfig.getConsulNamespace());
-        registryConfig.setNacosNamespaceId(v1RegistryConfig.getNacosNamespaceId());
-        registryConfig.setZkServicesPath(v1RegistryConfig.getZkServicesPath());
-        return registryConfig;
-    }
-
-    public V1McpBridge mcpBridge2V1McpBridge(McpBridge mcpBridge) {
-        V1McpBridge v1McpBridge = new V1McpBridge();
+    public static void initV1McpBridge(V1McpBridge v1McpBridge) {
         v1McpBridge.setMetadata(new V1ObjectMeta());
+        v1McpBridge.getMetadata().setName(KubernetesConstants.MCP_BRIDGE_NAME);
+        List<V1RegistryConfig> registries = new ArrayList<>();
         v1McpBridge.setSpec(new V1McpBridgeSpec());
-        fillV1McpBridgeMetadata(v1McpBridge, mcpBridge);
-        fillV1McpBridgeSpec(v1McpBridge, mcpBridge);
-        return v1McpBridge;
+        v1McpBridge.getSpec().setRegistries(registries);
     }
 
-    public V1McpBridge mcpBridge2V1McpBridge(McpBridge mcpBridge,V1McpBridge v1McpBridge) {
-        v1McpBridge.setSpec(new V1McpBridgeSpec());
-        fillV1McpBridgeMetadata(v1McpBridge, mcpBridge);
-        fillV1McpBridgeSpec(v1McpBridge, mcpBridge);
-        return v1McpBridge;
-    }
-
-    private void fillV1McpBridgeMetadata(V1McpBridge v1McpBridge, McpBridge mcpBridge) {
-        V1ObjectMeta metadata = Objects.requireNonNull(v1McpBridge.getMetadata());
-        metadata.setName(mcpBridge.getName());
-    }
-
-    private void fillV1McpBridgeSpec(V1McpBridge v1McpBridge, McpBridge mcpBridge) {
-        V1ObjectMeta metadata = Objects.requireNonNull(v1McpBridge.getMetadata());
-        V1McpBridgeSpec spec = Objects.requireNonNull(v1McpBridge.getSpec());
-        if (CollectionUtils.isEmpty(mcpBridge.getRegistries())) {
-            throw new IllegalArgumentException("Missing Registries.");
+    public static void addV1McpBridgeRegistry(V1McpBridge v1McpBridge,ServiceSource serviceSource) {
+        Optional<V1RegistryConfig> op = v1McpBridge.getSpec().getRegistries().stream().filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName())).findFirst();
+        if(op.isPresent()){
+            serviceSource2V1RegistryConfig(op.get(),serviceSource);
+        }else{
+            v1McpBridge.getSpec().getRegistries().add(serviceSource2V1RegistryConfig(serviceSource));
         }
-        spec.setRegistries(mcpBridge.getRegistries().stream().map(KubernetesModelConverter::registryConfig2V1RegistryConfig).collect(Collectors.toList()));
+    }
+
+    public static void removeV1McpBridgeRegistry(V1McpBridge v1McpBridge,String name) {
+        List<V1RegistryConfig> registries =
+                v1McpBridge.getSpec().getRegistries().stream().filter(r -> !r.getName().equals(name)).collect(Collectors.toList());
+        v1McpBridge.getSpec().setRegistries(registries);
+    }
+
+    public static void fillServiceSourceInfo(ServiceSource serviceSource,  V1RegistryConfig v1RegistryConfig) {
+        if (v1RegistryConfig == null) {
+            return;
+        }
+        serviceSource.setDomain(v1RegistryConfig.getDomain());
+        serviceSource.setType(v1RegistryConfig.getType());
+        serviceSource.setPort(v1RegistryConfig.getPort());
+        serviceSource.setName(v1RegistryConfig.getName());
+        serviceSource.setProperties(new HashMap<>());
+        if(KubernetesConstants.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType()) ||
+                KubernetesConstants.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())){
+            serviceSource.getProperties().put(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID,v1RegistryConfig.getNacosNamespaceId());
+            serviceSource.getProperties().put(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSGROUPS,v1RegistryConfig.getNacosGroups());
+        }else if(KubernetesConstants.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())){
+            serviceSource.getProperties().put(KubernetesConstants.REGISTRY_TYPE_ZK_ZKSERVICESPATH,v1RegistryConfig.getZkServicesPath());
+        }
+    }
+
+    private static V1RegistryConfig serviceSource2V1RegistryConfig(ServiceSource serviceSource) {
+        if (serviceSource == null) {
+            return null;
+        }
+        V1RegistryConfig v1RegistryConfig = new V1RegistryConfig();
+        v1RegistryConfig.setDomain(serviceSource.getDomain());
+        v1RegistryConfig.setType(serviceSource.getType());
+        v1RegistryConfig.setPort(serviceSource.getPort());
+        v1RegistryConfig.setName(serviceSource.getName());
+        if(KubernetesConstants.REGISTRY_TYPE_NACOS.equals(serviceSource.getType()) ||
+                KubernetesConstants.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())){
+            v1RegistryConfig.setNacosNamespaceId((String)Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)).orElse(""));
+            v1RegistryConfig.setNacosGroups((List)Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSGROUPS)).orElse(new ArrayList<>()));
+        }else if(KubernetesConstants.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())){
+            v1RegistryConfig.setZkServicesPath((List)Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_ZK_ZKSERVICESPATH)).orElse(new ArrayList<>()));
+        }
+        return v1RegistryConfig;
+    }
+
+    private static void serviceSource2V1RegistryConfig(V1RegistryConfig v1RegistryConfig,ServiceSource serviceSource) {
+        if (serviceSource == null) {
+            return;
+        }
+        v1RegistryConfig.setDomain(serviceSource.getDomain());
+        v1RegistryConfig.setType(serviceSource.getType());
+        v1RegistryConfig.setPort(serviceSource.getPort());
+        v1RegistryConfig.setName(serviceSource.getName());
+        if (KubernetesConstants.REGISTRY_TYPE_NACOS.equals(serviceSource.getType()) ||
+                KubernetesConstants.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
+            v1RegistryConfig.setNacosNamespaceId((String) Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)).orElse(""));
+            v1RegistryConfig.setNacosGroups((List) Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_NACOS_NACOSGROUPS)).orElse(new ArrayList<>()));
+        } else if (KubernetesConstants.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
+            v1RegistryConfig.setZkServicesPath((List) Optional.ofNullable(serviceSource.getProperties().get(KubernetesConstants.REGISTRY_TYPE_ZK_ZKSERVICESPATH)).orElse(new ArrayList<>()));
+        }
     }
 
     public static V1RegistryConfig registryConfig2V1RegistryConfig(RegistryConfig registryConfig) {
