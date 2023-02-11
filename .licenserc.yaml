@@ -1,0 +1,28 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: alibaba
+
+  paths-ignore:
+    - '*.md'
+    - '*.yml'
+    - '.github/**'
+    - '.gitignore'
+    - '.licenserc.yaml'
+    - 'LICENSE'
+    - 'Dockerfile'
+    - 'CODEOWNERS'
+    - 'VERSION'
+    - 'deploy/*'
+    - 'helm/**'
+    - 'backend/mvnw*'
+    - 'backend/pom.xml'
+    - 'backend/*.sh'
+    - 'backend/*.sh'
+    - 'backend/.mvn/**'
+    - 'frontend/**' # Skip checking the frontend project temporarily.
+
+  comment: on-failure
+dependency:
+  files:
+    - pom.xml

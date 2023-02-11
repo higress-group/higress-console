@@ -15,7 +15,7 @@ package com.alibaba.higress.console.controller.util;
 public class ValidateUtil {
 
     /**
-     * 端口号验证 1 ~ 65535
+     * Validate port number: 1 ~ 65535
      * 
      * @param port
      * @return
@@ -25,6 +25,5 @@ public class ValidateUtil {
             return false;
         }
         return port > 1 && port < 65535;
-
     }
 }

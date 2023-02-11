@@ -220,7 +220,7 @@
 						</executions>
 						<configuration>
 							<quiet>true</quiet>
-							<header>${user.dir}/style/copyright</header>
+							<header>${basedir}/style/copyright</header>
 							<includes>
 								<include>**/src/main/java/**</include>
 								<include>**/src/main/resources/**</include>
@@ -259,8 +259,8 @@
 								<id>validate</id>
 								<phase>compile</phase>
 								<configuration>
-									<configLocation>${user.dir}/style/higress_checkstyle.xml</configLocation>
-									<suppressionsLocation>${user.dir}/style/higress_suppressions.xml</suppressionsLocation>
+									<configLocation>${basedir}/style/higress_checkstyle.xml</configLocation>
+									<suppressionsLocation>${basedir}/style/higress_suppressions.xml</suppressionsLocation>
 									<inputEncoding>${plugin.inputEncoding}</inputEncoding>
 									<outputEncoding>${plugin.outputEncoding}</outputEncoding>
 									<consoleOutput>true</consoleOutput>
