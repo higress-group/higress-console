@@ -1,15 +1,14 @@
 import logo from '@/assets/logo.png';
-import type { LoginParams, LoginResult } from '@/interfaces/user';
-import { fetchUserInfo, login } from '@/services';
+import type { LoginParams, UserInfo } from '@/interfaces/user';
+import { login } from '@/services';
 import store from '@/store';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
 import { history, useAuth } from 'ice';
 import React, { useState } from 'react';
-import styles from './index.module.css';
-
 import { useTranslation } from 'react-i18next';
+import styles from './index.module.css';
 
 const LoginMessage: React.FC<{
   content: string;
@@ -29,32 +28,33 @@ const LoginMessage: React.FC<{
 const Login: React.FC = () => {
   const { t } = useTranslation();
 
-  const [loginResult, setLoginResult] = useState<LoginResult>({});
+  const [loginFailed] = useState<boolean>(false);
   const [, userDispatcher] = store.useModel('user');
   const [, setAuth] = useAuth();
 
-  async function updateUserInfo() {
-    const userInfo = await fetchUserInfo();
-    userDispatcher.updateCurrentUser(userInfo);
+  async function updateUserInfo(user: UserInfo) {
+    userDispatcher.updateCurrentUser(user);
   }
 
   async function handleSubmit(values: LoginParams) {
     try {
-      const result = await login(values);
-      if (result.success) {
-        message.success(t('login.loginSuccess'));
-        setAuth({
-          admin: result.userType === 'admin',
-          user: result.userType === 'user',
-        });
-        await updateUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        history?.push(urlParams.get('redirect') || '/dashboard');
-        return;
+      const user = await login(values);
+      console.log(user);
+      // We only support admin role at the moment.
+      user.type = 'admin';
+      message.success(t('login.loginSuccess'));
+      setAuth({
+        admin: user.type === 'admin',
+        user: user.type === 'user',
+      });
+      await updateUserInfo(user);
+      const urlParams = new URL(window.location.href).searchParams;
+      let redirectUrl = urlParams.get('redirect');
+      if (!redirectUrl || redirectUrl === '/login') {
+        redirectUrl = '/';
       }
-      console.log(result);
-      // 如果失败去设置用户错误信息，显示提示信息
-      setLoginResult(result);
+      history?.push(redirectUrl);
+      return;
     } catch (error) {
       message.error(t('login.loginFailed'));
       console.log(error);
@@ -70,7 +70,7 @@ const Login: React.FC = () => {
           await handleSubmit(values as LoginParams);
         }}
       >
-        {loginResult.success === false && (
+        {loginFailed && (
           <LoginMessage
             content={t('login.incorrectCredentials')}
           />

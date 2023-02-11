@@ -10,19 +10,23 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.service.kubernetes.crd.mcp;
+package com.alibaba.higress.console.service;
 
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.annotations.SerializedName;
+import com.alibaba.higress.console.controller.dto.User;
 
-import lombok.Data;
+/**
+ * @author CH3CHO
+ */
+public interface SessionService {
 
-@Data
-public class V1McpBridgeSpec {
+    User login(String username, String password);
 
-    public static final String SERIALIZED_NAME_REGISTRIES = "registries";
-    @SerializedName(SERIALIZED_NAME_REGISTRIES)
-    private List<V1RegistryConfig> registries;
+    void saveSession(HttpServletResponse response, User user, boolean persistent);
 
+    void clearSession(HttpServletResponse response);
+
+    User validateSession(HttpServletRequest request);
 }

@@ -1,0 +1,225 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package com.alibaba.higress.console.service;
+
+import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.controller.dto.User;
+import com.alibaba.higress.console.controller.exception.BusinessException;
+import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.console.util.AesUtil;
+
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.util.Strings;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author CH3CHO
+ */
+@Slf4j
+@Service
+public class SessionServiceImpl implements SessionService {
+
+    private static final String USERNAME_KEY = "adminUsername";
+    private static final String DISPLAY_NAME_KEY = "adminDisplayName";
+    private static final String PASSWORD_KEY = "adminPassword";
+    private static final String ENCRYPT_KEY_KEY = "key";
+    private static final String ENCRYPT_IV_KEY = "iv";
+
+    @Value("${" + CommonKey.ADMIN_COOKIE_NAME_KEY + ":" + CommonKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
+    private String cookieName = CommonKey.ADMIN_COOKIE_NAME_DEFAULT;
+
+    @Value("${" + CommonKey.ADMIN_COOKIE_MAX_AGE_KEY + ":" + CommonKey.ADMIN_COOKIE_MAX_AGE_DEFAULT + "}")
+    private int cookieMaxAge = CommonKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
+
+    @Value("${" + CommonKey.ADMIN_SECRET_NAME_KEY + ":" + CommonKey.ADMIN_SECRET_NAME_DEFAULT + "}")
+    private String secretName = CommonKey.ADMIN_SECRET_NAME_DEFAULT;
+
+    @Value("${" + CommonKey.ADMIN_CONFIG_TTL_KEY + ":" + CommonKey.ADMIN_CONFIG_TTL_DEFAULT + "}")
+    private long configTtl = CommonKey.ADMIN_CONFIG_TTL_DEFAULT;
+
+    private KubernetesClientService kubernetesClientService;
+
+    private final AtomicReference<AdminConfig> adminConfigCache = new AtomicReference<>();
+
+    @Resource
+    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+        this.kubernetesClientService = kubernetesClientService;
+    }
+
+    @Override
+    public User login(String username, String password) {
+        AdminConfig config = getAdminConfig();
+        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
+            return null;
+        }
+        return config.toUser();
+    }
+
+    @Override
+    public void saveSession(HttpServletResponse response, User user, boolean persistent) {
+        Cookie cookie = buildEmptyCookie();
+        cookie.setValue(generateToken(user));
+        if (persistent) {
+            cookie.setMaxAge(cookieMaxAge);
+        }
+        response.addCookie(cookie);
+    }
+
+    @Override
+    public void clearSession(HttpServletResponse response) {
+        Cookie cookie = buildEmptyCookie();
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    @Override
+    public User validateSession(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null || cookies.length == 0) {
+            return null;
+        }
+        String token = Arrays.stream(cookies).filter(c -> cookieName.equals(c.getName())).map(Cookie::getValue)
+            .findFirst().orElse(null);
+        if (Strings.isNullOrEmpty(token)) {
+            return null;
+        }
+
+        AdminConfig config = getAdminConfig();
+        String rawToken;
+        try {
+            rawToken = AesUtil.decrypt(config.getEncryptKey(), config.getEncryptIv(), token);
+        } catch (GeneralSecurityException e) {
+            log.warn("Error occurs when decrypting token: " + token, e);
+            return null;
+        }
+
+        String[] segments = rawToken.split(CommonKey.COMMA);
+        if (segments.length < 3) {
+            return null;
+        }
+        if (!config.getUsername().equals(segments[0]) || !config.getPassword().equals(segments[1])) {
+            return null;
+        }
+        return config.toUser();
+    }
+
+    private Cookie buildEmptyCookie() {
+        Cookie cookie = new Cookie(cookieName, null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        return cookie;
+    }
+
+    private String generateToken(User user) {
+        AdminConfig config = getAdminConfig();
+        if (!config.getUsername().equals(user.getName())) {
+            return null;
+        }
+        String rawToken = String.join(CommonKey.COMMA, config.getUsername(), config.getPassword(),
+            String.valueOf(System.currentTimeMillis()));
+        try {
+            return AesUtil.encrypt(config.getEncryptKey(), config.getEncryptIv(), rawToken);
+        } catch (GeneralSecurityException e) {
+            throw new BusinessException("Error occurs when generating token for user " + user.getName(), e);
+        }
+    }
+
+    private AdminConfig getAdminConfig() {
+        AdminConfig localAdminConfig = adminConfigCache.get();
+        if (localAdminConfig == null || localAdminConfig.isExpired(configTtl)) {
+            localAdminConfig = loadAdminConfig();
+            if (localAdminConfig != null) {
+                localAdminConfig.setLastUpdateTimestamp(System.currentTimeMillis());
+                adminConfigCache.set(localAdminConfig);
+            }
+        }
+        if (localAdminConfig == null || !localAdminConfig.isValid()) {
+            throw new IllegalStateException("No valid admin config is available.");
+        }
+        return localAdminConfig;
+    }
+
+    private AdminConfig loadAdminConfig() {
+        V1Secret secret;
+        try {
+            secret = kubernetesClientService.readSecret(secretName);
+        } catch (ApiException e) {
+            return null;
+        }
+        if (secret == null) {
+            return null;
+        }
+        Map<String, byte[]> data = secret.getData();
+        if (MapUtils.isEmpty(data)) {
+            return null;
+        }
+        AdminConfig adminConfig = AdminConfig.builder().username(getString(data, USERNAME_KEY))
+            .displayName(getString(data, DISPLAY_NAME_KEY)).password(getString(data, PASSWORD_KEY))
+            .encryptKey(getString(data, ENCRYPT_KEY_KEY)).encryptIv(getString(data, ENCRYPT_IV_KEY)).build();
+        // AdminConfig adminConfig = AdminConfig.builder().name("admin").displayName("Admin").password("123456")
+        // .encryptKey("").encryptIv("").build();
+        return adminConfig.isValid() ? adminConfig : null;
+    }
+
+    private static String getString(Map<String, byte[]> map, String key) {
+        byte[] value = map.get(key);
+        return value != null ? new String(value) : null;
+    }
+
+    @Data
+    @Builder
+    private static class AdminConfig {
+
+        private String username;
+
+        private String displayName;
+
+        private String password;
+
+        private String encryptKey;
+
+        private String encryptIv;
+
+        private long lastUpdateTimestamp;
+
+        public boolean isValid() {
+            return StringUtils.isNoneBlank(username, password, encryptKey, encryptIv);
+        }
+
+        public boolean isExpired(long ttl) {
+            return System.currentTimeMillis() - lastUpdateTimestamp >= ttl;
+        }
+
+        public User toUser() {
+            return User.builder().name(username).displayName(displayName).build();
+        }
+    }
+}

@@ -18,6 +18,22 @@ public class CommonKey {
 
     public final static String CONFIG_KEY_PREFIX = "higress-console.";
 
+    public final static String ADMIN_SECRET_NAME_KEY = "admin.secret";
+
+    public final static String ADMIN_SECRET_NAME_DEFAULT = "higress-console";
+
+    public final static String ADMIN_COOKIE_NAME_KEY = "admin.cookie.name";
+
+    public final static String ADMIN_COOKIE_NAME_DEFAULT = "_hi_sess";
+
+    public final static String ADMIN_COOKIE_MAX_AGE_KEY = "admin.cookie.max-age";
+
+    public final static int ADMIN_COOKIE_MAX_AGE_DEFAULT = 30 * 24 * 60 * 60;
+
+    public final static String ADMIN_CONFIG_TTL_KEY = "admin.config-ttl";
+
+    public final static long ADMIN_CONFIG_TTL_DEFAULT = 60 * 1000;
+
     public final static String LIST_CONFIG_SEPARATOR = ";";
 
     public final static String KUBE_CONFIG_KEY = CONFIG_KEY_PREFIX + "kube-config";

@@ -10,19 +10,16 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.service.kubernetes.crd.mcp;
+package com.alibaba.higress.console.controller.exception;
 
-import java.util.List;
+/**
+ * @author CH3CHO
+ */
+public class AuthException extends RuntimeException {
 
-import com.google.gson.annotations.SerializedName;
+    public AuthException() {}
 
-import lombok.Data;
-
-@Data
-public class V1McpBridgeSpec {
-
-    public static final String SERIALIZED_NAME_REGISTRIES = "registries";
-    @SerializedName(SERIALIZED_NAME_REGISTRIES)
-    private List<V1RegistryConfig> registries;
-
+    public AuthException(String message) {
+        super(message);
+    }
 }

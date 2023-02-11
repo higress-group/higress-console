@@ -45,7 +45,7 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   return (
     <Dropdown menu={menu}>
       <span className={`${styles.action} ${styles.account}`}>
-        <Avatar size="small" className={styles.avatar} src={avatar} alt="avatar" />
+        <Avatar size="small" className={styles.avatar} src={avatar || 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png'} alt="avatar" />
         <span>{name}</span>
       </span>
     </Dropdown>

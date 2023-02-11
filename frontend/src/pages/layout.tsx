@@ -33,7 +33,7 @@ export default function Layout() {
         <div style={{display: 'flex', alignItems: 'center'}}>
           <Navbar/>
           <LanguageDropdown />
-          <AvatarDropdown avatar={userState.currentUser.avatar} name={userState.currentUser.name} />
+          <AvatarDropdown avatar={userState.currentUser.avatarUrl} name={userState.currentUser.displayName} />
         </div>
       )}
       menuDataRender={() => {

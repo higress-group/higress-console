@@ -10,19 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.service.kubernetes.crd.mcp;
+package com.alibaba.higress.console.controller.dto;
 
-import java.util.List;
-
-import com.google.gson.annotations.SerializedName;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class V1McpBridgeSpec {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
 
-    public static final String SERIALIZED_NAME_REGISTRIES = "registries";
-    @SerializedName(SERIALIZED_NAME_REGISTRIES)
-    private List<V1RegistryConfig> registries;
-
+    private String name;
+    private String displayName;
+    private String avatarUrl;
 }
