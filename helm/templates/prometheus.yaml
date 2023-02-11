@@ -1,0 +1,232 @@
+{{- $appName := (include "higress-console-prometheus.fullname" .) }}
+{{- $port := .Values.prometheus.port }}
+{{- $ingress := .Values.prometheus.ingress -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s 
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: 'prometheus'
+        metrics_path: {{ $ingress.path }}/metrics
+        static_configs:
+        - targets: ['localhost:{{ $port }}']
+      - job_name: 'k8s_pods'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace]
+          regex: {{ .Release.Namespace }}
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          regex: higress-gateway
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+  {{- if .Values.local }}
+  - ReadWriteOnce
+  {{- else }}
+  - ReadWriteMany
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.prometheus.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $appName }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.prometheus.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $appName }}
+    spec:
+      containers:
+      - image: {{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}
+        name: prometheus
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.external-url={{ $ingress.path }}"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention=6h"
+        ports:
+        - containerPort: {{ $port }}
+          name: http-prometheus
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/prometheus"
+          name: data
+        - mountPath: "/etc/prometheus"
+          name: config
+        resources:
+          requests:
+            cpu: {{ .Values.prometheus.resources.requests.cpu }}
+            memory: {{ .Values.prometheus.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.prometheus.resources.limits.cpu }}
+            memory: {{ .Values.prometheus.resources.limits.memory }}
+      restartPolicy: Always
+      serviceAccountName: {{ $appName }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ $appName }}
+      - name: config
+        configMap:
+          name: {{ $appName }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: {{ $appName }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: {{ $port }}
+    protocol: TCP
+    targetPort: http-prometheus
+  selector:
+    app: {{ $appName }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $appName }}-{{ .Release.Namespace }}
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $appName }}-{{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $appName }}-{{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+---
+{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{-   $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta2
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "higress-console.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - http:
+        paths:
+          {{- range .paths }}
+          - path: {{ $ingress.path }}
+            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $appName }}
+                port:
+                  number: {{ $port }}
+              {{- else }}
+              serviceName: {{ $appName }}
+              servicePort: {{ $port }}
+              {{- end }}
+          {{- end }}
+      {{- if .host }}
+      host: {{ .host | quote }}
+      {{- end }}
+    {{- end }}

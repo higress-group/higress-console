@@ -8,6 +8,7 @@
     "download": "DOWNLOAD"
   },
   "menu": {
+    "dashboard": "Dashboard",
     "serviceSources": "Service Sources",
     "serviceList": "Service List",
     "routeConfig": "Route Config",
@@ -54,6 +55,11 @@
       "mustHttpsTooltip": "Only certificates provided by SSL Certificates Service of Alibaba Clound are supported now.",
       "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service"
     }
+  },
+  "dashboard": {
+    "loadFailed": "Error occurs when loading dashboard data. Please refresh the page later.",
+    "notFound": "No dashboard is available now. Click the button below to create one.",
+    "createDashboard": "Create Dashboard"
   },
   "service": {
     "columns": {

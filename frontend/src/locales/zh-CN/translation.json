@@ -8,6 +8,7 @@
     "download": "下载"
   },
   "menu": {
+    "dashboard": "监控面板",
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
@@ -54,6 +55,11 @@
       "mustHttpsTooltip": "目前支持阿里云SSL证书服务上的证书",
       "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）"
     }
+  },
+  "dashboard": {
+    "loadFailed": "加载监控面板失败，请稍后刷新页面重试",
+    "notFound": "未找到可显示的监控面板，点击按钮尝试创建",
+    "createDashboard": "创建监控面板"
   },
   "service": {
     "columns": {

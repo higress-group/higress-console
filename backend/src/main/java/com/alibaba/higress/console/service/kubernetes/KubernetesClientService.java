@@ -85,7 +85,6 @@ public class KubernetesClientService {
 
     private final OkHttpClient okHttpClient = new OkHttpClient();
 
-    @Value("${deploy.inCluster:}")
     private Boolean inCluster;
 
     @Value("${" + CommonKey.KUBE_CONFIG_KEY + ":}")
