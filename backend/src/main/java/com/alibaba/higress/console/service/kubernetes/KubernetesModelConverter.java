@@ -12,14 +12,16 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.alibaba.higress.console.controller.dto.ServiceSource;
-import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
-import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,9 +29,13 @@ import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.console.util.KubernetesUtil;
 import com.google.common.base.Splitter;
 
