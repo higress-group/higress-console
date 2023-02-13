@@ -25,16 +25,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.RoutePageQuery;
 import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.DomainService;
+import com.alibaba.higress.console.service.RouteService;
 
 @RestController("DomainsController")
 @RequestMapping("/v1/domains")
@@ -44,8 +46,11 @@ public class DomainsController {
     @Resource
     private DomainService domainService;
 
+    @Resource
+    private RouteService routeService;
+
     @GetMapping
-    public ResponseEntity<PaginatedResponse<Domain>> list(@RequestParam(required = false) CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<Domain>> list(CommonPageQuery query) {
         return ControllerUtil.buildResponseEntity(domainService.list(query));
     }
 
@@ -73,5 +78,17 @@ public class DomainsController {
     @DeleteMapping("/{name}")
     public void delete(@PathVariable("name") @NotBlank String name) {
         domainService.delete(name);
+    }
+
+    @GetMapping(value = "/{name}/routes")
+    public ResponseEntity<PaginatedResponse<Route>> queryRoutes(@PathVariable("name") @NotBlank String name,
+        CommonPageQuery commonPageQuery) {
+        RoutePageQuery routePageQuery = new RoutePageQuery();
+        routePageQuery.setDomainName(name);
+        if (commonPageQuery != null) {
+            routePageQuery.setPageSize(commonPageQuery.getPageSize());
+            routePageQuery.setPageNum(commonPageQuery.getPageNum());
+        }
+        return ControllerUtil.buildResponseEntity(routeService.list(routePageQuery));
     }
 }

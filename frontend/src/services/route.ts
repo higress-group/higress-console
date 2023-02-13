@@ -1,7 +1,7 @@
 import request from './request';
 import { RouteResponse, Route } from '@/interfaces/route';
 
-export const getGatewayRoute = (
+export const getGatewayRoutes = (
 ): Promise<RouteResponse> => {
   return request.get<any, RouteResponse>("/v1/routes");
 };

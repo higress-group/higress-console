@@ -1,7 +1,7 @@
 import { Domain } from '@/interfaces/domain';
 import request from './request';
 
-export const getGatewayDomain = (
+export const getGatewayDomains = (
 ) : Promise<Domain[]> => {
   return request.get<any, Domain[]>("/v1/domains");
 };
@@ -18,7 +18,7 @@ export const deleteGatewayDomain = (
   return request.delete<any, any>(`/v1/domains/${name}`);
 };
 
-export const updateGatewayDoamin = (
+export const updateGatewayDomain = (
   payload: Domain
 ) : Promise<any> => {
   return request.put<any, any>(`/v1/domains/${payload.name}`, payload);

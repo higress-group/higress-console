@@ -12,13 +12,13 @@
  */
 package com.alibaba.higress.console.service;
 
-import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.RoutePageQuery;
 
 public interface RouteService {
 
-    PaginatedResult<Route> list(CommonPageQuery query);
+    PaginatedResult<Route> list(RoutePageQuery query);
 
     Route query(String routeName);
 

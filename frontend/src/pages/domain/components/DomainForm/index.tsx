@@ -1,5 +1,9 @@
+import { OptionItem } from '@/interfaces/common';
 import { EnableHttpsValue, Protocol } from '@/interfaces/domain';
+import { TlsCertificate } from '@/interfaces/tls-certificate';
+import { getTlsCertificates } from '@/services';
 import { QuestionCircleOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +16,20 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
   const { value } = props;
   const [form] = Form.useForm();
   const [protocol, setProtocol] = useState<string>(Protocol.http);
+  const [certificateOptions, setCertificateOptions] = useState<OptionItem[]>([]);
+  const { data: _certificates = [] } = useRequest(getTlsCertificates);
 
   useEffect(() => {
     form.resetFields();
+    setProtocol(Protocol.http);
+
+    const _certificateOptions: OptionItem[] = [];
+    const certificates = _certificates as TlsCertificate[];
+    certificates && certificates.forEach(domain => {
+      const { name } = domain;
+      _certificateOptions.push({ label: name, value: name });
+    });
+    setCertificateOptions(_certificateOptions);
 
     if (value) {
       const { name, enableHttps } = value;
@@ -29,7 +44,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
       }
       form.setFieldsValue(values);
     }
-  }, [value]);
+  }, [value, _certificates]);
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
@@ -97,11 +112,11 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
                 },
               ]}
             >
-              <Input
-                showCount
+              <Select
+                showSearch
                 allowClear
-                maxLength={256}
                 placeholder={t('domain.domainForm.certificatePlaceholder')}
+                options={certificateOptions}
               />
             </Form.Item>
             <Form.Item

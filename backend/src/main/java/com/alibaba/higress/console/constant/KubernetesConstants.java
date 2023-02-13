@@ -14,18 +14,23 @@ package com.alibaba.higress.console.constant;
 
 public class KubernetesConstants {
 
-    public static final String PRETTY = "false";
     public static final String MCP_BRIDGE_API_GROUP = "networking.higress.io";
     public static final String MCP_BRIDGE_KIND = "McpBridge";
     public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
 
-    public final static String K8S_CERT = "cert";
-    public final static String K8S_ENABLE_HTTPS = "enableHttps";
+    public static final String K8S_CERT = "cert";
+    public static final String K8S_ENABLE_HTTPS = "enableHttps";
+
+    public static final String TYPE_FIELD = "type";
+    public static final String SECRET_TYPE_TLS = "kubernetes.io/tls";
+    public static final String SECRET_TLS_CRT_FIELD = "tls.crt";
+    public static final String SECRET_TLS_KEY_FIELD = "tls.key";
 
     public static class Annotation {
-        public static final String INGRESS_USE_REGEX_KEY = "higress.io/use-regex";
-        public static final String INGRESS_USE_REGEX_TRUE_VALUE = "true";
-        public static final String INGRESS_DESTINATION = "higress.io/destination";
+        public static final String TRUE_VALUE = "true";
+        public static final String USE_REGEX_KEY = "higress.io/use-regex";
+        public static final String DESTINATION = "higress.io/destination";
+        public static final String SSL_REDIRECT_KEY = "higress.io/ssl-redirect";
     }
 
     public static class Label {

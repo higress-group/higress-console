@@ -35,7 +35,7 @@ import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.ServiceSourceService;
 
 @RestController("ServiceSourceController")
-@RequestMapping("/service-sources")
+@RequestMapping("/v1/service-sources")
 public class ServiceSourceController {
 
     @Resource

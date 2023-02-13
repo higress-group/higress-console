@@ -25,13 +25,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.RoutePageQuery;
 import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.RouteService;
@@ -45,7 +44,7 @@ public class RoutesController {
     private RouteService routeService;
 
     @GetMapping
-    public ResponseEntity<PaginatedResponse<Route>> list(@RequestParam(required = false) CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<Route>> list(RoutePageQuery query) {
         return ControllerUtil.buildResponseEntity(routeService.list(query));
     }
 

@@ -19,10 +19,10 @@ export const getServiceSources = (
 
 /**
  * Add Service Source
- * @param payload SourceItem
+ * @param payload
  * @returns
  */
-export const addServiceSources = (
+export const addServiceSource = (
   payload: ServiceSource
 ): Promise<any> => {
   return request.post<any, any>(`/v1/service-sources`, payload);
@@ -33,7 +33,7 @@ export const addServiceSources = (
  * @param payload
  * @returns
  */
-export const deleteServiceSources = (
+export const deleteServiceSource = (
   name: string
 ): Promise<any> => {
   return request.delete<any, any>(`/v1/service-sources/${name}`);
@@ -44,7 +44,7 @@ export const deleteServiceSources = (
  * @param payload
  * @returns
  */
-export const updateServiceSources = (
+export const updateServiceSource = (
   payload: ServiceSource
 ): Promise<any> => {
   return request.put<any, any>(`/v1/service-sources/${payload.name}`, payload);

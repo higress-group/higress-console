@@ -12,7 +12,10 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,23 +25,34 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.security.auth.x500.X500Principal;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.x509.GeneralName;
 
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
+import com.alibaba.higress.console.controller.dto.TlsCertificate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
-import com.alibaba.higress.console.util.KubernetesUtil;
+import com.alibaba.higress.console.util.TypeUtil;
 import com.google.common.base.Splitter;
+import com.nimbusds.jose.util.X509CertUtils;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
@@ -48,9 +62,12 @@ import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @org.springframework.stereotype.Service
 public class KubernetesModelConverter {
 
@@ -59,12 +76,19 @@ public class KubernetesModelConverter {
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
     private static final Integer DEFAULT_WEIGHT = 100;
 
+    private KubernetesClientService kubernetesClientService;
+
     static {
         V1TypedLocalObjectReference mcpBridgeReference = new V1TypedLocalObjectReference();
         mcpBridgeReference.setApiGroup(KubernetesConstants.MCP_BRIDGE_API_GROUP);
         mcpBridgeReference.setKind(KubernetesConstants.MCP_BRIDGE_KIND);
         mcpBridgeReference.setName(KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT);
         DEFAULT_MCP_BRIDGE_BACKEND.setResource(mcpBridgeReference);
+    }
+
+    @Resource
+    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+        this.kubernetesClientService = kubernetesClientService;
     }
 
     public boolean isIngressSupported(V1Ingress ingress) {
@@ -126,7 +150,7 @@ public class KubernetesModelConverter {
     public V1ConfigMap domain2ConfigMap(Domain domain) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
         domainConfigMap.metadata(new V1ObjectMeta());
-        domainConfigMap.getMetadata().setName(normalizeDomainName(domain.getName()));
+        domainConfigMap.getMetadata().setName(domainName2ConfigMapName(domain.getName()));
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
         configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
@@ -148,14 +172,52 @@ public class KubernetesModelConverter {
         return domain;
     }
 
-    public String normalizeDomainName(String name) {
-        if (StringUtils.isNotBlank(name)) {
-            if (name.startsWith(CommonKey.ASTERISK)) {
-                name = CommonKey.WILDCARD + name.substring(CommonKey.ASTERISK.length());
+    public String domainName2ConfigMapName(String domainName) {
+        return CommonKey.DOMAIN_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
+    }
+
+    public V1Secret tlsCertificate2Secret(TlsCertificate certificate) {
+        V1Secret secret = new V1Secret();
+
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        secret.setMetadata(metadata);
+        metadata.setName(certificate.getName());
+        metadata.setResourceVersion(certificate.getVersion());
+
+        secret.setType(KubernetesConstants.SECRET_TYPE_TLS);
+
+        Map<String, byte[]> data = new HashMap<>(2);
+        data.put(KubernetesConstants.SECRET_TLS_CRT_FIELD, TypeUtil.stringToBytes(certificate.getCert()));
+        data.put(KubernetesConstants.SECRET_TLS_KEY_FIELD, TypeUtil.stringToBytes(certificate.getKey()));
+        secret.setData(data);
+
+        if (StringUtils.isNotEmpty(certificate.getCert())) {
+            List<String> domains = getCertBoundDomains(certificate.getCert());
+            if (CollectionUtils.isNotEmpty(domains)) {
+                domains.forEach(d -> setDomainLabel(metadata, d));
             }
-            name = CommonKey.DOMAIN_PREFIX + name;
         }
-        return name;
+
+        return secret;
+    }
+
+    public TlsCertificate secret2TlsCertificate(V1Secret secret) {
+        TlsCertificate certificate = new TlsCertificate();
+
+        V1ObjectMeta metadata = secret.getMetadata();
+        if (metadata != null) {
+            certificate.setName(metadata.getName());
+            certificate.setVersion(metadata.getResourceVersion());
+        }
+
+        Map<String, byte[]> data = secret.getData();
+        if (MapUtils.isNotEmpty(data)) {
+            certificate.setCert(TypeUtil.bytesToString(data.get(KubernetesConstants.SECRET_TLS_CRT_FIELD)));
+            certificate.setKey(TypeUtil.bytesToString(data.get(KubernetesConstants.SECRET_TLS_KEY_FIELD)));
+        }
+
+        fillTlsCertificateDetails(certificate);
+        return certificate;
     }
 
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
@@ -216,9 +278,9 @@ public class KubernetesModelConverter {
             case KubernetesConstants.IngressPathType.PREFIX:
                 String useRegexValue = null;
                 if (metadata != null && metadata.getAnnotations() != null) {
-                    useRegexValue = metadata.getAnnotations().get(KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY);
+                    useRegexValue = metadata.getAnnotations().get(KubernetesConstants.Annotation.USE_REGEX_KEY);
                 }
-                if (KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE.equals(useRegexValue)) {
+                if (KubernetesConstants.Annotation.TRUE_VALUE.equals(useRegexValue)) {
                     matchType = RoutePredicateTypeEnum.REGULAR;
                 } else {
                     matchType = RoutePredicateTypeEnum.PRE;
@@ -238,7 +300,7 @@ public class KubernetesModelConverter {
             return;
         }
 
-        String rawDestination = metadata.getAnnotations().get(KubernetesConstants.Annotation.INGRESS_DESTINATION);
+        String rawDestination = metadata.getAnnotations().get(KubernetesConstants.Annotation.DESTINATION);
         if (Strings.isNullOrEmpty(rawDestination)) {
             return;
         }
@@ -304,8 +366,7 @@ public class KubernetesModelConverter {
 
         if (CollectionUtils.isNotEmpty(route.getDomains())) {
             for (String domain : route.getDomains()) {
-                KubernetesUtil.setLabel(ingress, KubernetesConstants.Label.DOMAIN_KEY_PREFIX + domain,
-                    KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+                setDomainLabel(metadata, domain);
             }
         }
     }
@@ -313,9 +374,58 @@ public class KubernetesModelConverter {
     private void fillIngressSpec(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         V1IngressSpec spec = Objects.requireNonNull(ingress.getSpec());
-        // TODO: Support getting TLS data from domain entities.
+        fillIngressTls(metadata, spec, route);
         fillIngressRules(metadata, spec, route);
         fillIngressDestination(metadata, route);
+    }
+
+    private void fillIngressTls(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
+        if (CollectionUtils.isEmpty(route.getDomains())) {
+            return;
+        }
+
+        if (route.getDomains().size() > 1) {
+            throw new IllegalArgumentException("Only one domain is allowed.");
+        }
+
+        List<V1IngressTLS> tlses = null;
+        for (String domainName : route.getDomains()) {
+            if (Strings.isNullOrEmpty(domainName)) {
+                continue;
+            }
+
+            V1ConfigMap configMap;
+            try {
+                configMap = kubernetesClientService.readConfigMap(domainName2ConfigMapName(domainName));
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when reading config map associated with domain " + domainName,
+                    e);
+            }
+
+            Domain domain = configMap2Domain(configMap);
+
+            if (Domain.EnableHttps.OFF.equals(domain.getEnableHttps())) {
+                continue;
+            }
+
+            if (StringUtils.isEmpty(domain.getCertIdentifier())) {
+                continue;
+            }
+
+            V1IngressTLS tls = new V1IngressTLS();
+            tls.setHosts(Collections.singletonList(domain.getName()));
+            tls.setSecretName(domain.getCertIdentifier());
+            if (tlses == null) {
+                tlses = new ArrayList<>();
+                spec.setTls(tlses);
+            }
+            tlses.add(tls);
+
+            if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
+                KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
+                    KubernetesConstants.Annotation.TRUE_VALUE);
+            }
+        }
     }
 
     private static void fillIngressRules(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
@@ -363,8 +473,8 @@ public class KubernetesModelConverter {
             httpPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
         } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
             httpPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_USE_REGEX_KEY,
-                KubernetesConstants.Annotation.INGRESS_USE_REGEX_TRUE_VALUE);
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
+                KubernetesConstants.Annotation.TRUE_VALUE);
         } else {
             throw new IllegalArgumentException("Unsupported path match type: " + matchType);
         }
@@ -406,8 +516,7 @@ public class KubernetesModelConverter {
             }
         }
         if (!valueBuilder.isEmpty()) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.INGRESS_DESTINATION,
-                valueBuilder.toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, valueBuilder.toString());
         }
     }
 
@@ -472,6 +581,7 @@ public class KubernetesModelConverter {
         return v1RegistryConfig;
     }
 
+    @SuppressWarnings("unchecked")
     private static void fillV1RegistryConfig(V1RegistryConfig v1RegistryConfig, ServiceSource serviceSource) {
         if (serviceSource == null) {
             return;
@@ -493,5 +603,78 @@ public class KubernetesModelConverter {
                 .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
                 .orElse(new ArrayList<>()));
         }
+    }
+
+    private static void fillTlsCertificateDetails(TlsCertificate tlsCertificate) {
+        String certData = tlsCertificate.getCert();
+        if (StringUtils.isEmpty(certData)) {
+            return;
+        }
+
+        X509Certificate certificate = X509CertUtils.parse(certData);
+        if (certificate == null) {
+            return;
+        }
+        tlsCertificate.setDomains(getCertBoundDomains(certificate));
+        tlsCertificate.setValidityStart(TypeUtil.date2LocalDateTime(certificate.getNotBefore()));
+        tlsCertificate.setValidityEnd(TypeUtil.date2LocalDateTime(certificate.getNotAfter()));
+    }
+
+    private static List<String> getCertBoundDomains(String certData) {
+        X509Certificate certificate = X509CertUtils.parse(certData);
+        return certificate != null ? getCertBoundDomains(certificate) : Collections.emptyList();
+    }
+
+    private static List<String> getCertBoundDomains(X509Certificate certificate) {
+        List<String> domains = new ArrayList<>();
+
+        String subjectDomain = getPrincipleValue(certificate.getSubjectX500Principal(), "CN");
+        if (StringUtils.isNotEmpty(subjectDomain)) {
+            domains.add(subjectDomain);
+        }
+
+        Collection<List<?>> subjectAlternativeNames = null;
+        try {
+            subjectAlternativeNames = certificate.getSubjectAlternativeNames();
+        } catch (CertificateParsingException e) {
+            log.error("Failed to parse SubjectAlternativeNames of a certificate.", e);
+        }
+        if (CollectionUtils.isNotEmpty(subjectAlternativeNames)) {
+            for (List<?> nameEntry : subjectAlternativeNames) {
+                if (nameEntry == null || nameEntry.isEmpty() || nameEntry.size() < 2) {
+                    continue;
+                }
+                Object type = nameEntry.get(0);
+                if (!(type instanceof Integer && type.equals(GeneralName.dNSName))) {
+                    continue;
+                }
+                Object name = nameEntry.get(1);
+                if (name instanceof String) {
+                    domains.add((String)name);
+                }
+            }
+        }
+
+        return domains;
+    }
+
+    private static String getPrincipleValue(X500Principal principal, String type) {
+        if (principal == null || StringUtils.isEmpty(principal.getName())) {
+            return null;
+        }
+
+        try {
+            LdapName name = new LdapName(principal.getName());
+            return name.getRdns().stream().filter(dn -> type.equals(dn.getType()) && dn.getValue() != null)
+                .map(dn -> dn.getValue().toString()).findFirst().orElse(null);
+        } catch (InvalidNameException e) {
+            log.error("Error occurs when parsing subject: " + principal.getName(), e);
+            return null;
+        }
+    }
+
+    private void setDomainLabel(V1ObjectMeta metadata, String domainName) {
+        String labelName = KubernetesConstants.Label.DOMAIN_KEY_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
+        KubernetesUtil.setLabel(metadata, labelName, KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
     }
 }

@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
+import static com.alibaba.higress.console.service.kubernetes.KubernetesUtil.buildDomainLabelSelector;
+import static com.alibaba.higress.console.service.kubernetes.KubernetesUtil.buildLabelSelector;
+import static com.alibaba.higress.console.service.kubernetes.KubernetesUtil.joinLabelSelectors;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -28,9 +32,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeList;
-import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,14 +43,16 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.constant.KubernetesConstants.Label;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeList;
 import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpointShard;
 import com.alibaba.higress.console.service.kubernetes.dto.RegistryzService;
-import com.alibaba.higress.console.util.KubernetesUtil;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
@@ -58,6 +61,8 @@ import io.kubernetes.client.openapi.models.V1IngressList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
@@ -74,7 +79,7 @@ public class KubernetesClientService {
     private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io";
     private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
     private static final String DEFAULT_LABEL_SELECTORS =
-        KubernetesConstants.Label.RESOURCE_DEFINER_KEY + CommonKey.EQUALS_SIGN + Label.RESOURCE_DEFINER_VALUE;
+        buildLabelSelector(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
 
     private ApiClient client;
 
@@ -214,6 +219,23 @@ public class KubernetesClientService {
         }
     }
 
+    public List<V1Ingress> listIngressByDomain(String domainName) {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        String labelSelectors = joinLabelSelectors(DEFAULT_LABEL_SELECTORS, buildDomainLabelSelector(domainName));
+        try {
+            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
+                labelSelectors, null, null, null, null, null);
+            if (list == null) {
+                return Collections.emptyList();
+            }
+            return list.getItems();
+        } catch (ApiException e) {
+            log.error("listIngressByDomain Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
     public V1Ingress readIngress(String name) {
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         try {
@@ -303,6 +325,54 @@ public class KubernetesClientService {
             null, null);
     }
 
+    public List<V1Secret> listSecret(String type) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        String fieldSelectors = null;
+        if (StringUtils.isNotEmpty(type)) {
+            fieldSelectors = KubernetesConstants.TYPE_FIELD + CommonKey.EQUALS_SIGN + type;
+        }
+        V1SecretList list = coreV1Api.listNamespacedSecret(controllerNamespace, null, null, null, fieldSelectors, null,
+            null, null, null, null, null);
+        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+    }
+
+    public V1Secret readSecret(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.readNamespacedSecret(name, controllerNamespace, null);
+    }
+
+    public V1Secret createSecret(V1Secret secret) throws ApiException {
+        renderDefaultLabels(secret);
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.createNamespacedSecret(controllerNamespace, secret, null, null, null, null);
+    }
+
+    public V1Secret replaceSecret(V1Secret secret) throws ApiException {
+        V1ObjectMeta metadata = secret.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("Secret doesn't have a valid metadata.");
+        }
+        renderDefaultLabels(secret);
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        return coreV1Api.replaceNamespacedSecret(metadata.getName(), controllerNamespace, secret, null, null, null,
+            null);
+    }
+
+    public void deleteSecret(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1Status status;
+        try {
+            status = coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null, null, null);
+        } catch (ApiException ae) {
+            if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
+                // The Secret to be deleted is already gone or never existed.
+                return;
+            }
+            throw ae;
+        }
+        checkResponseStatus(status);
+    }
+
     private void checkResponseStatus(V1Status status) {
         // TODO: Throw exception accordingly.
     }
@@ -334,8 +404,8 @@ public class KubernetesClientService {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         try {
             Object response = customObjectsApi.listNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL,
-                KubernetesConstants.PRETTY, null, null, null, null, null, null, null, null, null);
+                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, null, null, null, null,
+                null, null, null, null, null, null);
             io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
             V1McpBridgeList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
             return list.getItems();
@@ -349,8 +419,8 @@ public class KubernetesClientService {
     public V1McpBridge addV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, v1McpBridge,
-            KubernetesConstants.PRETTY, null, null);
+            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, v1McpBridge, null, null,
+            null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
     }
 

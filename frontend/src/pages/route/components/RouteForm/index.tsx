@@ -1,6 +1,6 @@
 import { Domain, DomainResponse } from '@/interfaces/domain';
 import { OptionItem } from '@/interfaces/common';
-import { getGatewayDomain, getGatewayServices } from '@/services';
+import { getGatewayDomains, getGatewayServices } from '@/services';
 import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select } from 'antd';
 import { uniqueId } from "lodash";
@@ -31,7 +31,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const servicesRef = useRef(new Map());
   const { data: _services = [] } = useRequest(getGatewayServices);
-  const { data: _domains = [] } = useRequest(getGatewayDomain);
+  const { data: _domains = [] } = useRequest(getGatewayDomains);
 
   useEffect(() => {
     form.resetFields();

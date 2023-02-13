@@ -1,5 +1,5 @@
 import { KeyedRoutePredicate, Route, RoutePredicate, RouteResponse, UpstreamService } from '@/interfaces/route';
-import { addGatewayRoute, deleteGatewayRoute, getGatewayRoute, updateGatewayRoute } from '@/services';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -75,7 +75,7 @@ const RouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
 
-  const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoute(factor));
+  const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoutes(factor));
 
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,

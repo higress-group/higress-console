@@ -1,5 +1,5 @@
 import { Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
-import { addGatewayDomain, deleteGatewayDomain, getGatewayDomain, updateGatewayDoamin } from '@/services';
+import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -60,7 +60,7 @@ const DomainList: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (factor): Promise<DomainResponse> => (getGatewayDomain(factor));
+  const getDomainList = async (factor): Promise<DomainResponse> => (getGatewayDomains(factor));
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
     onSuccess: (result: Domain[], params) => {
@@ -114,7 +114,7 @@ const DomainList: React.FC = () => {
       Object.assign(data, { enableHttps });
       if (currentDomain) {
         const _id = currentDomain.id || parseInt(uniqueId(), 10);
-        await updateGatewayDoamin({ id: _id, ...data } as Domain);
+        await updateGatewayDomain({ id: _id, ...data } as Domain);
       } else {
         await addGatewayDomain(data as Domain);
       }
