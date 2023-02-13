@@ -1,9 +1,9 @@
-import { defineAppConfig, history, defineDataLoader } from 'ice';
-import { fetchUserInfo } from './services/user';
 import { defineAuthConfig } from '@ice/plugin-auth/esm/types';
 import { defineStoreConfig } from '@ice/plugin-store/esm/types';
-import { defineRequestConfig } from '@ice/plugin-request/esm/types';
-import  './i18n';
+import { defineAppConfig, defineDataLoader } from 'ice';
+import './i18n';
+import { fetchUserInfo } from './services/user';
+import store from './store';
 
 // App config, see https://v3.ice.work/docs/guide/basic/app
 export default defineAppConfig(() => ({
@@ -14,8 +14,8 @@ export const authConfig = defineAuthConfig(async (appData) => {
   const { userInfo = {} } = appData;
   return {
     initialAuth: {
-      admin: userInfo.userType === 'admin',
-      user: userInfo.userType === 'user',
+      admin: userInfo.type === 'admin',
+      user: userInfo.type === 'user',
     },
   };
 });
@@ -31,7 +31,6 @@ export const storeConfig = defineStoreConfig(async (appData) => {
   };
 });
 
-
 export const dataLoader = defineDataLoader(async () => {
   const userInfo = await getUserInfo();
   return {
@@ -40,11 +39,6 @@ export const dataLoader = defineDataLoader(async () => {
 });
 
 async function getUserInfo() {
-  try {
-    const userInfo = await fetchUserInfo();
-    return userInfo;
-  } catch (error) {
-    history?.push(`/login?redirect=${window.location.pathname}`);
-  }
-  return undefined;
+  const userInfo = await fetchUserInfo();
+  return userInfo;
 }

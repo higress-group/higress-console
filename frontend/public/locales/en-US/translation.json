@@ -20,12 +20,12 @@
     "title": "Login",
     "loginSuccess": "Login successful!",
     "loginFailed": "Login failed. Please try again.",
-    "incorrectCredentials": "Incorrect username or password (admin/ice).",
+    "incorrectCredentials": "Incorrect username or password.",
     "autoLogin": "Auto login",
     "forgotPassword": "Forgot password",
-    "usernamePlaceholder": "Username: admin or user",
+    "usernamePlaceholder": "Username",
     "usernameRequired": "Please input the username!",
-    "passwordPlaceholder": "Password: ice",
+    "passwordPlaceholder": "Password",
     "passwordRequired": "Please input the password!"
   },
   "domain": {

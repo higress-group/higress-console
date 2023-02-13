@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.console.aop;
 
+import javax.annotation.Resource;
+
+import com.alibaba.higress.console.controller.SessionController;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -24,16 +28,30 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.AlreadyExistedException;
+import com.alibaba.higress.console.controller.exception.AuthException;
 import com.alibaba.higress.console.controller.exception.NotFoundException;
 import com.alibaba.higress.console.controller.exception.ValidationException;
+import com.alibaba.higress.console.service.SessionService;
+import com.alibaba.higress.console.service.SessionUserHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author CH3CHO
+ */
 @Aspect
 @Component
 @Slf4j
 public class ApiStandardizationAspect {
+
+    private SessionService sessionService;
+
+    @Resource
+    public void setSessionService(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @Around("execution(* com.alibaba.higress.console.controller.*Controller.*(..))")
     public Object intercept(ProceedingJoinPoint point) {
@@ -44,13 +62,23 @@ public class ApiStandardizationAspect {
         }
 
         try {
+            if (isLoginRequired(point)) {
+                if (requestAttributes == null) {
+                    throw new BusinessException("No valid request context is found.");
+                }
+                User user = sessionService.validateSession(requestAttributes.getRequest());
+                if (user == null) {
+                    throw new AuthException("Login required.");
+                }
+                SessionUserHelper.setCurrentUser(user);
+            }
             return point.proceed();
         } catch (Throwable t) {
             Signature signature = point.getSignature();
             String objectName = signature.getDeclaringTypeName();
             String methodName = signature.getName();
             String msg = t.getClass().getSimpleName() + " occurs when calling " + objectName + "." + methodName;
-            if (t instanceof ValidationException || t instanceof NotFoundException
+            if (t instanceof AuthException || t instanceof ValidationException || t instanceof NotFoundException
                 || t instanceof AlreadyExistedException) {
                 log.warn(msg, t);
             } else {
@@ -59,16 +87,24 @@ public class ApiStandardizationAspect {
             Response<Object> response = Response.failure(t);
             return ResponseEntity.status(getHttpStatus(t)).body(response);
         } finally {
+            SessionUserHelper.clearCurrentUser();
             HttpContext.release();
         }
     }
 
+    private static boolean isLoginRequired(ProceedingJoinPoint point) {
+        return !(point.getTarget() instanceof SessionController);
+    }
+
     private static int getHttpStatus(Throwable t) {
-        if (t instanceof NotFoundException) {
-            return HttpStatus.BAD_GATEWAY.value();
-        }
         if (t instanceof ValidationException) {
             return HttpStatus.BAD_REQUEST.value();
+        }
+        if (t instanceof AuthException) {
+            return HttpStatus.UNAUTHORIZED.value();
+        }
+        if (t instanceof NotFoundException) {
+            return HttpStatus.BAD_GATEWAY.value();
         }
         if (t instanceof AlreadyExistedException) {
             return HttpStatus.CONFLICT.value();

@@ -49,3 +49,11 @@ Selector labels
 app.kubernetes.io/name: {{ include "higress-console.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Admin Password
+*/}}
+{{- define "higress-console.adminPassword" -}}
+app.kubernetes.io/name: {{ include "higress-console.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

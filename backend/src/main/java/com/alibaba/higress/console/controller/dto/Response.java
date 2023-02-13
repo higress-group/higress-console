@@ -45,11 +45,15 @@ public class Response<T> implements Serializable {
         return response;
     }
 
-    public static <T> Response<T> failure(Throwable t) {
+    public static <T> Response<T> failure(String message) {
         Response<T> response = new Response<T>();
         response.setSuccess(false);
-        response.setMessage(getErrorMessage(t));
+        response.setMessage(message);
         return response;
+    }
+
+    public static <T> Response<T> failure(Throwable t) {
+        return failure(getErrorMessage(t));
     }
 
     private static String getErrorMessage(Throwable throwable) {

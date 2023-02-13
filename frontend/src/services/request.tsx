@@ -1,5 +1,4 @@
 import { Modal } from "antd";
-import { configConsumerProps } from "antd/lib/config-provider";
 import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
@@ -42,6 +41,21 @@ request.interceptors.response.use(
     let { message, config, code } = error;
     if (error.response) {
       const { status, data } = error.response;
+
+      if (status === 401) {
+        if (config.url.indexOf('/login') !== -1) {
+          // Unauthorized response is allowed for a login request.
+          Promise.resolve(error.response);
+          return;
+        }
+        // Unauthorized. Jump to the login page.
+        Promise.reject(error);
+        if (window.location.href.indexOf('/login') == -1) {
+          window.location.href = `/login?redirect=${window.location.pathname}`;
+        }
+        return;
+      }
+
       const messageKey = 'request.error.' + status;
       const localizedMessage = i18next.t(messageKey);
       if (localizedMessage !== messageKey) {
