@@ -3,7 +3,11 @@
     "baseUrl": "./",
     "module": "ESNext",
     "target": "ESNext",
-    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "lib": [
+      "DOM",
+      "ESNext",
+      "DOM.Iterable"
+    ],
     "jsx": "react-jsx",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -15,13 +19,21 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "ice": [".ice"]
+      "@/*": [
+        "./src/*"
+      ],
+      "ice": [
+        ".ice"
+      ]
     }
   },
   "include": [
-    "src", ".ice"],
+    "src",
+    ".ice"
+  ],
   "exclude": [
     "build"
   ]

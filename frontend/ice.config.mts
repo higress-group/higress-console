@@ -7,6 +7,7 @@ import auth from '@ice/plugin-auth';
 export default defineConfig(() => ({
   ssr: false,
   ssg: false,
+  hash: "contenthash",
   routes: {
     defineRoutes: (route) => {
       if (process.platform !== 'win32') {

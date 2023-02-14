@@ -3,11 +3,22 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import translation_en from "@/assets/locales/en-US/translation.json";
+import translation_zh from "@/assets/locales/zh-CN/translation.json";
+
 i18n
   .use(HttpApi)
   .use(LanguageDetector)
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
+    resources: {
+      en: {
+        translation: translation_en,
+      },
+      zh: {
+        translation: translation_zh,
+      },
+    },
     debug: true,
     fallbackLng: "zh-CN",
     interpolation: {
