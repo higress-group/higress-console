@@ -29,5 +29,7 @@ public class Service {
 
     private String namespace;
 
+    private Integer version;
+
     private List<String> endpoints;
 }

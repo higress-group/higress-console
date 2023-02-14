@@ -1,5 +1,6 @@
 export interface TlsCertificate {
   name: string,
+  version?: string,
   namespace: string,
   endpoints: string[],
   [propName: string]: any,

@@ -113,8 +113,7 @@ const DomainList: React.FC = () => {
       }
       Object.assign(data, { enableHttps });
       if (currentDomain) {
-        const _id = currentDomain.id || parseInt(uniqueId(), 10);
-        await updateGatewayDomain({ id: _id, ...data } as Domain);
+        await updateGatewayDomain({ version: currentDomain.version, ...data } as Domain);
       } else {
         await addGatewayDomain(data as Domain);
       }

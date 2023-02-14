@@ -93,8 +93,7 @@ const SourceList: React.FC = () => {
       const values: ServiceSourceFormProps = formRef.current ? await formRef.current.handleSubmit() : {} as ServiceSourceFormProps;
 
       if (currentServiceSource) {
-        const _id = currentServiceSource.id || parseInt(uniqueId(), 10);
-        await updateServiceSource({ id: _id, ...values } as ServiceSource);
+        await updateServiceSource({ version: currentServiceSource.version, ...values } as ServiceSource);
       } else {
         await addServiceSource(values as ServiceSource);
       }

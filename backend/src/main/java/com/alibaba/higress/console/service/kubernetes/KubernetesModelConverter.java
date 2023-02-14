@@ -149,8 +149,12 @@ public class KubernetesModelConverter {
 
     public V1ConfigMap domain2ConfigMap(Domain domain) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
-        domainConfigMap.metadata(new V1ObjectMeta());
-        domainConfigMap.getMetadata().setName(domainName2ConfigMapName(domain.getName()));
+
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        domainConfigMap.metadata(metadata);
+        metadata.setName(domainName2ConfigMapName(domain.getName()));
+        metadata.setResourceVersion(domain.getVersion());
+
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
         configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
@@ -162,6 +166,12 @@ public class KubernetesModelConverter {
 
     public Domain configMap2Domain(V1ConfigMap configMap) {
         Domain domain = new Domain();
+
+        V1ObjectMeta metadata = configMap.getMetadata();
+        if (metadata != null) {
+            domain.setVersion(metadata.getResourceVersion());
+        }
+
         Map<String, String> configMapData = configMap.getData();
         if (Objects.isNull(configMapData)) {
             throw new IllegalArgumentException("The ConfigMap data is illegal");
@@ -223,6 +233,7 @@ public class KubernetesModelConverter {
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
         if (metadata != null) {
             route.setName(metadata.getName());
+            route.setVersion(metadata.getResourceVersion());
         }
     }
 
@@ -363,6 +374,7 @@ public class KubernetesModelConverter {
     private void fillIngressMetadata(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         metadata.setName(route.getName());
+        metadata.setResourceVersion(route.getVersion());
 
         if (CollectionUtils.isNotEmpty(route.getDomains())) {
             for (String domain : route.getDomains()) {

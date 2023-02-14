@@ -115,6 +115,8 @@ interface FactorGroupProps {
 }
 
 const FactorGroup: React.FC = ({ value, onChange }) => {
+  const { t } = useTranslation();
+
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [

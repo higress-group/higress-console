@@ -228,7 +228,8 @@
     "error": {
       "400": "Bad request",
       "404": "Resource not found",
-      "409": "Resource already exists",
+      "409_post": "Resource already exists",
+      "409_put": "Resource is already updated by someone else. Please refresh and try again.",
       "500": "Internal server error"
     }
   },

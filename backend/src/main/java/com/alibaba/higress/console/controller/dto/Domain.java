@@ -33,6 +33,8 @@ public class Domain {
 
     private String name;
 
+    private String version;
+
     private String enableHttps;
 
     private String certIdentifier;
