@@ -6,7 +6,6 @@ header:
   paths-ignore:
     - '*.md'
     - '*.yml'
-    - '*.json'
     - '.github/**'
     - '.gitignore'
     - '.licenserc.yaml'
@@ -19,7 +18,7 @@ header:
     - 'backend/mvnw*'
     - 'backend/pom.xml'
     - 'backend/*.sh'
-    - 'backend/*.sh'
+    - 'backend/**/*.json'
     - 'backend/.mvn/**'
     - 'frontend/**' # Skip checking the frontend project temporarily.
 
