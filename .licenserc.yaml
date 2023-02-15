@@ -6,6 +6,7 @@ header:
   paths-ignore:
     - '*.md'
     - '*.yml'
+    - '*.json'
     - '.github/**'
     - '.gitignore'
     - '.licenserc.yaml'
