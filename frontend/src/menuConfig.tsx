@@ -1,4 +1,4 @@
-import { GlobalOutlined, UnorderedListOutlined, FullscreenExitOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
+import { GlobalOutlined, UnorderedListOutlined, FullscreenExitOutlined, DeploymentUnitOutlined, KeyOutlined } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
@@ -21,6 +21,11 @@ const asideMenuConfig: MenuDataItem[] = [
     name: 'menu.domainManagement',
     path: '/domain',
     icon: <GlobalOutlined />,
+  },
+  {
+    name: 'menu.CertManagement',
+    path: '/tls-certificate',
+    icon: <KeyOutlined />,
   },
 ];
 

@@ -11,7 +11,8 @@
     "serviceSources": "Service Sources",
     "serviceList": "Service List",
     "routeConfig": "Route Config",
-    "domainManagement": "Domain Management"
+    "domainManagement": "Domain Management",
+    "CertManagement": "Certificate Management"
   },
   "index": {
     "title": "Higress Console"
@@ -213,6 +214,43 @@
         "subTitle": "Merchant Sales",
         "des": "Week on Week: "
       }
+    }
+  },
+  "tlsCertificate": {
+    "columns": {
+      "name": "Certificate Name",
+      "version": "Certificate Version",
+      "domains": "The associated domain list",
+      "validityStart": "Certificate validity period start time",
+      "validityEnd": "Certificate validity expiration time",
+      "action": "Action"
+    },
+    "createTlsCertificate": "Create Certificate",
+    "editTlsCertificate": "Edit Certificate",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentTlsCertificateName}}</1>?",
+    "tlsCertificateForm": {
+      "name": "Certificate Name",
+      "nameTooltip": "Globally unique. The backend is directly associated with the Secret name under the Higress namespace in K8s.",
+      "nameRequired": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
+      "namePlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
+      "version": "Certificate Version",
+      "versionRequired": "Please enter certificate version",
+      "versionPlaceholder": "Please enter certificate version",
+      "cert": "Certificate Data",
+      "certTooltip": "Only for creating and updating",
+      "certRequired": "Please enter certificate data",
+      "certPlaceholder": "Please enter certificate data",
+      "key": "Certificate Key",
+      "keyTooltip": "Only for creating and updating",
+      "keyRequired": "Please enter certificate key",
+      "keyPlaceholder": "Please enter certificate key",
+      "domains": "The associated domain list",
+      "domainsRequired": "Please select the associated domain name",
+      "domainsPlaceholder": "Please select the associated domain name",
+      "validityStart": "Certificate validity period start time",
+      "validityStartRequired": "Please select the certificate validity period start time",
+      "validityEnd": "Certificate validity expiration time",
+      "validityEndRequired": "Please select the certificate validity expiration time"
     }
   },
   "exception": {
