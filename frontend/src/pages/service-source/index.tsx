@@ -1,12 +1,11 @@
-import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-source';
+import { ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
 import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
-import { uniqueId } from "lodash";
 import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import SourceForm from './components/SourceForm';
 
 interface SourceFormRef {
@@ -21,12 +20,18 @@ const SourceList: React.FC = () => {
       title: t('serviceSource.columns.type'),
       dataIndex: 'type',
       key: 'type',
-      ellipsis: true,
+      render: (value, record) => {
+        const type = ServiceSourceTypes[value];
+        return (
+          <span>{type ? type.name : value}</span>
+        );
+      },
     },
     {
       title: t('serviceSource.columns.name'),
       dataIndex: 'name',
       key: 'name',
+      ellipsis: true,
     },
     {
       title: t('serviceSource.columns.domain'),
@@ -61,16 +66,14 @@ const SourceList: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (): Promise<ServiceSource[]> => (getServiceSources({} as ServiceSourceFormProps));
-
-  const { loading, run, refresh } = useRequest(getDomainList, {
+  const { loading, run, refresh } = useRequest(getServiceSources, {
     manual: true,
     onSuccess: (result, params) => {
-      const { data: _dataSource } = result;
-      _dataSource.forEach(i => {
-        i.key || (i.key = i.id || (i.name + '_' + i.type))
+      const sources = (result || []) as ServiceSource[];
+      sources.forEach(i => {
+        i.key || (i.key = i.name)
       })
-      setDataSource(_dataSource);
+      setDataSource(sources);
     },
   });
 
@@ -103,7 +106,7 @@ const SourceList: React.FC = () => {
       refresh();
 
     } catch (errInfo) {
-      console.log('Save failed:', errInfo);
+      console.log('Save failed: ', errInfo);
     }
   };
 
@@ -126,7 +129,6 @@ const SourceList: React.FC = () => {
     // 重新刷新
     refresh();
   };
-
 
   const handleModalCancel = () => {
     setOpenModal(false);
@@ -197,7 +199,7 @@ const SourceList: React.FC = () => {
         okText={t('misc.confirm')}
       >
         <p>
-          <Trans t={t} i18nKey="route.deleteConfirmation">
+          <Trans t={t} i18nKey="serviceSource.deleteConfirmation">
             确定删除 <span style={{ color: '#0070cc' }}>{{ currentServiceSourceName: (currentServiceSource && currentServiceSource.name) || '' }}</span> 吗？
           </Trans>
         </p>

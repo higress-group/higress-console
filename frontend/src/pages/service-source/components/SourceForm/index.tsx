@@ -1,26 +1,16 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import { ServiceSourceTypes } from '@/interfaces/service-source';
 import { Form, Input, Select } from 'antd';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
-/**
- * Service Source Type Enum
- */
-const SourceType = {
-  Default: "default",
-  Nacos2: "nacos2",
-  Nacos: "nacos",
-  Zookeeper: "zookeeper",
-  Consul: "consul",
-  Eureka: "eureka"
-};
 
 const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
-  const [sourceType, setSourceType] = useState<string>(SourceType.Default);
+  const [sourceType, setSourceType] = useState<string>();
 
   useEffect(() => {
     form.resetFields();
@@ -32,7 +22,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     reset: () => {
-      setSourceType(SourceType.Default)
+      setSourceType(null);
       form.resetFields();
     },
     handleSubmit: () => (form.validateFields()),
@@ -40,10 +30,11 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
 
   function selectServiceSourceType(type) {
     setSourceType(type)
-    if (type === 'nacos2' || type === 'nacos') {
-      form.setFieldsValue({
-        nacosGroups: ["DEFAULT_GROUP"]
-      });
+    if (type === ServiceSourceTypes.nacos.key || type === ServiceSourceTypes.nacos2.key) {
+      const groups = form.getFieldValue(["properties", "nacosGroups"]);
+      if (!groups || !groups.length) {
+        form.setFieldValue(["properties", "nacosGroups"], ["DEFAULT_GROUP"]);
+      }
     }
   }
 
@@ -56,18 +47,19 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         label={t('serviceSource.serviceSourceForm.type')}
         required
         name='type'
-        tooltip={t('serviceSource.serviceSourceForm.nameTooltip')}
+        tooltip={t('serviceSource.serviceSourceForm.typeTooltip')}
       >
         <Select
           allowClear
+          disabled={value}
           placeholder={t('serviceSource.serviceSourceForm.typePlaceholder')}
           onChange={(v) => selectServiceSourceType(v)}
         >
-          <Option value="nacos2">nacos2.x</Option>
-          <Option value="nacos">nacos</Option>
-          <Option value="zookeeper">zookeeper</Option>
-          {/* <Option value="consul">consul</Option>
-          <Option value="eureka">eureka</Option> */}
+          {
+            Object.entries(ServiceSourceTypes).map(([k, v]) =>
+              v.enabled && (<Option key={v.key} value={v.key}>{v.name}</Option>)
+            )
+          }
         </Select>
       </Form.Item>
       <Form.Item
@@ -85,6 +77,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           maxLength={256}
+          disabled={value}
           placeholder={t('serviceSource.serviceSourceForm.namePlaceholder')}
         />
       </Form.Item>
@@ -114,60 +107,93 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
-            message: t('serviceSource.serviceSourceForm.port'),
+            message: t('serviceSource.serviceSourceForm.portRequired'),
           },
         ]}
       >
         <Input
           allowClear
+          type="number"
+          min={1}
+          max={65535}
           placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
         />
       </Form.Item>
 
       {
-        sourceType === SourceType.Zookeeper ? (
+        sourceType === ServiceSourceTypes.zookeeper.key && (
           <div>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.zkServicesPath')}
-              name='zkServicesPath'
+              name={['properties', 'zkServicesPath']}
               tooltip={t('serviceSource.serviceSourceForm.zkServicesPathTooltip')}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.zkServicesPathRequired'),
+                },
+              ]}
             >
               <Select
                 allowClear
                 mode="tags"
                 placeholder={t('serviceSource.serviceSourceForm.zkServicesPathPlaceholder')}
-                options={[]}
               />
             </Form.Item>
           </div>
-        ) : (sourceType === SourceType.Nacos || sourceType === SourceType.Nacos2) ? (<div>
-          <Form.Item
-            label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
-            name='nacosNamespaceId'
-          >
-            <Input
-              showCount
-              allowClear
-              maxLength={256}
-              placeholder={t('serviceSource.serviceSourceForm.nacosNamespaceIdPlaceholder')}
-            />
-          </Form.Item>
-          <Form.Item
-            label={t('serviceSource.serviceSourceForm.nacosGroups')}
-            name='nacosGroups'
-          >
-            <Select
-              mode="tags"
-              allowClear
-              placeholder={t('serviceSource.serviceSourceForm.nacosGroupsPlaceholder')}
-              options={[{ value: "DEFAULT_GROUP" }]}
-            />
-          </Form.Item>
-        </div>) : sourceType === SourceType.Consul ? (
+        )
+      }
+      {
+        (sourceType === ServiceSourceTypes.nacos.key || sourceType === ServiceSourceTypes.nacos2.key) && (
+          <div>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
+              name={['properties', 'nacosNamespaceId']}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.nacosNamespaceIdRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+                placeholder={t('serviceSource.serviceSourceForm.nacosNamespaceIdPlaceholder')}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.nacosGroups')}
+              name={['properties', 'nacosGroups']}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.nacosGroupsRequired'),
+                },
+              ]}
+            >
+              <Select
+                mode="tags"
+                allowClear
+                placeholder={t('serviceSource.serviceSourceForm.nacosGroupsPlaceholder')}
+                options={[{ value: "DEFAULT_GROUP" }]}
+              />
+            </Form.Item>
+          </div>)
+      }
+      {
+        sourceType === ServiceSourceTypes.consul.key && (
           <div>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.consulNamespace')}
-              name='consulNamespace'
+              name={['properties', 'consulNamespace']}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.consulNamespaceRequired'),
+                },
+              ]}
               tooltip={t('serviceSource.serviceSourceForm.consulNamespaceTooltip')}
             >
               <Input
@@ -178,7 +204,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               />
             </Form.Item>
           </div>
-        ) : null
+        )
       }
     </Form>
   );
