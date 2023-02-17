@@ -20,6 +20,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -72,7 +73,12 @@ public class ApiStandardizationAspect {
                 }
                 SessionUserHelper.setCurrentUser(user);
             }
-            return point.proceed();
+            Object result = point.proceed();
+            if (requestAttributes != null && requestAttributes.getResponse() != null
+                && HttpMethod.DELETE.name().equals(requestAttributes.getRequest().getMethod())) {
+                requestAttributes.getResponse().setStatus(HttpStatus.NO_CONTENT.value());
+            }
+            return result;
         } catch (Throwable t) {
             Signature signature = point.getSignature();
             String objectName = signature.getDeclaringTypeName();

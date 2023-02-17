@@ -361,7 +361,7 @@ public class KubernetesClientService {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         V1Status status;
         try {
-            status = coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null, null, null);
+            status = coreV1Api.deleteNamespacedSecret(name, controllerNamespace, null, null, null, null, null, null);
         } catch (ApiException ae) {
             if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
                 // The Secret to be deleted is already gone or never existed.
