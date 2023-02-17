@@ -17,8 +17,8 @@ jobs:
         uses: doggycool/ossutil-github-action@master
         with:
           ossArgs: 'cp -r -u oss://higress-website-cn-hongkong/helm-charts/index.yaml ./artifact/'
-          accessKey: ${{ secrets.ALIYUN_ACCESS_KEY }}
-          accessSecret: ${{ secrets.ALIYUN_ACCESS_SECRET }}
+          accessKey: ${{ secrets.ACCESS_KEYID }}
+          accessSecret: ${{ secrets.ACCESS_KEYSECRET }}
           endpoint: oss-cn-hongkong.aliyuncs.com
       # Step 3
       - id: calc-version
@@ -40,6 +40,6 @@ jobs:
         uses: doggycool/ossutil-github-action@master
         with:
           ossArgs: 'cp -r -u ./artifact/ oss://higress-website-cn-hongkong/helm-charts/'
-          accessKey: ${{ secrets.ALIYUN_ACCESS_KEY }}
-          accessSecret: ${{ secrets.ALIYUN_ACCESS_SECRET }}
+          accessKey: ${{ secrets.ACCESS_KEYID }}
+          accessSecret: ${{ secrets.ACCESS_KEYSECRET }}
           endpoint: oss-cn-hongkong.aliyuncs.com
