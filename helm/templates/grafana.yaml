@@ -1,0 +1,183 @@
+{{- $appName := (include "higress-console-grafana.fullname" .) }}
+{{- $port := .Values.grafana.port -}}
+{{- $ingress := .Values.grafana.ingress }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+data:
+  grafana.ini: |
+    [server]
+    protocol=http
+    domain=localhost
+    root_url="%(protocol)s://%(domain)s{{ $ingress.path }}"
+    serve_from_sub_path=true
+
+    [auth]
+    disable_login_form=true
+    disable_signout_menu=true
+    
+    [auth.anonymous]
+    enabled=true
+    org_name=Main Org.
+    org_role=Viewer
+
+    [users]
+    default_theme=light
+
+    [security]
+    allow_embedding=true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.grafana.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $appName }}
+spec:
+  replicas: {{ .Values.grafana.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $appName }}
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+        - 0
+      containers:
+      - name: grafana
+        image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ $port }}
+          name: http-grafana
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: {{ $port }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: {{ $port }}
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: {{ .Values.grafana.resources.requests.cpu }}
+            memory: {{ .Values.grafana.resources.requests.memory }}
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: {{ $appName }}
+        - name: config
+          mountPath: "/etc/grafana/grafana.ini"
+          subPath: grafana.ini
+      volumes:
+      - name: {{ $appName }}
+        persistentVolumeClaim:
+          claimName: {{ $appName }}
+      - name: config
+        configMap:
+          name:  {{ $appName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: {{ $port }}
+    protocol: TCP
+    targetPort: http-grafana
+  selector:
+    app: {{ $appName }}
+  sessionAffinity: None
+  type: LoadBalancer
+---
+{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta2
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "higress-console.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - http:
+        paths:
+          {{- range .paths }}
+          - path: {{ $ingress.path }}
+            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: Prefix
+            {{- end }}
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $appName }}
+                port:
+                  number: {{ $port }}
+              {{- else }}
+              serviceName: {{ $appName }}
+              servicePort: {{ $port }}
+              {{- end }}
+          {{- end }}
+      {{- if .host }}
+      host: {{ .host | quote }}
+      {{- end }}
+    {{- end }}

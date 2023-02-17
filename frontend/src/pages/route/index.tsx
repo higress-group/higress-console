@@ -240,5 +240,3 @@ const RouteList: React.FC = () => {
 };
 
 export default RouteList;
-
-

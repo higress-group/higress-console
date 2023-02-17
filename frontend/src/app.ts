@@ -2,8 +2,8 @@ import { defineAuthConfig } from '@ice/plugin-auth/esm/types';
 import { defineStoreConfig } from '@ice/plugin-store/esm/types';
 import { defineAppConfig, defineDataLoader } from 'ice';
 import './i18n';
+import { UserInfo } from './interfaces/user';
 import { fetchUserInfo } from './services/user';
-import store from './store';
 
 // App config, see https://v3.ice.work/docs/guide/basic/app
 export default defineAppConfig(() => ({
@@ -14,8 +14,8 @@ export const authConfig = defineAuthConfig(async (appData) => {
   const { userInfo = {} } = appData;
   return {
     initialAuth: {
-      admin: userInfo.type === 'admin',
-      user: userInfo.type === 'user',
+      admin: userInfo && userInfo.type === 'admin',
+      user: userInfo && userInfo.type === 'user',
     },
   };
 });
@@ -32,13 +32,21 @@ export const storeConfig = defineStoreConfig(async (appData) => {
 });
 
 export const dataLoader = defineDataLoader(async () => {
-  const userInfo = await getUserInfo();
+  let userInfo: UserInfo;
+  try {
+    userInfo = await getUserInfo();
+  } catch (e) {
+    userInfo = {
+      username: '',
+      displayName: ''
+    };
+  }
   return {
     userInfo,
   };
 });
 
-async function getUserInfo() {
+async function getUserInfo(): Promise<UserInfo> {
   const userInfo = await fetchUserInfo();
   return userInfo;
 }

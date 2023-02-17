@@ -67,6 +67,28 @@ public class CommonKey {
 
     public final static String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
 
+    public final static String DASHBOARD_BASE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.base-url";
+
+    public final static String DASHBOARD_BASE_URL_DEFAULT =
+        "http://higress-console-grafana." + NS_DEFAULT + ":3000/grafana/";
+
+    public final static String DASHBOARD_USERNAME_KEY = CONFIG_KEY_PREFIX + "dashboard.username";
+
+    public final static String DASHBOARD_USERNAME_DEFAULT = "admin";
+
+    public final static String DASHBOARD_PASSWORD_KEY = CONFIG_KEY_PREFIX + "dashboard.password";
+
+    public final static String DASHBOARD_PASSWORD_DEFAULT = "admin";
+
+    public final static String DASHBOARD_DATASOURCE_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.name";
+
+    public final static String DASHBOARD_DATASOURCE_NAME_DEFAULT = "Prometheus";
+
+    public final static String DASHBOARD_DATASOURCE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.url";
+
+    public final static String DASHBOARD_DATASOURCE_URL_DEFAULT =
+        "http://higress-console-prometheus." + NS_DEFAULT + ":9090/prometheus";
+
     public final static String WILDCARD = "wildcard";
 
     public final static String DOMAIN = "domain";

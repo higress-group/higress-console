@@ -57,3 +57,19 @@ Admin Password
 app.kubernetes.io/name: {{ include "higress-console.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Create a default fully qualified app name for Grafana.
+*/}}
+{{- define "higress-console-grafana.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-grafana" ($consoleFullName | trunc 55) }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name for Prometheus.
+*/}}
+{{- define "higress-console-prometheus.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-prometheus" ($consoleFullName | trunc 52) }}
+{{- end }}
