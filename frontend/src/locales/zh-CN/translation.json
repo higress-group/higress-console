@@ -243,9 +243,6 @@
       "nameTooltip": "全局唯一，后端直接关联K8s 中 Higress 命名空间下的 Secret 名称。",
       "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
       "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
-      "version": "版本号",
-      "versionRequired": "请输入版本号",
-      "versionPlaceholder": "请输入版本号",
       "cert": "证书数据",
       "certTooltip": "仅用于创建和更新",
       "certRequired": "请输入证书数据",
@@ -253,14 +250,7 @@
       "key": "私钥数据",
       "keyTooltip": "仅用于创建和更新",
       "keyRequired": "请输入私钥数据",
-      "keyPlaceholder": "请输入私钥数据",
-      "domains": "证书关联的域名列表",
-      "domainsRequired": "请选择证书关联的域名列表",
-      "domainsPlaceholder": "请选择关联域名",
-      "validityStart": "证书有效期开始时间",
-      "validityStartRequired": "请选择证书有效期开始时间",
-      "validityEnd": "证书有效期截止时间",
-      "validityEndRequired": "请选择证书有效期截止时间"
+      "keyPlaceholder": "请输入私钥数据"
     }
   },
   "exception": {

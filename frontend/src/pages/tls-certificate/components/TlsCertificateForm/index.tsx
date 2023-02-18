@@ -76,24 +76,6 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
         />
       </Form.Item>
       <Form.Item
-        label={t('tlsCertificate.tlsCertificateForm.version')}
-        required
-        name='version'
-        rules={[
-          {
-            required: true,
-            message: t('tlsCertificate.tlsCertificateForm.versionRequired')
-          },
-        ]}
-      >
-        <Input
-          showCount
-          allowClear
-          maxLength={256}
-          placeholder={t('tlsCertificate.tlsCertificateForm.versionPlaceholder')}
-        />
-      </Form.Item>
-      <Form.Item
         label={t('tlsCertificate.tlsCertificateForm.cert')}
         required
         name='cert'
@@ -127,60 +109,6 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
           rows={6}
           allowClear
           placeholder={t('tlsCertificate.tlsCertificateForm.keyPlaceholder')}
-        />
-      </Form.Item>
-      <Form.Item
-        label={t('tlsCertificate.tlsCertificateForm.domains')}
-        required
-        name='domains'
-        rules={[
-          {
-            required: true,
-            message: t('tlsCertificate.tlsCertificateForm.domainsRequired')
-          },
-        ]}
-      >
-        <Select
-          mode="tags"
-          allowClear
-          options={domainsOptions}
-          placeholder={t('tlsCertificate.tlsCertificateForm.domainsPlaceholder')}
-        />
-      </Form.Item>
-      <Form.Item
-        label={t('tlsCertificate.tlsCertificateForm.validityStart')}
-        required
-        name='validityStart'
-        rules={[
-          {
-            required: true,
-            message: t('tlsCertificate.tlsCertificateForm.validityStartRequired')
-          },
-        ]}
-      >
-        <DatePicker
-          showTime
-          allowClear
-          format="yyyy/MM/DD HH:mm:ss"
-          placeholder={t('tlsCertificate.tlsCertificateForm.validityStartPlaceholder')}
-        />
-      </Form.Item>
-      <Form.Item
-        label={t('tlsCertificate.tlsCertificateForm.validityEnd')}
-        required
-        name='validityEnd'
-        rules={[
-          {
-            required: true,
-            message: t('tlsCertificate.tlsCertificateForm.validityEndRequired')
-          },
-        ]}
-      >
-        <DatePicker
-          showTime
-          allowClear
-          format="yyyy/MM/DD HH:mm:ss"
-          placeholder={t('tlsCertificate.tlsCertificateForm.validityEndPlaceholder')}
         />
       </Form.Item>
     </Form>
