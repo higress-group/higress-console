@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console.client.grafana.models;
 
+import com.alibaba.higress.console.client.grafana.GrafanaClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -25,15 +26,83 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GrafanaDashboard {
 
+    private static final String ID = "id";
+    private static final String UID = "uid";
+    private static final String TITLE = "title";
+    private static final String VERSION = "version";
+
     private DashboardMeta meta;
     private ObjectNode dashboard;
+
+    @JsonIgnore
+    public Integer getId() {
+        if (dashboard == null) {
+            return null;
+        }
+        JsonNode idToken = dashboard.get(ID);
+        return idToken != null ? idToken.asInt() : null;
+    }
+
+    @JsonIgnore
+    public void setId(Integer id) {
+        if (dashboard == null) {
+            dashboard = GrafanaClient.MAPPER.createObjectNode();
+        }
+        if (id == null) {
+            dashboard.remove(ID);
+        } else {
+            dashboard.put(ID, id);
+        }
+    }
+
+    @JsonIgnore
+    public String getUid() {
+        if (dashboard == null) {
+            return null;
+        }
+        JsonNode uidToken = dashboard.get(UID);
+        return uidToken != null ? uidToken.asText() : null;
+    }
+
+    @JsonIgnore
+    public void setUid(String uid) {
+        if (dashboard == null) {
+            dashboard = GrafanaClient.MAPPER.createObjectNode();
+        }
+        if (uid == null) {
+            dashboard.remove(UID);
+        } else {
+            dashboard.put(UID, uid);
+        }
+    }
 
     @JsonIgnore
     public String getTitle() {
         if (dashboard == null) {
             return null;
         }
-        JsonNode titleToken = dashboard.get("title");
+        JsonNode titleToken = dashboard.get(TITLE);
         return titleToken != null ? titleToken.asText() : null;
+    }
+
+    @JsonIgnore
+    public Integer getVersion() {
+        if (dashboard == null) {
+            return null;
+        }
+        JsonNode versionToken = dashboard.get(VERSION);
+        return versionToken != null ? versionToken.asInt() : null;
+    }
+
+    @JsonIgnore
+    public void setVersion(Integer version) {
+        if (dashboard == null) {
+            dashboard = GrafanaClient.MAPPER.createObjectNode();
+        }
+        if (version == null) {
+            dashboard.remove(VERSION);
+        } else {
+            dashboard.put(VERSION, version);
+        }
     }
 }
