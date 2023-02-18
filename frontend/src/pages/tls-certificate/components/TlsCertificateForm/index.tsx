@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
-
   const { value } = props;
   const [form] = Form.useForm();
 
