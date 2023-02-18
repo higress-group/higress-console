@@ -8,6 +8,7 @@
     "download": "下载"
   },
   "menu": {
+    "dashboard": "监控面板",
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
@@ -56,6 +57,11 @@
       "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）"
     }
   },
+  "dashboard": {
+    "loadFailed": "加载监控面板失败，请稍后刷新页面重试",
+    "notFound": "未找到可显示的监控面板，点击按钮尝试创建",
+    "createDashboard": "创建监控面板"
+  },
   "service": {
     "columns": {
       "name": "服务名称",
@@ -78,7 +84,7 @@
     "deleteConfirmation": "确定删除 <1>{{currentServiceSourceName}}</1> 吗？",
     "serviceSourceForm": {
       "type": "注册中心类型",
-      "typeTooltip": "目前支持nacos，nacos2.x，zookeeper",
+      "typeTooltip": "目前支持Nacos 1.x、Nacos 2.x和Zookeeper等类型",
       "typePlaceholder": "请选择类型",
       "name": "服务来源名称",
       "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
@@ -91,15 +97,19 @@
       "portRequired": "请输入访问端口",
       "portPlaceholder": "注册中心访问端口",
       "zkServicesPath": "服务注册根路径",
-      "zkServicesPathTooltip": "使用zk时，填写服务注册的根路径,默认监听/dubbo和/services，前者为dubbo服务默认根路径，后者为SpringCloud服务默认根路径",
-      "zkServicesPathPlaceholder": "默认监听/dubbo和/services，前者为 dubbo 服务默认根路径，后者为SpringCloud服务默认根路径",
-      "nacosNamespaceId": "nacos命名空间id",
+      "zkServicesPathTooltip": "Zookeeper类型的服务来源需要填写服务注册的根路径。默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
+      "zkServicesPathRequired": "请输入服务注册根路径",
+      "zkServicesPathPlaceholder": "默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
+      "nacosNamespaceId": "Nacos命名空间ID",
       "nacosNamespaceIdPlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
-      "nacosGroups": "nacos 服务分组列表",
-      "nacosGroupsPlaceholder": "nacos服务分组列表",
-      "consulNamespace": "命名空间",
-      "consulNamespaceTooltip": "使用consul时需要填写命名空间",
-      "consulNamespacePlaceholder": "consul命名空间"
+      "nacosNamespaceIdRequired": "请输入Nacos命名空间ID",
+      "nacosGroups": "Nacos服务分组列表",
+      "nacosGroupsRequired": "请输入Nacos服务分组列表",
+      "nacosGroupsPlaceholder": "Nacos服务分组列表",
+      "consulNamespace": "Consul命名空间",
+      "consulNamespaceTooltip": "Consul类型的服务来源需要填写命名空间",
+      "consulNamespaceRequired": "请输入Concul命名空间",
+      "consulNamespacePlaceholder": "Consul命名空间"
     }
   },
   "route": {

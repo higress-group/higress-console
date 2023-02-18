@@ -2,11 +2,6 @@ import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-sour
 import request from './request';
 
 /**
- * @TODO
- * API not found!
- */
-
-/**
  * Get Service Source List
  * @param payload
  * @returns

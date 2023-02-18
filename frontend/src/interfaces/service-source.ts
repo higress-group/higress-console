@@ -8,6 +8,7 @@ export interface ServiceSource {
   domain: string,
   port: number,
   properties: ServiceSourceProperties,
+  [propName: string]: any,
 }
 
 export interface ServiceSourceProperties {
@@ -25,10 +26,7 @@ export interface ServiceSourceFormProps {
   type: string,
   domain: string,
   port: number,
-  consulNamespace?: string,
-  zkServicesPath?: string[],
-  nacosNamespaceId?: string,
-  nacosGroups?: string[],
+  [propName: string]: any,
 }
 
 /**
@@ -40,3 +38,11 @@ export interface ServiceSourceResponse {
   pageSize: number,
   total: number,
 }
+
+export const ServiceSourceTypes = {
+  nacos2: { key: "nacos2", name: "Nacos 2.x", enabled: true },
+  nacos: { key: "nacos", name: "Nacos 1.x", enabled: true },
+  zookeeper: { key: "zookeeper", name: "Zookeeper", enabled: true },
+  consul: { key: "consul", name: "Concul", enabled: false },
+  eureka: { key: "eureka", name: "Eureka", enabled: false },
+};

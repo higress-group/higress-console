@@ -37,8 +37,10 @@ spec:
               value: /usr/local/openjdk-18
             - name: LANG
               value: C.UTF-8
-            - name: SPRING_PROFILES_ACTIVE
-              value: k8s
+            - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
+              value: http://{{ include "higress-console-grafana.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.grafana.port }}{{ .Values.grafana.ingress.path }}
+            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
+              value: http://{{ include "higress-console-prometheus.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.prometheus.port }}{{ .Values.prometheus.ingress.path }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

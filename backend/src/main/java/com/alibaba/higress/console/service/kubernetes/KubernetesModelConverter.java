@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -50,7 +52,6 @@ import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.console.util.TypeUtil;
 import com.google.common.base.Splitter;
-import com.nimbusds.jose.util.X509CertUtils;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -623,7 +624,7 @@ public class KubernetesModelConverter {
             return;
         }
 
-        X509Certificate certificate = X509CertUtils.parse(certData);
+        X509Certificate certificate = parseCertificateData(certData);
         if (certificate == null) {
             return;
         }
@@ -632,8 +633,18 @@ public class KubernetesModelConverter {
         tlsCertificate.setValidityEnd(TypeUtil.date2LocalDateTime(certificate.getNotAfter()));
     }
 
+    private static X509Certificate parseCertificateData(String certData) {
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance("X509");
+            return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certData.getBytes()));
+        } catch (Exception ex) {
+            log.error("Failed to parse certificate data:\n" + certData, ex);
+            return null;
+        }
+    }
+
     private static List<String> getCertBoundDomains(String certData) {
-        X509Certificate certificate = X509CertUtils.parse(certData);
+        X509Certificate certificate = parseCertificateData(certData);
         return certificate != null ? getCertBoundDomains(certificate) : Collections.emptyList();
     }
 

@@ -1,7 +1,12 @@
-import { GlobalOutlined, UnorderedListOutlined, FullscreenExitOutlined, DeploymentUnitOutlined, KeyOutlined } from '@ant-design/icons';
+import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined, KeyOutlined } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
+  {
+    name: 'menu.dashboard',
+    path: '/dashboard',
+    icon: <DashboardOutlined />,
+  },
   {
     name: 'menu.serviceSources',
     path: '/service-source',
@@ -30,3 +35,4 @@ const asideMenuConfig: MenuDataItem[] = [
 ];
 
 export { asideMenuConfig };
+
