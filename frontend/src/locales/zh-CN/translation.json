@@ -229,10 +229,9 @@
   "tlsCertificate": {
     "columns": {
       "name": "证书名称",
-      "version": "版本号",
-      "domains": "证书关联的域名列表",
-      "validityStart": "证书有效期开始时间",
-      "validityEnd": "证书有效期截止时间",
+      "domains": "关联域名列表",
+      "validityStart": "有效期开始时间",
+      "validityEnd": "有效期截止时间",
       "action": "操作"
     },
     "createTlsCertificate": "创建证书",
@@ -240,15 +239,13 @@
     "deleteConfirmation": "确定删除 <1>{{currentTlsCertificateName}}</1> 吗？",
     "tlsCertificateForm": {
       "name": "证书名称",
-      "nameTooltip": "全局唯一，后端直接关联K8s 中 Higress 命名空间下的 Secret 名称。",
+      "nameTooltip": "全局唯一",
       "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
       "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
       "cert": "证书数据",
-      "certTooltip": "仅用于创建和更新",
       "certRequired": "请输入证书数据",
       "certPlaceholder": "请输入证书数据",
       "key": "私钥数据",
-      "keyTooltip": "仅用于创建和更新",
       "keyRequired": "请输入私钥数据",
       "keyPlaceholder": "请输入私钥数据"
     }

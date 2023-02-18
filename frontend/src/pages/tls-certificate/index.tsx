@@ -3,9 +3,7 @@ import { addTlsCertificate, deleteTlsCertificate, getTlsCertificates, updateTlsC
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
-import { uniqueId } from "lodash";
-import moment from 'moment';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Tooltip } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import TlsCertificateForm from './components/TlsCertificateForm';
@@ -21,15 +19,13 @@ const TlsCertificateList: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: t('tlsCertificate.columns.version'),
-      dataIndex: 'version',
-      key: 'version',
-    },
-    {
       title: t('tlsCertificate.columns.domains'),
       dataIndex: 'domains',
       key: 'domains',
-      render: (value) => (value?.map(i => <p>{i}</p>) || '-'),
+      ellipsis: { showTitle: false },
+      render: (value) => (<Tooltip placement="topLeft" title={value}>
+        {value}
+      </Tooltip> || '-'),
     },
     {
       title: t('tlsCertificate.columns.validityStart'),
@@ -73,6 +69,7 @@ const TlsCertificateList: React.FC = () => {
       const _dataSource = result || [];
       _dataSource.forEach(i => {
         i.key || (i.key = i.id || i.name);
+        i.domains && Array.isArray(i.domains) && i.domains.length > 0 && (i.domains = i.domains.join(', '))
       });
       setDataSource(_dataSource);
     },
@@ -95,14 +92,8 @@ const TlsCertificateList: React.FC = () => {
   const handleDrawerOK = async () => {
     try {
       const values: TlsCertificate = formRef.current && await formRef.current.handleSubmit();
-      const { name,version, cert, key,domains } = values;
-      const data = { name,version, cert, key, domains };
-      if (values.validityStart) {
-        Object.assign(data, { validityStart: moment(values.validityStart).format('yyyy/MM/DD HH:mm:ss') });
-      }
-      if (values.validityEnd) {
-        Object.assign(data, { validityEnd: moment(values.validityEnd).format('yyyy/MM/DD HH:mm:ss') });
-      }
+      const { name, cert, key } = values;
+      const data = { name, cert, key };
       if (currentTlsCertificate) {
         await updateTlsCertificate({ ...data } as TlsCertificate);
       } else {
@@ -209,7 +200,6 @@ const TlsCertificateList: React.FC = () => {
       >
         <TlsCertificateForm ref={formRef} value={currentTlsCertificate} />
       </Drawer>
-
     </PageContainer>
   );
 };

@@ -229,10 +229,9 @@
   "tlsCertificate": {
     "columns": {
       "name": "Certificate Name",
-      "version": "Certificate Version",
-      "domains": "The associated domain list",
-      "validityStart": "Certificate validity period start time",
-      "validityEnd": "Certificate validity expiration time",
+      "domains": "Associated domains",
+      "validityStart": "Valid from",
+      "validityEnd": "Valid until",
       "action": "Action"
     },
     "createTlsCertificate": "Create Certificate",
@@ -240,15 +239,13 @@
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentTlsCertificateName}}</1>?",
     "tlsCertificateForm": {
       "name": "Certificate Name",
-      "nameTooltip": "Globally unique. The backend is directly associated with the Secret name under the Higress namespace in K8s.",
+      "nameTooltip": "Globally unique",
       "nameRequired": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
       "namePlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
       "cert": "Certificate Data",
-      "certTooltip": "Only for creating and updating",
       "certRequired": "Please enter certificate data",
       "certPlaceholder": "Please enter certificate data",
       "key": "Certificate Key",
-      "keyTooltip": "Only for creating and updating",
       "keyRequired": "Please enter certificate key",
       "keyPlaceholder": "Please enter certificate key"
     }
