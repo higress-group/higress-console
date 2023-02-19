@@ -1,3 +1,9 @@
+.language-dropdown {
+  position: absolute;
+  right: 90px;
+  top: 15px;
+}
+
 .container {
   display: flex;
   flex-direction: column;
