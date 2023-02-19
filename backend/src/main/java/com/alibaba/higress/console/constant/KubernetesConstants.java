@@ -33,6 +33,9 @@ public class KubernetesConstants {
         public static final String SSL_REDIRECT_KEY = "higress.io/ssl-redirect";
         public static final String REWRITE_TARGET_KEY = "higress.io/rewrite-target";
         public static final String UPSTREAM_VHOST_KEY = "higress.io/upstream-vhost";
+        public static final String PROXY_NEXT_UPSTREAM_TRIES_KEY = "higress.io/proxy-next-upstream-tries";
+        public static final String PROXY_NEXT_UPSTREAM_TIMEOUT_KEY = "higress.io/proxy-next-upstream-timeout";
+        public static final String PROXY_NEXT_UPSTREAM_KEY = "higress.io/proxy-next-upstream";
     }
 
     public static class Label {

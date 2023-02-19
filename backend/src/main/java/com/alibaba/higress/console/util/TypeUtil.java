@@ -12,21 +12,37 @@
  */
 package com.alibaba.higress.console.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+/**
+ * @author CH3CHO
+ */
 public class TypeUtil {
 
-    public static byte[] stringToBytes(String str) {
+    public static byte[] string2Bytes(String str) {
         return str != null ? str.getBytes() : new byte[0];
     }
 
-    public static String bytesToString(byte[] bytes) {
+    public static String bytes2String(byte[] bytes) {
         return bytes != null ? new String(bytes) : null;
     }
 
     public static LocalDateTime date2LocalDateTime(Date date) {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    public static Integer string2Integer(String str) {
+        if (StringUtils.isEmpty(str)) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

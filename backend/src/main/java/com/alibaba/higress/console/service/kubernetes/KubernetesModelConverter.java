@@ -43,6 +43,7 @@ import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.dto.TlsCertificate;
+import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
@@ -201,8 +202,8 @@ public class KubernetesModelConverter {
         secret.setType(KubernetesConstants.SECRET_TYPE_TLS);
 
         Map<String, byte[]> data = new HashMap<>(2);
-        data.put(KubernetesConstants.SECRET_TLS_CRT_FIELD, TypeUtil.stringToBytes(certificate.getCert()));
-        data.put(KubernetesConstants.SECRET_TLS_KEY_FIELD, TypeUtil.stringToBytes(certificate.getKey()));
+        data.put(KubernetesConstants.SECRET_TLS_CRT_FIELD, TypeUtil.string2Bytes(certificate.getCert()));
+        data.put(KubernetesConstants.SECRET_TLS_KEY_FIELD, TypeUtil.string2Bytes(certificate.getKey()));
         secret.setData(data);
 
         if (StringUtils.isNotEmpty(certificate.getCert())) {
@@ -226,8 +227,8 @@ public class KubernetesModelConverter {
 
         Map<String, byte[]> data = secret.getData();
         if (MapUtils.isNotEmpty(data)) {
-            certificate.setCert(TypeUtil.bytesToString(data.get(KubernetesConstants.SECRET_TLS_CRT_FIELD)));
-            certificate.setKey(TypeUtil.bytesToString(data.get(KubernetesConstants.SECRET_TLS_KEY_FIELD)));
+            certificate.setCert(TypeUtil.bytes2String(data.get(KubernetesConstants.SECRET_TLS_CRT_FIELD)));
+            certificate.setKey(TypeUtil.bytes2String(data.get(KubernetesConstants.SECRET_TLS_KEY_FIELD)));
         }
 
         fillTlsCertificateDetails(certificate);
@@ -277,8 +278,8 @@ public class KubernetesModelConverter {
 
         Map<String, String> annotations = metadata.getAnnotations();
         if (MapUtils.isNotEmpty(annotations)) {
-            route.setRewriteTarget(annotations.get(KubernetesConstants.Annotation.REWRITE_TARGET_KEY));
-            route.setUpstreamVhost(annotations.get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+            fillRewriteConfig(annotations, route);
+            fillProxyNextUpstreamConfig(annotations, route);
         }
     }
 
@@ -381,6 +382,29 @@ public class KubernetesModelConverter {
         return service;
     }
 
+    private static void fillRewriteConfig(Map<String, String> annotations, Route route) {
+        route.setRewriteTarget(annotations.get(KubernetesConstants.Annotation.REWRITE_TARGET_KEY));
+        route.setUpstreamVhost(annotations.get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+    }
+
+    private static void fillProxyNextUpstreamConfig(Map<String, String> annotations, Route route) {
+        String tries = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY);
+        String timeout = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY);
+        String conditions = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY);
+
+        if (StringUtils.isAllBlank(tries, timeout, conditions)) {
+            return;
+        }
+
+        ProxyNextUpstreamConfig proxyNextUpstream = new ProxyNextUpstreamConfig();
+        proxyNextUpstream.setAttempts(TypeUtil.string2Integer(tries));
+        proxyNextUpstream.setTimeout(TypeUtil.string2Integer(timeout));
+        if (StringUtils.isNotEmpty(conditions)) {
+            proxyNextUpstream.setConditions(conditions.split(CommonKey.COMMA));
+        }
+        route.setProxyNextUpstream(proxyNextUpstream);
+    }
+
     private void fillIngressMetadata(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         metadata.setName(route.getName());
@@ -392,6 +416,11 @@ public class KubernetesModelConverter {
             }
         }
 
+        fillIngressRewriteConfig(metadata, route);
+        fillIngressProxyNextUpstreamConfig(metadata, route.getProxyNextUpstream());
+    }
+
+    private void fillIngressRewriteConfig(V1ObjectMeta metadata, Route route) {
         if (StringUtils.isNotEmpty(route.getRewriteTarget())) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_TARGET_KEY,
                 route.getRewriteTarget());
@@ -399,6 +428,24 @@ public class KubernetesModelConverter {
         if (StringUtils.isNotEmpty(route.getUpstreamVhost())) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY,
                 route.getUpstreamVhost());
+        }
+    }
+
+    private void fillIngressProxyNextUpstreamConfig(V1ObjectMeta metadata, ProxyNextUpstreamConfig config) {
+        if (config == null) {
+            return;
+        }
+        if (config.getAttempts() != null) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY,
+                String.valueOf(config.getAttempts()));
+        }
+        if (config.getTimeout() != null) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY,
+                String.valueOf(config.getTimeout()));
+        }
+        if (config.getConditions() != null && config.getConditions().length != 0) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY,
+                StringUtils.join(config.getConditions(), CommonKey.COMMA));
         }
     }
 
