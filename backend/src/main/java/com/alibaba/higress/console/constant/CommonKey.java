@@ -103,4 +103,5 @@ public class CommonKey {
 
     public final static String EQUALS_SIGN = "=";
 
+    public final static String NEW_LINE = "\n";
 }

@@ -36,6 +36,12 @@ public class KubernetesConstants {
         public static final String PROXY_NEXT_UPSTREAM_TRIES_KEY = "higress.io/proxy-next-upstream-tries";
         public static final String PROXY_NEXT_UPSTREAM_TIMEOUT_KEY = "higress.io/proxy-next-upstream-timeout";
         public static final String PROXY_NEXT_UPSTREAM_KEY = "higress.io/proxy-next-upstream";
+        public static final String REQUEST_HEADER_CONTROL_ADD_KEY = "higress.io/request-header-control-add";
+        public static final String REQUEST_HEADER_CONTROL_SET_KEY = "higress.io/request-header-control-set";
+        public static final String REQUEST_HEADER_CONTROL_REMOVE_KEY = "higress.io/request-header-control-remove";
+        public static final String RESPONSE_HEADER_CONTROL_ADD_KEY = "higress.io/response-header-control-add";
+        public static final String RESPONSE_HEADER_CONTROL_SET_KEY = "higress.io/response-header-control-set";
+        public static final String RESPONSE_HEADER_CONTROL_REMOVE_KEY = "higress.io/response-header-control-remove";
     }
 
     public static class Label {

@@ -77,9 +77,7 @@ public class Route {
     // TODO: Not supported yet.
     private CorsConfig cors;
 
-    // TODO: Not supported yet.
     private HeaderControlConfig requestHeaderControl;
 
-    // TODO: Not supported yet.
     private HeaderControlConfig responseHeaderControl;
 }
