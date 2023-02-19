@@ -229,9 +229,9 @@
   "tlsCertificate": {
     "columns": {
       "name": "Certificate Name",
-      "domains": "Associated domains",
-      "validityStart": "Valid from",
-      "validityEnd": "Valid until",
+      "domains": "Associated Domains",
+      "validityStart": "Valid From",
+      "validityEnd": "Valid Until",
       "action": "Action"
     },
     "createTlsCertificate": "Create Certificate",

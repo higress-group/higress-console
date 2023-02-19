@@ -1,4 +1,4 @@
-import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined, KeyOutlined } from '@ant-design/icons';
+import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
@@ -30,7 +30,7 @@ const asideMenuConfig: MenuDataItem[] = [
   {
     name: 'menu.CertManagement',
     path: '/tls-certificate',
-    icon: <KeyOutlined />,
+    icon: <SafetyCertificateOutlined />,
   },
 ];
 

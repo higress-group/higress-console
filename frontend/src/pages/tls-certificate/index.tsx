@@ -68,7 +68,6 @@ const TlsCertificateList: React.FC = () => {
     onSuccess: (result: TlsCertificate[], params) => {
       const _dataSource = result || [];
       _dataSource.forEach(i => {
-        i.key || (i.key = i.id || i.name);
         i.domains && Array.isArray(i.domains) && i.domains.length > 0 && (i.domains = i.domains.join(', '))
       });
       setDataSource(_dataSource);
@@ -167,6 +166,7 @@ const TlsCertificateList: React.FC = () => {
         dataSource={dataSource}
         columns={columns}
         pagination={false}
+        rowKey="name"
       />
       <Modal
         title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
