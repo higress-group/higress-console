@@ -28,7 +28,7 @@ const asideMenuConfig: MenuDataItem[] = [
     icon: <GlobalOutlined />,
   },
   {
-    name: 'menu.CertManagement',
+    name: 'menu.certManagement',
     path: '/tls-certificate',
     icon: <SafetyCertificateOutlined />,
   },
