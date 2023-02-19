@@ -31,6 +31,8 @@ public class KubernetesConstants {
         public static final String USE_REGEX_KEY = "higress.io/use-regex";
         public static final String DESTINATION = "higress.io/destination";
         public static final String SSL_REDIRECT_KEY = "higress.io/ssl-redirect";
+        public static final String REWRITE_TARGET_KEY = "higress.io/rewrite-target";
+        public static final String UPSTREAM_VHOST_KEY = "higress.io/upstream-vhost";
     }
 
     public static class Label {

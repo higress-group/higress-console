@@ -65,10 +65,8 @@ public class Route {
     // TODO: Not supported yet.
     private RateLimitConfig rateLimit;
 
-    // TODO: Not supported yet.
     private String rewriteTarget;
 
-    // TODO: Not supported yet.
     private String upstreamVhost;
 
     // TODO: Not supported yet.

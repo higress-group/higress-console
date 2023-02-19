@@ -68,6 +68,9 @@ import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author CH3CHO
+ */
 @Slf4j
 @org.springframework.stereotype.Service
 public class KubernetesModelConverter {
@@ -271,6 +274,12 @@ public class KubernetesModelConverter {
         } else {
             route.setDomains(Collections.emptyList());
         }
+
+        Map<String, String> annotations = metadata.getAnnotations();
+        if (MapUtils.isNotEmpty(annotations)) {
+            route.setRewriteTarget(annotations.get(KubernetesConstants.Annotation.REWRITE_TARGET_KEY));
+            route.setUpstreamVhost(annotations.get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+        }
     }
 
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
@@ -381,6 +390,15 @@ public class KubernetesModelConverter {
             for (String domain : route.getDomains()) {
                 setDomainLabel(metadata, domain);
             }
+        }
+
+        if (StringUtils.isNotEmpty(route.getRewriteTarget())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_TARGET_KEY,
+                route.getRewriteTarget());
+        }
+        if (StringUtils.isNotEmpty(route.getUpstreamVhost())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY,
+                route.getUpstreamVhost());
         }
     }
 
