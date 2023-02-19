@@ -1,8 +1,11 @@
 export interface TlsCertificate {
   name: string,
-  version?: string,
-  namespace: string,
-  endpoints: string[],
+  version: string,
+  cert: string,
+  key: string,
+  domains: string[],
+  validityStart: string,
+  validityEnd: string,
   [propName: string]: any,
 }
 

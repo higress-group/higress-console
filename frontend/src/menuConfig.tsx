@@ -1,4 +1,4 @@
-import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
@@ -26,6 +26,11 @@ const asideMenuConfig: MenuDataItem[] = [
     name: 'menu.domainManagement',
     path: '/domain',
     icon: <GlobalOutlined />,
+  },
+  {
+    name: 'menu.certManagement',
+    path: '/tls-certificate',
+    icon: <SafetyCertificateOutlined />,
   },
 ];
 

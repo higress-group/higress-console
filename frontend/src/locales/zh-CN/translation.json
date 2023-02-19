@@ -12,7 +12,8 @@
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
-    "domainManagement": "域名管理"
+    "domainManagement": "域名管理",
+    "certManagement": "证书管理"
   },
   "index": {
     "title": "Higress Console"
@@ -223,6 +224,30 @@
         "subTitle": "商品销售",
         "des": "周同比："
       }
+    }
+  },
+  "tlsCertificate": {
+    "columns": {
+      "name": "证书名称",
+      "domains": "关联域名列表",
+      "validityStart": "有效期开始时间",
+      "validityEnd": "有效期截止时间",
+      "action": "操作"
+    },
+    "createTlsCertificate": "创建证书",
+    "editTlsCertificate": "编辑证书",
+    "deleteConfirmation": "确定删除 <1>{{currentTlsCertificateName}}</1> 吗？",
+    "tlsCertificateForm": {
+      "name": "证书名称",
+      "nameTooltip": "全局唯一",
+      "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "cert": "证书数据",
+      "certRequired": "请输入证书数据",
+      "certPlaceholder": "请输入证书数据",
+      "key": "私钥数据",
+      "keyRequired": "请输入私钥数据",
+      "keyPlaceholder": "请输入私钥数据"
     }
   },
   "exception": {
