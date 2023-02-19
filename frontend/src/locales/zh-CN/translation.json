@@ -13,7 +13,7 @@
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
     "domainManagement": "域名管理",
-    "CertManagement": "证书管理"
+    "certManagement": "证书管理"
   },
   "index": {
     "title": "Higress Console"
