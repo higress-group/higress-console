@@ -21,5 +21,5 @@ public interface DashboardService {
 
     DashboardInfo getDashboardInfo();
 
-    void initializeDashboard();
+    void initializeDashboard(boolean overwrite);
 }

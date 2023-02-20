@@ -42,7 +42,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  */
 public class GrafanaClient {
 
-    private static final ObjectMapper MAPPER =
+    public static final ObjectMapper MAPPER =
         new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);

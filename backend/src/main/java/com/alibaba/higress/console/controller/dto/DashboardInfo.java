@@ -21,5 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DashboardInfo {
 
+    private String uid;
+
     private String url;
 }

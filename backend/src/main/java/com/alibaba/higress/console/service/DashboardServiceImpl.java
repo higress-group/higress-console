@@ -108,11 +108,15 @@ public class DashboardServiceImpl implements DashboardService {
         }
         Optional<GrafanaSearchResult> result =
             results.stream().filter(r -> expectedTitle.equals(r.getTitle())).findFirst();
-        return result.map(r -> new DashboardInfo(r.getUrl())).orElse(null);
+        return result.map(r -> new DashboardInfo(r.getUid(), r.getUrl())).orElse(null);
     }
 
     @Override
-    public void initializeDashboard() {
+    public void initializeDashboard(boolean overwrite) {
+        DashboardInfo dashboardInfo = getDashboardInfo();
+        if (!overwrite && (dashboardInfo == null || StringUtils.isEmpty(dashboardInfo.getUrl()))) {
+            return;
+        }
         List<Datasource> datasources;
         try {
             datasources = grafanaClient.getDatasources();
@@ -151,7 +155,20 @@ public class DashboardServiceImpl implements DashboardService {
             throw new RuntimeException(e);
         }
         try {
-            grafanaClient.createDashboard(dashboard);
+            if (dashboardInfo != null) {
+                String uid = dashboardInfo.getUid();
+                GrafanaDashboard existedDashboard = grafanaClient.getDashboard(uid);
+                if (existedDashboard != null) {
+                    dashboard.setId(existedDashboard.getId());
+                    dashboard.setUid(uid);
+                    dashboard.setVersion(existedDashboard.getVersion());
+                }
+            }
+            if (dashboard.getId() == null) {
+                grafanaClient.createDashboard(dashboard);
+            } else {
+                grafanaClient.updateDashboard(dashboard);
+            }
         } catch (IOException e) {
             throw new BusinessException("Error occurs when creating Higress dashboard in Grafana.", e);
         }
@@ -162,10 +179,7 @@ public class DashboardServiceImpl implements DashboardService {
         @Override
         public void run() {
             try {
-                DashboardInfo dashboardInfo = getDashboardInfo();
-                if (dashboardInfo == null || StringUtils.isEmpty(dashboardInfo.getUrl())) {
-                    initializeDashboard();
-                }
+                initializeDashboard(false);
             } catch (Exception ex) {
                 log.error("Error occurs when trying to initialize the dashboard.", ex);
                 try {
