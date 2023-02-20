@@ -1,4 +1,5 @@
 import logo from '@/assets/logo.png';
+import LanguageDropdown from '@/components/LanguageDropdown';
 import type { LoginParams, UserInfo } from '@/interfaces/user';
 import { login } from '@/services';
 import store from '@/store';
@@ -62,6 +63,9 @@ const Login: React.FC = () => {
   }
   return (
     <div className={styles.container}>
+      <div className={styles['language-dropdown']}>
+        <LanguageDropdown />
+      </div>
       <LoginForm
         title=""
         logo={<img alt="logo" src={logo} />}
