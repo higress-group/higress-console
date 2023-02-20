@@ -29,5 +29,5 @@ public class HeaderControlConfig {
 
     private List<Header> set;
 
-    private List<String> delete;
+    private List<String> remove;
 }

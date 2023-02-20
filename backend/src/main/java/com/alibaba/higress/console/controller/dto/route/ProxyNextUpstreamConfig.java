@@ -17,13 +17,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author CH3CHO
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RetryConfig {
+public class ProxyNextUpstreamConfig {
 
-    private Integer attempt;
+    private Integer attempts;
 
-    private String retryOn;
+    private Integer timeout;
+
+    private String[] conditions;
 }
