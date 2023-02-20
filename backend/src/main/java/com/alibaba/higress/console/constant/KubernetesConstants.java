@@ -42,6 +42,13 @@ public class KubernetesConstants {
         public static final String RESPONSE_HEADER_CONTROL_ADD_KEY = "higress.io/response-header-control-add";
         public static final String RESPONSE_HEADER_CONTROL_SET_KEY = "higress.io/response-header-control-set";
         public static final String RESPONSE_HEADER_CONTROL_REMOVE_KEY = "higress.io/response-header-control-remove";
+        public static final String ENABLE_CORS_KEY = "higress.io/enable-cors";
+        public static final String CORS_ALLOW_ORIGIN_KEY = "higress.io/cors-allow-origin";
+        public static final String CORS_ALLOW_METHODS_KEY = "higress.io/cors-allow-methods";
+        public static final String CORS_ALLOW_HEADERS_KEY = "higress.io/cors-allow-headers";
+        public static final String CORS_EXPOSE_HEADERS_KEY = "higress.io/cors-expose-headers";
+        public static final String CORS_ALLOW_CREDENTIALS_KEY = "higress.io/cors-allow-credentials";
+        public static final String CORS_MAX_AGE_KEY= "higress.io/cors-max-age";
     }
 
     public static class Label {

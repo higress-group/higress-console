@@ -44,6 +44,7 @@ import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.dto.TlsCertificate;
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.Header;
 import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
 import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
@@ -152,7 +153,39 @@ public class KubernetesModelConverter {
         ingress.setSpec(new V1IngressSpec());
         fillIngressMetadata(ingress, route);
         fillIngressSpec(ingress, route);
+        fillIngressCors(ingress, route);
         return ingress;
+    }
+
+    private static void fillRouteCors(Route route, V1ObjectMeta metadata) {
+        if (metadata == null || metadata.getAnnotations() == null) {
+            return;
+        }
+        CorsConfig config = new CorsConfig();
+        String maxAge = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY);
+        String enableCors = metadata.getAnnotations().get(KubernetesConstants.Annotation.ENABLE_CORS_KEY);
+        String allowCredentials = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY);
+        String allowOrigin = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY);
+        String allowMethods = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY);
+        String allowHeaders = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY);
+        String exposeHeaders = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY);
+
+        config.setMaxAge(TypeUtil.string2Integer(maxAge));
+        config.setEnabled(Boolean.valueOf(enableCors));
+        config.setAllowCredentials(Boolean.valueOf(allowCredentials));
+        if (StringUtils.isNotEmpty(allowOrigin)) {
+            config.setAllowOrigins(Arrays.asList(allowOrigin.split(CommonKey.COMMA)));
+        }
+        if (StringUtils.isNotEmpty(allowMethods)) {
+            config.setAllowMethods(Arrays.asList(allowMethods.split(CommonKey.COMMA)));
+        }
+        if (StringUtils.isNotEmpty(allowHeaders)) {
+            config.setAllowHeaders(Arrays.asList(allowHeaders.split(CommonKey.COMMA)));
+        }
+        if (StringUtils.isNotEmpty(exposeHeaders)) {
+            config.setExposeHeaders(Arrays.asList(exposeHeaders.split(CommonKey.COMMA)));
+        }
+        route.setCors(config);
     }
 
     public V1ConfigMap domain2ConfigMap(Domain domain) {
@@ -292,11 +325,42 @@ public class KubernetesModelConverter {
                     KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
                     KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY));
         }
+        fillRouteCors(route, metadata);
     }
 
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
         fillPathPredicates(route, metadata, path);
         fillRouteDestinations(route, metadata, path.getBackend());
+    }
+
+    private void fillIngressCors(V1Ingress ingress, Route route) {
+        CorsConfig cors = route.getCors();
+        if (Objects.isNull(cors)) {
+            return;
+        }
+
+        V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
+        if (!Objects.isNull(cors.getEnabled())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.ENABLE_CORS_KEY, cors.getEnabled().toString());
+        }
+        if (!Objects.isNull(cors.getMaxAge())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_MAX_AGE_KEY, cors.getMaxAge().toString());
+        }
+        if (!Objects.isNull(cors.getAllowCredentials())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY, cors.getAllowCredentials().toString());
+        }
+        if (CollectionUtils.isNotEmpty(cors.getAllowOrigins())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowOrigins(), CommonKey.COMMA));
+        }
+        if (CollectionUtils.isNotEmpty(cors.getAllowHeaders())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowHeaders(), CommonKey.COMMA));
+        }
+        if (CollectionUtils.isNotEmpty(cors.getAllowMethods())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowMethods(), CommonKey.COMMA));
+        }
+        if (CollectionUtils.isNotEmpty(cors.getExposeHeaders())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getExposeHeaders(), CommonKey.COMMA));
+        }
     }
 
     private static void fillPathPredicates(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
