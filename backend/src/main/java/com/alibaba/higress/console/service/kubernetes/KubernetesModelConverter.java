@@ -622,7 +622,7 @@ public class KubernetesModelConverter {
 
             Domain domain = configMap2Domain(configMap);
 
-            if (Domain.EnableHttps.OFF.equals(domain.getEnableHttps())) {
+            if (Domain.EnableHttps.OFF.getValue().equals(domain.getEnableHttps())) {
                 continue;
             }
 
@@ -639,7 +639,7 @@ public class KubernetesModelConverter {
             }
             tlses.add(tls);
 
-            if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
+            if (Domain.EnableHttps.FORCE.getValue().equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
                     KubernetesConstants.Annotation.TRUE_VALUE);
             }

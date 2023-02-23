@@ -15,12 +15,15 @@ package com.alibaba.higress.console.controller.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.alibaba.higress.console.controller.util.ValidateUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -44,4 +47,19 @@ public class TlsCertificate {
 
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
     private LocalDateTime validityEnd;
+
+    public String valid() {
+        if (StringUtils.isAnyBlank(name, version, cert, key)) {
+            return "TlsCertificate name, version, cert, key must be not empty";
+        }
+        if (CollectionUtils.isEmpty(domains)) {
+            return "TlsCertificate domains must be not empty";
+        }
+        for (String domain : domains) {
+            if (!ValidateUtil.checkDomain(domain)) {
+                return "domain " + domain + " is not a valid domain";
+            }
+        }
+        return "";
+    }
 }

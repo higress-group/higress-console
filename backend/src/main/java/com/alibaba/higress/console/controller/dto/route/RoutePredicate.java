@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoutePredicate {
-
     /**
      * @see RoutePredicateTypeEnum
      */

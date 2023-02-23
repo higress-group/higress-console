@@ -16,7 +16,11 @@ import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 @Data
 @Builder
@@ -25,10 +29,34 @@ import lombok.NoArgsConstructor;
 @ApiModel("Gateway Domain")
 public class Domain {
 
-    public static class EnableHttps {
-        public static final String OFF = "off";
-        public static final String ON = "on";
-        public static final String FORCE = "force";
+    @Getter
+    @AllArgsConstructor
+    public enum EnableHttps {
+        /**
+         * OFF
+         */
+        OFF("off"),
+        /**
+         * ON
+         */
+        ON("on"),
+        /**
+         * FORCE
+         */
+        FORCE("force");
+        /**
+         * value is enable http value
+         */
+        private final String value;
+
+        public static EnableHttps getEnum(String value) {
+            for (EnableHttps enableHttps : values()) {
+                if (Objects.equals(enableHttps.value, value)) {
+                    return enableHttps;
+                }
+            }
+            return null;
+        }
     }
 
     private String name;
@@ -38,4 +66,16 @@ public class Domain {
     private String enableHttps;
 
     private String certIdentifier;
+
+    public String valid() {
+        if (StringUtils.isAnyBlank(name, version)) {
+            return "name and version must be not empty";
+        }
+        if (StringUtils.isNotEmpty(enableHttps)) {
+            if(Objects.isNull(EnableHttps.getEnum(enableHttps))){
+                return "enableHttps must be on or force or off";
+            }
+        }
+        return "";
+    }
 }

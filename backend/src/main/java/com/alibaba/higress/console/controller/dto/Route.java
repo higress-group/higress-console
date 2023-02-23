@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller.dto;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
@@ -29,6 +30,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -36,7 +39,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @ApiModel("Gateway Route")
 public class Route {
-
     private String name;
 
     private String version;
@@ -80,4 +82,20 @@ public class Route {
     private HeaderControlConfig requestHeaderControl;
 
     private HeaderControlConfig responseHeaderControl;
+
+    public String valid() {
+        if (StringUtils.isAnyBlank(name, version)) {
+            return "name, version must be not empty";
+        }
+        if (CollectionUtils.isEmpty(domains)) {
+            return "domains must be not empty";
+        }
+        if (Objects.isNull(path)) {
+            return "path must be not null";
+        }
+        if (StringUtils.isAnyEmpty(path.getMatchType(), path.getMatchValue())) {
+            return "path matchType, matchValue must be not empty";
+        }
+        return "";
+    }
 }
