@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
 import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
@@ -10,10 +12,10 @@ import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
 
 interface DomainFormProps {
-  name: string,
-  protocol: string,
-  certIdentifier?: string,
-  mustHttps?: Array<any>,
+  name: string;
+  protocol: string;
+  certIdentifier?: string;
+  mustHttps?: any[];
 }
 
 const DomainList: React.FC = () => {
@@ -109,7 +111,7 @@ const DomainList: React.FC = () => {
         if (values.certIdentifier) {
           Object.assign(data, { certIdentifier });
         }
-        enableHttps = !!values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
+        enableHttps = values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
       }
       Object.assign(data, { enableHttps });
       if (currentDomain) {
@@ -201,7 +203,7 @@ const DomainList: React.FC = () => {
       </Modal>
       <Drawer
         title={t('domain.createDomain')}
-        placement='right'
+        placement="right"
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}

@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.css";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface NavbarProps {}
 
 const Navbar: React.FC<NavbarProps> = () => {

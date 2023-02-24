@@ -9,13 +9,13 @@ import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
 
 interface RouteFormProps {
-  name: string,
-  domains: Array<string>,
-  headers: Array<KeyedRoutePredicate>,
-  methods: Array<string>,
-  path: RoutePredicate,
-  urlParams: Array<KeyedRoutePredicate>,
-  services: string,
+  name: string;
+  domains: string[];
+  headers: KeyedRoutePredicate[];
+  methods: string[];
+  path: RoutePredicate;
+  urlParams: KeyedRoutePredicate[];
+  services: string;
 }
 
 const RouteList: React.FC = () => {
@@ -35,7 +35,7 @@ const RouteList: React.FC = () => {
       render: (value: RoutePredicate) => {
         return (
           <div>
-            {`${t('route.matchTypes.' + value.matchType)} ｜ ${value.matchValue}`}
+            {`${t(`route.matchTypes.${ value.matchType}`)} ｜ ${value.matchValue}`}
           </div>
         );
       },
@@ -81,7 +81,7 @@ const RouteList: React.FC = () => {
     manual: true,
     onSuccess: (result: Route[], params) => {
       result && result.forEach(i => {
-        i.key || (i.key = i.id ? i.id + '' : i.name);
+        i.key || (i.key = i.id ? `${i.id }` : i.name);
       });
       setDataSource(result || []);
     },
@@ -115,7 +115,7 @@ const RouteList: React.FC = () => {
         methods,
         urlParams,
         path,
-        services: service
+        services: service,
       } = values;
       path && normalizeRoutePredicate(path);
       headers && headers.forEach(h => normalizeRoutePredicate(h));
@@ -127,7 +127,7 @@ const RouteList: React.FC = () => {
         methods,
         path,
         urlParams,
-        services: [{ name: service }]
+        services: [{ name: service }],
       };
       if (currentRoute) {
         route.version = currentRoute.version;
@@ -138,6 +138,7 @@ const RouteList: React.FC = () => {
       setOpenDrawer(false);
       refresh();
     } catch (errInfo) {
+      // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
     }
   };
@@ -220,7 +221,7 @@ const RouteList: React.FC = () => {
       </Modal>
       <Drawer
         title={t(currentRoute ? "route.editRoute" : "route.createRoute")}
-        placement='right'
+        placement="right"
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}

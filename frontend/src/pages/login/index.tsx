@@ -40,6 +40,7 @@ const Login: React.FC = () => {
   async function handleSubmit(values: LoginParams) {
     try {
       const user = await login(values);
+      // eslint-disable-next-line no-console
       console.log(user);
       // We only support admin role at the moment.
       user.type = 'admin';
@@ -58,6 +59,7 @@ const Login: React.FC = () => {
       return;
     } catch (error) {
       message.error(t('login.loginFailed'));
+      // eslint-disable-next-line no-console
       console.log(error);
     }
   }
@@ -129,6 +131,7 @@ const Login: React.FC = () => {
 };
 
 export const getConfig = () => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { t } = useTranslation();
   return {
     title: t('login.title'),

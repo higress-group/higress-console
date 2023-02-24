@@ -30,14 +30,14 @@ export default function Layout() {
       }}
       layout="mix"
       rightContentRender={() => (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-          <Navbar/>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Navbar />
           <LanguageDropdown />
           <AvatarDropdown avatar={userState.currentUser.avatarUrl} name={userState.currentUser.displayName} />
         </div>
       )}
       menuDataRender={() => {
-        return asideMenuConfig.map(c => Object.assign({}, c, {name: t(c.name)}))
+        return asideMenuConfig.map(c => Object.assign({}, c, { name: t(c.name) }))
       }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {

@@ -51,6 +51,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     setDomainOptions(_domainOptions);
 
     if (value) {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       const { name, domains, path, headers, methods, urlParams, services } = value;
       const [service] = services;
       const { name: _name } = service;
@@ -85,12 +86,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('route.routeForm.routeName')}
         required
-        name='name'
+        name="name"
         tooltip={t('route.routeForm.routeNameTip')}
         rules={[
           {
             required: true,
-            message: t('route.routeForm.routeNameRequired')
+            message: t('route.routeForm.routeNameRequired'),
           },
         ]}
       >
@@ -105,12 +106,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('route.routeForm.domain')}
         required
-        name='domains'
+        name="domains"
         rules={[
           {
             required: true,
-            message: t('route.routeForm.domainRequired')
-          }
+            message: t('route.routeForm.domainRequired'),
+          },
         ]}
       >
         <Select
@@ -134,8 +135,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 {
                   required: true,
-                  message: t('route.routeForm.pathPredicatesRequired')
-                }
+                  message: t('route.routeForm.pathPredicatesRequired'),
+                },
               ]}
             >
               <Select
@@ -153,8 +154,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 {
                   required: true,
-                  message: t('route.routeForm.pathMatcherRequired')
-                }
+                  message: t('route.routeForm.pathMatcherRequired'),
+                },
               ]}
             >
               <Input style={{ width: '60%' }} placeholder={t('route.routeForm.pathMatcherPlacedholder')} />
@@ -166,8 +167,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               <Checkbox.Group
                 options={[
                   {
-                    label: t('route.routeForm.caseInsensitive'), value: 'ignore'
-                  }
+                    label: t('route.routeForm.caseInsensitive'), value: 'ignore',
+                  },
                 ]}
                 style={{ width: '18%', display: 'inline-flex', marginLeft: 12, marginTop: 4 }}
               />
@@ -176,7 +177,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.method')}
-          name='methods'
+          name="methods"
         >
           <Select
             mode="multiple"
@@ -188,14 +189,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.header')}
-          name='headers'
+          name="headers"
           tooltip={t('route.routeForm.headerTooltip')}
         >
           <FactorGroup />
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.query')}
-          name='urlParams'
+          name="urlParams"
           tooltip={t('route.routeForm.queryTooltip')}
         >
           <FactorGroup />
@@ -203,12 +204,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <Form.Item
           label={t('route.routeForm.targetService')}
           required
-          name='services'
+          name="services"
           rules={[
             {
               required: true,
-              message: t('route.routeForm.targetServiceRequired')
-            }
+              message: t('route.routeForm.targetServiceRequired'),
+            },
           ]}
         >
           <Select

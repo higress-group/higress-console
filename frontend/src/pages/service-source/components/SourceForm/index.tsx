@@ -46,7 +46,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('serviceSource.serviceSourceForm.type')}
         required
-        name='type'
+        name="type"
         tooltip={t('serviceSource.serviceSourceForm.typeTooltip')}
       >
         <Select
@@ -56,16 +56,16 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           onChange={(v) => selectServiceSourceType(v)}
         >
           {
+            // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
             Object.entries(ServiceSourceTypes).map(([k, v]) =>
-              v.enabled && (<Option key={v.key} value={v.key}>{v.name}</Option>)
-            )
+              v.enabled && (<Option key={v.key} value={v.key}>{v.name}</Option>))
           }
         </Select>
       </Form.Item>
       <Form.Item
         label={t('serviceSource.serviceSourceForm.name')}
         required
-        name='name'
+        name="name"
         rules={[
           {
             required: true,
@@ -84,7 +84,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('serviceSource.serviceSourceForm.domain')}
         required
-        name='domain'
+        name="domain"
         tooltip={t('serviceSource.serviceSourceForm.domainTooltip')}
         rules={[
           {
@@ -103,7 +103,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('serviceSource.serviceSourceForm.port')}
         required
-        name='port'
+        name="port"
         rules={[
           {
             required: true,

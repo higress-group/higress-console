@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
   }
   const fullUrl = location.origin + dashboardInfo.url;
   return (
-    <iframe style={{ width: "100%", height: "100vh", border: 0, flex: 1 }} src={fullUrl}></iframe>
+    <iframe style={{ width: "100%", height: "100vh", border: 0, flex: 1 }} src={fullUrl} />
   );
 };
 

@@ -56,7 +56,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const form = useContext(EditableContext)!;
 
   const matchOptions = ['PRE', 'EQUAL', 'REGULAR'].map(v => {
-    return { label: t('route.matchTypes.' + v), value: v }
+    return { label: t(`route.matchTypes.${ v}`), value: v }
   });
 
   useEffect(() => {
@@ -69,6 +69,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
       handleSave({ ...record, ...values });
     } catch (errInfo) {
+      // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
     }
   };
@@ -101,7 +102,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 type EditableTableProps = Parameters<typeof Table>[0];
 
 interface DataType {
-  uid: number,
+  uid: number;
   key: string;
   type: string;
   value: string;
@@ -119,7 +120,7 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
 
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
-  const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
+  const defaultColumns: Array<ColumnTypes[number] & { editable?: boolean; dataIndex: string }> = [
     {
       title: t('route.factorGroup.columns.key'),
       dataIndex: 'key',
@@ -141,11 +142,11 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
       dataIndex: 'operation',
       width: 60,
       render: (_, record: { uid: number }) =>
-        dataSource.length >= 1 ? (
+        (dataSource.length >= 1 ? (
           <div onClick={() => handleDelete(record.uid)}>
             <DeleteOutlined />
           </div>
-        ) : null,
+        ) : null),
     },
   ];
 

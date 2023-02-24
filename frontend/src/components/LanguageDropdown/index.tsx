@@ -2,6 +2,7 @@ import i18n, { lngs } from "@/i18n";
 import React, { useCallback } from "react";
 import styles from "./index.module.css";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface LanguageDropdownProps { }
 
 const LanguageDropdown: React.FC<LanguageDropdownProps> = () => {
