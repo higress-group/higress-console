@@ -48,6 +48,10 @@ nodeSelector: {}
 affinity: {}
 tolerations: {}
 
+web:
+  login:
+    prompt: "" # If set, a prompt message will be displayed on the login page.
+
 admin:
   username: admin
   displayName: Admin

@@ -14,6 +14,7 @@ package com.alibaba.higress.console.aop;
 
 import javax.annotation.Resource;
 
+import com.alibaba.higress.console.controller.ConfigController;
 import com.alibaba.higress.console.controller.SessionController;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -99,7 +100,13 @@ public class ApiStandardizationAspect {
     }
 
     private static boolean isLoginRequired(ProceedingJoinPoint point) {
-        return !(point.getTarget() instanceof SessionController);
+        if (point.getTarget() instanceof SessionController) {
+            return false;
+        }
+        if (point.getTarget() instanceof ConfigController) {
+            return false;
+        }
+        return true;
     }
 
     private static int getHttpStatus(Throwable t) {
