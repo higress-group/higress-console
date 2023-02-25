@@ -39,10 +39,6 @@ const Navbar: React.FC<NavbarProps> = () => {
         name: t("navbar.download"),
         link: "https://github.com/alibaba/higress/releases",
       },
-      // {
-      //   name:  t("navbar.demo"),
-      //   link: "http://demo.higress.io/route",
-      // },
     ];
   }, [i18n.language]);
   return (

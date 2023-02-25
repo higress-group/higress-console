@@ -13,7 +13,7 @@ const LanguageDropdown: React.FC<LanguageDropdownProps> = () => {
   }, []);
 
   const currentLanguage = i18n.language;
-  const languageConfig = lngs.find(l => l.code === currentLanguage);
+  const languageConfig = lngs.find(l => l.code !== currentLanguage );
 
   return (
     <span className={`${styles["language-switch"]}`} onClick={handleMenuClick}>
