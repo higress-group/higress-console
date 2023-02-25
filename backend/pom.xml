@@ -92,6 +92,11 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.openapi4j</groupId>
+			<artifactId>openapi-parser</artifactId>
+			<version>1.0.7</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -247,6 +252,7 @@
 							</includes>
 							<excludes>
 								<include>**/src/main/resources/static/**</include>
+								<include>**/src/main/resources/plugins/**</include>
 								<exclude>**/generated/**</exclude>
 							</excludes>
 							<strictCheck>true</strictCheck>

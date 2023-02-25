@@ -1,0 +1,120 @@
+apiVersion: 1.0.0
+info:
+  category: auth
+  name: basic-auth/v1
+  title: Basic Auth
+  description: 本插件实现了基于 HTTP Basic Auth 标准进行认证鉴权的功能。
+  x-description-i18n:
+    en-US: This plugin implements an authentication function based on HTTP Basic Auth standard.
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 0
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        consumers:
+          type: array
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 服务调用方列表，用于对请求进行认证
+          x-description-i18n:
+            en-US: List of service consumers which will be used in request authentication
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 该调用方的名称
+                x-description-i18n:
+                  en-US: The name of the consumer
+                example:
+                  - consumer1
+              credential:
+                type: string
+                title: 访问凭证
+                x-title-i18n:
+                  en-US: Credential
+                description: 该调用方的访问凭证
+                x-description-i18n:
+                  en-US: The credential of the consumer
+                example:
+                  - admin:123456
+            required:
+              - name
+              - credential
+        _rules_:
+          type: array
+          title: 认证规则
+          x-title-i18n:
+            en-US: Authentication Rules
+          description: 针对特定路由或域名的认证规则列表
+          x-description-i18n:
+            en-US: Authentication rules for specific routes or domains
+          items:
+            type: object
+            properties:
+              _match_route_:
+                type: array
+                title: 匹配的路由
+                x-title-i18n:
+                  en-US: Route to Match
+                description: 要匹配的路由名称
+                x-description-i18n:
+                  en-US: Route to match in this plugin
+                items:
+                  type: string
+                  example:
+                    - route-a
+              _match_domain:
+                type: array
+                title: 匹配的域名
+                x-title-i18n:
+                  en-US: Domains to Match
+                description: 要匹配的域名列表
+                x-description-i18n:
+                  en-US: Domains to match in this plugin
+                items:
+                  type: string
+                  example:
+                    - www.test.com
+              allow:
+                type: array
+                title: 授权访问的调用方列表
+                x-title-i18n:
+                  en-US: Allowed Consumers
+                description: 对于匹配上述条件的请求，允许访问的调用方列表
+                x-description-i18n:
+                  en-US: Consumers to be allowed for matched requests
+                items:
+                  type: string
+                  example:
+                    - consumer1
+            required:
+              - allow
+      required:
+        - consumers
+      example:
+        consumers:
+          - name: consumer1
+            credential: admin:123456
+          - name: consumer2
+            credential: guest:abc
+        _rules_:
+          - _match_route_:
+              - route-a
+              - route-b
+            _match_domain:
+              - "*.example.com"
+              - test.com
+            allow:
+              - consumer2
