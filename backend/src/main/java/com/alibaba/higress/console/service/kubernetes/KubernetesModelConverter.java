@@ -398,9 +398,10 @@ public class KubernetesModelConverter {
                 break;
         }
         pathPredicate.setMatchType(matchType != null ? matchType.toString() : null);
-        if (null != metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY))
+        if (null != metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY)) {
             pathPredicate.setCaseSensitive(
                 Boolean.valueOf(metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY)));
+        }
     }
 
     private static void fillRouteDestinations(Route route, V1ObjectMeta metadata, V1IngressBackend backend) {
