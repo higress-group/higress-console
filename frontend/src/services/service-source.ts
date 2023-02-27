@@ -6,10 +6,8 @@ import request from './request';
  * @param payload
  * @returns
  */
-export const getServiceSources = (
-  payload: ServiceSourceFormProps
-): Promise<ServiceSource[]> => {
-  return request.get<any, ServiceSource[]>("/v1/service-sources");
+export const getServiceSources = (payload: ServiceSourceFormProps): Promise<ServiceSource[]> => {
+  return request.get<any, ServiceSource[]>('/v1/service-sources');
 };
 
 /**
@@ -17,9 +15,7 @@ export const getServiceSources = (
  * @param payload
  * @returns
  */
-export const addServiceSource = (
-  payload: ServiceSource
-): Promise<any> => {
+export const addServiceSource = (payload: ServiceSource): Promise<any> => {
   return request.post<any, any>(`/v1/service-sources`, payload);
 };
 
@@ -28,9 +24,7 @@ export const addServiceSource = (
  * @param payload
  * @returns
  */
-export const deleteServiceSource = (
-  name: string
-): Promise<any> => {
+export const deleteServiceSource = (name: string): Promise<any> => {
   return request.delete<any, any>(`/v1/service-sources/${name}`);
 };
 
@@ -39,8 +33,6 @@ export const deleteServiceSource = (
  * @param payload
  * @returns
  */
-export const updateServiceSource = (
-  payload: ServiceSource
-): Promise<any> => {
+export const updateServiceSource = (payload: ServiceSource): Promise<any> => {
   return request.put<any, any>(`/v1/service-sources/${payload.name}`, payload);
 };

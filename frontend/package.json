@@ -41,7 +41,7 @@
     "build": "cross-env NODE_ENV=production && ice build",
     "build-dev": "cross-env NODE_ENV=development && ice build",
     "lint": "npm run eslint && npm run stylelint",
-    "eslint": "eslint --cache --ext .js,.jsx,.tsx ./",
+    "eslint": "eslint --cache --ext .js,.ts,.jsx,.tsx ./",
     "eslint:fix": "npm run eslint -- --fix",
     "stylelint": "stylelint \"**/*.{css,scss,less}\""
   },
