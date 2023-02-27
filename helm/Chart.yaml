@@ -6,3 +6,9 @@ version: 0.0.2
 sources:
   - https://github.com/higress-group/higress-console
 appVersion: "0.0.2"
+dependencies:
+  - name: cert-manager
+    version: v1.11.0
+    repository: https://charts.jetstack.io
+    alias: cert-manager
+    condition: cert-manager.enabled
