@@ -24,4 +24,6 @@ import lombok.NoArgsConstructor;
 public class KeyedRoutePredicate extends RoutePredicate {
 
     private String key;
+
+    private String matchValue;
 }
