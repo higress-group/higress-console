@@ -45,13 +45,10 @@ public class Route {
 
     private RoutePredicate path;
 
-    // TODO: Not supported yet.
     private List<String> methods;
 
-    // TODO: Not supported yet.
     private List<KeyedRoutePredicate> headers;
 
-    // TODO: Not supported yet.
     private List<KeyedRoutePredicate> urlParams;
 
     private List<UpstreamService> services;

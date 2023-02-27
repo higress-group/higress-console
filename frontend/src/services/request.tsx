@@ -5,7 +5,7 @@ import { ErrorComp } from './exception';
 
 const request = axios.create({
   timeout: 5 * 1000,
-  baseURL: process.env.NODE_ENV === "development" ? "/api" : "",
+  baseURL: process.env.ICE_CORE_MODE === "development" ? "/api" : "",
   headers: {
     "Content-Type": "application/json",
   },
