@@ -89,6 +89,8 @@ public class CommonKey {
     public final static String DASHBOARD_DATASOURCE_URL_DEFAULT =
         "http://higress-console-prometheus." + NS_DEFAULT + ":9090/prometheus";
 
+    public final static String LOGIN_PAGE_PROMPT_KEY = CONFIG_KEY_PREFIX + "web.login.prompt";
+
     public final static String WILDCARD = "wildcard";
 
     public final static String DOMAIN = "domain";

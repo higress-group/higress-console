@@ -41,6 +41,10 @@ spec:
               value: http://{{ include "higress-console-grafana.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.grafana.port }}{{ .Values.grafana.ingress.path }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
               value: http://{{ include "higress-console-prometheus.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.prometheus.port }}{{ .Values.prometheus.ingress.path }}
+            {{- if .Values.web.login.prompt }}
+            - name: HIGRESS_CONSOLE_WEB_LOGIN_PROMPT
+              value: {{ .Values.web.login.prompt }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
