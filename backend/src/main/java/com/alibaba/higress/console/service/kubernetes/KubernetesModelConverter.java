@@ -33,7 +33,14 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
-import com.alibaba.higress.console.controller.dto.route.*;
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
+import com.alibaba.higress.console.controller.dto.route.Header;
+import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
+import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
+import com.alibaba.higress.console.controller.dto.route.KeyedRoutePredicate;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
