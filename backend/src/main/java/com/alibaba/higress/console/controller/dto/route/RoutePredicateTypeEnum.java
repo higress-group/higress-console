@@ -12,18 +12,41 @@
  */
 package com.alibaba.higress.console.controller.dto.route;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public enum RoutePredicateTypeEnum {
 
     /**
      * Equal
      */
-    EQUAL,
+    EQUAL("exact"),
     /**
      * Prefix
      */
-    PRE,
+    PRE("prefix"),
     /**
      * Regular expression
      */
-    REGULAR;
+    REGULAR("regex");
+
+    private final String annotationPrefix;
+
+    private static final Map<String, RoutePredicateTypeEnum> ANNOTATION_PREFIX_MAP =
+        Arrays.stream(values()).collect(Collectors.toMap(RoutePredicateTypeEnum::getAnnotationPrefix, t -> t));
+
+    RoutePredicateTypeEnum(String annotationPrefix) {
+        this.annotationPrefix = annotationPrefix;
+    }
+
+    public String getAnnotationPrefix() {
+        return annotationPrefix;
+    }
+
+    public static RoutePredicateTypeEnum fromAnnotationPrefix(String annotationPrefix) {
+        return StringUtils.isNotEmpty(annotationPrefix) ? ANNOTATION_PREFIX_MAP.get(annotationPrefix) : null;
+    }
 }

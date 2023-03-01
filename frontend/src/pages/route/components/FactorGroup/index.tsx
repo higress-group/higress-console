@@ -10,9 +10,6 @@ const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface Item {
   key: string;
-  name: string;
-  age: string;
-  address: string;
 }
 
 interface EditableRowProps {
@@ -87,6 +84,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
         rules={[
           {
             required: true,
+            message: t('route.factorGroup.required.' + dataIndex),
           },
         ]}
       >
@@ -101,10 +99,10 @@ const EditableCell: React.FC<EditableCellProps> = ({
 type EditableTableProps = Parameters<typeof Table>[0];
 
 interface DataType {
-  uid: number,
+  uid: number;
   key: string;
-  type: string;
-  value: string;
+  matchType: string;
+  matchValue: string;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -117,6 +115,12 @@ interface FactorGroupProps {
 const FactorGroup: React.FC = ({ value, onChange }) => {
   const { t } = useTranslation();
 
+  const initDataSource = value || [];
+  for (const item of initDataSource) {
+    if (!item.uid) {
+      item.uid = uniqueId();
+    }
+  }
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
@@ -126,14 +130,14 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
       editable: true,
     },
     {
-      title: t('route.factorGroup.columns.type'),
-      dataIndex: 'type',
+      title: t('route.factorGroup.columns.matchType'),
+      dataIndex: 'matchType',
       width: 130,
       editable: true,
     },
     {
-      title: t('route.factorGroup.columns.value'),
-      dataIndex: 'value',
+      title: t('route.factorGroup.columns.matchValue'),
+      dataIndex: 'matchValue',
       editable: true,
     },
     {
@@ -153,8 +157,8 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
     const newData: DataType = {
       uid: uniqueId(),
       key: '',
-      type: '',
-      value: '',
+      matchType: '',
+      matchValue: '',
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
@@ -196,7 +200,7 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
         editable: col.editable,
         dataIndex: col.dataIndex,
         title: col.title,
-        nodeType: col.dataIndex === 'type' ? 'select' : 'input',
+        nodeType: col.dataIndex === 'matchType' ? 'select' : 'input',
         handleSave,
       }),
     };

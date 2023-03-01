@@ -130,9 +130,14 @@
     "factorGroup": {
       "columns": {
         "key": "Key",
-        "type": "Condition",
-        "value": "Value",
+        "matchType": "Condition",
+        "matchValue": "Value",
         "operation": "Action"
+      },
+      "required": {
+        "key": "Please input match key.",
+        "matchType": "Please select match type.",
+        "matchValue": "Please input match value."
       },
       "parameter": "Parameter"
     },

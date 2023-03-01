@@ -130,9 +130,14 @@
     "factorGroup": {
       "columns": {
         "key": "Key",
-        "type": "条件",
-        "value": "值",
+        "matchType": "条件",
+        "matchValue": "值",
         "operation": "操作"
+      },
+      "required": {
+        "key": "请输入Key",
+        "matchType": "请选择条件",
+        "matchValue": "请输入值"
       },
       "parameter": "参数"
     },

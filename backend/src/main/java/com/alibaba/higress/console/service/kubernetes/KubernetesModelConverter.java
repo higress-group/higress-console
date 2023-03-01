@@ -398,9 +398,12 @@ public class KubernetesModelConverter {
                 break;
         }
         pathPredicate.setMatchType(matchType != null ? matchType.toString() : null);
-        if (null != metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY)) {
-            pathPredicate.setCaseSensitive(
-                Boolean.valueOf(metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY)));
+
+        if (metadata != null && metadata.getAnnotations() != null) {
+            String ignorePathCase = metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY);
+            if (StringUtils.isNotEmpty(ignorePathCase)) {
+                pathPredicate.setCaseSensitive(!Boolean.parseBoolean(ignorePathCase));
+            }
         }
     }
 
@@ -533,17 +536,24 @@ public class KubernetesModelConverter {
     private static void fillHeaderAndQueryConfig(Map<String, String> annotations, Route route) {
         List<KeyedRoutePredicate> headers = new ArrayList<>();
         List<KeyedRoutePredicate> urlParams = new ArrayList<>();
-        annotations.forEach((a, b) -> {
-            if (a.startsWith(KubernetesConstants.Annotation.HEADER_KEY_PREFIX)) {
-                KeyedRoutePredicate header = new KeyedRoutePredicate();
-                header.setKey(a.substring(KubernetesConstants.Annotation.HEADER_KEY_PREFIX.length()));
-                header.setMatchValue(b);
-                headers.add(header);
-            } else if (a.startsWith(KubernetesConstants.Annotation.QUERY_KEY_PREFIX)) {
-                KeyedRoutePredicate query = new KeyedRoutePredicate();
-                query.setKey(a.substring(KubernetesConstants.Annotation.QUERY_KEY_PREFIX.length()));
-                query.setMatchValue(b);
-                urlParams.add(query);
+        annotations.forEach((k, v) -> {
+            if (!k.startsWith(KubernetesConstants.Annotation.KEY_PREFIX)) {
+                return;
+            }
+
+            k = k.substring(KubernetesConstants.Annotation.KEY_PREFIX.length());
+
+            KeyedRoutePredicate headerPredicate =
+                buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD);
+            if (headerPredicate != null) {
+                headers.add(headerPredicate);
+                return;
+            }
+            KeyedRoutePredicate queryPredicate =
+                buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD);
+            if (queryPredicate != null) {
+                urlParams.add(queryPredicate);
+                return;
             }
         });
         if (CollectionUtils.isNotEmpty(headers)) {
@@ -552,6 +562,21 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isNotEmpty(urlParams)) {
             route.setUrlParams(urlParams);
         }
+    }
+
+    private static KeyedRoutePredicate buildKeyedRoutePredicate(String annotation, String value, String matchKeyword) {
+        int keywordIndex = annotation.indexOf(matchKeyword);
+        if (keywordIndex == -1) {
+            return null;
+        }
+        String rawType = annotation.substring(0, keywordIndex);
+        RoutePredicateTypeEnum type = RoutePredicateTypeEnum.fromAnnotationPrefix(rawType);
+        String key = annotation.substring(keywordIndex + matchKeyword.length());
+        KeyedRoutePredicate predicate = new KeyedRoutePredicate();
+        predicate.setKey(key);
+        predicate.setMatchType(type != null ? type.name() : null);
+        predicate.setMatchValue(value);
+        return predicate;
     }
 
     private static void fillMethodConfig(Map<String, String> annotations, Route route) {
@@ -749,7 +774,7 @@ public class KubernetesModelConverter {
 
         if (null != pathPredicate.getCaseSensitive()) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY,
-                String.valueOf(pathPredicate.getCaseSensitive()));
+                String.valueOf(!pathPredicate.getCaseSensitive()));
         }
 
         httpPath.setBackend(DEFAULT_MCP_BRIDGE_BACKEND);
@@ -958,12 +983,16 @@ public class KubernetesModelConverter {
     }
 
     private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
-        String annotationName = KubernetesConstants.Annotation.QUERY_KEY_PREFIX + keyedRoutePredicate.getKey();
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
+        String annotationName = String.format(KubernetesConstants.Annotation.QUERY_MATCH_KEY_FORMAT,
+            predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
         KubernetesUtil.setAnnotation(metadata, annotationName, keyedRoutePredicate.getMatchValue());
     }
 
     private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
-        String annotationName = KubernetesConstants.Annotation.HEADER_KEY_PREFIX + keyedRoutePredicate.getKey();
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
+        String annotationName = String.format(KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT,
+            predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
         KubernetesUtil.setAnnotation(metadata, annotationName, keyedRoutePredicate.getMatchValue());
     }
 
