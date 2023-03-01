@@ -14,9 +14,13 @@ package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
 
+import com.alibaba.higress.console.controller.exception.ValidationException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,5 +53,14 @@ public class DashboardController {
     @GetMapping("/info")
     public ResponseEntity<Response<DashboardInfo>> info() {
         return ResponseEntity.ok(Response.success(dashboardService.getDashboardInfo()));
+    }
+
+    @PutMapping("/info")
+    public ResponseEntity<Response<DashboardInfo>> setUrl(@RequestBody DashboardInfo dashboardInfo) {
+        if (StringUtils.isEmpty(dashboardInfo.getUrl())) {
+            throw new ValidationException("Missing required parameter: url");
+        }
+        dashboardService.setDashboardUrl(dashboardInfo.getUrl());
+        return info();
     }
 }

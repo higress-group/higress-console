@@ -59,8 +59,13 @@
   },
   "dashboard": {
     "loadFailed": "加载监控面板失败，请稍后刷新页面重试",
-    "notFound": "未找到可显示的监控面板，点击按钮尝试创建",
-    "createDashboard": "创建监控面板"
+    "uninitialized": "监控面板未自动初始化，点击按钮尝试人工操作",
+    "initDashboard": "初始化监控面板",
+    "noBuiltInDashboard": "未安装Higress Console的内置监控模块。请人工配置监控页面地址。",
+    "setForm": {
+      "url": "监控页面URL",
+      "urlRequired": "请输入监控页面URL"
+    }
   },
   "service": {
     "columns": {

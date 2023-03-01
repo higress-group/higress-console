@@ -37,10 +37,14 @@ spec:
               value: /usr/local/openjdk-18
             - name: LANG
               value: C.UTF-8
+            - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
+              value: {{ include "higress-console.fullname" . }}
+            {{- if .Values.o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
-              value: http://{{ include "higress-console-grafana.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.grafana.port }}{{ .Values.grafana.ingress.path }}
+              value: http://{{ include "higress-console-grafana.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ .Values.o11y.grafana.ingress.path }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
-              value: http://{{ include "higress-console-prometheus.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.prometheus.port }}{{ .Values.prometheus.ingress.path }}
+              value: http://{{ include "higress-console-prometheus.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ .Values.o11y.prometheus.ingress.path }}
+            {{- end }}
             {{- if .Values.web.login.prompt }}
             - name: HIGRESS_CONSOLE_WEB_LOGIN_PROMPT
               value: {{ .Values.web.login.prompt }}

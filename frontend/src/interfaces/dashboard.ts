@@ -1,4 +1,4 @@
 export interface DashboardInfo {
-  url: string,
+  builtIn: boolean;
+  url: string;
 }
-
