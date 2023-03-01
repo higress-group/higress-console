@@ -86,7 +86,7 @@ prometheus:
       memory: 2Gi
 
 elasticsearch:
-  namespace: efk
+  imageTag: 7.17.0
   replicas: 3
   env:
     javaOpts: "-Xms512m -Xmx512m"
@@ -100,11 +100,10 @@ elasticsearch:
       cpu: 100m
       memory: 256Mi
   volumeClaim:
-    accessMode: ReadWriteOnce
     storageClassName: standard
     storage: 3Gi
 kibana:
-  namespace: efk
+  imageTag: 7.17.0
   resources:
     limits:
       cpu: 1000m
@@ -113,7 +112,6 @@ kibana:
       cpu: 100m
       memory: 256Mi
 fluentd:
-  namespace: efk
   resources:
     limits:
       cpu: 1000m
@@ -124,9 +122,6 @@ fluentd:
   targets:
     - namespace: higress-system
       name: higress-gateway
-  es:
-    host: elasticsearch.{{ .Values.elasticsearch.namespace }}
-    port: 9200
   flushThreadCount: 2
   flushInterval: 5s
   retryMaxInterval: 30

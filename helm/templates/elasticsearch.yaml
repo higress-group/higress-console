@@ -1,13 +1,14 @@
+{{- $appName := (include "higress-console-es.fullname" .) }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: elasticsearch
-  namespace: {{ .Values.elasticsearch.namespace }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: elasticsearch
+    app: {{ $appName }}
 spec:
   selector:
-    app: elasticsearch
+    app: {{ $appName }}
   clusterIP: None
   ports:
     - port: 9200
@@ -19,22 +20,22 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: es
-  namespace: {{ .Values.elasticsearch.namespace }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
 spec:
-  serviceName: elasticsearch
+  serviceName: {{ $appName }}
   replicas: {{ .Values.elasticsearch.replicas }}
   selector:
     matchLabels:
-      app: elasticsearch
+      app: {{ $appName }}
   template:
     metadata:
       labels:
-        app: elasticsearch
+        app: {{ $appName }}
     spec:
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+          image: docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.elasticsearch.imageTag }}
           resources:
             limits:
               cpu: {{ .Values.elasticsearch.resources.limits.cpu }}
@@ -60,9 +61,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: discovery.seed_hosts
-              value: "es-0.elasticsearch,es-1.elasticsearch,es-2.elasticsearch"
+              value: "{{ $appName }}-0.{{ $appName }},{{ $appName }}-1.{{ $appName }},{{ $appName }}-2.{{ $appName }}"
             - name: cluster.initial_master_nodes
-              value: "es-0,es-1,es-2"
+              value: "{{ $appName }}-0,{{ $appName }}-1,{{ $appName }}-2"
             - name: ES_JAVA_OPTS
               value: {{ .Values.elasticsearch.env.javaOpts }}
       initContainers:
@@ -88,9 +89,14 @@ spec:
     - metadata:
         name: data
         labels:
-          app: elasticsearch
+          app: {{ $appName }}
       spec:
-        accessModes: [ {{ .Values.elasticsearch.volumeClaim.accessMode }} ]
+        accessModes:
+        {{- if .Values.local }}
+        - ReadWriteOnce
+        {{- else }}
+        - ReadWriteMany
+        {{- end }}
         storageClassName: {{ .Values.elasticsearch.volumeClaim.storageClassName }}
         resources:
           requests:

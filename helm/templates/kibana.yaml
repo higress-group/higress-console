@@ -1,11 +1,13 @@
+{{- $appName := (include "higress-console-kibana.fullname" .) }}
+{{- $esName := (include "higress-console-es.fullname" .) }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: kibana-np
+  name: {{ $appName }}
   namespace: {{ .Values.kibana.namespace }}
 spec:
   selector:
-    app: kibana
+    app: {{ $appName }}
   type: NodePort
   ports:
     - port: 8080
@@ -16,23 +18,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kibana
+  name: {{ $appName }}
   namespace: {{ .Values.kibana.namespace }}
   labels:
-    app: kibana
+    app: {{ $appName }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kibana
+      app: {{ $appName }}
   template:
     metadata:
       labels:
-        app: kibana
+        app: {{ $appName }}
     spec:
       containers:
         - name: kibana
-          image: docker.elastic.co/kibana/kibana:7.17.0
+          image: docker.elastic.co/kibana/kibana:{{ .Values.kibana.imageTag }}
           resources:
             limits:
               cpu: {{ .Values.kibana.resources.limits.cpu }}
@@ -41,7 +43,7 @@ spec:
               cpu: {{ .Values.kibana.resources.requests.cpu }}
               memory: {{ .Values.kibana.resources.requests.memory }}
           env:
-            - name: ELASTICSEARCH_URL
-              value: http://elasticsearch:9200
+            - name: ELASTICSEARCH_HOST
+              value: http://{{ $esName }}:9200
           ports:
             - containerPort: 5601

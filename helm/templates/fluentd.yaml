@@ -1,8 +1,10 @@
+{{- $appName := (include "higress-console-fluentd.fullname" .) }}
+{{- $esName := (include "higress-console-es.fullname" .) }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: fluentd-config
-  namespace: {{ .Values.fluentd.namespace }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
 data:
   kubernetes.conf: |-
     {{- include "kubernetes.conf" . | nindent 4 }}
@@ -11,9 +13,9 @@ data:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: fluentd
+  name: {{ $appName }}
   labels:
-    app: fluentd
+    app: {{ $appName }}
 rules:
   - apiGroups:
       - ""
@@ -29,50 +31,50 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: fluentd
-  namespace: {{ .Values.fluentd.namespace }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: fluentd
+    app: {{ $appName }}
 
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: fluentd
+  name: {{ $appName }}
 roleRef:
   kind: ClusterRole
-  name: fluentd
+  name: {{ $appName }}
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: fluentd
-    namespace: {{ .Values.fluentd.namespace }}
+    name: {{ $appName }}
+    namespace: {{ .Release.Namespace }}
 
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: fluentd
-  namespace: {{ .Values.fluentd.namespace }}
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: fluentd
+    app: {{ $appName }}
 spec:
   selector:
     matchLabels:
-      app: fluentd
+      app: {{ $appName }}
   template:
     metadata:
       labels:
-        app: fluentd
+        app: {{ $appName }}
     spec:
-      serviceAccount: fluentd
-      serviceAccountName: fluentd
+      serviceAccount: {{ $appName }}
+      serviceAccountName: {{ $appName }}
       containers:
         - name: fluentd
           image: fluent/fluentd-kubernetes-daemonset:v1.15.3-debian-elasticsearch7-1.0
           env:
             - name:  FLUENT_ELASTICSEARCH_HOST
-              value: "elasticsearch.{{ .Values.fluentd.namespace }}.svc.cluster.local"
+              value: "{{ $esName }}.{{ .Release.Namespace }}.svc.cluster.local"
             - name:  FLUENT_ELASTICSEARCH_PORT
               value: "9200"
             - name: FLUENT_ELASTICSEARCH_SCHEME
@@ -99,4 +101,4 @@ spec:
             path: /var/log
         - name: config
           configMap:
-            name: fluentd-config
+            name: {{ $appName }}

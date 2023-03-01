@@ -74,6 +74,33 @@ Create a default fully qualified app name for Prometheus.
 {{- printf "%s-prometheus" ($consoleFullName | trunc 52) }}
 {{- end }}
 
+{{/*
+Create a default fully qualified app name for Elasticsearch.
+*/}}
+{{- define "higress-console-es.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-es" ($consoleFullName | trunc 55) }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name for Kibana.
+*/}}
+{{- define "higress-console-kibana.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-kibana" ($consoleFullName | trunc 55) }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name for fluentd.
+*/}}
+{{- define "higress-console-fluentd.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-fluentd" ($consoleFullName | trunc 55) }}
+{{- end }}
+
+{{/*
+Config for fluentd.
+*/}}
 {{- define "kubernetes.conf" }}
 {{- range $target := .Values.fluentd.targets }}
 <source>
