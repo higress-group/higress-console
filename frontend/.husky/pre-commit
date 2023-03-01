@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "[PRE_COMMIT_INFO] start lint check ..."
+
+cd frontend && npm run lint:lint-staged
