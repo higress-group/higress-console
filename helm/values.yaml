@@ -88,3 +88,44 @@ prometheus:
     limits:
       cpu: 500m
       memory: 2Gi
+
+elasticsearch:
+  imageTag: 7.17.0
+  replicas: 3
+  env:
+    javaOpts: "-Xms512m -Xmx512m"
+    maxMapCount: 262144
+    ulimit: 65536
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  volumeClaim:
+    storageClassName: standard
+    storage: 3Gi
+kibana:
+  imageTag: 7.17.0
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+fluentd:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  targets:
+    - namespace: higress-system
+      name: higress-gateway
+  flushThreadCount: 2
+  flushInterval: 5s
+  retryMaxInterval: 30

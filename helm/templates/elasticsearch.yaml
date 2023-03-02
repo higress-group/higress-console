@@ -1,0 +1,103 @@
+{{- $appName := (include "higress-console-es.fullname" .) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $appName }}
+spec:
+  selector:
+    app: {{ $appName }}
+  clusterIP: None
+  ports:
+    - port: 9200
+      name: rest
+    - port: 9300
+      name: inter-node
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $appName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: {{ $appName }}
+  replicas: {{ .Values.elasticsearch.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $appName }}
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.elasticsearch.imageTag }}
+          resources:
+            limits:
+              cpu: {{ .Values.elasticsearch.resources.limits.cpu }}
+              memory: {{ .Values.elasticsearch.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.elasticsearch.resources.requests.cpu }}
+              memory: {{ .Values.elasticsearch.resources.requests.memory }}
+          ports:
+            - containerPort: 9200
+              name: rest
+              protocol: TCP
+            - containerPort: 9300
+              name: inter-node
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+          env:
+            - name: cluster.name
+              value: k8s-logs
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: "{{ $appName }}-0.{{ $appName }},{{ $appName }}-1.{{ $appName }},{{ $appName }}-2.{{ $appName }}"
+            - name: cluster.initial_master_nodes
+              value: "{{ $appName }}-0,{{ $appName }}-1,{{ $appName }}-2"
+            - name: ES_JAVA_OPTS
+              value: {{ .Values.elasticsearch.env.javaOpts }}
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+        - name: increase-vm-max-map
+          image: busybox
+          command: ["sysctl", "-w", "vm.max_map_count={{ .Values.elasticsearch.env.mapMapCount }}"]
+          securityContext:
+            privileged: true
+        - name: increase-fd-ulimit
+          image: busybox
+          command: ["sh", "-c", "ulimit -n {{ .Values.elasticsearch.env.ulimit }}"]
+          securityContext:
+            privileged: true
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app: {{ $appName }}
+      spec:
+        accessModes:
+        {{- if .Values.local }}
+        - ReadWriteOnce
+        {{- else }}
+        - ReadWriteMany
+        {{- end }}
+        storageClassName: {{ .Values.elasticsearch.volumeClaim.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.elasticsearch.volumeClaim.storage }}
