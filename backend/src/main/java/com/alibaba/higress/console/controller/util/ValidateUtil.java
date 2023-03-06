@@ -12,11 +12,19 @@
  */
 package com.alibaba.higress.console.controller.util;
 
+import com.google.common.net.InetAddresses;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ValidateUtil {
+    private static final String DOMAIN_PATTERN_REGEX = "^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$";
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_PATTERN_REGEX);
 
     /**
      * Validate port number: 1 ~ 65535
-     * 
+     *
      * @param port
      * @return
      */
@@ -25,5 +33,21 @@ public class ValidateUtil {
             return false;
         }
         return port > 1 && port < 65535;
+    }
+
+    public static boolean checkIp(String ip) {
+        return InetAddresses.isInetAddress(ip);
+    }
+
+    public static boolean checkDomain(String domain) {
+        Matcher matcher = DOMAIN_PATTERN.matcher(domain);
+        return matcher.matches();
+    }
+
+    public static boolean checkZkPath(String zkPath) {
+        if (StringUtils.isEmpty(zkPath)) {
+            return false;
+        }
+        return zkPath.startsWith("/");
     }
 }

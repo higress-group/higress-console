@@ -16,7 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author CH3CHO
@@ -45,4 +48,16 @@ public class TypeUtil {
             return null;
         }
     }
+
+    public static <T> List<T> object2List(Object obj, Class<T> clazz) {
+        if (obj instanceof List<?>) {
+            List<T> result = new ArrayList<>();
+            for (Object o : (List<?>) obj) {
+                result.add(clazz.cast(o));
+            }
+            return result;
+        }
+        return Collections.emptyList();
+    }
+
 }

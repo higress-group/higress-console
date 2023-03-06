@@ -60,6 +60,10 @@ public class TlsCertificatesController {
 
     @PostMapping
     public ResponseEntity<Response<TlsCertificate>> add(@RequestBody TlsCertificate certificate) {
+        String message = certificate.valid();
+        if (StringUtils.isNotEmpty(message)) {
+            throw new ValidationException("certificate is not valid. Because " + message);
+        }
         TlsCertificate newCertificate = tlsCertificateService.add(certificate);
         stripSensitiveInfo(newCertificate);
         return ControllerUtil.buildResponseEntity(newCertificate);
@@ -74,11 +78,15 @@ public class TlsCertificatesController {
 
     @PutMapping("/{name}")
     public ResponseEntity<Response<TlsCertificate>> put(@PathVariable("name") @NotBlank String certificateName,
-        @RequestBody TlsCertificate certificate) {
+                                                        @RequestBody TlsCertificate certificate) {
         if (StringUtils.isNotEmpty(certificate.getName())) {
             certificate.setName(certificateName);
         } else if (!StringUtils.equals(certificateName, certificate.getName())) {
             throw new ValidationException("TlsCertificate name in the URL doesn't match the one in the body.");
+        }
+        String message = certificate.valid();
+        if (StringUtils.isNotEmpty(message)) {
+            throw new ValidationException("certificate is not valid. Because " + message);
         }
         TlsCertificate updatedCertificate = tlsCertificateService.update(certificate);
         stripSensitiveInfo(updatedCertificate);

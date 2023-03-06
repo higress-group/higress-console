@@ -50,16 +50,24 @@ public class RoutesController {
 
     @PostMapping
     public ResponseEntity<Response<Route>> add(@RequestBody Route route) {
+        String message = route.valid();
+        if (StringUtils.isNotEmpty(message)) {
+            throw new ValidationException("Route is invalid. Because " + message);
+        }
         return ControllerUtil.buildResponseEntity(routeService.add(route));
     }
 
     @PutMapping("/{name}")
     public ResponseEntity<Response<Route>> update(@PathVariable("name") @NotBlank String routeName,
-        @RequestBody Route route) {
+                                                  @RequestBody Route route) {
         if (StringUtils.isEmpty(route.getName())) {
             route.setName(routeName);
         } else if (!StringUtils.equals(routeName, route.getName())) {
             throw new ValidationException("Route name in the URL doesn't match the one in the body.");
+        }
+        String message = route.valid();
+        if (StringUtils.isNotEmpty(message)) {
+            throw new ValidationException("Route is invalid. Because " + message);
         }
         return ControllerUtil.buildResponseEntity(routeService.update(route));
     }

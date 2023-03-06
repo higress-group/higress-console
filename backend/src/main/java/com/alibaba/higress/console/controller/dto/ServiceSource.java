@@ -12,8 +12,10 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
+import java.util.List;
 import java.util.Map;
 
+import com.alibaba.higress.console.util.TypeUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.console.controller.util.ValidateUtil;
@@ -53,16 +55,25 @@ public class ServiceSource {
         if (null == this.getPort() || null == this.getProperties() || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
-        if ((V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType()))
-            && (null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID) || StringUtils
-                .isBlank((String)this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)))) {
+        if (!ValidateUtil.checkIp(domain) || !ValidateUtil.checkDomain(domain)) {
             return false;
         }
-
-        if (V1McpBridge.REGISTRY_TYPE_ZK.equals(this.getType())
-            && null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH)) {
+        if ((V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
+                || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType()))
+                && (null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID) || StringUtils
+                .isBlank((String) this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)))) {
             return false;
+        }
+        Object zkServicePathObject = this.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH);
+        if (V1McpBridge.REGISTRY_TYPE_ZK.equals(this.getType())
+                && null == zkServicePathObject) {
+            return false;
+        }
+        List<String> zkServicePathList = TypeUtil.object2List(zkServicePathObject, String.class);
+        for (String path : zkServicePathList) {
+            if (!ValidateUtil.checkZkPath(path)) {
+                return false;
+            }
         }
         return true;
     }
