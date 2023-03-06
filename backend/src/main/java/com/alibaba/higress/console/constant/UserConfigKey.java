@@ -10,20 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.controller.dto;
+package com.alibaba.higress.console.constant;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public class UserConfigKey {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class DashboardInfo {
+    private UserConfigKey() {
+    }
 
-    private Boolean builtIn;
-
-    private String uid;
-
-    private String url;
+    public static final String DASHBOARD_URL = "dashboard.url";
 }

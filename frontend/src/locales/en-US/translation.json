@@ -59,8 +59,13 @@
   },
   "dashboard": {
     "loadFailed": "Error occurs when loading dashboard data. Please refresh the page later.",
-    "notFound": "No dashboard is available now. Click the button below to create one.",
-    "createDashboard": "Create Dashboard"
+    "uninitialized": "Built-in dashboard is not intialized automatically.Click the button below to initialize it manually.",
+    "initDashboard": "Initialize Dashboard",
+    "noBuiltInDashboard": "Higress Console built-in dashboard is not installed. Please configure one manually.",
+    "setForm": {
+      "url": "Dashboard URL",
+      "urlRequired": "Please input the dashboard URL."
+    }
   },
   "service": {
     "columns": {

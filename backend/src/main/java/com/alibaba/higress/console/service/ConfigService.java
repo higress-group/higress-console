@@ -12,16 +12,31 @@
  */
 package com.alibaba.higress.console.service;
 
-import com.alibaba.higress.console.controller.dto.DashboardInfo;
+public interface ConfigService {
 
-/**
- * @author CH3CHO
- */
-public interface DashboardService {
+    String getString(String key);
 
-    DashboardInfo getDashboardInfo();
+    String getString(String key, String defaultValue);
 
-    void initializeDashboard(boolean overwrite);
+    Boolean getBoolean(String key);
 
-    void setDashboardUrl(String url);
+    boolean getBoolean(String key, boolean defaultValue);
+
+    Integer getInteger(String key);
+
+    int getInteger(String key, int defaultValue);
+
+    Long getLong(String key);
+
+    long getLong(String key, long defaultValue);
+
+    void setConfig(String key, String value);
+
+    void setConfig(String key, boolean value);
+
+    void setConfig(String key, int value);
+
+    void setConfig(String key, long value);
+
+    void removeConfig(String key);
 }
