@@ -1,0 +1,13 @@
+apiVersion: 1.0.0
+info:
+  category: traffic
+  name: custom-response/v1
+  title: Custom Response
+  description: 自定义响应插件
+  x-description-i18n:
+    en-US: Custom response plugin
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io

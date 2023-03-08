@@ -1,0 +1,13 @@
+apiVersion: 1.0.0
+info:
+  category: security
+  name: key-rate-limit/v1
+  title: Key Rate Limit
+  description: 限流插件
+  x-description-i18n:
+    en-US: Key rate-limit plugin
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io

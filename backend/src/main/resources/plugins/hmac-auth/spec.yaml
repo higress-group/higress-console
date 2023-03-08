@@ -1,0 +1,13 @@
+apiVersion: 1.0.0
+info:
+  category: auth
+  name: hmac-auth/v1
+  title:  HMAC Auth
+  description: HMAC 认证插件
+  x-description-i18n:
+    en-US: HMAC auth plugin
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io

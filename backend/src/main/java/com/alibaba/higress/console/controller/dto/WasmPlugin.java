@@ -33,6 +33,8 @@ public class WasmPlugin {
 
     private String description;
 
+    private String icon;
+
     private String imageRepository;
 
     private String version;

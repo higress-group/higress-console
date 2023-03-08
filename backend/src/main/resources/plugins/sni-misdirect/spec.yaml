@@ -1,0 +1,13 @@
+apiVersion: 1.0.0
+info:
+  category: other
+  name: sni-misdirect/v1
+  title: SNI Misdirect
+  description: SNI 连接错误复用处理插件
+  x-description-i18n:
+    en-US: SNI misdirect plugin
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
