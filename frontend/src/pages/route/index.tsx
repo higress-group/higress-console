@@ -1,5 +1,16 @@
-import { KeyedRoutePredicate, Route, RoutePredicate, RouteResponse, UpstreamService } from '@/interfaces/route';
-import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
+import {
+  KeyedRoutePredicate,
+  Route,
+  RoutePredicate,
+  RouteResponse,
+  UpstreamService,
+} from '@/interfaces/route';
+import {
+  addGatewayRoute,
+  deleteGatewayRoute,
+  getGatewayRoutes,
+  updateGatewayRoute,
+} from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -9,13 +20,13 @@ import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
 
 interface RouteFormProps {
-  name: string,
-  domains: Array<string>,
-  headers: Array<KeyedRoutePredicate>,
-  methods: Array<string>,
-  path: RoutePredicate,
-  urlParams: Array<KeyedRoutePredicate>,
-  services: string,
+  name: string;
+  domains: string[];
+  headers: KeyedRoutePredicate[];
+  methods: string[];
+  path: RoutePredicate;
+  urlParams: KeyedRoutePredicate[];
+  services: string;
 }
 
 const RouteList: React.FC = () => {
@@ -33,11 +44,7 @@ const RouteList: React.FC = () => {
       dataIndex: 'path',
       key: 'path',
       render: (value: RoutePredicate) => {
-        return (
-          <div>
-            {`${t('route.matchTypes.' + value.matchType)} ｜ ${value.matchValue}`}
-          </div>
-        );
+        return <div>{`${t(`route.matchTypes.${value.matchType}`)} ｜ ${value.matchValue}`}</div>;
       },
     },
     {
@@ -46,10 +53,13 @@ const RouteList: React.FC = () => {
       key: 'services',
       ellipsis: true,
       render: (value: UpstreamService[]) => {
-        return value && value.map(service => {
-          const { name } = service;
-          return (<div key={name}>{name}</div>);
-        });
+        return (
+          value &&
+          value.map((service) => {
+            const { name } = service;
+            return <div key={name}>{name}</div>;
+          })
+        );
       },
     },
     {
@@ -75,14 +85,15 @@ const RouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
 
-  const getRouteList = async (factor): Promise<RouteResponse> => (getGatewayRoutes(factor));
+  const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
 
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
     onSuccess: (result: Route[], params) => {
-      result && result.forEach(i => {
-        i.key || (i.key = i.id ? i.id + '' : i.name);
-      });
+      result &&
+        result.forEach((i) => {
+          i.key || (i.key = i.id ? `${i.id}` : i.name);
+        });
       setDataSource(result || []);
     },
   });
@@ -99,7 +110,7 @@ const RouteList: React.FC = () => {
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentRoute(null);
-  }
+  };
 
   const normalizeRoutePredicate = (predicate: RoutePredicate) => {
     predicate.caseSensitive = !predicate.ignoreCase || !predicate.ignoreCase.length;
@@ -107,19 +118,11 @@ const RouteList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: RouteFormProps = formRef.current && await formRef.current.handleSubmit();
-      const {
-        name,
-        domains,
-        headers,
-        methods,
-        urlParams,
-        path,
-        services: service
-      } = values;
+      const values: RouteFormProps = formRef.current && (await formRef.current.handleSubmit());
+      const { name, domains, headers, methods, urlParams, path, services: service } = values;
       path && normalizeRoutePredicate(path);
-      headers && headers.forEach(h => normalizeRoutePredicate(h));
-      urlParams && urlParams.forEach(h => normalizeRoutePredicate(h));
+      headers && headers.forEach((h) => normalizeRoutePredicate(h));
+      urlParams && urlParams.forEach((h) => normalizeRoutePredicate(h));
       const route: Route = {
         name,
         domains,
@@ -127,7 +130,7 @@ const RouteList: React.FC = () => {
         methods,
         path,
         urlParams,
-        services: [{ name: service }]
+        services: [{ name: service }],
       };
       if (currentRoute) {
         route.version = currentRoute.version;
@@ -138,6 +141,7 @@ const RouteList: React.FC = () => {
       setOpenDrawer(false);
       refresh();
     } catch (errInfo) {
+      // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
     }
   };
@@ -184,29 +188,23 @@ const RouteList: React.FC = () => {
       >
         <Row gutter={24}>
           <Col span={4}>
-            <Button
-              type="primary"
-              onClick={onShowDrawer}
-            >
+            <Button type="primary" onClick={onShowDrawer}>
               {t('route.createRoute')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
-            <Button
-              icon={<RedoOutlined />}
-              onClick={refresh}
-            />
+            <Button icon={<RedoOutlined />} onClick={refresh} />
           </Col>
         </Row>
       </Form>
-      <Table
-        loading={loading}
-        dataSource={dataSource}
-        columns={columns}
-        pagination={false}
-      />
+      <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
+        title={
+          <div>
+            <ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />
+            {t('misc.delete')}
+          </div>
+        }
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
@@ -214,13 +212,17 @@ const RouteList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span> 吗？
+            确定删除{' '}
+            <span style={{ color: '#0070cc' }}>
+              {{ currentRouteName: (currentRoute && currentRoute.name) || '' }}
+            </span>{' '}
+            吗？
           </Trans>
         </p>
       </Modal>
       <Drawer
-        title={t(currentRoute ? "route.editRoute" : "route.createRoute")}
-        placement='right'
+        title={t(currentRoute ? 'route.editRoute' : 'route.createRoute')}
+        placement="right"
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}

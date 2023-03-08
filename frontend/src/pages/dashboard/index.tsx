@@ -12,25 +12,23 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ width: "100%", height: "50vh", flex: 1 }}>
+      <div style={{ width: '100%', height: '50vh', flex: 1 }}>
         <Spin />
       </div>
-    )
+    );
   }
 
   if (!dashboardInfo || error) {
     return (
-      <div style={{ width: "100%", height: "50vh", flex: 1, textAlign: "center" }}>
-        <h1>{t("dashboard.loadFailed")}</h1>
+      <div style={{ width: '100%', height: '50vh', flex: 1, textAlign: 'center' }}>
+        <h1>{t('dashboard.loadFailed')}</h1>
       </div>
-    )
+    );
   }
 
   if (dashboardInfo.url) {
     const frameUrl = dashboardInfo.builtIn ? location.origin + dashboardInfo.url : dashboardInfo.url;
-    return (
-      <iframe style={{ width: "100%", height: "100vh", border: 0, flex: 1 }} src={frameUrl}></iframe>
-    );
+    return <iframe style={{ width: '100%', height: '100vh', border: 0, flex: 1 }} src={frameUrl} />;
   }
 
   if (dashboardInfo.builtIn) {
@@ -39,11 +37,13 @@ const Dashboard: React.FC = () => {
       location.reload();
     };
     return (
-      <div style={{ width: "100%", height: "50vh", flex: 1, textAlign: "center" }}>
-        <h1>{t("dashboard.uninitialized")}</h1>
-        <Button type="primary" onClick={() => handleInitDashboard()}>{t("dashboard.initDashboard")}</Button>
+      <div style={{ width: '100%', height: '50vh', flex: 1, textAlign: 'center' }}>
+        <h1>{t('dashboard.uninitialized')}</h1>
+        <Button type="primary" onClick={() => handleInitDashboard()}>
+          {t('dashboard.initDashboard')}
+        </Button>
       </div>
-    )
+    );
   } else {
     const handleSetDashboard = async () => {
       const values = await form.validateFields();
@@ -51,34 +51,28 @@ const Dashboard: React.FC = () => {
       location.reload();
     };
     return (
-      <Form
-        form={form}
-        layout="vertical"
-      >
+      <Form form={form} layout="vertical">
         <h3>{t('dashboard.noBuiltInDashboard')}</h3>
         <Form.Item
           label={t('dashboard.setForm.url')}
           required
-          name='url'
+          name="url"
           rules={[
             {
               required: true,
-              message: t('dashboard.setForm.urlRequired')
+              message: t('dashboard.setForm.urlRequired'),
             },
           ]}
         >
-          <Input
-            showCount
-            allowClear
-            maxLength={256}
-            type='url'
-          />
+          <Input showCount allowClear maxLength={256} type="url" />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" onClick={handleSetDashboard}>{t('misc.confirm')}</Button>
+          <Button type="primary" onClick={handleSetDashboard}>
+            {t('misc.confirm')}
+          </Button>
         </Form.Item>
       </Form>
-    )
+    );
   }
 };
 

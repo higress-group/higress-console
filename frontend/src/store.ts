@@ -4,5 +4,5 @@ import config from '../src/models/config';
 
 export default createStore({
   user,
-  config
+  config,
 });

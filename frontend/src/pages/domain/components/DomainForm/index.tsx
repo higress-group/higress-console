@@ -59,12 +59,12 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('domain.domainForm.name')}
         required
-        name='name'
+        name="name"
         tooltip={t('domain.domainForm.nameTooltip')}
         rules={[
           {
             required: true,
-            message: t('domain.domainForm.nameRequired')
+            message: t('domain.domainForm.nameRequired'),
           },
         ]}
       >
@@ -79,7 +79,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('domain.domainForm.protocol')}
         required
-        name='protocol'
+        name="protocol"
         tooltip={t('domain.domainForm.protocolTooltip')}
         rules={[
           {
@@ -103,7 +103,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
             <Form.Item
               label={t('domain.domainForm.certificate')}
               required
-              name='certIdentifier'
+              name="certIdentifier"
               tooltip={t('domain.domainForm.certificateTooltip')}
               rules={[
                 {
@@ -120,7 +120,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
               />
             </Form.Item>
             <Form.Item
-              name='mustHttps'
+              name="mustHttps"
               tooltip={t('domain.domainForm.mustHttpsTooltip')}
             >
               <Checkbox.Group
@@ -134,8 +134,8 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
                         </Tooltip>
                       </>
                     ),
-                    value: true
-                  }
+                    value: true,
+                  },
                 ]}
               />
             </Form.Item>

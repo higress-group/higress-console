@@ -29,12 +29,12 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('tlsCertificate.tlsCertificateForm.name')}
         required
-        name='name'
+        name="name"
         tooltip={t('tlsCertificate.tlsCertificateForm.nameTooltip')}
         rules={[
           {
             required: true,
-            message: t('tlsCertificate.tlsCertificateForm.nameRequired')
+            message: t('tlsCertificate.tlsCertificateForm.nameRequired'),
           },
         ]}
       >
@@ -49,11 +49,11 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('tlsCertificate.tlsCertificateForm.cert')}
         required
-        name='cert'
+        name="cert"
         rules={[
           {
             required: true,
-            message: t('tlsCertificate.tlsCertificateForm.certRequired')
+            message: t('tlsCertificate.tlsCertificateForm.certRequired'),
           },
         ]}
       >
@@ -66,11 +66,11 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         label={t('tlsCertificate.tlsCertificateForm.key')}
         required
-        name='key'
+        name="key"
         rules={[
           {
             required: true,
-            message: t('tlsCertificate.tlsCertificateForm.keyRequired')
+            message: t('tlsCertificate.tlsCertificateForm.keyRequired'),
           },
         ]}
       >

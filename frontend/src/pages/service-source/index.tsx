@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
 import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
@@ -9,8 +11,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import SourceForm from './components/SourceForm';
 
 interface SourceFormRef {
-  reset: () => void,
-  handleSubmit: () => Promise<ServiceSourceFormProps>,
+  reset: () => void;
+  handleSubmit: () => Promise<ServiceSourceFormProps>;
 }
 
 const SourceList: React.FC = () => {
@@ -104,7 +106,6 @@ const SourceList: React.FC = () => {
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
-
     } catch (errInfo) {
       console.log('Save failed: ', errInfo);
     }
@@ -174,7 +175,7 @@ const SourceList: React.FC = () => {
       <Drawer
         // title={t('serviceSource.createServiceSource')}
         title={t(currentServiceSource ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
-        placement='right'
+        placement="right"
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}

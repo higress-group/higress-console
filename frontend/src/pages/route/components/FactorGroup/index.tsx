@@ -1,7 +1,7 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Table } from 'antd';
 import type { FormInstance } from 'antd/es/form';
-import { uniqueId } from "lodash";
+import { uniqueId } from 'lodash';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
@@ -52,8 +52,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const inputRef = useRef(null);
   const form = useContext(EditableContext)!;
 
-  const matchOptions = ['PRE', 'EQUAL', 'REGULAR'].map(v => {
-    return { label: t('route.matchTypes.' + v), value: v }
+  const matchOptions = ['PRE', 'EQUAL', 'REGULAR'].map((v) => {
+    return { label: t(`route.matchTypes.${v}`), value: v };
   });
 
   useEffect(() => {
@@ -66,15 +66,19 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
       handleSave({ ...record, ...values });
     } catch (errInfo) {
+      // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
     }
   };
 
   let childNode = children;
 
-  const node = nodeType === 'select' ?
-    (<Select ref={inputRef} options={matchOptions} />)
-    : (<Input ref={inputRef} onPressEnter={save} onBlur={save} />);
+  const node =
+    nodeType === 'select' ? (
+      <Select ref={inputRef} options={matchOptions} />
+    ) : (
+      <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+    );
 
   if (editable) {
     childNode = (
@@ -84,7 +88,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
         rules={[
           {
             required: true,
-            message: t('route.factorGroup.required.' + dataIndex),
+            message: t(`route.factorGroup.required.${dataIndex}`),
           },
         ]}
       >
@@ -123,7 +127,7 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
   }
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
-  const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
+  const defaultColumns: Array<ColumnTypes[number] & { editable?: boolean; dataIndex: string }> = [
     {
       title: t('route.factorGroup.columns.key'),
       dataIndex: 'key',
@@ -145,11 +149,11 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
       dataIndex: 'operation',
       width: 60,
       render: (_, record: { uid: number }) =>
-        dataSource.length >= 1 ? (
+        (dataSource.length >= 1 ? (
           <div onClick={() => handleDelete(record.uid)}>
             <DeleteOutlined />
           </div>
-        ) : null,
+        ) : null),
     },
   ];
 
@@ -217,7 +221,8 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
         pagination={false}
       />
       <Button onClick={handleAdd} type="link">
-        <PlusOutlined />{t('route.factorGroup.parameter')}
+        <PlusOutlined />
+        {t('route.factorGroup.parameter')}
       </Button>
     </div>
   );

@@ -56,6 +56,7 @@ const CardRankChart: React.FunctionComponent<CardRankChartProps> = (props: CardR
             {dataSource &&
               dataSource.map((item, idx) => (
                 <div
+                  // eslint-disable-next-line react/no-array-index-key
                   key={idx}
                   style={{ marginBottom: 20, display: 'flex', justifyContent: 'flex-start', flexDirection: 'column' }}
                 >
