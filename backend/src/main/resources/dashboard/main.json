@@ -857,11 +857,11 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "code",
-          "expr": "sum(irate(container_cpu_usage_seconds_total{container=\"higress-gateway\", namespace=\"$namespace\"}[1m]))by(pod_name)",
+          "expr": "sum(irate(container_cpu_usage_seconds_total{container=\"higress-gateway\", namespace=\"$namespace\"}[1m]))by(pod)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 2,
-          "legendFormat": "{{pod_name}}",
+          "legendFormat": "{{pod}}",
           "range": true,
           "refId": "B",
           "step": 2
@@ -984,9 +984,9 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(envoy_server_memory_allocated{higress=\"$gateway\"}) by (pod_name)",
+          "expr": "sum(envoy_server_memory_allocated{higress=\"$gateway\"}) by (kubernetes_pod_name)",
           "interval": "",
-          "legendFormat": "{{pod_name}}-envoy",
+          "legendFormat": "{{kubernetes_pod_name}}-envoy",
           "range": true,
           "refId": "A"
         },
@@ -996,9 +996,9 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "code",
-          "expr": "sum(istio_agent_go_memstats_alloc_bytes{higress=\"$gateway\"}) by (pod_name)",
+          "expr": "sum(istio_agent_go_memstats_alloc_bytes{higress=\"$gateway\"}) by (kubernetes_pod_name)",
           "hide": false,
-          "legendFormat": "{{pod_name}}-agent",
+          "legendFormat": "{{kubernetes_pod_name}}-agent",
           "range": true,
           "refId": "B"
         }
