@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [16.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +25,6 @@ jobs:
       - name: cd frontend && install
         run: |
           cd frontend && npm install
-      - name: check
+      - name: cd frontend && npm run lint
         run: |
           cd frontend && npm run lint
