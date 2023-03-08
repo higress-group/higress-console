@@ -984,9 +984,9 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(envoy_server_memory_allocated{higress=\"$gateway\"}) by (pod_name)",
+          "expr": "sum(envoy_server_memory_allocated{higress=\"$gateway\"}) by (kubernetes_pod_name)",
           "interval": "",
-          "legendFormat": "{{pod_name}}-envoy",
+          "legendFormat": "{{kubernetes_pod_name}}-envoy",
           "range": true,
           "refId": "A"
         },
@@ -996,9 +996,9 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "code",
-          "expr": "sum(istio_agent_go_memstats_alloc_bytes{higress=\"$gateway\"}) by (pod_name)",
+          "expr": "sum(istio_agent_go_memstats_alloc_bytes{higress=\"$gateway\"}) by (kubernetes_pod_name)",
           "hide": false,
-          "legendFormat": "{{pod_name}}-agent",
+          "legendFormat": "{{kubernetes_pod_name}}-agent",
           "range": true,
           "refId": "B"
         }
