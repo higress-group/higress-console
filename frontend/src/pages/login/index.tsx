@@ -7,7 +7,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
 import { history, useAuth } from 'ice';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
 
@@ -29,9 +29,15 @@ const LoginMessage: React.FC<{
 const Login: React.FC = () => {
   const { t } = useTranslation();
 
-  const [loginFailed] = useState<boolean>(false);
+  const [loginPrompt, setLoginPrompt] = useState<string>();
   const [, userDispatcher] = store.useModel('user');
+  const [configModel] = store.useModel('config');
   const [, setAuth] = useAuth();
+
+  useEffect(() => {
+    const properties = configModel ? configModel.properties : {};
+    setLoginPrompt(properties['login.prompt']);
+  }, [configModel]);
 
   async function updateUserInfo(user: UserInfo) {
     userDispatcher.updateCurrentUser(user);
@@ -76,11 +82,6 @@ const Login: React.FC = () => {
           await handleSubmit(values as LoginParams);
         }}
       >
-        {loginFailed && (
-          <LoginMessage
-            content={t('login.incorrectCredentials')}
-          />
-        )}
         <ProFormText
           name="username"
           fieldProps={{
@@ -109,6 +110,17 @@ const Login: React.FC = () => {
             },
           ]}
         />
+        {loginPrompt && (
+          <div
+            style={{
+              marginBottom: 24,
+              textAlign: 'center',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {loginPrompt}
+          </div>
+        )}
         <div
           style={{
             marginBottom: 24,

@@ -33,6 +33,14 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
+import com.alibaba.higress.console.controller.dto.route.Header;
+import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
+import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
+import com.alibaba.higress.console.controller.dto.route.KeyedRoutePredicate;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,13 +52,6 @@ import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.dto.TlsCertificate;
-import com.alibaba.higress.console.controller.dto.route.CorsConfig;
-import com.alibaba.higress.console.controller.dto.route.Header;
-import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
-import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
-import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
@@ -164,7 +165,8 @@ public class KubernetesModelConverter {
         CorsConfig config = new CorsConfig();
         String maxAge = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY);
         String enableCors = metadata.getAnnotations().get(KubernetesConstants.Annotation.ENABLE_CORS_KEY);
-        String allowCredentials = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY);
+        String allowCredentials =
+            metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY);
         String allowOrigin = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY);
         String allowMethods = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY);
         String allowHeaders = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY);
@@ -316,6 +318,8 @@ public class KubernetesModelConverter {
         if (MapUtils.isNotEmpty(annotations)) {
             fillRewriteConfig(annotations, route);
             fillProxyNextUpstreamConfig(annotations, route);
+            fillHeaderAndQueryConfig(annotations, route);
+            fillMethodConfig(annotations, route);
             route.setRequestHeaderControl(
                 buildHeaderControlConfig(annotations, KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
                     KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
@@ -341,25 +345,32 @@ public class KubernetesModelConverter {
 
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         if (!Objects.isNull(cors.getEnabled())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.ENABLE_CORS_KEY, cors.getEnabled().toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.ENABLE_CORS_KEY,
+                cors.getEnabled().toString());
         }
         if (!Objects.isNull(cors.getMaxAge())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_MAX_AGE_KEY, cors.getMaxAge().toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_MAX_AGE_KEY,
+                cors.getMaxAge().toString());
         }
         if (!Objects.isNull(cors.getAllowCredentials())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY, cors.getAllowCredentials().toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY,
+                cors.getAllowCredentials().toString());
         }
         if (CollectionUtils.isNotEmpty(cors.getAllowOrigins())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowOrigins(), CommonKey.COMMA));
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+                StringUtils.join(cors.getAllowOrigins(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getAllowHeaders())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowHeaders(), CommonKey.COMMA));
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+                StringUtils.join(cors.getAllowHeaders(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getAllowMethods())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getAllowMethods(), CommonKey.COMMA));
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+                StringUtils.join(cors.getAllowMethods(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getExposeHeaders())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY, StringUtils.join(cors.getExposeHeaders(), CommonKey.COMMA));
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+                StringUtils.join(cors.getExposeHeaders(), CommonKey.COMMA));
         }
     }
 
@@ -387,6 +398,13 @@ public class KubernetesModelConverter {
                 break;
         }
         pathPredicate.setMatchType(matchType != null ? matchType.toString() : null);
+
+        if (metadata != null && metadata.getAnnotations() != null) {
+            String ignorePathCase = metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY);
+            if (StringUtils.isNotEmpty(ignorePathCase)) {
+                pathPredicate.setCaseSensitive(!Boolean.parseBoolean(ignorePathCase));
+            }
+        }
     }
 
     private static void fillRouteDestinations(Route route, V1ObjectMeta metadata, V1IngressBackend backend) {
@@ -515,6 +533,59 @@ public class KubernetesModelConverter {
         return config;
     }
 
+    private static void fillHeaderAndQueryConfig(Map<String, String> annotations, Route route) {
+        List<KeyedRoutePredicate> headers = new ArrayList<>();
+        List<KeyedRoutePredicate> urlParams = new ArrayList<>();
+        annotations.forEach((k, v) -> {
+            if (!k.startsWith(KubernetesConstants.Annotation.KEY_PREFIX)) {
+                return;
+            }
+
+            k = k.substring(KubernetesConstants.Annotation.KEY_PREFIX.length());
+
+            KeyedRoutePredicate headerPredicate =
+                buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD);
+            if (headerPredicate != null) {
+                headers.add(headerPredicate);
+                return;
+            }
+            KeyedRoutePredicate queryPredicate =
+                buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD);
+            if (queryPredicate != null) {
+                urlParams.add(queryPredicate);
+                return;
+            }
+        });
+        if (CollectionUtils.isNotEmpty(headers)) {
+            route.setHeaders(headers);
+        }
+        if (CollectionUtils.isNotEmpty(urlParams)) {
+            route.setUrlParams(urlParams);
+        }
+    }
+
+    private static KeyedRoutePredicate buildKeyedRoutePredicate(String annotation, String value, String matchKeyword) {
+        int keywordIndex = annotation.indexOf(matchKeyword);
+        if (keywordIndex == -1) {
+            return null;
+        }
+        String rawType = annotation.substring(0, keywordIndex);
+        RoutePredicateTypeEnum type = RoutePredicateTypeEnum.fromAnnotationPrefix(rawType);
+        String key = annotation.substring(keywordIndex + matchKeyword.length());
+        KeyedRoutePredicate predicate = new KeyedRoutePredicate();
+        predicate.setKey(key);
+        predicate.setMatchType(type != null ? type.name() : null);
+        predicate.setMatchValue(value);
+        return predicate;
+    }
+
+    private static void fillMethodConfig(Map<String, String> annotations, Route route) {
+        String methods = annotations.get(KubernetesConstants.Annotation.METHOD_KEY);
+        if (StringUtils.isNotBlank(methods)) {
+            route.setMethods(Arrays.asList(methods.split(CommonKey.SPACE)));
+        }
+    }
+
     private void fillIngressMetadata(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         metadata.setName(route.getName());
@@ -524,6 +595,22 @@ public class KubernetesModelConverter {
             for (String domain : route.getDomains()) {
                 setDomainLabel(metadata, domain);
             }
+        }
+
+        if (CollectionUtils.isNotEmpty(route.getUrlParams())) {
+            for (KeyedRoutePredicate query : route.getUrlParams()) {
+                setQueryAnnotation(metadata, query);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(route.getHeaders())) {
+            for (KeyedRoutePredicate header : route.getHeaders()) {
+                setHeaderAnnotation(metadata, header);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(route.getMethods())) {
+            setMethodAnnotation(metadata, route.getMethods());
         }
 
         fillIngressRewriteConfig(metadata, route);
@@ -660,18 +747,6 @@ public class KubernetesModelConverter {
         V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
         rule.setHttp(httpRule);
 
-        if (CollectionUtils.isNotEmpty(route.getMethods())) {
-            throw new IllegalArgumentException("methods is not supported yet.");
-        }
-
-        if (CollectionUtils.isNotEmpty(route.getHeaders())) {
-            throw new IllegalArgumentException("headers is not supported yet.");
-        }
-
-        if (CollectionUtils.isNotEmpty(route.getUrlParams())) {
-            throw new IllegalArgumentException("urlParams is not supported yet.");
-        }
-
         RoutePredicate pathPredicate = route.getPath();
         if (pathPredicate != null) {
             fillHttpPathRule(metadata, httpRule, pathPredicate);
@@ -697,8 +772,9 @@ public class KubernetesModelConverter {
             throw new IllegalArgumentException("Unsupported path match type: " + matchType);
         }
 
-        if (Boolean.FALSE.equals(pathPredicate.getCaseSensitive())) {
-            throw new IllegalArgumentException("path.caseSensitive is not supported yet.");
+        if (null != pathPredicate.getCaseSensitive()) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY,
+                String.valueOf(!pathPredicate.getCaseSensitive()));
         }
 
         httpPath.setBackend(DEFAULT_MCP_BRIDGE_BACKEND);
@@ -904,5 +980,24 @@ public class KubernetesModelConverter {
     private void setDomainLabel(V1ObjectMeta metadata, String domainName) {
         String labelName = KubernetesConstants.Label.DOMAIN_KEY_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
         KubernetesUtil.setLabel(metadata, labelName, KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+    }
+
+    private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
+        String annotationName = String.format(KubernetesConstants.Annotation.QUERY_MATCH_KEY_FORMAT,
+            predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
+        KubernetesUtil.setAnnotation(metadata, annotationName, keyedRoutePredicate.getMatchValue());
+    }
+
+    private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
+        String annotationName = String.format(KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT,
+            predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
+        KubernetesUtil.setAnnotation(metadata, annotationName, keyedRoutePredicate.getMatchValue());
+    }
+
+    private void setMethodAnnotation(V1ObjectMeta metadata, List<String> methods) {
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.METHOD_KEY,
+            StringUtils.join(methods, CommonKey.SPACE));
     }
 }

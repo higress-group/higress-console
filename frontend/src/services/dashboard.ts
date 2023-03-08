@@ -8,3 +8,7 @@ export const getDashboardInfo = (): Promise<DashboardInfo> => {
 export const initDashboard = (): Promise<DashboardInfo> => {
   return request.get<any, DashboardInfo>("/dashboard/init");
 }
+
+export const setDashboardUrl = (url: string): Promise<DashboardInfo> => {
+  return request.put<any, DashboardInfo>("/dashboard/info", { url });
+}
