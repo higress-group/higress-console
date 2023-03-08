@@ -338,6 +338,7 @@ public class KubernetesModelConverter {
     }
 
     private void fillIngressCors(V1Ingress ingress, Route route) {
+
         CorsConfig cors = route.getCors();
         if (Objects.isNull(cors)) {
             return;
@@ -361,15 +362,15 @@ public class KubernetesModelConverter {
                 StringUtils.join(cors.getAllowOrigins(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getAllowHeaders())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY,
                 StringUtils.join(cors.getAllowHeaders(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getAllowMethods())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY,
                 StringUtils.join(cors.getAllowMethods(), CommonKey.COMMA));
         }
         if (CollectionUtils.isNotEmpty(cors.getExposeHeaders())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY,
                 StringUtils.join(cors.getExposeHeaders(), CommonKey.COMMA));
         }
     }

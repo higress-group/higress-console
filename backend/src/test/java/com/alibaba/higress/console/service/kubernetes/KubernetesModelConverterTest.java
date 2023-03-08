@@ -14,6 +14,7 @@ package com.alibaba.higress.console.service.kubernetes;
 
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
@@ -508,6 +509,39 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(expectedIngress, ingress);
     }
 
+    @Test
+    public void route2IngressTestCorsConfig() {
+        Route route = buildBasicRoute();
+        route.setName("test");
+        CorsConfig corsConfig = buildCorsConfig();
+        route.setCors(corsConfig);
+        RoutePredicate pathPredicate = route.getPath();
+        pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+        pathPredicate.setCaseSensitive(null);
+        pathPredicate.setMatchValue("/");
+
+        V1Ingress ingress = converter.route2Ingress(route);
+
+        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
+        expectedMetadata.setName(route.getName());
+        System.out.println(route);
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.ENABLE_CORS_KEY, KubernetesConstants.Annotation.TRUE_VALUE);
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY, KubernetesConstants.Annotation.TRUE_VALUE);
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY,
+                "*");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY,
+                "*");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY,
+                "*");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY,
+                "*");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.CORS_MAX_AGE_KEY,
+                "86400");
+
+        Assertions.assertEquals(expectedIngress, ingress);
+    }
+
     private V1Ingress buildBasicSupportedIngress() {
         V1Ingress ingress = new V1Ingress();
 
@@ -551,5 +585,23 @@ public class KubernetesModelConverterTest {
         route.setDomains(new ArrayList<>());
         route.setPath(new RoutePredicate());
         return route;
+    }
+
+    private CorsConfig buildCorsConfig() {
+        CorsConfig config = new CorsConfig();
+        List<String> allowOrigins = new ArrayList<>(List.of("*"));
+        List<String> allowMethods = new ArrayList<>(List.of("*"));
+        List<String> allowHeaders = new ArrayList<>(List.of("*"));
+        List<String> exposeHeaders = new ArrayList<>(List.of("*"));
+        Integer maxAge = 86400;
+
+        config.setEnabled(true);
+        config.setAllowHeaders(allowHeaders);
+        config.setExposeHeaders(exposeHeaders);
+        config.setAllowMethods(allowMethods);
+        config.setAllowOrigins(allowOrigins);
+        config.setMaxAge(maxAge);
+        config.setAllowCredentials(true);
+        return config;
     }
 }
