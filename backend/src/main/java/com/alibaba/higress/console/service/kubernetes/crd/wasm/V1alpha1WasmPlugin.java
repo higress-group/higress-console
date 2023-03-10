@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.service.kubernetes.crd.mcp;
+package com.alibaba.higress.console.service.kubernetes.crd.wasm;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -18,29 +18,15 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.Data;
 
 @Data
-public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject {
+public class V1alpha1WasmPlugin implements io.kubernetes.client.common.KubernetesObject {
 
-    public static final String API_GROUP = "networking.higress.io";
+    public static final String API_GROUP = "extensions.higress.io";
 
-    public static final String VERSION = "v1";
+    public static final String VERSION = "v1alpha1";
 
-    public static final String KIND = "McpBridge";
+    public static final String KIND = "WasmPlugin";
 
-    public static final String PLURAL = "mcpbridges";
-
-    public static final String DEFAULT_NAME = "default";
-
-    public static final String REGISTRY_TYPE_NACOS = "nacos";
-
-    public static final String REGISTRY_TYPE_NACOS2 = "nacos2";
-
-    public static final String REGISTRY_TYPE_NACOS_NACOSGROUPS = "nacosGroups";
-
-    public static final String REGISTRY_TYPE_NACOS_NACOSNAMESPACEID = "nacosNamespaceId";
-
-    public static final String REGISTRY_TYPE_ZK = "zookeeper";
-
-    public static final String REGISTRY_TYPE_ZK_ZKSERVICESPATH = "zkServicesPath";
+    public static final String PLURAL = "wasmplugins";
 
     public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";
     @SerializedName(SERIALIZED_NAME_API_VERSION)
@@ -56,7 +42,7 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final String SERIALIZED_NAME_SPEC = "spec";
     @SerializedName(SERIALIZED_NAME_SPEC)
-    private V1McpBridgeSpec spec;
+    private V1alpha1WasmPluginSpec spec;
 
     @Override
     public V1ObjectMeta getMetadata() {

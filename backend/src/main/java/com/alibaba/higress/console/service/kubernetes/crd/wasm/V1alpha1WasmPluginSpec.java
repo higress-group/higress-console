@@ -10,29 +10,33 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.controller.dto;
+package com.alibaba.higress.console.service.kubernetes.crd.wasm;
 
+import lombok.Data;
+
+import java.util.List;
 import java.util.Map;
 
-import org.openapi4j.parser.model.v3.Schema;
-
-import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("Wasm Plugin Config")
-public class WasmPluginConfig {
+public class V1alpha1WasmPluginSpec {
 
-    private Schema schema;
+    private Map<String, Object> defaultConfig;
 
-    public Map<String, Object> validateAndCleanUp(Map<String, Object> configurations) {
-        // TODO: Implement validation and clean-up logic.
-        return configurations;
-    }
+    private String imagePullPolicy;
+
+    private String imagePullSecret;
+
+    private List<MatchRule> matchRules;
+
+    private String phase;
+
+    private Map<String, Object> pluginConfig;
+
+    private Integer priority;
+
+    private String sha256;
+
+    private String url;
+
+    private String verificationKey;
 }

@@ -45,6 +45,8 @@ import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.constant.KubernetesConstants.Label;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeList;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginList;
 import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpointShard;
 import com.alibaba.higress.console.service.kubernetes.dto.RegistryzService;
 
@@ -372,6 +374,110 @@ public class KubernetesClientService {
         checkResponseStatus(status);
     }
 
+    public List<V1McpBridge> listMcpBridge() {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.listNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
+                controllerNamespace, V1McpBridge.PLURAL, null, null, null, null, null, null, null, null, null, null);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            V1McpBridgeList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
+            return list.getItems();
+        } catch (ApiException e) {
+            log.error("listMcpBridge Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public V1McpBridge addMcpBridge(V1McpBridge mcpBridge) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.createNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
+            controllerNamespace, V1McpBridge.PLURAL, mcpBridge, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
+    }
+
+    public V1McpBridge updateMcpBridge(V1McpBridge mcpBridge) throws ApiException {
+        V1ObjectMeta metadata = mcpBridge.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("mcpBridge doesn't have a valid metadata.");
+        }
+        metadata.setNamespace(controllerNamespace);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.replaceNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
+            controllerNamespace, V1McpBridge.PLURAL, metadata.getName(), mcpBridge, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
+    }
+
+    public void deleteMcpBridge(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        customObjectsApi.deleteNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION, controllerNamespace,
+            V1McpBridge.PLURAL, name, null, null, null, null, null);
+    }
+
+    public V1McpBridge getMcpBridge(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.getNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
+            controllerNamespace, V1McpBridge.PLURAL, name);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
+    }
+
+    public List<V1alpha1WasmPlugin> listWasmPlugin(String scope, String target, String pluginName) throws ApiException {
+        List<String> labelSelectorItems = new ArrayList<>();
+        labelSelectorItems.add(DEFAULT_LABEL_SELECTORS);
+        if (StringUtils.isNotEmpty(scope)) {
+            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_SCOPE_KEY, scope));
+        }
+        if (StringUtils.isNotEmpty(target)) {
+            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_TARGET_KEY, target));
+        }
+        if (StringUtils.isNotEmpty(pluginName)) {
+            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_NAME_KEY, pluginName));
+        }
+        String labelSelector = labelSelectorItems.size() == 1 ? labelSelectorItems.get(0)
+            : joinLabelSelectors(labelSelectorItems.toArray(new String[0]));
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.listNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
+            V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, null, null, null, null,
+            labelSelector, null, null, null, null, null);
+        io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+        V1alpha1WasmPluginList list = json.deserialize(json.serialize(response), V1alpha1WasmPluginList.class);
+        return list.getItems();
+    }
+
+    public V1alpha1WasmPlugin addWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        renderDefaultLabels(plugin);
+        Object response = customObjectsApi.createNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
+            V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, plugin, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
+    }
+
+    public V1alpha1WasmPlugin updateWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
+        V1ObjectMeta metadata = plugin.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("WasmPlugin doesn't have a valid metadata.");
+        }
+        renderDefaultLabels(plugin);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response =
+            customObjectsApi.replaceNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP, V1alpha1WasmPlugin.VERSION,
+                controllerNamespace, V1alpha1WasmPlugin.PLURAL, metadata.getName(), plugin, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
+    }
+
+    public void deleteWasmPlugin(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        customObjectsApi.deleteNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP, V1alpha1WasmPlugin.VERSION,
+            controllerNamespace, V1alpha1WasmPlugin.PLURAL, name, null, null, null, null, null);
+    }
+
+    public V1alpha1WasmPlugin getWasmPlugin(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.getNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
+            V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, name);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
+    }
+
     private void checkResponseStatus(V1Status status) {
         // TODO: Throw exception accordingly.
     }
@@ -397,62 +503,5 @@ public class KubernetesClientService {
 
     private void renderDefaultLabels(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
-    }
-
-    public List<V1McpBridge> listV1McpBridge() {
-        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        try {
-            Object response = customObjectsApi.listNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, null, null, null, null,
-                null, null, null, null, null, null);
-            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
-            V1McpBridgeList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
-            return list.getItems();
-        } catch (ApiException e) {
-            log.error("listMcpBridge Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
-                + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
-        }
-    }
-
-    public V1McpBridge addV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
-        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        Object response = customObjectsApi.createNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, v1McpBridge, null, null,
-            null);
-        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
-    }
-
-    public V1McpBridge updateV1McpBridge(V1McpBridge v1McpBridge) throws ApiException {
-        V1ObjectMeta metadata = v1McpBridge.getMetadata();
-        if (metadata == null) {
-            throw new IllegalArgumentException("mcpBridge doesn't have a valid metadata.");
-        }
-        metadata.setNamespace(controllerNamespace);
-        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        Object response = customObjectsApi.replaceNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, metadata.getName(),
-            v1McpBridge, null, null);
-        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
-    }
-
-    public void deleteV1McpBridge(String name) throws ApiException {
-        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        customObjectsApi.deleteNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-            V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, name, null, null, null,
-            null, null);
-    }
-
-    public V1McpBridge getV1McpBridge(String name) {
-        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        try {
-            Object response = customObjectsApi.getNamespacedCustomObject(KubernetesConstants.MCP_BRIDGE_API_GROUP,
-                V1McpBridge.DEFAULT_VERSION, controllerNamespace, V1McpBridge.MCP_BRIDGE_PLURAL, name);
-            return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
-        } catch (ApiException e) {
-            log.error("getMcpBridge Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
-                + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
-        }
     }
 }

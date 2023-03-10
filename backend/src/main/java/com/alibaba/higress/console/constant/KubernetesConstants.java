@@ -14,10 +14,6 @@ package com.alibaba.higress.console.constant;
 
 public class KubernetesConstants {
 
-    public static final String MCP_BRIDGE_API_GROUP = "networking.higress.io";
-    public static final String MCP_BRIDGE_KIND = "McpBridge";
-    public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
-
     public static final String K8S_CERT = "cert";
     public static final String K8S_ENABLE_HTTPS = "enableHttps";
 
@@ -64,6 +60,12 @@ public class KubernetesConstants {
         public static final String DOMAIN_VALUE_DUMMY = "true";
         public static final String RESOURCE_DEFINER_KEY = "higress.io/resource-definer";
         public static final String RESOURCE_DEFINER_VALUE = "higress";
+        public static final String WASM_PLUGIN_NAME_KEY = "higress.io/wasm-plugin-name";
+        public static final String WASM_PLUGIN_SCOPE_KEY = "higress.io/wasm-plugin-scope";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_GLOBAL = "global";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_DOMAIN = "domain";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_ROUTE = "route";
+        public static final String WASM_PLUGIN_TARGET_KEY = "higress.io/wasm-plugin-target";
     }
 
     public static class IngressPathType {
