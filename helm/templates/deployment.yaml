@@ -37,6 +37,8 @@ spec:
               value: /usr/local/openjdk-18
             - name: LANG
               value: C.UTF-8
+            - name: HIGRESS_CONSOLE_ADMIN_SECRET
+              value: {{ include "higress-console.fullname" . }}
             - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
               value: {{ include "higress-console.fullname" . }}
             {{- if .Values.o11y.enabled }}
