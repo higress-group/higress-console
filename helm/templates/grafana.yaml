@@ -90,10 +90,6 @@ spec:
           tcpSocket:
             port: {{ $port }}
           timeoutSeconds: 1
-        resources:
-          requests:
-            cpu: {{ $config.resources.requests.cpu }}
-            memory: {{ $config.resources.requests.memory }}
         volumeMounts:
         - mountPath: /var/lib/grafana
           name: {{ $appName }}
