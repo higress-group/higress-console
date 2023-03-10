@@ -71,10 +71,6 @@ o11y:
       path: /grafana # Only pathType of Prefix is supported
     port: 3000
     storage: 1Gi
-    resources:
-      requests:
-        cpu: 250m
-        memory: 512Mi
   prometheus:
     replicas: 1
     image:
@@ -85,9 +81,6 @@ o11y:
     port: 9090
     storage: 1Gi
     resources:
-      requests:
-        cpu: 100m
-        memory: 100Mi
       limits:
         cpu: 500m
         memory: 2Gi

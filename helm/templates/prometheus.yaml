@@ -120,9 +120,6 @@ spec:
         - mountPath: "/etc/prometheus"
           name: config
         resources:
-          requests:
-            cpu: {{ $config.resources.requests.cpu }}
-            memory: {{ $config.resources.requests.memory }}
           limits:
             cpu: {{ $config.resources.limits.cpu }}
             memory: {{ $config.resources.limits.memory }}
