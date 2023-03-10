@@ -6,6 +6,7 @@ info:
   description: 限流插件
   x-description-i18n:
     en-US: Key rate-limit plugin
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
   version: 1.0.0
   contact:
     name: Higress Team

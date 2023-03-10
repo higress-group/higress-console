@@ -6,6 +6,7 @@ info:
   description: 本插件实现了基于 HTTP Basic Auth 标准进行认证鉴权的功能。
   x-description-i18n:
     en-US: This plugin implements an authentication function based on HTTP Basic Auth standard.
+  iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
     name: Higress Team

@@ -6,6 +6,7 @@ info:
   description: SNI 连接错误复用处理插件
   x-description-i18n:
     en-US: SNI misdirect plugin
+  iconUrl: https://img.alicdn.com/imgextra/i2/O1CN01xIywow1mVGuRUjbhe_!!6000000004959-2-tps-42-42.png
   version: 1.0.0
   contact:
     name: Higress Team
