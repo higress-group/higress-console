@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -66,6 +67,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
     private static final String README_FILE = "README.md";
     private static final String README_CN_FILE = "README_CN.md";
     private static final String README_EN_FILE = "README_EN.md";
+    private static final String ICON_FILE = "icon.png";
+    private static final String ICON_DATA_PREFIX = "data:image/png;base64,";
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final Pattern I18N_EXTENSION_KEY_PATTERN = Pattern.compile("^x-(.+)-i18n$");
 
@@ -106,6 +109,15 @@ public class WasmPluginServiceImpl implements WasmPluginService {
             cacheItem.setDefaultReadme(loadPluginReadme(pluginName, README_FILE));
             cacheItem.setReadme(Language.ZH_CN.getCode(), loadPluginReadme(pluginName, README_CN_FILE));
             cacheItem.setReadme(Language.EN_US.getCode(), loadPluginReadme(pluginName, README_EN_FILE));
+
+            try (InputStream stream = getResourceAsStream(pluginFolder + ICON_FILE)) {
+                if (stream != null) {
+                    byte[] rawIconData = IOUtils.toByteArray(stream);
+                    cacheItem.iconData = ICON_DATA_PREFIX + Base64.getEncoder().encodeToString(rawIconData);
+                }
+            } catch (IOException ex) {
+                log.warn("Error occurs when loading spec file of plugin {}.", pluginName, ex);
+            }
 
             plugins.add(cacheItem);
         }
@@ -186,6 +198,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         private final String name;
         private final String imageRepository;
         private Plugin plugin;
+        private String iconData;
+
         @Getter(AccessLevel.NONE)
         @Setter(AccessLevel.NONE)
         private final Map<String, String> readmes = new HashMap<>(4);
@@ -223,6 +237,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
                 wasmPlugin.setCategory(info.getCategory());
                 wasmPlugin.setVersion(info.getVersion());
                 wasmPlugin.setLatestVersion(info.getVersion());
+                wasmPlugin.setIcon(info.getIconUrl());
 
                 if (StringUtils.isEmpty(language)) {
                     wasmPlugin.setTitle(info.getTitle());
@@ -240,6 +255,11 @@ public class WasmPluginServiceImpl implements WasmPluginService {
                 wasmPlugin.setPhase(spec.getPhase());
                 wasmPlugin.setPriority(spec.getPriority());
             }
+
+            if (StringUtils.isNotEmpty(iconData)) {
+                wasmPlugin.setIcon(iconData);
+            }
+
             return wasmPlugin;
         }
 

@@ -32,6 +32,7 @@ import lombok.Getter;
 public class PluginInfo {
 
     private String category;
+
     private String name;
 
     private String title;
@@ -43,6 +44,8 @@ public class PluginInfo {
 
     @JsonProperty("x-description-i18n")
     private Map<String, String> descriptionI18n;
+
+    private String iconUrl;
 
     private String version;
 
