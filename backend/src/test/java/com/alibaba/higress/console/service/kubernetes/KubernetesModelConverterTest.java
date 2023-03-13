@@ -649,7 +649,7 @@ public class KubernetesModelConverterTest {
         PluginConfigRuleAccessor expectedRule = new PluginConfigRuleAccessor();
         expectedRule.setMatchDomains(List.of(instance.getTarget()));
         expectedRule.setConfigurations(instance.getConfigurations());
-        expectedConfig.setRules(List.of(expectedRule));
+        expectedConfig.setRules(List.of(expectedRule.toMap()));
         expectedSpec.setPluginConfig(expectedConfig.toMap());
 
         Assertions.assertEquals(expectedCr, cr);
@@ -689,7 +689,7 @@ public class KubernetesModelConverterTest {
         PluginConfigRuleAccessor expectedRule = new PluginConfigRuleAccessor();
         expectedRule.setMatchRoutes(List.of(instance.getTarget()));
         expectedRule.setConfigurations(instance.getConfigurations());
-        expectedConfig.setRules(List.of(expectedRule));
+        expectedConfig.setRules(List.of(expectedRule.toMap()));
         expectedSpec.setPluginConfig(expectedConfig.toMap());
 
         Assertions.assertEquals(expectedCr, cr);
@@ -755,7 +755,7 @@ public class KubernetesModelConverterTest {
         PluginConfigRuleAccessor rule = new PluginConfigRuleAccessor();
         rule.setMatchDomains(List.of(target));
         rule.setConfigurations(configurations);
-        config.setRules(List.of(rule));
+        config.setRules(List.of(rule.toMap()));
         expectedSpec.setPluginConfig(config.toMap());
 
         WasmPluginInstance instance = converter.wasmPluginCr2Instance(cr);
@@ -794,9 +794,9 @@ public class KubernetesModelConverterTest {
         PluginConfigAccessor config = new PluginConfigAccessor();
         Map<String, Object> configurations = ImmutableMap.of("a", 1, "b", ":", "c", Arrays.asList(1, 2, 3));
         PluginConfigRuleAccessor rule = new PluginConfigRuleAccessor();
-        rule.setMatchDomains(List.of(target));
+        rule.setMatchRoutes(List.of(target));
         rule.setConfigurations(configurations);
-        config.setRules(List.of(rule));
+        config.setRules(List.of(rule.toMap()));
         expectedSpec.setPluginConfig(config.toMap());
 
         WasmPluginInstance instance = converter.wasmPluginCr2Instance(cr);
