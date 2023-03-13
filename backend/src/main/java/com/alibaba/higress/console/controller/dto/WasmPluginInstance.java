@@ -14,8 +14,6 @@ package com.alibaba.higress.console.controller.dto;
 
 import java.util.Map;
 
-import org.openapi4j.parser.model.v3.Schema;
-
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,13 +24,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Wasm Plugin Config")
-public class WasmPluginConfig {
+@ApiModel("Wasm Plugin Instance")
+public class WasmPluginInstance {
 
-    private Schema schema;
+    private WasmPluginInstanceScope scope;
 
-    public Map<String, Object> validateAndCleanUp(Map<String, Object> configurations) {
-        // TODO: Implement validation and clean-up logic.
-        return configurations;
-    }
+    private String target;
+
+    private String name;
+
+    private String version;
+
+    private String imageRepository;
+
+    private String imageVersion;
+
+    private Map<String, Object> configurations;
 }

@@ -106,4 +106,8 @@ public class CommonKey {
     public final static String NEW_LINE = "\n";
 
     public final static String SPACE = " ";
+
+    public final static String UNDERSCORE = "_";
+
+    public final static String COLON = ":";
 }

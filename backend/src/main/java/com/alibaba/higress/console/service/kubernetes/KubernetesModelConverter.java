@@ -33,14 +33,6 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
-import com.alibaba.higress.console.controller.dto.route.CorsConfig;
-import com.alibaba.higress.console.controller.dto.route.Header;
-import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
-import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
-import com.alibaba.higress.console.controller.dto.route.UpstreamService;
-import com.alibaba.higress.console.controller.dto.route.KeyedRoutePredicate;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +44,25 @@ import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.dto.TlsCertificate;
+import com.alibaba.higress.console.controller.dto.WasmPlugin;
+import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
+import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
+import com.alibaba.higress.console.controller.dto.route.Header;
+import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
+import com.alibaba.higress.console.controller.dto.route.KeyedRoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigAccessor;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigRuleAccessor;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.alibaba.higress.console.util.TypeUtil;
 import com.google.common.base.Splitter;
 
@@ -90,9 +97,9 @@ public class KubernetesModelConverter {
 
     static {
         V1TypedLocalObjectReference mcpBridgeReference = new V1TypedLocalObjectReference();
-        mcpBridgeReference.setApiGroup(KubernetesConstants.MCP_BRIDGE_API_GROUP);
-        mcpBridgeReference.setKind(KubernetesConstants.MCP_BRIDGE_KIND);
-        mcpBridgeReference.setName(KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT);
+        mcpBridgeReference.setApiGroup(V1McpBridge.API_GROUP);
+        mcpBridgeReference.setKind(V1McpBridge.KIND);
+        mcpBridgeReference.setName(V1McpBridge.DEFAULT_NAME);
         DEFAULT_MCP_BRIDGE_BACKEND.setResource(mcpBridgeReference);
     }
 
@@ -132,9 +139,9 @@ public class KubernetesModelConverter {
                 return false;
             }
             V1TypedLocalObjectReference resource = path.getBackend().getResource();
-            if (resource != null && (!KubernetesConstants.MCP_BRIDGE_API_GROUP.equals(resource.getApiGroup())
-                || !KubernetesConstants.MCP_BRIDGE_KIND.equals(resource.getKind())
-                || !KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT.equals(resource.getName()))) {
+            if (resource != null && (!V1McpBridge.API_GROUP.equals(resource.getApiGroup())
+                || !V1McpBridge.KIND.equals(resource.getKind())
+                || !V1McpBridge.DEFAULT_NAME.equals(resource.getName()))) {
                 return false;
             }
         }
@@ -173,8 +180,12 @@ public class KubernetesModelConverter {
         String exposeHeaders = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY);
 
         config.setMaxAge(TypeUtil.string2Integer(maxAge));
-        config.setEnabled(Boolean.valueOf(enableCors));
-        config.setAllowCredentials(Boolean.valueOf(allowCredentials));
+        if (StringUtils.isNotEmpty(enableCors)) {
+            config.setEnabled(Boolean.valueOf(enableCors));
+        }
+        if (StringUtils.isNotEmpty(allowCredentials)) {
+            config.setAllowCredentials(Boolean.valueOf(allowCredentials));
+        }
         if (StringUtils.isNotEmpty(allowOrigin)) {
             config.setAllowOrigins(Arrays.asList(allowOrigin.split(CommonKey.COMMA)));
         }
@@ -271,6 +282,115 @@ public class KubernetesModelConverter {
 
         fillTlsCertificateDetails(certificate);
         return certificate;
+    }
+
+    public V1alpha1WasmPlugin wasmPluginInstance2Cr(WasmPluginInstance instance, WasmPlugin plugin) {
+        V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
+
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        cr.setMetadata(metadata);
+        metadata.setName(buildWasmPluginCrName(instance));
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, instance.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
+        if (instance.getTarget() != null) {
+            KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, instance.getTarget());
+        }
+        metadata.setResourceVersion(instance.getVersion());
+
+        V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
+        cr.setSpec(spec);
+
+        spec.setPhase(plugin.getPhase());
+        spec.setPriority(plugin.getPriority());
+
+        String imageUrl = StringUtils.firstNonBlank(instance.getImageRepository(), plugin.getImageRepository())
+            + CommonKey.COLON + StringUtils.firstNonBlank(instance.getImageVersion(), plugin.getVersion());
+        spec.setUrl(imageUrl);
+
+        PluginConfigAccessor config = new PluginConfigAccessor();
+        switch (instance.getScope()) {
+            case GLOBAL:
+                config.setConfigurations(instance.getConfigurations());
+                break;
+            case DOMAIN:
+                PluginConfigRuleAccessor domainRule = new PluginConfigRuleAccessor();
+                domainRule.setMatchDomains(Collections.singletonList(instance.getTarget()));
+                domainRule.setConfigurations(instance.getConfigurations());
+                config.setRules(Collections.singletonList(domainRule.toMap()));
+                break;
+            case ROUTE:
+                PluginConfigRuleAccessor routeRule = new PluginConfigRuleAccessor();
+                routeRule.setMatchRoutes(Collections.singletonList(instance.getTarget()));
+                routeRule.setConfigurations(instance.getConfigurations());
+                config.setRules(Collections.singletonList(routeRule.toMap()));
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown plugin scope: " + instance.getScope());
+        }
+        spec.setPluginConfig(config.toMap());
+
+        return cr;
+    }
+
+    public WasmPluginInstance wasmPluginCr2Instance(V1alpha1WasmPlugin plugin) {
+        WasmPluginInstance instance = new WasmPluginInstance();
+
+        V1ObjectMeta metadata = plugin.getMetadata();
+        if (metadata != null) {
+            instance.setVersion(metadata.getResourceVersion());
+            Map<String, String> labels = metadata.getLabels();
+            if (MapUtils.isNotEmpty(labels)) {
+                instance.setName(labels.get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY));
+                String rawScope = labels.get(KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY);
+                instance.setScope(WasmPluginInstanceScope.fromId(rawScope));
+                instance.setTarget(labels.get(KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY));
+            }
+        }
+
+        V1alpha1WasmPluginSpec spec = plugin.getSpec();
+        if (spec != null) {
+            String url = spec.getUrl();
+            if (StringUtils.isNotEmpty(url)) {
+                int lastColonIndex = url.lastIndexOf(CommonKey.COLON);
+                if (lastColonIndex == -1) {
+                    instance.setImageRepository(url);
+                } else {
+                    instance.setImageRepository(url.substring(0, lastColonIndex));
+                    instance.setImageVersion(url.substring(lastColonIndex + 1));
+                }
+            }
+            Map<String, Object> config = spec.getPluginConfig();
+            if (config != null && instance.getScope() != null) {
+                PluginConfigAccessor configAccessor = new PluginConfigAccessor(config);
+                switch (instance.getScope()) {
+                    case GLOBAL:
+                        instance.setConfigurations(configAccessor.getConfigurations());
+                        break;
+                    case DOMAIN:
+                        if (CollectionUtils.isNotEmpty(configAccessor.getRules())) {
+                            Optional<PluginConfigRuleAccessor> rule = configAccessor.getRules().stream()
+                                .map(PluginConfigRuleAccessor::new).filter(r -> r.getMatchDomains() != null
+                                    && r.getMatchDomains().contains(instance.getTarget()))
+                                .findFirst();
+                            rule.ifPresent(r -> instance.setConfigurations(r.getConfigurations()));
+                        }
+                        break;
+                    case ROUTE:
+                        if (CollectionUtils.isNotEmpty(configAccessor.getRules())) {
+                            Optional<PluginConfigRuleAccessor> rule = configAccessor.getRules().stream()
+                                .map(PluginConfigRuleAccessor::new).filter(r -> r.getMatchRoutes() != null
+                                    && r.getMatchRoutes().contains(instance.getTarget()))
+                                .findFirst();
+                            rule.ifPresent(r -> instance.setConfigurations(r.getConfigurations()));
+                        }
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown plugin scope: " + instance.getScope());
+                }
+            }
+        }
+
+        return instance;
     }
 
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
@@ -822,7 +942,7 @@ public class KubernetesModelConverter {
 
     public void initV1McpBridge(V1McpBridge v1McpBridge) {
         v1McpBridge.setMetadata(new V1ObjectMeta());
-        v1McpBridge.getMetadata().setName(V1McpBridge.MCP_BRIDGE_NAME);
+        v1McpBridge.getMetadata().setName(V1McpBridge.DEFAULT_NAME);
         List<V1RegistryConfig> registries = new ArrayList<>();
         v1McpBridge.setSpec(new V1McpBridgeSpec());
         v1McpBridge.getSpec().setRegistries(registries);
@@ -975,6 +1095,15 @@ public class KubernetesModelConverter {
             log.error("Error occurs when parsing subject: " + principal.getName(), e);
             return null;
         }
+    }
+
+    private static String buildWasmPluginCrName(WasmPluginInstance instance) {
+        StringBuilder builder = new StringBuilder(instance.getScope().getId());
+        if (instance.getTarget() != null) {
+            builder.append(CommonKey.DASH).append(instance.getTarget());
+        }
+        builder.append(CommonKey.DASH).append(instance.getName());
+        return builder.toString();
     }
 
     private void setDomainLabel(V1ObjectMeta metadata, String domainName) {
