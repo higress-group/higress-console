@@ -161,11 +161,13 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 kubernetesClientService.addMcpBridge(mcpBridge);
             } else {
-                Optional<V1RegistryConfig> op = mcpBridge.getSpec().getRegistries().stream()
-                    .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName()))
-                    .findFirst();
-                if (op.isPresent()) {
-                    throw new ResourceConflictException();
+                if (mcpBridge.getSpec() != null && mcpBridge.getSpec().getRegistries() != null) {
+                    Optional<V1RegistryConfig> op = mcpBridge.getSpec().getRegistries().stream()
+                        .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName()))
+                        .findFirst();
+                    if (op.isPresent()) {
+                        throw new ResourceConflictException();
+                    }
                 }
                 kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 kubernetesClientService.updateMcpBridge(mcpBridge);

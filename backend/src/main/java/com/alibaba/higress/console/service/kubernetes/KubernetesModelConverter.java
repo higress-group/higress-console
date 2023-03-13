@@ -949,13 +949,23 @@ public class KubernetesModelConverter {
     }
 
     public void addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
-        Optional<V1RegistryConfig> op = v1McpBridge.getSpec().getRegistries().stream()
+        V1McpBridgeSpec spec = v1McpBridge.getSpec();
+        if (spec == null) {
+            spec = new V1McpBridgeSpec();
+            v1McpBridge.setSpec(spec);
+        }
+        List<V1RegistryConfig> registries = spec.getRegistries();
+        if (registries == null) {
+            registries = new ArrayList<>();
+            spec.setRegistries(registries);
+        }
+        Optional<V1RegistryConfig> op = registries.stream()
             .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(serviceSource.getName()))
             .findFirst();
         if (op.isPresent()) {
             fillV1RegistryConfig(op.get(), serviceSource);
         } else {
-            v1McpBridge.getSpec().getRegistries().add(serviceSource2V1RegistryConfig(serviceSource));
+            registries.add(serviceSource2V1RegistryConfig(serviceSource));
         }
     }
 
