@@ -12,8 +12,10 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.console.controller.util.ValidateUtil;
@@ -46,6 +48,7 @@ public class ServiceSource {
 
     private Map<String, Object> properties;
 
+    @SuppressWarnings("unchecked")
     public boolean valid() {
         if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
             return false;
@@ -53,11 +56,12 @@ public class ServiceSource {
         if (null == this.getPort() || null == this.getProperties() || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
-        if ((V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType()))
-            && (null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID) || StringUtils
-                .isBlank((String)this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID)))) {
-            return false;
+        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType())) {
+            Object groups = this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS);
+            if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
+                return false;
+            }
         }
 
         if (V1McpBridge.REGISTRY_TYPE_ZK.equals(this.getType())
