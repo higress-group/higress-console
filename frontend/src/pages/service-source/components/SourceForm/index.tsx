@@ -151,7 +151,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               name={['properties', 'nacosNamespaceId']}
               rules={[
                 {
-                  required: true,
                   message: t('serviceSource.serviceSourceForm.nacosNamespaceIdRequired'),
                 },
               ]}
