@@ -56,8 +56,8 @@ public class ServiceSource {
         if (null == this.getPort() || null == this.getProperties() || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
-        if ((V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType()))) {
+        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType())) {
             Object groups = this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS);
             if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
                 return false;
