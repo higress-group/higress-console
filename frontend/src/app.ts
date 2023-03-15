@@ -29,8 +29,8 @@ export const storeConfig = defineStoreConfig(async (appData) => {
         currentUser: userInfo,
       },
       config: {
-        properties: config
-      }
+        properties: config,
+      },
     },
   };
 });
@@ -42,7 +42,7 @@ export const dataLoader = defineDataLoader(async () => {
   } catch (e) {
     userInfo = {
       username: '',
-      displayName: ''
+      displayName: '',
     };
   }
   let config;
@@ -53,7 +53,7 @@ export const dataLoader = defineDataLoader(async () => {
   }
   return {
     userInfo,
-    config
+    config,
   };
 });
 

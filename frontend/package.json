@@ -24,18 +24,35 @@
     "@ice/plugin-auth": "^1.0.0",
     "@ice/plugin-request": "^1.0.0",
     "@ice/plugin-store": "^1.0.0",
+    "@iceworks/spec": "^1.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "ahooks": "^3.7.2",
     "cross-env": "^7.0.3",
+    "eslint": "7.30.0",
+    "husky": "^8.0.3",
+    "ice.js": "^2.0.0",
+    "lint-staged": "^13.1.2",
     "lodash": "^4.17.21",
     "qs": "^6.11.0",
-    "typescript": "^4.8.4"
+    "stylelint": "13.2.1",
+    "typescript": "^4.4.4"
   },
   "scripts": {
+    "prepare": "cd .. && husky install frontend/.husky",
     "start": "cross-env NODE_ENV=development && ice start",
     "build": "cross-env NODE_ENV=production && ice build",
-    "build-dev": "cross-env NODE_ENV=development && ice build"
+    "build-dev": "cross-env NODE_ENV=development && ice build",
+    "lint": "npm run eslint && npm run stylelint",
+    "lint:lint-staged": "lint-staged",
+    "eslint": "eslint --cache --ext .js,.ts,.jsx,.tsx ./",
+    "eslint:fix": "npm run eslint -- --fix",
+    "stylelint": "stylelint \"**/*.{css,scss,less}\""
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "private": true,
   "originTemplate": "@ice/antd-pro-scaffold"

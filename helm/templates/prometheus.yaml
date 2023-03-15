@@ -1,6 +1,8 @@
+{{- if .Values.o11y.enabled }}
 {{- $appName := (include "higress-console-prometheus.fullname" .) }}
-{{- $port := .Values.prometheus.port }}
-{{- $ingress := .Values.prometheus.ingress -}}
+{{- $config := .Values.o11y.prometheus }}
+{{- $port := $config.port }}
+{{- $ingress := $config.ingress -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -72,14 +74,14 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-  {{- if .Values.local }}
+  {{- if .Values.global.kind }}
   - ReadWriteOnce
   {{- else }}
   - ReadWriteMany
   {{- end }}
   resources:
     requests:
-      storage: {{ .Values.prometheus.storage }}
+      storage: {{ $config.storage }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -89,7 +91,7 @@ metadata:
   name: {{ $appName }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.prometheus.replicas }}
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app: {{ $appName }}
@@ -99,7 +101,7 @@ spec:
         app: {{ $appName }}
     spec:
       containers:
-      - image: {{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}
+      - image: {{ $config.image.repository }}:{{ $config.image.tag }}
         name: prometheus
         command:
         - "/bin/prometheus"
@@ -118,12 +120,9 @@ spec:
         - mountPath: "/etc/prometheus"
           name: config
         resources:
-          requests:
-            cpu: {{ .Values.prometheus.resources.requests.cpu }}
-            memory: {{ .Values.prometheus.resources.requests.memory }}
           limits:
-            cpu: {{ .Values.prometheus.resources.limits.cpu }}
-            memory: {{ .Values.prometheus.resources.limits.memory }}
+            cpu: {{ $config.resources.limits.cpu }}
+            memory: {{ $config.resources.limits.memory }}
       restartPolicy: Always
       serviceAccountName: {{ $appName }}
       volumes:
@@ -142,7 +141,7 @@ metadata:
   name: {{ $appName }}
   namespace: {{ .Release.Namespace }}
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: {{ $port }}
     protocol: TCP
@@ -248,3 +247,4 @@ spec:
       host: {{ .host | quote }}
       {{- end }}
     {{- end }}
+{{- end }}

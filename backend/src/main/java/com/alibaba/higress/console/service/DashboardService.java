@@ -22,4 +22,6 @@ public interface DashboardService {
     DashboardInfo getDashboardInfo();
 
     void initializeDashboard(boolean overwrite);
+
+    void setDashboardUrl(String url);
 }

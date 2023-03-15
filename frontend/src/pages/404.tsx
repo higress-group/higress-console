@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 const NoFoundPage: React.FC = () => {
   const { t } = useTranslation();
-  return <Result
+  return (<Result
     status="404"
     title={t('error.404.title')}
     subTitle={t('error.404.subTitle')}
@@ -15,7 +15,7 @@ const NoFoundPage: React.FC = () => {
         {t('misc.return')}
       </Button>
     }
-  />
+  />)
 };
 
 export default NoFoundPage;

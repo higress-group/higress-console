@@ -1,0 +1,14 @@
+apiVersion: 1.0.0
+info:
+  category: security
+  name: bot-detect/v1
+  title: Bot Detect
+  description: 反爬插件
+  x-description-i18n:
+    en-US: Bot detect plugin
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io

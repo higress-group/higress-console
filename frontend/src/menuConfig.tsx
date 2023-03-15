@@ -1,4 +1,11 @@
-import { DashboardOutlined, DeploymentUnitOutlined, FullscreenExitOutlined, GlobalOutlined, UnorderedListOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import {
+  DashboardOutlined,
+  DeploymentUnitOutlined,
+  FullscreenExitOutlined,
+  GlobalOutlined,
+  UnorderedListOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
 const asideMenuConfig: MenuDataItem[] = [
@@ -35,4 +42,3 @@ const asideMenuConfig: MenuDataItem[] = [
 ];
 
 export { asideMenuConfig };
-

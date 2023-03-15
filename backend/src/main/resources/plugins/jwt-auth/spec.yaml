@@ -1,0 +1,14 @@
+apiVersion: 1.0.0
+info:
+  category: auth
+  name: jwt-auth/v1
+  title: JWT Auth
+  description: JWT 认证插件
+  x-description-i18n:
+    en-US: JWT auth plugin
+  iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io

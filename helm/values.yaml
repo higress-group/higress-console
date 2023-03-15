@@ -1,4 +1,5 @@
-local: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
+global:
+  kind: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
 
 replicaCount: 1
 
@@ -59,32 +60,27 @@ admin:
     length: 8 # The length of random password generated during installation
     value: "" # If set, the value will be used as the admin password for login, and Helm won't generate a random password.
 
-grafana:
-  replicas: 1
-  image:
-    repository: grafana/grafana
-    tag: 9.3.6
-  ingress:
-    path: /grafana # Only pathType of Prefix is supported
-  port: 3000
-  storage: 1Gi
-  resources:
-    requests:
-      cpu: 250m
-      memory: 512Mi
-prometheus:
-  replicas: 1
-  image:
-    repository: prom/prometheus
-    tag: v2.40.7
-  ingress:
-    path: /prometheus # Only pathType of Prefix is supported
-  port: 9090
-  storage: 1Gi
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-    limits:
-      cpu: 500m
-      memory: 2Gi
+o11y:
+  enabled: false
+  grafana:
+    replicas: 1
+    image:
+      repository: grafana/grafana
+      tag: 9.3.6
+    ingress:
+      path: /grafana # Only pathType of Prefix is supported
+    port: 3000
+    storage: 1Gi
+  prometheus:
+    replicas: 1
+    image:
+      repository: prom/prometheus
+      tag: v2.40.7
+    ingress:
+      path: /prometheus # Only pathType of Prefix is supported
+    port: 9090
+    storage: 1Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 2Gi

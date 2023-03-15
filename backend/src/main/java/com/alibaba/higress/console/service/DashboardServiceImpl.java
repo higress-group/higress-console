@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -36,6 +37,7 @@ import com.alibaba.higress.console.client.grafana.models.GrafanaDashboard;
 import com.alibaba.higress.console.client.grafana.models.GrafanaSearchResult;
 import com.alibaba.higress.console.client.grafana.models.SearchType;
 import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -58,7 +60,7 @@ public class DashboardServiceImpl implements DashboardService {
         new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new SynchronousQueue<>(),
             new ThreadFactoryBuilder().setDaemon(true).setNameFormat("DashboardService-Initializer-%d").build());
 
-    @Value("${" + CommonKey.DASHBOARD_BASE_URL_KEY + ":" + CommonKey.DASHBOARD_BASE_URL_DEFAULT + "}")
+    @Value("${" + CommonKey.DASHBOARD_BASE_URL_KEY + ":}")
     private String apiBaseUrl;
 
     @Value("${" + CommonKey.DASHBOARD_USERNAME_KEY + ":" + CommonKey.DASHBOARD_USERNAME_DEFAULT + "}")
@@ -70,16 +72,25 @@ public class DashboardServiceImpl implements DashboardService {
     @Value("${" + CommonKey.DASHBOARD_DATASOURCE_NAME_KEY + ":" + CommonKey.DASHBOARD_DATASOURCE_NAME_DEFAULT + "}")
     private String datasourceName = CommonKey.DASHBOARD_DATASOURCE_NAME_DEFAULT;
 
-    @Value("${" + CommonKey.DASHBOARD_DATASOURCE_URL_KEY + ":" + CommonKey.DASHBOARD_DATASOURCE_URL_DEFAULT + "}")
+    @Value("${" + CommonKey.DASHBOARD_DATASOURCE_URL_KEY + ":}")
     private String datasourceUrl;
 
+    private ConfigService configService;
     private GrafanaClient grafanaClient;
 
     private String dashboardConfiguration;
     private GrafanaDashboard configuredDashboard;
 
+    @Resource
+    public void setConfigService(ConfigService configService) {
+        this.configService = configService;
+    }
+
     @PostConstruct
     public void initialize() {
+        if (!isBuiltIn()) {
+            return;
+        }
         grafanaClient = new GrafanaClient(apiBaseUrl, username, password);
         try {
             dashboardConfiguration = IOUtils.resourceToString(DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
@@ -93,29 +104,18 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardInfo getDashboardInfo() {
-        List<GrafanaSearchResult> results;
-        try {
-            results = grafanaClient.search(null, SearchType.DB, null, null);
-        } catch (IOException e) {
-            throw new BusinessException("Error occurs when loading dashboard info from Grafana.", e);
-        }
-        if (CollectionUtils.isEmpty(results)) {
-            return null;
-        }
-        String expectedTitle = configuredDashboard.getTitle();
-        if (StringUtils.isEmpty(expectedTitle)) {
-            throw new IllegalStateException("No title is found in the configured dashboard.");
-        }
-        Optional<GrafanaSearchResult> result =
-            results.stream().filter(r -> expectedTitle.equals(r.getTitle())).findFirst();
-        return result.map(r -> new DashboardInfo(r.getUid(), r.getUrl())).orElse(null);
+        return isBuiltIn() ? getBuiltInDashboardInfo() : getConfiguredDashboardInfo();
     }
 
     @Override
     public void initializeDashboard(boolean overwrite) {
+        if (!isBuiltIn()) {
+            throw new IllegalStateException("No built-in dashboard is available.");
+        }
         DashboardInfo dashboardInfo = getDashboardInfo();
-        if (!overwrite && (dashboardInfo == null || StringUtils.isEmpty(dashboardInfo.getUrl()))) {
-            return;
+        if (!overwrite && dashboardInfo != null && StringUtils.isNotEmpty(dashboardInfo.getUrl())) {
+            throw new IllegalStateException(
+                "Built-in dashboard is already initialized, and the overwrite flag is not set.");
         }
         List<Datasource> datasources;
         try {
@@ -155,7 +155,7 @@ public class DashboardServiceImpl implements DashboardService {
             throw new RuntimeException(e);
         }
         try {
-            if (dashboardInfo != null) {
+            if (dashboardInfo != null && StringUtils.isNotEmpty(dashboardInfo.getUid())) {
                 String uid = dashboardInfo.getUid();
                 GrafanaDashboard existedDashboard = grafanaClient.getDashboard(uid);
                 if (existedDashboard != null) {
@@ -174,21 +174,64 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
+    @Override
+    public void setDashboardUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            throw new IllegalArgumentException("url cannot be null or blank.");
+        }
+        if (isBuiltIn()) {
+            throw new IllegalStateException("Manual dashboard configuration is disabled.");
+        }
+        configService.setConfig(UserConfigKey.DASHBOARD_URL, url);
+    }
+
+    private DashboardInfo getBuiltInDashboardInfo() {
+        List<GrafanaSearchResult> results;
+        try {
+            results = grafanaClient.search(null, SearchType.DB, null, null);
+        } catch (IOException e) {
+            throw new BusinessException("Error occurs when loading dashboard info from Grafana.", e);
+        }
+        if (CollectionUtils.isEmpty(results)) {
+            return new DashboardInfo(true, null, null);
+        }
+        String expectedTitle = configuredDashboard.getTitle();
+        if (StringUtils.isEmpty(expectedTitle)) {
+            throw new IllegalStateException("No title is found in the configured dashboard.");
+        }
+        Optional<GrafanaSearchResult> result =
+            results.stream().filter(r -> expectedTitle.equals(r.getTitle())).findFirst();
+        return result.map(r -> new DashboardInfo(true, r.getUid(), r.getUrl())).orElse(null);
+    }
+
+    private DashboardInfo getConfiguredDashboardInfo() {
+        String url = configService.getString(UserConfigKey.DASHBOARD_URL);
+        return new DashboardInfo(false, null, url);
+    }
+
+    private boolean isBuiltIn() {
+        return StringUtils.isNoneBlank(apiBaseUrl, datasourceUrl);
+    }
+
     private class DashboardInitializer implements Runnable {
 
         @Override
         public void run() {
-            try {
-                initializeDashboard(false);
-            } catch (Exception ex) {
-                log.error("Error occurs when trying to initialize the dashboard.", ex);
+            while (!Thread.interrupted()) {
                 try {
-                    TimeUnit.SECONDS.sleep(5);
-                } catch (InterruptedException e) {
-                    log.warn("Initialization thread is interrupted.", e);
+                    DashboardInfo dashboardInfo = getDashboardInfo();
+                    if (dashboardInfo != null && !StringUtils.isEmpty(dashboardInfo.getUrl())) {
+                        return;
+                    }
+                    initializeDashboard(false);
+                } catch (Exception ex) {
+                    log.error("Error occurs when trying to initialize the dashboard.", ex);
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (InterruptedException e) {
+                        log.warn("Initialization thread is interrupted.", e);
+                    }
                 }
-                // Try again.
-                EXECUTOR.submit(this);
             }
         }
     }

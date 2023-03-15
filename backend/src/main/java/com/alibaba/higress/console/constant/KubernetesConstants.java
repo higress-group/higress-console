@@ -14,10 +14,6 @@ package com.alibaba.higress.console.constant;
 
 public class KubernetesConstants {
 
-    public static final String MCP_BRIDGE_API_GROUP = "networking.higress.io";
-    public static final String MCP_BRIDGE_KIND = "McpBridge";
-    public static final String MCP_BRIDGE_NAME_DEFAULT = "default";
-
     public static final String K8S_CERT = "cert";
     public static final String K8S_ENABLE_HTTPS = "enableHttps";
 
@@ -27,6 +23,7 @@ public class KubernetesConstants {
     public static final String SECRET_TLS_KEY_FIELD = "tls.key";
 
     public static class Annotation {
+        public static final String KEY_PREFIX = "higress.io/";
         public static final String TRUE_VALUE = "true";
         public static final String USE_REGEX_KEY = "higress.io/use-regex";
         public static final String DESTINATION = "higress.io/destination";
@@ -49,8 +46,10 @@ public class KubernetesConstants {
         public static final String CORS_EXPOSE_HEADERS_KEY = "higress.io/cors-expose-headers";
         public static final String CORS_ALLOW_CREDENTIALS_KEY = "higress.io/cors-allow-credentials";
         public static final String CORS_MAX_AGE_KEY = "higress.io/cors-max-age";
-        public static final String QUERY_KEY_PREFIX = "higress.io/prefix-match-query-";
-        public static final String HEADER_KEY_PREFIX = "higress.io/prefix-match-header-";
+        public static final String QUERY_MATCH_KEYWORD = "-match-query-";
+        public static final String QUERY_MATCH_KEY_FORMAT = "higress.io/%s" + QUERY_MATCH_KEYWORD + "%s";
+        public static final String HEADER_MATCH_KEYWORD = "-match-header-";
+        public static final String HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + HEADER_MATCH_KEYWORD + "%s";
         public static final String METHOD_KEY = "higress.io/match-method";
 
         public static final String IGNORE_PATH_CASE_KEY = "higress.io/ignore-path-case";
@@ -61,6 +60,12 @@ public class KubernetesConstants {
         public static final String DOMAIN_VALUE_DUMMY = "true";
         public static final String RESOURCE_DEFINER_KEY = "higress.io/resource-definer";
         public static final String RESOURCE_DEFINER_VALUE = "higress";
+        public static final String WASM_PLUGIN_NAME_KEY = "higress.io/wasm-plugin-name";
+        public static final String WASM_PLUGIN_SCOPE_KEY = "higress.io/wasm-plugin-scope";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_GLOBAL = "global";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_DOMAIN = "domain";
+        public static final String WASM_PLUGIN_SCOPE_VALUE_ROUTE = "route";
+        public static final String WASM_PLUGIN_TARGET_KEY = "higress.io/wasm-plugin-target";
     }
 
     public static class IngressPathType {

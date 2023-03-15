@@ -50,7 +50,7 @@ request.interceptors.response.use(
         }
         // Unauthorized. Jump to the login page.
         Promise.reject(error);
-        if (window.location.href.indexOf('/login') == -1) {
+        if (window.location.href.indexOf('/login') === -1) {
           window.location.href = `/login?redirect=${window.location.pathname}`;
         }
         return;
@@ -70,7 +70,7 @@ request.interceptors.response.use(
     }
     showErrorModal(message, config, code);
     return Promise.reject(error);
-  }
+  },
 );
 
 function showErrorModal(message: string, config: object, code?: number) {

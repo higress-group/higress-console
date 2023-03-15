@@ -22,7 +22,7 @@ const ServiceList: React.FC = () => {
       title: t('service.columns.namespace'),
       dataIndex: 'namespace',
       key: 'namespace',
-      width: 200
+      width: 200,
     },
     {
       title: t('service.columns.endpoints'),
@@ -47,7 +47,7 @@ const ServiceList: React.FC = () => {
     manual: true,
     onSuccess: (result, params) => {
       const _os = new Set();
-      const _namespaces: Array<OptionItem> = [];
+      const _namespaces: OptionItem[] = [];
       result && result.forEach(service => {
         const { name, namespace } = service;
         service.key = name;
@@ -86,6 +86,7 @@ const ServiceList: React.FC = () => {
       Object.assign(factor, { namespace });
       _dataSource = _dataSource && _dataSource.filter((service: Service) => {
         const { namespace: _namespace } = service;
+        // eslint-disable-next-line eqeqeq
         return _namespace == namespace;
       })
     }
@@ -105,7 +106,7 @@ const ServiceList: React.FC = () => {
           paddingTop: 16,
           marginBottom: 16,
           paddingLeft: 16,
-          paddingRight: 16
+          paddingRight: 16,
         }}
       >
         <Row gutter={24}>

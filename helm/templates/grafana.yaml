@@ -1,6 +1,8 @@
+{{- if .Values.o11y.enabled }}
 {{- $appName := (include "higress-console-grafana.fullname" .) }}
-{{- $port := .Values.grafana.port -}}
-{{- $ingress := .Values.grafana.ingress }}
+{{- $config := .Values.o11y.grafana }}
+{{- $port := $config.port -}}
+{{- $ingress := $config.ingress }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -39,7 +41,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.grafana.storage }}
+      storage: {{ $config.storage }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -49,7 +51,7 @@ metadata:
   labels:
     app: {{ $appName }}
 spec:
-  replicas: {{ .Values.grafana.replicas }}
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app: {{ $appName }}
@@ -64,7 +66,7 @@ spec:
         - 0
       containers:
       - name: grafana
-        image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
+        image: {{ $config.image.repository }}:{{ $config.image.tag }}
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ $port }}
@@ -88,10 +90,6 @@ spec:
           tcpSocket:
             port: {{ $port }}
           timeoutSeconds: 1
-        resources:
-          requests:
-            cpu: {{ .Values.grafana.resources.requests.cpu }}
-            memory: {{ .Values.grafana.resources.requests.memory }}
         volumeMounts:
         - mountPath: /var/lib/grafana
           name: {{ $appName }}
@@ -119,7 +117,7 @@ spec:
   selector:
     app: {{ $appName }}
   sessionAffinity: None
-  type: LoadBalancer
+  type: ClusterIP
 ---
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -181,3 +179,4 @@ spec:
       host: {{ .host | quote }}
       {{- end }}
     {{- end }}
+{{- end }}

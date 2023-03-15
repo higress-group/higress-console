@@ -12,7 +12,6 @@
  */
 package com.alibaba.higress.console.service.kubernetes.crd.mcp;
 
-import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.google.gson.annotations.SerializedName;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -21,12 +20,15 @@ import lombok.Data;
 @Data
 public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject {
 
-    public static final String MCP_BRIDGE_PLURAL = "mcpbridges";
-    public static final String DEFAULT_VERSION = "v1";
+    public static final String API_GROUP = "networking.higress.io";
 
-    public static final String MCP_BRIDGE_NAME = "default";
+    public static final String VERSION = "v1";
 
-    public static final String MCP_BRIDGE_VERSION = "networking.higress.io/v1";
+    public static final String KIND = "McpBridge";
+
+    public static final String PLURAL = "mcpbridges";
+
+    public static final String DEFAULT_NAME = "default";
 
     public static final String REGISTRY_TYPE_NACOS = "nacos";
 
@@ -42,11 +44,11 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";
     @SerializedName(SERIALIZED_NAME_API_VERSION)
-    private String apiVersion = V1McpBridge.MCP_BRIDGE_VERSION;
+    private String apiVersion = API_GROUP + "/" + VERSION;
 
     public static final String SERIALIZED_NAME_KIND = "kind";
     @SerializedName(SERIALIZED_NAME_KIND)
-    private String kind = KubernetesConstants.MCP_BRIDGE_KIND;
+    private String kind = KIND;
 
     public static final String SERIALIZED_NAME_METADATA = "metadata";
     @SerializedName(SERIALIZED_NAME_METADATA)
@@ -60,5 +62,4 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
     public V1ObjectMeta getMetadata() {
         return metadata;
     }
-
 }

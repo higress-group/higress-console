@@ -38,14 +38,23 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   const menu = {
     items: [
       {
-        key: 'logout', label: t('misc.logout'), icon: <LogoutOutlined />, onClick: onMenuClick, className: styles.menu,
+        key: 'logout',
+        label: t('misc.logout'),
+        icon: <LogoutOutlined />,
+        onClick: onMenuClick,
+        className: styles.menu,
       },
     ],
   };
   return (
     <Dropdown menu={menu}>
       <span className={`${styles.action} ${styles.account}`}>
-        <Avatar size="small" className={styles.avatar} src={avatar || 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png'} alt="avatar" />
+        <Avatar
+          size="small"
+          className={styles.avatar}
+          src={avatar || 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png'}
+          alt="avatar"
+        />
         <span>{name}</span>
       </span>
     </Dropdown>

@@ -6,11 +6,10 @@ export default function SourcePage() {
   useEffect(() => {
     navigate('/route', { replace: true });
   }, []);
-  return;
 }
 
 export const pageConfig = definePageConfig(() => {
   return {
-    title: 'Higress Console'
+    title: 'Higress Console',
   };
 });

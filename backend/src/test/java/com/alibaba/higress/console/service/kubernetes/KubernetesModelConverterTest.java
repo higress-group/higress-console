@@ -12,21 +12,44 @@
  */
 package com.alibaba.higress.console.service.kubernetes;
 
-import com.alibaba.higress.console.constant.KubernetesConstants;
-import com.alibaba.higress.console.controller.dto.Route;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
-import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
-import com.alibaba.higress.console.controller.dto.route.UpstreamService;
-import io.kubernetes.client.openapi.models.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.controller.dto.Route;
+import com.alibaba.higress.console.controller.dto.WasmPlugin;
+import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
+import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
+import com.alibaba.higress.console.controller.dto.route.CorsConfig;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
+import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.console.controller.dto.route.UpstreamService;
+import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigAccessor;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigRuleAccessor;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginPhase;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.google.common.collect.ImmutableMap;
+
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
+import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
+import io.kubernetes.client.openapi.models.V1IngressSpec;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 
 public class KubernetesModelConverterTest {
 
@@ -147,7 +170,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -172,7 +196,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "10% hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "10% hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -197,7 +222,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -222,7 +248,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080 v1");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080 v1");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -247,8 +274,9 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "20% hello1.default.svc.cluster.local:8080\n" +
-                "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "20% hello1.default.svc.cluster.local:8080\n"
+                + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -275,7 +303,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.EXACT);
@@ -300,9 +329,10 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
-                KubernetesConstants.Annotation.TRUE_VALUE);
+            KubernetesConstants.Annotation.TRUE_VALUE);
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -338,7 +368,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -364,7 +395,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -390,7 +422,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -416,7 +449,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -444,8 +478,9 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "20% hello1.default.svc.cluster.local:8080\n" +
-                "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "20% hello1.default.svc.cluster.local:8080\n"
+                + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -471,7 +506,8 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.EXACT);
@@ -497,15 +533,283 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION, "hello.default.svc.cluster.local:8080");
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+            "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
-                KubernetesConstants.Annotation.TRUE_VALUE);
+            KubernetesConstants.Annotation.TRUE_VALUE);
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
         expectedPath.setPath(pathPredicate.getMatchValue());
 
         Assertions.assertEquals(expectedIngress, ingress);
+    }
+
+    @Test
+    public void wasmPluginInstance2CrTestGlobal() {
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName("test-plugin");
+        plugin.setPhase(PluginPhase.AUTHZ.getName());
+        plugin.setPriority(1000);
+        plugin.setImageRepository("oci://localhost/test-plugin");
+        plugin.setVersion("1.0.0");
+
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setName(plugin.getName());
+        instance.setScope(WasmPluginInstanceScope.GLOBAL);
+        instance.setConfigurations(ImmutableMap.of("a", 1, "b", ":", "c", Arrays.asList(1, 2, 3)));
+
+        V1alpha1WasmPlugin cr = converter.wasmPluginInstance2Cr(instance, plugin);
+
+        V1alpha1WasmPlugin expectedCr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        expectedCr.setMetadata(metadata);
+        metadata.setName(instance.getScope().getId() + CommonKey.DASH + plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        expectedCr.setSpec(expectedSpec);
+        expectedSpec.setPhase(plugin.getPhase());
+        expectedSpec.setPriority(plugin.getPriority());
+        expectedSpec.setUrl(plugin.getImageRepository() + CommonKey.COLON + plugin.getVersion());
+        PluginConfigAccessor expectedConfig = new PluginConfigAccessor();
+        expectedConfig.setConfigurations(instance.getConfigurations());
+        expectedSpec.setPluginConfig(expectedConfig.toMap());
+
+        Assertions.assertEquals(expectedCr, cr);
+    }
+
+    @Test
+    public void wasmPluginInstance2CrTestGlobalWithCustomImage() {
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName("test-plugin");
+        plugin.setPhase(PluginPhase.AUTHZ.getName());
+        plugin.setPriority(1000);
+        plugin.setImageRepository("oci://localhost/test-plugin");
+        plugin.setVersion("1.0.0");
+
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setName(plugin.getName());
+        instance.setScope(WasmPluginInstanceScope.GLOBAL);
+        instance.setConfigurations(ImmutableMap.of("a", 1, "b", ":", "c", Arrays.asList(1, 2, 3)));
+        instance.setImageRepository("oci://www.test.com/test-plugin");
+        instance.setImageVersion("0.0.1");
+
+        V1alpha1WasmPlugin cr = converter.wasmPluginInstance2Cr(instance, plugin);
+
+        V1alpha1WasmPlugin expectedCr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        expectedCr.setMetadata(metadata);
+        metadata.setName(instance.getScope().getId() + CommonKey.DASH + plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        expectedCr.setSpec(expectedSpec);
+        expectedSpec.setPhase(plugin.getPhase());
+        expectedSpec.setPriority(plugin.getPriority());
+        expectedSpec.setUrl(instance.getImageRepository() + CommonKey.COLON + instance.getImageVersion());
+        PluginConfigAccessor expectedConfig = new PluginConfigAccessor();
+        expectedConfig.setConfigurations(instance.getConfigurations());
+        expectedSpec.setPluginConfig(expectedConfig.toMap());
+
+        Assertions.assertEquals(expectedCr, cr);
+    }
+
+    @Test
+    public void wasmPluginInstance2CrTestDomain() {
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName("test-plugin");
+        plugin.setPhase(PluginPhase.AUTHZ.getName());
+        plugin.setPriority(1000);
+        plugin.setImageRepository("oci://localhost/test-plugin");
+        plugin.setVersion("1.0.0");
+
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setName(plugin.getName());
+        instance.setScope(WasmPluginInstanceScope.DOMAIN);
+        instance.setTarget("www.test.com");
+        instance.setConfigurations(ImmutableMap.of("a", 1, "b", ":", "c", List.of(1, 2, 3)));
+
+        V1alpha1WasmPlugin cr = converter.wasmPluginInstance2Cr(instance, plugin);
+
+        V1alpha1WasmPlugin expectedCr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        expectedCr.setMetadata(metadata);
+        metadata.setName(
+            instance.getScope().getId() + CommonKey.DASH + instance.getTarget() + CommonKey.DASH + plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, instance.getTarget());
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        expectedCr.setSpec(expectedSpec);
+        expectedSpec.setPhase(plugin.getPhase());
+        expectedSpec.setPriority(plugin.getPriority());
+        expectedSpec.setUrl(plugin.getImageRepository() + CommonKey.COLON + plugin.getVersion());
+        PluginConfigAccessor expectedConfig = new PluginConfigAccessor();
+        PluginConfigRuleAccessor expectedRule = new PluginConfigRuleAccessor();
+        expectedRule.setMatchDomains(List.of(instance.getTarget()));
+        expectedRule.setConfigurations(instance.getConfigurations());
+        expectedConfig.setRules(List.of(expectedRule.toMap()));
+        expectedSpec.setPluginConfig(expectedConfig.toMap());
+
+        Assertions.assertEquals(expectedCr, cr);
+    }
+
+    @Test
+    public void wasmPluginInstance2CrTestRoute() {
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName("test-plugin");
+        plugin.setPhase(PluginPhase.AUTHZ.getName());
+        plugin.setPriority(1000);
+        plugin.setImageRepository("oci://localhost/test-plugin");
+        plugin.setVersion("1.0.0");
+
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setName(plugin.getName());
+        instance.setScope(WasmPluginInstanceScope.ROUTE);
+        instance.setTarget("test-route");
+        instance.setConfigurations(ImmutableMap.of("a", 1, "b", ":", "c", List.of(1, 2, 3)));
+
+        V1alpha1WasmPlugin cr = converter.wasmPluginInstance2Cr(instance, plugin);
+
+        V1alpha1WasmPlugin expectedCr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        expectedCr.setMetadata(metadata);
+        metadata.setName(
+            instance.getScope().getId() + CommonKey.DASH + instance.getTarget() + CommonKey.DASH + plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, instance.getTarget());
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        expectedCr.setSpec(expectedSpec);
+        expectedSpec.setPhase(plugin.getPhase());
+        expectedSpec.setPriority(plugin.getPriority());
+        expectedSpec.setUrl(plugin.getImageRepository() + CommonKey.COLON + plugin.getVersion());
+        PluginConfigAccessor expectedConfig = new PluginConfigAccessor();
+        PluginConfigRuleAccessor expectedRule = new PluginConfigRuleAccessor();
+        expectedRule.setMatchRoutes(List.of(instance.getTarget()));
+        expectedRule.setConfigurations(instance.getConfigurations());
+        expectedConfig.setRules(List.of(expectedRule.toMap()));
+        expectedSpec.setPluginConfig(expectedConfig.toMap());
+
+        Assertions.assertEquals(expectedCr, cr);
+    }
+
+    @Test
+    public void wasmPluginCr2InstanceTestGlobal() {
+        WasmPluginInstanceScope scope = WasmPluginInstanceScope.GLOBAL;
+        String pluginName = "test-plugin";
+        String imageRepository = "oci://localhost/test-plugin";
+        String version = "1.0.0";
+
+        V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        cr.setMetadata(metadata);
+        metadata.setName(scope.getId() + CommonKey.DASH + pluginName);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, pluginName);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, scope.getId());
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        cr.setSpec(expectedSpec);
+        expectedSpec.setPhase(PluginPhase.AUTHN.getName());
+        expectedSpec.setPriority(1000);
+        expectedSpec.setUrl(imageRepository + CommonKey.COLON + version);
+        PluginConfigAccessor config = new PluginConfigAccessor();
+        Map<String, Object> configurations = ImmutableMap.of("a", 1, "b", ":", "c", List.of(1, 2, 3));
+        config.setConfigurations(configurations);
+        expectedSpec.setPluginConfig(config.toMap());
+
+        WasmPluginInstance instance = converter.wasmPluginCr2Instance(cr);
+
+        WasmPluginInstance expectedInstance = new WasmPluginInstance();
+        expectedInstance.setName(pluginName);
+        expectedInstance.setScope(scope);
+        expectedInstance.setImageRepository(imageRepository);
+        expectedInstance.setImageVersion(version);
+        expectedInstance.setConfigurations(configurations);
+
+        Assertions.assertEquals(expectedInstance, instance);
+    }
+
+    @Test
+    public void wasmPluginCr2InstanceTestDomain() {
+        WasmPluginInstanceScope scope = WasmPluginInstanceScope.DOMAIN;
+        String target = "www.test.com";
+        String pluginName = "test-plugin";
+        String imageRepository = "oci://localhost/test-plugin";
+        String version = "1.0.0";
+
+        V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        cr.setMetadata(metadata);
+        metadata.setName(scope.getId() + CommonKey.DASH + pluginName + CommonKey.DASH + target);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, pluginName);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, scope.getId());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, target);
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        cr.setSpec(expectedSpec);
+        expectedSpec.setPhase(PluginPhase.AUTHN.getName());
+        expectedSpec.setPriority(1000);
+        expectedSpec.setUrl(imageRepository + CommonKey.COLON + version);
+        PluginConfigAccessor config = new PluginConfigAccessor();
+        Map<String, Object> configurations = ImmutableMap.of("a", 1, "b", ":", "c", Arrays.asList(1, 2, 3));
+        PluginConfigRuleAccessor rule = new PluginConfigRuleAccessor();
+        rule.setMatchDomains(List.of(target));
+        rule.setConfigurations(configurations);
+        config.setRules(List.of(rule.toMap()));
+        expectedSpec.setPluginConfig(config.toMap());
+
+        WasmPluginInstance instance = converter.wasmPluginCr2Instance(cr);
+
+        WasmPluginInstance expectedInstance = new WasmPluginInstance();
+        expectedInstance.setName(pluginName);
+        expectedInstance.setScope(scope);
+        expectedInstance.setTarget(target);
+        expectedInstance.setImageRepository(imageRepository);
+        expectedInstance.setImageVersion(version);
+        expectedInstance.setConfigurations(configurations);
+
+        Assertions.assertEquals(expectedInstance, instance);
+    }
+
+    @Test
+    public void wasmPluginCr2InstanceTestRoute() {
+        WasmPluginInstanceScope scope = WasmPluginInstanceScope.ROUTE;
+        String target = "test-route";
+        String pluginName = "test-plugin";
+        String imageRepository = "oci://localhost/test-plugin";
+        String version = "1.0.0";
+
+        V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        cr.setMetadata(metadata);
+        metadata.setName(scope.getId() + CommonKey.DASH + pluginName + CommonKey.DASH + target);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, pluginName);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, scope.getId());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, target);
+        V1alpha1WasmPluginSpec expectedSpec = new V1alpha1WasmPluginSpec();
+        cr.setSpec(expectedSpec);
+        expectedSpec.setPhase(PluginPhase.AUTHN.getName());
+        expectedSpec.setPriority(1000);
+        expectedSpec.setUrl(imageRepository + CommonKey.COLON + version);
+        PluginConfigAccessor config = new PluginConfigAccessor();
+        Map<String, Object> configurations = ImmutableMap.of("a", 1, "b", ":", "c", Arrays.asList(1, 2, 3));
+        PluginConfigRuleAccessor rule = new PluginConfigRuleAccessor();
+        rule.setMatchRoutes(List.of(target));
+        rule.setConfigurations(configurations);
+        config.setRules(List.of(rule.toMap()));
+        expectedSpec.setPluginConfig(config.toMap());
+
+        WasmPluginInstance instance = converter.wasmPluginCr2Instance(cr);
+
+        WasmPluginInstance expectedInstance = new WasmPluginInstance();
+        expectedInstance.setName(pluginName);
+        expectedInstance.setScope(scope);
+        expectedInstance.setTarget(target);
+        expectedInstance.setImageRepository(imageRepository);
+        expectedInstance.setImageVersion(version);
+        expectedInstance.setConfigurations(configurations);
+
+        Assertions.assertEquals(expectedInstance, instance);
     }
 
     private V1Ingress buildBasicSupportedIngress() {
@@ -537,9 +841,9 @@ public class KubernetesModelConverterTest {
 
         V1IngressBackend backend = new V1IngressBackend();
         V1TypedLocalObjectReference reference = new V1TypedLocalObjectReference();
-        reference.setApiGroup(KubernetesConstants.MCP_BRIDGE_API_GROUP);
-        reference.setKind(KubernetesConstants.MCP_BRIDGE_KIND);
-        reference.setName(KubernetesConstants.MCP_BRIDGE_NAME_DEFAULT);
+        reference.setApiGroup(V1McpBridge.API_GROUP);
+        reference.setKind(V1McpBridge.KIND);
+        reference.setName(V1McpBridge.DEFAULT_NAME);
         backend.setResource(reference);
         path.setBackend(backend);
 
@@ -550,6 +854,7 @@ public class KubernetesModelConverterTest {
         Route route = new Route();
         route.setDomains(new ArrayList<>());
         route.setPath(new RoutePredicate());
+        route.setCors(new CorsConfig());
         return route;
     }
 }

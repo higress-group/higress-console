@@ -1,14 +1,14 @@
 export interface Domain {
-  name: string,
-  version?: string,
-  certIdentifier?: string,
-  enableHttps?: string,
-  [propName: string]: any,
+  name: string;
+  version?: string;
+  certIdentifier?: string;
+  enableHttps?: string;
+  [propName: string]: any;
 }
 
 export const Protocol = {
-  http: "HTTP",
-  https: "HTTPS",
+  http: 'HTTP',
+  https: 'HTTPS',
 };
 
 export enum EnableHttpsValue {
@@ -18,8 +18,8 @@ export enum EnableHttpsValue {
 }
 
 export interface DomainResponse {
-  data: Domain[],
-  pageNum: number,
-  pageSize: number,
-  total: number,
+  data: Domain[];
+  pageNum: number;
+  pageSize: number;
+  total: number;
 }

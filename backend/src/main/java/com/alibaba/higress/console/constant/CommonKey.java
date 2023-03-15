@@ -18,23 +18,27 @@ public class CommonKey {
 
     public final static String CONFIG_KEY_PREFIX = "higress-console.";
 
-    public final static String ADMIN_SECRET_NAME_KEY = "admin.secret";
+    public final static String LIST_CONFIG_SEPARATOR = ";";
+
+    public final static String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";
+
+    public final static String CONFIG_MAP_NAME_KEY_DEFAULT = "higress-console";
+
+    public final static String ADMIN_SECRET_NAME_KEY = CONFIG_KEY_PREFIX + "admin.secret";
 
     public final static String ADMIN_SECRET_NAME_DEFAULT = "higress-console";
 
-    public final static String ADMIN_COOKIE_NAME_KEY = "admin.cookie.name";
+    public final static String ADMIN_COOKIE_NAME_KEY = CONFIG_KEY_PREFIX + "admin.cookie.name";
 
     public final static String ADMIN_COOKIE_NAME_DEFAULT = "_hi_sess";
 
-    public final static String ADMIN_COOKIE_MAX_AGE_KEY = "admin.cookie.max-age";
+    public final static String ADMIN_COOKIE_MAX_AGE_KEY = CONFIG_KEY_PREFIX + "admin.cookie.max-age";
 
     public final static int ADMIN_COOKIE_MAX_AGE_DEFAULT = 30 * 24 * 60 * 60;
 
-    public final static String ADMIN_CONFIG_TTL_KEY = "admin.config-ttl";
+    public final static String ADMIN_CONFIG_TTL_KEY = CONFIG_KEY_PREFIX + "admin.config-ttl";
 
     public final static long ADMIN_CONFIG_TTL_DEFAULT = 60 * 1000;
-
-    public final static String LIST_CONFIG_SEPARATOR = ";";
 
     public final static String KUBE_CONFIG_KEY = CONFIG_KEY_PREFIX + "kube-config";
 
@@ -69,9 +73,6 @@ public class CommonKey {
 
     public final static String DASHBOARD_BASE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.base-url";
 
-    public final static String DASHBOARD_BASE_URL_DEFAULT =
-        "http://higress-console-grafana." + NS_DEFAULT + ":3000/grafana/";
-
     public final static String DASHBOARD_USERNAME_KEY = CONFIG_KEY_PREFIX + "dashboard.username";
 
     public final static String DASHBOARD_USERNAME_DEFAULT = "admin";
@@ -85,9 +86,6 @@ public class CommonKey {
     public final static String DASHBOARD_DATASOURCE_NAME_DEFAULT = "Prometheus";
 
     public final static String DASHBOARD_DATASOURCE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.url";
-
-    public final static String DASHBOARD_DATASOURCE_URL_DEFAULT =
-        "http://higress-console-prometheus." + NS_DEFAULT + ":9090/prometheus";
 
     public final static String LOGIN_PAGE_PROMPT_KEY = CONFIG_KEY_PREFIX + "web.login.prompt";
 
@@ -108,4 +106,8 @@ public class CommonKey {
     public final static String NEW_LINE = "\n";
 
     public final static String SPACE = " ";
+
+    public final static String UNDERSCORE = "_";
+
+    public final static String COLON = ":";
 }
