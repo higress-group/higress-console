@@ -205,31 +205,28 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "higress-console.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+  {{- if .Values.tlsSecretName }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  {{- end }}
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.tlsSecretName }}
   tls:
-    {{- range .Values.ingress.tls }}
     - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
+        - {{ .Values.domain | quote }}
+      secretName: {{ .Values.tlsSecretName }}
   {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
     - http:
         paths:
-          {{- range .paths }}
           - path: {{ $ingress.path }}
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Prefix
             {{- end }}
             backend:
@@ -242,9 +239,5 @@ spec:
               serviceName: {{ $appName }}
               servicePort: {{ $port }}
               {{- end }}
-          {{- end }}
-      {{- if .host }}
-      host: {{ .host | quote }}
-      {{- end }}
-    {{- end }}
+      host: {{ .Values.domain | quote }}
 {{- end }}
