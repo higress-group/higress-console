@@ -26,19 +26,15 @@ service:
   type: ClusterIP
   port: 8080
 
+domain: console.higress.io
+tlsSecretName: ""
+
 ingress:
   className: "higress"
   annotations: {}
-  hosts:
-    - host: "console.higress.io"
-      paths:
-        - path: /
-          pathType: Prefix
-    - host: "demo.higress.io"
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
+  paths:
+    - path: /
+      pathType: Prefix
 
 resources:
   requests:
