@@ -20,6 +20,7 @@
   },
   "login": {
     "title": "Login",
+    "buttonText": "Login",
     "loginSuccess": "Login successful!",
     "loginFailed": "Login failed. Please try again.",
     "incorrectCredentials": "Incorrect username or password.",

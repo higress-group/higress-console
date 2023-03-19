@@ -81,6 +81,13 @@ const Login: React.FC = () => {
         onFinish={async (values) => {
           await handleSubmit(values as LoginParams);
         }}
+        submitter={
+          {
+            searchConfig: {
+              submitText: t('login.buttonText'),
+            },
+          }
+        }
       >
         <ProFormText
           name="username"
