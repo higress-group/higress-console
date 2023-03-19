@@ -140,6 +140,7 @@ const RouteList: React.FC = () => {
       }
       setOpenDrawer(false);
       refresh();
+      currentRoute ? setCurrentRoute(null) : formRef.current.reset();
     } catch (errInfo) {
       // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
