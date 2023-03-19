@@ -20,6 +20,7 @@
   },
   "login": {
     "title": "登录",
+    "buttonText": "登录",
     "loginSuccess": "登录成功！",
     "loginFailed": "登录失败，请重试！",
     "incorrectCredentials": "账户或密码错误",
