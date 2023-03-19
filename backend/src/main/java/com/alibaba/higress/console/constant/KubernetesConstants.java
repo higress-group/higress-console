@@ -61,11 +61,7 @@ public class KubernetesConstants {
         public static final String RESOURCE_DEFINER_KEY = "higress.io/resource-definer";
         public static final String RESOURCE_DEFINER_VALUE = "higress";
         public static final String WASM_PLUGIN_NAME_KEY = "higress.io/wasm-plugin-name";
-        public static final String WASM_PLUGIN_SCOPE_KEY = "higress.io/wasm-plugin-scope";
-        public static final String WASM_PLUGIN_SCOPE_VALUE_GLOBAL = "global";
-        public static final String WASM_PLUGIN_SCOPE_VALUE_DOMAIN = "domain";
-        public static final String WASM_PLUGIN_SCOPE_VALUE_ROUTE = "route";
-        public static final String WASM_PLUGIN_TARGET_KEY = "higress.io/wasm-plugin-target";
+        public static final String WASM_PLUGIN_VERSION_KEY = "higress.io/wasm-plugin-version";
     }
 
     public static class IngressPathType {

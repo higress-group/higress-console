@@ -30,8 +30,6 @@ public class V1alpha1WasmPluginSpec {
 
     private String phase;
 
-    private Map<String, Object> pluginConfig;
-
     private Integer priority;
 
     private String sha256;

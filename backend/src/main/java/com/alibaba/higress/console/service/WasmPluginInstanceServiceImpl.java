@@ -14,10 +14,12 @@ package com.alibaba.higress.console.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -58,95 +60,126 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     public List<WasmPluginInstance> list(WasmPluginInstanceScope scope, String target) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(scope.getId(), target, null);
+            plugins = kubernetesClientService.listWasmPlugin(null, null);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing WasmPlugin.", e);
         }
         if (CollectionUtils.isEmpty(plugins)) {
             return Collections.emptyList();
         }
-        return plugins.stream().map(kubernetesModelConverter::wasmPluginCr2Instance).toList();
+        return plugins.stream().map(p -> kubernetesModelConverter.getWasmPluginInstanceFromCr(p, scope, target))
+            .filter(Objects::nonNull).toList();
     }
 
     @Override
     public WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(scope.getId(), target, pluginName);
+            plugins = kubernetesClientService.listWasmPlugin(pluginName, null);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when querying WasmPlugin.", e);
         }
         if (CollectionUtils.isEmpty(plugins)) {
             return null;
         }
-        return kubernetesModelConverter.wasmPluginCr2Instance(plugins.get(0));
+        return kubernetesModelConverter.getWasmPluginInstanceFromCr(plugins.get(0), scope, target);
     }
 
     @Override
     public WasmPluginInstance addOrUpdate(WasmPluginInstance instance) {
-        WasmPlugin plugin = wasmPluginService.query(instance.getName(), null);
-        V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginInstance2Cr(instance, plugin);
+        WasmPluginInstanceScope scope = instance.getScope();
+        if (scope == null) {
+            throw new IllegalArgumentException("instance.scope cannot be null.");
+        }
+        String target = instance.getTarget();
+        if (scope == WasmPluginInstanceScope.GLOBAL) {
+            if (target != null) {
+                throw new IllegalArgumentException("instance.target must be null when scope is GLOBAL.");
+            }
+        } else {
+            if (StringUtils.isEmpty(target)) {
+                throw new IllegalArgumentException(
+                    "instance.target must not be null or empty when scope is not GLOBAL.");
+            }
+        }
+
+        String name = instance.getPluginName();
+        WasmPlugin plugin = wasmPluginService.query(name, null);
+        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getVersion());
         V1alpha1WasmPlugin existedCr = null;
         try {
-            existedCr = kubernetesClientService.getWasmPlugin(cr.getMetadata().getName());
+            List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
+            if (CollectionUtils.isNotEmpty(existedCrs)) {
+                existedCr = existedCrs.get(0);
+            }
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
                 throw new BusinessException("Error occurs when getting WasmPlugin.", e);
             }
         }
-        V1alpha1WasmPlugin newCr;
+        V1alpha1WasmPlugin result;
         try {
             if (existedCr == null) {
-                newCr = kubernetesClientService.addWasmPlugin(cr);
+                if (!version.equals(plugin.getVersion())) {
+                    throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
+                }
+                result = kubernetesModelConverter.wasmPluginToCr(plugin);
+                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
+                result = kubernetesClientService.addWasmPlugin(result);
             } else {
-                newCr = kubernetesClientService.updateWasmPlugin(cr);
+                result = existedCr;
+                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
+                result = kubernetesClientService.updateWasmPlugin(result);
             }
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
-                "Error occurs when adding or updating the WasmPlugin CR with name: " + cr.getMetadata().getName(), e);
+                "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
         }
-        return kubernetesModelConverter.wasmPluginCr2Instance(newCr);
+        return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, scope, target);
     }
 
     @Override
     public void delete(WasmPluginInstanceScope scope, String target, String pluginName) {
-        List<V1alpha1WasmPlugin> plugins;
+        List<V1alpha1WasmPlugin> existedCrs = null;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(scope.getId(), target, pluginName);
+            existedCrs = kubernetesClientService.listWasmPlugin(pluginName, null);
         } catch (ApiException e) {
-            throw new BusinessException("Error occurs when listing WasmPlugin.", e);
-        }
-        if (CollectionUtils.isEmpty(plugins)) {
-            return;
-        }
-        for (V1alpha1WasmPlugin plugin : plugins) {
-            try {
-                kubernetesClientService.deleteWasmPlugin(plugin.getMetadata().getName());
-            } catch (ApiException e) {
-                throw new BusinessException("Error occurs when deleting WasmPlugin.", e);
+            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
+                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
             }
         }
+        deletePluginInstances(existedCrs, scope, target);
     }
 
     @Override
     public void deleteAll(WasmPluginInstanceScope scope, String target) {
-        List<V1alpha1WasmPlugin> plugins;
+        List<V1alpha1WasmPlugin> existedCrs = null;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(scope.getId(), target, null);
+            existedCrs = kubernetesClientService.listWasmPlugin(null, null);
         } catch (ApiException e) {
-            throw new BusinessException("Error occurs when listing WasmPlugin.", e);
+            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
+                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
+            }
         }
-        if (CollectionUtils.isEmpty(plugins)) {
+        deletePluginInstances(existedCrs, scope, target);
+    }
+
+    private void deletePluginInstances(List<V1alpha1WasmPlugin> crs, WasmPluginInstanceScope scope, String target) {
+        if (CollectionUtils.isEmpty(crs)) {
             return;
         }
-        for (V1alpha1WasmPlugin plugin : plugins) {
-            try {
-                kubernetesClientService.deleteWasmPlugin(plugin.getMetadata().getName());
-            } catch (ApiException e) {
-                throw new BusinessException("Error occurs when deleting WasmPlugin.", e);
+        for (V1alpha1WasmPlugin cr : crs) {
+            boolean needUpdate = kubernetesModelConverter.removeWasmPluginInstanceFromCr(cr, scope, target);
+            if (needUpdate) {
+                try {
+                    kubernetesClientService.updateWasmPlugin(cr);
+                } catch (ApiException e) {
+                    throw new BusinessException(
+                        "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);
+                }
             }
         }
     }

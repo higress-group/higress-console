@@ -12,12 +12,17 @@
  */
 package com.alibaba.higress.console.service.kubernetes.crd.wasm;
 
-import lombok.Data;
-
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MatchRule {
 
     private Map<String, Object> config;
@@ -25,4 +30,12 @@ public class MatchRule {
     private List<String> domain;
 
     private List<String> ingress;
+
+    public static MatchRule forDomain(String domain, Map<String, Object> config) {
+        return new MatchRule(config, Collections.singletonList(domain), null);
+    }
+
+    public static MatchRule forIngress(String ingress, Map<String, Object> config) {
+        return new MatchRule(config, null, Collections.singletonList(ingress));
+    }
 }

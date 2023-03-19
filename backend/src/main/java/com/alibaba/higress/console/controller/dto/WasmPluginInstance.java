@@ -27,17 +27,15 @@ import lombok.NoArgsConstructor;
 @ApiModel("Wasm Plugin Instance")
 public class WasmPluginInstance {
 
+    private String version;
+
     private WasmPluginInstanceScope scope;
 
     private String target;
 
-    private String name;
+    private String pluginName;
 
-    private String version;
-
-    private String imageRepository;
-
-    private String imageVersion;
+    private String pluginVersion;
 
     private Map<String, Object> configurations;
 }
