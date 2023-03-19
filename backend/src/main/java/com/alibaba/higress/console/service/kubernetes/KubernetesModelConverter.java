@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,8 +60,7 @@ import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
-import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigAccessor;
-import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginConfigRuleAccessor;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.alibaba.higress.console.util.TypeUtil;
@@ -284,113 +284,181 @@ public class KubernetesModelConverter {
         return certificate;
     }
 
-    public V1alpha1WasmPlugin wasmPluginInstance2Cr(WasmPluginInstance instance, WasmPlugin plugin) {
+    public V1alpha1WasmPlugin wasmPluginToCr(WasmPlugin plugin) {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName(plugin.getName() + CommonKey.DASH + plugin.getVersion());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY, plugin.getVersion());
         cr.setMetadata(metadata);
-        metadata.setName(buildWasmPluginCrName(instance));
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, instance.getName());
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY, instance.getScope().getId());
-        if (instance.getTarget() != null) {
-            KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY, instance.getTarget());
-        }
-        metadata.setResourceVersion(instance.getVersion());
 
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
-        cr.setSpec(spec);
-
         spec.setPhase(plugin.getPhase());
         spec.setPriority(plugin.getPriority());
-
-        String imageUrl = StringUtils.firstNonBlank(instance.getImageRepository(), plugin.getImageRepository())
-            + CommonKey.COLON + StringUtils.firstNonBlank(instance.getImageVersion(), plugin.getVersion());
-        spec.setUrl(imageUrl);
-
-        PluginConfigAccessor config = new PluginConfigAccessor();
-        switch (instance.getScope()) {
-            case GLOBAL:
-                config.setConfigurations(instance.getConfigurations());
-                break;
-            case DOMAIN:
-                PluginConfigRuleAccessor domainRule = new PluginConfigRuleAccessor();
-                domainRule.setMatchDomains(Collections.singletonList(instance.getTarget()));
-                domainRule.setConfigurations(instance.getConfigurations());
-                config.setRules(Collections.singletonList(domainRule.toMap()));
-                break;
-            case ROUTE:
-                PluginConfigRuleAccessor routeRule = new PluginConfigRuleAccessor();
-                routeRule.setMatchRoutes(Collections.singletonList(instance.getTarget()));
-                routeRule.setConfigurations(instance.getConfigurations());
-                config.setRules(Collections.singletonList(routeRule.toMap()));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown plugin scope: " + instance.getScope());
-        }
-        spec.setPluginConfig(config.toMap());
+        spec.setUrl(plugin.getImageRepository() + CommonKey.COLON + plugin.getVersion());
+        cr.setSpec(spec);
 
         return cr;
     }
 
-    public WasmPluginInstance wasmPluginCr2Instance(V1alpha1WasmPlugin plugin) {
-        WasmPluginInstance instance = new WasmPluginInstance();
-
+    public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin, WasmPluginInstanceScope scope,
+        String target) {
         V1ObjectMeta metadata = plugin.getMetadata();
-        if (metadata != null) {
-            instance.setVersion(metadata.getResourceVersion());
-            Map<String, String> labels = metadata.getLabels();
-            if (MapUtils.isNotEmpty(labels)) {
-                instance.setName(labels.get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY));
-                String rawScope = labels.get(KubernetesConstants.Label.WASM_PLUGIN_SCOPE_KEY);
-                instance.setScope(WasmPluginInstanceScope.fromId(rawScope));
-                instance.setTarget(labels.get(KubernetesConstants.Label.WASM_PLUGIN_TARGET_KEY));
-            }
+        if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
+            return null;
         }
 
         V1alpha1WasmPluginSpec spec = plugin.getSpec();
-        if (spec != null) {
-            String url = spec.getUrl();
-            if (StringUtils.isNotEmpty(url)) {
-                int lastColonIndex = url.lastIndexOf(CommonKey.COLON);
-                if (lastColonIndex == -1) {
-                    instance.setImageRepository(url);
-                } else {
-                    instance.setImageRepository(url.substring(0, lastColonIndex));
-                    instance.setImageVersion(url.substring(lastColonIndex + 1));
-                }
-            }
-            Map<String, Object> config = spec.getPluginConfig();
-            if (config != null && instance.getScope() != null) {
-                PluginConfigAccessor configAccessor = new PluginConfigAccessor(config);
-                switch (instance.getScope()) {
-                    case GLOBAL:
-                        instance.setConfigurations(configAccessor.getConfigurations());
-                        break;
-                    case DOMAIN:
-                        if (CollectionUtils.isNotEmpty(configAccessor.getRules())) {
-                            Optional<PluginConfigRuleAccessor> rule = configAccessor.getRules().stream()
-                                .map(PluginConfigRuleAccessor::new).filter(r -> r.getMatchDomains() != null
-                                    && r.getMatchDomains().contains(instance.getTarget()))
-                                .findFirst();
-                            rule.ifPresent(r -> instance.setConfigurations(r.getConfigurations()));
-                        }
-                        break;
-                    case ROUTE:
-                        if (CollectionUtils.isNotEmpty(configAccessor.getRules())) {
-                            Optional<PluginConfigRuleAccessor> rule = configAccessor.getRules().stream()
-                                .map(PluginConfigRuleAccessor::new).filter(r -> r.getMatchRoutes() != null
-                                    && r.getMatchRoutes().contains(instance.getTarget()))
-                                .findFirst();
-                            rule.ifPresent(r -> instance.setConfigurations(r.getConfigurations()));
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown plugin scope: " + instance.getScope());
-                }
-            }
+        if (spec == null) {
+            return null;
         }
 
-        return instance;
+        String name = metadata.getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY);
+        String version = metadata.getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+        if (StringUtils.isAnyBlank(name, version)) {
+            return null;
+        }
+
+        Map<String, Object> configurations = null;
+        switch (scope) {
+            case GLOBAL:
+                if (target == null) {
+                    configurations = spec.getDefaultConfig();
+                }
+                break;
+            case DOMAIN:
+                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+                    Optional<MatchRule> rule = spec.getMatchRules().stream()
+                        .filter(r -> r.getDomain() != null && r.getDomain().contains(target)).findFirst();
+                    if (rule.isPresent()) {
+                        configurations = rule.get().getConfig();
+                    }
+                }
+                break;
+            case ROUTE:
+                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+                    Optional<MatchRule> rule = spec.getMatchRules().stream()
+                        .filter(r -> r.getIngress() != null && r.getIngress().contains(target)).findFirst();
+                    if (rule.isPresent()) {
+                        configurations = rule.get().getConfig();
+                    }
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
+        if (MapUtils.isEmpty(configurations)) {
+            return null;
+        }
+        return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
+            .pluginVersion(version).scope(scope).target(target).configurations(configurations).build();
+    }
+
+    public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
+        V1alpha1WasmPluginSpec spec = cr.getSpec();
+        if (spec == null) {
+            spec = new V1alpha1WasmPluginSpec();
+            cr.setSpec(spec);
+        }
+
+        List<MatchRule> matchRules = spec.getMatchRules();
+        if (matchRules == null) {
+            matchRules = new ArrayList<>();
+            spec.setMatchRules(matchRules);
+        }
+
+        WasmPluginInstanceScope scope = instance.getScope();
+        switch (scope) {
+            case GLOBAL:
+                if (instance.getTarget() == null) {
+                    spec.setDefaultConfig(instance.getConfigurations());
+                }
+                break;
+            case DOMAIN:
+                String domain = instance.getTarget();
+                MatchRule domainRule = matchRules.stream()
+                    .filter(r -> r.getDomain() != null && r.getDomain().contains(domain)).findFirst().orElse(null);
+                if (domainRule == null) {
+                    domainRule = MatchRule.forDomain(domain, instance.getConfigurations());
+                    matchRules.add(domainRule);
+                } else {
+                    domainRule.setConfig(instance.getConfigurations());
+                }
+                break;
+            case ROUTE:
+                String route = instance.getTarget();
+                MatchRule routeRule = matchRules.stream()
+                    .filter(r -> r.getIngress() != null && r.getIngress().contains(route)).findFirst().orElse(null);
+                if (routeRule == null) {
+                    routeRule = MatchRule.forIngress(route, instance.getConfigurations());
+                    // Route rules shall come first to get the highest priority.
+                    matchRules.add(0, routeRule);
+                } else {
+                    routeRule.setConfig(instance.getConfigurations());
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
+    }
+
+    public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, WasmPluginInstanceScope scope, String target) {
+        V1alpha1WasmPluginSpec spec = cr.getSpec();
+        if (spec == null) {
+            return false;
+        }
+
+        boolean changed = false;
+        switch (scope) {
+            case GLOBAL:
+                if (target == null) {
+                    spec.setDefaultConfig(null);
+                    changed = true;
+                }
+                break;
+            case DOMAIN:
+                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
+                    break;
+                }
+                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
+                    MatchRule rule = it.next();
+                    if (CollectionUtils.isEmpty(rule.getDomain())) {
+                        continue;
+                    }
+                    if (!rule.getDomain().contains(target)) {
+                        continue;
+                    }
+                    changed = true;
+                    rule.getDomain().remove(target);
+                    if (CollectionUtils.isEmpty(rule.getDomain()) && CollectionUtils.isEmpty(rule.getIngress())) {
+                        it.remove();
+                    }
+                }
+                break;
+            case ROUTE:
+                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
+                    break;
+                }
+                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
+                    MatchRule rule = it.next();
+                    if (CollectionUtils.isEmpty(rule.getIngress())) {
+                        continue;
+                    }
+                    if (!rule.getIngress().contains(target)) {
+                        continue;
+                    }
+                    changed = true;
+                    rule.getIngress().remove(target);
+                    if (CollectionUtils.isEmpty(rule.getDomain()) && CollectionUtils.isEmpty(rule.getIngress())) {
+                        it.remove();
+                    }
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
+        return changed;
     }
 
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
@@ -1105,15 +1173,6 @@ public class KubernetesModelConverter {
             log.error("Error occurs when parsing subject: " + principal.getName(), e);
             return null;
         }
-    }
-
-    private static String buildWasmPluginCrName(WasmPluginInstance instance) {
-        StringBuilder builder = new StringBuilder(instance.getScope().getId());
-        if (instance.getTarget() != null) {
-            builder.append(CommonKey.DASH).append(instance.getTarget());
-        }
-        builder.append(CommonKey.DASH).append(instance.getName());
-        return builder.toString();
     }
 
     private void setDomainLabel(V1ObjectMeta metadata, String domainName) {

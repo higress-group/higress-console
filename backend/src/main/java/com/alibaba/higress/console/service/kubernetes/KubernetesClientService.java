@@ -421,17 +421,14 @@ public class KubernetesClientService {
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
     }
 
-    public List<V1alpha1WasmPlugin> listWasmPlugin(String scope, String target, String pluginName) throws ApiException {
+    public List<V1alpha1WasmPlugin> listWasmPlugin(String name, String version) throws ApiException {
         List<String> labelSelectorItems = new ArrayList<>();
         labelSelectorItems.add(DEFAULT_LABEL_SELECTORS);
-        if (StringUtils.isNotEmpty(scope)) {
-            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_SCOPE_KEY, scope));
+        if (StringUtils.isNotEmpty(name)) {
+            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_NAME_KEY, name));
         }
-        if (StringUtils.isNotEmpty(target)) {
-            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_TARGET_KEY, target));
-        }
-        if (StringUtils.isNotEmpty(pluginName)) {
-            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_NAME_KEY, pluginName));
+        if (StringUtils.isNotEmpty(version)) {
+            labelSelectorItems.add(buildLabelSelector(Label.WASM_PLUGIN_VERSION_KEY, version));
         }
         String labelSelector = labelSelectorItems.size() == 1 ? labelSelectorItems.get(0)
             : joinLabelSelectors(labelSelectorItems.toArray(new String[0]));
