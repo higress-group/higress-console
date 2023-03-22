@@ -3,7 +3,7 @@ info:
   category: auth
   name: hmac-auth/v1
   title:  HMAC Auth
-  description: HMAC 认证插件
+  description: 基于 HMAC 算法为 HTTP 请求生成不可伪造的签名，并基于签名实现身份认证和鉴权
   x-description-i18n:
     en-US: HMAC auth plugin
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 330

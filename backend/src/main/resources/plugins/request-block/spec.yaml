@@ -3,7 +3,7 @@ info:
   category: security
   name: request-block/v1
   title: Request Block
-  description: 请求拦截插件
+  description: 基于 URI、请求头等特征屏蔽 HTTP 请求，可以用于防护部分站点资源不对外部暴露
   x-description-i18n:
     en-US: Request block plugin
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHZ
+  priority: 320

@@ -3,7 +3,7 @@ info:
   category: traffic
   name: custom-response/v1
   title: Custom Response
-  description: 自定义响应插件
+  description: 支持配置自定义的响应，包括自定义 HTTP 应答状态码、HTTP 应答头，以及 HTTP 应答 Body
   x-description-i18n:
     en-US: Custom response plugin
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 910
