@@ -98,21 +98,21 @@ public class WasmPluginInstancesController {
         deleteInstance(WasmPluginInstanceScope.GLOBAL, null, pluginName);
     }
 
-    @GetMapping(value = "/domain/{domainName}/plugin-instances")
+    @GetMapping(value = "/domains/{domainName}/plugin-instances")
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
         listDomainInstances(@PathVariable("domainName") @NotBlank String domainName) {
         validateDomainName(domainName);
         return listInstances(WasmPluginInstanceScope.DOMAIN, domainName);
     }
 
-    @GetMapping(value = "/domain/{domainName}/plugin-instances/{name}")
+    @GetMapping(value = "/domains/{domainName}/plugin-instances/{name}")
     public ResponseEntity<Response<WasmPluginInstance>> queryDomainInstance(
         @PathVariable("domainName") @NotBlank String domainName, @PathVariable("name") @NotBlank String pluginName) {
         validateDomainName(domainName);
         return queryInstance(WasmPluginInstanceScope.DOMAIN, domainName, pluginName);
     }
 
-    @PutMapping(value = "/domain/{domainName}/plugin-instances/{name}")
+    @PutMapping(value = "/domains/{domainName}/plugin-instances/{name}")
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateDomainInstance(
         @PathVariable("domainName") @NotBlank String domainName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
@@ -120,27 +120,27 @@ public class WasmPluginInstancesController {
         return addOrUpdateInstance(WasmPluginInstanceScope.DOMAIN, domainName, pluginName, instance);
     }
 
-    @DeleteMapping(value = "/domain/{domainName}/plugin-instances/{name}")
+    @DeleteMapping(value = "/domains/{domainName}/plugin-instances/{name}")
     public void deleteDomainInstance(@PathVariable("domainName") @NotBlank String domainName,
         @PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.DOMAIN, domainName, pluginName);
     }
 
-    @GetMapping(value = "/route/{routeName}/plugin-instances")
+    @GetMapping(value = "/routes/{routeName}/plugin-instances")
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
         listRouteInstances(@PathVariable("routeName") @NotBlank String routeName) {
         validateRouteName(routeName);
         return listInstances(WasmPluginInstanceScope.ROUTE, routeName);
     }
 
-    @GetMapping(value = "/route/{routeName}/plugin-instances/{name}")
+    @GetMapping(value = "/routes/{routeName}/plugin-instances/{name}")
     public ResponseEntity<Response<WasmPluginInstance>> queryRouteInstance(
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName) {
         validateRouteName(routeName);
         return queryInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName);
     }
 
-    @PutMapping(value = "/route/{routeName}/plugin-instances/{name}")
+    @PutMapping(value = "/routes/{routeName}/plugin-instances/{name}")
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateRouteInstance(
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
@@ -148,7 +148,7 @@ public class WasmPluginInstancesController {
         return addOrUpdateInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName, instance);
     }
 
-    @DeleteMapping(value = "/route/{routeName}/plugin-instances/{name}")
+    @DeleteMapping(value = "/routes/{routeName}/plugin-instances/{name}")
     public void deleteRouteInstance(@PathVariable("routeName") @NotBlank String routeName,
         @PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName);

@@ -25,17 +25,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MatchRule {
 
+    private Boolean configDisable;
+
     private Map<String, Object> config;
 
     private List<String> domain;
 
     private List<String> ingress;
 
-    public static MatchRule forDomain(String domain, Map<String, Object> config) {
-        return new MatchRule(config, Collections.singletonList(domain), null);
+    public static MatchRule forDomain(String domain) {
+        return new MatchRule(null, null, Collections.singletonList(domain), null);
     }
 
-    public static MatchRule forIngress(String ingress, Map<String, Object> config) {
-        return new MatchRule(config, null, Collections.singletonList(ingress));
+    public static MatchRule forIngress(String ingress) {
+        return new MatchRule(null, null, null, Collections.singletonList(ingress));
     }
 }

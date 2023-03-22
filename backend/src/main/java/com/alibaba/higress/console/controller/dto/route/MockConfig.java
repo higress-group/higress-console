@@ -25,6 +25,8 @@ public class MockConfig {
 
     public static final int DEFAULT_STATUS = 200;
 
+    private Boolean enabled;
+
     private Integer status;
 
     private String content;

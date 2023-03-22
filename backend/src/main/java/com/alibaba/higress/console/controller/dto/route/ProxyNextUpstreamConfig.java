@@ -26,6 +26,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProxyNextUpstreamConfig {
 
+    private Boolean enabled;
+
     private Integer attempts;
 
     private Integer timeout;
