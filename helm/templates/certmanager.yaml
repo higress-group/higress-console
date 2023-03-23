@@ -1,6 +1,6 @@
-{{- if .Values.o11y.enabled }}
+{{- if .Values.certmanager.enabled }}
 {{- $appName := (include "higress-console-cert-manager.fullname" .) }}
-{{- $config := .Values.o11y.certmanager }}
+{{- $config := .Values.certmanager }}
 ---
 # Source: cert-manager/templates/cainjector-serviceaccount.yaml
 apiVersion: v1
@@ -867,7 +867,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: cert-manager-{{ $config.image.tag }}
 spec:
-  replicas: 1
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: cainjector
@@ -924,7 +924,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: cert-manager-{{ $config.image.tag }}
 spec:
-  replicas: 1
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: cert-manager
@@ -988,7 +988,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     helm.sh/chart: cert-manager-{{ $config.image.tag }}
 spec:
-  replicas: 1
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: webhook
