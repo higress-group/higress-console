@@ -3,7 +3,7 @@ info:
   category: auth
   name: key-auth/v1
   title: Key Auth
-  description: JWT 认证插件
+  description: 基于 API Key 实现身份认证和鉴权
   x-description-i18n:
     en-US: JWT auth plugin
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 310

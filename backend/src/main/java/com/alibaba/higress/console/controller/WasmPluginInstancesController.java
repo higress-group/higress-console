@@ -168,9 +168,9 @@ public class WasmPluginInstancesController {
 
     private ResponseEntity<Response<WasmPluginInstance>> addOrUpdateInstance(WasmPluginInstanceScope scope,
         String target, String name, WasmPluginInstance instance) {
-        if (StringUtils.isEmpty(instance.getName())) {
-            instance.setName(name);
-        } else if (!StringUtils.equals(name, instance.getName())) {
+        if (StringUtils.isEmpty(instance.getPluginName())) {
+            instance.setPluginName(name);
+        } else if (!StringUtils.equals(name, instance.getPluginName())) {
             throw new ValidationException("Plugin name in the URL doesn't match the one in the body.");
         }
         WasmPlugin plugin = wasmPluginService.query(name, null);

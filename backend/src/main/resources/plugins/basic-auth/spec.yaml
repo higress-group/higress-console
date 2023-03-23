@@ -14,13 +14,14 @@ info:
     email: admin@higress.io
 spec:
   phase: AUTHN
-  priority: 0
+  priority: 320
   configSchema:
     openAPIV3Schema:
       type: object
       properties:
         consumers:
           type: array
+          scope: GLOBAL
           title: 调用方列表
           x-title-i18n:
             en-US: Consumer List
@@ -53,69 +54,26 @@ spec:
             required:
               - name
               - credential
-        _rules_:
+        allow:
           type: array
-          title: 认证规则
+          title: 授权访问的调用方列表
           x-title-i18n:
-            en-US: Authentication Rules
-          description: 针对特定路由或域名的认证规则列表
+            en-US: Allowed Consumers
+          description: 对于匹配上述条件的请求，允许访问的调用方列表
           x-description-i18n:
-            en-US: Authentication rules for specific routes or domains
+            en-US: Consumers to be allowed for matched requests
           items:
-            type: object
-            properties:
-              _match_route_:
-                type: array
-                title: 匹配的路由
-                x-title-i18n:
-                  en-US: Route to Match
-                description: 要匹配的路由名称
-                x-description-i18n:
-                  en-US: Route to match in this plugin
-                items:
-                  type: string
-                  example:
-                    - route-a
-              _match_domain:
-                type: array
-                title: 匹配的域名
-                x-title-i18n:
-                  en-US: Domains to Match
-                description: 要匹配的域名列表
-                x-description-i18n:
-                  en-US: Domains to match in this plugin
-                items:
-                  type: string
-                  example:
-                    - www.test.com
-              allow:
-                type: array
-                title: 授权访问的调用方列表
-                x-title-i18n:
-                  en-US: Allowed Consumers
-                description: 对于匹配上述条件的请求，允许访问的调用方列表
-                x-description-i18n:
-                  en-US: Consumers to be allowed for matched requests
-                items:
-                  type: string
-                  example:
-                    - consumer1
-            required:
-              - allow
+            type: string
+            example:
+              - consumer1
       required:
         - consumers
+        - allow
       example:
         consumers:
           - name: consumer1
             credential: admin:123456
           - name: consumer2
             credential: guest:abc
-        _rules_:
-          - _match_route_:
-              - route-a
-              - route-b
-            _match_domain:
-              - "*.example.com"
-              - test.com
-            allow:
-              - consumer2
+        allow:
+          - consumer2

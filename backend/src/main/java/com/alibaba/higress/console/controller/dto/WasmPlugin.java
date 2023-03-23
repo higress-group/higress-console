@@ -39,8 +39,6 @@ public class WasmPlugin {
 
     private String version;
 
-    private String latestVersion;
-
     private String phase;
 
     private Integer priority;

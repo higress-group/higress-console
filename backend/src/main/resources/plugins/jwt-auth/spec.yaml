@@ -3,7 +3,7 @@ info:
   category: auth
   name: jwt-auth/v1
   title: JWT Auth
-  description: JWT 认证插件
+  description: 实现了基于JSON Web Tokens进行认证鉴权的功能，支持从HTTP请求的URL参数、请求头、Cookie字段解析JWT，同时验证该Token是否有权限访问
   x-description-i18n:
     en-US: JWT auth plugin
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 340

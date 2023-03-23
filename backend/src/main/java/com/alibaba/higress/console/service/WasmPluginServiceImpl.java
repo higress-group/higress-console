@@ -236,7 +236,6 @@ public class WasmPluginServiceImpl implements WasmPluginService {
             if (info != null) {
                 wasmPlugin.setCategory(info.getCategory());
                 wasmPlugin.setVersion(info.getVersion());
-                wasmPlugin.setLatestVersion(info.getVersion());
                 wasmPlugin.setIcon(info.getIconUrl());
 
                 if (StringUtils.isEmpty(language)) {
