@@ -12,3 +12,6 @@ info:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
+spec:
+  phase: AUTHZ
+  priority: 330
