@@ -64,10 +64,6 @@ public class ServiceSource {
             }
         }
 
-        if (V1McpBridge.REGISTRY_TYPE_ZK.equals(this.getType())
-            && null == this.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH)) {
-            return false;
-        }
         return true;
     }
 }
