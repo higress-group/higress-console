@@ -75,3 +75,11 @@ Create a default fully qualified app name for Prometheus.
 {{- $consoleFullName := include "higress-console.fullname" . }}
 {{- printf "%s-prometheus" ($consoleFullName | trunc 52) }}
 {{- end }}
+
+{{/*
+Create a default fully qualified app name for cert-manager
+*/}}
+{{- define "higress-console-cert-manager.fullname" -}}
+{{- $consoleFullName := include "higress-console.fullname" . }}
+{{- printf "%s-cert-manager" ($consoleFullName | trunc 52) }}
+{{- end }}

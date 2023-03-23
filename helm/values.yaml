@@ -52,7 +52,7 @@ web:
 admin:
   username: admin
   displayName: Admin
-  password: 
+  password:
     length: 8 # The length of random password generated during installation
     value: "" # If set, the value will be used as the admin password for login, and Helm won't generate a random password.
 
@@ -80,3 +80,8 @@ o11y:
       limits:
         cpu: 500m
         memory: 2Gi
+  certmanager:
+    replicas: 1
+    image:
+      repository: quay.io/jetstack
+      tag: v1.11.0
