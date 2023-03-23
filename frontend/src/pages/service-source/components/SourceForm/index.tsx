@@ -127,12 +127,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               label={t('serviceSource.serviceSourceForm.zkServicesPath')}
               name={['properties', 'zkServicesPath']}
               tooltip={t('serviceSource.serviceSourceForm.zkServicesPathTooltip')}
-              rules={[
-                {
-                  required: true,
-                  message: t('serviceSource.serviceSourceForm.zkServicesPathRequired'),
-                },
-              ]}
             >
               <Select
                 allowClear
