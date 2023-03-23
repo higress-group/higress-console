@@ -4,6 +4,7 @@ import {
   RoutePredicate,
   RouteResponse,
   UpstreamService,
+  upstreamServiceToString,
 } from '@/interfaces/route';
 import {
   addGatewayRoute,
@@ -55,8 +56,8 @@ const RouteList: React.FC = () => {
       render: (value: UpstreamService[]) => {
         return (
           value &&
-          value.map((service) => {
-            const { name } = service;
+          value.map((service: UpstreamService) => {
+            const name = upstreamServiceToString(service);
             return <div key={name}>{name}</div>;
           })
         );

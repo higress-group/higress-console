@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Service;
@@ -29,6 +30,7 @@ import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpoint;
 import com.alibaba.higress.console.service.kubernetes.dto.IstioEndpointShard;
+import com.alibaba.higress.console.service.kubernetes.dto.Port;
 import com.alibaba.higress.console.service.kubernetes.dto.RegistryzService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,32 +60,26 @@ public class ServiceServiceImpl implements ServiceService {
                     continue;
                 }
 
-                Service service = new Service();
-                services.add(service);
-
                 String name = registryzService.getHostname();
-                service.setName(name);
-                service.setNamespace(namespace);
 
-                if (serviceEndpoint == null) {
-                    continue;
+                List<String> endpoints = getServiceEndpoints(serviceEndpoint, namespace, name);
+                if (CommonKey.MCP_NAMESPACE.equals(namespace) || CollectionUtils.isEmpty(registryzService.getPorts())) {
+                    // We don't care about the port number of services got from McpBridge.
+                    Service service = new Service();
+                    service.setName(name);
+                    service.setNamespace(namespace);
+                    service.setEndpoints(endpoints);
+                    services.add(service);
+                } else {
+                    for (Port port : registryzService.getPorts()) {
+                        Service service = new Service();
+                        service.setName(name);
+                        service.setPort(port.getPort());
+                        service.setNamespace(namespace);
+                        service.setEndpoints(endpoints);
+                        services.add(service);
+                    }
                 }
-                Map<String, IstioEndpointShard> namespace2Endpoints = serviceEndpoint.get(name);
-                if (namespace2Endpoints == null) {
-                    continue;
-                }
-
-                IstioEndpointShard endpointShard = namespace2Endpoints.get(namespace);
-                if (endpointShard == null || endpointShard.getShards() == null) {
-                    continue;
-                }
-                List<String> endpoints = new ArrayList<>();
-                Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
-                shards.keySet().forEach(s -> {
-                    List<IstioEndpoint> istioEndpoints = shards.get(s);
-                    endpoints.addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().toList());
-                });
-                service.setEndpoints(endpoints);
             }
 
             services.sort(Comparator.comparing(Service::getNamespace).thenComparing(Service::getName));
@@ -92,5 +88,30 @@ public class ServiceServiceImpl implements ServiceService {
         } catch (Exception e) {
             throw new BusinessException("Error occurs when listing services.", e);
         }
+    }
+
+    private static List<String> getServiceEndpoints(Map<String, Map<String, IstioEndpointShard>> serviceEndpoint,
+        String serviceNamespace, String serviceName) {
+        if (serviceEndpoint == null) {
+            return null;
+        }
+
+        Map<String, IstioEndpointShard> namespace2Endpoints = serviceEndpoint.get(serviceName);
+        if (namespace2Endpoints == null) {
+            return null;
+        }
+
+        IstioEndpointShard endpointShard = namespace2Endpoints.get(serviceNamespace);
+        if (endpointShard == null || endpointShard.getShards() == null) {
+            return null;
+        }
+
+        List<String> endpoints = new ArrayList<>();
+        Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
+        shards.keySet().forEach(s -> {
+            List<IstioEndpoint> istioEndpoints = shards.get(s);
+            endpoints.addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().toList());
+        });
+        return endpoints;
     }
 }
