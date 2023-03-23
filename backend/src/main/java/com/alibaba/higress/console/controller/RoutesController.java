@@ -48,6 +48,11 @@ public class RoutesController {
         return ControllerUtil.buildResponseEntity(routeService.list(query));
     }
 
+    @GetMapping("/{name}")
+    public ResponseEntity<Response<Route>> query(@PathVariable("name") @NotBlank String routeName) {
+        return ControllerUtil.buildResponseEntity(routeService.query(routeName));
+    }
+
     @PostMapping
     public ResponseEntity<Response<Route>> add(@RequestBody Route route) {
         return ControllerUtil.buildResponseEntity(routeService.add(route));
