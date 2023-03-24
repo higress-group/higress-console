@@ -54,7 +54,7 @@ const ServiceList: React.FC = () => {
       const _namespaces: OptionItem[] = [];
       result && result.forEach(service => {
         const { name, namespace } = service;
-        service.key = name;
+        service.key = serviceToString(service);
         if (!_os.has(namespace)) {
           _namespaces.push({
             label: namespace,
