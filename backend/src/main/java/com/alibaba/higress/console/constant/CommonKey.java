@@ -20,6 +20,8 @@ public class CommonKey {
 
     public final static String LIST_CONFIG_SEPARATOR = ";";
 
+    public final static String MCP_NAMESPACE = "mcp";
+
     public final static String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";
 
     public final static String CONFIG_MAP_NAME_KEY_DEFAULT = "higress-console";

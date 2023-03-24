@@ -90,3 +90,11 @@ export interface RouteResponse {
   pageSize: number;
   total: number;
 }
+
+export function upstreamServiceToString(service: UpstreamService): string {
+  if (!service) {
+    return '-';
+  }
+  const name = service.name || '-';
+  return service.port != null ? `${name}:${service.port}` : name;
+}

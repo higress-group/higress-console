@@ -1,5 +1,6 @@
-import { Domain, DomainResponse } from '@/interfaces/domain';
 import { OptionItem } from '@/interfaces/common';
+import { Domain } from '@/interfaces/domain';
+import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select } from 'antd';
@@ -37,9 +38,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     form.resetFields();
     const _serviceOptions: OptionItem[] = [];
     _services && _services.forEach(service => {
-      const { name } = service;
-      _serviceOptions.push({ label: name, value: name });
-      servicesRef.current.set(name, service);
+      const text = upstreamServiceToString(service);
+      _serviceOptions.push({ label: text, value: text });
+      servicesRef.current.set(text, service);
     });
     setServiceOptions(_serviceOptions);
     const _domainOptions: OptionItem[] = [];
@@ -54,7 +55,6 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       // eslint-disable-next-line @typescript-eslint/no-shadow
       const { name, domains, path, headers, methods, urlParams, services } = value;
       const [service] = services;
-      const { name: _name } = service;
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
@@ -68,7 +68,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         methods: methods || [],
         headers: headers || [],
         urlParams: urlParams || [],
-        services: _name,
+        services: service ? upstreamServiceToString(service) : null,
       });
     }
   }, [_services, _domains, value]);

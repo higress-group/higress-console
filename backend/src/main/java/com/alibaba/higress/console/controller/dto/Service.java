@@ -29,6 +29,8 @@ public class Service {
 
     private String namespace;
 
+    private Integer port;
+
     private Integer version;
 
     private List<String> endpoints;

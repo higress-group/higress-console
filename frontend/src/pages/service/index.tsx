@@ -1,4 +1,5 @@
-import { OptionItem, ServiceFactor, Service } from '@/interfaces/service';
+import { OptionItem } from '@/interfaces/common';
+import { Service, serviceToString } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -17,6 +18,9 @@ const ServiceList: React.FC = () => {
       key: 'name',
       width: 350,
       ellipsis: true,
+      render: (_, record) => {
+        return serviceToString(record);
+      },
     },
     {
       title: t('service.columns.namespace'),
@@ -41,7 +45,7 @@ const ServiceList: React.FC = () => {
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const getServiceList = async (factor: ServiceFactor): Promise<Service[]> => (getGatewayServices(factor));
+  const getServiceList = async (): Promise<Service[]> => (getGatewayServices());
 
   const { loading, run, refresh } = useRequest(getServiceList, {
     manual: true,
@@ -66,7 +70,7 @@ const ServiceList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({});
+    run();
   }, []);
 
   const onSearch = () => {
@@ -117,7 +121,7 @@ const ServiceList: React.FC = () => {
             >
               <Input
                 allowClear
-                placeholder={t('service.namePlaceholder')}
+                placeholder={t('service.namePlaceholder') || ''}
               />
             </Form.Item>
           </Col>
