@@ -5,7 +5,7 @@ info:
   title: Key Auth
   description: 基于 API Key 实现身份认证和鉴权
   x-description-i18n:
-    en-US: JWT auth plugin
+    en-US: Authentication based on API Key
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
@@ -15,3 +15,104 @@ info:
 spec:
   phase: AUTHN
   priority: 310
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        consumers:
+          type: array
+          scope: GLOBAL
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 服务调用方列表，用于对请求进行认证
+          x-description-i18n:
+            en-US: List of service consumers which will be used in request authentication
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 该调用方的名称
+                x-description-i18n:
+                  en-US: The name of the consumer
+                example:
+                  - consumer1
+              credential:
+                type: string
+                title: 访问凭证
+                x-title-i18n:
+                  en-US: Credential
+                description: 该调用方的访问凭证
+                x-description-i18n:
+                  en-US: The credential of the consumer
+                example:
+                  - 2bda943c-ba2b-11ec-ba07-00163e1250b5
+            required:
+              - name
+              - credential
+        keys:
+          type: array
+          scope: GLOBAL
+          title: API Key 来源字段名称
+          x-title-i18n:
+            en-US: API Key Names
+          description: API Key 的来源字段名称，可以是 URL 参数或者 HTTP 请求头名称
+          x-description-i18n:
+            en-US: The name of the API Key, which can be a URL parameter or an HTTP request header name.
+          items:
+            type: string
+            example:
+              - apikey
+        in_query:
+          type: boolean
+          scope: INSTANCE
+          title: 判断key是否在URL参数中
+          x-title-i18n:
+            en-US: Judge Key in Query
+          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key
+          x-description-i18n:
+          en-US: When configured true, the gateway will try to parse the API Key from the URL parameters.
+          default: true
+        in_header:
+          type: boolean
+          scope: INSTANCE
+          title: 判断key是否在HTTP请求头中
+          x-title-i18n:
+            en-US: Judge Key in Header
+          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key
+          x-description-i18n:
+          en-US: When configured true, the gateway will try to parse the API Key from the HTTP request header.
+          default: true
+        allow:
+          type: array
+          title: 授权访问的调用方列表
+          x-title-i18n:
+            en-US: Allowed Consumers
+          description: 对于匹配上述条件的请求，允许访问的调用方列表
+          x-description-i18n:
+            en-US: Consumers to be allowed for matched requests
+          items:
+            type: string
+            example:
+              - consumer1
+      required:
+        - consumers
+        - allow
+      anyOf:
+        - in_query
+        - in_header
+      example:
+        consumers:
+          - credential: 2bda943c-ba2b-11ec-ba07-00163e1250b5
+            name: consumer1
+          - credential: c8c8e9ca-558e-4a2d-bb62-e700dcc40e35
+            name: consumer2
+        keys:
+          - apikey
+        in_query: true
+        allow:
+          - consumer2
