@@ -20,6 +20,8 @@ import java.util.Map;
 @Data
 public class V1alpha1WasmPluginSpec {
 
+    private Boolean defaultConfigDisable;
+
     private Map<String, Object> defaultConfig;
 
     private String imagePullPolicy;

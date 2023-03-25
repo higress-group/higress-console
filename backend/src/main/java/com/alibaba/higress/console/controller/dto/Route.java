@@ -21,6 +21,7 @@ import com.alibaba.higress.console.controller.dto.route.MockConfig;
 import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
 import com.alibaba.higress.console.controller.dto.route.RateLimitConfig;
 import com.alibaba.higress.console.controller.dto.route.RedirectConfig;
+import com.alibaba.higress.console.controller.dto.route.RewriteConfig;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 
@@ -62,9 +63,7 @@ public class Route {
     // TODO: Not supported yet.
     private RateLimitConfig rateLimit;
 
-    private String rewriteTarget;
-
-    private String upstreamVhost;
+    private RewriteConfig rewrite;
 
     // TODO: Not supported yet.
     private String timeout;
@@ -74,7 +73,5 @@ public class Route {
     // TODO: Not supported yet.
     private CorsConfig cors;
 
-    private HeaderControlConfig requestHeaderControl;
-
-    private HeaderControlConfig responseHeaderControl;
+    private HeaderControlConfig headerControl;
 }

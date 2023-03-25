@@ -23,5 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RateLimitConfig {
 
+    private Boolean enabled;
+
     private Integer qps;
 }

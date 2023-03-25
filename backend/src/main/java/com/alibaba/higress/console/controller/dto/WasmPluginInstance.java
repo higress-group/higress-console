@@ -37,5 +37,7 @@ public class WasmPluginInstance {
 
     private String pluginVersion;
 
+    private Boolean enabled;
+
     private Map<String, Object> configurations;
 }

@@ -21,13 +21,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RedirectConfig {
-
-    public static final int DEFAULT_STATUS = 307;
+public class RewriteConfig {
 
     private Boolean enabled;
 
-    private Integer status;
+    private String path;
 
-    private String url;
+    private String host;
 }
