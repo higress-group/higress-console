@@ -1,0 +1,83 @@
+name: Deploy Artifacts to K8s
+
+on:
+  push:
+    tags:
+    - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        type: environment
+        required: true
+
+jobs:
+  deploy-to-k8s:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || vars.DEFAULT_ENV || 'Demo' }}
+    env:
+      IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY || 'higress-registry.cn-hangzhou.cr.aliyuncs.com' }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME || 'higress/higress-console' }}
+    steps:
+      - name: "Setup Java"
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Build Higress Console Package
+        run: mvn clean package -DskipTests=true -f ./backend/pom.xml
+
+      - name: Caclulate Docker metadata
+        id: docker-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build Docker Image and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{steps.docker-meta.outputs.tags}}
+          labels: ${{steps.docker-meta.outputs.labels}}
+
+      - name: Deploy
+        uses: wahyd4/kubectl-helm-action@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+          RELEASE_NAME: ${{ vars.RELEASE_NAME || 'higress-console' }}
+          NAMESPACE: ${{ vars.NAMESPACE || 'higress-system' }}
+          DOMAIN: ${{ vars.DOMAIN || 'demo.higress.io' }}
+          ADMIN_PASSWORD: ${{ vars.ADMIN_PASSWORD || 'admin' }}
+          O11Y_ENABLED: ${{ vars.O11Y_ENABLED || 'true' }}
+        with:
+          args: |
+            git config --global --add safe.directory /github/workspace
+            IMAGE_TAG=sha-$(git rev-parse --short "$GITHUB_SHA")
+            helm upgrade $RELEASE_NAME -n $NAMESPACE ./helm \
+                  --create-namespace --install --render-subchart-notes \
+                  --set domain=$DOMAIN \
+                  --set admin.password.value=$ADMIN_PASSWORD \
+                  --set o11y.enabled=$O11Y_ENABLED \
+                  --set image.repository=$IMAGE_REGISTRY/$IMAGE_NAME \
+                  --set image.pullPolicy=Always \
+                  --set image.tag=$IMAGE_TAG
