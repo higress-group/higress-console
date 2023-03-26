@@ -88,10 +88,6 @@ public class DashboardServiceImpl implements DashboardService {
 
     @PostConstruct
     public void initialize() {
-        if (!isBuiltIn()) {
-            return;
-        }
-        grafanaClient = new GrafanaClient(apiBaseUrl, username, password);
         try {
             dashboardConfiguration = IOUtils.resourceToString(DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
             configuredDashboard = GrafanaClient.parseDashboardData(dashboardConfiguration);
@@ -99,7 +95,10 @@ public class DashboardServiceImpl implements DashboardService {
             throw new IllegalStateException("Error occurs when loading dashboard data from resource.", e);
         }
 
-        EXECUTOR.submit(new DashboardInitializer());
+        if (isBuiltIn()) {
+            grafanaClient = new GrafanaClient(apiBaseUrl, username, password);
+            EXECUTOR.submit(new DashboardInitializer());
+        }
     }
 
     @Override
@@ -147,7 +146,7 @@ public class DashboardServiceImpl implements DashboardService {
             }
         }
 
-        String dashboardData = dashboardConfiguration.replace(DATASOURCE_UID_PLACEHOLDER, datasourceUid);
+        String dashboardData = buildConfigData(datasourceUid);
         GrafanaDashboard dashboard;
         try {
             dashboard = GrafanaClient.parseDashboardData(dashboardData);
@@ -183,6 +182,11 @@ public class DashboardServiceImpl implements DashboardService {
             throw new IllegalStateException("Manual dashboard configuration is disabled.");
         }
         configService.setConfig(UserConfigKey.DASHBOARD_URL, url);
+    }
+
+    @Override
+    public String buildConfigData(String dataSourceUid) {
+        return dashboardConfiguration.replace(DATASOURCE_UID_PLACEHOLDER, dataSourceUid);
     }
 
     private DashboardInfo getBuiltInDashboardInfo() {

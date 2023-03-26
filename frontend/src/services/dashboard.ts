@@ -12,3 +12,9 @@ export const initDashboard = (): Promise<DashboardInfo> => {
 export const setDashboardUrl = (url: string): Promise<DashboardInfo> => {
   return request.put<any, DashboardInfo>("/dashboard/info", { url });
 }
+
+export const getDashboardConfigData = (dataSourceUid: string): Promise<string> => {
+  return request.get<any, string>("/dashboard/configData", {
+    params: { dataSourceUid },
+  });
+}

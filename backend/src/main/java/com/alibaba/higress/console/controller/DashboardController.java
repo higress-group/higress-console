@@ -13,8 +13,8 @@
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotBlank;
 
-import com.alibaba.higress.console.controller.exception.ValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.service.DashboardService;
 
 /**
@@ -62,5 +63,10 @@ public class DashboardController {
         }
         dashboardService.setDashboardUrl(dashboardInfo.getUrl());
         return info();
+    }
+
+    @GetMapping("/configData")
+    public ResponseEntity<Response<String>> getConfigData(@RequestParam @NotBlank String dataSourceUid) {
+        return ResponseEntity.ok(Response.success(dashboardService.buildConfigData(dataSourceUid)));
     }
 }
