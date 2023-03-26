@@ -73,9 +73,9 @@ spec:
           title: 判断key是否在URL参数中
           x-title-i18n:
             en-US: Judge Key in Query
-          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key
+          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key。注意 in_query 和 in_header 至少有一个为 true。
           x-description-i18n:
-          en-US: When configured true, the gateway will try to parse the API Key from the URL parameters.
+          en-US: When configured true, the gateway will try to parse the API Key from the URL parameters.Note that at least one of in_query and in_header is true. 
           default: true
         in_header:
           type: boolean
@@ -83,9 +83,9 @@ spec:
           title: 判断key是否在HTTP请求头中
           x-title-i18n:
             en-US: Judge Key in Header
-          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key
+          description: 配置 true 时，网关会尝试从 URL 参数中解析 API Key。注意 in_query 和 in_header 至少有一个为 true。
           x-description-i18n:
-          en-US: When configured true, the gateway will try to parse the API Key from the HTTP request header.
+          en-US: When configured true, the gateway will try to parse the API Key from the HTTP request header.Note that at least one of in_query and in_header is true. 
           default: true
         allow:
           type: array
