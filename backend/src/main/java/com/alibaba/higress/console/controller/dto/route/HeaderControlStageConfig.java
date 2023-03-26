@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.console.controller.dto.route;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,13 +23,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RedirectConfig {
+public class HeaderControlStageConfig {
 
-    public static final int DEFAULT_STATUS = 307;
+    private List<Header> add;
 
-    private Boolean enabled;
+    private List<Header> set;
 
-    private Integer status;
-
-    private String url;
+    private List<String> remove;
 }

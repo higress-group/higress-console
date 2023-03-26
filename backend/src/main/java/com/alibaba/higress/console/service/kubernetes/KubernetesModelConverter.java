@@ -51,8 +51,10 @@ import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.Header;
 import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
+import com.alibaba.higress.console.controller.dto.route.HeaderControlStageConfig;
 import com.alibaba.higress.console.controller.dto.route.KeyedRoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.ProxyNextUpstreamConfig;
+import com.alibaba.higress.console.controller.dto.route.RewriteConfig;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
@@ -171,7 +173,7 @@ public class KubernetesModelConverter {
         }
         CorsConfig config = new CorsConfig();
         String maxAge = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY);
-        String enableCors = metadata.getAnnotations().get(KubernetesConstants.Annotation.ENABLE_CORS_KEY);
+        String enableCors = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ENABLED_KEY);
         String allowCredentials =
             metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY);
         String allowOrigin = metadata.getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY);
@@ -320,10 +322,12 @@ public class KubernetesModelConverter {
             return null;
         }
 
+        Boolean enabled = null;
         Map<String, Object> configurations = null;
         switch (scope) {
             case GLOBAL:
                 if (target == null) {
+                    enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
                     configurations = spec.getDefaultConfig();
                 }
                 break;
@@ -332,6 +336,7 @@ public class KubernetesModelConverter {
                     Optional<MatchRule> rule = spec.getMatchRules().stream()
                         .filter(r -> r.getDomain() != null && r.getDomain().contains(target)).findFirst();
                     if (rule.isPresent()) {
+                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
                         configurations = rule.get().getConfig();
                     }
                 }
@@ -341,6 +346,7 @@ public class KubernetesModelConverter {
                     Optional<MatchRule> rule = spec.getMatchRules().stream()
                         .filter(r -> r.getIngress() != null && r.getIngress().contains(target)).findFirst();
                     if (rule.isPresent()) {
+                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
                         configurations = rule.get().getConfig();
                     }
                 }
@@ -351,8 +357,9 @@ public class KubernetesModelConverter {
         if (MapUtils.isEmpty(configurations)) {
             return null;
         }
+
         return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
-            .pluginVersion(version).scope(scope).target(target).configurations(configurations).build();
+            .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations).build();
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
@@ -368,11 +375,14 @@ public class KubernetesModelConverter {
             spec.setMatchRules(matchRules);
         }
 
+        boolean enabled = instance.getEnabled() == null || instance.getEnabled();
+        Map<String, Object> configurations = instance.getConfigurations();
         WasmPluginInstanceScope scope = instance.getScope();
         switch (scope) {
             case GLOBAL:
                 if (instance.getTarget() == null) {
-                    spec.setDefaultConfig(instance.getConfigurations());
+                    spec.setDefaultConfigDisable(!enabled);
+                    spec.setDefaultConfig(configurations);
                 }
                 break;
             case DOMAIN:
@@ -380,23 +390,23 @@ public class KubernetesModelConverter {
                 MatchRule domainRule = matchRules.stream()
                     .filter(r -> r.getDomain() != null && r.getDomain().contains(domain)).findFirst().orElse(null);
                 if (domainRule == null) {
-                    domainRule = MatchRule.forDomain(domain, instance.getConfigurations());
+                    domainRule = MatchRule.forDomain(domain);
                     matchRules.add(domainRule);
-                } else {
-                    domainRule.setConfig(instance.getConfigurations());
                 }
+                domainRule.setConfigDisable(!enabled);
+                domainRule.setConfig(configurations);
                 break;
             case ROUTE:
                 String route = instance.getTarget();
                 MatchRule routeRule = matchRules.stream()
                     .filter(r -> r.getIngress() != null && r.getIngress().contains(route)).findFirst().orElse(null);
                 if (routeRule == null) {
-                    routeRule = MatchRule.forIngress(route, instance.getConfigurations());
+                    routeRule = MatchRule.forIngress(route);
                     // Route rules shall come first to get the highest priority.
                     matchRules.add(0, routeRule);
-                } else {
-                    routeRule.setConfig(instance.getConfigurations());
                 }
+                routeRule.setConfigDisable(!enabled);
+                routeRule.setConfig(configurations);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
@@ -508,14 +518,8 @@ public class KubernetesModelConverter {
             fillProxyNextUpstreamConfig(annotations, route);
             fillHeaderAndQueryConfig(annotations, route);
             fillMethodConfig(annotations, route);
-            route.setRequestHeaderControl(
-                buildHeaderControlConfig(annotations, KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
-                    KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
-                    KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY));
-            route.setResponseHeaderControl(
-                buildHeaderControlConfig(annotations, KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
-                    KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
-                    KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY));
+            fillHeaderConfigConfig(annotations, route);
+
         }
         fillRouteCors(route, metadata);
     }
@@ -533,7 +537,7 @@ public class KubernetesModelConverter {
 
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         if (!Objects.isNull(cors.getEnabled())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.ENABLE_CORS_KEY,
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ENABLED_KEY,
                 cors.getEnabled().toString());
         }
         if (!Objects.isNull(cors.getMaxAge())) {
@@ -664,20 +668,40 @@ public class KubernetesModelConverter {
     }
 
     private static void fillRewriteConfig(Map<String, String> annotations, Route route) {
-        route.setRewriteTarget(annotations.get(KubernetesConstants.Annotation.REWRITE_TARGET_KEY));
-        route.setUpstreamVhost(annotations.get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+        String rawEnabled = annotations.get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY);
+        boolean enabled = StringUtils.isEmpty(rawEnabled) || Boolean.parseBoolean(rawEnabled);
+        String pathRewrite =
+            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.REWRITE_TARGET_KEY, enabled);
+        String hostRewrite =
+            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY, enabled);
+
+        if (StringUtils.isAllBlank(rawEnabled, pathRewrite, hostRewrite)) {
+            return;
+        }
+
+        RewriteConfig rewrite = new RewriteConfig();
+        rewrite.setEnabled(enabled);
+        rewrite.setPath(pathRewrite);
+        rewrite.setHost(hostRewrite);
+        route.setRewrite(rewrite);
     }
 
     private static void fillProxyNextUpstreamConfig(Map<String, String> annotations, Route route) {
-        String tries = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY);
-        String timeout = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY);
-        String conditions = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY);
+        String rawEnabled = annotations.get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_ENABLED_KEY);
+        boolean enabled = StringUtils.isEmpty(rawEnabled) || Boolean.parseBoolean(rawEnabled);
+        String tries =
+            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY, enabled);
+        String timeout = getFunctionalAnnotation(annotations,
+            KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY, enabled);
+        String conditions =
+            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY, enabled);
 
-        if (StringUtils.isAllBlank(tries, timeout, conditions)) {
+        if (StringUtils.isAllBlank(rawEnabled, tries, timeout, conditions)) {
             return;
         }
 
         ProxyNextUpstreamConfig proxyNextUpstream = new ProxyNextUpstreamConfig();
+        proxyNextUpstream.setEnabled(enabled);
         proxyNextUpstream.setAttempts(TypeUtil.string2Integer(tries));
         proxyNextUpstream.setTimeout(TypeUtil.string2Integer(timeout));
         if (StringUtils.isNotEmpty(conditions)) {
@@ -686,17 +710,17 @@ public class KubernetesModelConverter {
         route.setProxyNextUpstream(proxyNextUpstream);
     }
 
-    private static HeaderControlConfig buildHeaderControlConfig(Map<String, String> annotations, String addKey,
-        String setKey, String removeKey) {
-        String addConfig = annotations.get(addKey);
-        String setConfig = annotations.get(setKey);
-        String removeConfig = annotations.get(removeKey);
+    private static HeaderControlStageConfig buildHeaderControlStageConfig(Map<String, String> annotations,
+        String addKey, String setKey, String removeKey, boolean enabled) {
+        String addConfig = getFunctionalAnnotation(annotations, addKey, enabled);
+        String setConfig = getFunctionalAnnotation(annotations, setKey, enabled);
+        String removeConfig = getFunctionalAnnotation(annotations, removeKey, enabled);
 
         if (StringUtils.isAllBlank(addConfig, setConfig, removeConfig)) {
             return null;
         }
 
-        HeaderControlConfig config = new HeaderControlConfig();
+        HeaderControlStageConfig config = new HeaderControlStageConfig();
         if (StringUtils.isNotEmpty(addConfig)) {
             config.setAdd(new ArrayList<>());
             for (String line : addConfig.split(CommonKey.NEW_LINE)) {
@@ -774,6 +798,30 @@ public class KubernetesModelConverter {
         }
     }
 
+    private static void fillHeaderConfigConfig(Map<String, String> annotations, Route route) {
+        String rawEnabled = annotations.get(KubernetesConstants.Annotation.HEADER_CONTROL_ENABLED_KEY);
+        boolean enabled = rawEnabled == null || Boolean.parseBoolean(rawEnabled);
+
+        HeaderControlStageConfig requestConfig =
+            buildHeaderControlStageConfig(annotations, KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY, enabled);
+        HeaderControlStageConfig responseConfig =
+            buildHeaderControlStageConfig(annotations, KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY, enabled);
+
+        if (requestConfig == null && responseConfig == null) {
+            return;
+        }
+
+        HeaderControlConfig headerControlConfig = new HeaderControlConfig();
+        headerControlConfig.setEnabled(enabled);
+        headerControlConfig.setRequest(requestConfig);
+        headerControlConfig.setResponse(responseConfig);
+        route.setHeaderControl(headerControlConfig);
+    }
+
     private void fillIngressMetadata(V1Ingress ingress, Route route) {
         V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
         metadata.setName(route.getName());
@@ -801,26 +849,37 @@ public class KubernetesModelConverter {
             setMethodAnnotation(metadata, route.getMethods());
         }
 
-        fillIngressRewriteConfig(metadata, route);
+        fillIngressRewriteConfig(metadata, route.getRewrite());
         fillIngressProxyNextUpstreamConfig(metadata, route.getProxyNextUpstream());
-        fillIngressHeaderControlConfig(metadata, route.getRequestHeaderControl(),
-            KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
-            KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
-            KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY);
-        fillIngressHeaderControlConfig(metadata, route.getResponseHeaderControl(),
-            KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
-            KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
-            KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY);
+        if (route.getHeaderControl() != null) {
+            boolean enabled = !Boolean.FALSE.equals(route.getHeaderControl().getEnabled());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.HEADER_CONTROL_ENABLED_KEY,
+                Boolean.toString(enabled));
+            fillIngressHeaderControlStageConfig(metadata, route.getHeaderControl().getRequest(),
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY, enabled);
+            fillIngressHeaderControlStageConfig(metadata, route.getHeaderControl().getResponse(),
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY, enabled);
+        }
     }
 
-    private void fillIngressRewriteConfig(V1ObjectMeta metadata, Route route) {
-        if (StringUtils.isNotEmpty(route.getRewriteTarget())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_TARGET_KEY,
-                route.getRewriteTarget());
+    private void fillIngressRewriteConfig(V1ObjectMeta metadata, RewriteConfig rewrite) {
+        if (rewrite == null) {
+            return;
         }
-        if (StringUtils.isNotEmpty(route.getUpstreamVhost())) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY,
-                route.getUpstreamVhost());
+        boolean enabled = !Boolean.FALSE.equals(rewrite.getEnabled());
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_ENABLED_KEY,
+            Boolean.toString(enabled));
+        if (StringUtils.isNotEmpty(rewrite.getPath())) {
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_TARGET_KEY, rewrite.getPath(),
+                enabled);
+        }
+        if (StringUtils.isNotEmpty(rewrite.getHost())) {
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY, rewrite.getHost(),
+                enabled);
         }
     }
 
@@ -828,35 +887,41 @@ public class KubernetesModelConverter {
         if (config == null) {
             return;
         }
+        boolean enabled = !Boolean.FALSE.equals(config.getEnabled());
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_ENABLED_KEY,
+            Boolean.toString(enabled));
         if (config.getAttempts() != null) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY,
-                String.valueOf(config.getAttempts()));
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY,
+                String.valueOf(config.getAttempts()), enabled);
         }
         if (config.getTimeout() != null) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY,
-                String.valueOf(config.getTimeout()));
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY,
+                String.valueOf(config.getTimeout()), enabled);
         }
         if (config.getConditions() != null && config.getConditions().length != 0) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY,
-                StringUtils.join(config.getConditions(), CommonKey.COMMA));
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY,
+                StringUtils.join(config.getConditions(), CommonKey.COMMA), enabled);
         }
     }
 
-    private void fillIngressHeaderControlConfig(V1ObjectMeta metadata, HeaderControlConfig config, String addKey,
-        String setKey, String removeKey) {
+    private void fillIngressHeaderControlStageConfig(V1ObjectMeta metadata, HeaderControlStageConfig config,
+        String addKey, String setKey, String removeKey, boolean enabled) {
         if (config == null) {
             return;
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
-            KubernetesUtil.setAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).toList(), CommonKey.NEW_LINE));
+            setFunctionalAnnotation(metadata, addKey,
+                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).toList(), CommonKey.NEW_LINE),
+                enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
-            KubernetesUtil.setAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).toList(), CommonKey.NEW_LINE));
+            setFunctionalAnnotation(metadata, setKey,
+                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).toList(), CommonKey.NEW_LINE),
+                enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getRemove())) {
-            KubernetesUtil.setAnnotation(metadata, removeKey, StringUtils.join(config.getRemove(), CommonKey.COMMA));
+            setFunctionalAnnotation(metadata, removeKey, StringUtils.join(config.getRemove(), CommonKey.COMMA),
+                enabled);
         }
     }
 
@@ -1197,5 +1262,17 @@ public class KubernetesModelConverter {
     private void setMethodAnnotation(V1ObjectMeta metadata, List<String> methods) {
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.METHOD_KEY,
             StringUtils.join(methods, CommonKey.SPACE));
+    }
+
+    private static String getFunctionalAnnotation(Map<String, String> annotations, String key,
+        boolean functionEnabled) {
+        String actualKey = functionEnabled ? key : key + CommonKey.DISABLED_KEY_SUFFIX;
+        return annotations.get(actualKey);
+    }
+
+    private static void setFunctionalAnnotation(V1ObjectMeta metadata, String key, String value,
+        boolean functionEnabled) {
+        String actualKey = functionEnabled ? key : key + CommonKey.DISABLED_KEY_SUFFIX;
+        KubernetesUtil.setAnnotation(metadata, actualKey, value);
     }
 }
