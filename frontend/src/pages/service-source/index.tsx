@@ -39,11 +39,17 @@ const SourceList: React.FC = () => {
       title: t('serviceSource.columns.domain'),
       dataIndex: 'domain',
       key: 'domain',
+      render: (value) => {
+        return value != null ? value : '-';
+      },
     },
     {
       title: t('serviceSource.columns.port'),
       dataIndex: 'port',
       key: 'port',
+      render: (value) => {
+        return value != null ? value : '-';
+      },
     },
     {
       title: t('serviceSource.columns.action'),
@@ -51,7 +57,7 @@ const SourceList: React.FC = () => {
       key: 'action',
       width: 140,
       align: 'center',
-      render: (_, record) => (
+      render: (_, record) => record.builtIn ? null : (
         <Space size="small">
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
@@ -74,7 +80,12 @@ const SourceList: React.FC = () => {
       const sources = (result || []) as ServiceSource[];
       sources.forEach(i => {
         i.key || (i.key = i.name)
-      })
+      });
+      sources.push({
+        name: 'default',
+        type: 'Kubernetes',
+        builtIn: true,
+      });
       setDataSource(sources);
     },
   });

@@ -5,9 +5,10 @@ export interface ServiceSource {
   name: string;
   version?: string;
   type: string;
-  domain: string;
-  port: number;
-  properties: ServiceSourceProperties;
+  builtIn?: boolean;
+  domain?: string;
+  port?: number;
+  properties?: ServiceSourceProperties;
   [propName: string]: any;
 }
 
