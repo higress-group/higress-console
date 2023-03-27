@@ -63,9 +63,24 @@
     "uninitialized": "监控面板未自动初始化，点击按钮尝试人工操作",
     "initDashboard": "初始化监控面板",
     "noBuiltInDashboard": "未安装Higress Console的内置监控模块。请人工配置监控页面地址。",
+    "reconfigure": "重新配置",
+    "openInNewPage": "在新窗口打开监控面板",
     "setForm": {
       "url": "监控页面URL",
       "urlRequired": "请输入监控页面URL"
+    },
+    "configNotes": {
+      "header": "监控面板配置注意事项",
+      "brief": "推荐使用 Prometheus + Grafana 的组合来为 Higress 配置监控面板。",
+      "item1": "在配置 Prometheus 采集 Higress Gateway Pod 的监控数据时，请增加以下的 relabel_config 以确保可以正常采集到所需的监控数据：",
+      "item2": "配置 Grafana 以支持监控面板内嵌显示。",
+      "item2_1": "若使用 grafana.ini 作为配置源，则请在文件中增加以下配置：",
+      "item2_2": "若使用环境变量作为配置源，则请配置以下的环境变量：",
+      "item3": "推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 UID 获取可供导入的 JSON 配置文件。（<1>如何获取数据源 UID？</1>）",
+      "item3_dataSourceId": "Prometheus 数据源 UID",
+      "item3_dataSourceId_required": "请填写 Prometheus 数据源 UID",
+      "item3_download": "下载配置文件",
+      "item4": "强烈建议填写 Grafana 的 HTTPS URL 以确保监控面板可以在本页面内正常显示。"
     }
   },
   "service": {

@@ -24,4 +24,6 @@ public interface DashboardService {
     void initializeDashboard(boolean overwrite);
 
     void setDashboardUrl(String url);
+
+    String buildConfigData(String dataSourceUid);
 }
