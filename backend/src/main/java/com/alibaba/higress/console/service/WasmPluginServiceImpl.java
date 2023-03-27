@@ -140,7 +140,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
     @Override
     public PaginatedResult<WasmPlugin> list(WasmPluginPageQuery query) {
-        return PaginatedResult.createFromFullList(plugins, query, p -> p.buildWasmPlugin(query.getLang()));
+        String lang = query != null ? query.getLang() : null;
+        return PaginatedResult.createFromFullList(plugins, query, p -> p.buildWasmPlugin(lang));
     }
 
     @Override
