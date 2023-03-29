@@ -1,5 +1,6 @@
 import { ServiceSourceTypes } from '@/interfaces/service-source';
 import { Form, Input, Select } from 'antd';
+import TextArea from 'antd/lib/input/TextArea';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +17,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     form.resetFields();
     if (value) {
       setSourceType(value.type);
+      if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(value.type) !== -1) {
+        value.domainForEdit = value.domain ? value.domain.replaceAll(',', '\n') : '';
+      }
       form.setFieldsValue(value);
     }
   }, [value]);
@@ -25,7 +29,21 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setSourceType(null);
       form.resetFields();
     },
-    handleSubmit: () => (form.validateFields()),
+    handleSubmit: async () => {
+      const values = await form.validateFields();
+      if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(values.type) !== -1) {
+        if (values.domainForEdit) {
+          values.domain = values.domainForEdit.split('\n').map(d => d.trim()).filter(d => d).join(',');
+        } else {
+          values.domain = '';
+        }
+
+        if (values.type === ServiceSourceTypes.static.key) {
+          values.port = 80;
+        }
+      }
+      return values;
+    },
   }));
 
   function selectServiceSourceType(type) {
@@ -58,7 +76,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           {
             // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
             Object.entries(ServiceSourceTypes).map(([k, v]) =>
-              v.enabled && (<Option key={v.key} value={v.key}>{v.name}</Option>))
+              v.enabled && (<Option key={v.key} value={v.key}>{v.i18n ? t(v.name) : v.name}</Option>))
           }
         </Select>
       </Form.Item>
@@ -69,6 +87,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
+            pattern: /^(?!-)[a-z0-9-]{0,62}[a-z0-9]$/,
             message: t('serviceSource.serviceSourceForm.nameRequired'),
           },
         ]}
@@ -76,53 +95,59 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         <Input
           showCount
           allowClear
-          maxLength={256}
+          maxLength={63}
           disabled={value}
           placeholder={t('serviceSource.serviceSourceForm.namePlaceholder')}
         />
       </Form.Item>
-      <Form.Item
-        label={t('serviceSource.serviceSourceForm.domain')}
-        required
-        name="domain"
-        tooltip={t('serviceSource.serviceSourceForm.domainTooltip')}
-        rules={[
-          {
-            required: true,
-            message: t('serviceSource.serviceSourceForm.domainRequired'),
-          },
-        ]}
-      >
-        <Input
-          showCount
-          allowClear
-          maxLength={256}
-          placeholder={t('serviceSource.serviceSourceForm.domainPlaceholder')}
-        />
-      </Form.Item>
-      <Form.Item
-        label={t('serviceSource.serviceSourceForm.port')}
-        required
-        name="port"
-        rules={[
-          {
-            required: true,
-            message: t('serviceSource.serviceSourceForm.portRequired'),
-          },
-        ]}
-      >
-        <Input
-          allowClear
-          type="number"
-          min={1}
-          max={65535}
-          placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
-        />
-      </Form.Item>
-
+      {
+        sourceType && [ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(sourceType || '') === -1 &&
+        (
+          <>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.domain')}
+              required
+              name="domain"
+              tooltip={t('serviceSource.serviceSourceForm.domainTooltip')}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.domainRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+                placeholder={t('serviceSource.serviceSourceForm.domainPlaceholder')}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.port')}
+              required
+              name="port"
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.portRequired'),
+                },
+              ]}
+            >
+              <Input
+                allowClear
+                type="number"
+                min={1}
+                max={65535}
+                placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
+              />
+            </Form.Item>
+          </>
+        )
+      }
       {
         sourceType === ServiceSourceTypes.zookeeper.key && (
-          <div>
+          <>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.zkServicesPath')}
               name={['properties', 'zkServicesPath']}
@@ -134,12 +159,12 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 placeholder={t('serviceSource.serviceSourceForm.zkServicesPathPlaceholder')}
               />
             </Form.Item>
-          </div>
+          </>
         )
       }
       {
         (sourceType === ServiceSourceTypes.nacos.key || sourceType === ServiceSourceTypes.nacos2.key) && (
-          <div>
+          <>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
               name={['properties', 'nacosNamespaceId']}
@@ -173,11 +198,11 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 options={[{ value: "DEFAULT_GROUP" }]}
               />
             </Form.Item>
-          </div>)
+          </>)
       }
       {
         sourceType === ServiceSourceTypes.consul.key && (
-          <div>
+          <>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.consulNamespace')}
               name={['properties', 'consulNamespace']}
@@ -196,7 +221,74 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 placeholder={t('serviceSource.serviceSourceForm.consulNamespacePlaceholder')}
               />
             </Form.Item>
-          </div>
+          </>
+        )
+      }
+      {
+        sourceType === ServiceSourceTypes.static.key && (
+          <>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.serviceStaticAddresses')}
+              name={['domainForEdit']}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.serviceStaticAddressesRequired'),
+                },
+              ]}
+            >
+              <TextArea
+                showCount
+                allowClear
+                maxLength={4096}
+                rows={10}
+                placeholder={t('serviceSource.serviceSourceForm.serviceStaticAddressesPlaceholder')}
+              />
+            </Form.Item>
+          </>
+        )
+      }
+      {
+        sourceType === ServiceSourceTypes.dns.key && (
+          <>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.servicePort')}
+              required
+              name="port"
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.servicePortRequired'),
+                },
+              ]}
+            >
+              <Input
+                allowClear
+                type="number"
+                min={1}
+                max={65535}
+                placeholder={t('serviceSource.serviceSourceForm.servicePortPlaceholder')}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.serviceDomains')}
+              name={['domainForEdit']}
+              rules={[
+                {
+                  required: true,
+                  message: t('serviceSource.serviceSourceForm.serviceDomainsRequired'),
+                },
+              ]}
+            >
+              <TextArea
+                showCount
+                allowClear
+                maxLength={4096}
+                rows={5}
+                placeholder={t('serviceSource.serviceSourceForm.serviceDomainsPlaceholder')}
+              />
+            </Form.Item>
+          </>
         )
       }
     </Form>
