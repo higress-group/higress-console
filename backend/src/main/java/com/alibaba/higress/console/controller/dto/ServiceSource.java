@@ -15,6 +15,7 @@ package com.alibaba.higress.console.controller.dto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -38,6 +39,7 @@ import lombok.NoArgsConstructor;
 @ApiModel("Gateway Service Source")
 public class ServiceSource {
 
+    private static final Pattern NAME_PATTERN = Pattern.compile("^(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]$");
     private static final Map<String, ServiceSourceValidator> VALIDATORS = new HashMap<>();
 
     static {
@@ -52,7 +54,7 @@ public class ServiceSource {
     private String version;
 
     /**
-     * nacos,nacos2,zookeeper,consul,eureka
+     * nacos,nacos2,zookeeper,consul,eureka,static,dns
      */
     private String type;
 
@@ -64,6 +66,10 @@ public class ServiceSource {
 
     public boolean valid() {
         if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
+            return false;
+        }
+
+        if (!NAME_PATTERN.matcher(this.name).matches()) {
             return false;
         }
 

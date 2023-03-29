@@ -18,8 +18,9 @@ import java.util.regex.Pattern;
 
 public class ValidateUtil {
 
-    private static final Pattern DOMAIN_PATTERN =
-        Pattern.compile("^(?:(?!-)[a-z0-9-]{0,62}[a-z0-9]\\.)+[a-z]{2,6}$");
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile("^(?:(?!-)[a-z0-9-]{0,62}[a-z0-9]\\.)+[a-z]{2,6}$");
+    private static final Pattern DOMAIN_WITH_WILDCARD_PATTERN =
+        Pattern.compile("^(\\*\\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,6}$");
     private static final Pattern IPV4_ADDRESS_PATTERN = Pattern
         .compile("(\\b25[0-5]|\\b2[0-4][0-9]|\\b[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}");
 
@@ -38,6 +39,10 @@ public class ValidateUtil {
 
     public static boolean checkDomain(String domain) {
         return StringUtils.isNotEmpty(domain) && DOMAIN_PATTERN.matcher(domain).matches();
+    }
+
+    public static boolean checkDomainWithWildcard(String domain) {
+        return StringUtils.isNotEmpty(domain) && DOMAIN_WITH_WILDCARD_PATTERN.matcher(domain).matches();
     }
 
     public static boolean checkIpAddress(String ipAddress) {

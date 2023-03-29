@@ -87,7 +87,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
-            pattern: /^(?!-)[a-z0-9-]{0,62}[a-z0-9]$/,
+            pattern: /^(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]$/,
             message: t('serviceSource.serviceSourceForm.nameRequired'),
           },
         ]}
