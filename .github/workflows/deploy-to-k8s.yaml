@@ -6,10 +6,14 @@ on:
     - "v*.*.*"
   workflow_dispatch:
     inputs:
+      skipDeployment:
+        description: 'Skip deployment'
+        required: false
+        type: boolean
       environment:
         description: 'Environment to deploy to'
         type: environment
-        required: true
+        required: false
 
 jobs:
   deploy-to-k8s:
@@ -62,6 +66,7 @@ jobs:
 
       - name: Deploy
         uses: wahyd4/kubectl-helm-action@master
+        if: inputs.skipDeployment != true
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
           RELEASE_NAME: ${{ vars.RELEASE_NAME || 'higress-console' }}
