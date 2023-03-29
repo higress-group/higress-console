@@ -38,13 +38,13 @@ import lombok.NoArgsConstructor;
 @ApiModel("Gateway Service Source")
 public class ServiceSource {
 
-    private static final Map<String, ServiceSourceValidator> validators = new HashMap<>();
+    private static final Map<String, ServiceSourceValidator> VALIDATORS = new HashMap<>();
 
     static {
-        validators.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
-        validators.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
-        validators.put(V1McpBridge.REGISTRY_TYPE_STATIC, new StaticServiceSourceValidator());
-        validators.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_STATIC, new StaticServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
     }
 
     private String name;
@@ -71,7 +71,7 @@ public class ServiceSource {
             return false;
         }
 
-        ServiceSourceValidator validator = validators.get(this.getType());
+        ServiceSourceValidator validator = VALIDATORS.get(this.getType());
         if (validator != null && !validator.validate(this)) {
             return false;
         }
