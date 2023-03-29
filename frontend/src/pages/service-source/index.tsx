@@ -22,10 +22,10 @@ const SourceList: React.FC = () => {
       title: t('serviceSource.columns.type'),
       dataIndex: 'type',
       key: 'type',
-      render: (value, record) => {
+      render: (value) => {
         const type = ServiceSourceTypes[value];
         return (
-          <span>{type ? type.name : value}</span>
+          <span>{type ? (type.i18n ? t(type.name) : type.name) : value}</span>
         );
       },
     },
@@ -47,7 +47,10 @@ const SourceList: React.FC = () => {
       title: t('serviceSource.columns.port'),
       dataIndex: 'port',
       key: 'port',
-      render: (value) => {
+      render: (value, record) => {
+        if (record.type === ServiceSourceTypes.static.key) {
+          return '-';
+        }
         return value != null ? value : '-';
       },
     },
@@ -78,13 +81,13 @@ const SourceList: React.FC = () => {
     manual: true,
     onSuccess: (result, params) => {
       const sources = (result || []) as ServiceSource[];
-      sources.forEach(i => {
-        i.key || (i.key = i.name)
-      });
       sources.push({
         name: 'default',
         type: 'Kubernetes',
         builtIn: true,
+      });
+      sources.forEach(i => {
+        i.key || (i.key = i.name + '_' + i.type)
       });
       setDataSource(sources);
     },
@@ -184,7 +187,6 @@ const SourceList: React.FC = () => {
         pagination={false}
       />
       <Drawer
-        // title={t('serviceSource.createServiceSource')}
         title={t(currentServiceSource ? "serviceSource.editServiceSource" : "serviceSource.createServiceSource")}
         placement="right"
         width={660}

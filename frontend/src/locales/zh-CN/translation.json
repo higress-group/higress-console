@@ -93,23 +93,31 @@
     "namespacePlaceholder": "请输入命名空间"
   },
   "serviceSource": {
+    "types": {
+      "static": {
+        "name": "固定地址"
+      },
+      "dns": {
+        "name": "DNS域名"
+      }
+    },
     "columns": {
-      "type": "注册中心类型",
-      "name": "服务来源名称",
-      "domain": "注册中心地址",
-      "port": "注册中心访问端口",
+      "type": "类型",
+      "name": "名称",
+      "domain": "来源地址",
+      "port": "来源端口",
       "action": "操作"
     },
     "createServiceSource": "创建服务来源",
     "editServiceSource": "编辑服务来源",
     "deleteConfirmation": "确定删除 <1>{{currentServiceSourceName}}</1> 吗？",
     "serviceSourceForm": {
-      "type": "注册中心类型",
-      "typeTooltip": "目前支持Nacos 1.x、Nacos 2.x和Zookeeper等类型",
+      "type": "类型",
+      "typeTooltip": "目前支持Nacos 1.x、Nacos 2.x、Zookeeper、固定地址和DNS域名等类型",
       "typePlaceholder": "请选择类型",
-      "name": "服务来源名称",
-      "nameRequired": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
-      "namePlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "name": "名称",
+      "nameRequired": "支持小写字母、数字和短划线（-），并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。",
+      "namePlaceholder": "支持小写字母、数字和短划线，并以字母或数字开头，且不以短划线结尾。长度不超过63个字符。",
       "domain": "注册中心地址",
       "domainTooltip": "注册中心地址，可以是IP或域名",
       "domainRequired": "请输入注册中心地址",
@@ -130,7 +138,16 @@
       "consulNamespace": "Consul命名空间",
       "consulNamespaceTooltip": "Consul类型的服务来源需要填写命名空间",
       "consulNamespaceRequired": "请输入Concul命名空间",
-      "consulNamespacePlaceholder": "Consul命名空间"
+      "consulNamespacePlaceholder": "Consul命名空间",
+      "serviceStaticAddresses": "服务地址",
+      "serviceStaticAddressesRequired": "请输入服务地址",
+      "serviceStaticAddressesPlaceholder": "IP:Port（多个地址请以换行分隔）",
+      "servicePort": "服务端口",
+      "servicePortRequired": "请输入服务端口",
+      "servicePortPlaceholder": "支持1-65535的任意端口",
+      "serviceDomains": "域名列表",
+      "serviceDomainsRequired": "请填写域名列表",
+      "serviceDomainsPlaceholder": "服务域名（多个域名请以换行分隔）"
     }
   },
   "route": {

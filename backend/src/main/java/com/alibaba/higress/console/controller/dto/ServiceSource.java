@@ -12,14 +12,18 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.controller.util.ValidateUtil;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
+import com.google.common.base.Splitter;
 
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
@@ -31,8 +35,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway ServiceSource")
+@ApiModel("Gateway Service Source")
 public class ServiceSource {
+
+    private static final Map<String, ServiceSourceValidator> validators = new HashMap<>();
+
+    static {
+        validators.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
+        validators.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
+        validators.put(V1McpBridge.REGISTRY_TYPE_STATIC, new StaticServiceSourceValidator());
+        validators.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
+    }
+
     private String name;
 
     private String version;
@@ -48,22 +62,103 @@ public class ServiceSource {
 
     private Map<String, Object> properties;
 
-    @SuppressWarnings("unchecked")
     public boolean valid() {
         if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
             return false;
         }
-        if (null == this.getPort() || null == this.getProperties() || !ValidateUtil.checkPort(this.getPort())) {
+
+        if (this.getPort() == null || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
-        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(this.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(this.getType())) {
-            Object groups = this.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS);
-            if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
-                return false;
-            }
+
+        ServiceSourceValidator validator = validators.get(this.getType());
+        if (validator != null && !validator.validate(this)) {
+            return false;
         }
 
         return true;
+    }
+
+    private interface ServiceSourceValidator {
+
+        default boolean validate(ServiceSource source) {
+            return true;
+        }
+    }
+
+    private static class NacosServiceSourceValidator implements ServiceSourceValidator {
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean validate(ServiceSource source) {
+            Map<String, Object> properties = source.getProperties();
+            if (MapUtils.isEmpty(properties)) {
+                return false;
+            }
+            Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS);
+            if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    private static class StaticServiceSourceValidator implements ServiceSourceValidator {
+
+        @Override
+        public boolean validate(ServiceSource source) {
+            if (StringUtils.isBlank(source.getDomain())) {
+                return false;
+            }
+
+            List<String> addresses = Splitter.on(V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR).trimResults()
+                .omitEmptyStrings().splitToList(source.getDomain());
+            if (CollectionUtils.isEmpty(addresses)) {
+                return false;
+            }
+
+            for (String address : addresses) {
+                String[] segments = address.split(CommonKey.COLON);
+                if (segments.length != 2) {
+                    return false;
+                }
+                if (!ValidateUtil.checkIpAddress(segments[0])) {
+                    return false;
+                }
+                int port;
+                try {
+                    port = Integer.parseInt(segments[1]);
+                } catch (NumberFormatException nfe) {
+                    return false;
+                }
+                if (!ValidateUtil.checkPort(port)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private static class DnsServiceSourceValidator implements ServiceSourceValidator {
+
+        @Override
+        public boolean validate(ServiceSource source) {
+            if (StringUtils.isBlank(source.getDomain())) {
+                return false;
+            }
+
+            List<String> domains = Splitter.on(V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR).trimResults()
+                .omitEmptyStrings().splitToList(source.getDomain());
+            if (CollectionUtils.isEmpty(domains)) {
+                return false;
+            }
+
+            if (!domains.stream().allMatch(ValidateUtil::checkDomain)) {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

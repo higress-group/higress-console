@@ -46,4 +46,6 @@ export const ServiceSourceTypes = {
   zookeeper: { key: 'zookeeper', name: 'Zookeeper', enabled: true },
   consul: { key: 'consul', name: 'Concul', enabled: false },
   eureka: { key: 'eureka', name: 'Eureka', enabled: false },
+  static: { key: 'static', name: 'serviceSource.types.static.name', i18n: true, enabled: true },
+  dns: { key: 'dns', name: 'serviceSource.types.dns.name', i18n: true, enabled: true },
 };

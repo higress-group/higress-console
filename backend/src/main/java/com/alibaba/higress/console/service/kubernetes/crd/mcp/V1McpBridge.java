@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console.service.kubernetes.crd.mcp;
 
+import com.alibaba.higress.console.constant.CommonKey;
 import com.google.gson.annotations.SerializedName;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -41,6 +42,12 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
     public static final String REGISTRY_TYPE_ZK = "zookeeper";
 
     public static final String REGISTRY_TYPE_ZK_ZKSERVICESPATH = "zkServicesPath";
+
+    public static final String REGISTRY_TYPE_STATIC = "static";
+
+    public static final String REGISTRY_TYPE_DNS = "dns";
+
+    public static final String REGISTRY_TYPE_STATIC_DNS_SEPARATOR = CommonKey.COMMA;
 
     public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";
     @SerializedName(SERIALIZED_NAME_API_VERSION)
