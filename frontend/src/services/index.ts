@@ -5,3 +5,4 @@ export * from './domain';
 export * from './service-source';
 export * from './tls-certificate';
 export * from './dashboard';
+export * from './plugin';

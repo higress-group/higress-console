@@ -1,0 +1,10 @@
+.rewrite :global {
+  .ant-empty-normal {
+    margin: 0;
+  }
+  .ant-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
