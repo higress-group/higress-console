@@ -34,5 +34,5 @@ spec:
                   }
                 ]
               }
-        allow:
-          - consumer-1
+        # 在全局配置中定义的consumer，在此处配置许可访问
+        allow: []

@@ -76,5 +76,5 @@ spec:
             credential: admin:123456
           - name: consumer2
             credential: guest:abc
-        allow:
-          - consumer2
+        # 在全局配置中定义的consumer，在此处配置许可访问
+        allow: []

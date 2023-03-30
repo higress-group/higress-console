@@ -27,5 +27,5 @@ spec:
           - key: appKey-example-2
             secret: appSecret-example-2
             name: consumer-2
-        allow:
-          - consumer-2
+        # 在全局配置中定义的consumer，在此处配置许可访问
+        allow: []
