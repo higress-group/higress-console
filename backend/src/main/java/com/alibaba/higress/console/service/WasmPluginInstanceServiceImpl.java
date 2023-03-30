@@ -12,18 +12,23 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.openapi4j.core.util.TreeUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.controller.dto.WasmPlugin;
+import com.alibaba.higress.console.controller.dto.WasmPluginConfig;
 import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
 import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.exception.BusinessException;
@@ -86,6 +91,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public WasmPluginInstance addOrUpdate(WasmPluginInstance instance) {
         WasmPluginInstanceScope scope = instance.getScope();
         if (scope == null) {
@@ -104,7 +110,12 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
         }
 
         String name = instance.getPluginName();
+
         WasmPlugin plugin = wasmPluginService.query(name, null);
+        if (plugin == null) {
+            throw new IllegalArgumentException("Unknown plugin: " + name);
+        }
+
         String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getVersion());
         V1alpha1WasmPlugin existedCr = null;
         try {
@@ -117,6 +128,23 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
                 throw new BusinessException("Error occurs when getting WasmPlugin.", e);
             }
         }
+
+        if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
+            try {
+                Map<String, Object> configurations = (Map<String, Object>)TreeUtil.yaml
+                    .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
+                instance.setConfigurations(configurations);
+            } catch (IOException e) {
+                throw new BusinessException(
+                    "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
+            }
+        }
+
+        WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
+        assert pluginConfig != null;
+        Map<String, Object> cleanedConfigurations = pluginConfig.validateAndCleanUp(instance.getConfigurations());
+        instance.setConfigurations(cleanedConfigurations);
+
         V1alpha1WasmPlugin result;
         try {
             if (existedCr == null) {

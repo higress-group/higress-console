@@ -71,6 +71,7 @@ spec:
         - allow
       example:
         consumers:
+          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
           - name: consumer1
             credential: admin:123456
           - name: consumer2

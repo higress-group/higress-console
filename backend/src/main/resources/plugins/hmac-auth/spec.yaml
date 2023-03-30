@@ -15,3 +15,17 @@ info:
 spec:
   phase: AUTHN
   priority: 330
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        consumers:
+          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
+          - key: appKey-example-1
+            secret: appSecret-example-1
+            name: consumer-1
+          - key: appKey-example-2
+            secret: appSecret-example-2
+            name: consumer-2
+        allow:
+          - consumer-2

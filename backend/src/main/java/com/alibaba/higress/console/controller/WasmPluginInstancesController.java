@@ -177,10 +177,6 @@ public class WasmPluginInstancesController {
         if (plugin == null) {
             throw new ValidationException("Unsupported plugin: " + name);
         }
-        WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
-        assert pluginConfig != null;
-        Map<String, Object> cleanedConfigurations = pluginConfig.validateAndCleanUp(instance.getConfigurations());
-        instance.setConfigurations(cleanedConfigurations);
         instance.setScope(scope);
         instance.setTarget(target);
         instance = wasmPluginInstanceService.addOrUpdate(instance);

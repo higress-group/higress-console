@@ -15,3 +15,24 @@ info:
 spec:
   phase: AUTHN
   priority: 340
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        consumers:
+          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
+          - name: consumer1
+            issuer: abcd
+            jwks: |
+              {
+                "keys": [
+                  {
+                    "kty": "oct",
+                    "kid": "123",
+                    "k": "hM0k3AbXBPpKOGg__Ql2Obcq7s60myWDpbHXzgKUQdYo7YCRp0gUqkCnbGSvZ2rGEl4YFkKqIqW7mTHdj-bcqXpNr-NOznEyMpVPOIlqG_NWVC3dydBgcsIZIdD-MR2AQceEaxriPA_VmiUCwfwL2Bhs6_i7eolXoY11EapLQtutz0BV6ZxQQ4dYUmct--7PLNb4BWJyQeWu0QfbIthnvhYllyl2dgeLTEJT58wzFz5HeNMNz8ohY5K0XaKAe5cepryqoXLhA-V-O1OjSG8lCNdKS09OY6O0fkyweKEtuDfien5tHHSsHXoAxYEHPFcSRL4bFPLZ0orTt1_4zpyfew",
+                    "alg": "HS256"
+                  }
+                ]
+              }
+        allow:
+          - consumer-1

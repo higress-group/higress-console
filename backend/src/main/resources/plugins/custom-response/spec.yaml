@@ -15,3 +15,11 @@ info:
 spec:
   phase: AUTHN
   priority: 910
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        status_code: 200
+        headers:
+          - Content-Type=application/json
+        body: "{\"hello\":\"world\"}"
