@@ -19,6 +19,7 @@ import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+import { history } from 'ice';
 
 interface RouteFormProps {
   name: string;
@@ -71,6 +72,7 @@ const RouteList: React.FC = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <a onClick={() => onEditConfig(record)}>策略</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -106,6 +108,10 @@ const RouteList: React.FC = () => {
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
     setOpenDrawer(true);
+  };
+
+  const onEditConfig = (route: Route) => {
+    history?.push(`/route/config?name=${route.name}`);
   };
 
   const onShowDrawer = () => {
