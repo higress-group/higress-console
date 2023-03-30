@@ -64,6 +64,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
+            pattern: /^(\*\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,6}$/,
             message: t('domain.domainForm.nameRequired'),
           },
         ]}
@@ -72,8 +73,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           disabled={value}
-          maxLength={256}
-          placeholder={t('domain.domainForm.namePlaceholder')}
+          maxLength={63}
         />
       </Form.Item>
       <Form.Item

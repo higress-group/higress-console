@@ -75,7 +75,13 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
-    handleSubmit: () => (form.validateFields()),
+    handleSubmit: async () => {
+      const values = await form.validateFields();
+      if (values.domains && !Array.isArray(values.domains)) {
+        values.domains = [values.domains];
+      }
+      return values;
+    },
   }));
 
   return (
@@ -117,7 +123,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <Select
           showSearch
           allowClear
-          mode="multiple"
+          mode="single"
           placeholder={t('route.routeForm.domainSearchPlaceholder')}
           options={domainOptions}
         />
