@@ -39,5 +39,7 @@ public class WasmPluginInstance {
 
     private Boolean enabled;
 
+    private String rawConfigurations;
+
     private Map<String, Object> configurations;
 }

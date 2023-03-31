@@ -15,3 +15,12 @@ info:
 spec:
   phase: AUTHZ
   priority: 330
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        rules:
+          - "Include @crs-setup-conf"
+          - "Include @recommended-conf"
+          - "Include @owasp_crs/*.conf"
+          - "SecRuleEngine DetectionOnly"

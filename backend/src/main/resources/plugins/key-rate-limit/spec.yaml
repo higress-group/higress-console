@@ -14,3 +14,13 @@ info:
     email: admin@higress.io
 spec:
   priority: 10
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        limit_by_header: x-api-key
+        limit_keys:
+          - key: example-key-a
+            query_per_second: 10
+          - key: example-key-b
+            query_per_minute: 1000

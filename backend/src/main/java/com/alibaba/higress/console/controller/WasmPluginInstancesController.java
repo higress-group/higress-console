@@ -13,7 +13,6 @@
 package com.alibaba.higress.console.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
@@ -33,7 +32,6 @@ import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.WasmPlugin;
-import com.alibaba.higress.console.controller.dto.WasmPluginConfig;
 import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
 import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.exception.ValidationException;
@@ -177,10 +175,6 @@ public class WasmPluginInstancesController {
         if (plugin == null) {
             throw new ValidationException("Unsupported plugin: " + name);
         }
-        WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
-        assert pluginConfig != null;
-        Map<String, Object> cleanedConfigurations = pluginConfig.validateAndCleanUp(instance.getConfigurations());
-        instance.setConfigurations(cleanedConfigurations);
         instance.setScope(scope);
         instance.setTarget(target);
         instance = wasmPluginInstanceService.addOrUpdate(instance);
