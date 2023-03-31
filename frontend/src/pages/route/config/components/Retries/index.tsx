@@ -11,7 +11,7 @@ export default function Retries(props) {
       attempts = 3,
       conditions = ['error', 'timeout'],
       enabled = false,
-      timeout = '',
+      timeout = 5,
     } = data.proxyNextUpstream || {};
 
     form.setFieldsValue({
@@ -45,7 +45,7 @@ export default function Retries(props) {
           </Select>
         </Form.Item>
         <Form.Item label="超时" name="timeout" rules={[{ required: true, message: '请输入你的超时时间!' }]}>
-          <InputNumber style={{ width: '100%' }} max={600} />
+          <InputNumber style={{ width: '100%' }} max={600} addonAfter="秒" />
         </Form.Item>
       </Form>
     </div>

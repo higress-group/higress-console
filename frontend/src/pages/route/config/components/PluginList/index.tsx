@@ -39,7 +39,7 @@ export default function PluginList(props) {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         return (
-          <Col span={6} key={item.name} xs={24} sm={12} md={12} lg={6}>
+          <Col span={6} key={item.title} xs={24} sm={12} md={12} lg={6}>
             <Card
               hoverable
               actions={[
@@ -66,9 +66,9 @@ export default function PluginList(props) {
                     }}
                   />
                 }
-                title={item.name}
+                title={item.title}
                 description={
-                  <Paragraph ellipsis={{ rows: 3 }} style={{ minHeight: '64px' }}>
+                  <Paragraph ellipsis={{ rows: 3 }} style={{ minHeight: '64px', color: '#00000073 ' }}>
                     {item?.description}
                   </Paragraph>
                 }
