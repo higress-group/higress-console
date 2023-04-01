@@ -15,20 +15,26 @@ package com.alibaba.higress.console.controller;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
-import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.dto.WasmPluginConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
+import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.WasmPlugin;
+import com.alibaba.higress.console.controller.dto.WasmPluginConfig;
 import com.alibaba.higress.console.controller.dto.WasmPluginPageQuery;
+import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.WasmPluginService;
 
@@ -58,6 +64,31 @@ public class WasmPluginsController {
         @RequestParam(required = false) String lang) {
         WasmPlugin plugin = wasmPluginService.query(name, lang);
         return ControllerUtil.buildResponseEntity(plugin);
+    }
+
+    @PostMapping
+    public ResponseEntity<Response<WasmPlugin>> add(@RequestBody WasmPlugin plugin) {
+        plugin.validate();
+        WasmPlugin newPlugin = wasmPluginService.addCustom(plugin);
+        return ControllerUtil.buildResponseEntity(newPlugin);
+    }
+
+    @PutMapping(value = "/{name}")
+    public ResponseEntity<Response<WasmPlugin>> update(@PathVariable("name") @NotBlank String name,
+        @RequestBody WasmPlugin plugin) {
+        if (StringUtils.isEmpty(plugin.getName())) {
+            plugin.setName(name);
+        } else if (!StringUtils.equals(name, plugin.getName())) {
+            throw new ValidationException("Plugin name in the URL doesn't match the one in the body.");
+        }
+        plugin.validate();
+        WasmPlugin updatedPlugin = wasmPluginService.updateCustom(plugin);
+        return ControllerUtil.buildResponseEntity(updatedPlugin);
+    }
+
+    @DeleteMapping(value = "/{name}")
+    public void delete(@PathVariable("name") @NotBlank String name) {
+        wasmPluginService.deleteCustom(name);
     }
 
     @GetMapping(value = "/{name}/config")

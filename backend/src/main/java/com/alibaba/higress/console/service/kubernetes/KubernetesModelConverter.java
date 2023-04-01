@@ -286,22 +286,117 @@ public class KubernetesModelConverter {
         return certificate;
     }
 
+    public WasmPlugin wasmPluginFromCr(V1alpha1WasmPlugin cr) {
+        WasmPlugin plugin = new WasmPlugin();
+
+        V1ObjectMeta metadata = cr.getMetadata();
+        if (metadata != null) {
+            plugin.setVersion(metadata.getResourceVersion());
+
+            String name = MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY);
+            plugin.setName(name);
+            String version =
+                MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+            plugin.setImageVersion(version);
+            String category =
+                MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY);
+            plugin.setCategory(category);
+            String builtIn =
+                MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_BUILT_IN_KEY);
+            if (StringUtils.isNotEmpty(builtIn)) {
+                plugin.setBuiltIn(Boolean.valueOf(builtIn));
+            }
+
+            String title =
+                MapUtils.getString(metadata.getAnnotations(), KubernetesConstants.Annotation.WASM_PLUGIN_TITLE_KEY);
+            plugin.setTitle(title);
+            String description = MapUtils.getString(metadata.getAnnotations(),
+                KubernetesConstants.Annotation.WASM_PLUGIN_DESCRIPTION_KEY);
+            plugin.setDescription(description);
+            String icon =
+                MapUtils.getString(metadata.getAnnotations(), KubernetesConstants.Annotation.WASM_PLUGIN_ICON_KEY);
+            plugin.setIcon(icon);
+        }
+
+        V1alpha1WasmPluginSpec spec = cr.getSpec();
+        if (spec != null) {
+            plugin.setPhase(spec.getPhase());
+            plugin.setPriority(spec.getPriority());
+            String url = spec.getUrl();
+            if (StringUtils.isNotEmpty(url)) {
+                int colonIndex = url.lastIndexOf(CommonKey.COLON);
+                if (colonIndex != -1) {
+                    plugin.setImageRepository(url.substring(0, colonIndex));
+                    plugin.setImageVersion(url.substring(colonIndex + 1));
+                } else {
+                    plugin.setImageRepository(url);
+                }
+            }
+        }
+
+        return plugin;
+    }
+
     public V1alpha1WasmPlugin wasmPluginToCr(WasmPlugin plugin) {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
 
+        String name = plugin.getName(), version = plugin.getImageVersion();
+
         V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName(plugin.getName() + CommonKey.DASH + plugin.getVersion());
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, plugin.getName());
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY, plugin.getVersion());
+        metadata.setName(name + CommonKey.DASH + version);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, name);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY, version);
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY, plugin.getCategory());
+        boolean builtIn = Boolean.TRUE.equals(plugin.getBuiltIn());
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_BUILT_IN_KEY, String.valueOf(builtIn));
+
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.WASM_PLUGIN_TITLE_KEY, plugin.getTitle());
+        if (StringUtils.isNotEmpty(plugin.getDescription())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.WASM_PLUGIN_DESCRIPTION_KEY,
+                plugin.getDescription());
+        }
+        if (StringUtils.isNotEmpty(plugin.getIcon())) {
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.WASM_PLUGIN_ICON_KEY,
+                plugin.getIcon());
+        }
+
+        metadata.setResourceVersion(plugin.getVersion());
         cr.setMetadata(metadata);
 
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         spec.setPhase(plugin.getPhase());
         spec.setPriority(plugin.getPriority());
-        spec.setUrl(plugin.getImageRepository() + CommonKey.COLON + plugin.getVersion());
+        spec.setUrl(buildImageUrl(plugin.getImageRepository(), plugin.getImageVersion()));
         cr.setSpec(spec);
 
         return cr;
+    }
+
+    public void mergeWasmPluginSpec(V1alpha1WasmPlugin srcPlugin, V1alpha1WasmPlugin dstPlugin) {
+        V1alpha1WasmPluginSpec srcSpec = srcPlugin.getSpec();
+
+        if (srcSpec == null) {
+            return;
+        }
+
+        V1alpha1WasmPluginSpec dstSpec = dstPlugin.getSpec();
+
+        if (dstSpec == null) {
+            dstSpec = new V1alpha1WasmPluginSpec();
+            dstPlugin.setSpec(dstSpec);
+        }
+
+        dstSpec.setDefaultConfig(srcSpec.getDefaultConfig());
+        dstSpec.setDefaultConfigDisable(srcSpec.getDefaultConfigDisable());
+        if (CollectionUtils.isNotEmpty(srcSpec.getMatchRules())) {
+            if (dstSpec.getMatchRules() == null) {
+                dstSpec.setMatchRules(new ArrayList<>());
+            } else {
+                dstSpec.getMatchRules().removeIf(r -> srcSpec.getMatchRules().stream().anyMatch(r::keyEquals));
+            }
+            dstSpec.getMatchRules().addAll(srcSpec.getMatchRules());
+        }
+        sortWasmPluginMatchRules(dstSpec.getMatchRules());
     }
 
     public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin, WasmPluginInstanceScope scope,
@@ -392,6 +487,7 @@ public class KubernetesModelConverter {
                 if (domainRule == null) {
                     domainRule = MatchRule.forDomain(domain);
                     matchRules.add(domainRule);
+                    sortWasmPluginMatchRules(matchRules);
                 }
                 domainRule.setConfigDisable(!enabled);
                 domainRule.setConfig(configurations);
@@ -402,8 +498,9 @@ public class KubernetesModelConverter {
                     .filter(r -> r.getIngress() != null && r.getIngress().contains(route)).findFirst().orElse(null);
                 if (routeRule == null) {
                     routeRule = MatchRule.forIngress(route);
-                    // Route rules shall come first to get the highest priority.
+                    // Route rules shall come first to get a higher priority.
                     matchRules.add(0, routeRule);
+                    sortWasmPluginMatchRules(matchRules);
                 }
                 routeRule.setConfigDisable(!enabled);
                 routeRule.setConfig(configurations);
@@ -469,6 +566,82 @@ public class KubernetesModelConverter {
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
         return changed;
+    }
+
+    private void sortWasmPluginMatchRules(List<MatchRule> matchRules) {
+        if (CollectionUtils.isEmpty(matchRules)) {
+            return;
+        }
+        matchRules.sort(KubernetesModelConverter::compareMatchRules);
+    }
+
+    private static int compareMatchRules(MatchRule r1, MatchRule r2) {
+        boolean hasDomain1 = CollectionUtils.isNotEmpty(r1.getDomain());
+        boolean hasDomain2 = CollectionUtils.isNotEmpty(r2.getDomain());
+        boolean hasIngress1 = CollectionUtils.isNotEmpty(r1.getIngress());
+        boolean hasIngress2 = CollectionUtils.isNotEmpty(r2.getIngress());
+
+        boolean empty1 = !hasDomain1 && !hasIngress1;
+        boolean empty2 = !hasDomain2 && !hasIngress2;
+        if (empty1 && empty2) {
+            return 0;
+        }
+        if (empty1 != empty2) {
+            // One of them is empty. The non-empty one comes first.
+            return empty1 ? 1 : -1;
+        }
+
+        // One contains some Ingresses, but the other one doesn't.
+        // The one with Ingresses comes first since we need to match any Ingress rules before all the domain
+        // rules.
+        if (hasIngress1 != hasIngress2) {
+            return hasIngress1 ? -1 : 1;
+        }
+
+        if (!hasIngress1) {
+            // None of them contains Ingress, so both of them contain domains.
+            return compareStringLists(r1.getDomain(), r2.getDomain());
+        }
+
+        // One contains some domains as well, but the other one doesn't.
+        // The one without any domain comes first since we need to match any Ingress rules before all the
+        // domain rules.
+        if (hasDomain1 != hasDomain2) {
+            return hasDomain1 ? 1 : -1;
+        }
+
+        int ret = compareStringLists(r1.getIngress(), r2.getIngress());
+        if (ret != 0) {
+            return 0;
+        }
+        return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
+    }
+
+    private static int compareStringLists(List<String> l1, List<String> l2) {
+        boolean empty1 = CollectionUtils.isEmpty(l1);
+        boolean empty2 = CollectionUtils.isEmpty(l2);
+        if (empty1 && empty2) {
+            return 0;
+        }
+        if (empty1 != empty2) {
+            // One of them is empty. The non-empty one comes first.
+            return empty1 ? 1 : -1;
+        }
+
+        for (int i = 0, n = Math.max(l1.size(), l2.size()); i < n; ++i) {
+            if (i >= l1.size()) {
+                return -1;
+            }
+            if (i >= l2.size()) {
+                return 1;
+            }
+            int ret = StringUtils.compare(l1.get(i), l2.get(i));
+            if (ret != 0) {
+                return ret;
+            }
+        }
+
+        return 0;
     }
 
     private static void fillRouteMetadata(Route route, V1ObjectMeta metadata) {
@@ -1243,6 +1416,23 @@ public class KubernetesModelConverter {
     private void setDomainLabel(V1ObjectMeta metadata, String domainName) {
         String labelName = KubernetesConstants.Label.DOMAIN_KEY_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
         KubernetesUtil.setLabel(metadata, labelName, KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+    }
+
+    private static String buildImageUrl(String imageRepository, String imageVersion) {
+        if (StringUtils.isBlank(imageRepository)) {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        if (!imageRepository.contains(CommonKey.PROTOCOL_KEYWORD)) {
+            builder.append(CommonKey.OCI_PROTOCOL);
+        }
+        builder.append(imageRepository);
+
+        if (StringUtils.isNotBlank(imageVersion)) {
+            builder.append(CommonKey.COLON).append(imageVersion);
+        }
+        return builder.toString();
     }
 
     private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
