@@ -22,6 +22,10 @@ public class CommonKey {
 
     public final static String LIST_CONFIG_SEPARATOR = ";";
 
+    public final static String PROTOCOL_KEYWORD = "://";
+
+    public final static String OCI_PROTOCOL = "oci" + PROTOCOL_KEYWORD;
+
     public final static String MCP_NAMESPACE = "mcp";
 
     public final static String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";

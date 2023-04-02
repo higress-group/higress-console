@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("TLS Certificate")
-public class TlsCertificate {
+public class TlsCertificate implements VersionedDto {
 
     private String name;
 

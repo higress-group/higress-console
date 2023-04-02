@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("Wasm Plugin Instance")
-public class WasmPluginInstance {
+public class WasmPluginInstance implements VersionedDto {
 
     private String version;
 

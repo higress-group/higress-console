@@ -40,4 +40,20 @@ public class MatchRule {
     public static MatchRule forIngress(String ingress) {
         return new MatchRule(null, null, null, Collections.singletonList(ingress));
     }
+
+    public boolean keyEquals(MatchRule rule) {
+        if ((domain == null) == (rule.domain != null)) {
+            return false;
+        }
+        if ((ingress == null) == (rule.ingress != null)) {
+            return false;
+        }
+        if (domain != null && (domain.size() != rule.domain.size() || !domain.containsAll(rule.domain))) {
+            return false;
+        }
+        if (ingress != null && (ingress.size() != rule.ingress.size() || !ingress.containsAll(rule.ingress))) {
+            return false;
+        }
+        return true;
+    }
 }
