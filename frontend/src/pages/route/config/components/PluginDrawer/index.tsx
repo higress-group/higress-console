@@ -25,7 +25,7 @@ export default function PluginDrawer(props) {
 
   const [form] = Form.useForm();
   const [activePluginKey, setActivePluginKey] = useState('');
-  const [activePluginData, setActivePluginData] = useState({ name: '' });
+  const [activePluginData, setActivePluginData] = useState({ title: '' });
 
   const [open, setOpen] = useState(false);
 
@@ -130,7 +130,7 @@ export default function PluginDrawer(props) {
 
   return (
     <Drawer
-      title={activePluginData.name}
+      title={activePluginData.title}
       placement="right"
       onClose={onCloseDrawer}
       open={open}
