@@ -112,11 +112,11 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
             { required: true },
             {
               pattern: /^[a-zA-Z0-9]*([a-zA-Z0-9.-]*)[a-zA-Z0-9]$/,
-              message: '包含小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾',
+              message: '包含大小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾',
             },
           ]}
         >
-          <Input disabled={isEdit} placeholder={'包含小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾'} />
+          <Input disabled={isEdit} placeholder={'包含大小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾'} />
         </Form.Item>
         <Form.Item label="插件描述" name="description">
           <Input.TextArea placeholder={'请输入插件描述'} />
