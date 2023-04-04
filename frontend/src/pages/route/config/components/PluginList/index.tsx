@@ -92,7 +92,7 @@ const PluginList = forwardRef((props: Props, ref) => {
                       {item.name}
                     </div>
                     {/* </Tooltip> */}
-                    {item.category === 'custom' ? (
+                    {item.builtIn === false ? (
                       <Dropdown
                         menu={{
                           items: [
