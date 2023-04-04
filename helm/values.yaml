@@ -1,5 +1,6 @@
 global:
-  kind: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
+  local: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
+  kind: false # Deprecated. Please use "global.local" instead. Will be removed later.
 
 replicaCount: 1
 
@@ -88,3 +89,5 @@ o11y:
         cpu: 500m
         memory: 2Gi
 
+pvc:
+  rwxSupported: true

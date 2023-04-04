@@ -74,7 +74,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
-  {{- if .Values.global.kind }}
+  {{- if or (or .Values.global.local .Values.global.kind) (not .Values.pvc.rwxSupported) }}
   - ReadWriteOnce
   {{- else }}
   - ReadWriteMany
