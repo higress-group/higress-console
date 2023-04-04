@@ -1,27 +1,46 @@
-import { Col, Row, Button, Card, Avatar, Typography, message } from 'antd';
-import { useState, useEffect } from 'react';
+import { Col, Row, Button, Card, Tooltip, Popconfirm, Dropdown, Avatar, Typography, message } from 'antd';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { DEFAULT_PLUGIN_IMG, DEFAULT_PLUGIN_LIST } from './constant';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
+import { WasmPluginData } from '@/interfaces/route';
 import { getWasmPlugins } from '@/services';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
 
-export default function PluginList(props) {
-  const { data, onOpen } = props;
+interface Props {
+  data: Object;
+  onOpen: (v: Object) => void;
+  onEdit?: (v: WasmPluginData) => void;
+  onDelete?: (v: string) => void;
+}
+
+export interface ListRef {
+  refresh: () => void;
+}
+
+const PluginList = forwardRef((props: Props, ref) => {
+  const { data, onOpen, onEdit, onDelete } = props;
 
   const handleClickPlugin = (item) => {
     onOpen(item);
   };
 
-  const [pluginList, setPluginList] = useState(DEFAULT_PLUGIN_LIST);
+  const [pluginList, setPluginList] = useState<WasmPluginData[]>(DEFAULT_PLUGIN_LIST);
 
-  const { loading, run } = useRequest(getWasmPlugins, {
+  const { loading, run, refresh } = useRequest(getWasmPlugins, {
     manual: true,
     onSuccess: (result = []) => {
       setPluginList(DEFAULT_PLUGIN_LIST.concat(result) as any);
     },
   });
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      refresh();
+    },
+  }));
 
   useEffect(() => {
     run();
@@ -43,7 +62,7 @@ export default function PluginList(props) {
             <Card
               hoverable
               actions={[
-                !['rewrite', 'cors', 'headerModify', 'retries'].includes(item?.key) ? (
+                !['rewrite', 'cors', 'headerModify', 'retries'].includes(item?.key || '') ? (
                   '正在开发中，暂不支持该插件'
                 ) : (
                   <div onClick={() => handleClickPlugin(item)}>
@@ -66,7 +85,51 @@ export default function PluginList(props) {
                     }}
                   />
                 }
-                title={item.title}
+                title={
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* <Tooltip title={item.name}> */}
+                    <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name}
+                    </div>
+                    {/* </Tooltip> */}
+                    {item.builtIn === false ? (
+                      <Dropdown
+                        menu={{
+                          items: [
+                            {
+                              key: 'edit',
+                              label: (
+                                <span
+                                  onClick={() => {
+                                    onEdit?.(item);
+                                  }}
+                                >
+                                  编辑
+                                </span>
+                              ),
+                            },
+                            {
+                              key: 'delete',
+                              label: (
+                                <Popconfirm
+                                  title={'是否确认删除？'}
+                                  onConfirm={() => {
+                                    onDelete?.(item.name);
+                                  }}
+                                >
+                                  <span>删除</span>
+                                </Popconfirm>
+                              ),
+                              danger: true,
+                            },
+                          ],
+                        }}
+                      >
+                        <EllipsisOutlined />
+                      </Dropdown>
+                    ) : undefined}
+                  </div>
+                }
                 description={
                   <Paragraph ellipsis={{ rows: 3 }} style={{ minHeight: '64px', color: '#00000073 ' }}>
                     {item?.description}
@@ -79,4 +142,6 @@ export default function PluginList(props) {
       })}
     </Row>
   );
-}
+});
+
+export default PluginList;
