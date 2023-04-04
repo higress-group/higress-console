@@ -44,6 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.Language;
+import com.alibaba.higress.console.controller.WasmPluginCategory;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.WasmPlugin;
 import com.alibaba.higress.console.controller.dto.WasmPluginConfig;
@@ -260,6 +261,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         }
 
         plugin.setBuiltIn(false);
+        plugin.setCategory(WasmPluginCategory.CUSTOM);
+
         V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
         V1alpha1WasmPlugin addedCr;
         try {
@@ -286,6 +289,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         }
 
         plugin.setBuiltIn(false);
+        plugin.setCategory(WasmPluginCategory.CUSTOM);
+
         V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
         List<V1alpha1WasmPlugin> existedCrs;
         try {
