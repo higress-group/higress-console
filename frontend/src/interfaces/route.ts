@@ -98,3 +98,21 @@ export function upstreamServiceToString(service: UpstreamService): string {
   const name = service.name || '-';
   return service.port != null ? `${name}:${service.port}` : name;
 }
+
+export interface WasmPluginData {
+  id?: string;
+  name: string;
+  version?: string;
+  category?: string;
+  title?: string;
+  description?: string;
+  icon?: string;
+  builtIn?: boolean;
+  imageRepository?: string;
+  imageVersion?: string;
+  phase?: string;
+  priority?: number;
+
+  resKey?: string;
+  key?: string;
+}
