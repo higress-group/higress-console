@@ -65,7 +65,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     public List<WasmPluginInstance> list(WasmPluginInstanceScope scope, String target) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(null, null);
+            plugins = kubernetesClientService.listWasmPlugin();
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing WasmPlugin.", e);
         }
@@ -80,7 +80,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     public WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(pluginName, null);
+            plugins = kubernetesClientService.listWasmPlugin(pluginName);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when querying WasmPlugin.", e);
         }
@@ -116,7 +116,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
             throw new IllegalArgumentException("Unknown plugin: " + name);
         }
 
-        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getVersion());
+        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getImageVersion());
         V1alpha1WasmPlugin existedCr = null;
         try {
             List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
@@ -140,15 +140,17 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
             }
         }
 
+        Map<String, Object> configurations = instance.getConfigurations();
         WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
-        assert pluginConfig != null;
-        Map<String, Object> cleanedConfigurations = pluginConfig.validateAndCleanUp(instance.getConfigurations());
-        instance.setConfigurations(cleanedConfigurations);
+        if (pluginConfig != null) {
+            configurations = pluginConfig.validateAndCleanUp(configurations);
+        }
+        instance.setConfigurations(configurations);
 
         V1alpha1WasmPlugin result;
         try {
             if (existedCr == null) {
-                if (!version.equals(plugin.getVersion())) {
+                if (!version.equals(plugin.getImageVersion())) {
                     throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
                 }
                 result = kubernetesModelConverter.wasmPluginToCr(plugin);
@@ -173,7 +175,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     public void delete(WasmPluginInstanceScope scope, String target, String pluginName) {
         List<V1alpha1WasmPlugin> existedCrs = null;
         try {
-            existedCrs = kubernetesClientService.listWasmPlugin(pluginName, null);
+            existedCrs = kubernetesClientService.listWasmPlugin(pluginName);
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
                 throw new BusinessException("Error occurs when getting WasmPlugin.", e);
@@ -186,7 +188,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
     public void deleteAll(WasmPluginInstanceScope scope, String target) {
         List<V1alpha1WasmPlugin> existedCrs = null;
         try {
-            existedCrs = kubernetesClientService.listWasmPlugin(null, null);
+            existedCrs = kubernetesClientService.listWasmPlugin();
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
                 throw new BusinessException("Error occurs when getting WasmPlugin.", e);

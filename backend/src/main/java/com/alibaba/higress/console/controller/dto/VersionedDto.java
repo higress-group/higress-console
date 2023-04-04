@@ -12,30 +12,12 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
-import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+/**
+ * Interface used to mark DTOs which support optimistic-locking by version when updating.
+ */
+public interface VersionedDto {
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("Gateway Domain")
-public class Domain implements VersionedDto {
+    String getVersion();
 
-    public static class EnableHttps {
-        public static final String OFF = "off";
-        public static final String ON = "on";
-        public static final String FORCE = "force";
-    }
-
-    private String name;
-
-    private String version;
-
-    private String enableHttps;
-
-    private String certIdentifier;
+    void setVersion(String version);
 }

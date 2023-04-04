@@ -56,6 +56,10 @@ public class KubernetesConstants {
         public static final String METHOD_KEY = "higress.io/match-method";
 
         public static final String IGNORE_PATH_CASE_KEY = "higress.io/ignore-path-case";
+
+        public static final String WASM_PLUGIN_TITLE_KEY = "higress.io/wasm-plugin-title";
+        public static final String WASM_PLUGIN_DESCRIPTION_KEY = "higress.io/wasm-plugin-description";
+        public static final String WASM_PLUGIN_ICON_KEY = "higress.io/wasm-plugin-icon";
     }
 
     public static class Label {
@@ -65,6 +69,8 @@ public class KubernetesConstants {
         public static final String RESOURCE_DEFINER_VALUE = "higress";
         public static final String WASM_PLUGIN_NAME_KEY = "higress.io/wasm-plugin-name";
         public static final String WASM_PLUGIN_VERSION_KEY = "higress.io/wasm-plugin-version";
+        public static final String WASM_PLUGIN_BUILT_IN_KEY = "higress.io/wasm-plugin-built-in";
+        public static final String WASM_PLUGIN_CATEGORY_KEY = "higress.io/wasm-plugin-category";
     }
 
     public static class IngressPathType {

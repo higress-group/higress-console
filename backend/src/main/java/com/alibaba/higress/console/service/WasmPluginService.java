@@ -29,4 +29,10 @@ public interface WasmPluginService {
     WasmPluginConfig queryConfig(String name, String language);
 
     String queryReadme(String name, String language);
+
+    WasmPlugin addCustom(WasmPlugin plugin);
+
+    WasmPlugin updateCustom(WasmPlugin plugin);
+
+    void deleteCustom(String name);
 }

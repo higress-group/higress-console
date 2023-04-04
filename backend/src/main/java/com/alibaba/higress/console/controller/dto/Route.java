@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("Gateway Route")
-public class Route {
+public class Route implements VersionedDto {
 
     private String name;
 
