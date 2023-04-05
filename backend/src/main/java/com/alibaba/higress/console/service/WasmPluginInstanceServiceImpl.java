@@ -84,10 +84,14 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when querying WasmPlugin.", e);
         }
-        if (CollectionUtils.isEmpty(plugins)) {
-            return null;
+        WasmPluginInstance instance = null;
+        if (CollectionUtils.isNotEmpty(plugins)) {
+            instance = kubernetesModelConverter.getWasmPluginInstanceFromCr(plugins.get(0), scope, target);
         }
-        return kubernetesModelConverter.getWasmPluginInstanceFromCr(plugins.get(0), scope, target);
+        if (instance == null) {
+            instance = new WasmPluginInstance(null, scope, target, pluginName, null, false, null, null);
+        }
+        return instance;
     }
 
     @Override
