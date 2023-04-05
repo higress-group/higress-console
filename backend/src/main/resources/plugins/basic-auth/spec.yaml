@@ -19,6 +19,15 @@ spec:
     openAPIV3Schema:
       type: object
       properties:
+        global_auth:
+          type: boolean
+          title: 是否开启全局认证
+          x-title-i18n:
+            en-US: Enable Global Auth
+          description: 若不开启全局认证，则全局配置只提供凭证信息。只有在域名或路由上进行了配置才会启用认证。
+          x-description-i18n:
+            en-US: If set to false, only consumer info will be accepted from the global config. Auth feature shall only be enabled if the corresponding domain or route is configured.
+          example: false
         consumers:
           type: array
           scope: GLOBAL
@@ -70,11 +79,10 @@ spec:
         - consumers
         - allow
       example:
+        global_auth: false
         consumers:
           # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
           - name: consumer1
             credential: admin:123456
           - name: consumer2
             credential: guest:abc
-        # 在全局配置中定义的consumer，在此处配置许可访问
-        allow: []
