@@ -12,9 +12,10 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -84,6 +85,12 @@ public class WasmPluginServiceImpl implements WasmPluginService {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final Pattern I18N_EXTENSION_KEY_PATTERN = Pattern.compile("^x-(.+)-i18n$");
 
+    private static final String EXAMPLE_RAW_PROPERTY_NAME = "exampleRaw";
+
+    private static final Pattern YAML_CONTENT_PATTERN = Pattern.compile("^(\\s*)(\\S.+)\\s*$");
+    private static final String YAML_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
+    private static final String YAML_EXAMPLE_PROPERTY_KEY = "example:";
+
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
     private KubernetesClientService kubernetesClientService;
@@ -126,7 +133,10 @@ public class WasmPluginServiceImpl implements WasmPluginService {
                     // No spec. Ignore it.
                     continue;
                 }
-                cacheItem.plugin = TreeUtil.yaml.readValue(new InputStreamReader(stream, CHARSET), Plugin.class);
+                String content = IOUtils.toString(stream, CHARSET);
+                Plugin plugin = TreeUtil.yaml.readValue(content, Plugin.class);
+                fillPluginConfigExample(plugin, content);
+                cacheItem.plugin = plugin;
             } catch (IOException ex) {
                 throw new IllegalStateException("Error occurs when loading spec file of plugin " + pluginName + ".",
                     ex);
@@ -150,6 +160,87 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
         plugins.sort(Comparator.comparing(PluginCacheItem::getName));
         this.builtInPlugins = plugins;
+    }
+
+    private void fillPluginConfigExample(Plugin plugin, String content) {
+        String example;
+        try {
+            example = extractConfigExample(content);
+        } catch (IOException e) {
+            log.warn("Error occurs when extracting config example for plugin " + plugin.getInfo().getName(), e);
+            return;
+        }
+        if (StringUtils.isEmpty(content)) {
+            return;
+        }
+        if (plugin.getSpec() == null || plugin.getSpec().getConfigSchema() == null
+            || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
+            return;
+        }
+        Schema schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema();
+        schema.setExtension(EXAMPLE_RAW_PROPERTY_NAME, example);
+    }
+
+    private String extractConfigExample(String content) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new StringReader(content))) {
+            boolean foundSchema = false, foundExample = false;
+            String schemaOuterIndentation = null, exampleOuterIndentation = null, exampleInnerIndentation = null;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Matcher yamlContentMatcher = YAML_CONTENT_PATTERN.matcher(line);
+
+                if (!yamlContentMatcher.find()) {
+                    // A blank line, obviously.
+                    continue;
+                }
+
+                String indentation = yamlContentMatcher.group(1);
+                String unindentedContent = yamlContentMatcher.group(2);
+
+                if (!foundSchema) {
+                    // We only care about finding the openAPIV3Schema property now.
+                    if (unindentedContent.startsWith(YAML_V3_SCHEMA_PROPERTY_KEY)) {
+                        foundSchema = true;
+                        schemaOuterIndentation = indentation;
+                    }
+                    continue;
+                }
+
+                if (!foundExample) {
+                    if (indentation.length() <= schemaOuterIndentation.length()) {
+                        // This line is not a child of the previously found openAPIV3Schema property,
+                        // which means no example property exists as a child of openAPIV3Schema.
+                        break;
+                    }
+                    // We've found the first and direct child of openAPIV3Schema property.
+                    // The example property we are looking for must share the same indentation.
+                    if (exampleOuterIndentation == null) {
+                        exampleOuterIndentation = indentation;
+                    }
+                    if (indentation.equals(exampleOuterIndentation)
+                        && unindentedContent.startsWith(YAML_EXAMPLE_PROPERTY_KEY)) {
+                        foundExample = true;
+                    }
+                    continue;
+                }
+
+                if (indentation.length() <= exampleOuterIndentation.length()) {
+                    // Found a sibling of the example property or its parent.
+                    // So much for the example content.
+                    break;
+                }
+
+                if (exampleInnerIndentation == null) {
+                    exampleInnerIndentation = indentation;
+                }
+                if (!builder.isEmpty()) {
+                    builder.append("\n");
+                }
+                builder.append(line.substring(exampleInnerIndentation.length()));
+            }
+        }
+        return builder.toString();
     }
 
     private String loadPluginReadme(String pluginId, String fileName) {
@@ -498,8 +589,12 @@ public class WasmPluginServiceImpl implements WasmPluginService {
                     continue;
                 }
 
-                String fieldName = i18nKeyMatcher.group(1);
                 Object value = ((Map<?, ?>)map).get(language);
+                if (value == null) {
+                    continue;
+                }
+
+                String fieldName = i18nKeyMatcher.group(1);
                 try {
                     String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
                     Method setter = obj.getClass().getMethod(setterName, value.getClass());
