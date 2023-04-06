@@ -5,6 +5,7 @@ import {
   GlobalOutlined,
   UnorderedListOutlined,
   SafetyCertificateOutlined,
+  WindowsOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-layout';
 
@@ -38,6 +39,11 @@ const asideMenuConfig: MenuDataItem[] = [
     name: 'menu.certManagement',
     path: '/tls-certificate',
     icon: <SafetyCertificateOutlined />,
+  },
+  {
+    name: 'menu.plugin',
+    path: '/plugin',
+    icon: <WindowsOutlined />,
   },
 ];
 

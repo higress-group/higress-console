@@ -6,10 +6,10 @@ import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
-import { uniqueId } from "lodash";
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
+import { history } from 'ice';
 
 interface DomainFormProps {
   name: string;
@@ -37,7 +37,7 @@ const DomainList: React.FC = () => {
       title: t('domain.columns.certificate'),
       dataIndex: 'certIdentifier',
       key: 'certIdentifier',
-      render: (value) => (value || '-'),
+      render: (value) => value || '-',
     },
     {
       title: t('domain.columns.action'),
@@ -47,6 +47,7 @@ const DomainList: React.FC = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <a onClick={() => onEditConfig(record)}>策略</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -62,12 +63,12 @@ const DomainList: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const getDomainList = async (factor): Promise<DomainResponse> => (getGatewayDomains(factor));
+  const getDomainList = async (factor): Promise<DomainResponse> => getGatewayDomains(factor);
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
     onSuccess: (result: Domain[], params) => {
       const _dataSource = result || [];
-      _dataSource.forEach(i => {
+      _dataSource.forEach((i) => {
         i.key || (i.key = i.id || i.name);
         i.mustHttps = [];
         switch (i.enableHttps) {
@@ -91,6 +92,10 @@ const DomainList: React.FC = () => {
     run({});
   }, []);
 
+  const onEditConfig = (domain) => {
+    history?.push(`/plugin?name=${domain.name}&type=domain`);
+  };
+
   const onEditDrawer = (domain: Domain) => {
     setCurrentDomain(domain);
     setOpenDrawer(true);
@@ -103,7 +108,7 @@ const DomainList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: DomainFormProps = formRef.current && await formRef.current.handleSubmit();
+      const values: DomainFormProps = formRef.current && (await formRef.current.handleSubmit());
       const { name, certIdentifier } = values;
       const data = { name };
       let enableHttps = EnableHttpsValue.off;
@@ -167,29 +172,23 @@ const DomainList: React.FC = () => {
       >
         <Row gutter={24}>
           <Col span={4}>
-            <Button
-              type="primary"
-              onClick={onShowDrawer}
-            >
+            <Button type="primary" onClick={onShowDrawer}>
               {t('domain.createDomain')}
             </Button>
           </Col>
           <Col span={20} style={{ textAlign: 'right' }}>
-            <Button
-              icon={<RedoOutlined />}
-              onClick={refresh}
-            />
+            <Button icon={<RedoOutlined />} onClick={refresh} />
           </Col>
         </Row>
       </Form>
-      <Table
-        loading={loading}
-        dataSource={dataSource}
-        columns={columns}
-        pagination={false}
-      />
+      <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
       <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
+        title={
+          <div>
+            <ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />
+            {t('misc.delete')}
+          </div>
+        }
         open={openModal}
         onOk={handleModalOk}
         confirmLoading={confirmLoading}
@@ -197,7 +196,11 @@ const DomainList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="domain.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{ currentDomainName: (currentDomain && currentDomain.name) || '' }}</span> 吗？
+            确定删除{' '}
+            <span style={{ color: '#0070cc' }}>
+              {{ currentDomainName: (currentDomain && currentDomain.name) || '' }}
+            </span>{' '}
+            吗？
           </Trans>
         </p>
       </Modal>
@@ -218,7 +221,6 @@ const DomainList: React.FC = () => {
       >
         <DomainForm ref={formRef} value={currentDomain} />
       </Drawer>
-
     </PageContainer>
   );
 };

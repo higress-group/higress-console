@@ -1,4 +1,4 @@
-export const getheaderListByRes = (headerControl) => {
+export const getheaderListByHeaderControl = (headerControl) => {
   const headerList: any = [];
   const { request = {}, response = {} } = headerControl || {};
 
@@ -52,4 +52,32 @@ export const getheaderListByRes = (headerControl) => {
     });
   });
   return headerList;
+};
+
+export const getHeaderControlByHeaderList = (formData) => {
+  const headerControl = {
+    enabled: formData.enabled,
+    request: {
+      add: [],
+      set: [],
+      remove: [],
+    },
+    response: {
+      add: [],
+      set: [],
+      remove: [],
+    },
+  };
+
+  formData.headerList?.forEach((item) => {
+    let newItem = {
+      key: item.key,
+      value: item.value,
+    };
+    if (item.actionType === 'remove') {
+      newItem = item.key;
+    }
+    headerControl[item.headerType][item.actionType].push(newItem);
+  });
+  return headerControl;
 };

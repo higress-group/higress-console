@@ -22,3 +22,18 @@ export const updateWasmPlugin = (name: string, payload: WasmPluginData) => {
 export const deleteWasmPlugin = (name: string) => {
   return request.delete<any, any>(`/v1/wasm-plugins/${name}`);
 };
+
+// 获取指定插件的运行时配置数据格式
+export const getWasmPluginsConfig = (name: string) => {
+  return request.get<any, any>(`/v1/wasm-plugins/${name}/config`);
+};
+
+// 获取全局的指定插件配置
+export const getGlobalPluginInstances = (pluginName: string) => {
+  return request.get<any, any>(`/v1/global/plugin-instances/${pluginName}`);
+};
+
+// 修改全局的指定插件配置
+export const updateGlobalPluginInstances = (pluginName: string, payload) => {
+  return request.put<any, any>(`/v1/global/plugin-instances/${pluginName}`, payload);
+};

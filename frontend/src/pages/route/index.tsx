@@ -6,12 +6,7 @@ import {
   UpstreamService,
   upstreamServiceToString,
 } from '@/interfaces/route';
-import {
-  addGatewayRoute,
-  deleteGatewayRoute,
-  getGatewayRoutes,
-  updateGatewayRoute,
-} from '@/services';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -111,7 +106,7 @@ const RouteList: React.FC = () => {
   };
 
   const onEditConfig = (route: Route) => {
-    history?.push(`/route/config?name=${route.name}`);
+    history?.push(`/plugin?name=${route.name}&type=route`);
   };
 
   const onShowDrawer = () => {
@@ -221,9 +216,7 @@ const RouteList: React.FC = () => {
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
             确定删除{' '}
-            <span style={{ color: '#0070cc' }}>
-              {{ currentRouteName: (currentRoute && currentRoute.name) || '' }}
-            </span>{' '}
+            <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span>{' '}
             吗？
           </Trans>
         </p>

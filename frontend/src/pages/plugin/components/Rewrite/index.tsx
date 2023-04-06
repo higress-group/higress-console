@@ -1,11 +1,15 @@
 import { Form, Input, Select, Card, Row, Col, Switch, Button } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 import styles from './index.module.css';
 
 const { Option } = Select;
 
-export default function Rewrite({ t, form, data }) {
+const Rewrite = forwardRef((props, ref) => {
+  const { data, t } = props;
+
+  const [form] = Form.useForm();
+
   const { path = {}, rewrite = {}, domains = [] } = data;
   useEffect(() => {
     form.setFieldsValue({
@@ -22,6 +26,23 @@ export default function Rewrite({ t, form, data }) {
       enabled: !!rewrite?.enabled,
     });
   }, [data]);
+
+  const onSubmit = async () => {
+    await form.validateFields();
+    const formData = form.getFieldsValue();
+    const { enabled, host, new: newPath } = formData;
+    return {
+      rewrite: {
+        enabled,
+        path: newPath.path,
+        host,
+      },
+    };
+  };
+
+  useImperativeHandle(ref, () => ({
+    submit: onSubmit,
+  }));
 
   return (
     <div className={styles.rewrite}>
@@ -77,4 +98,6 @@ export default function Rewrite({ t, form, data }) {
       </Form>
     </div>
   );
-}
+});
+
+export default Rewrite;

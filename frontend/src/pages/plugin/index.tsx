@@ -1,6 +1,6 @@
 import { PageContainer } from '@ant-design/pro-layout';
 import { PageHeader, Spin, Row, Col, Button, message } from 'antd';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { history, useSearchParams } from 'ice';
 import { RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
@@ -21,14 +21,20 @@ export default function RouterConfig() {
     onOpen: (_key) => {},
   });
   const name = searchParams.get('name');
+  const type = searchParams.get('type') || '';
 
   const handleClickPlugin = (activeItem: Object) => {
     pluginDrawerRef?.current?.onOpen(activeItem);
   };
 
   const handleBack = () => {
-    history?.push('/route');
+    if (type === 'route') history?.push('/route');
+    if (type === 'domain') history?.push('/domain');
   };
+
+  const isShowPageHeader = useMemo(() => {
+    return ['route', 'domain'].includes(type);
+  }, [type]);
 
   const { loading, run, refresh } = useRequest(getGatewayRoutesDetail, {
     manual: true,
@@ -77,8 +83,9 @@ export default function RouterConfig() {
 
   return (
     <div className={styles.routeConfig}>
-      <PageHeader className="hi-page-container-warp" title="策略配置" onBack={handleBack} subTitle="" />
-
+      {isShowPageHeader && (
+        <PageHeader className="hi-page-container-warp" title="策略配置" onBack={handleBack} subTitle="" />
+      )}
       <Spin spinning={loading}>
         <PageContainer>
           <div

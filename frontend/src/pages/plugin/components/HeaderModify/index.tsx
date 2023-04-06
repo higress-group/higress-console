@@ -1,24 +1,37 @@
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Form, Input, Button, Table, Select, Space, Switch } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import styles from './index.module.css';
-import { getheaderListByRes } from './utils';
+import { getheaderListByHeaderControl, getHeaderControlByHeaderList } from './utils';
 
-const TableEditForm = (props) => {
-  const { form, data } = props;
+const HeaderModify = forwardRef((props, ref) => {
+  const data = props?.data || {};
+
+  const [form] = Form.useForm();
 
   let globalAddRowItemFn;
 
   useEffect(() => {
     const { headerControl } = data;
     const { enabled = false } = headerControl || {};
-    const headerList = getheaderListByRes(headerControl);
+    const headerList = getheaderListByHeaderControl(headerControl);
 
     form.setFieldsValue({
       enabled,
       headerList,
     });
   }, []);
+
+  const onSubmit = async () => {
+    await form.validateFields();
+    const formData = form.getFieldsValue();
+    const headerControl = getHeaderControlByHeaderList(formData);
+    return { headerControl };
+  };
+
+  useImperativeHandle(ref, () => ({
+    submit: onSubmit,
+  }));
 
   const getColumns = (add, remove) => {
     if (!globalAddRowItemFn) globalAddRowItemFn = add;
@@ -159,6 +172,6 @@ const TableEditForm = (props) => {
       </Form>
     </div>
   );
-};
+});
 
-export default TableEditForm;
+export default HeaderModify;
