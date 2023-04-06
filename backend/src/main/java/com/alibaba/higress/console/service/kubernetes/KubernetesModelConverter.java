@@ -38,7 +38,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.openapi4j.core.exception.EncodeException;
+import org.openapi4j.core.util.TreeUtil;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Domain;
@@ -453,8 +456,17 @@ public class KubernetesModelConverter {
             return null;
         }
 
+        String rawConfiguration;
+        try {
+            rawConfiguration = TreeUtil.toYaml(configurations);
+        } catch (EncodeException e) {
+            throw new BusinessException(
+                "Error occurs when encoding configurations to YAML: " + JSON.toJSONString(configurations), e);
+        }
+
         return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
-            .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations).build();
+            .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
+            .rawConfigurations(rawConfiguration).build();
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
