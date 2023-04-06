@@ -37,3 +37,15 @@ export const getGlobalPluginInstances = (pluginName: string) => {
 export const updateGlobalPluginInstances = (pluginName: string, payload) => {
   return request.put<any, any>(`/v1/global/plugin-instances/${pluginName}`, payload);
 };
+
+// 获取指定路由的指定插件配置
+export const getRoutePluginInstances = (params: { routeName: string; pluginName: string }) => {
+  const { routeName, pluginName } = params;
+  return request.get<any, any>(`/v1/routes/${routeName}/plugin-instances/${pluginName}`);
+};
+
+// 修改指定路由的指定插件配置
+export const updateRoutePluginInstances = (params: { routeName: string; pluginName: string }, payload) => {
+  const { routeName, pluginName } = params;
+  return request.put<any, any>(`/v1/routes/${routeName}/plugin-instances/${pluginName}`, payload);
+};
