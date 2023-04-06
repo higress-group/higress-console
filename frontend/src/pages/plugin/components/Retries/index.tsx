@@ -1,10 +1,12 @@
 import { Form, Select, Switch, InputNumber } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 const { Option } = Select;
 
-export default function Retries(props) {
-  const { form, data } = props;
+const Retries = forwardRef((props, ref) => {
+  const data = props?.data || {};
+
+  const [form] = Form.useForm();
 
   useEffect(() => {
     const {
@@ -21,6 +23,18 @@ export default function Retries(props) {
       timeout,
     });
   }, []);
+
+  const onSubmit = async () => {
+    await form.validateFields();
+    const formData = form.getFieldsValue();
+    return {
+      proxyNextUpstream: formData,
+    };
+  };
+
+  useImperativeHandle(ref, () => ({
+    submit: onSubmit,
+  }));
 
   return (
     <div>
@@ -50,4 +64,6 @@ export default function Retries(props) {
       </Form>
     </div>
   );
-}
+});
+
+export default Retries;

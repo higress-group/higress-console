@@ -13,7 +13,8 @@
     "serviceList": "Service List",
     "routeConfig": "Route Config",
     "domainManagement": "Domain Management",
-    "certManagement": "Certificate Management"
+    "certManagement": "Certificate Management",
+    "plugin": "Plugin"
   },
   "index": {
     "title": "Higress Console"

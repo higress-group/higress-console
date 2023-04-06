@@ -1,11 +1,13 @@
 import { Checkbox, Form, Row, Col, Switch, Radio, InputNumber, Input } from 'antd';
 
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 const { TextArea } = Input;
 
-export default function Cors(props) {
-  const { form, data } = props;
+const Cors = forwardRef((props, ref) => {
+  const data = props?.data || {};
+
+  const [form] = Form.useForm();
 
   const list = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS', 'PATCH'];
 
@@ -15,7 +17,7 @@ export default function Cors(props) {
       maxAge = 1728000,
       allowMethods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
       exposeHeaders = ['*'],
-      allowCredentials = true,
+      allowCredentials = 'true',
       allowOrigins = ['*'],
       allowHeaders = [
         'DNT',
@@ -35,11 +37,32 @@ export default function Cors(props) {
       allowHeaders: allowHeaders?.join(';') || '',
       allowMethods,
       exposeHeaders: exposeHeaders?.join(';') || '',
-      allowCredentials,
+      allowCredentials: allowCredentials === 'true',
       maxAge,
       enabled,
     });
   }, []);
+
+  const onSubmit = async () => {
+    await form.validateFields();
+    const formData = form.getFieldsValue();
+
+    return {
+      cors: {
+        enabled: !!formData.enabled,
+        allowCredentials: !!formData.allowCredentials,
+        allowHeaders: formData.allowHeaders ? formData.allowHeaders?.split(';') : null,
+        allowMethods: formData.allowMethods?.length ? formData.allowMethods : null,
+        allowOrigins: formData.allowOrigins?.length ? formData.allowOrigins?.split(';') : null,
+        exposeHeaders: formData.exposeHeaders?.length ? formData.exposeHeaders?.split(';') : null,
+        maxAge: formData?.maxAge || null,
+      },
+    };
+  };
+
+  useImperativeHandle(ref, () => ({
+    submit: onSubmit,
+  }));
 
   return (
     <div>
@@ -84,7 +107,7 @@ export default function Cors(props) {
         >
           <TextArea />
         </Form.Item>
-        <Form.Item label="允许携带凭证" name="allowCredentials">
+        <Form.Item label="允许携带凭证" name="allowCredentials" valuePropName="checked">
           <Radio.Group defaultValue="false">
             <Radio value="true">允许</Radio>
             <Radio value="false">不允许</Radio>
@@ -96,4 +119,6 @@ export default function Cors(props) {
       </Form>
     </div>
   );
-}
+});
+
+export default Cors;

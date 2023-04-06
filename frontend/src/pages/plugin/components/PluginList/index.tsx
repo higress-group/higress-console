@@ -1,10 +1,11 @@
 import { Col, Row, Button, Card, Tooltip, Popconfirm, Dropdown, Avatar, Typography, message } from 'antd';
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { DEFAULT_PLUGIN_IMG, DEFAULT_PLUGIN_LIST } from './constant';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { WasmPluginData } from '@/interfaces/route';
 import { getWasmPlugins } from '@/services';
+import { useSearchParams } from 'ice';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -22,17 +23,28 @@ export interface ListRef {
 
 const PluginList = forwardRef((props: Props, ref) => {
   const { data, onOpen, onEdit, onDelete } = props;
+  const [searchParams] = useSearchParams();
+
+  const type = searchParams.get('type');
+
+  const isShowDefaultPlugin = useMemo(() => {
+    return type === 'route';
+  }, [type]);
 
   const handleClickPlugin = (item) => {
     onOpen(item);
   };
 
-  const [pluginList, setPluginList] = useState<WasmPluginData[]>(DEFAULT_PLUGIN_LIST);
+  const [pluginList, setPluginList] = useState<WasmPluginData[]>([]);
 
   const { loading, run, refresh } = useRequest(getWasmPlugins, {
     manual: true,
     onSuccess: (result = []) => {
-      setPluginList(DEFAULT_PLUGIN_LIST.concat(result) as any);
+      if (isShowDefaultPlugin) {
+        setPluginList(DEFAULT_PLUGIN_LIST.concat(result) as any);
+        return;
+      }
+      setPluginList(result);
     },
   });
 
@@ -58,19 +70,15 @@ const PluginList = forwardRef((props: Props, ref) => {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         return (
-          <Col span={6} key={item.title} xs={24} sm={12} md={12} lg={6}>
+          <Col span={6} key={item.title} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
               hoverable
               actions={[
-                !['rewrite', 'cors', 'headerModify', 'retries'].includes(item?.key || '') ? (
-                  '正在开发中，暂不支持该插件'
-                ) : (
-                  <div onClick={() => handleClickPlugin(item)}>
-                    <Button type="text" size="small">
-                      {getPluginStatus(item.resKey) ? '查看' : '开启'}
-                    </Button>
-                  </div>
-                ),
+                <div onClick={() => handleClickPlugin(item)}>
+                  <Button type="text" size="small">
+                    {getPluginStatus(item.resKey) ? '查看' : '开启'}
+                  </Button>
+                </div>,
               ]}
             >
               <Meta
@@ -87,11 +95,9 @@ const PluginList = forwardRef((props: Props, ref) => {
                 }
                 title={
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {/* <Tooltip title={item.name}> */}
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.name}
+                      {item.title}
                     </div>
-                    {/* </Tooltip> */}
                     {item.builtIn === false ? (
                       <Dropdown
                         menu={{
