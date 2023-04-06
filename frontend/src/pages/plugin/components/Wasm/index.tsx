@@ -121,14 +121,23 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
         <Form.Item label="插件描述" name="description">
           <Input.TextArea placeholder={'请输入插件描述'} />
         </Form.Item>
-        <Form.Item label="wasm镜像" name="imageRepository" rules={[{ required: true }]}>
-          <Input placeholder={'请输入wasm镜像'} />
+        <Form.Item
+          label="镜像地址"
+          name="imageRepository"
+          rules={[{ required: true }]}
+          tooltip="请输入镜像地址，例如 higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0"
+        >
+          <Input
+            placeholder={
+              '请输入镜像地址，例如 higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0'
+            }
+          />
         </Form.Item>
         <Form.Item label="插件执行阶段" name="phase" rules={[{ required: true }]}>
-          <Select options={phaseOptions} />
+          <Select options={phaseOptions} placeholder="执行优先级 认证>鉴权>统计>默认" />
         </Form.Item>
         <Form.Item label="插件执行优先级" name="priority" rules={[{ required: true }]}>
-          <InputNumber max={1000} min={1} style={{ width: '100%' }} />
+          <InputNumber max={1000} min={1} style={{ width: '100%' }} placeholder="范围1～1000，值越大越优先" />
         </Form.Item>
       </Form>
     </div>
