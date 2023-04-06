@@ -33,6 +33,7 @@ import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
 import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.controller.exception.ResourceConflictException;
+import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.console.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -139,7 +140,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
                     .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
                 instance.setConfigurations(configurations);
             } catch (IOException e) {
-                throw new BusinessException(
+                throw new ValidationException(
                     "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
             }
         }
