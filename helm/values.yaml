@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: ""
 
 imagePullSecrets: []
