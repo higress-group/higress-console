@@ -58,14 +58,6 @@ const PluginList = forwardRef((props: Props, ref) => {
     run();
   }, []);
 
-  const getPluginStatus = (key) => {
-    const item = data?.[key];
-    if (item) {
-      return item?.enabled;
-    }
-    return false;
-  };
-
   return (
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
@@ -76,7 +68,7 @@ const PluginList = forwardRef((props: Props, ref) => {
               actions={[
                 <div onClick={() => handleClickPlugin(item)}>
                   <Button type="text" size="small">
-                    {getPluginStatus(item.resKey) ? '查看' : '开启'}
+                    配置
                   </Button>
                 </div>,
               ]}

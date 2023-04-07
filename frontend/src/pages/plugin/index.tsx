@@ -74,7 +74,9 @@ export default function RouterConfig() {
   };
 
   const init = () => {
-    name && run(name);
+    if (name && type === 'route') {
+      run(name);
+    }
   };
 
   useEffect(() => {
