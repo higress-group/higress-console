@@ -426,7 +426,7 @@ public class KubernetesModelConverter {
             case GLOBAL:
                 if (target == null) {
                     enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
-                    configurations = spec.getDefaultConfig();
+                    configurations = Optional.ofNullable(spec.getDefaultConfig()).orElse(Collections.emptyMap());
                 }
                 break;
             case DOMAIN:

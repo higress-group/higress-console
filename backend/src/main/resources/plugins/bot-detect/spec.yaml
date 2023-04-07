@@ -19,9 +19,5 @@ spec:
     openAPIV3Schema:
       type: object
       example:
-        allow:
-          - ".*Go-http-client.*"
-        deny:
-          - "*.Apache.*"
         blocked_code: 404
         blocked_message: "resource not found"
