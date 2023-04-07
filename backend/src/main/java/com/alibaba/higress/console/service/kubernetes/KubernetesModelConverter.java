@@ -452,7 +452,13 @@ public class KubernetesModelConverter {
             default:
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
-        if (MapUtils.isEmpty(configurations)) {
+
+        if (enabled == null) {
+            // No enabled is set， which means not configured.
+            return null;
+        }
+        if (!enabled && MapUtils.isEmpty(configurations)) {
+            // Disabled and no configuration set. We just take it as not configured.
             return null;
         }
 
