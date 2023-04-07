@@ -18,7 +18,10 @@ const Rewrite = forwardRef((props, ref) => {
         path: path?.matchValue || '',
       },
       new: {
-        matchType: 'EQUAL',
+        // 精确匹配->精确重写
+        // 正则匹配->精确重写
+        // 前缀匹配->前缀重写
+        matchType: path?.matchType === 'PRE' ? 'PRE' : 'EQUAL',
         path: rewrite?.path || '',
       },
       origin_host: domains.length ? domains?.join(',') : '',
@@ -62,6 +65,9 @@ const Rewrite = forwardRef((props, ref) => {
             <Input.Group compact>
               <Form.Item name={['origin', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }}>
+                  {/* <Option value="PRE">前缀重写</Option>
+                  <Option value="EQUAL">精确重写</Option>
+                  <Option value="REGULAR">正则重写</Option> */}
                   <Option value="PRE">{t('route.matchTypes.PRE')}</Option>
                   <Option value="EQUAL">{t('route.matchTypes.EQUAL')}</Option>
                   <Option value="REGULAR">{t('route.matchTypes.REGULAR')}</Option>
@@ -76,6 +82,7 @@ const Rewrite = forwardRef((props, ref) => {
             <Input.Group compact>
               <Form.Item name={['new', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
+                  <Option value="PRE">前缀重写</Option>
                   <Option value="EQUAL">精确重写</Option>
                 </Select>
               </Form.Item>
