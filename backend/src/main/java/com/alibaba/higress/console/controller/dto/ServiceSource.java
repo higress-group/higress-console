@@ -67,7 +67,7 @@ public class ServiceSource implements VersionedDto {
             return false;
         }
 
-        if (ValidateUtil.checkServiceName(this.name)) {
+        if (!ValidateUtil.checkServiceName(this.name)) {
             return false;
         }
 
