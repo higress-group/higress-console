@@ -43,16 +43,27 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     return queryType === 'route';
   }, [queryType]);
 
+  const isDomainPlugin = useMemo(() => {
+    return queryType === 'domain';
+  }, [queryType]);
+
   const pluginInstancesApi = useMemo(() => {
     if (queryType === 'route') {
       return {
-        get: servicesApi.getRoutePluginInstances.bind(servicesApi),
-        update: servicesApi.updateRoutePluginInstances.bind(servicesApi),
+        get: servicesApi.getRoutePluginInstance.bind(servicesApi),
+        update: servicesApi.updateRoutePluginInstance.bind(servicesApi),
+      };
+    }
+
+    if (queryType === 'domain') {
+      return {
+        get: servicesApi.getDomainPluginInstance.bind(servicesApi),
+        update: servicesApi.updateDomainPluginInstance.bind(servicesApi),
       };
     }
     return {
-      get: servicesApi.getGlobalPluginInstances.bind(servicesApi),
-      update: servicesApi.updateGlobalPluginInstances.bind(servicesApi),
+      get: servicesApi.getGlobalPluginInstance.bind(servicesApi),
+      update: servicesApi.updateGlobalPluginInstance.bind(servicesApi),
     };
   }, [queryType, queryName]);
 
@@ -80,7 +91,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       if (!defaultValue) {
         let exampleRaw = res?.schema.exampleRaw;
         if (isChangeExampleRaw) {
-          exampleRaw = 'allow:[]';
+          // 需要冒号后面加空格
+          exampleRaw = 'allow: []';
         }
         setRawConfigurations(exampleRaw);
         setDefaultValue(exampleRaw);
@@ -111,10 +123,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
     delete params.configurations;
 
-    if (isRoutePlugin) {
+    if (isRoutePlugin || isDomainPlugin) {
       updateData(
         {
-          routeName: queryName,
+          name: queryName,
           pluginName,
         },
         params,
@@ -126,9 +138,9 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   };
 
   useEffect(() => {
-    if (isRoutePlugin) {
+    if (isRoutePlugin || isDomainPlugin) {
       getData({
-        routeName: queryName,
+        name: queryName,
         pluginName,
       });
       return;
@@ -140,11 +152,18 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     submit: onSubmit,
   }));
 
+  const alertStatus = useMemo(() => {
+    return {
+      isShow: (isRoutePlugin || isDomainPlugin) && queryName,
+      message: isRoutePlugin ? `作用路由： ${queryName}` : `作用域名： ${queryName}`,
+    };
+  }, [isRoutePlugin, isDomainPlugin, queryName]);
+
   return (
     <div>
       <Spin spinning={getConfigLoading || getDataLoading || updateLoading}>
-        {isRoutePlugin && queryName && (
-          <Alert style={{ marginBottom: '10px' }} message={`作用路由： ${queryName}`} type="warning" showIcon />
+        {alertStatus.isShow && (
+          <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
         )}
         <Form name="basic" form={form} autoComplete="off">
           <Form.Item label="开启状态" name="enabled" valuePropName="checked">

@@ -29,23 +29,35 @@ export const getWasmPluginsConfig = (name: string) => {
 };
 
 // 获取全局的指定插件配置
-export const getGlobalPluginInstances = (pluginName: string) => {
+export const getGlobalPluginInstance = (pluginName: string) => {
   return request.get<any, any>(`/v1/global/plugin-instances/${pluginName}`);
 };
 
 // 修改全局的指定插件配置
-export const updateGlobalPluginInstances = (pluginName: string, payload) => {
+export const updateGlobalPluginInstance = (pluginName: string, payload) => {
   return request.put<any, any>(`/v1/global/plugin-instances/${pluginName}`, payload);
 };
 
 // 获取指定路由的指定插件配置
-export const getRoutePluginInstances = (params: { routeName: string; pluginName: string }) => {
-  const { routeName, pluginName } = params;
-  return request.get<any, any>(`/v1/routes/${routeName}/plugin-instances/${pluginName}`);
+export const getRoutePluginInstance = (params: { name: string; pluginName: string }) => {
+  const { name, pluginName } = params;
+  return request.get<any, any>(`/v1/routes/${name}/plugin-instances/${pluginName}`);
 };
 
 // 修改指定路由的指定插件配置
-export const updateRoutePluginInstances = (params: { routeName: string; pluginName: string }, payload) => {
-  const { routeName, pluginName } = params;
-  return request.put<any, any>(`/v1/routes/${routeName}/plugin-instances/${pluginName}`, payload);
+export const updateRoutePluginInstance = (params: { name: string; pluginName: string }, payload) => {
+  const { name, pluginName } = params;
+  return request.put<any, any>(`/v1/routes/${name}/plugin-instances/${pluginName}`, payload);
+};
+
+// 获取指定域名的指定插件配置
+export const getDomainPluginInstance = (params: { name: string; pluginName: string }) => {
+  const { name, pluginName } = params;
+  return request.get<any, any>(`/v1/domains/${name}/plugin-instances/${pluginName}`);
+};
+
+// 修改指定域名的指定插件配置
+export const updateDomainPluginInstance = (params: { name: string; pluginName: string }, payload) => {
+  const { name, pluginName } = params;
+  return request.put<any, any>(`/v1/domains/${name}/plugin-instances/${pluginName}`, payload);
 };
