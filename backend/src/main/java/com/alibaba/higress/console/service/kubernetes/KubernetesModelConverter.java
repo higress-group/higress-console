@@ -454,7 +454,7 @@ public class KubernetesModelConverter {
         }
 
         if (enabled == null) {
-            // No enabled is set， which means not configured.
+            // No enabled is set, which means not configured.
             return null;
         }
         if (!enabled && MapUtils.isEmpty(configurations)) {
