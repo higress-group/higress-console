@@ -426,7 +426,7 @@ public class KubernetesModelConverter {
             case GLOBAL:
                 if (target == null) {
                     enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
-                    configurations = spec.getDefaultConfig();
+                    configurations = Optional.ofNullable(spec.getDefaultConfig()).orElse(Collections.emptyMap());
                 }
                 break;
             case DOMAIN:
@@ -452,7 +452,13 @@ public class KubernetesModelConverter {
             default:
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
-        if (MapUtils.isEmpty(configurations)) {
+
+        if (enabled == null) {
+            // No enabled is set, which means not configured.
+            return null;
+        }
+        if (!enabled && MapUtils.isEmpty(configurations)) {
+            // Disabled and no configuration set. We just take it as not configured.
             return null;
         }
 
