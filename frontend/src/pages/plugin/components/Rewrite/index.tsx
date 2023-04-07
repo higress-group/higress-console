@@ -1,4 +1,4 @@
-import { Form, Input, Select, Card, Row, Col, Switch, Button } from 'antd';
+import { Form, Input, Select, Card, Switch, message } from 'antd';
 import React, { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 import styles from './index.module.css';
@@ -31,6 +31,11 @@ const Rewrite = forwardRef((props, ref) => {
     await form.validateFields();
     const formData = form.getFieldsValue();
     const { enabled, host, new: newPath } = formData;
+
+    if (!host && !newPath.path) {
+      message.error('重写path和重写主机域必须要至少填一个');
+      return;
+    }
     return {
       rewrite: {
         enabled,
@@ -69,18 +74,12 @@ const Rewrite = forwardRef((props, ref) => {
           </Form.Item>
           <Form.Item label="重写路径(Path)">
             <Input.Group compact>
-              <Form.Item
-                name={['new', 'matchType']}
-                noStyle
-                rules={[{ required: true, message: '请输入重写路径(Path)' }]}
-              >
-                <Select style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
-                  {/* <Option value="PRE">{t('route.matchTypes.PRE')}</Option> */}
-                  <Option value="EQUAL">{t('route.matchTypes.EQUAL')}</Option>
-                  {/* <Option value="REGULAR">{t('route.matchTypes.REGULAR')}</Option> */}
+              <Form.Item name={['new', 'matchType']} noStyle>
+                <Select disabled style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
+                  <Option value="EQUAL">精确重写</Option>
                 </Select>
               </Form.Item>
-              <Form.Item name={['new', 'path']} noStyle rules={[{ required: true, message: '请输入重写路径(Path)' }]}>
+              <Form.Item name={['new', 'path']} noStyle>
                 <Input style={{ width: '60%' }} placeholder="Path /a" maxLength={1024} />
               </Form.Item>
             </Input.Group>
@@ -91,7 +90,7 @@ const Rewrite = forwardRef((props, ref) => {
           <Form.Item label="原主机域(Host)" name="origin_host">
             <Input disabled />
           </Form.Item>
-          <Form.Item label="重写主机域(Host)" name="host" rules={[{ required: true, message: '请输入主机域(Host)' }]}>
+          <Form.Item label="重写主机域(Host)" name="host">
             <Input placeholder="例如:example.com" maxLength={1024} />
           </Form.Item>
         </Card>
