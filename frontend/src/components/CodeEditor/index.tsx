@@ -1,7 +1,6 @@
 import React from 'react';
 import * as monaco from 'monaco-editor';
 import Editor, { loader } from '@monaco-editor/react';
-// import { setDiagnosticsOptions } from 'monaco-yaml';
 
 export interface IProps {
   defaultValue: string;
@@ -30,7 +29,9 @@ const CodeEditor: React.FC = (props: IProps) => {
           },
         }}
         beforeMount={handleEditorWillMount}
-        onChange={handleEditorChange}
+        onChange={(val) => {
+          handleEditorChange(val);
+        }}
       />
     </div>
   );

@@ -1,9 +1,10 @@
 import CodeEditor from '@/components/CodeEditor';
-import React, { useState, useImperativeHandle, useEffect, forwardRef } from 'react';
-import { Form, message, Divider, Switch, Spin } from 'antd';
+import React, { useState, useImperativeHandle, useEffect, forwardRef, useMemo } from 'react';
+import { Form, message, Divider, Switch, Spin, Alert } from 'antd';
 
-import { getWasmPluginsConfig, updateGlobalPluginInstances, getGlobalPluginInstances } from '@/services';
+import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
+import { useSearchParams } from 'ice';
 
 export interface IPluginData {
   configurations: object;
@@ -18,6 +19,7 @@ export interface IPluginData {
 
 export interface IPropsData {
   name?: string;
+  category: string;
 }
 export interface IProps {
   data: IPropsData;
@@ -26,7 +28,44 @@ export interface IProps {
 
 const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const { data, onSuccess } = props;
-  const { name = '' } = data || {};
+  const { name: pluginName = '' } = data || {};
+
+  const [searchParams] = useSearchParams();
+
+  const queryType: string = searchParams.get('type') || '';
+  const queryName: string = searchParams.get('name') || '';
+
+  const isChangeExampleRaw = useMemo(() => {
+    return ['route', 'domain'].includes(queryType) && data.category === 'auth';
+  }, [queryType]);
+
+  const isRoutePlugin = useMemo(() => {
+    return queryType === 'route';
+  }, [queryType]);
+
+  const isDomainPlugin = useMemo(() => {
+    return queryType === 'domain';
+  }, [queryType]);
+
+  const pluginInstancesApi = useMemo(() => {
+    if (queryType === 'route') {
+      return {
+        get: servicesApi.getRoutePluginInstance.bind(servicesApi),
+        update: servicesApi.updateRoutePluginInstance.bind(servicesApi),
+      };
+    }
+
+    if (queryType === 'domain') {
+      return {
+        get: servicesApi.getDomainPluginInstance.bind(servicesApi),
+        update: servicesApi.updateDomainPluginInstance.bind(servicesApi),
+      };
+    }
+    return {
+      get: servicesApi.getGlobalPluginInstance.bind(servicesApi),
+      update: servicesApi.updateGlobalPluginInstance.bind(servicesApi),
+    };
+  }, [queryType, queryName]);
 
   const [form] = Form.useForm();
 
@@ -36,31 +75,35 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const [rawConfigurations, setRawConfigurations] = useState('');
   const [defaultValue, setDefaultValue] = useState('');
 
-  const { loading: getDataLoading, run: getData } = useRequest(getGlobalPluginInstances, {
+  const { loading: getDataLoading, run: getData } = useRequest(pluginInstancesApi.get, {
     manual: true,
-    onSuccess: (res) => {
+    onSuccess: (res: IPluginData) => {
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
       setDefaultValue(res.rawConfigurations);
-      getConfig(name);
+      getConfig(pluginName);
     },
   });
-  const { loading: getConfigLoading, run: getConfig } = useRequest(getWasmPluginsConfig, {
+  const { loading: getConfigLoading, run: getConfig } = useRequest(servicesApi.getWasmPluginsConfig, {
     manual: true,
     onSuccess: (res) => {
       setConfigData(res);
       if (!defaultValue) {
-        const exampleRaw = res?.schema.exampleRaw;
+        let exampleRaw = res?.schema.exampleRaw;
+        if (isChangeExampleRaw) {
+          // 需要冒号后面加空格
+          exampleRaw = 'allow: []';
+        }
         setRawConfigurations(exampleRaw);
         setDefaultValue(exampleRaw);
       }
       form.setFieldsValue({
-        enabled: pluginData.enabled,
+        enabled: pluginData?.enabled,
       });
     },
   });
 
-  const { loading: updateLoading, run: updateData } = useRequest(updateGlobalPluginInstances, {
+  const { loading: updateLoading, run: updateData } = useRequest(pluginInstancesApi.update, {
     manual: true,
     onSuccess: () => {
       onSuccess();
@@ -72,24 +115,56 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     await form.validateFields();
     const values = form.getFieldsValue();
 
-    updateData(name, {
+    const params = {
       ...pluginData,
       enabled: values.enabled,
       rawConfigurations,
-    });
+    };
+
+    delete params.configurations;
+
+    if (isRoutePlugin || isDomainPlugin) {
+      updateData(
+        {
+          name: queryName,
+          pluginName,
+        },
+        params,
+      );
+      return;
+    }
+
+    updateData(pluginName, params);
   };
 
   useEffect(() => {
-    getData(name);
-  }, [name]);
+    if (isRoutePlugin || isDomainPlugin) {
+      getData({
+        name: queryName,
+        pluginName,
+      });
+      return;
+    }
+    getData(pluginName);
+  }, [pluginName, queryName]);
 
   useImperativeHandle(ref, () => ({
     submit: onSubmit,
   }));
 
+  const alertStatus = useMemo(() => {
+    return {
+      isShow: (isRoutePlugin || isDomainPlugin) && queryName,
+      message: isRoutePlugin ? `作用路由： ${queryName}` : `作用域名： ${queryName}`,
+    };
+  }, [isRoutePlugin, isDomainPlugin, queryName]);
+
   return (
     <div>
       <Spin spinning={getConfigLoading || getDataLoading || updateLoading}>
+        {alertStatus.isShow && (
+          <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
+        )}
         <Form name="basic" form={form} autoComplete="off">
           <Form.Item label="开启状态" name="enabled" valuePropName="checked">
             <Switch />
