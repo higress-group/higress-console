@@ -47,15 +47,16 @@ const RoutePluginDetail = forwardRef((props: Props, ref) => {
       const submitForm = formRef.current?.submit;
       if (submitForm) {
         const submitData = await submitForm();
-        run(routerDetail?.name, {
-          ...routerDetail,
-          ...submitData,
-        });
+        submitData &&
+          run(routerDetail?.name, {
+            ...routerDetail,
+            ...submitData,
+          });
       }
     },
   }));
 
-  return <Spin spinning={loading}>{PLUGIN_COMP_MAP?.[data.key]?.({ t, data, ref: formRef })}</Spin>;
+  return <Spin spinning={loading}>{PLUGIN_COMP_MAP?.[data.key]?.({ t, data: routerDetail, ref: formRef })}</Spin>;
 });
 
 export default RoutePluginDetail;

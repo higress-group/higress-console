@@ -21,6 +21,7 @@ spec:
       properties:
         global_auth:
           type: boolean
+          scope: GLOBAL
           title: 是否开启全局认证
           x-title-i18n:
             en-US: Enable Global Auth

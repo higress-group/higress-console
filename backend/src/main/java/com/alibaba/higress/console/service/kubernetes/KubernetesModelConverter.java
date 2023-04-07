@@ -426,7 +426,7 @@ public class KubernetesModelConverter {
             case GLOBAL:
                 if (target == null) {
                     enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
-                    configurations = spec.getDefaultConfig();
+                    configurations = Optional.ofNullable(spec.getDefaultConfig()).orElse(Collections.emptyMap());
                 }
                 break;
             case DOMAIN:
@@ -452,7 +452,13 @@ public class KubernetesModelConverter {
             default:
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
-        if (MapUtils.isEmpty(configurations)) {
+
+        if (enabled == null) {
+            // No enabled is set, which means not configured.
+            return null;
+        }
+        if (!enabled && MapUtils.isEmpty(configurations)) {
+            // Disabled and no configuration set. We just take it as not configured.
             return null;
         }
 
@@ -856,7 +862,7 @@ public class KubernetesModelConverter {
         String rawEnabled = annotations.get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY);
         boolean enabled = StringUtils.isEmpty(rawEnabled) || Boolean.parseBoolean(rawEnabled);
         String pathRewrite =
-            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.REWRITE_TARGET_KEY, enabled);
+            getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.REWRITE_PATH_KEY, enabled);
         String hostRewrite =
             getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY, enabled);
 
@@ -1059,7 +1065,7 @@ public class KubernetesModelConverter {
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_ENABLED_KEY,
             Boolean.toString(enabled));
         if (StringUtils.isNotEmpty(rewrite.getPath())) {
-            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_TARGET_KEY, rewrite.getPath(),
+            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_PATH_KEY, rewrite.getPath(),
                 enabled);
         }
         if (StringUtils.isNotEmpty(rewrite.getHost())) {

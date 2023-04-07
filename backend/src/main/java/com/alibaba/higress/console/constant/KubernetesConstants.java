@@ -29,7 +29,7 @@ public class KubernetesConstants {
         public static final String DESTINATION = "higress.io/destination";
         public static final String SSL_REDIRECT_KEY = "higress.io/ssl-redirect";
         public static final String REWRITE_ENABLED_KEY = "higress.io/enable-rewrite";
-        public static final String REWRITE_TARGET_KEY = "higress.io/rewrite-target";
+        public static final String REWRITE_PATH_KEY = "higress.io/rewrite-path";
         public static final String UPSTREAM_VHOST_KEY = "higress.io/upstream-vhost";
         public static final String PROXY_NEXT_UPSTREAM_ENABLED_KEY = "higress.io/enable-proxy-next-upstream";
         public static final String PROXY_NEXT_UPSTREAM_TRIES_KEY = "higress.io/proxy-next-upstream-tries";

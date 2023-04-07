@@ -87,7 +87,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
     private static final String EXAMPLE_RAW_PROPERTY_NAME = "exampleRaw";
 
-    private static final Pattern YAML_CONTENT_PATTERN = Pattern.compile("^(\\s*)(\\S.+)\\s*$");
+    private static final Pattern YAML_CONTENT_PATTERN = Pattern.compile("^(\\s*)(\\S.*)\\s*$");
     private static final String YAML_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
     private static final String YAML_EXAMPLE_PROPERTY_KEY = "example:";
 
@@ -313,11 +313,27 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         if (StringUtils.isEmpty(name)) {
             return null;
         }
+
         PluginCacheItem item = builtInPlugins.stream().filter(p -> name.equals(p.name)).findFirst().orElse(null);
         if (item != null) {
             return item.buildWasmPluginConfig(language);
         }
-        // TODO: Config of a custom plugin is not supported yet.
+
+        List<V1alpha1WasmPlugin> crs;
+        try {
+            crs = kubernetesClientService.listWasmPlugin(name, null, false);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
+        }
+        if (CollectionUtils.isNotEmpty(crs)) {
+            // TODO: Config of a custom plugin is not supported yet. Return an empty schema instead.
+            WasmPluginConfig config = new WasmPluginConfig();
+            Schema schema = new Schema();
+            schema.setType("object");
+            config.setSchema(schema);
+            return config;
+        }
+
         return null;
     }
 
@@ -326,6 +342,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         if (StringUtils.isEmpty(name)) {
             return null;
         }
+
         PluginCacheItem item = builtInPlugins.stream().filter(p -> name.equals(p.name)).findFirst().orElse(null);
         if (item != null) {
             String content = null;
@@ -337,7 +354,18 @@ public class WasmPluginServiceImpl implements WasmPluginService {
             }
             return content;
         }
-        // TODO: Readme of a custom plugin is not supported yet.
+
+        List<V1alpha1WasmPlugin> crs;
+        try {
+            crs = kubernetesClientService.listWasmPlugin(name, null, false);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
+        }
+        if (CollectionUtils.isNotEmpty(crs)) {
+            // TODO: Readme of a custom plugin is not supported yet.
+            return "";
+        }
+
         return null;
     }
 
@@ -355,6 +383,8 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         plugin.setCategory(WasmPluginCategory.CUSTOM);
 
         V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
+        // Make sure it is disabled by default.
+        cr.getSpec().setDefaultConfigDisable(true);
         V1alpha1WasmPlugin addedCr;
         try {
             addedCr = kubernetesClientService.addWasmPlugin(cr);
@@ -399,11 +429,14 @@ public class WasmPluginServiceImpl implements WasmPluginService {
             .filter(ecr -> ecr.getMetadata() != null && Objects.equals(crName, ecr.getMetadata().getName())).findFirst()
             .orElse(null);
         if (existedCr != null) {
+            kubernetesModelConverter.mergeWasmPluginSpec(existedCr, cr);
+
             String version = plugin.getVersion();
             if (StringUtils.isEmpty(plugin.getVersion())) {
                 version = existedCr.getMetadata().getResourceVersion();
             }
             cr.getMetadata().setResourceVersion(version);
+
             V1alpha1WasmPlugin updatedCr;
             try {
                 updatedCr = kubernetesClientService.updateWasmPlugin(cr);
