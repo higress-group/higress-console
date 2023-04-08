@@ -153,10 +153,24 @@ public class KubernetesModelConverter {
         }
 
         for (Map.Entry<String, String> entry : srcMetadata.getAnnotations().entrySet()) {
-            if (!SUPPORTED_ANNOTATIONS.contains(entry.getKey())) {
+            if (isCustomAnnotation(entry.getKey())) {
                 dstAnnotations.put(entry.getKey(), entry.getValue());
             }
         }
+    }
+
+    private static boolean isCustomAnnotation(String key) {
+        if (SUPPORTED_ANNOTATIONS.contains(key)) {
+            return false;
+        }
+        if (!key.startsWith(KubernetesConstants.Annotation.KEY_PREFIX)) {
+            return true;
+        }
+        if (key.contains(KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD)
+            || key.contains(KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD)) {
+            return false;
+        }
+        return true;
     }
 
     public boolean isIngressSupported(V1Ingress ingress) {
@@ -837,7 +851,7 @@ public class KubernetesModelConverter {
             return;
         }
 
-        String rawDestination = metadata.getAnnotations().get(KubernetesConstants.Annotation.DESTINATION);
+        String rawDestination = metadata.getAnnotations().get(KubernetesConstants.Annotation.DESTINATION_KEY);
         if (Strings.isNullOrEmpty(rawDestination)) {
             return;
         }
@@ -1295,7 +1309,8 @@ public class KubernetesModelConverter {
             }
         }
         if (!valueBuilder.isEmpty()) {
-            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION, valueBuilder.toString());
+            KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
+                valueBuilder.toString());
         }
     }
 
