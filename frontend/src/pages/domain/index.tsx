@@ -196,10 +196,10 @@ const DomainList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="domain.deleteConfirmation">
-            确定删除{' '}
+            确定删除
             <span style={{ color: '#0070cc' }}>
               {{ currentDomainName: (currentDomain && currentDomain.name) || '' }}
-            </span>{' '}
+            </span>
             吗？
           </Trans>
         </p>

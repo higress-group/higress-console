@@ -81,20 +81,27 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
 
   const isEdit = !!editData;
 
+  if (editData) {
+    editData.imageUrl = editData.imageRepository + ':' + editData.imageVersion;
+  }
+
   const [form] = Form.useForm();
 
   const onSubmit = async () => {
-    await form.validateFields();
-    const values = form.getFieldsValue();
-    const imageVersion = values.imageRepository?.split(':')?.pop() || '';
+    const values = await form.validateFields();
+    const imageUrl: string = values.imageUrl || '';
+    const lastColonIndex = imageUrl.lastIndexOf(':');
+    const imageRepository = lastColonIndex == -1 ? imageUrl : imageUrl.substring(0, lastColonIndex);
+    const imageVersion = lastColonIndex == -1 ? '' : imageUrl.substring(lastColonIndex + 1);
     return {
+      ...values,
       category: 'custom',
       builtIn: false,
       icon: '',
+      imageRepository,
       imageVersion,
       title: values.name,
       version: editData?.version || 0,
-      ...values,
     };
   };
 
@@ -123,7 +130,7 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
         </Form.Item>
         <Form.Item
           label="镜像地址"
-          name="imageRepository"
+          name="imageUrl"
           rules={[{ required: true }]}
           tooltip="请输入镜像地址，例如 higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0"
         >

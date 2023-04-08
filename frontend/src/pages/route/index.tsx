@@ -215,8 +215,8 @@ const RouteList: React.FC = () => {
       >
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
-            确定删除{' '}
-            <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span>{' '}
+            确定删除
+            <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span>
             吗？
           </Trans>
         </p>
