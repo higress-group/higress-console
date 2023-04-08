@@ -13,6 +13,8 @@
 package com.alibaba.higress.console.service.kubernetes;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -21,11 +23,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,10 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.openapi4j.core.exception.EncodeException;
-import org.openapi4j.core.util.TreeUtil;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Domain;
@@ -71,6 +72,7 @@ import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugi
 import com.alibaba.higress.console.util.TypeUtil;
 import com.google.common.base.Splitter;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
@@ -96,6 +98,7 @@ public class KubernetesModelConverter {
     private static final Splitter LINE_SPLITTER = Splitter.on('\n').trimResults().omitEmptyStrings();
     private static final Splitter FIELD_SPLITTER = Splitter.on(Pattern.compile(" +")).trimResults().omitEmptyStrings();
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
+    private static final Set<String> SUPPORTED_ANNOTATIONS;
     private static final Integer DEFAULT_WEIGHT = 100;
 
     private KubernetesClientService kubernetesClientService;
@@ -106,11 +109,54 @@ public class KubernetesModelConverter {
         mcpBridgeReference.setKind(V1McpBridge.KIND);
         mcpBridgeReference.setName(V1McpBridge.DEFAULT_NAME);
         DEFAULT_MCP_BRIDGE_BACKEND.setResource(mcpBridgeReference);
+
+        Set<String> supportedAnnotations = new HashSet<>();
+        for (Field field : KubernetesConstants.Annotation.class.getFields()) {
+            if ((field.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)) == 0) {
+                continue;
+            }
+            if (field.getType() != String.class) {
+                continue;
+            }
+            if (!field.getName().endsWith("_KEY")) {
+                continue;
+            }
+            try {
+                supportedAnnotations.add((String)field.get(null));
+            } catch (IllegalAccessException e) {
+                log.error("Failed to get annotation key from field: " + field.getName(), e);
+            }
+        }
+        SUPPORTED_ANNOTATIONS = Collections.unmodifiableSet(supportedAnnotations);
     }
 
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
+    }
+
+    public void migrateCustomAnnotations(KubernetesObject src, KubernetesObject dst) {
+        V1ObjectMeta srcMetadata = src.getMetadata();
+        if (srcMetadata == null) {
+            return;
+        }
+
+        if (MapUtils.isEmpty(srcMetadata.getAnnotations())) {
+            return;
+        }
+
+        V1ObjectMeta dstMetadata = Objects.requireNonNull(dst.getMetadata());
+        Map<String, String> dstAnnotations = dstMetadata.getAnnotations();
+        if (dstAnnotations == null) {
+            dstAnnotations = new HashMap<>();
+            dstMetadata.setAnnotations(dstAnnotations);
+        }
+
+        for (Map.Entry<String, String> entry : srcMetadata.getAnnotations().entrySet()) {
+            if (!SUPPORTED_ANNOTATIONS.contains(entry.getKey())) {
+                dstAnnotations.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public boolean isIngressSupported(V1Ingress ingress) {
@@ -462,14 +508,7 @@ public class KubernetesModelConverter {
             return null;
         }
 
-        String rawConfiguration;
-        try {
-            rawConfiguration = TreeUtil.toYaml(configurations);
-        } catch (EncodeException e) {
-            throw new BusinessException(
-                "Error occurs when encoding configurations to YAML: " + JSON.toJSONString(configurations), e);
-        }
-
+        String rawConfiguration = KubernetesUtil.toYaml(configurations);
         return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
             .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
             .rawConfigurations(rawConfiguration).build();
@@ -915,18 +954,20 @@ public class KubernetesModelConverter {
         if (StringUtils.isNotEmpty(addConfig)) {
             config.setAdd(new ArrayList<>());
             for (String line : addConfig.split(CommonKey.NEW_LINE)) {
-                int equalIndex = line.indexOf(CommonKey.EQUALS_SIGN);
-                Header header = equalIndex != -1
-                    ? new Header(line.substring(0, equalIndex), line.substring(equalIndex + 1)) : new Header(line, "");
+                int separatorIndex = line.indexOf(CommonKey.SPACE);
+                Header header = separatorIndex != -1
+                    ? new Header(line.substring(0, separatorIndex), line.substring(separatorIndex + 1))
+                    : new Header(line, "");
                 config.getAdd().add(header);
             }
         }
         if (StringUtils.isNotEmpty(setConfig)) {
             config.setSet(new ArrayList<>());
             for (String line : setConfig.split(CommonKey.NEW_LINE)) {
-                int equalIndex = line.indexOf(CommonKey.EQUALS_SIGN);
-                Header header = equalIndex != -1
-                    ? new Header(line.substring(0, equalIndex), line.substring(equalIndex + 1)) : new Header(line, "");
+                int separatorIndex = line.indexOf(CommonKey.SPACE);
+                Header header = separatorIndex != -1
+                    ? new Header(line.substring(0, separatorIndex), line.substring(separatorIndex + 1))
+                    : new Header(line, "");
                 config.getSet().add(header);
             }
         }
@@ -995,11 +1036,11 @@ public class KubernetesModelConverter {
 
         HeaderControlStageConfig requestConfig =
             buildHeaderControlStageConfig(annotations, KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
-                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_UPDATE_KEY,
                 KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY, enabled);
         HeaderControlStageConfig responseConfig =
             buildHeaderControlStageConfig(annotations, KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
-                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_UPDATE_KEY,
                 KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY, enabled);
 
         if (requestConfig == null && responseConfig == null) {
@@ -1048,11 +1089,11 @@ public class KubernetesModelConverter {
                 Boolean.toString(enabled));
             fillIngressHeaderControlStageConfig(metadata, route.getHeaderControl().getRequest(),
                 KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_ADD_KEY,
-                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_UPDATE_KEY,
                 KubernetesConstants.Annotation.REQUEST_HEADER_CONTROL_REMOVE_KEY, enabled);
             fillIngressHeaderControlStageConfig(metadata, route.getHeaderControl().getResponse(),
                 KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_ADD_KEY,
-                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_SET_KEY,
+                KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_UPDATE_KEY,
                 KubernetesConstants.Annotation.RESPONSE_HEADER_CONTROL_REMOVE_KEY, enabled);
         }
     }
@@ -1117,7 +1158,7 @@ public class KubernetesModelConverter {
     }
 
     private String getHeaderConfig(Header header) {
-        return header.getKey() + CommonKey.EQUALS_SIGN + header.getValue();
+        return header.getKey() + CommonKey.SPACE + header.getValue();
     }
 
     private void fillIngressSpec(V1Ingress ingress, Route route) {
@@ -1474,13 +1515,13 @@ public class KubernetesModelConverter {
 
     private static String getFunctionalAnnotation(Map<String, String> annotations, String key,
         boolean functionEnabled) {
-        String actualKey = functionEnabled ? key : key + CommonKey.DISABLED_KEY_SUFFIX;
+        String actualKey = functionEnabled ? key : KubernetesConstants.Annotation.DISABLED_KEY_EXTRA_PREFIX + key;
         return annotations.get(actualKey);
     }
 
     private static void setFunctionalAnnotation(V1ObjectMeta metadata, String key, String value,
         boolean functionEnabled) {
-        String actualKey = functionEnabled ? key : key + CommonKey.DISABLED_KEY_SUFFIX;
+        String actualKey = functionEnabled ? key : KubernetesConstants.Annotation.DISABLED_KEY_EXTRA_PREFIX + key;
         KubernetesUtil.setAnnotation(metadata, actualKey, value);
     }
 }

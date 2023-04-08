@@ -27,6 +27,7 @@ import com.alibaba.higress.console.controller.dto.Domain;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Route;
 import com.alibaba.higress.console.controller.dto.RoutePageQuery;
+import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.controller.exception.ResourceConflictException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
@@ -49,6 +50,9 @@ public class DomainServiceImpl implements DomainService {
 
     @Resource
     private RouteService routeService;
+
+    @Resource
+    private WasmPluginInstanceService wasmPluginInstanceService;
 
     @Override
     public Domain add(Domain domain) {
@@ -93,12 +97,19 @@ public class DomainServiceImpl implements DomainService {
 
     @Override
     public void delete(String domainName) {
+        PaginatedResult<Route> routes = routeService.list(new RoutePageQuery(domainName));
+        if (CollectionUtils.isNotEmpty(routes.getData())) {
+            throw new IllegalArgumentException("The domain has routes. Please delete them first.");
+        }
+
         String configMapName = kubernetesModelConverter.domainName2ConfigMapName(domainName);
         try {
             kubernetesClientService.deleteConfigMap(configMapName);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when deleting the ConfigMap with name: " + configMapName, e);
         }
+
+        wasmPluginInstanceService.deleteAll(WasmPluginInstanceScope.DOMAIN, domainName);
     }
 
     @Override

@@ -16,13 +16,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import com.alibaba.higress.console.constant.CommonKey;
-import com.alibaba.higress.console.constant.KubernetesConstants;
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.KubernetesConstants;
+import com.alibaba.higress.console.controller.exception.BusinessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+
 public class KubernetesUtil {
+
+    private static final ObjectMapper YAML =
+        new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
+
+    public static String toYaml(Object obj) {
+        try {
+            return YAML.writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new BusinessException("Error occurs when converting object to yaml: " + e.getMessage(), e);
+        }
+    }
 
     public static String getObjectName(KubernetesObject object) {
         if (object == null) {

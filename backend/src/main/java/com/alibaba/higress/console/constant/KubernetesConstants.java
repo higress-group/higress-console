@@ -24,6 +24,7 @@ public class KubernetesConstants {
 
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
+        public final static String DISABLED_KEY_EXTRA_PREFIX = "disabled.";
         public static final String TRUE_VALUE = "true";
         public static final String USE_REGEX_KEY = "higress.io/use-regex";
         public static final String DESTINATION = "higress.io/destination";
@@ -37,10 +38,10 @@ public class KubernetesConstants {
         public static final String PROXY_NEXT_UPSTREAM_KEY = "higress.io/proxy-next-upstream";
         public static final String HEADER_CONTROL_ENABLED_KEY = "higress.io/enable-header-control";
         public static final String REQUEST_HEADER_CONTROL_ADD_KEY = "higress.io/request-header-control-add";
-        public static final String REQUEST_HEADER_CONTROL_SET_KEY = "higress.io/request-header-control-set";
+        public static final String REQUEST_HEADER_CONTROL_UPDATE_KEY = "higress.io/request-header-control-update";
         public static final String REQUEST_HEADER_CONTROL_REMOVE_KEY = "higress.io/request-header-control-remove";
         public static final String RESPONSE_HEADER_CONTROL_ADD_KEY = "higress.io/response-header-control-add";
-        public static final String RESPONSE_HEADER_CONTROL_SET_KEY = "higress.io/response-header-control-set";
+        public static final String RESPONSE_HEADER_CONTROL_UPDATE_KEY = "higress.io/response-header-control-update";
         public static final String RESPONSE_HEADER_CONTROL_REMOVE_KEY = "higress.io/response-header-control-remove";
         public static final String CORS_ENABLED_KEY = "higress.io/enable-cors";
         public static final String CORS_ALLOW_ORIGIN_KEY = "higress.io/cors-allow-origin";
