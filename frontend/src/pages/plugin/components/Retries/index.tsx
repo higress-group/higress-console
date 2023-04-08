@@ -59,7 +59,7 @@ const Retries = forwardRef((props, ref) => {
           </Select>
         </Form.Item>
         <Form.Item label="超时" name="timeout" rules={[{ required: true, message: '请输入你的超时时间!' }]}>
-          <InputNumber style={{ width: '100%' }} max={600} addonAfter="秒" />
+          <InputNumber style={{ width: '100%' }} min={1} max={600} addonAfter="秒" />
         </Form.Item>
       </Form>
     </div>
