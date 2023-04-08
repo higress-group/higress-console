@@ -51,6 +51,8 @@ spec:
             - name: HIGRESS_CONSOLE_WEB_LOGIN_PROMPT
               value: {{ .Values.web.login.prompt | quote }}
             {{- end }}
+            - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
+              value: {{ .Values.global.ingressClass }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
