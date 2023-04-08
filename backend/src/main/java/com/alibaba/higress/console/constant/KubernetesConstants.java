@@ -27,7 +27,7 @@ public class KubernetesConstants {
         public final static String DISABLED_KEY_EXTRA_PREFIX = "disabled.";
         public static final String TRUE_VALUE = "true";
         public static final String USE_REGEX_KEY = "higress.io/use-regex";
-        public static final String DESTINATION = "higress.io/destination";
+        public static final String DESTINATION_KEY = "higress.io/destination";
         public static final String SSL_REDIRECT_KEY = "higress.io/ssl-redirect";
         public static final String REWRITE_ENABLED_KEY = "higress.io/enable-rewrite";
         public static final String REWRITE_PATH_KEY = "higress.io/rewrite-path";

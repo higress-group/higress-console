@@ -16,28 +16,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.KubernetesConstants;
 import com.alibaba.higress.console.controller.dto.Route;
-import com.alibaba.higress.console.controller.dto.WasmPlugin;
-import com.alibaba.higress.console.controller.dto.WasmPluginInstance;
-import com.alibaba.higress.console.controller.dto.WasmPluginInstanceScope;
 import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginPhase;
-import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
-import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
-import com.google.common.collect.ImmutableMap;
 
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
@@ -168,7 +159,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -194,7 +185,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "10% hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -220,7 +211,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -246,7 +237,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080 v1");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -272,7 +263,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "20% hello1.default.svc.cluster.local:8080\n"
                 + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
@@ -301,7 +292,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -327,7 +318,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
-        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
             KubernetesConstants.Annotation.TRUE_VALUE);
@@ -366,7 +357,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -393,7 +384,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -420,7 +411,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -447,7 +438,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -476,7 +467,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "20% hello1.default.svc.cluster.local:8080\n"
                 + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
@@ -504,7 +495,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
@@ -531,7 +522,7 @@ public class KubernetesModelConverterTest {
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
-        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION,
+        KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
             KubernetesConstants.Annotation.TRUE_VALUE);
