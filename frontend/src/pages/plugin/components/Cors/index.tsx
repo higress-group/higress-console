@@ -4,40 +4,37 @@ import { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 const { TextArea } = Input;
 
+const defaultCorsData = {
+  enabled: false,
+  maxAge: 86400,
+  allowMethods: ['GET', 'PUT', 'POST', 'HEAD', 'DELETE', 'PATCH', 'OPTIONS'],
+  exposeHeaders: ['*'],
+  allowCredentials: 'true',
+  allowOrigins: ['*'],
+  allowHeaders: ['*'],
+};
+
 const Cors = forwardRef((props, ref) => {
   const data = props?.data || {};
-
   const [form] = Form.useForm();
 
   const list = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS', 'PATCH'];
 
   useEffect(() => {
-    const {
-      enabled = false,
-      maxAge = 1728000,
-      allowMethods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
-      exposeHeaders = ['*'],
-      allowCredentials = 'true',
-      allowOrigins = ['*'],
-      allowHeaders = [
-        'DNT',
-        'X-CustomHeader',
-        'Keep-Alive',
-        'User-Agent',
-        'X-Requested-With',
-        'If-Modified-Since',
-        'Cache-Control',
-        'Content-Type',
-        'Authorization',
-      ],
-    } = data?.cors || {};
+    let initData = defaultCorsData;
+
+    if (data?.cors.enabled !== null) {
+      initData = data?.cors;
+    }
+
+    const { enabled, maxAge, allowMethods, exposeHeaders, allowCredentials, allowOrigins, allowHeaders } = initData;
 
     form.setFieldsValue({
       allowOrigins: allowOrigins?.join(';') || '',
       allowHeaders: allowHeaders?.join(';') || '',
       allowMethods,
       exposeHeaders: exposeHeaders?.join(';') || '',
-      allowCredentials: allowCredentials === 'true',
+      allowCredentials,
       maxAge,
       enabled,
     });
@@ -108,7 +105,7 @@ const Cors = forwardRef((props, ref) => {
           <TextArea />
         </Form.Item>
         <Form.Item label="允许携带凭证" name="allowCredentials" valuePropName="checked">
-          <Radio.Group defaultValue="false">
+          <Radio.Group defaultValue="true">
             <Radio value="true">允许</Radio>
             <Radio value="false">不允许</Radio>
           </Radio.Group>
