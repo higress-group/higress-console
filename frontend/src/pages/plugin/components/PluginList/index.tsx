@@ -61,8 +61,9 @@ const PluginList = forwardRef((props: Props, ref) => {
   return (
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
+        const key = item.name + ':' + item.imageVersion;
         return (
-          <Col span={6} key={item.title} xl={6} lg={12} md={12} sm={12} xs={24}>
+          <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
               hoverable
               actions={[
