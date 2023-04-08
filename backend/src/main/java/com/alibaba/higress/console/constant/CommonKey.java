@@ -18,8 +18,6 @@ public class CommonKey {
 
     public final static String CONFIG_KEY_PREFIX = "higress-console.";
 
-    public final static String DISABLED_KEY_SUFFIX = "_disabled";
-
     public final static String LIST_CONFIG_SEPARATOR = ";";
 
     public final static String PROTOCOL_KEYWORD = "://";
