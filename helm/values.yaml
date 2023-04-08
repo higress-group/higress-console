@@ -1,6 +1,7 @@
 global:
   local: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
   kind: false # Deprecated. Please use "global.local" instead. Will be removed later.
+  ingressClass: "higress"
 
 replicaCount: 1
 
@@ -31,7 +32,6 @@ domain: console.higress.io
 tlsSecretName: ""
 
 ingress:
-  className: "higress"
   annotations: {}
   paths:
     - path: /
