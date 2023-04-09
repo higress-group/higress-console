@@ -522,10 +522,38 @@ public class KubernetesModelConverter {
             return null;
         }
 
+        normalizeConfigurations(configurations);
         String rawConfiguration = KubernetesUtil.toYaml(configurations);
         return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
             .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
             .rawConfigurations(rawConfiguration).build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void normalizeConfigurations(Map<String, Object> configurations) {
+        if (MapUtils.isEmpty(configurations)) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : configurations.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
+            if (value instanceof Map) {
+                normalizeConfigurations((Map<String, Object>) value);
+            } else if (value instanceof Double) {
+                Double d = (Double) value;
+                if (d == d.intValue()) {
+                    entry.setValue(d.intValue());
+                }
+            } else if (value instanceof List) {
+                ((List<?>) value).forEach(v -> {
+                    if (v instanceof Map) {
+                        normalizeConfigurations((Map<String, Object>) v);
+                    }
+                });
+            }
+        }
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
