@@ -522,15 +522,15 @@ public class KubernetesModelConverter {
             return null;
         }
 
-        normalizeConfigurations(configurations);
-        String rawConfiguration = KubernetesUtil.toYaml(configurations);
+        normalizePluginInstanceConfigurations(configurations);
+        String rawConfiguration = generateRawConfigurations(configurations);
         return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
             .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
             .rawConfigurations(rawConfiguration).build();
     }
 
     @SuppressWarnings("unchecked")
-    private void normalizeConfigurations(Map<String, Object> configurations) {
+    private void normalizePluginInstanceConfigurations(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
             return;
         }
@@ -540,20 +540,31 @@ public class KubernetesModelConverter {
                 continue;
             }
             if (value instanceof Map) {
-                normalizeConfigurations((Map<String, Object>) value);
+                normalizePluginInstanceConfigurations((Map<String, Object>)value);
             } else if (value instanceof Double) {
-                Double d = (Double) value;
+                Double d = (Double)value;
                 if (d == d.intValue()) {
                     entry.setValue(d.intValue());
                 }
             } else if (value instanceof List) {
-                ((List<?>) value).forEach(v -> {
+                ((List<?>)value).forEach(v -> {
                     if (v instanceof Map) {
-                        normalizeConfigurations((Map<String, Object>) v);
+                        normalizePluginInstanceConfigurations((Map<String, Object>)v);
                     }
                 });
             }
         }
+    }
+
+    private String generateRawConfigurations(Map<String, Object> configurations) {
+        if (MapUtils.isEmpty(configurations)) {
+            return "";
+        }
+        String rawConfigurations = KubernetesUtil.toYaml(configurations);
+        if (rawConfigurations.startsWith(KubernetesConstants.YAML_SEPARATOR)) {
+            rawConfigurations = rawConfigurations.substring(KubernetesConstants.YAML_SEPARATOR.length());
+        }
+        return rawConfigurations.trim();
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
