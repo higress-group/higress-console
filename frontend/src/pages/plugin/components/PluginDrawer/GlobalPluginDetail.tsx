@@ -28,7 +28,7 @@ export interface IProps {
 
 const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const { data, onSuccess } = props;
-  const { name: pluginName = '' } = data || {};
+  const { name: pluginName = '', category = '' } = data || {};
 
   const [searchParams] = useSearchParams();
 
@@ -36,8 +36,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const queryName: string = searchParams.get('name') || '';
 
   const isChangeExampleRaw = useMemo(() => {
-    return ['route', 'domain'].includes(queryType) && data.category === 'auth';
-  }, [queryType]);
+    return ['route', 'domain'].includes(queryType) && category === 'auth';
+  }, [queryType, category]);
 
   const isRoutePlugin = useMemo(() => {
     return queryType === 'route';
