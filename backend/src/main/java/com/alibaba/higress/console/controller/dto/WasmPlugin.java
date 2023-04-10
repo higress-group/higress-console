@@ -32,6 +32,8 @@ public class WasmPlugin implements VersionedDto {
 
     private String name;
 
+    private String pluginVersion;
+
     private String version;
 
     private String category;
