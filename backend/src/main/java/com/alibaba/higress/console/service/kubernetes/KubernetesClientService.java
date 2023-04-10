@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -212,7 +214,7 @@ public class KubernetesClientService {
             if (list == null) {
                 return Collections.emptyList();
             }
-            return list.getItems();
+            return sortKubernetesObjects(list.getItems());
         } catch (ApiException e) {
             log.error("listIngress Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
                 + "Response headers: " + e.getResponseHeaders(), e);
@@ -229,7 +231,7 @@ public class KubernetesClientService {
             if (list == null) {
                 return Collections.emptyList();
             }
-            return list.getItems();
+            return sortKubernetesObjects(list.getItems());
         } catch (ApiException e) {
             log.error("listIngressByDomain Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
                 + "Response headers: " + e.getResponseHeaders(), e);
@@ -286,7 +288,7 @@ public class KubernetesClientService {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null, null,
             DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
-        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+        return sortKubernetesObjects(Optional.ofNullable(list.getItems()).orElse(Collections.emptyList()));
     }
 
     public V1ConfigMap createConfigMap(V1ConfigMap configMap) throws ApiException {
@@ -334,7 +336,7 @@ public class KubernetesClientService {
         }
         V1SecretList list = coreV1Api.listNamespacedSecret(controllerNamespace, null, null, null, fieldSelectors, null,
             null, null, null, null, null);
-        return Optional.ofNullable(list.getItems()).orElse(new ArrayList<>());
+        return sortKubernetesObjects(Optional.ofNullable(list.getItems()).orElse(Collections.emptyList()));
     }
 
     public V1Secret readSecret(String name) throws ApiException {
@@ -381,7 +383,7 @@ public class KubernetesClientService {
                 controllerNamespace, V1McpBridge.PLURAL, null, null, null, null, null, null, null, null, null, null);
             io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
             V1McpBridgeList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
-            return list.getItems();
+            return sortKubernetesObjects(list.getItems());
         } catch (ApiException e) {
             log.error("listMcpBridge Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
                 + "Response headers: " + e.getResponseHeaders(), e);
@@ -453,7 +455,7 @@ public class KubernetesClientService {
             labelSelector, null, null, null, null, null);
         io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
         V1alpha1WasmPluginList list = json.deserialize(json.serialize(response), V1alpha1WasmPluginList.class);
-        return list.getItems();
+        return sortKubernetesObjects(list.getItems());
     }
 
     public V1alpha1WasmPlugin addWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
@@ -515,5 +517,12 @@ public class KubernetesClientService {
 
     private void renderDefaultLabels(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
+    }
+
+    private static <T extends KubernetesObject> List<T> sortKubernetesObjects(List<T> objects) {
+        if (CollectionUtils.isNotEmpty(objects)) {
+            objects.sort(Comparator.comparing(o -> o.getMetadata() != null ? o.getMetadata().getName() : null));
+        }
+        return objects;
     }
 }

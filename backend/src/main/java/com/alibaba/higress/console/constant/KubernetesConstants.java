@@ -21,6 +21,7 @@ public class KubernetesConstants {
     public static final String SECRET_TYPE_TLS = "kubernetes.io/tls";
     public static final String SECRET_TLS_CRT_FIELD = "tls.crt";
     public static final String SECRET_TLS_KEY_FIELD = "tls.key";
+    public static final String YAML_SEPARATOR = "---\n";
 
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
