@@ -121,7 +121,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
             throw new IllegalArgumentException("Unknown plugin: " + name);
         }
 
-        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getImageVersion());
+        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getPluginVersion());
         V1alpha1WasmPlugin existedCr = null;
         try {
             List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
@@ -155,7 +155,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
         V1alpha1WasmPlugin result;
         try {
             if (existedCr == null) {
-                if (!version.equals(plugin.getImageVersion())) {
+                if (!version.equals(plugin.getPluginVersion())) {
                     throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
                 }
                 result = kubernetesModelConverter.wasmPluginToCr(plugin);

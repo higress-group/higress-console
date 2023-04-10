@@ -44,6 +44,7 @@ import org.openapi4j.parser.model.v3.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.Language;
 import com.alibaba.higress.console.controller.WasmPluginCategory;
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
@@ -84,6 +85,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
     private static final String ICON_DATA_PREFIX = "data:image/png;base64,";
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final Pattern I18N_EXTENSION_KEY_PATTERN = Pattern.compile("^x-(.+)-i18n$");
+    private static final String DEFAULT_PLUGIN_VERSION = "1.0.0";
 
     private static final String EXAMPLE_RAW_PROPERTY_NAME = "exampleRaw";
 
@@ -379,6 +381,9 @@ public class WasmPluginServiceImpl implements WasmPluginService {
             throw new ResourceConflictException("Name conflicted with a built-in plugin.");
         }
 
+        if (StringUtils.isEmpty(plugin.getPluginVersion())) {
+            plugin.setPluginVersion(DEFAULT_PLUGIN_VERSION);
+        }
         plugin.setBuiltIn(false);
         plugin.setCategory(WasmPluginCategory.CUSTOM);
 
@@ -404,11 +409,13 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         if (Boolean.TRUE.equals(plugin.getBuiltIn())) {
             throw new ResourceConflictException("Updating a built-in plugin is not allowed.");
         }
-
         if (builtInPlugins.stream().anyMatch(p -> p.getName().equals(name))) {
             throw new ResourceConflictException("Updating a built-in plugin is not allowed.");
         }
 
+        if (StringUtils.isEmpty(plugin.getPluginVersion())) {
+            plugin.setPluginVersion(DEFAULT_PLUGIN_VERSION);
+        }
         plugin.setBuiltIn(false);
         plugin.setCategory(WasmPluginCategory.CUSTOM);
 
@@ -431,11 +438,11 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         if (existedCr != null) {
             kubernetesModelConverter.mergeWasmPluginSpec(existedCr, cr);
 
-            String version = plugin.getVersion();
-            if (StringUtils.isEmpty(plugin.getVersion())) {
-                version = existedCr.getMetadata().getResourceVersion();
+            String resourceVersion = plugin.getVersion();
+            if (StringUtils.isEmpty(resourceVersion)) {
+                resourceVersion = existedCr.getMetadata().getResourceVersion();
             }
-            cr.getMetadata().setResourceVersion(version);
+            cr.getMetadata().setResourceVersion(resourceVersion);
 
             V1alpha1WasmPlugin updatedCr;
             try {
@@ -516,7 +523,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         private static final String DEFAULT_README_KEY = "_default_";
 
         private final String name;
-        private final String imageRepository;
+        private final String imageUrl;
         private Plugin plugin;
         private String iconData;
 
@@ -524,9 +531,9 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         @Setter(AccessLevel.NONE)
         private final Map<String, String> readmes = new HashMap<>(4);
 
-        public PluginCacheItem(String name, String imageRepository) {
+        public PluginCacheItem(String name, String imageUrl) {
             this.name = name;
-            this.imageRepository = imageRepository;
+            this.imageUrl = imageUrl;
         }
 
         public String getDefaultReadme() {
@@ -550,13 +557,19 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         public WasmPlugin buildWasmPlugin(String language) {
             WasmPlugin wasmPlugin = new WasmPlugin();
             wasmPlugin.setName(name);
-            wasmPlugin.setImageRepository(imageRepository);
+            int colonIndex = imageUrl.lastIndexOf(CommonKey.COLON);
+            if (colonIndex != -1) {
+                wasmPlugin.setImageRepository(imageUrl.substring(0, colonIndex));
+                wasmPlugin.setImageVersion(imageUrl.substring(colonIndex + 1));
+            } else {
+                wasmPlugin.setImageRepository(imageUrl);
+            }
             wasmPlugin.setBuiltIn(true);
 
             PluginInfo info = plugin.getInfo();
             if (info != null) {
                 wasmPlugin.setCategory(info.getCategory());
-                wasmPlugin.setImageVersion(info.getVersion());
+                wasmPlugin.setPluginVersion(info.getVersion());
                 wasmPlugin.setIcon(info.getIconUrl());
 
                 if (StringUtils.isEmpty(language)) {

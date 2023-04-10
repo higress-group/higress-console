@@ -360,7 +360,7 @@ public class KubernetesModelConverter {
             plugin.setName(name);
             String version =
                 MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
-            plugin.setImageVersion(version);
+            plugin.setPluginVersion(version);
             String category =
                 MapUtils.getString(metadata.getLabels(), KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY);
             plugin.setCategory(category);
@@ -403,7 +403,7 @@ public class KubernetesModelConverter {
     public V1alpha1WasmPlugin wasmPluginToCr(WasmPlugin plugin) {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
 
-        String name = plugin.getName(), version = plugin.getImageVersion();
+        String name = plugin.getName(), version = plugin.getPluginVersion();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setName(name + CommonKey.DASH + version);
