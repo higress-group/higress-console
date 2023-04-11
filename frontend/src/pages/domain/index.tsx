@@ -93,7 +93,7 @@ const DomainList: React.FC = () => {
   }, []);
 
   const onEditConfig = (domain) => {
-    history?.push(`/plugin?name=${domain.name}&type=domain`);
+    history?.push(`/domain/config?name=${domain.name}&type=domain`);
   };
 
   const onEditDrawer = (domain: Domain) => {
