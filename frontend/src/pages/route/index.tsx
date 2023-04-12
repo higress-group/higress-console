@@ -111,7 +111,7 @@ const RouteList: React.FC = () => {
   };
 
   const onEditConfig = (route: Route) => {
-    history?.push(`/plugin?name=${route.name}&type=route`);
+    history?.push(`/route/config?name=${route.name}&type=route`);
   };
 
   const onShowDrawer = () => {

@@ -32,9 +32,11 @@ export default function RouterConfig() {
     if (type === 'domain') history?.push('/domain');
   };
 
-  const isShowPageHeader = useMemo(() => {
-    return ['route', 'domain'].includes(type);
-  }, [type]);
+  const pageHeader = useMemo(() => {
+    if (type === 'domain') return { title: `策略配置`, subTitle: `域名名称: ${name}` };
+    if (type === 'route') return { title: `策略配置`, subTitle: `路由名称: ${name}` };
+    return { title: '', subTitle: '' };
+  }, [type, name]);
 
   const { loading, run, refresh } = useRequest(getGatewayRoutesDetail, {
     manual: true,
@@ -85,8 +87,13 @@ export default function RouterConfig() {
 
   return (
     <div className={styles.routeConfig}>
-      {isShowPageHeader && (
-        <PageHeader className="hi-page-container-warp" title="策略配置" onBack={handleBack} subTitle="" />
+      {!!pageHeader.title && (
+        <PageHeader
+          className="hi-page-container-warp"
+          title={pageHeader.title}
+          onBack={handleBack}
+          subTitle={pageHeader.subTitle}
+        />
       )}
       <Spin spinning={loading}>
         <PageContainer>
