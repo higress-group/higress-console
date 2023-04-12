@@ -52,9 +52,14 @@ const RouteList: React.FC = () => {
       render: (value: UpstreamService[]) => {
         return (
           value &&
-          value.map((service: UpstreamService) => {
+          value.map((service: UpstreamService, index: number) => {
             const name = upstreamServiceToString(service);
-            return <div key={name}>{name}</div>;
+            return (
+              <span key={index}>
+                {index !== 0 && (<br />)}
+                {name}
+              </span>
+            );
           })
         );
       },

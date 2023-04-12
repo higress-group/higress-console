@@ -928,12 +928,16 @@ public class KubernetesModelConverter {
         Integer port = null;
         int colonIndex = address.lastIndexOf(':');
         if (colonIndex != -1) {
-            host = address.substring(0, colonIndex);
             String rawPort = address.substring(colonIndex + 1);
             try {
                 port = Integer.parseInt(rawPort);
+                if (port > 0 && port < 65536) {
+                    // Only change the host if port is a valid number, just case the address looks like this:
+                    // providers:org.apache.dubbo.samples.rest.api.facade.UserRestService:0.0.0:annotationConfig.zookeeper
+                    host = address.substring(0, colonIndex);
+                }
             } catch (NumberFormatException ex) {
-                return null;
+                // Ignore it.
             }
         }
 
