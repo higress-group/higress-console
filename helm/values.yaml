@@ -75,6 +75,8 @@ o11y:
       path: /grafana # Only pathType of Prefix is supported
     port: 3000
     storage: 1Gi
+    pvc:
+      storageClassName: ""
   prometheus:
     replicas: 1
     image:
@@ -84,6 +86,8 @@ o11y:
       path: /prometheus # Only pathType of Prefix is supported
     port: 9090
     storage: 1Gi
+    pvc:
+      storageClassName: ""
     resources:
       limits:
         cpu: 500m

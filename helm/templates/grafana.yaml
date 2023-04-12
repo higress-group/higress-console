@@ -39,6 +39,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
+  storageClassName: {{ $config.pvc.storageClassName }}
   resources:
     requests:
       storage: {{ $config.storage }}
