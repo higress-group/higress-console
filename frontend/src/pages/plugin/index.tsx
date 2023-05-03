@@ -1,24 +1,27 @@
-import { PageContainer } from '@ant-design/pro-layout';
-import { PageHeader, Spin, Row, Col, Button, message } from 'antd';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { history, useSearchParams } from 'ice';
-import { RedoOutlined } from '@ant-design/icons';
-import { useRequest } from 'ahooks';
-import PluginList, { ListRef } from './components/PluginList';
-import PluginDrawer from './components/PluginDrawer';
 import { WasmPluginData } from '@/interfaces/route';
-import { WasmPluginDrawer, WasmFormRef } from './components/Wasm';
-import { getGatewayRoutesDetail, createWasmPlugin, updateWasmPlugin, deleteWasmPlugin } from '@/services';
+import { createWasmPlugin, deleteWasmPlugin, getGatewayRoutesDetail, updateWasmPlugin } from '@/services';
+import { RedoOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-layout';
+import { useRequest } from 'ahooks';
+import { Button, Col, PageHeader, Row, Spin, message } from 'antd';
+import { history, useSearchParams } from 'ice';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import PluginDrawer from './components/PluginDrawer';
+import PluginList, { ListRef } from './components/PluginList';
+import { WasmFormRef, WasmPluginDrawer } from './components/Wasm';
 import styles from './index.module.css';
 
 export default function RouterConfig() {
+  const { t } = useTranslation();
+
   const [routerDetail, setRouterDetail] = useState({});
   const [searchParams] = useSearchParams();
 
   const wasmFormRef = useRef<WasmFormRef>();
   const listRef = useRef<ListRef>();
   let pluginDrawerRef = useRef({
-    onOpen: (_key) => {},
+    onOpen: (_key) => { },
   });
   const name = searchParams.get('name');
   const type = searchParams.get('type') || '';
@@ -33,8 +36,8 @@ export default function RouterConfig() {
   };
 
   const pageHeader = useMemo(() => {
-    if (type === 'domain') return { title: `策略配置`, subTitle: `域名名称: ${name}` };
-    if (type === 'route') return { title: `策略配置`, subTitle: `路由名称: ${name}` };
+    if (type === 'domain') return { title: t('plugins.title'), subTitle: t('plugins.subTitle.domain') + name };
+    if (type === 'route') return { title: t('plugins.title'), subTitle: t('plugins.subTitle.route') + name };
     return { title: '', subTitle: '' };
   }, [type, name]);
 
@@ -56,7 +59,7 @@ export default function RouterConfig() {
 
   const onDelete = (v: string) => {
     deleteWasmPlugin(v).then(() => {
-      message.success('删除成功');
+      message.success(t('plugins.deleteSuccess'));
       formOperatorBack();
     });
   };
@@ -64,12 +67,12 @@ export default function RouterConfig() {
   const onSubmitWasm = (val: WasmPluginData, isEdit: boolean) => {
     if (isEdit) {
       updateWasmPlugin(val.name, val).then(() => {
-        message.success('修改成功');
+        message.success(t('plugins.updateSuccess'));
         formOperatorBack();
       });
     } else {
       createWasmPlugin(val).then(() => {
-        message.success('添加成功');
+        message.success(t('plugins.addSuccess'));
         formOperatorBack();
       });
     }
@@ -115,7 +118,7 @@ export default function RouterConfig() {
                     wasmFormRef?.current?.open();
                   }}
                 >
-                  创建
+                  {t('plugins.addPlugin')}
                 </Button>
               </Col>
               <Col span={20} style={{ textAlign: 'right' }}>

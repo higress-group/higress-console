@@ -2,8 +2,8 @@ import request from './request';
 import { RouteResponse, Route, WasmPluginData } from '@/interfaces/route';
 
 // 获取全局的插件配置列表
-export const getWasmPlugins = (): Promise<any> => {
-  return request.get('/v1/wasm-plugins');
+export const getWasmPlugins = (lang: string): Promise<any> => {
+  return request.get('/v1/wasm-plugins', { params: { lang } });
 };
 
 // 获取全局的指定插件配置

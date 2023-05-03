@@ -5,7 +5,7 @@ info:
   title: WAF
   description: 支持基于 OWASP ModSecurity Core Rule Set (CRS) 的 WAF 规则配置
   x-description-i18n:
-    en-US:  plugin
+    en-US:  Support configuring WAF rules based on OWASP ModSecurity Core Rule Set (CRS)
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
   version: 1.0.0
   contact:

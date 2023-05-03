@@ -1,11 +1,12 @@
 import { Form, Select, Switch, InputNumber } from 'antd';
-import { useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, forwardRef, useImperativeHandle, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
 const Retries = forwardRef((props, ref) => {
+  const { t } = useTranslation();
   const data = props?.data || {};
-
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -45,20 +46,36 @@ const Retries = forwardRef((props, ref) => {
         form={form}
         layout="vertical"
       >
-        <Form.Item label="开启状态" name="enabled" valuePropName="checked">
+        <Form.Item
+          label={t('plugins.configForm.enableStatus')}
+          name="enabled"
+          valuePropName="checked"
+        >
           <Switch checked />
         </Form.Item>
-        <Form.Item label="重试次数" name="attempts" rules={[{ required: true, message: '请输入你的重试次数!' }]}>
+        <Form.Item
+          label={t('plugins.builtIns.retries.attempts')}
+          name="attempts"
+          rules={[{ required: true, message: t('plugins.builtIn.retries.attemptsRequired') || '' }]}
+        >
           <InputNumber style={{ width: '100%' }} max={3} />
         </Form.Item>
-        <Form.Item label="重试条件" name="conditions" rules={[{ required: true, message: '请输入你的重试条件!' }]}>
+        <Form.Item
+          label={t('plugins.builtIns.retries.conditions')}
+          name="conditions"
+          rules={[{ required: true, message: t('plugins.builtIn.retries.conditionsRequired') || '' }]}
+        >
           <Select mode="multiple">
-            <Option value="error">error：建立连接失败</Option>
-            <Option value="timeout"> timeout：建立连接超时</Option>
-            <Option value="non_idempotent">non_idempotent：对于非幂等请求出错时进行重试</Option>
+            <Option value="error">{t('plugins.builtIns.retries.condition.error')}</Option>
+            <Option value="timeout">{t('plugins.builtIns.retries.condition.timeout')}</Option>
+            <Option value="non_idempotent">{t('plugins.builtIns.retries.condition.non_idempotent')}</Option>
           </Select>
         </Form.Item>
-        <Form.Item label="超时" name="timeout" rules={[{ required: true, message: '请输入你的超时时间!' }]}>
+        <Form.Item
+          label={t('plugins.builtIns.retries.timeout')}
+          name="timeout"
+          rules={[{ required: true, message: t('plugins.builtIn.retries.timeoutRequired') || '' }]}
+        >
           <InputNumber style={{ width: '100%' }} min={1} max={600} addonAfter="秒" />
         </Form.Item>
       </Form>

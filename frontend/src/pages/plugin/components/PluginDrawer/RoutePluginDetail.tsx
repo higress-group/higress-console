@@ -1,12 +1,12 @@
 import { message, Spin } from 'antd';
 
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Rewrite from '../Rewrite';
 import Cors from '../Cors';
 import HeaderModify from '../HeaderModify';
 import Retries from '../Retries';
+import Rewrite from '../Rewrite';
 
 import { updateRouteConfig } from '@/services';
 import { useRequest } from 'ahooks';
@@ -38,7 +38,7 @@ const RoutePluginDetail = forwardRef((props: Props, ref) => {
     manual: true,
     onSuccess: () => {
       onSuccess?.();
-      message.success('保存成功');
+      message.success(t('plugins.saveSuccess'));
     },
   });
 

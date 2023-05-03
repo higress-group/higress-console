@@ -5,7 +5,7 @@ info:
   title: Bot Detect
   description: 用于识别并阻止互联网爬虫对站点资源的爬取
   x-description-i18n:
-    en-US: 用于识别并阻止互联网爬虫对站点资源的爬取
+    en-US: Identify and block resource crawling from bots on the Internet
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
   version: 1.0.0
   contact:

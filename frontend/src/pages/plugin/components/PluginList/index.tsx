@@ -1,11 +1,14 @@
-import { Col, Row, Button, Card, Tooltip, Popconfirm, Dropdown, Avatar, Typography, message } from 'antd';
-import { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
-import { DEFAULT_PLUGIN_IMG, DEFAULT_PLUGIN_LIST } from './constant';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { useRequest } from 'ahooks';
+import i18n from '@/i18n';
 import { WasmPluginData } from '@/interfaces/route';
 import { getWasmPlugins } from '@/services';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography } from 'antd';
 import { useSearchParams } from 'ice';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { BUILTIN_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
+import { getI18nValue } from '../../utils';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -22,12 +25,13 @@ export interface ListRef {
 }
 
 const PluginList = forwardRef((props: Props, ref) => {
+  const { t } = useTranslation();
   const { data, onOpen, onEdit, onDelete } = props;
   const [searchParams] = useSearchParams();
 
   const type = searchParams.get('type');
 
-  const isShowDefaultPlugin = useMemo(() => {
+  const showBuiltInPlugins = useMemo(() => {
     return type === 'route';
   }, [type]);
 
@@ -37,31 +41,37 @@ const PluginList = forwardRef((props: Props, ref) => {
 
   const [pluginList, setPluginList] = useState<WasmPluginData[]>([]);
 
-  const { loading, run, refresh } = useRequest(getWasmPlugins, {
+  const { loading, run: loadWasmPlugins } = useRequest(() => {
+    return getWasmPlugins(i18n.language)
+  }, {
     manual: true,
     onSuccess: (result = []) => {
-      if (isShowDefaultPlugin) {
-        setPluginList(DEFAULT_PLUGIN_LIST.concat(result) as any);
+      if (showBuiltInPlugins) {
+        setPluginList(BUILTIN_PLUGIN_LIST.concat(result) as any);
         return;
       }
       setPluginList(result);
     },
   });
 
-  useImperativeHandle(ref, () => ({
-    refresh: () => {
-      refresh();
-    },
-  }));
+  useImperativeHandle(ref, () => {
+    return {
+      refresh: () => {
+        loadWasmPlugins();
+      },
+    }
+  });
 
   useEffect(() => {
-    run();
+    loadWasmPlugins();
   }, []);
+
+  i18n.on('languageChanged', () => loadWasmPlugins());
 
   return (
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
-        const key = item.name + ':' + item.imageVersion;
+        const key = item.key || `${item.name}:${item.imageVersion}`;
         return (
           <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
@@ -69,7 +79,7 @@ const PluginList = forwardRef((props: Props, ref) => {
               actions={[
                 <div onClick={() => handleClickPlugin(item)}>
                   <Button type="text" size="small">
-                    配置
+                    {t('misc.configure')}
                   </Button>
                 </div>,
               ]}
@@ -89,7 +99,7 @@ const PluginList = forwardRef((props: Props, ref) => {
                 title={
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.title}
+                      {getI18nValue(item, 'title')}
                     </div>
                     {item.builtIn === false ? (
                       <Dropdown
@@ -103,7 +113,7 @@ const PluginList = forwardRef((props: Props, ref) => {
                                     onEdit?.(item);
                                   }}
                                 >
-                                  编辑
+                                  {t('misc.edit')}
                                 </span>
                               ),
                             },
@@ -111,12 +121,12 @@ const PluginList = forwardRef((props: Props, ref) => {
                               key: 'delete',
                               label: (
                                 <Popconfirm
-                                  title={'是否确认删除？'}
+                                  title={t('plugins.deleteConfirmation')}
                                   onConfirm={() => {
                                     onDelete?.(item.name);
                                   }}
                                 >
-                                  <span>删除</span>
+                                  <span>{t('misc.delete')}</span>
                                 </Popconfirm>
                               ),
                               danger: true,
@@ -130,8 +140,8 @@ const PluginList = forwardRef((props: Props, ref) => {
                   </div>
                 }
                 description={
-                  <Paragraph ellipsis={{ rows: 3 }} style={{ minHeight: '64px', color: '#00000073 ' }}>
-                    {item?.description}
+                  <Paragraph ellipsis={{ rows: 3 }} style={{ minHeight: '64px', color: '#00000073' }}>
+                    {getI18nValue(item, 'description')}
                   </Paragraph>
                 }
               />

@@ -36,7 +36,7 @@ const Rewrite = forwardRef((props, ref) => {
     const { enabled, host, new: newPath } = formData;
 
     if (!host && !newPath.path) {
-      message.error('重写path和重写主机域必须要至少填一个');
+      message.error(t('plugins.builtIns.rewrite.missingParamError'));
       return;
     }
     return {
@@ -55,19 +55,16 @@ const Rewrite = forwardRef((props, ref) => {
   return (
     <div className={styles.rewrite}>
       <Form name="basic" autoComplete="off" form={form} layout="vertical">
-        <Card title="开启状态">
+        <Card title={t('plugins.configForm.enableStatus')}>
           <Form.Item name="enabled" label="" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Card>
-        <Card title="路径(Path)">
-          <Form.Item label="原路径(Path)">
+        <Card title={t('plugins.builtIns.rewrite.path')}>
+          <Form.Item label={t('plugins.builtIns.rewrite.originalPath')}>
             <Input.Group compact>
               <Form.Item name={['origin', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }}>
-                  {/* <Option value="PRE">前缀重写</Option>
-                  <Option value="EQUAL">精确重写</Option>
-                  <Option value="REGULAR">正则重写</Option> */}
                   <Option value="PRE">{t('route.matchTypes.PRE')}</Option>
                   <Option value="EQUAL">{t('route.matchTypes.EQUAL')}</Option>
                   <Option value="REGULAR">{t('route.matchTypes.REGULAR')}</Option>
@@ -78,27 +75,27 @@ const Rewrite = forwardRef((props, ref) => {
               </Form.Item>
             </Input.Group>
           </Form.Item>
-          <Form.Item label="重写路径(Path)">
+          <Form.Item label={t('plugins.builtIns.rewrite.rewritePath')}>
             <Input.Group compact>
               <Form.Item name={['new', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
-                  <Option value="PRE">前缀重写</Option>
-                  <Option value="EQUAL">精确重写</Option>
+                  <Option value="PRE">{t('plugins.builtIns.rewrite.rewriteType.PRE')}</Option>
+                  <Option value="EQUAL">{t('plugins.builtIns.rewrite.rewriteType.EQUAL')}</Option>
                 </Select>
               </Form.Item>
               <Form.Item name={['new', 'path']} noStyle>
-                <Input style={{ width: '60%' }} placeholder="Path /a" maxLength={1024} />
+                <Input style={{ width: '60%' }} placeholder={t('plugins.builtIns.rewrite.rewritePathPlaceholder')} maxLength={1024} />
               </Form.Item>
             </Input.Group>
           </Form.Item>
         </Card>
 
-        <Card title="主机域(Host)">
-          <Form.Item label="原主机域(Host)" name="origin_host">
+        <Card title={t('plugins.builtIns.rewrite.host')}>
+          <Form.Item label={t('plugins.builtIns.rewrite.originalHost')} name="origin_host">
             <Input disabled />
           </Form.Item>
-          <Form.Item label="重写主机域(Host)" name="host">
-            <Input placeholder="例如:example.com" maxLength={1024} />
+          <Form.Item label={t('plugins.builtIns.rewrite.rewriteHost')} name="host">
+            <Input placeholder={t('plugins.builtIns.rewrite.rewriteHostPlaceholder')} maxLength={1024} />
           </Form.Item>
         </Card>
       </Form>
