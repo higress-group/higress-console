@@ -14,7 +14,7 @@
     "routeConfig": "Route Config",
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
-    "plugin": "Plugin"
+    "pluginMarket": "Plugin Market"
   },
   "index": {
     "title": "Higress Console"
@@ -81,6 +81,105 @@
       "item3_dataSourceId_required": "Please input Prometheus Data Source UID.",
       "item3_download": "Download Config File",
       "item4": "Input the HTTPS URL of Grafana is highly recommended to ensure the dashboard can be shown with in this page correctly."
+    }
+  },
+  "plugins": {
+    "title": "Strategy Configuration",
+    "subTitle": {
+      "domain": "Domain Name: ",
+      "route": "Route Name: "
+    },
+    "addPlugin": "Add Plugin",
+    "addSuccess": "Added successfully.",
+    "updateSuccess": "Updated successfully.",
+    "deleteConfirmation": "Confirm delete operation?",
+    "deleteSuccess": "Deleted successfully.",
+    "saveSuccess": "Saved successfully.",
+    "configForm": {
+      "targetDomain": "Target Domain: ",
+      "targetRoute": "Target Route: ",
+      "enableStatus": "Enabled",
+      "dataEditor": "Configuration Editor - YAML"
+    },
+    "builtIns": {
+      "rewrite": {
+        "missingParamError": "At least one of rewritten path and host shall be provided.",
+        "path": "Path",
+        "originalPath": "Original Path",
+        "rewritePath": "Rewritten Path",
+        "rewritePathPlaceholder": "e.g.: /a",
+        "rewriteType": {
+          "PRE": "Prefix Rewrite",
+          "EQUAL": "Exact Rewrite"
+        },
+        "host": "Host",
+        "originalHost": "Original Host",
+        "rewriteHost": "Rewritten Host",
+        "rewriteHostPlaceholder": "e.g.: example.com"
+      },
+      "headerControl": {
+        "headerType": "Header Type",
+        "request": "Request",
+        "response": "Response",
+        "actionType": "Operation Type",
+        "add": "Add",
+        "set": "Set",
+        "remove": "Remove",
+        "action": "Action",
+        "addNewRule": "Add New Rule"
+      },
+      "cors": {
+        "allowOrigins": "Allow Origins",
+        "allowOriginsRequired": "Please input allow origins",
+        "allowMethods": "Allow Methods",
+        "allowMethodsRequired": "Please select allow methods",
+        "allowHeaders": "Allow Headers",
+        "allowHeadersRequired": "Please input allow headers",
+        "exposeHeaders": "Expose Headers",
+        "exposeHeadersRequired": "Please input expose headers",
+        "allowCredentials": "Allow Credentials",
+        "allow": "Allow",
+        "disallow": "Disallow",
+        "maxAge": "Max Age of Pre-flight Requests",
+        "maxAgeRequired": "Please input the max cache age of pre-flight requests"
+      },
+      "retries": {
+        "attempts": "Retry Attempts",
+        "attemptsRequired": "Please input retry attempts",
+        "conditions": "Retry Conditions",
+        "conditionsRequired": "Please select retry conditions",
+        "condition": {
+          "error": "error: Unable to establish connections",
+          "timeout": "timeout: Timeout when trying to establish connections",
+          "non_idempotent": "non_idempotent: Retry when a non-idempotent request fails"
+        },
+        "timeout": "Timeout",
+        "timeoutRequired": "Please input timeout value"
+      }
+    },
+    "custom": {
+      "title": {
+        "add": "Add Plugin",
+        "edit": "Edit Plugin"
+      },
+      "name": "Plugin Name",
+      "namePattern": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
+      "namePlaceholder": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
+      "description": "Plugin Description",
+      "descriptionPlaceholder": "Please input plugin description",
+      "imageUrl": "Image URL",
+      "imageUrlTooltip": "Please input image URL. e.g.: higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0",
+      "imageUrlPlaceholder": "Please input image URL. e.g.: higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0",
+      "phase": "Plugin Execution Phase",
+      "phasePlaceholder": "The sequence of phases: AuthN > AuthZ > Stats > Default",
+      "priority": "Plugin Execution Priority",
+      "priorityPlaceholder": "Range from 1 to 1000. Plugins with a larger priority will execute first."
+    },
+    "phases": {
+      "unspecified": "Default",
+      "authn": "AuthN",
+      "authz": "AuthZ",
+      "stats": "Stats"
     }
   },
   "service": {
@@ -327,6 +426,10 @@
     "return": "Return",
     "error": "Error",
     "close": "Close",
+    "save": "Save",
+    "strategy": "Strategy",
+    "configure": "Configure",
+    "seconds": "Sec(s)",
     "tbd": "Still in development. To be released soon..."
   }
 }

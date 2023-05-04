@@ -1,10 +1,12 @@
-import { useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Form, Input, Button, Table, Select, Space, Switch } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Space, Switch, Table } from 'antd';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
-import { getheaderListByHeaderControl, getHeaderControlByHeaderList } from './utils';
+import { getHeaderControlByHeaderList, getheaderListByHeaderControl } from './utils';
 
 const HeaderModify = forwardRef((props, ref) => {
+  const { t } = useTranslation();
   const data = props?.data || {};
 
   const [form] = Form.useForm();
@@ -37,7 +39,7 @@ const HeaderModify = forwardRef((props, ref) => {
     if (!globalAddRowItemFn) globalAddRowItemFn = add;
     return [
       {
-        title: 'Header类型',
+        title: t('plugins.builtIns.headerControl.headerType'),
         dataIndex: 'headerType',
         key: 'headerType',
         width: 100,
@@ -46,20 +48,20 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true, message: '请选择' }]}
+              rules={[{ required: true }]}
               name={[field.name, 'headerType']}
               fieldKey={[field.fieldKey, 'headerType']}
             >
               <Select style={{ width: '100px' }}>
-                <Select.Option value="request">请求</Select.Option>
-                <Select.Option value="response">响应</Select.Option>
+                <Select.Option value="request">{t('plugins.builtIns.headerControl.request')}</Select.Option>
+                <Select.Option value="response">{t('plugins.builtIns.headerControl.response')}</Select.Option>
               </Select>
             </Form.Item>
           );
         },
       },
       {
-        title: '操作类型',
+        title: t('plugins.builtIns.headerControl.actionType'),
         dataIndex: 'actionType',
         key: 'actionType',
         width: 100,
@@ -67,16 +69,16 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true, message: '请选择' }]}
+              rules={[{ required: true }]}
               name={[field.name, 'actionType']}
               fieldKey={[field.fieldKey, 'actionType']}
             >
               <Select style={{ width: '100px' }}>
-                <Select.Option value="add">新增</Select.Option>
-                <Select.Option value="set">更新</Select.Option>
-                <Select.Option value="remove">删除</Select.Option>
+                <Select.Option value="add">{t('plugins.builtIns.headerControl.add')}</Select.Option>
+                <Select.Option value="set">{t('plugins.builtIns.headerControl.set')}</Select.Option>
+                <Select.Option value="remove">{t('plugins.builtIns.headerControl.remove')}</Select.Option>
               </Select>
-            </Form.Item>
+            </Form.Item >
           );
         },
       },
@@ -88,7 +90,7 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true, message: '请输入' }]}
+              rules={[{ required: true }]}
               name={[field.name, 'key']}
               fieldKey={[field.fieldKey, 'key']}
             >
@@ -106,7 +108,7 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true, message: '请输入' }]}
+              rules={[{ required: true }]}
               name={[field.name, 'value']}
               fieldKey={[field.fieldKey, 'value']}
             >
@@ -116,9 +118,9 @@ const HeaderModify = forwardRef((props, ref) => {
         },
       },
       {
-        title: '操作',
-        dataIndex: 'operate',
-        className: 'operate',
+        title: t('plugins.builtIns.headerControl.action'),
+        dataIndex: 'action',
+        className: 'action',
         width: 50,
         render(text, field) {
           return (
@@ -157,11 +159,11 @@ const HeaderModify = forwardRef((props, ref) => {
             justifyContent: 'space-between',
           }}
         >
-          <Form.Item label="开启状态" name="enabled" valuePropName="checked">
+          <Form.Item label={t('plugins.configForm.enableStatus') || ''} name="enabled" valuePropName="checked">
             <Switch checked />
           </Form.Item>
           <Button type="link" block onClick={() => globalAddRowItemFn && globalAddRowItemFn()}>
-            添加新规则
+            {t('plugins.builtIns.headerControl.addNewRule')}
           </Button>
         </Space>
         <Form.List name="headerList">

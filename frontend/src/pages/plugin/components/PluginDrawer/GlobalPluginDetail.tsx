@@ -1,9 +1,10 @@
 import CodeEditor from '@/components/CodeEditor';
-import React, { useState, useImperativeHandle, useEffect, forwardRef, useMemo } from 'react';
-import { Form, message, Divider, Switch, Spin, Alert } from 'antd';
+import { Alert, Divider, Form, Spin, Switch, message } from 'antd';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
+import { t } from 'i18next';
 import { useSearchParams } from 'ice';
 
 export interface IPluginData {
@@ -107,7 +108,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     manual: true,
     onSuccess: () => {
       onSuccess();
-      message.success('保存成功');
+      message.success(t('plugins.saveSuccess'));
     },
   });
 
@@ -155,7 +156,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const alertStatus = useMemo(() => {
     return {
       isShow: (isRoutePlugin || isDomainPlugin) && queryName,
-      message: isRoutePlugin ? `作用路由： ${queryName}` : `作用域名： ${queryName}`,
+      message: isRoutePlugin ? t('plugins.configForm.targetRoute') + queryName : t('plugins.configForm.targetDomain') + queryName,
     };
   }, [isRoutePlugin, isDomainPlugin, queryName]);
 
@@ -166,11 +167,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
         )}
         <Form name="basic" form={form} autoComplete="off">
-          <Form.Item label="开启状态" name="enabled" valuePropName="checked">
+          <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
             <Switch />
           </Form.Item>
 
-          <Divider orientation="left">数据编辑器-YAML</Divider>
+          <Divider orientation="left">{t('plugins.configForm.dataEditor')}</Divider>
           {!getConfigLoading && !getDataLoading && (
             <CodeEditor defaultValue={defaultValue} onChange={(val) => setRawConfigurations(val)} />
           )}

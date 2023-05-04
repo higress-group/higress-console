@@ -1,6 +1,7 @@
 import { Checkbox, Form, Row, Col, Switch, Radio, InputNumber, Input } from 'antd';
 
 import { useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { TextArea } = Input;
 
@@ -15,6 +16,7 @@ const defaultCorsData = {
 };
 
 const Cors = forwardRef((props, ref) => {
+  const { t } = useTranslation();
   const data = props?.data || {};
   const [form] = Form.useForm();
 
@@ -64,17 +66,21 @@ const Cors = forwardRef((props, ref) => {
   return (
     <div>
       <Form name="basic" form={form} autoComplete="off" layout="vertical">
-        <Form.Item label="开启状态" name="enabled" valuePropName="checked">
+        <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
           <Switch />
         </Form.Item>
         <Form.Item
-          label="允许的访问来源"
+          label={t('plugins.builtIns.cors.allowOrigins')}
           name="allowOrigins"
-          rules={[{ required: true, message: '请输入允许的访问来源' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.cors.allowOriginsRequired') || '' }]}
         >
           <TextArea />
         </Form.Item>
-        <Form.Item label="允许的方法" name="allowMethods" rules={[{ required: true, message: '请输入允许的方法' }]}>
+        <Form.Item
+          label={t('plugins.builtIns.cors.allowMethods')}
+          name="allowMethods"
+          rules={[{ required: true, message: t('plugins.builtIns.cors.allowMethodsRequired') || '' }]}
+        >
           <Checkbox.Group>
             <Row>
               {list.map((item) => {
@@ -91,27 +97,35 @@ const Cors = forwardRef((props, ref) => {
         </Form.Item>
 
         <Form.Item
-          label="允许的请求头部"
+          label={t('plugins.builtIns.cors.allowHeaders')}
           name="allowHeaders"
-          rules={[{ required: true, message: '请输入允许的请求头部' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.cors.allowHeadersRequired') || '' }]}
         >
           <TextArea />
         </Form.Item>
         <Form.Item
-          label="允许的响应头部"
+          label={t('plugins.builtIns.cors.exposeHeaders')}
           name="exposeHeaders"
-          rules={[{ required: true, message: '请输入允许的响应头部' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.cors.exposeHeadersRequired') || '' }]}
         >
           <TextArea />
         </Form.Item>
-        <Form.Item label="允许携带凭证" name="allowCredentials" valuePropName="checked">
+        <Form.Item
+          label={t('plugins.builtIns.cors.allowCredentials')}
+          name="allowCredentials"
+          valuePropName="checked"
+        >
           <Radio.Group defaultValue="true">
-            <Radio value="true">允许</Radio>
-            <Radio value="false">不允许</Radio>
+            <Radio value="true">{t('plugins.builtIns.cors.allow')}</Radio>
+            <Radio value="false">{t('plugins.builtIns.cors.disallow')}</Radio>
           </Radio.Group>
         </Form.Item>
-        <Form.Item label="预检的过期时间" name="maxAge" rules={[{ required: true, message: '请输入预检的过期时间' }]}>
-          <InputNumber addonAfter="秒" />
+        <Form.Item
+          label={t('plugins.builtIns.cors.maxAge')}
+          name="maxAge"
+          rules={[{ required: true, message: t('plugins.builtIns.cors.maxAgeRequired') || '' }]}
+        >
+          <InputNumber addonAfter={t('misc.seconds')} />
         </Form.Item>
       </Form>
     </div>

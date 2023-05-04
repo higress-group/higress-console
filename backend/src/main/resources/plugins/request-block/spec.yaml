@@ -5,7 +5,7 @@ info:
   title: Request Block
   description: 基于 URI、请求头等特征屏蔽 HTTP 请求，可以用于防护部分站点资源不对外部暴露
   x-description-i18n:
-    en-US: Request block plugin
+    en-US: Block HTTP requests based on characteristics like URI and request headers, which can be used to prevent some of the resources being accessed.
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
   version: 1.0.0
   contact:

@@ -5,7 +5,7 @@ info:
   title: Key Rate Limit
   description: 根据特定键值实现限流，键值来源可以是 URL 参数、HTTP 请求头
   x-description-i18n:
-    en-US: Key rate-limit plugin
+    en-US: Perform rate-limiting based on given keys and values, which can be extracted from URL parameters and HTTP request headers.
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
   version: 1.0.0
   contact:

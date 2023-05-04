@@ -1,6 +1,7 @@
-import { Form, Button, Input, InputNumber, Select, Drawer, Space, Spin } from 'antd';
-import { useState, useImperativeHandle, forwardRef, useRef } from 'react';
 import { WasmPluginData } from '@/interfaces/route';
+import { Button, Drawer, Form, Input, InputNumber, Select, Space } from 'antd';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export const WasmPluginDrawer = forwardRef((props: Props, ref) => {
+  const { t } = useTranslation();
+
   const { onSubmit } = props;
   const formRef = useRef<{ submit: () => Promise<WasmPluginData> }>(null);
   const [editData, setEditData] = useState<WasmPluginData>();
@@ -35,7 +38,7 @@ export const WasmPluginDrawer = forwardRef((props: Props, ref) => {
 
   return (
     <Drawer
-      title={!editData ? '创建插件' : `编辑${editData.name}`}
+      title={!editData ? t('plugins.custom.title.add') : t('plugins.custom.title.edit')}
       placement="right"
       destroyOnClose
       onClose={onCloseDrawer}
@@ -43,7 +46,7 @@ export const WasmPluginDrawer = forwardRef((props: Props, ref) => {
       width={660}
       extra={
         <Space>
-          <Button onClick={onCloseDrawer}>取消</Button>
+          <Button onClick={onCloseDrawer}>{t('misc.cancel')}</Button>
           <Button
             type="primary"
             onClick={async () => {
@@ -59,7 +62,7 @@ export const WasmPluginDrawer = forwardRef((props: Props, ref) => {
               }
             }}
           >
-            保存
+            {t('misc.save')}
           </Button>
         </Space>
       }
@@ -69,14 +72,16 @@ export const WasmPluginDrawer = forwardRef((props: Props, ref) => {
   );
 });
 
-const phaseOptions = [
-  { value: 'UNSPECIFIED_PHASE', label: '默认阶段' },
-  { value: 'AUTHN', label: '认证阶段' },
-  { value: 'AUTHZ', label: '鉴权阶段' },
-  { value: 'STATS', label: '统计阶段' },
-];
-
 const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
+  const { t } = useTranslation();
+
+  const phaseOptions = [
+    { value: 'UNSPECIFIED_PHASE', label: t('plugins.phases.unspecified') },
+    { value: 'AUTHN', label: t('plugins.phases.authn') },
+    { value: 'AUTHZ', label: t('plugins.phases.authz') },
+    { value: 'STATS', label: t('plugins.phases.stats') },
+  ];
+
   const { editData } = props;
 
   const isEdit = !!editData;
@@ -113,38 +118,36 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
     <div>
       <Form name="basic" autoComplete="off" form={form} layout="vertical" initialValues={editData}>
         <Form.Item
-          label="插件名称"
+          label={t('plugins.custom.name')}
           name="name"
           rules={[
             { required: true },
             {
               pattern: /^[a-zA-Z0-9]*([a-zA-Z0-9.-]*)[a-zA-Z0-9]$/,
-              message: '包含大小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾',
+              message: t('plugins.custom.namePattern') || '',
             },
           ]}
         >
-          <Input disabled={isEdit} placeholder={'包含大小写字母，数字以及特殊字符(-.)，且不能以特殊字符开头和结尾'} />
+          <Input disabled={isEdit} placeholder={t('plugins.custom.namePlaceholder') || ''} />
         </Form.Item>
-        <Form.Item label="插件描述" name="description">
-          <Input.TextArea placeholder={'请输入插件描述'} />
+        <Form.Item label={t('plugins.custom.description')} name="description">
+          <Input.TextArea placeholder={t('plugins.custom.descriptionPlaceholder') || ''} />
         </Form.Item>
         <Form.Item
-          label="镜像地址"
+          label={t('plugins.custom.imageUrl')}
           name="imageUrl"
           rules={[{ required: true }]}
-          tooltip="请输入镜像地址，例如 higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0"
+          tooltip={t('plugins.custom.imageUrlTooltip')}
         >
           <Input
-            placeholder={
-              '请输入镜像地址，例如 higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0'
-            }
+            placeholder={t('plugins.custom.imageUrlPlaceholder') || ''}
           />
         </Form.Item>
-        <Form.Item label="插件执行阶段" name="phase" rules={[{ required: true }]}>
-          <Select options={phaseOptions} placeholder="执行优先级 认证>鉴权>统计>默认" />
+        <Form.Item label={t('plugins.custom.phase')} name="phase" rules={[{ required: true }]}>
+          <Select options={phaseOptions} placeholder={t('plugins.custom.phasePlaceholder')} />
         </Form.Item>
-        <Form.Item label="插件执行优先级" name="priority" rules={[{ required: true }]}>
-          <InputNumber max={1000} min={1} style={{ width: '100%' }} placeholder="范围1～1000，值越大越优先" />
+        <Form.Item label={t('plugins.custom.priority')} name="priority" rules={[{ required: true }]}>
+          <InputNumber max={1000} min={1} style={{ width: '100%' }} placeholder={t('plugins.custom.priorityPlaceholder') || ''} />
         </Form.Item>
       </Form>
     </div>

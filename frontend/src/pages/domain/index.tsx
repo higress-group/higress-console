@@ -43,11 +43,11 @@ const DomainList: React.FC = () => {
       title: t('domain.columns.action'),
       dataIndex: 'action',
       key: 'action',
-      width: 140,
+      width: 200,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditConfig(record)}>策略</a>
+          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>

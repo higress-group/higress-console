@@ -1,15 +1,16 @@
-import { Form, Button, message, Drawer, Space, Spin } from 'antd';
+import { Button, Drawer, Space } from 'antd';
 
-import React, { useState, useImperativeHandle, useRef, useMemo } from 'react';
+import { useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import GlobalPluginDetail from './GlobalPluginDetail';
 import RoutePluginDetail from './RoutePluginDetail';
 
-import Rewrite from '../Rewrite';
+import { getI18nValue } from '../../utils';
 import Cors from '../Cors';
 import HeaderModify from '../HeaderModify';
 import Retries from '../Retries';
+import Rewrite from '../Rewrite';
 
 const PLUGIN_COMP_MAP = {
   rewrite: (props) => <Rewrite {...props} />,
@@ -19,6 +20,7 @@ const PLUGIN_COMP_MAP = {
 };
 
 export default function PluginDrawer(props) {
+  const { t } = useTranslation();
   const { pluginDrawerRef, routerDetail, onSuccess } = props;
   const routePluginDetailRef = useRef<{ submit: () => {} }>(null);
   const globalPluginDetailRef = useRef<{ submit: () => {} }>(null);
@@ -53,16 +55,16 @@ export default function PluginDrawer(props) {
 
   return (
     <Drawer
-      title={activePluginData.title}
+      title={getI18nValue(activePluginData, 'title')}
       placement="right"
       onClose={onCloseDrawer}
       open={open}
       width={660}
       extra={
         <Space>
-          <Button onClick={onCloseDrawer}>取消</Button>
+          <Button onClick={onCloseDrawer}>{t('misc.cancel')}</Button>
           <Button type="primary" onClick={onSubmit} loading={loading}>
-            保存
+            {t('misc.save')}
           </Button>
         </Space>
       }

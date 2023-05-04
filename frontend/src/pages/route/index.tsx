@@ -55,7 +55,7 @@ const RouteList: React.FC = () => {
           value.map((service: UpstreamService, index: number) => {
             const name = upstreamServiceToString(service);
             return (
-              <span key={index}>
+              <span key={service.name}>
                 {index !== 0 && (<br />)}
                 {name}
               </span>
@@ -68,11 +68,11 @@ const RouteList: React.FC = () => {
       title: t('route.columns.action'),
       dataIndex: 'action',
       key: 'action',
-      width: 140,
+      width: 200,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onEditConfig(record)}>策略</a>
+          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>

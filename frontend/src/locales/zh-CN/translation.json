@@ -14,7 +14,7 @@
     "routeConfig": "路由配置",
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
-    "plugin": "插件市场"
+    "pluginMarket": "插件市场"
   },
   "index": {
     "title": "Higress Console"
@@ -81,6 +81,105 @@
       "item3_dataSourceId_required": "请填写 Prometheus 数据源 UID",
       "item3_download": "下载配置文件",
       "item4": "强烈建议填写 Grafana 的 HTTPS URL 以确保监控面板可以在本页面内正常显示。"
+    }
+  },
+  "plugins": {
+    "title": "策略配置",
+    "subTitle": {
+      "domain": "域名名称：",
+      "route": "路由名称："
+    },
+    "addPlugin": "添加插件",
+    "addSuccess": "添加成功",
+    "updateSuccess": "修改成功",
+    "deleteConfirmation": "是否确认删除？",
+    "deleteSuccess": "删除成功",
+    "saveSuccess": "保存成功",
+    "configForm": {
+      "targetDomain": "作用域名：",
+      "targetRoute": "作用路由：",
+      "enableStatus": "开启状态",
+      "dataEditor": "数据编辑器 - YAML"
+    },
+    "builtIns": {
+      "rewrite": {
+        "missingParamError": "重写路径和重写主机域必须要至少填一个",
+        "path": "路径（Path）",
+        "originalPath": "原路径（Path）",
+        "rewritePath": "重写路径（Path）",
+        "rewritePathPlaceholder": "例如：/a",
+        "rewriteType": {
+          "PRE": "前缀重写",
+          "EQUAL": "精确重写"
+        },
+        "host": "主机域（Host）",
+        "originalHost": "原主机域（Host）",
+        "rewriteHost": "重写主机域（Host）",
+        "rewriteHostPlaceholder": "例如：example.com"
+      },
+      "headerControl": {
+        "headerType" : "Header类型",
+        "request": "请求",
+        "response": "响应",
+        "actionType" : "操作类型",
+        "add": "新增",
+        "set" : "更新",
+        "remove" : "删除",
+        "action" : "操作",
+        "addNewRule": "添加新规则"
+      },
+      "cors": {
+        "allowOrigins": "允许的访问来源",
+        "allowOriginsRequired": "请输入允许的访问来源",
+        "allowMethods": "允许的方法",
+        "allowMethodsRequired": "请选择允许的方法",
+        "allowHeaders": "允许的请求头部",
+        "allowHeadersRequired": "请输入允许的请求头部",
+        "exposeHeaders": "允许的响应头部",
+        "exposeHeadersRequired": "请输入允许的响应头部",
+        "allowCredentials": "允许携带凭证",
+        "allow": "允许",
+        "disallow": "不允许",
+        "maxAge": "预检的过期时间",
+        "maxAgeRequired": "请输入预检的过期时间"
+      },
+      "retries": {
+        "attempts": "重试次数",
+        "attemptsRequired": "请输入重试次数",
+        "conditions": "重试条件",
+        "conditionsRequired": "请选择重试条件",
+        "condition": {
+          "error": "error：建立连接失败",
+          "timeout": "timeout：建立连接超时",
+          "non_idempotent": "non_idempotent：对于非幂等请求出错时进行重试"
+        },
+        "timeout": "超时",
+        "timeoutRequired": "请输入超时时间"
+      }
+    },
+    "custom": {
+      "title": {
+        "add": "添加插件",
+        "edit": "编辑插件"
+      },
+      "name": "插件名称",
+      "namePattern": "包含大小写字母，数字以及特殊字符（- .），且不能以特殊字符开头和结尾",
+      "namePlaceholder": "包含大小写字母，数字以及特殊字符（- .），且不能以特殊字符开头和结尾",
+      "description": "插件描述",
+      "descriptionPlaceholder": "请输入插件描述",
+      "imageUrl": "镜像地址",
+      "imageUrlTooltip": "请输入镜像地址，例如：higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0",
+      "imageUrlPlaceholder": "请输入镜像地址，例如：higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block:1.0.0",
+      "phase": "插件执行阶段",
+      "phasePlaceholder": "执行阶段先后顺序：认证>鉴权>统计>默认",
+      "priority": "插件执行优先级",
+      "priorityPlaceholder": "范围1～1000，值越大越优先"
+    },
+    "phases": {
+      "unspecified": "默认阶段",
+      "authn": "认证阶段",
+      "authz": "鉴权阶段",
+      "stats": "统计阶段"
     }
   },
   "service": {
@@ -327,6 +426,10 @@
     "return": "返回",
     "error": "错误",
     "close": "关闭",
+    "save": "保存",
+    "strategy": "策略",
+    "configure": "配置",
+    "seconds": "秒",
     "tbd": "页面开发中，即将推出..."
   }
 }

@@ -5,7 +5,7 @@ info:
   title:  HMAC Auth
   description: 基于 HMAC 算法为 HTTP 请求生成不可伪造的签名，并基于签名实现身份认证和鉴权
   x-description-i18n:
-    en-US: HMAC auth plugin
+    en-US: Generate a unforgeable signatures using HMAC algorithms and perform authentication and authorization with it
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:

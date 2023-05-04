@@ -41,7 +41,7 @@ const asideMenuConfig: MenuDataItem[] = [
     icon: <SafetyCertificateOutlined />,
   },
   {
-    name: 'menu.plugin',
+    name: 'menu.pluginMarket',
     path: '/plugin',
     icon: <WindowsOutlined />,
   },
