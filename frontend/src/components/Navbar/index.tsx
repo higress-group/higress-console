@@ -24,6 +24,10 @@ const Navbar: React.FC<NavbarProps> = () => {
         link: `https://higress.io/${officialSiteLang}/docs/overview/what-is-higress.html`,
       },
       {
+        name: t("navbar.commercial"),
+        link: `https://www.aliyun.com/product/aliware/mse?spm=higress-website.topbar.0.0.0`,
+      },
+      {
         name: t("navbar.developers"),
         link: `https://higress.io/${officialSiteLang}/docs/developers/developers_dev.html`,
       },
