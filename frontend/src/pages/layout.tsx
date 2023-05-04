@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import { asideMenuConfig } from '@/menuConfig';
 import store from '@/store';
 import ProLayout from '@ant-design/pro-layout';
+import { Result } from 'antd';
 import { Link, Outlet, useLocation } from 'ice';
 import { useTranslation } from 'react-i18next';
 import styles from './layout.module.css';
@@ -14,6 +15,15 @@ export default function Layout() {
   const location = useLocation();
   const { t } = useTranslation();
   const [userState] = store.useModel('user');
+
+  if (window.frameElement) {
+    // Embedded in a same-origin iframe or object
+    return (<Result
+      status="500"
+      title={t('error.nestedFrame.title')}
+      subTitle={t('error.nestedFrame.subTitle')}
+    />)
+  }
 
   if (['/login'].includes(location.pathname)) {
     return <Outlet />;

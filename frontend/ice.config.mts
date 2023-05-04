@@ -10,9 +10,7 @@ export default defineConfig(() => ({
   hash: "contenthash",
   routes: {
     defineRoutes: (route) => {
-      if (process.platform !== "win32") {
-        route("*", "404.tsx");
-      }
+      route("*", "404.tsx");
     },
   },
   proxy: {

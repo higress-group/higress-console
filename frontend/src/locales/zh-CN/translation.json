@@ -300,6 +300,10 @@
     "404": {
       "title": "404",
       "subTitle": "你访问的页面不存在"
+    },
+    "nestedFrame":  {
+      "title": "加载异常",
+      "subTitle": "请刷新整个页面"
     }
   },
   "request": {

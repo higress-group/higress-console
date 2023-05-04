@@ -300,6 +300,10 @@
     "404": {
       "title": "404",
       "subTitle": "Page Not Found"
+    },
+    "nestedFrame":  {
+      "title": "Error",
+      "subTitle": "Please refresh the entire page."
     }
   },
   "request": {
