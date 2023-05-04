@@ -44,7 +44,7 @@ const Retries = forwardRef((props, ref) => {
         initialValues={{ attempts: 3, retryOn: 'error' }}
         autoComplete="off"
         form={form}
-        layout="vertical"
+        layout="horizontal"
       >
         <Form.Item
           label={t('plugins.configForm.enableStatus')}
@@ -57,6 +57,8 @@ const Retries = forwardRef((props, ref) => {
           label={t('plugins.builtIns.retries.attempts')}
           name="attempts"
           rules={[{ required: true, message: t('plugins.builtIn.retries.attemptsRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <InputNumber style={{ width: '100%' }} max={3} />
         </Form.Item>
@@ -64,6 +66,8 @@ const Retries = forwardRef((props, ref) => {
           label={t('plugins.builtIns.retries.conditions')}
           name="conditions"
           rules={[{ required: true, message: t('plugins.builtIn.retries.conditionsRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <Select mode="multiple">
             <Option value="error">{t('plugins.builtIns.retries.condition.error')}</Option>
@@ -75,6 +79,8 @@ const Retries = forwardRef((props, ref) => {
           label={t('plugins.builtIns.retries.timeout')}
           name="timeout"
           rules={[{ required: true, message: t('plugins.builtIn.retries.timeoutRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <InputNumber style={{ width: '100%' }} min={1} max={600} addonAfter="秒" />
         </Form.Item>
