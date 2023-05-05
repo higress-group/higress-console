@@ -1,7 +1,7 @@
 import { Checkbox, Form, Row, Col, Switch, Radio, InputNumber, Input } from 'antd';
-
 import { useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
+import styles from './index.module.css';
 
 const { TextArea } = Input;
 
@@ -65,7 +65,7 @@ const Cors = forwardRef((props, ref) => {
 
   return (
     <div>
-      <Form name="basic" form={form} autoComplete="off" layout="vertical">
+      <Form name="basic" form={form} autoComplete="off" layout="horizontal">
         <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
           <Switch />
         </Form.Item>
@@ -73,6 +73,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.allowOrigins')}
           name="allowOrigins"
           rules={[{ required: true, message: t('plugins.builtIns.cors.allowOriginsRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <TextArea />
         </Form.Item>
@@ -80,6 +82,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.allowMethods')}
           name="allowMethods"
           rules={[{ required: true, message: t('plugins.builtIns.cors.allowMethodsRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <Checkbox.Group>
             <Row>
@@ -100,6 +104,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.allowHeaders')}
           name="allowHeaders"
           rules={[{ required: true, message: t('plugins.builtIns.cors.allowHeadersRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <TextArea />
         </Form.Item>
@@ -107,6 +113,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.exposeHeaders')}
           name="exposeHeaders"
           rules={[{ required: true, message: t('plugins.builtIns.cors.exposeHeadersRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <TextArea />
         </Form.Item>
@@ -114,6 +122,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.allowCredentials')}
           name="allowCredentials"
           valuePropName="checked"
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <Radio.Group defaultValue="true">
             <Radio value="true">{t('plugins.builtIns.cors.allow')}</Radio>
@@ -124,6 +134,8 @@ const Cors = forwardRef((props, ref) => {
           label={t('plugins.builtIns.cors.maxAge')}
           name="maxAge"
           rules={[{ required: true, message: t('plugins.builtIns.cors.maxAgeRequired') || '' }]}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
         >
           <InputNumber addonAfter={t('misc.seconds')} />
         </Form.Item>

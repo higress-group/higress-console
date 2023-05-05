@@ -54,14 +54,21 @@ const Rewrite = forwardRef((props, ref) => {
 
   return (
     <div className={styles.rewrite}>
-      <Form name="basic" autoComplete="off" form={form} layout="vertical">
-        <Card title={t('plugins.configForm.enableStatus')}>
-          <Form.Item name="enabled" label="" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Card>
-        <Card title={t('plugins.builtIns.rewrite.path')}>
-          <Form.Item label={t('plugins.builtIns.rewrite.originalPath')}>
+      <Form name="basic" autoComplete="off" form={form} layout="horizontal">
+        <Form.Item name="enabled" label={t('plugins.configForm.enableStatus')} valuePropName="checked">
+          <Switch />
+        </Form.Item>
+
+        <Form.Item
+          label={t('plugins.builtIns.rewrite.path')}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
+        >
+          <Form.Item
+            label={t('plugins.builtIns.rewrite.originalPath')}
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
+          >
             <Input.Group compact>
               <Form.Item name={['origin', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }}>
@@ -75,7 +82,11 @@ const Rewrite = forwardRef((props, ref) => {
               </Form.Item>
             </Input.Group>
           </Form.Item>
-          <Form.Item label={t('plugins.builtIns.rewrite.rewritePath')}>
+          <Form.Item
+            label={t('plugins.builtIns.rewrite.rewritePath')}
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
+          >
             <Input.Group compact>
               <Form.Item name={['new', 'matchType']} noStyle>
                 <Select disabled style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
@@ -88,16 +99,30 @@ const Rewrite = forwardRef((props, ref) => {
               </Form.Item>
             </Input.Group>
           </Form.Item>
-        </Card>
+        </Form.Item>
 
-        <Card title={t('plugins.builtIns.rewrite.host')}>
-          <Form.Item label={t('plugins.builtIns.rewrite.originalHost')} name="origin_host">
+        <Form.Item
+          label={t('plugins.builtIns.rewrite.host')}
+          labelCol={{ span: 24 }}
+          wrapperCol={{ span: 24 }}
+        >
+          <Form.Item
+            label={t('plugins.builtIns.rewrite.originalHost')}
+            name="origin_host"
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
+          >
             <Input disabled />
           </Form.Item>
-          <Form.Item label={t('plugins.builtIns.rewrite.rewriteHost')} name="host">
+          <Form.Item
+            label={t('plugins.builtIns.rewrite.rewriteHost')}
+            name="host"
+            labelCol={{ span: 24 }}
+            wrapperCol={{ span: 24 }}
+          >
             <Input placeholder={t('plugins.builtIns.rewrite.rewriteHostPlaceholder')} maxLength={1024} />
           </Form.Item>
-        </Card>
+        </Form.Item>
       </Form>
     </div>
   );
