@@ -5,15 +5,15 @@ on:
     tags:
     - "v*.*.*"
   workflow_dispatch:
-    inputs:
-      skipDeployment:
-        description: 'Skip deployment'
-        required: false
-        type: boolean
-      environment:
-        description: 'Environment to deploy to'
-        type: environment
-        required: false
+    # inputs:
+    #   skipDeployment:
+    #     description: 'Skip deployment'
+    #     required: false
+    #     type: boolean
+    #   environment:
+    #     description: 'Environment to deploy to'
+    #     type: environment
+    #     required: false
 
 jobs:
   deploy-to-k8s:
@@ -64,25 +64,25 @@ jobs:
           tags: ${{steps.docker-meta.outputs.tags}}
           labels: ${{steps.docker-meta.outputs.labels}}
 
-      - name: Deploy
-        uses: wahyd4/kubectl-helm-action@master
-        if: inputs.skipDeployment != true
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
-          RELEASE_NAME: ${{ vars.RELEASE_NAME || 'higress-console' }}
-          NAMESPACE: ${{ vars.NAMESPACE || 'higress-system' }}
-          DOMAIN: ${{ vars.DOMAIN || 'demo.higress.io' }}
-          ADMIN_PASSWORD: ${{ vars.ADMIN_PASSWORD || 'admin' }}
-          O11Y_ENABLED: ${{ vars.O11Y_ENABLED || 'true' }}
-        with:
-          args: |
-            git config --global --add safe.directory /github/workspace
-            IMAGE_TAG=sha-$(git rev-parse --short "$GITHUB_SHA")
-            helm upgrade $RELEASE_NAME -n $NAMESPACE ./helm \
-                  --create-namespace --install --render-subchart-notes \
-                  --set domain=$DOMAIN \
-                  --set admin.password.value=$ADMIN_PASSWORD \
-                  --set o11y.enabled=$O11Y_ENABLED \
-                  --set image.repository=$IMAGE_REGISTRY/$IMAGE_NAME \
-                  --set image.pullPolicy=Always \
-                  --set image.tag=$IMAGE_TAG
+      # - name: Deploy
+      #   uses: wahyd4/kubectl-helm-action@master
+      #   if: inputs.skipDeployment != true
+      #   env:
+      #     KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+      #     RELEASE_NAME: ${{ vars.RELEASE_NAME || 'higress-console' }}
+      #     NAMESPACE: ${{ vars.NAMESPACE || 'higress-system' }}
+      #     DOMAIN: ${{ vars.DOMAIN || 'demo.higress.io' }}
+      #     ADMIN_PASSWORD: ${{ vars.ADMIN_PASSWORD || 'admin' }}
+      #     O11Y_ENABLED: ${{ vars.O11Y_ENABLED || 'true' }}
+      #   with:
+      #     args: |
+      #       git config --global --add safe.directory /github/workspace
+      #       IMAGE_TAG=sha-$(git rev-parse --short "$GITHUB_SHA")
+      #       helm upgrade $RELEASE_NAME -n $NAMESPACE ./helm \
+      #             --create-namespace --install --render-subchart-notes \
+      #             --set domain=$DOMAIN \
+      #             --set admin.password.value=$ADMIN_PASSWORD \
+      #             --set o11y.enabled=$O11Y_ENABLED \
+      #             --set image.repository=$IMAGE_REGISTRY/$IMAGE_NAME \
+      #             --set image.pullPolicy=Always \
+      #             --set image.tag=$IMAGE_TAG
