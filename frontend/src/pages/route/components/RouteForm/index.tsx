@@ -37,8 +37,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   useEffect(() => {
     form.resetFields();
     const _serviceOptions: OptionItem[] = [];
+    const serviceKeys = new Set<string>()
     _services && _services.forEach(service => {
       const text = upstreamServiceToString(service);
+      if (serviceKeys.has(text)) {
+        // Ignore duplicated keys to avoid UI refresh issues.
+        return;
+      }
+      serviceKeys.add(text)
       _serviceOptions.push({ label: text, value: text });
       servicesRef.current.set(text, service);
     });
