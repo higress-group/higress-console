@@ -87,8 +87,9 @@ public class WasmPluginsController {
     }
 
     @DeleteMapping(value = "/{name}")
-    public void delete(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Response<WasmPluginConfig>> delete(@PathVariable("name") @NotBlank String name) {
         wasmPluginService.deleteCustom(name);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/{name}/config")

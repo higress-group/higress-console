@@ -76,8 +76,9 @@ public class DomainsController {
     }
 
     @DeleteMapping("/{name}")
-    public void delete(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Response<Domain>> delete(@PathVariable("name") @NotBlank String name) {
         domainService.delete(name);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "/{name}/routes")

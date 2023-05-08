@@ -66,8 +66,9 @@ public class ServiceSourceController {
     }
 
     @DeleteMapping("/{name}")
-    public void delete(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Response<ServiceSource>> delete(@PathVariable("name") @NotBlank String name) {
         serviceSourceService.delete(name);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{name}")

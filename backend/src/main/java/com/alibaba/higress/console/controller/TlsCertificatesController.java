@@ -86,8 +86,9 @@ public class TlsCertificatesController {
     }
 
     @DeleteMapping("/{name}")
-    public void delete(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Response<TlsCertificate>> delete(@PathVariable("name") @NotBlank String name) {
         tlsCertificateService.delete(name);
+        return ResponseEntity.noContent().build();
     }
 
     private static void stripSensitiveInfo(TlsCertificate certificate) {
