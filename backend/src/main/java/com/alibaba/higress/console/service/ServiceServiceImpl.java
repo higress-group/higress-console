@@ -15,8 +15,10 @@ package com.alibaba.higress.console.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -71,7 +73,12 @@ public class ServiceServiceImpl implements ServiceService {
                     service.setEndpoints(endpoints);
                     services.add(service);
                 } else {
+                    Set<Integer> ports = new HashSet<>(registryzService.getPorts().size());
                     for (Port port : registryzService.getPorts()) {
+                        if (!ports.add(port.getPort())) {
+                            log.warn("Duplicate port found in service {}/{}: {}", namespace, name, port.getPort());
+                            continue;
+                        }
                         Service service = new Service();
                         service.setName(name);
                         service.setPort(port.getPort());
@@ -82,7 +89,7 @@ public class ServiceServiceImpl implements ServiceService {
                 }
             }
 
-            services.sort(Comparator.comparing(Service::getNamespace).thenComparing(Service::getName));
+            services.sort(Comparator.comparing(Service::getNamespace).thenComparing(Service::getName).thenComparing(Service::getPort));
 
             return PaginatedResult.createFromFullList(services, query);
         } catch (Exception e) {
