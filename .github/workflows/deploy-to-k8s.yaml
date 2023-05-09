@@ -21,7 +21,7 @@ jobs:
     # environment: ${{ inputs.environment || vars.DEFAULT_ENV || 'Demo' }}
     env:
       IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY || 'higress-registry.cn-hangzhou.cr.aliyuncs.com' }}
-      IMAGE_NAME: ${{ vars.IMAGE_NAME || 'higress/higress-console' }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME || 'higress/console' }}
     steps:
       - name: "Setup Java"
         uses: actions/setup-java@v3
