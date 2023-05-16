@@ -77,6 +77,8 @@ public class CommonKey {
 
     public final static String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
 
+    public final static String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY = CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
+    public final static boolean DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT = true;
     public final static String DASHBOARD_BASE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.base-url";
 
     public final static String DASHBOARD_USERNAME_KEY = CONFIG_KEY_PREFIX + "dashboard.username";
