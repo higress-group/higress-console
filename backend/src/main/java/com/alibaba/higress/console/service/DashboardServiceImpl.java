@@ -60,6 +60,10 @@ public class DashboardServiceImpl implements DashboardService {
         new ThreadPoolExecutor(1, 1, 1, TimeUnit.MINUTES, new SynchronousQueue<>(),
             new ThreadFactoryBuilder().setDaemon(true).setNameFormat("DashboardService-Initializer-%d").build());
 
+    @Value("${" + CommonKey.DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY + ":"
+        + CommonKey.DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT + "}")
+    private boolean overwriteWhenStartUp = CommonKey.DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT;
+
     @Value("${" + CommonKey.DASHBOARD_BASE_URL_KEY + ":}")
     private String apiBaseUrl;
 
@@ -97,7 +101,7 @@ public class DashboardServiceImpl implements DashboardService {
 
         if (isBuiltIn()) {
             grafanaClient = new GrafanaClient(apiBaseUrl, username, password);
-            EXECUTOR.submit(new DashboardInitializer());
+            EXECUTOR.submit(new DashboardInitializer(overwriteWhenStartUp));
         }
     }
 
@@ -219,15 +223,24 @@ public class DashboardServiceImpl implements DashboardService {
 
     private class DashboardInitializer implements Runnable {
 
+        private final boolean overwrite;
+
+        private DashboardInitializer(boolean overwrite) {
+            this.overwrite = overwrite;
+        }
+
         @Override
         public void run() {
             while (!Thread.interrupted()) {
                 try {
-                    DashboardInfo dashboardInfo = getDashboardInfo();
-                    if (dashboardInfo != null && !StringUtils.isEmpty(dashboardInfo.getUrl())) {
-                        return;
+                    if (!overwrite) {
+                        DashboardInfo dashboardInfo = getDashboardInfo();
+                        if (dashboardInfo != null && !StringUtils.isEmpty(dashboardInfo.getUrl())) {
+                            return;
+                        }
                     }
-                    initializeDashboard(false);
+                    initializeDashboard(overwrite);
+                    return;
                 } catch (Exception ex) {
                     log.error("Error occurs when trying to initialize the dashboard.", ex);
                     try {
