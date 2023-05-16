@@ -984,9 +984,9 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(envoy_server_memory_allocated{higress=\"$gateway\"}) by (kubernetes_pod_name)",
+          "expr": "max(container_memory_working_set_bytes{container=\"higress-gateway\", namespace=\"$namespace\"}) by (pod)",
           "interval": "",
-          "legendFormat": "{{kubernetes_pod_name}}-envoy",
+          "legendFormat": "{{pod}}-envoy",
           "range": true,
           "refId": "A"
         },
@@ -996,11 +996,23 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "code",
-          "expr": "sum(istio_agent_go_memstats_alloc_bytes{higress=\"$gateway\"}) by (kubernetes_pod_name)",
+          "expr": "max(container_memory_working_set_bytes{container=\"discovery\", namespace=\"$namespace\"}) by (pod)",
           "hide": false,
-          "legendFormat": "{{kubernetes_pod_name}}-agent",
+          "legendFormat": "{{pod}}-istio",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource.id}"
+          },
+          "editorMode": "code",
+          "expr": "max(container_memory_working_set_bytes{container=\"higress-core\", namespace=\"$namespace\"}) by (pod)",
+          "hide": false,
+          "legendFormat": "{{pod}}-core",
+          "range": true,
+          "refId": "C"
         }
       ],
       "title": "Memory",
