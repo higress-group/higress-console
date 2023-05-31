@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "higress-console.fullname" . }}
+  name: {{ include "higress-console.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "higress-console.labels" . | nindent 4 }}
@@ -37,15 +37,17 @@ spec:
               value: /usr/local/openjdk-18
             - name: LANG
               value: C.UTF-8
+            - name: HIGRESS_CONSOLE_NS
+              value: {{ .Release.Namespace }}
             - name: HIGRESS_CONSOLE_ADMIN_SECRET
-              value: {{ include "higress-console.fullname" . }}
+              value: {{ include "higress-console.name" . }}
             - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
-              value: {{ include "higress-console.fullname" . }}
+              value: {{ include "higress-console.name" . }}
             {{- if .Values.o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
-              value: http://{{ include "higress-console-grafana.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ .Values.o11y.grafana.ingress.path }}
+              value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ .Values.o11y.grafana.ingress.path }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
-              value: http://{{ include "higress-console-prometheus.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ .Values.o11y.prometheus.ingress.path }}
+              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ .Values.o11y.prometheus.ingress.path }}
             {{- end }}
             {{- if .Values.web.login.prompt }}
             - name: HIGRESS_CONSOLE_WEB_LOGIN_PROMPT

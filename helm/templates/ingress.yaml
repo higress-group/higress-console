@@ -1,4 +1,4 @@
-{{- $fullName := include "higress-console.fullname" . -}}
+{{- $fullName := include "higress-console.name" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if and .Values.global.ingressClass (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}

@@ -1,5 +1,5 @@
 {{- if .Values.o11y.enabled }}
-{{- $appName := (include "higress-console-prometheus.fullname" .) }}
+{{- $appName := (include "higress-console-prometheus.name" .) }}
 {{- $config := .Values.o11y.prometheus }}
 {{- $port := $config.port }}
 {{- $ingress := $config.ingress -}}

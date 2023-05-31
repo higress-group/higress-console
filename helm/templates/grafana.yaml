@@ -1,5 +1,5 @@
 {{- if .Values.o11y.enabled }}
-{{- $appName := (include "higress-console-grafana.fullname" .) }}
+{{- $appName := (include "higress-console-grafana.name" .) }}
 {{- $config := .Values.o11y.grafana }}
 {{- $port := $config.port -}}
 {{- $ingress := $config.ingress }}
