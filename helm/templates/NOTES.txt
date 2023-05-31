@@ -7,8 +7,8 @@
   127.0.0.1 {{ $.Values.domain }}
 {{- end }}
 2. Use following commands to get the credential and login:
-  export ADMIN_USERNAME=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "higress-console.fullname" . }} -o jsonpath="{.data.adminUsername}" | base64 -d)
-  export ADMIN_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "higress-console.fullname" . }} -o jsonpath="{.data.adminPassword}" | base64 -d)
+  export ADMIN_USERNAME=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "higress-console.name" . }} -o jsonpath="{.data.adminUsername}" | base64 -d)
+  export ADMIN_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "higress-console.name" . }} -o jsonpath="{.data.adminPassword}" | base64 -d)
   echo -e "Username: ${ADMIN_USERNAME}\nPassword: ${ADMIN_PASSWORD}"
   NOTE: If this is an upgrade release, your current password won't be changed.
-3. If you'd like to change the credential, you can edit this secret with new values: {{ .Release.Namespace }}/{{ include "higress-console.fullname" . }} 
+3. If you'd like to change the credential, you can edit this secret with new values: {{ .Release.Namespace }}/{{ include "higress-console.name" . }} 

@@ -11,8 +11,7 @@ image:
   tag: ""
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+name: ""
 
 podAnnotations: {}
 
