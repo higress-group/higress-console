@@ -43,6 +43,8 @@ spec:
               value: {{ include "higress-console.name" . }}
             - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
               value: {{ include "higress-console.name" . }}
+            - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
+              value: {{ include "higress-console.controller.jwtPolicy" . }}
             {{- if .Values.o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
               value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ .Values.o11y.grafana.ingress.path }}
@@ -66,8 +68,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+          {{- if eq (include "higress-console.controller.jwtPolicy" .) "third-party-jwt" }}
             - mountPath: /var/run/secrets/access-token
               name: access-token
+          {{- end }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       restartPolicy: {{ .Values.restartPolicy }}
       schedulerName: {{ .Values.schedulerName }}
@@ -84,6 +88,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+      {{- if eq (include "higress-console.controller.jwtPolicy" .) "third-party-jwt" }}
         - name: access-token
           projected:
             defaultMode: 420
@@ -92,3 +97,4 @@ spec:
                 audience: istio-ca
                 expirationSeconds: 3600
                 path: token
+      {{- end }}

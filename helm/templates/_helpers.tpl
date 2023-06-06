@@ -32,6 +32,14 @@ app.kubernetes.io/name: {{ include "higress-console.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
+{{- define "higress-console.controller.jwtPolicy" -}}
+{{- if semverCompare ">=1.21-0" .Capabilities.KubeVersion.GitVersion }}
+{{- .Values.global.jwtPolicy | default "third-party-jwt" }}
+{{- else }}
+{{- print "first-party-jwt" }}
+{{- end }}
+{{- end }}
+
 {{/*
 Admin Password
 */}}

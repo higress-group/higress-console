@@ -75,6 +75,10 @@ public class CommonKey {
 
     public final static int CONTROLLER_SERVICE_PORT_DEFAULT = 15014;
 
+    public final static String CONTROLLER_JWT_POLICY_KEY = CONFIG_KEY_PREFIX + "controller.jwt-policy";
+
+    public final static String CONTROLLER_JWT_POLICY_DEFAULT = KubernetesConstants.JwtPolicy.THIRD_PARTY_JWT;
+
     public final static String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
 
     public final static String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY = CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
