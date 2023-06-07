@@ -80,4 +80,11 @@ public class KubernetesConstants {
         public static final String PREFIX = "Prefix";
         public static final String IMPLEMENTATION_SPECIFIC = "ImplementationSpecific";
     }
+
+    public static class JwtPolicy {
+
+        public static final String FIRST_PARTY_JWT = "first-party-jwt";
+
+        public static final String THIRD_PARTY_JWT = "third-party-jwt";
+    }
 }

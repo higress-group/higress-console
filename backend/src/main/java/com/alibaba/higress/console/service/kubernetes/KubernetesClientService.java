@@ -80,7 +80,7 @@ import okhttp3.Response;
 @org.springframework.stereotype.Service
 public class KubernetesClientService {
 
-    private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io";
+    private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token";
     private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
     private static final String DEFAULT_LABEL_SELECTORS =
         buildLabelSelector(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
@@ -114,6 +114,9 @@ public class KubernetesClientService {
 
     @Value("${" + CommonKey.CONTROLLER_SERVICE_PORT_KEY + ":" + CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT + "}")
     private int controllerServicePort = CommonKey.CONTROLLER_SERVICE_PORT_DEFAULT;
+
+    @Value("${" + CommonKey.CONTROLLER_JWT_POLICY_KEY + ":" + CommonKey.CONTROLLER_JWT_POLICY_DEFAULT + "}")
+    private String controllerJwtPolicy = CommonKey.CONTROLLER_JWT_POLICY_DEFAULT;
 
     @Value("${" + CommonKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
     private String controllerAccessToken;
@@ -508,7 +511,11 @@ public class KubernetesClientService {
     }
 
     private String readTokenFromFile() throws IOException {
-        return FileUtils.readFileToString(new File(CONTROLLER_ACCESS_TOKEN_FILE_PATH), Charset.defaultCharset());
+        String fileName = CONTROLLER_ACCESS_TOKEN_FILE_PATH;
+        if (KubernetesConstants.JwtPolicy.FIRST_PARTY_JWT.equals(controllerJwtPolicy)) {
+            fileName = POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH;
+        }
+        return FileUtils.readFileToString(new File(fileName), Charset.defaultCharset());
     }
 
     private String getTokenFromConfiguration() {
