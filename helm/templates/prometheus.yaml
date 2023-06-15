@@ -5,8 +5,12 @@
 {{- $ingress := $config.ingress -}}
 {{- $storageClassName := $config.pvc.storageClassName }}
 {{- $existedPvc := (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $appName) }}
-{{- if and $existedPvc $existedPvc.spec.storageClassName }}
-{{-   $storageClassName = $existedPvc.spec.storageClassName }}
+{{- if $existedPvc }}
+  {{- if $existedPvc.spec }}
+    {{- if $existedPvc.spec.storageClassName }}
+      {{- $storageClassName = $existedPvc.spec.storageClassName }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
