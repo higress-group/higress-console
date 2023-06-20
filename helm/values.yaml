@@ -56,6 +56,10 @@ admin:
     length: 8 # The length of random password generated during installation
     value: "" # If set, the value will be used as the admin password for login, and Helm won't generate a random password.
 
+chat:
+  enabled: false
+  endpoint: ""
+
 certmanager:
   enabled: false
   replicas: 1

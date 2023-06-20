@@ -6,4 +6,7 @@ metadata:
   labels:
     {{- include "higress-console.labels" . | nindent 4 }}
 data:
+  login.prompt: {{ .Values.web.login.prompt | quote }}
+  chat.enabled: {{ .Values.chat.enabled | quote }}
+  chat.endpoint: {{ .Values.chat.endpoint | quote }}
 ---
