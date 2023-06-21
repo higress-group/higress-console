@@ -12,10 +12,34 @@
  */
 package com.alibaba.higress.console.constant;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 public class UserConfigKey {
 
     private UserConfigKey() {
     }
 
+    public static final String LOGIN_PAGE_PROMPT_KEY = "login.prompt";
     public static final String DASHBOARD_URL = "dashboard.url";
+    public static final String CHAT_ENABLED = "chat.enabled";
+    public static final String CHAT_ENDPOINT = "chat.endpoint";
+
+    private static final Map<String, Class<?>> CONFIG_VALUE_TYPES = new HashMap<>();
+
+    static {
+        CONFIG_VALUE_TYPES.put(LOGIN_PAGE_PROMPT_KEY, String.class);
+        CONFIG_VALUE_TYPES.put(DASHBOARD_URL, String.class);
+        CONFIG_VALUE_TYPES.put(CHAT_ENABLED, Boolean.class);
+        CONFIG_VALUE_TYPES.put(CHAT_ENDPOINT, String.class);
+    }
+
+    public static Class<?> getConfigValueType(String key) {
+        if (StringUtils.isEmpty(key)) {
+            return null;
+        }
+        return CONFIG_VALUE_TYPES.get(key);
+    }
 }

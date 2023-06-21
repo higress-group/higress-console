@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.util.List;
+
 public interface ConfigService {
 
     String getString(String key);
@@ -39,4 +41,6 @@ public interface ConfigService {
     void setConfig(String key, long value);
 
     void removeConfig(String key);
+
+    List<String> getConfigKeys();
 }

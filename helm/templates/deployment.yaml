@@ -51,10 +51,6 @@ spec:
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
               value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ .Values.o11y.prometheus.ingress.path }}
             {{- end }}
-            {{- if .Values.web.login.prompt }}
-            - name: HIGRESS_CONSOLE_WEB_LOGIN_PROMPT
-              value: {{ .Values.web.login.prompt | quote }}
-            {{- end }}
             - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
               value: {{ .Values.global.ingressClass }}
           ports:

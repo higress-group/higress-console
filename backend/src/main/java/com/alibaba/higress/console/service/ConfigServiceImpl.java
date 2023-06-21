@@ -12,7 +12,9 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
+import com.google.common.collect.ImmutableList;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -159,6 +162,15 @@ public class ConfigServiceImpl implements ConfigService {
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when updating ConfigMap.", e);
         }
+    }
+
+    @Override
+    public List<String> getConfigKeys() {
+        V1ConfigMap configMap = getConfigMap();
+        if (configMap == null || MapUtils.isEmpty(configMap.getData())) {
+            return Collections.emptyList();
+        }
+        return ImmutableList.copyOf(configMap.getData().keySet());
     }
 
     private V1ConfigMap getConfigMap() {

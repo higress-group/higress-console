@@ -12,18 +12,22 @@
  */
 package com.alibaba.higress.console.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.service.ConfigService;
 
 /**
  * @author CH3CHO
@@ -33,15 +37,39 @@ import com.alibaba.higress.console.controller.dto.Response;
 @Validated
 public class ConfigController {
 
-    private static final String LOGIN_PAGE_PROMPT_KEY = "login.prompt";
+    private ConfigService configService;
 
-    @Value("${" + CommonKey.LOGIN_PAGE_PROMPT_KEY + ":}")
-    private String loginPagePrompt;
+    @Autowired
+    public void setConfigService(ConfigService configService) {
+        this.configService = configService;
+    }
 
     @GetMapping
     public ResponseEntity<Response<Map<String, Object>>> getConfigs() {
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(LOGIN_PAGE_PROMPT_KEY, loginPagePrompt);
+        List<String> keys = configService.getConfigKeys();
+        Map<String, Object> configs;
+        if (CollectionUtils.isEmpty(keys)) {
+            configs = Collections.emptyMap();
+        } else {
+            configs = new HashMap<>(keys.size());
+            for (String key : keys) {
+                Class<?> type = UserConfigKey.getConfigValueType(key);
+                if (type == null) {
+                    type = String.class;
+                }
+                Object value;
+                if (type == Boolean.class) {
+                    value = configService.getBoolean(key);
+                } else if (type == Integer.class) {
+                    value = configService.getInteger(key);
+                } else if (type == Long.class) {
+                    value = configService.getLong(key);
+                } else {
+                    value = configService.getString(key);
+                }
+                configs.put(key, value);
+            }
+        }
         return ResponseEntity.ok(Response.success(configs));
     }
 }
