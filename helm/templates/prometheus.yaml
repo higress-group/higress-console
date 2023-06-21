@@ -197,6 +197,7 @@ subjects:
   name: {{ $appName }}
   namespace: {{ .Release.Namespace }}
 ---
+{{- if .Values.o11y.prometheus.ingress.enabled }}
 {{- if and .Values.global.ingressClass (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
   {{-   $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.global.ingressClass}}
@@ -250,4 +251,5 @@ spec:
               servicePort: {{ $port }}
               {{- end }}
       host: {{ .Values.domain | quote }}
+{{- end }}
 {{- end }}
