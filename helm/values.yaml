@@ -86,6 +86,7 @@ o11y:
       repository: prom/prometheus
       tag: v2.40.7
     ingress:
+      enabled: false # Enabling Ingress for Prometheus may pose a potential security risk to the system. DO NOT enable it unless it is absolute necessary.
       path: /prometheus # Only pathType of Prefix is supported
     port: 9090
     storage: 1Gi
