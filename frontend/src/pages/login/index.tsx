@@ -1,5 +1,6 @@
 import logo from '@/assets/logo.png';
 import LanguageDropdown from '@/components/LanguageDropdown';
+import { LOGIN_PROMPT } from '@/interfaces/config';
 import type { LoginParams, UserInfo } from '@/interfaces/user';
 import { login } from '@/services';
 import store from '@/store';
@@ -36,7 +37,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     const properties = configModel ? configModel.properties : {};
-    setLoginPrompt(properties['login.prompt']);
+    setLoginPrompt(properties[LOGIN_PROMPT]);
   }, [configModel]);
 
   async function updateUserInfo(user: UserInfo) {
