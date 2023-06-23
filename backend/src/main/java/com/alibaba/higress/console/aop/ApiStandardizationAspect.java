@@ -14,9 +14,6 @@ package com.alibaba.higress.console.aop;
 
 import javax.annotation.Resource;
 
-import com.alibaba.higress.console.controller.ConfigController;
-import com.alibaba.higress.console.controller.SessionController;
-import com.alibaba.higress.console.controller.exception.BusinessException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -29,9 +26,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.higress.console.context.HttpContext;
+import com.alibaba.higress.console.controller.SessionController;
+import com.alibaba.higress.console.controller.SystemController;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.AuthException;
+import com.alibaba.higress.console.controller.exception.BusinessException;
 import com.alibaba.higress.console.controller.exception.NotFoundException;
 import com.alibaba.higress.console.controller.exception.ResourceConflictException;
 import com.alibaba.higress.console.controller.exception.ValidationException;
@@ -103,7 +103,7 @@ public class ApiStandardizationAspect {
         if (point.getTarget() instanceof SessionController) {
             return false;
         }
-        if (point.getTarget() instanceof ConfigController) {
+        if (point.getTarget() instanceof SystemController) {
             return false;
         }
         return true;

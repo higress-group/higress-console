@@ -19,9 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public class UserConfigKey {
 
-    private UserConfigKey() {
-    }
+    private UserConfigKey() {}
 
+    public static final String SYSTEM_INITIALIZED = "system.initialized";
     public static final String LOGIN_PAGE_PROMPT_KEY = "login.prompt";
     public static final String DASHBOARD_URL = "dashboard.url";
     public static final String CHAT_ENABLED = "chat.enabled";

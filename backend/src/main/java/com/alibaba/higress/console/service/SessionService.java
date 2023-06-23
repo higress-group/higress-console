@@ -22,6 +22,8 @@ import com.alibaba.higress.console.controller.dto.User;
  */
 public interface SessionService {
 
+    void initializeAdmin(User user);
+
     User login(String username, String password);
 
     void saveSession(HttpServletResponse response, User user, boolean persistent);
@@ -29,4 +31,6 @@ public interface SessionService {
     void clearSession(HttpServletResponse response);
 
     User validateSession(HttpServletRequest request);
+
+    void changePassword(String username, String oldPassword, String newPassword);
 }
