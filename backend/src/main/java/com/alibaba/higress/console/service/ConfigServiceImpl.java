@@ -15,6 +15,7 @@ package com.alibaba.higress.console.service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -145,6 +146,22 @@ public class ConfigServiceImpl implements ConfigService {
     @Override
     public void setConfig(String key, long value) {
         setConfig(key, String.valueOf(value));
+    }
+
+    @Override
+    public void setConfig(String key, Object value) {
+        if (value == null) {
+            removeConfig(key);
+        } else {
+            setConfig(key, value.toString());
+        }
+    }
+
+    @Override
+    public void setConfigs(Map<String, Object> configs) {
+        if (MapUtils.isNotEmpty(configs)) {
+            configs.forEach(this::setConfig);
+        }
     }
 
     @Override

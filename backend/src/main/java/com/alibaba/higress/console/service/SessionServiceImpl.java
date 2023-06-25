@@ -14,6 +14,7 @@ package com.alibaba.higress.console.service;
 
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,17 +24,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.CommonKey;
+import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.BusinessException;
+import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.console.util.AesUtil;
 
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Strings;
 import lombok.Builder;
@@ -51,7 +56,9 @@ public class SessionServiceImpl implements SessionService {
     private static final String DISPLAY_NAME_KEY = "adminDisplayName";
     private static final String PASSWORD_KEY = "adminPassword";
     private static final String ENCRYPT_KEY_KEY = "key";
+    private static final int ENCRYPT_KEY_LENGTH = 32;
     private static final String ENCRYPT_IV_KEY = "iv";
+    private static final int ENCRYPT_IV_LENGTH = 16;
 
     @Value("${" + CommonKey.ADMIN_COOKIE_NAME_KEY + ":" + CommonKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = CommonKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -65,13 +72,67 @@ public class SessionServiceImpl implements SessionService {
     @Value("${" + CommonKey.ADMIN_CONFIG_TTL_KEY + ":" + CommonKey.ADMIN_CONFIG_TTL_DEFAULT + "}")
     private long configTtl = CommonKey.ADMIN_CONFIG_TTL_DEFAULT;
 
+    private ConfigService configService;
     private KubernetesClientService kubernetesClientService;
 
     private final AtomicReference<AdminConfig> adminConfigCache = new AtomicReference<>();
 
     @Resource
+    public void setConfigService(ConfigService configService) {
+        this.configService = configService;
+    }
+
+    @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
+    }
+
+    @Override
+    public void initializeAdmin(User user) {
+        boolean initialized = configService.getBoolean(UserConfigKey.SYSTEM_INITIALIZED, false);
+        if (initialized) {
+            throw new IllegalStateException("System is already initialized.");
+        }
+        V1Secret secret;
+        try {
+            secret = kubernetesClientService.readSecret(secretName);
+        } catch (ApiException e) {
+            throw new BusinessException("Unable to load secret from K8s.", e);
+        }
+        Map<String, byte[]> data = new HashMap<>();
+        data.put(USERNAME_KEY, user.getName().getBytes());
+        data.put(PASSWORD_KEY, user.getPassword().getBytes());
+        data.put(DISPLAY_NAME_KEY, user.getDisplayName().getBytes());
+        data.put(ENCRYPT_KEY_KEY, RandomStringUtils.randomGraph(ENCRYPT_KEY_LENGTH).getBytes());
+        data.put(ENCRYPT_IV_KEY, RandomStringUtils.randomGraph(ENCRYPT_IV_LENGTH).getBytes());
+        if (secret == null) {
+            secret = new V1Secret();
+            V1ObjectMeta metadata = new V1ObjectMeta();
+            metadata.setName(secretName);
+            secret.setMetadata(metadata);
+            secret.setData(data);
+            try {
+                kubernetesClientService.createSecret(secret);
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when trying to add admin secret.", e);
+            }
+        } else {
+            Map<String, byte[]> newData;
+            if (MapUtils.isEmpty(secret.getData())) {
+                newData = data;
+            } else {
+                newData = new HashMap<>(secret.getData());
+                newData.putAll(data);
+            }
+            secret.setData(newData);
+            try {
+                kubernetesClientService.replaceSecret(secret);
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when trying to update admin secret.", e);
+            }
+        }
+
+        adminConfigCache.set(null);
     }
 
     @Override
@@ -129,6 +190,39 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
         return config.toUser();
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        AdminConfig adminConfig = getAdminConfig();
+        if (!adminConfig.getUsername().equals(username)) {
+            throw new ValidationException("Unknown username: " + username);
+        }
+        if (!adminConfig.getPassword().equals(oldPassword)) {
+            throw new ValidationException("Incorrect old password.");
+        }
+
+        V1Secret secret;
+        try {
+            secret = kubernetesClientService.readSecret(secretName);
+        } catch (ApiException e) {
+            throw new BusinessException("Unable to load secret from K8s.", e);
+        }
+
+        assert secret != null;
+        assert MapUtils.isNotEmpty(secret.getData());
+
+        Map<String, byte[]> newData = new HashMap<>(secret.getData());
+        newData.put(PASSWORD_KEY, newPassword.getBytes());
+        secret.setData(newData);
+
+        try {
+            kubernetesClientService.replaceSecret(secret);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when trying to update admin secret.", e);
+        }
+
+        adminConfigCache.set(null);
     }
 
     private Cookie buildEmptyCookie() {

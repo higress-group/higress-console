@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.service;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ConfigService {
 
@@ -39,6 +40,10 @@ public interface ConfigService {
     void setConfig(String key, int value);
 
     void setConfig(String key, long value);
+
+    void setConfig(String key, Object value);
+
+    void setConfigs(Map<String, Object> configs);
 
     void removeConfig(String key);
 

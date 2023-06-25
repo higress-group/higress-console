@@ -10,7 +10,7 @@ export default defineConfig(() => ({
   hash: "contenthash",
   routes: {
     defineRoutes: (route) => {
-      route("*", "404.tsx");
+      // route("*", "404.tsx");
     },
   },
   proxy: {
