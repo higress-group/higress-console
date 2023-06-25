@@ -87,7 +87,7 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
   const isEdit = !!editData;
 
   if (editData) {
-    editData.imageUrl = editData.imageRepository + ':' + editData.imageVersion;
+    editData.imageUrl = `${editData.imageRepository}:${editData.imageVersion}`;
   }
 
   const [form] = Form.useForm();
@@ -96,8 +96,8 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
     const values = await form.validateFields();
     const imageUrl: string = values.imageUrl || '';
     const lastColonIndex = imageUrl.lastIndexOf(':');
-    const imageRepository = lastColonIndex == -1 ? imageUrl : imageUrl.substring(0, lastColonIndex);
-    const imageVersion = lastColonIndex == -1 ? '' : imageUrl.substring(lastColonIndex + 1);
+    const imageRepository = lastColonIndex === -1 ? imageUrl : imageUrl.substring(0, lastColonIndex);
+    const imageVersion = lastColonIndex === -1 ? '' : imageUrl.substring(lastColonIndex + 1);
     return {
       ...values,
       category: 'custom',

@@ -36,8 +36,8 @@ export default function RouterConfig() {
   };
 
   const pageHeader = useMemo(() => {
-    if (type === 'domain') return { title: t('plugins.title'), subTitle: t('plugins.subTitle.domain') + name };
-    if (type === 'route') return { title: t('plugins.title'), subTitle: t('plugins.subTitle.route') + name };
+    if (type === 'domain') return { title: t('plugins.title'), subTitle: `${t('plugins.subTitle.domain')}${name}` };
+    if (type === 'route') return { title: t('plugins.title'), subTitle: `${t('plugins.subTitle.route')}${name}` };
     return { title: '', subTitle: '' };
   }, [type, name]);
 
