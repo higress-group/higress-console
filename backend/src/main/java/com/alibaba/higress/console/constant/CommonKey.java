@@ -44,7 +44,7 @@ public class CommonKey {
 
     public final static String ADMIN_CONFIG_TTL_KEY = CONFIG_KEY_PREFIX + "admin.config-ttl";
 
-    public final static long ADMIN_CONFIG_TTL_DEFAULT = 60 * 1000;
+    public final static long ADMIN_CONFIG_TTL_DEFAULT = 10 * 1000;
 
     public final static String KUBE_CONFIG_KEY = CONFIG_KEY_PREFIX + "kube-config";
 

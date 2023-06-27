@@ -23,20 +23,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.console.controller.dto.LoginRequest;
+import com.alibaba.higress.console.controller.dto.ChangePasswordRequest;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.User;
-import com.alibaba.higress.console.controller.exception.AuthException;
 import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.SessionService;
+import com.alibaba.higress.console.service.SessionUserHelper;
 
 /**
  * @author CH3CHO
  */
-@RestController("SessionController")
-@RequestMapping("/session")
-public class SessionController {
+@RestController("UserController")
+@RequestMapping("/user")
+public class UserController {
 
     private SessionService sessionService;
 
@@ -45,22 +45,22 @@ public class SessionController {
         this.sessionService = sessionService;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        if (StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())) {
-            throw new ValidationException("Missing user name or password.");
-        }
-
-        User user = sessionService.login(request.getUsername(), request.getPassword());
-        if (user == null) {
-            throw new AuthException("Incorrect username or password");
-        }
-        sessionService.saveSession(response, user, Boolean.TRUE.equals(request.getAutoLogin()));
+    @GetMapping("/info")
+    public ResponseEntity<Response<User>> getUserInfo() {
+        User user = SessionUserHelper.getCurrentUser();
         return ControllerUtil.buildResponseEntity(user);
     }
 
-    @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    @PostMapping("/changePassword")
+    public ResponseEntity<?> logout(@RequestBody ChangePasswordRequest request, HttpServletResponse response) {
+        if (StringUtils.isEmpty(request.getOldPassword())) {
+            throw new ValidationException("Missing old password.");
+        }
+        if (StringUtils.isEmpty(request.getNewPassword())) {
+            throw new ValidationException("Missing new password.");
+        }
+        User user = SessionUserHelper.getCurrentUser();
+        sessionService.changePassword(user.getName(), request.getOldPassword(), request.getNewPassword());
         sessionService.clearSession(response);
         return ControllerUtil.buildSuccessResponseEntity();
     }

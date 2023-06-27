@@ -25,6 +25,14 @@ import com.alibaba.higress.console.controller.dto.Response;
 
 public class ControllerUtil {
 
+    public static ResponseEntity<?> buildSuccessResponseEntity() {
+        return ResponseEntity.ok(Response.success(null));
+    }
+
+    public static ResponseEntity<?> buildFalureResponseEntity(String message) {
+        return ResponseEntity.ok(Response.failure(message));
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> ResponseEntity<Response<T>> buildResponseEntity(T result) {
         return (ResponseEntity<Response<T>>)doBuildResponseEntity(result);

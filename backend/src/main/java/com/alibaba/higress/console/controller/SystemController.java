@@ -17,34 +17,70 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.dto.SystemInitRequest;
+import com.alibaba.higress.console.controller.dto.User;
+import com.alibaba.higress.console.controller.exception.ValidationException;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.ConfigService;
+import com.alibaba.higress.console.service.SessionService;
 
 /**
  * @author CH3CHO
  */
-@RestController("ConfigController")
-@RequestMapping("/config")
+@RestController("SystemController")
+@RequestMapping("/system")
 @Validated
-public class ConfigController {
+public class SystemController {
 
+    private SessionService sessionService;
     private ConfigService configService;
+
+    @Autowired
+    public void setSessionService(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @Autowired
     public void setConfigService(ConfigService configService) {
         this.configService = configService;
     }
 
-    @GetMapping
+    @PostMapping("/init")
+    public ResponseEntity<?> initialize(@RequestBody SystemInitRequest request) {
+        User adminUser = request.getAdminUser();
+        if (adminUser == null) {
+            throw new ValidationException("Missing adminUser.");
+        }
+        if (StringUtils.isAnyEmpty(adminUser.getName(), adminUser.getDisplayName(), adminUser.getPassword())) {
+            throw new ValidationException("Incomplete adminUser object.");
+        }
+        sessionService.initializeAdmin(adminUser);
+
+        Map<String, Object> configs = new HashMap<>();
+        if (MapUtils.isNotEmpty(request.getConfigs())) {
+            configs.putAll(request.getConfigs());
+        }
+        configs.put(UserConfigKey.SYSTEM_INITIALIZED, true);
+        configService.setConfigs(configs);
+
+        return ControllerUtil.buildSuccessResponseEntity();
+    }
+
+    @GetMapping("/config")
     public ResponseEntity<Response<Map<String, Object>>> getConfigs() {
         List<String> keys = configService.getConfigKeys();
         Map<String, Object> configs;

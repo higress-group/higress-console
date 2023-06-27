@@ -3,7 +3,7 @@ import { defineStoreConfig } from '@ice/plugin-store/esm/types';
 import { defineAppConfig, defineDataLoader } from 'ice';
 import './i18n';
 import { UserInfo } from './interfaces/user';
-import { getConfigs } from './services/config';
+import { getConfigs } from './services/system';
 import { fetchUserInfo } from './services/user';
 
 // App config, see https://v3.ice.work/docs/guide/basic/app
