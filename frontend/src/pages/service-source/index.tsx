@@ -1,7 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
+import { Mode } from '@/interfaces/config';
 import { ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
 import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
+import store from '@/store';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -76,16 +78,19 @@ const SourceList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [mode, setMode] = useState<string>(Mode.K8S);
 
   const { loading, run, refresh } = useRequest(getServiceSources, {
     manual: true,
     onSuccess: (result, params) => {
       const sources = (result || []) as ServiceSource[];
-      sources.push({
-        name: 'default',
-        type: 'Kubernetes',
-        builtIn: true,
-      });
+      if (mode === Mode.K8S) {
+        sources.push({
+          name: 'default',
+          type: 'Kubernetes',
+          builtIn: true,
+        });
+      }
       sources.forEach(i => {
         i.key || (i.key = i.name + '_' + i.type)
       });
@@ -93,9 +98,12 @@ const SourceList: React.FC = () => {
     },
   });
 
+  const [configModel] = store.useModel('config');
   useEffect(() => {
+    const properties = configModel ? configModel.properties : {};
+    setMode(properties.mode || Mode.K8S);
     run({});
-  }, []);
+  }, [configModel]);
 
   const onEditDrawer = (domain: ServiceSource) => {
     setCurrentServiceSource(domain);
