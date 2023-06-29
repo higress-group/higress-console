@@ -8,6 +8,7 @@ module.exports = getESLintConfig('react-ts', {
     sourceType: 'module',
   },
   rules: {
+    "@typescript-eslint/indent": ["error", 2],
     'no-param-reassign': 0,
     'prefer-const': 0,
     'no-mixed-operators': 0,
