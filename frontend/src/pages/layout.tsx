@@ -1,6 +1,7 @@
 import logo from '@/assets/logo.png';
 import AvatarDropdown from '@/components/AvatarDropdown';
 import Footer from '@/components/Footer';
+import ChatRobot from '@/components/ChatRobot';
 import LanguageDropdown from '@/components/LanguageDropdown';
 import Navbar from '@/components/Navbar';
 import { asideMenuConfig } from '@/menuConfig';
@@ -47,7 +48,7 @@ export default function Layout() {
         </div>
       )}
       menuDataRender={() => {
-        return asideMenuConfig.map(c => Object.assign({}, c, { name: t(c.name) }))
+        return asideMenuConfig.map((c) => Object.assign({}, c, { name: t(c.name) }));
       }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {
@@ -58,6 +59,7 @@ export default function Layout() {
       footerRender={() => <Footer />}
     >
       <Outlet />
+      <ChatRobot />
     </ProLayout>
   );
 }

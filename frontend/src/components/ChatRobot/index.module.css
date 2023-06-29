@@ -1,0 +1,43 @@
+.chatRobot {
+  position: fixed;
+  right: 32px;
+  bottom: 102px;
+}
+.chat-robot-btn {
+  position: relative;
+  cursor: pointer;
+  z-index: 2;
+  border: 2px solid #70b8fa !important;
+  min-height: 50px;
+  width: 50px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #0081f7;
+  transition: all 0.3s;
+  box-shadow: 0 0 6px #70b8fa;
+  .chat-robot-btn-png {
+    width: 20px;
+    position: relative;
+    top: -3px;
+  }
+  .chat-robot-btn-gif {
+    width: 20px;
+    position: relative;
+    top: -3px;
+    display: none;
+  }
+
+  &:hover {
+    box-shadow: 0 0 6px #70b8fa;
+    background-color: #fff !important;
+    .chat-robot-btn-gif {
+      display: inline-block;
+    }
+    .chat-robot-btn-png {
+      display: none;
+    }
+  }
+  &:hover:before {
+    animation: 1s ease-out infinite wave;
+  }
+}

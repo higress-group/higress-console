@@ -20,6 +20,7 @@
     "monaco-editor": "^0.37.0",
     "monaco-yaml": "^4.0.4",
     "react": "^18.2.0",
+    "react-chatgpt-modal": "^0.1.6",
     "react-dom": "^18.2.0",
     "react-i18next": "^12.1.4"
   },
@@ -31,6 +32,7 @@
     "@iceworks/spec": "^1.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
     "ahooks": "^3.7.2",
     "cross-env": "^7.0.3",
     "eslint": "7.30.0",
