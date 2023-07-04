@@ -857,7 +857,7 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "code",
-          "expr": "sum(irate(container_cpu_usage_seconds_total{container=\"higress-gateway\", namespace=\"$namespace\"}[1m]))by(pod)",
+          "expr": "100 * sum(irate(container_cpu_usage_seconds_total{container=\"higress-gateway\", namespace=\"$namespace\"}[1m]))by(pod)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 2,
