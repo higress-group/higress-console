@@ -7,7 +7,7 @@ info:
   x-description-i18n:
     en-US:  Support configuring WAF rules based on OWASP ModSecurity Core Rule Set (CRS)
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
-  version: 1.0.0
+  version: 1.0.1
   contact:
     name: Higress Team
     url: http://higress.io/
@@ -19,8 +19,4 @@ spec:
     openAPIV3Schema:
       type: object
       example:
-        rules:
-          - "Include @crs-setup-conf"
-          - "Include @recommended-conf"
-          - "Include @owasp_crs/*.conf"
-          - "SecRuleEngine DetectionOnly"
+        useCRS: true
