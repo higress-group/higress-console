@@ -16,12 +16,12 @@ const Navbar: React.FC<NavbarProps> = () => {
     const officialSiteLang = langConfig?.officialSiteCode || lang.toLowerCase();
     return [
       {
-        name: t("navbar.homepage"),
-        link: `https://higress.io/${officialSiteLang}/index.html`,
+        name: t("navbar.officialWebsite"),
+        link: `https://higress.io/${officialSiteLang}/`,
       },
       {
         name: t("navbar.docs"),
-        link: `https://higress.io/${officialSiteLang}/docs/overview/what-is-higress.html`,
+        link: `https://higress.io/${officialSiteLang}/docs/overview/what-is-higress/`,
       },
       {
         name: t("navbar.commercial"),
@@ -29,15 +29,15 @@ const Navbar: React.FC<NavbarProps> = () => {
       },
       {
         name: t("navbar.developers"),
-        link: `https://higress.io/${officialSiteLang}/docs/developers/developers_dev.html`,
+        link: `https://higress.io/${officialSiteLang}/docs/developers/developers_dev/`,
       },
       {
         name: t("navbar.blog"),
-        link: `https://higress.io/${officialSiteLang}/blog/index.html`,
+        link: `https://higress.io/${officialSiteLang}/blog/`,
       },
       {
         name: t("navbar.community"),
-        link: `https://higress.io/${officialSiteLang}/community/index.html`,
+        link: `https://higress.io/${officialSiteLang}/community/`,
       },
       {
         name: t("navbar.download"),
