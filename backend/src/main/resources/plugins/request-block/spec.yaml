@@ -18,7 +18,69 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        block_urls:
+          type: array
+          title: 需要屏蔽 URL 列表
+          x-title-i18n:
+            en-US: Blocked URL List
+          description: 需要屏蔽的 URL 列表
+          x-description-i18n:
+            en-US: List of URLs to be blocked
+          items:
+            type: string
+            example:
+              - swagger.html
+        block_headers:
+          type: array
+          title: 需要屏蔽请求 Header 的列表
+          x-title-i18n:
+            en-US: Blocked Request Header List
+          description: 需要屏蔽请求 Header 的列表
+          x-description-i18n:
+            en-US: List of request headers to be blocked
+          items:
+            type: string
+            example:
+              - example-key
+        block_bodies:
+          type: array
+          title: 需要屏蔽请求 Body 的列表
+          x-title-i18n:
+            en-US: Blocked Request Body List
+          description: 需要屏蔽请求 Body 的列表
+          x-description-i18n:
+            en-US: List of request bodies to be blocked
+          items:
+            type: string
+            example:
+              - "hello world"
+        blocked_code:
+          type: number
+          title: 请求被屏蔽时返回的 HTTP 状态码
+          x-title-i18n:
+            en-US: HTTP Status Code When Request is Blocked
+          description: 请求被屏蔽时返回的 HTTP 状态码，默认为 403
+          x-description-i18n:
+            en-US: HTTP status code returned when the request is blocked. Default is 403
+          example:
+            - 403
+        case_sensitive:
+          type: boolean
+          title: 是否区分大小写
+          x-title-i18n:
+            en-US: Case Sensitive
+          description: 匹配时是否区分大小写，默认区分大小写
+          x-description-i18n:
+            en-US: Whether to match case sensitively. Default is true
+          default: true
       example:
         blocked_code: 404
         block_urls:
           - swagger.html
+        block_headers:
+          - example-key
+          - example-value
+        block_bodies:
+          - "hello world"
+        case_sensitive: false
