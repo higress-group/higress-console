@@ -96,7 +96,7 @@ const TlsCertificateList: React.FC = () => {
       const { name, cert, key } = values;
       const data = { name, cert, key };
       if (currentTlsCertificate) {
-        await updateTlsCertificate({ ...data } as TlsCertificate);
+        await updateTlsCertificate({ version: currentTlsCertificate.version, ...data } as TlsCertificate);
       } else {
         await addTlsCertificate(data as TlsCertificate);
       }
