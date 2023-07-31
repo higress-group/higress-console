@@ -64,6 +64,7 @@
     "uninitialized": "监控面板未自动初始化，点击按钮尝试人工操作",
     "initDashboard": "初始化监控面板",
     "noBuiltInDashboard": "未安装Higress Console的内置监控模块。请人工配置监控页面地址。",
+    "configureDashboard": "请配置监控页面URL",
     "reconfigure": "重新配置",
     "openInNewPage": "在新窗口打开监控面板",
     "setForm": {
@@ -73,7 +74,8 @@
     "configNotes": {
       "header": "监控面板配置注意事项",
       "brief": "推荐使用 Prometheus + Grafana 的组合来为 Higress 配置监控面板。",
-      "item1": "在配置 Prometheus 采集 Higress Gateway Pod 的监控数据时，请增加以下的 relabel_config 以确保可以正常采集到所需的监控数据：",
+      "item1_k8s": "在配置 Prometheus 采集 Higress Gateway Pod 的监控数据时，请增加以下的 relabel_config 以确保可以正常采集到所需的监控数据：",
+      "item1_standalone": "Prometheus 可使用以下 URL 来采集 Higress Gateway 的监控数据时：http://{Gateway服务器IP}:{监控数据端口}/status/prometheus 其中监控数据端口的默认值为 15020。",
       "item2": "配置 Grafana 以支持监控面板内嵌显示。",
       "item2_1": "若使用 grafana.ini 作为配置源，则请在文件中增加以下配置：",
       "item2_2": "若使用环境变量作为配置源，则请配置以下的环境变量：",
@@ -119,14 +121,14 @@
         "rewriteHostPlaceholder": "例如：example.com"
       },
       "headerControl": {
-        "headerType" : "Header类型",
+        "headerType": "Header类型",
         "request": "请求",
         "response": "响应",
-        "actionType" : "操作类型",
+        "actionType": "操作类型",
         "add": "新增",
-        "set" : "更新",
-        "remove" : "删除",
-        "action" : "操作",
+        "set": "更新",
+        "remove": "删除",
+        "action": "操作",
         "addNewRule": "添加新规则"
       },
       "cors": {
@@ -401,7 +403,7 @@
       "title": "404",
       "subTitle": "你访问的页面不存在"
     },
-    "nestedFrame":  {
+    "nestedFrame": {
       "title": "加载异常",
       "subTitle": "请刷新整个页面"
     }
