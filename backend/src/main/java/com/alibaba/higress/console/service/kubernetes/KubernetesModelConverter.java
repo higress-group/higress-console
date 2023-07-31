@@ -40,6 +40,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.GeneralName;
 
@@ -67,6 +68,7 @@ import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.MatchRule;
+import com.alibaba.higress.console.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.alibaba.higress.console.util.TypeUtil;
@@ -383,7 +385,7 @@ public class KubernetesModelConverter {
 
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec != null) {
-            plugin.setPhase(spec.getPhase());
+            plugin.setPhase(ObjectUtils.firstNonNull(spec.getPhase(), PluginPhase.UNSPECIFIED.getName()));
             plugin.setPriority(spec.getPriority());
             String url = spec.getUrl();
             if (StringUtils.isNotEmpty(url)) {
