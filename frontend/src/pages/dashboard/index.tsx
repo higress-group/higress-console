@@ -1,8 +1,10 @@
 import dataSourceUidSampleImage from '@/assets/GrafanaDataSourceUID.png';
+import { Mode } from '@/interfaces/config';
 import { getDashboardConfigData, getDashboardInfo, initDashboard, setDashboardUrl } from '@/services';
+import store from '@/store';
 import { useRequest } from 'ahooks';
 import { Button, Col, Collapse, Form, Image, Input, Row, Spin } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import styles from './index.module.css';
 
@@ -13,8 +15,15 @@ const Dashboard: React.FC = () => {
   const [form] = Form.useForm();
   const [reconfiguring, setReconfiguring] = useState(false);
   const [dataSourceUidSampleVisible, setDataSourceUidSampleVisible] = useState(false);
+  const [mode, setMode] = useState<string>(Mode.K8S);
 
   const { data: dashboardInfo, error, loading } = useRequest(getDashboardInfo);
+
+  const [configModel] = store.useModel('config');
+  useEffect(() => {
+    const properties = configModel ? configModel.properties : {};
+    setMode(properties.mode || Mode.K8S);
+  }, [configModel]);
 
   if (loading) {
     return (
@@ -97,107 +106,208 @@ const Dashboard: React.FC = () => {
       link.click();
       link.remove();
     };
-    return (
-      <>
-        <Form form={form} layout="vertical">
-          <h3>{t('dashboard.noBuiltInDashboard')}</h3>
-          <Form.Item
-            label={t('dashboard.setForm.url')}
-            required
-            name="url"
-            rules={[
-              {
-                required: true,
-                message: t('dashboard.setForm.urlRequired'),
-              },
-            ]}
-          >
-            <Input showCount allowClear maxLength={256} type="url" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" onClick={handleSetDashboard}>
-              {t('misc.confirm')}
-            </Button>
-          </Form.Item>
-        </Form>
-        <Collapse defaultActiveKey="note">
-          <Panel header={t('dashboard.configNotes.header')} key="note">
-            <p>{t('dashboard.configNotes.brief')}</p>
-            <ol style={{ marginBottom: '0' }}>
-              <li style={{ marginBottom: '1rem' }}>
-                {t('dashboard.configNotes.item1')}
-                <pre className={`${styles.mb0}`}>
-                  - regex: &apos;__meta_kubernetes_pod_label_(.+)&apos;<br />
-                  &nbsp;&nbsp;replacement: &apos;$1&apos;<br />
-                  &nbsp;&nbsp;action: labelmap
-                </pre>
-              </li>
-              <li style={{ marginBottom: '1rem' }}>
-                {t('dashboard.configNotes.item2')}
-                <ul>
-                  <li>
-                    {t('dashboard.configNotes.item2_1')}
-                    <pre className={`${styles.mb0}`}>
-                      [security]<br />
-                      cookie_secure=true<br />
-                      cookie_samesite=none<br />
-                      allow_embedding=true
-                    </pre>
-                  </li>
-                  <li>
-                    {t('dashboard.configNotes.item2_2')}
-                    <pre className={`${styles.mb0}`}>
-                      GF_SECURITY_COOKIE_SECURE=true<br />
-                      GF_SECURITY_COOKIE_SAMESITE=none<br />
-                      GF_SECURITY_ALLOW_EMBEDDING=true
-                    </pre>
-                  </li>
-                </ul>
-              </li>
-              <li style={{ marginBottom: '1rem' }}>
-                <Trans t={t} i18nKey="dashboard.configNotes.item3">
-                  推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 ID 获取可供导入的 JSON 配置文件。
-                  （<a href="" onClick={e => { e.preventDefault(); setDataSourceUidSampleVisible(true); }}>如何获取数据源 ID？</a>）
-                </Trans>
-                <Form
-                  style={{ marginTop: '0.5rem' }}
-                  layout="inline"
-                  onFinish={downloadConfigFile}
-                >
-                  <Form.Item
-                    name="dataSourceUid"
-                    label={t('dashboard.configNotes.item3_dataSourceId')}
-                    rules={[
-                      {
-                        required: true,
-                        message: t('dashboard.configNotes.item3_dataSourceId_required'),
-                      },
-                    ]}
+
+
+    if (mode === Mode.K8S) {
+      return (
+        <>
+          <Form form={form} layout="vertical">
+            <h3>{t('dashboard.k8s.noBuiltInDashboard')}</h3>
+            <Form.Item
+              label={t('dashboard.setForm.url')}
+              required
+              name="url"
+              rules={[
+                {
+                  required: true,
+                  message: t('dashboard.setForm.urlRequired'),
+                },
+              ]}
+            >
+              <Input showCount allowClear maxLength={256} type="url" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" onClick={handleSetDashboard}>
+                {t('misc.confirm')}
+              </Button>
+            </Form.Item>
+          </Form>
+          <Collapse defaultActiveKey="note">
+            <Panel header={t('dashboard.configNotes.header')} key="note">
+              <p>{t('dashboard.configNotes.brief')}</p>
+              <ol style={{ marginBottom: '0' }}>
+                <li style={{ marginBottom: '1rem' }}>
+                  {t('dashboard.configNotes.item1_k8s')}
+                  <pre className={`${styles.mb0}`}>
+                    - regex: &apos;__meta_kubernetes_pod_label_(.+)&apos;<br />
+                    &nbsp;&nbsp;replacement: &apos;$1&apos;<br />
+                    &nbsp;&nbsp;action: labelmap
+                  </pre>
+                </li>
+                <li style={{ marginBottom: '1rem' }}>
+                  {t('dashboard.configNotes.item2')}
+                  <ul>
+                    <li>
+                      {t('dashboard.configNotes.item2_1')}
+                      <pre className={`${styles.mb0}`}>
+                        [security]<br />
+                        cookie_secure=true<br />
+                        cookie_samesite=none<br />
+                        allow_embedding=true
+                      </pre>
+                    </li>
+                    <li>
+                      {t('dashboard.configNotes.tem2_2')}
+                      <pre className={`${styles.mb0}`}>
+                        GF_SECURITY_COOKIE_SECURE=true<br />
+                        GF_SECURITY_COOKIE_SAMESITE=none<br />
+                        GF_SECURITY_ALLOW_EMBEDDING=true
+                      </pre>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '1rem' }}>
+                  <Trans t={t} i18nKey="dashboard.configNotes.item3">
+                    推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 ID 获取可供导入的 JSON 配置文件。
+                    （<a href="" onClick={e => { e.preventDefault(); setDataSourceUidSampleVisible(true); }}>如何获取数据源 ID？</a>）
+                  </Trans>
+                  <Form
+                    style={{ marginTop: '0.5rem' }}
+                    layout="inline"
+                    onFinish={downloadConfigFile}
                   >
-                    <Input type="text" style={{ width: 200 }} />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" htmlType="submit">{t('dashboard.configNotes.item3_download')}</Button>
-                  </Form.Item>
-                </Form>
-                <Image
-                  width={200}
-                  style={{ display: 'none' }}
-                  preview={{
-                    visible: dataSourceUidSampleVisible,
-                    src: dataSourceUidSampleImage,
-                    onVisibleChange: value => {
-                      setDataSourceUidSampleVisible(value);
-                    },
-                  }}
-                />
-              </li>
-              <li>{t('dashboard.configNotes.item4')}</li>
-            </ol>
-          </Panel>
-        </Collapse>
-      </>
-    );
+                    <Form.Item
+                      name="dataSourceUid"
+                      label={t('dashboard.configNotes.item3_dataSourceId')}
+                      rules={[
+                        {
+                          required: true,
+                          message: t('dashboard.configNotes.item3_dataSourceId_required'),
+                        },
+                      ]}
+                    >
+                      <Input type="text" style={{ width: 200 }} />
+                    </Form.Item>
+                    <Form.Item>
+                      <Button type="primary" htmlType="submit">{t('dashboard.configNotes.k8s.item3_download')}</Button>
+                    </Form.Item>
+                  </Form>
+                  <Image
+                    width={200}
+                    style={{ display: 'none' }}
+                    preview={{
+                      visible: dataSourceUidSampleVisible,
+                      src: dataSourceUidSampleImage,
+                      onVisibleChange: value => {
+                        setDataSourceUidSampleVisible(value);
+                      },
+                    }}
+                  />
+                </li>
+                <li>{t('dashboard.configNotes.k8s.item4')}</li>
+              </ol>
+            </Panel>
+          </Collapse>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Form form={form} layout="vertical">
+            <h3>{t('dashboard.configureDashboard')}</h3>
+            <Form.Item
+              label={t('dashboard.setForm.url')}
+              required
+              name="url"
+              rules={[
+                {
+                  required: true,
+                  message: t('dashboard.setForm.urlRequired'),
+                },
+              ]}
+            >
+              <Input showCount allowClear maxLength={256} type="url" />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" onClick={handleSetDashboard}>
+                {t('misc.confirm')}
+              </Button>
+            </Form.Item>
+          </Form>
+          <Collapse defaultActiveKey="note">
+            <Panel header={t('dashboard.configNotes.header')} key="note">
+              <p>{t('dashboard.configNotes.brief')}</p>
+              <ol style={{ marginBottom: '0' }}>
+                <li style={{ marginBottom: '1rem' }}>
+                  {t('dashboard.configNotes.item1_standalone')}
+                </li>
+                <li style={{ marginBottom: '1rem' }}>
+                  {t('dashboard.configNotes.item2')}
+                  <ul>
+                    <li>
+                      {t('dashboard.configNotes.item2_1')}
+                      <pre className={`${styles.mb0}`}>
+                        [security]<br />
+                        cookie_secure=true<br />
+                        cookie_samesite=none<br />
+                        allow_embedding=true
+                      </pre>
+                    </li>
+                    <li>
+                      {t('dashboard.configNotes.item2_2')}
+                      <pre className={`${styles.mb0}`}>
+                        GF_SECURITY_COOKIE_SECURE=true<br />
+                        GF_SECURITY_COOKIE_SAMESITE=none<br />
+                        GF_SECURITY_ALLOW_EMBEDDING=true
+                      </pre>
+                    </li>
+                  </ul>
+                </li>
+                <li style={{ marginBottom: '1rem' }}>
+                  <Trans t={t} i18nKey="dashboard.configNotes.item3">
+                    推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 ID 获取可供导入的 JSON 配置文件。
+                    （<a href="" onClick={e => { e.preventDefault(); setDataSourceUidSampleVisible(true); }}>如何获取数据源 ID？</a>）
+                  </Trans>
+                  <Form
+                    style={{ marginTop: '0.5rem' }}
+                    layout="inline"
+                    onFinish={downloadConfigFile}
+                  >
+                    <Form.Item
+                      name="dataSourceUid"
+                      label={t('dashboard.configNotes.item3_dataSourceId')}
+                      rules={[
+                        {
+                          required: true,
+                          message: t('dashboard.configNotes.item3_dataSourceId_required'),
+                        },
+                      ]}
+                    >
+                      <Input type="text" style={{ width: 200 }} />
+                    </Form.Item>
+                    <Form.Item>
+                      <Button type="primary" htmlType="submit">{t('dashboard.configNotes.item3_download')}</Button>
+                    </Form.Item>
+                  </Form>
+                  <Image
+                    width={200}
+                    style={{ display: 'none' }}
+                    preview={{
+                      visible: dataSourceUidSampleVisible,
+                      src: dataSourceUidSampleImage,
+                      onVisibleChange: value => {
+                        setDataSourceUidSampleVisible(value);
+                      },
+                    }}
+                  />
+                </li>
+                <li>{t('dashboard.configNotes.item4')}</li>
+              </ol>
+            </Panel>
+          </Collapse>
+        </>
+      );
+    }
   }
 };
 
