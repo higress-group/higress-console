@@ -26,6 +26,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.higress.console.context.HttpContext;
+import com.alibaba.higress.console.controller.HealthzController;
 import com.alibaba.higress.console.controller.SessionController;
 import com.alibaba.higress.console.controller.SystemController;
 import com.alibaba.higress.console.controller.dto.Response;
@@ -100,6 +101,9 @@ public class ApiStandardizationAspect {
     }
 
     private static boolean isLoginRequired(ProceedingJoinPoint point) {
+        if (point.getTarget() instanceof HealthzController) {
+            return false;
+        }
         if (point.getTarget() instanceof SessionController) {
             return false;
         }
