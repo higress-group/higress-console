@@ -35,13 +35,33 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final String REGISTRY_TYPE_NACOS2 = "nacos2";
 
-    public static final String REGISTRY_TYPE_NACOS_NACOSGROUPS = "nacosGroups";
+    public static final String REGISTRY_TYPE_NACOS_GROUPS = "nacosGroups";
 
-    public static final String REGISTRY_TYPE_NACOS_NACOSNAMESPACEID = "nacosNamespaceId";
+    public static final String REGISTRY_TYPE_NACOS_NAMESPACE_ID = "nacosNamespaceId";
+
+    public static final String REGISTRY_TYPE_NACOS_USERNAME = "nacosUsername";
+
+    public static final String REGISTRY_TYPE_NACOS_PASSWORD = "nacosPassword";
 
     public static final String REGISTRY_TYPE_ZK = "zookeeper";
 
-    public static final String REGISTRY_TYPE_ZK_ZKSERVICESPATH = "zkServicesPath";
+    public static final String REGISTRY_TYPE_ZK_SERVICES_PATH = "zkServicesPath";
+
+    public static final String REGISTRY_TYPE_CONSUL = "consul";
+
+    public static final String REGISTRY_TYPE_CONSUL_DATA_CENTER = "consulDatacenter";
+
+    public static final String REGISTRY_TYPE_CONSUL_SERVICE_TAG = "consulServiceTag";
+
+    public static final String REGISTRY_TYPE_CONSUL_TOKEN = "consulToken";
+
+    public static final String REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL = "consulRefreshInterval";
+
+    public static final int REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MIN = 10;
+
+    public static final int REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MAX = 600;
+
+    public static final String REGISTRY_TYPE_EUREKA = "eureka";
 
     public static final String REGISTRY_TYPE_STATIC = "static";
 

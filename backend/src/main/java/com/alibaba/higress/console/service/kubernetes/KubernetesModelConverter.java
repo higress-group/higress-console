@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import javax.security.auth.x500.X500Principal;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.GeneralName;
 
@@ -1365,6 +1367,10 @@ public class KubernetesModelConverter {
         return serviceSource;
     }
 
+    public String generateAuthSecretName(String serviceSourceName) {
+        return serviceSourceName + "-auth-" + RandomStringUtils.randomAlphanumeric(5).toLowerCase(Locale.ROOT);
+    }
+
     public void initV1McpBridge(V1McpBridge v1McpBridge) {
         v1McpBridge.setMetadata(new V1ObjectMeta());
         v1McpBridge.getMetadata().setName(V1McpBridge.DEFAULT_NAME);
@@ -1373,7 +1379,7 @@ public class KubernetesModelConverter {
         v1McpBridge.getSpec().setRegistries(registries);
     }
 
-    public void addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
+    public V1RegistryConfig addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
         V1McpBridgeSpec spec = v1McpBridge.getSpec();
         if (spec == null) {
             spec = new V1McpBridgeSpec();
@@ -1389,15 +1395,29 @@ public class KubernetesModelConverter {
             .findFirst();
         if (op.isPresent()) {
             fillV1RegistryConfig(op.get(), serviceSource);
+            return op.get();
         } else {
-            registries.add(serviceSource2V1RegistryConfig(serviceSource));
+            V1RegistryConfig registry = serviceSource2V1RegistryConfig(serviceSource);
+            registries.add(registry);
+            return registry;
         }
     }
 
-    public void removeV1McpBridgeRegistry(V1McpBridge v1McpBridge, String name) {
-        List<V1RegistryConfig> registries = v1McpBridge.getSpec().getRegistries().stream()
-            .filter(r -> !r.getName().equals(name)).collect(Collectors.toList());
-        v1McpBridge.getSpec().setRegistries(registries);
+    public V1RegistryConfig removeV1McpBridgeRegistry(V1McpBridge v1McpBridge, String name) {
+        V1McpBridgeSpec spec = v1McpBridge.getSpec();
+        if (spec == null || CollectionUtils.isEmpty(spec.getRegistries())) {
+            return null;
+        }
+        V1RegistryConfig target = null;
+        for (Iterator<V1RegistryConfig> it = spec.getRegistries().iterator(); it.hasNext();) {
+            V1RegistryConfig registryConfig = it.next();
+            if (registryConfig.getName().equals(name)) {
+                it.remove();
+                target = registryConfig;
+                // Normally, names should be unique. But we don't break here just in case they aren't.
+            }
+        }
+        return target;
     }
 
     private void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
@@ -1411,13 +1431,20 @@ public class KubernetesModelConverter {
         serviceSource.setProperties(new HashMap<>());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())) {
-            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID,
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID,
                 v1RegistryConfig.getNacosNamespaceId());
-            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS,
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS,
                 v1RegistryConfig.getNacosGroups());
         } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
-            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH,
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH,
                 v1RegistryConfig.getZkServicesPath());
+        } else if (V1McpBridge.REGISTRY_TYPE_CONSUL.equals(v1RegistryConfig.getType())) {
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER,
+                v1RegistryConfig.getConsulDataCenter());
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG,
+                v1RegistryConfig.getConsulServiceTag());
+            serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL,
+                v1RegistryConfig.getConsulRefreshInterval());
         }
     }
 
@@ -1442,15 +1469,24 @@ public class KubernetesModelConverter {
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
             v1RegistryConfig.setNacosNamespaceId((String)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSNAMESPACEID))
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID))
                 .orElse(""));
             v1RegistryConfig.setNacosGroups((List<String>)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS))
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS))
                 .orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
             v1RegistryConfig.setZkServicesPath((List<String>)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_ZKSERVICESPATH))
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH))
                 .orElse(new ArrayList<>()));
+        } else if (V1McpBridge.REGISTRY_TYPE_CONSUL.equals(v1RegistryConfig.getType())) {
+            v1RegistryConfig.setConsulDataCenter((String)Optional
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER))
+                .orElse(""));
+            v1RegistryConfig.setConsulServiceTag((String)Optional
+                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG))
+                .orElse(""));
+            v1RegistryConfig.setConsulRefreshInterval(
+                (Integer)serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL));
         }
     }
 

@@ -40,19 +40,31 @@ public class V1RegistryConfig {
     @SerializedName(SERIALIZED_NAME_PORT)
     private Integer port;
 
-    public static final String SERIALIZED_NAME_CONSUL_NAMESPACE = "consulNamespace";
-    @SerializedName(SERIALIZED_NAME_CONSUL_NAMESPACE)
-    private String consulNamespace;
-
-    public static final String SERIALIZED_NAME_ZK_SERVICES_PATH = "zkServicesPath";
+    public static final String SERIALIZED_NAME_ZK_SERVICES_PATH = V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH;
     @SerializedName(SERIALIZED_NAME_ZK_SERVICES_PATH)
     private List<String> zkServicesPath;
 
-    public static final String SERIALIZED_NAME_NACOS_NAMESPACE_ID = "nacosNamespaceId";
+    public static final String SERIALIZED_NAME_NACOS_NAMESPACE_ID = V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID;
     @SerializedName(SERIALIZED_NAME_NACOS_NAMESPACE_ID)
     private String nacosNamespaceId;
 
-    public static final String SERIALIZED_NAME_NACOS_GROUPS = "nacosGroups";
+    public static final String SERIALIZED_NAME_NACOS_GROUPS = V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS;
     @SerializedName(SERIALIZED_NAME_NACOS_GROUPS)
     private List<String> nacosGroups;
+
+    public static final String SERIALIZED_NAME_CONSUL_DATA_CENTER = V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER;
+    @SerializedName(SERIALIZED_NAME_CONSUL_DATA_CENTER)
+    private String consulDataCenter;
+
+    public static final String SERIALIZED_NAME_CONSUL_SERVICE_TAG = V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG;
+    @SerializedName(SERIALIZED_NAME_CONSUL_SERVICE_TAG)
+    private String consulServiceTag;
+
+    public static final String SERIALIZED_NAME_CONSUL_REFRESH_INTERVAL = V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL;
+    @SerializedName(SERIALIZED_NAME_CONSUL_REFRESH_INTERVAL)
+    private Integer consulRefreshInterval;
+
+    public static final String SERIALIZED_NAME_AUTH_SECRET_NAME = "authSecretName";
+    @SerializedName(SERIALIZED_NAME_AUTH_SECRET_NAME)
+    private String authSecretName;
 }
