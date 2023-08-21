@@ -255,7 +255,14 @@
       "nacosUsername": "Nacos用户名",
       "nacosUsernameRequired": "请输入Nacos用户名",
       "nacosPassword": "Nacos密码",
-      "nacosPasswordRequired": "请输入Nacos密码"
+      "nacosPasswordRequired": "请输入Nacos密码",
+      "consulDatacenter": "Consul数据中心",
+      "consulDatacenterRequired": "请输入Consul数据中心",
+      "consulServiceTag": "Consul服务标签",
+      "consulServiceTagTooltip": "Consul类型的服务来源支持通过标签来过滤服务列表",
+      "consulServiceTagPlaceholder": "示例：foo=bar",
+      "consulToken": "Consul Token",
+      "consulTokenRequired": "请输入Consul Token"
     }
   },
   "route": {
