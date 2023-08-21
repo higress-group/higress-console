@@ -249,7 +249,13 @@
       "servicePortPlaceholder": "支持1-65535的任意端口",
       "serviceDomains": "域名列表",
       "serviceDomainsRequired": "请填写域名列表",
-      "serviceDomainsPlaceholder": "服务域名（多个域名请以换行分隔）"
+      "serviceDomainsPlaceholder": "服务域名（多个域名请以换行分隔）",
+      "authEnabled": "是否开启了认证",
+      "leaveAuthUnchanged": "如果无需修改认证信息，请留空",
+      "nacosUsername": "Nacos用户名",
+      "nacosUsernameRequired": "请输入Nacos用户名",
+      "nacosPassword": "Nacos密码",
+      "nacosPasswordRequired": "请输入Nacos密码"
     }
   },
   "route": {
@@ -433,6 +439,8 @@
     "strategy": "策略",
     "configure": "配置",
     "seconds": "秒",
-    "tbd": "页面开发中，即将推出..."
+    "tbd": "页面开发中，即将推出...",
+    "yes": "是",
+    "no": "否"
   }
 }

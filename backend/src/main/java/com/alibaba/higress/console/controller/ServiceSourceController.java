@@ -15,6 +15,7 @@ package com.alibaba.higress.console.controller;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
+import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.ServiceSource;
 import com.alibaba.higress.console.controller.exception.ValidationException;
@@ -44,25 +46,33 @@ public class ServiceSourceController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<ServiceSource>>
         list(@RequestParam(required = false) @RequestBody CommonPageQuery query) {
-        return ControllerUtil.buildResponseEntity(serviceSourceService.list(query));
+        PaginatedResult<ServiceSource> result = serviceSourceService.list(query);
+        if (CollectionUtils.isNotEmpty(result.getData())) {
+            result.getData().forEach(this::stripSensitiveInfo);
+        }
+        return ControllerUtil.buildResponseEntity(result);
     }
 
     @PostMapping()
     public ResponseEntity<Response<ServiceSource>> add(@RequestBody ServiceSource serviceSource) {
-        if (!serviceSource.valid()) {
+        if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
-        return ControllerUtil.buildResponseEntity(serviceSourceService.add(serviceSource));
+        ServiceSource finalServiceSource = serviceSourceService.add(serviceSource);
+        stripSensitiveInfo(finalServiceSource);
+        return ControllerUtil.buildResponseEntity(finalServiceSource);
     }
 
     @PutMapping("/{name}")
     public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
         @RequestBody ServiceSource serviceSource) {
         serviceSource.setName(name);
-        if (!serviceSource.valid()) {
+        if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
-        return ControllerUtil.buildResponseEntity(serviceSourceService.addOrUpdate(serviceSource));
+        ServiceSource finalServiceSource = serviceSourceService.addOrUpdate(serviceSource);
+        stripSensitiveInfo(finalServiceSource);
+        return ControllerUtil.buildResponseEntity(finalServiceSource);
     }
 
     @DeleteMapping("/{name}")
@@ -73,6 +83,15 @@ public class ServiceSourceController {
 
     @GetMapping("/{name}")
     public ResponseEntity<Response<ServiceSource>> query(@PathVariable("name") @NotBlank String name) {
-        return ControllerUtil.buildResponseEntity(serviceSourceService.query(name));
+        ServiceSource source = serviceSourceService.query(name);
+        stripSensitiveInfo(source);
+        return ControllerUtil.buildResponseEntity(source);
+    }
+
+    private void stripSensitiveInfo(ServiceSource source) {
+        if (source == null || source.getAuthN() == null) {
+            return;
+        }
+        source.getAuthN().setProperties(null);
     }
 }

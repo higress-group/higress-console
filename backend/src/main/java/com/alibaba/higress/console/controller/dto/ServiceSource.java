@@ -43,6 +43,7 @@ public class ServiceSource implements VersionedDto {
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_CONSUL, new ConsulServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_STATIC, new StaticServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
     }
@@ -62,7 +63,9 @@ public class ServiceSource implements VersionedDto {
 
     private Map<String, Object> properties;
 
-    public boolean valid() {
+    private ServiceSourceAuthN authN;
+
+    public boolean isValid() {
         if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
             return false;
         }
@@ -99,10 +102,40 @@ public class ServiceSource implements VersionedDto {
             if (MapUtils.isEmpty(properties)) {
                 return false;
             }
-            Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NACOSGROUPS);
+            Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS);
             if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
                 return false;
             }
+            return true;
+        }
+    }
+
+    private static class ConsulServiceSourceValidator implements ServiceSourceValidator {
+
+        @Override
+        public boolean validate(ServiceSource source) {
+            Map<String, Object> properties = source.getProperties();
+            if (MapUtils.isEmpty(properties)) {
+                return false;
+            }
+
+            Object dataCenter = properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER);
+            if (!(dataCenter instanceof String) || StringUtils.isBlank((String)dataCenter)) {
+                return false;
+            }
+
+            Object rawRefreshInterval = properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL);
+            if (rawRefreshInterval != null) {
+                if (!(rawRefreshInterval instanceof Integer)) {
+                    return false;
+                }
+                int refreshInterval = (Integer)rawRefreshInterval;
+                if (refreshInterval < V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MIN
+                    || refreshInterval > V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MAX) {
+                    return false;
+                }
+            }
+
             return true;
         }
     }

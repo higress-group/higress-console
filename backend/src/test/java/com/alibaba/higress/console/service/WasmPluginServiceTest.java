@@ -12,6 +12,11 @@
  */
 package com.alibaba.higress.console.service;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,14 +24,18 @@ import org.junit.jupiter.api.Test;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.WasmPlugin;
+import com.alibaba.higress.console.service.kubernetes.KubernetesClientService;
 
 public class WasmPluginServiceTest {
 
     private WasmPluginServiceImpl service;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         service = new WasmPluginServiceImpl();
+        KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+        when(kubernetesClientService.listWasmPlugin()).thenReturn(Collections.emptyList());
+        service.setKubernetesClientService(kubernetesClientService);
         service.initialize();
     }
 

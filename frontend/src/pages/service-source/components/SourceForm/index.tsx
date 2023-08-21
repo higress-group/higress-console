@@ -6,12 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
-
 const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
   const [sourceType, setSourceType] = useState<string>();
+  const [authEnabled, setAuthEnabled] = useState<boolean>();
+  const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
 
   useEffect(() => {
     form.resetFields();
@@ -20,13 +21,20 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(value.type) !== -1) {
         value.domainForEdit = value.domain ? value.domain.replaceAll(',', '\n') : '';
       }
-      form.setFieldsValue(value);
+      const authEnabledLocal = value.authN && value.authN.enabled;
+      setInitAuthEnabled(authEnabledLocal);
+      setAuthEnabled(authEnabledLocal);
     }
+    const valueToSet = value || {};
+    valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
+    form.setFieldsValue(valueToSet);
   }, [value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => {
       setSourceType(null);
+      setInitAuthEnabled(false);
+      setAuthEnabled(false);
       form.resetFields();
     },
     handleSubmit: async () => {
@@ -198,6 +206,63 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 options={[{ value: "DEFAULT_GROUP" }]}
               />
             </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.authEnabled')}
+              name={['authN', 'enabled']}
+            >
+              <Select
+                onChange={(v) => setAuthEnabled(v)}
+              >
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={0} value={false}>{t('misc.no')}</Option>
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={1} value={true}>{t('misc.yes')}</Option>
+              </Select>
+            </Form.Item>
+            {
+              authEnabled && (
+                <>
+                  {
+                    initAuthEnabled && (
+                      <Form.Item>
+                        <span className="ant-form-text">{t('serviceSource.serviceSourceForm.leaveAuthUnchanged')}</span>
+                      </Form.Item>
+                    )
+                  }
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.nacosUsername')}
+                    name={['authN', 'properties', 'nacosUsername']}
+                    rules={[
+                      {
+                        required: !initAuthEnabled,
+                        message: t('serviceSource.serviceSourceForm.nacosUsernameRequired'),
+                      },
+                    ]}
+                  >
+                    <Input
+                      allowClear
+                      maxLength={256}
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.nacosPassword')}
+                    name={['authN', 'properties', 'nacosPassword']}
+                    rules={[
+                      {
+                        required: !initAuthEnabled,
+                        message: t('serviceSource.serviceSourceForm.nacosPasswordRequired'),
+                      },
+                    ]}
+                  >
+                    <Input
+                      allowClear
+                      type="password"
+                      maxLength={256}
+                    />
+                  </Form.Item>
+                </>
+              )
+            }
           </>)
       }
       {

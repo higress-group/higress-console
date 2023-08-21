@@ -249,7 +249,13 @@
       "servicePortPlaceholder": "Any port within the range of 1-65535 is supported.",
       "serviceDomains": "Domains",
       "serviceDomainsRequired": "Please input domains",
-      "serviceDomainsPlaceholder": "Service domain (One domain per line)"
+      "serviceDomainsPlaceholder": "Service domain (One domain per line)",
+      "authEnabled": "Authentication Enabled",
+      "leaveAuthUnchanged": "Please leave the fields below empty to keep the saved credential.",
+      "nacosUsername": "Nacos Username",
+      "nacosUsernameRequired": "Please input Nacos username",
+      "nacosPassword": "Nacos Password",
+      "nacosPasswordRequired": "Please input Nacos password"
     }
   },
   "route": {
@@ -403,7 +409,7 @@
       "title": "404",
       "subTitle": "Page Not Found"
     },
-    "nestedFrame":  {
+    "nestedFrame": {
       "title": "Error",
       "subTitle": "Please refresh the entire page."
     }
@@ -433,6 +439,8 @@
     "strategy": "Strategy",
     "configure": "Configure",
     "seconds": "Sec(s)",
-    "tbd": "Still in development. To be released soon..."
+    "tbd": "Still in development. To be released soon...",
+    "yes": "Yes",
+    "no": "No"
   }
 }

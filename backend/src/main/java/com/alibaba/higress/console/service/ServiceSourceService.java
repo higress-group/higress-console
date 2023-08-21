@@ -27,5 +27,4 @@ public interface ServiceSourceService {
     void delete(String name);
 
     ServiceSource query(String name);
-
 }
