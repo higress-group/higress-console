@@ -392,7 +392,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
         cr.getSpec().setDefaultConfigDisable(true);
         V1alpha1WasmPlugin addedCr;
         try {
-            addedCr = kubernetesClientService.addWasmPlugin(cr);
+            addedCr = kubernetesClientService.createWasmPlugin(cr);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
                 throw new ResourceConflictException();
@@ -446,7 +446,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
             V1alpha1WasmPlugin updatedCr;
             try {
-                updatedCr = kubernetesClientService.updateWasmPlugin(cr);
+                updatedCr = kubernetesClientService.replaceWasmPlugin(cr);
             } catch (ApiException e) {
                 if (e.getCode() == HttpStatus.CONFLICT.value()) {
                     throw new ResourceConflictException();
@@ -463,7 +463,7 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
         V1alpha1WasmPlugin updatedCr;
         try {
-            updatedCr = kubernetesClientService.addWasmPlugin(cr);
+            updatedCr = kubernetesClientService.createWasmPlugin(cr);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
                 throw new ResourceConflictException();
