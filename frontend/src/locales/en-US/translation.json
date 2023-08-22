@@ -255,7 +255,14 @@
       "nacosUsername": "Nacos Username",
       "nacosUsernameRequired": "Please input Nacos username",
       "nacosPassword": "Nacos Password",
-      "nacosPasswordRequired": "Please input Nacos password"
+      "nacosPasswordRequired": "Please input Nacos password",
+      "consulDatacenter": "Consul Data Center",
+      "consulDatacenterRequired": "Please input Consul data center",
+      "consulServiceTag": "Consul Service Tag",
+      "consulServiceTagTooltip": "You can filter services by a tag in Consul service sources.",
+      "consulServiceTagPlaceholder": "e.g.: foo=bar",
+      "consulToken": "Consul Token",
+      "consulTokenRequired": "Please input Consul token"
     }
   },
   "route": {

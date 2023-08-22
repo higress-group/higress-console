@@ -44,8 +44,8 @@ export const ServiceSourceTypes = {
   nacos2: { key: 'nacos2', name: 'Nacos 2.x', enabled: true },
   nacos: { key: 'nacos', name: 'Nacos 1.x', enabled: true },
   zookeeper: { key: 'zookeeper', name: 'Zookeeper', enabled: true },
-  consul: { key: 'consul', name: 'Consul', enabled: false },
-  eureka: { key: 'eureka', name: 'Eureka', enabled: false },
+  consul: { key: 'consul', name: 'Consul', enabled: true },
+  eureka: { key: 'eureka', name: 'Eureka', enabled: true },
   static: { key: 'static', name: 'serviceSource.types.static.name', i18n: true, enabled: true },
   dns: { key: 'dns', name: 'serviceSource.types.dns.name', i18n: true, enabled: true },
 };

@@ -61,6 +61,11 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       if (!groups || !groups.length) {
         form.setFieldValue(["properties", "nacosGroups"], ["DEFAULT_GROUP"]);
       }
+    } else if (type === ServiceSourceTypes.consul.key) {
+      const dc = form.getFieldValue(["properties", "consulDatacenter"]);
+      if (!dc) {
+        form.setFieldValue(["properties", "consulDatacenter"], "dc1");
+      }
     }
   }
 
@@ -269,23 +274,74 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         sourceType === ServiceSourceTypes.consul.key && (
           <>
             <Form.Item
-              label={t('serviceSource.serviceSourceForm.consulNamespace')}
-              name={['properties', 'consulNamespace']}
+              label={t('serviceSource.serviceSourceForm.consulDatacenter')}
+              name={['properties', 'consulDatacenter']}
               rules={[
                 {
                   required: true,
-                  message: t('serviceSource.serviceSourceForm.consulNamespaceRequired'),
+                  message: t('serviceSource.serviceSourceForm.consulDatacenterRequired'),
                 },
               ]}
-              tooltip={t('serviceSource.serviceSourceForm.consulNamespaceTooltip')}
             >
               <Input
                 showCount
                 allowClear
                 maxLength={256}
-                placeholder={t('serviceSource.serviceSourceForm.consulNamespacePlaceholder')}
               />
             </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.consulServiceTag')}
+              name={['properties', 'consulServiceTag']}
+              tooltip={t('serviceSource.serviceSourceForm.consulServiceTagTooltip')}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+                placeholder={t('serviceSource.serviceSourceForm.consulServiceTagPlaceholder')}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.authEnabled')}
+              name={['authN', 'enabled']}
+            >
+              <Select
+                onChange={(v) => setAuthEnabled(v)}
+              >
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={0} value={false}>{t('misc.no')}</Option>
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={1} value={true}>{t('misc.yes')}</Option>
+              </Select>
+            </Form.Item>
+            {
+              authEnabled && (
+                <>
+                  {
+                    initAuthEnabled && (
+                      <Form.Item>
+                        <span className="ant-form-text">{t('serviceSource.serviceSourceForm.leaveAuthUnchanged')}</span>
+                      </Form.Item>
+                    )
+                  }
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.consulToken')}
+                    name={['authN', 'properties', 'consulToken']}
+                    rules={[
+                      {
+                        required: !initAuthEnabled,
+                        message: t('serviceSource.serviceSourceForm.consulTokenRequired'),
+                      },
+                    ]}
+                  >
+                    <Input
+                      allowClear
+                      maxLength={256}
+                    />
+                  </Form.Item>
+                </>
+              )
+            }
           </>
         )
       }
