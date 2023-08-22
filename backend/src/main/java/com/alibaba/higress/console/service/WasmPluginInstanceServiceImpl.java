@@ -160,11 +160,11 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
                 }
                 result = kubernetesModelConverter.wasmPluginToCr(plugin);
                 kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
-                result = kubernetesClientService.addWasmPlugin(result);
+                result = kubernetesClientService.createWasmPlugin(result);
             } else {
                 result = existedCr;
                 kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
-                result = kubernetesClientService.updateWasmPlugin(result);
+                result = kubernetesClientService.replaceWasmPlugin(result);
             }
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
@@ -210,7 +210,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
             boolean needUpdate = kubernetesModelConverter.removeWasmPluginInstanceFromCr(cr, scope, target);
             if (needUpdate) {
                 try {
-                    kubernetesClientService.updateWasmPlugin(cr);
+                    kubernetesClientService.replaceWasmPlugin(cr);
                 } catch (ApiException e) {
                     throw new BusinessException(
                         "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);

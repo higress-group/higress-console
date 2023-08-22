@@ -394,14 +394,14 @@ public class KubernetesClientService {
         }
     }
 
-    public V1McpBridge addMcpBridge(V1McpBridge mcpBridge) throws ApiException {
+    public V1McpBridge createMcpBridge(V1McpBridge mcpBridge) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
             controllerNamespace, V1McpBridge.PLURAL, mcpBridge, null, null, null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
     }
 
-    public V1McpBridge updateMcpBridge(V1McpBridge mcpBridge) throws ApiException {
+    public V1McpBridge replaceMcpBridge(V1McpBridge mcpBridge) throws ApiException {
         V1ObjectMeta metadata = mcpBridge.getMetadata();
         if (metadata == null) {
             throw new IllegalArgumentException("mcpBridge doesn't have a valid metadata.");
@@ -419,7 +419,7 @@ public class KubernetesClientService {
             V1McpBridge.PLURAL, name, null, null, null, null, null);
     }
 
-    public V1McpBridge getMcpBridge(String name) throws ApiException {
+    public V1McpBridge readMcpBridge(String name) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.getNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
             controllerNamespace, V1McpBridge.PLURAL, name);
@@ -461,7 +461,7 @@ public class KubernetesClientService {
         return sortKubernetesObjects(list.getItems());
     }
 
-    public V1alpha1WasmPlugin addWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
+    public V1alpha1WasmPlugin createWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         renderDefaultLabels(plugin);
         Object response = customObjectsApi.createNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
@@ -469,7 +469,7 @@ public class KubernetesClientService {
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
     }
 
-    public V1alpha1WasmPlugin updateWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
+    public V1alpha1WasmPlugin replaceWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
         V1ObjectMeta metadata = plugin.getMetadata();
         if (metadata == null) {
             throw new IllegalArgumentException("WasmPlugin doesn't have a valid metadata.");
@@ -488,7 +488,7 @@ public class KubernetesClientService {
             controllerNamespace, V1alpha1WasmPlugin.PLURAL, name, null, null, null, null, null);
     }
 
-    public V1alpha1WasmPlugin getWasmPlugin(String name) throws ApiException {
+    public V1alpha1WasmPlugin readWasmPlugin(String name) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.getNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
             V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, name);

@@ -68,7 +68,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
     public PaginatedResult<ServiceSource> list(CommonPageQuery query) {
         V1McpBridge mcpBridge;
         try {
-            mcpBridge = kubernetesClientService.getMcpBridge(V1McpBridge.DEFAULT_NAME);
+            mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
                 return PaginatedResult.createFromFullList(Collections.emptyList(), query);
@@ -96,7 +96,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
     public ServiceSource addOrUpdate(ServiceSource serviceSource) {
         V1McpBridge mcpBridge = null;
         try {
-            mcpBridge = kubernetesClientService.getMcpBridge(V1McpBridge.DEFAULT_NAME);
+            mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
                 throw new BusinessException("Error occurs when getting McpBridge.", e);
@@ -108,11 +108,11 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesModelConverter.initV1McpBridge(mcpBridge);
                 V1RegistryConfig registry = kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 syncAuthSecret(serviceSource, registry);
-                kubernetesClientService.addMcpBridge(mcpBridge);
+                kubernetesClientService.createMcpBridge(mcpBridge);
             } else {
                 V1RegistryConfig registry = kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 syncAuthSecret(serviceSource, registry);
-                kubernetesClientService.updateMcpBridge(mcpBridge);
+                kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
@@ -128,7 +128,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
     public void delete(String name) {
         V1McpBridge mcpBridge;
         try {
-            mcpBridge = kubernetesClientService.getMcpBridge(V1McpBridge.DEFAULT_NAME);
+            mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
                 return;
@@ -148,7 +148,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
             }
         }
         try {
-            kubernetesClientService.updateMcpBridge(mcpBridge);
+            kubernetesClientService.replaceMcpBridge(mcpBridge);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when deleting the ServiceSource with name: " + name, e);
         }
@@ -158,7 +158,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
     public ServiceSource query(String name) throws BusinessException {
         V1McpBridge mcpBridge;
         try {
-            mcpBridge = kubernetesClientService.getMcpBridge(V1McpBridge.DEFAULT_NAME);
+            mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
                 return null;
@@ -182,7 +182,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
     public ServiceSource add(ServiceSource serviceSource) {
         V1McpBridge mcpBridge = null;
         try {
-            mcpBridge = kubernetesClientService.getMcpBridge(V1McpBridge.DEFAULT_NAME);
+            mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
                 throw new BusinessException("Error occurs when getting McpBridge.", e);
@@ -194,7 +194,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesModelConverter.initV1McpBridge(mcpBridge);
                 V1RegistryConfig registry = kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 syncAuthSecret(serviceSource, registry);
-                kubernetesClientService.addMcpBridge(mcpBridge);
+                kubernetesClientService.createMcpBridge(mcpBridge);
             } else {
                 V1McpBridgeSpec spec = mcpBridge.getSpec();
                 if (spec != null && spec.getRegistries() != null) {
@@ -206,7 +206,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 }
                 V1RegistryConfig registry = kubernetesModelConverter.addV1McpBridgeRegistry(mcpBridge, serviceSource);
                 syncAuthSecret(serviceSource, registry);
-                kubernetesClientService.updateMcpBridge(mcpBridge);
+                kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.CONFLICT.value()) {
