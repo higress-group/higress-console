@@ -75,7 +75,7 @@
       "header": "Notes on External Dashboard Configuraiton",
       "brief": "It is recommended to configure Higress dashboard with Prometheus + Grafana.",
       "item1_k8s": "When adding Prometheus collection configurations to get metrics of Higress Gateway Pods, please add following relabel_config items:",
-      "item1_standalone": "You can use the following URL in Prometheus to get metrics of Higress Gateway: http://{GatewayIP}:{MetricsPort}/status/prometheus The default value of MetricsPort is 15020.",
+      "item1_standalone": "You can use the following URL in Prometheus to get metrics of Higress Gateway: http://{GatewayIP}:{MetricsPort}/stats/prometheus The default value of MetricsPort is 15020.",
       "item2": "Configure Grafana so dashboard can be displayed within this page.",
       "item2_1": "If configured with grafana.ini, please add following items into the file:",
       "item2_2": "If configured with environment variables, please configure following variables:",
