@@ -117,14 +117,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       </Form.Item>
       <Form.Item
         label={t('route.routeForm.domain')}
-        required
         name="domains"
-        rules={[
-          {
-            required: true,
-            message: t('route.routeForm.domainRequired'),
-          },
-        ]}
       >
         <Select
           showSearch
