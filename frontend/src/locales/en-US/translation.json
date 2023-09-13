@@ -301,7 +301,7 @@
       "routeNamePlaceholder": "Only following characters are allowed: lower-case letters, numbers and special characters (- .). And the name can not begin or end with a special character.",
       "domain": "Domain",
       "domainRequired": "Please select a domain.",
-      "domainSearchPlaceholder": "Search domain by name",
+      "domainSearchPlaceholder": "Search domain by name. If left empty, it will match any domain.",
       "matchType": "Match Type",
       "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
       "path": "Path",
