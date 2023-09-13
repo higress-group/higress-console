@@ -170,7 +170,7 @@ public class KubernetesClientService {
         return controllerNamespace.equals(namespace) || protectedNses.contains(namespace);
     }
 
-    public List<RegistryzService> gatewayServiceList() throws ApiException, IOException {
+    public List<RegistryzService> gatewayServiceList() throws IOException {
         Request request = buildControllerRequest("/debug/registryz");
         log.info("gatewayServiceList url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
@@ -180,13 +180,11 @@ public class KubernetesClientService {
                     return JSON.parseArray(responseString, RegistryzService.class);
                 }
             }
-        } catch (Exception e) {
-            log.error("gatewayServiceList okHttpClient.newCall ", e);
         }
         return null;
     }
 
-    public Map<String, Map<String, IstioEndpointShard>> gatewayServiceEndpoint() throws ApiException, IOException {
+    public Map<String, Map<String, IstioEndpointShard>> gatewayServiceEndpoint() throws IOException {
         Request request = buildControllerRequest("/debug/endpointShardz");
         log.info("gatewayServiceEndpoint url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
@@ -196,8 +194,6 @@ public class KubernetesClientService {
                     return JSON.parseObject(responseString, new TypeReference<>() {});
                 }
             }
-        } catch (Exception e) {
-            log.error("gatewayServiceEndpoint okHttpClient.newCall ", e);
         }
         return null;
     }
