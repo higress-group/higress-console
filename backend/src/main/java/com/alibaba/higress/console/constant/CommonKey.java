@@ -81,7 +81,8 @@ public class CommonKey {
 
     public final static String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
 
-    public final static String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY = CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
+    public final static String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY =
+        CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
     public final static boolean DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT = true;
     public final static String DASHBOARD_BASE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.base-url";
 
@@ -98,6 +99,16 @@ public class CommonKey {
     public final static String DASHBOARD_DATASOURCE_NAME_DEFAULT = "Prometheus";
 
     public final static String DASHBOARD_DATASOURCE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.url";
+
+    public final static String DASHBOARD_PROXY_CONNECTION_TIMEOUT_KEY =
+        CONFIG_KEY_PREFIX + "dashboard.proxy.connection-timeout";
+
+    public final static int DASHBOARD_PROXY_CONNECTION_TIMEOUT_DEFAULT = 1200;
+
+    public final static String DASHBOARD_PROXY_SOCKET_TIMEOUT_KEY =
+        CONFIG_KEY_PREFIX + "dashboard.proxy.socket-timeout";
+
+    public final static int DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT = 2 * 60 * 1000;
 
     public final static String LOGIN_PAGE_PROMPT_KEY = CONFIG_KEY_PREFIX + "web.login.prompt";
 

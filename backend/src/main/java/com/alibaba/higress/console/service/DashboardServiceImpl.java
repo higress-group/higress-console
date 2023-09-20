@@ -13,9 +13,14 @@
 package com.alibaba.higress.console.service;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -23,10 +28,24 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
+import org.apache.tomcat.util.http.fileupload.util.Streams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +59,7 @@ import com.alibaba.higress.console.constant.CommonKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
 import com.alibaba.higress.console.controller.exception.BusinessException;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +70,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class DashboardServiceImpl implements DashboardService {
+
+    private static final Set<String> IGNORE_REQUEST_HEADERS =
+        ImmutableSet.of("connection", "accept-encoding", "content-length");
+    private static final Set<String> IGNORE_RESPONSE_HEADERS =
+        ImmutableSet.of("connection", "content-length", "content-encoding", "server", "transfer-encoding");
 
     private static final String DATASOURCE_UID_PLACEHOLDER = "${datasource.id}";
     private static final String DASHBOARD_DATA_PATH = "/dashboard/main.json";
@@ -67,6 +92,8 @@ public class DashboardServiceImpl implements DashboardService {
     @Value("${" + CommonKey.DASHBOARD_BASE_URL_KEY + ":}")
     private String apiBaseUrl;
 
+    private URL apiBaseUrlObject;
+
     @Value("${" + CommonKey.DASHBOARD_USERNAME_KEY + ":" + CommonKey.DASHBOARD_USERNAME_DEFAULT + "}")
     private String username = CommonKey.DASHBOARD_USERNAME_DEFAULT;
 
@@ -79,8 +106,18 @@ public class DashboardServiceImpl implements DashboardService {
     @Value("${" + CommonKey.DASHBOARD_DATASOURCE_URL_KEY + ":}")
     private String datasourceUrl;
 
+    @Value("${" + CommonKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_KEY + ":"
+        + CommonKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_DEFAULT + "}")
+    private int proxyConnectionTimeout = CommonKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_DEFAULT;
+
+    @Value("${" + CommonKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_KEY + ":" + CommonKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT
+        + "}")
+    private int proxySocketTimeout = CommonKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT;
+
     private ConfigService configService;
     private GrafanaClient grafanaClient;
+    private CloseableHttpClient realServerClient;
+    private String realServerBaseUrl;
 
     private String dashboardConfiguration;
     private GrafanaDashboard configuredDashboard;
@@ -93,6 +130,12 @@ public class DashboardServiceImpl implements DashboardService {
     @PostConstruct
     public void initialize() {
         try {
+            apiBaseUrlObject = new URL(apiBaseUrl);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid dashboard base url: " + apiBaseUrl, e);
+        }
+
+        try {
             dashboardConfiguration = IOUtils.resourceToString(DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
             configuredDashboard = GrafanaClient.parseDashboardData(dashboardConfiguration);
         } catch (IOException e) {
@@ -100,6 +143,12 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         if (isBuiltIn()) {
+            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(proxyConnectionTimeout)
+                .setSocketTimeout(proxySocketTimeout).build();
+            realServerClient =
+                HttpClients.custom().setDefaultRequestConfig(requestConfig).disableRedirectHandling().build();
+            realServerBaseUrl = apiBaseUrl.substring(0, apiBaseUrl.length() - apiBaseUrlObject.getPath().length());
+
             grafanaClient = new GrafanaClient(apiBaseUrl, username, password);
             EXECUTOR.submit(new DashboardInitializer(overwriteWhenStartUp));
         }
@@ -193,6 +242,19 @@ public class DashboardServiceImpl implements DashboardService {
         return dashboardConfiguration.replace(DATASOURCE_UID_PLACEHOLDER, dataSourceUid);
     }
 
+    @Override
+    public void forwardDashboardRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isBuiltIn()) {
+            throw new IllegalStateException(
+                "Dashboard request forward function is only available for built-in dashboard.");
+        }
+
+        HttpUriRequest proxyRequest = buildRealServerRequest(request);
+        try (CloseableHttpResponse proxyResponse = realServerClient.execute(proxyRequest)) {
+            forwardResponse(response, proxyResponse);
+        }
+    }
+
     private DashboardInfo getBuiltInDashboardInfo() {
         List<GrafanaSearchResult> results;
         try {
@@ -219,6 +281,37 @@ public class DashboardServiceImpl implements DashboardService {
 
     private boolean isBuiltIn() {
         return StringUtils.isNoneBlank(apiBaseUrl, datasourceUrl);
+    }
+
+    private HttpUriRequest buildRealServerRequest(HttpServletRequest originalRequest) throws IOException {
+        String servletPath = originalRequest.getServletPath();
+        if (!servletPath.startsWith(apiBaseUrlObject.getPath())) {
+            throw new IllegalArgumentException("Invalid dashboard request path: " + servletPath);
+        }
+
+        String url = realServerBaseUrl + servletPath;
+        if (originalRequest.getQueryString() != null) {
+            url = url + "?" + originalRequest.getQueryString();
+        }
+
+        HttpEntity entity = new BufferedHttpEntity(
+            new InputStreamEntity(originalRequest.getInputStream(), originalRequest.getContentLength()));
+        HttpUriRequest request =
+            RequestBuilder.create(originalRequest.getMethod()).setEntity(entity).setUri(url).build();
+
+        Collections.list(originalRequest.getHeaderNames()).stream()
+            .filter(name -> !IGNORE_REQUEST_HEADERS.contains(name.toLowerCase()))
+            .forEach(name -> request.setHeader(new BasicHeader(name, originalRequest.getHeader(name))));
+
+        return request;
+    }
+
+    private void forwardResponse(HttpServletResponse response, HttpResponse forwardResponse) throws IOException {
+        Arrays.stream(forwardResponse.getAllHeaders())
+            .filter(header -> !IGNORE_RESPONSE_HEADERS.contains(header.getName().toLowerCase()))
+            .forEach(header -> response.setHeader(header.getName(), header.getValue()));
+        response.setStatus(forwardResponse.getStatusLine().getStatusCode());
+        Streams.copy(forwardResponse.getEntity().getContent(), response.getOutputStream(), false);
     }
 
     private class DashboardInitializer implements Runnable {

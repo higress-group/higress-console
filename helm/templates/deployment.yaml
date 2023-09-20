@@ -47,9 +47,9 @@ spec:
               value: {{ include "higress-console.controller.jwtPolicy" . }}
             {{- if .Values.o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
-              value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ .Values.o11y.grafana.ingress.path }}
+              value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ include "higress-console-grafana.path" . }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
-              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ .Values.o11y.prometheus.ingress.path }}
+              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
             {{- end }}
             - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
               value: {{ .Values.global.ingressClass }}

@@ -60,6 +60,11 @@
 			<version>1.2.83</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+
 		<!-- https://github.com/kubernetes-client/java/wiki/2.-Versioning-and-Compatibility -->
 		<dependency>
 			<groupId>io.kubernetes</groupId>
