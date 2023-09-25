@@ -56,12 +56,20 @@ Create a default fully qualified app name for Grafana.
 {{- printf "%s-grafana" ($consoleName | trunc 55) }}
 {{- end }}
 
+{{- define "higress-console-grafana.path" -}}
+/grafana
+{{- end }}
+
 {{/*
 Create a default fully qualified app name for Prometheus.
 */}}
 {{- define "higress-console-prometheus.name" -}}
 {{- $consoleName := include "higress-console.name" . }}
 {{- printf "%s-prometheus" ($consoleName | trunc 52) }}
+{{- end }}
+
+{{- define "higress-console-prometheus.path" -}}
+/prometheus
 {{- end }}
 
 {{/*

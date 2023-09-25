@@ -2,7 +2,6 @@
 {{- $appName := (include "higress-console-grafana.name" .) }}
 {{- $config := .Values.o11y.grafana }}
 {{- $port := $config.port -}}
-{{- $ingress := $config.ingress }}
 {{- $storageClassName := $config.pvc.storageClassName }}
 {{- $existedPvc := (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $appName) }}
 {{- if $existedPvc }}
@@ -22,7 +21,7 @@ data:
     [server]
     protocol=http
     domain=localhost
-    root_url="%(protocol)s://%(domain)s{{ $ingress.path }}"
+    root_url="%(protocol)s://%(domain)s{{ include "higress-console-grafana.path" . }}"
     serve_from_sub_path=true
 
     [auth]
@@ -128,58 +127,4 @@ spec:
     app: {{ $appName }}
   sessionAffinity: None
   type: ClusterIP
----
-{{- if and .Values.global.ingressClass (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
-  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.global.ingressClass}}
-  {{- end }}
-{{- end }}
-{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
-apiVersion: networking.k8s.io/v1
-{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion }}
-apiVersion: networking.k8s.io/v1beta2
-{{- else }}
-apiVersion: extensions/v1beta1
-{{- end }}
-kind: Ingress
-metadata:
-  name: {{ $appName }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "higress-console.labels" . | nindent 4 }}
-  annotations:
-  {{- if .Values.tlsSecretName }}
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  {{- end }}
-  {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  {{- if and .Values.global.ingressClass (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.global.ingressClass }}
-  {{- end }}
-  {{- if .Values.tlsSecretName }}
-  tls:
-    - hosts:
-        - {{ .Values.domain | quote }}
-      secretName: {{ .Values.tlsSecretName }}
-  {{- end }}
-  rules:
-    - http:
-        paths:
-          - path: {{ $ingress.path }}
-            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
-            pathType: Prefix
-            {{- end }}
-            backend:
-              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
-              service:
-                name: {{ $appName }}
-                port:
-                  number: {{ $port }}
-              {{- else }}
-              serviceName: {{ $appName }}
-              servicePort: {{ $port }}
-              {{- end }}
-      host: {{ .Values.domain | quote }}
 {{- end }}

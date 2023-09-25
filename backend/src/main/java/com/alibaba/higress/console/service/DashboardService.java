@@ -12,6 +12,11 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
 
 /**
@@ -26,4 +31,6 @@ public interface DashboardService {
     void setDashboardUrl(String url);
 
     String buildConfigData(String dataSourceUid);
+
+    void forwardDashboardRequest(HttpServletRequest request, HttpServletResponse response) throws IOException;
 }
