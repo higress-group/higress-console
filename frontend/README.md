@@ -34,4 +34,4 @@ $ npm start
 └── tsconfig.json
 ```
 
-For more detail, please visit [docs](https://v3.ice.work/).
+For more details, please visit [docs](https://v3.ice.work/).

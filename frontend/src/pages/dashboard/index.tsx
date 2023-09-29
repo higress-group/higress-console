@@ -112,7 +112,7 @@ const Dashboard: React.FC = () => {
       return (
         <>
           <Form form={form} layout="vertical">
-            <h3>{t('dashboard.k8s.noBuiltInDashboard')}</h3>
+            <h3>{t('dashboard.noBuiltInDashboard')}</h3>
             <Form.Item
               label={t('dashboard.setForm.url')}
               required

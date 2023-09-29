@@ -9,6 +9,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: auto;
+  background-color: white;
 }
 
 .container :global {

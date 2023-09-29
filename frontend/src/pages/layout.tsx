@@ -1,21 +1,22 @@
 import logo from '@/assets/logo.png';
 import AvatarDropdown from '@/components/AvatarDropdown';
-import Footer from '@/components/Footer';
 import ChatRobot from '@/components/ChatRobot';
+import Footer from '@/components/Footer';
 import LanguageDropdown from '@/components/LanguageDropdown';
 import Navbar from '@/components/Navbar';
-import { asideMenuConfig } from '@/menuConfig';
 import store from '@/store';
 import ProLayout from '@ant-design/pro-layout';
+import { Route } from '@ant-design/pro-layout/es/typing';
 import { Result } from 'antd';
 import { Link, Outlet, useLocation } from 'ice';
 import { useTranslation } from 'react-i18next';
 import styles from './layout.module.css';
+import defaultProps from './_defaultProps';
 
 export default function Layout() {
+  const [userState] = store.useModel('user');
   const location = useLocation();
   const { t } = useTranslation();
-  const [userState] = store.useModel('user');
 
   if (window.frameElement) {
     // Embedded in a same-origin iframe or object
@@ -26,15 +27,13 @@ export default function Layout() {
     />)
   }
 
-  if (['/login'].includes(location.pathname)) {
-    return <Outlet />;
-  }
-
+  const route = findRouteByPath(defaultProps.route, location.pathname);
   return (
     <ProLayout
-      menu={{ defaultOpenAll: true }}
+      {...defaultProps}
       className={styles.layout}
       logo={<img src={logo} alt="logo" />}
+      pure={route && !!route.usePureLayout}
       title=""
       location={{
         pathname: location.pathname,
@@ -44,11 +43,15 @@ export default function Layout() {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Navbar />
           <LanguageDropdown />
-          <AvatarDropdown avatar={userState.currentUser.avatarUrl} name={userState.currentUser.displayName} />
+          <AvatarDropdown avatar={userState.currentUser.avatarUrl || ''} name={userState.currentUser.displayName} />
         </div>
       )}
-      menuDataRender={() => {
-        return asideMenuConfig.map((c) => Object.assign({}, c, { name: t(c.name) }));
+      pageTitleRender={(props, defaultPageTitle) => {
+        return (route && route.name ? t(route.name) : defaultPageTitle) || '';
+      }}
+      menu={{ defaultOpenAll: true }}
+      menuDataRender={(items) => {
+        return items.filter(i => !i.hideFromMenu).map(i => Object.assign({}, i, { name: t(i.name || '') }));
       }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {
@@ -62,4 +65,24 @@ export default function Layout() {
       <ChatRobot />
     </ProLayout>
   );
+}
+
+function findRouteByPath(route: Route, pathname?: string): Route | undefined {
+  if (!route || !pathname) {
+    return undefined;
+  }
+
+  if (route.path === pathname) {
+    return route;
+  }
+
+  if (route.routes) {
+    for (const subRoute of route.routes) {
+      const matchedSubRoute = findRouteByPath(subRoute, pathname);
+      if (matchedSubRoute) {
+        return matchedSubRoute;
+      }
+    }
+  }
+  return undefined;
 }

@@ -1,4 +1,4 @@
-import type { LoginParams, UserInfo } from '@/interfaces/user';
+import type { ChangePasswordParams, LoginParams, UserInfo } from '@/interfaces/user';
 import request from './request';
 
 export async function login(data: LoginParams): Promise<UserInfo> {
@@ -13,6 +13,6 @@ export async function fetchUserInfo(): Promise<UserInfo> {
   return await request.get('/user/info');
 }
 
-export async function changePassword(data: any): Promise<any> {
+export async function changePassword(data: ChangePasswordParams): Promise<any> {
   return await request.post('/user/changePassword', data);
 }
