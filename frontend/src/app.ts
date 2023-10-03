@@ -3,7 +3,7 @@ import { defineStoreConfig } from '@ice/plugin-store/esm/types';
 import { defineAppConfig, defineDataLoader } from 'ice';
 import './i18n';
 import { UserInfo } from './interfaces/user';
-import { getConfigs } from './services/system';
+import { getConfigs, getSystemInfo } from './services/system';
 import { fetchUserInfo } from './services/user';
 
 // App config, see https://v3.ice.work/docs/guide/basic/app
@@ -22,7 +22,7 @@ export const authConfig = defineAuthConfig(async (appData) => {
 });
 
 export const storeConfig = defineStoreConfig(async (appData) => {
-  const { userInfo = {}, config = {} } = appData;
+  const { userInfo = {}, config = {}, systemInfo = {} } = appData;
   return {
     initialStates: {
       user: {
@@ -31,6 +31,7 @@ export const storeConfig = defineStoreConfig(async (appData) => {
       config: {
         properties: config,
       },
+      system: systemInfo,
     },
   };
 });
@@ -51,9 +52,16 @@ export const dataLoader = defineDataLoader(async () => {
   } catch (e) {
     config = {};
   }
+  let systemInfo;
+  try {
+    systemInfo = await getSystemInfo();
+  } catch (e) {
+    systemInfo = {};
+  }
   return {
     userInfo,
     config,
+    systemInfo,
   };
 });
 

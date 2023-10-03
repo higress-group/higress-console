@@ -22,6 +22,8 @@
 		<retrofit.version>2.9.0</retrofit.version>
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
+		<app.build.version>1.2.1</app.build.version>
+		<app.build.dev>true</app.build.dev>
 	</properties>
 
 	<dependencies>
@@ -205,7 +207,7 @@
 				<version>3.3.0</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-resources-static</id>
 						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy-resources</goal>
@@ -219,7 +221,47 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-resources-properties</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<includes>
+										<include>*.properties</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>6.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<verbose>false</verbose>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+					<failOnNoGitDirectory>true</failOnNoGitDirectory>
+					<includeOnlyProperties>
+						<includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+					</includeOnlyProperties>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
