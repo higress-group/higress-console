@@ -130,12 +130,6 @@ public class DashboardServiceImpl implements DashboardService {
     @PostConstruct
     public void initialize() {
         try {
-            apiBaseUrlObject = new URL(apiBaseUrl);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid dashboard base url: " + apiBaseUrl, e);
-        }
-
-        try {
             dashboardConfiguration = IOUtils.resourceToString(DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
             configuredDashboard = GrafanaClient.parseDashboardData(dashboardConfiguration);
         } catch (IOException e) {
@@ -143,6 +137,12 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         if (isBuiltIn()) {
+            try {
+                apiBaseUrlObject = new URL(apiBaseUrl);
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Invalid dashboard base url: " + apiBaseUrl, e);
+            }
+
             RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(proxyConnectionTimeout)
                 .setSocketTimeout(proxySocketTimeout).build();
             realServerClient =
