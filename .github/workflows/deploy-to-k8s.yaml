@@ -35,7 +35,18 @@ jobs:
           fetch-depth: 1
 
       - name: Build Higress Console Package
-        run: mvn clean package -DskipTests=true -f ./backend/pom.xml
+        run: |
+          BUILD_ARGS=""
+          DEV=true
+          REF=${GITHUB_REF#refs/*/}
+          echo "REF=$REF"
+          if [[ "$REF" =~ ^v.+\..+\..+ ]]; then
+            BUILD_ARGS="$BUILD_ARGS -Dapp.build.version=${REF#v}"
+            DEV=false
+          fi
+          BUILD_ARGS="$BUILD_ARGS -Dapp.build.dev=$DEV"
+          echo "BUILD_ARGS=$BUILD_ARGS"
+          mvn clean package -DskipTests=true -f ./backend/pom.xml $BUILD_ARGS
 
       - name: Caclulate Docker metadata
         id: docker-meta

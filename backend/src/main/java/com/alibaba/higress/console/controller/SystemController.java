@@ -31,12 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.dto.SystemInfo;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
 import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.ConfigService;
 import com.alibaba.higress.console.service.SessionService;
+import com.alibaba.higress.console.service.SystemService;
 
 /**
  * @author CH3CHO
@@ -48,6 +50,7 @@ public class SystemController {
 
     private SessionService sessionService;
     private ConfigService configService;
+    private SystemService systemService;
 
     @Autowired
     public void setSessionService(SessionService sessionService) {
@@ -57,6 +60,11 @@ public class SystemController {
     @Autowired
     public void setConfigService(ConfigService configService) {
         this.configService = configService;
+    }
+
+    @Autowired
+    public void setSystemService(SystemService systemService) {
+        this.systemService = systemService;
     }
 
     @PostMapping("/init")
@@ -78,6 +86,12 @@ public class SystemController {
         configService.setConfigs(configs);
 
         return ControllerUtil.buildSuccessResponseEntity();
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<SystemInfo> info() {
+        SystemInfo info = systemService.getSystemInfo();
+        return ResponseEntity.ok(info);
     }
 
     @GetMapping("/config")
