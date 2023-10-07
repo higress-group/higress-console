@@ -59,6 +59,7 @@ public class SessionServiceImpl implements SessionService {
     private static final int ENCRYPT_KEY_LENGTH = 32;
     private static final String ENCRYPT_IV_KEY = "iv";
     private static final int ENCRYPT_IV_LENGTH = 16;
+    private static final String TOKEN_PART_SEPARATOR= "\1";
 
     @Value("${" + CommonKey.ADMIN_COOKIE_NAME_KEY + ":" + CommonKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = CommonKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -182,7 +183,7 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
 
-        String[] segments = rawToken.split(CommonKey.COMMA);
+        String[] segments = rawToken.split(TOKEN_PART_SEPARATOR);
         if (segments.length < 3) {
             return null;
         }
@@ -237,7 +238,7 @@ public class SessionServiceImpl implements SessionService {
         if (!config.getUsername().equals(user.getName())) {
             return null;
         }
-        String rawToken = String.join(CommonKey.COMMA, config.getUsername(), config.getPassword(),
+        String rawToken = String.join(TOKEN_PART_SEPARATOR, config.getUsername(), config.getPassword(),
             String.valueOf(System.currentTimeMillis()));
         try {
             return AesUtil.encrypt(config.getEncryptKey(), config.getEncryptIv(), rawToken);
