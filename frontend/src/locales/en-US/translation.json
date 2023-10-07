@@ -430,10 +430,25 @@
       "500": "Internal server error"
     }
   },
+  "user": {
+    "changePassword": {
+      "title": "Change Password",
+      "username": "Username",
+      "oldPassword": "Current Password",
+      "oldPasswordRequired": "Please enter the current password",
+      "newPassword": "New Password",
+      "newPasswordRequired": "Please enter the new password",
+      "confirmPassword": "Re-type New Password",
+      "confirmPasswordRequired": "Please re-type the new password here",
+      "confirmPasswordMismatched": "New password does not match. Enter new password again here.",
+      "reloginPrompt": "Password is changed successfully. Please re-login."
+    }
+  },
   "misc": {
     "language": "Language",
     "logout": "Logout",
     "confirm": "Confirm",
+    "submit": "Submit",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
@@ -445,6 +460,7 @@
     "save": "Save",
     "strategy": "Strategy",
     "configure": "Configure",
+    "information": "Information",
     "seconds": "Sec(s)",
     "tbd": "Still in development. To be released soon...",
     "yes": "Yes",

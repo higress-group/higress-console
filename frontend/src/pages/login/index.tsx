@@ -150,12 +150,4 @@ const Login: React.FC = () => {
   );
 };
 
-export const getConfig = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { t } = useTranslation();
-  return {
-    title: t('login.title'),
-  };
-};
-
 export default Login;
