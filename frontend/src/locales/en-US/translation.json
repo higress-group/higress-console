@@ -232,7 +232,7 @@
       "zkServicesPathRequired": "Please input the root path of service registration.",
       "zkServicesPathPlaceholder": "/dubbo and /services are listened by default. The former is the default root path of dubbo service, and the latter is the default root path of Spring Cloud services.",
       "nacosNamespaceId": "ID of the Nacos Namespace",
-      "nacosNamespaceIdPlaceholder": "Only following inputs are allowed: upper- and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
+      "nacosNamespaceIdPlaceholder": "Leave it empty to watch the public namespace only.",
       "nacosNamespaceIdRequired": "Please input the ID of the Nacos namespace.",
       "nacosGroups": "Nacos Service Groups",
       "nacosGroupsRequired": "Please input Nacos service groups.",

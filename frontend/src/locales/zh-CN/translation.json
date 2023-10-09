@@ -232,7 +232,7 @@
       "zkServicesPathRequired": "请输入服务注册根路径",
       "zkServicesPathPlaceholder": "默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
       "nacosNamespaceId": "Nacos命名空间ID",
-      "nacosNamespaceIdPlaceholder": "支持大小写字母、数字、下划线（_）、短划线（-）和星号（*），不超过256个字符。",
+      "nacosNamespaceIdPlaceholder": "留空表示仅监听public命名空间",
       "nacosNamespaceIdRequired": "请输入Nacos命名空间ID",
       "nacosGroups": "Nacos服务分组列表",
       "nacosGroupsRequired": "请输入Nacos服务分组列表",
