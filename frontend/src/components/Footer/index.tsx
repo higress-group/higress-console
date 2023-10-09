@@ -1,33 +1,21 @@
-import { GithubOutlined } from '@ant-design/icons';
-import { DefaultFooter } from '@ant-design/pro-layout';
+import store from '@/store';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const [systemState] = store.useModel('system');
 
   return (
-    <DefaultFooter
-      copyright={`copyright ${currentYear} Higress`}
-      // links={[
-      //   {
-      //     key: 'ice.js',
-      //     title: 'ice.js',
-      //     href: 'https://v3.ice.work',
-      //     blankTarget: true,
-      //   },
-      //   {
-      //     key: 'github',
-      //     title: <GithubOutlined />,
-      //     href: 'https://github.com/alibaba/ice',
-      //     blankTarget: true,
-      //   },
-      //   {
-      //     key: 'Ant Design',
-      //     title: 'Ant Design',
-      //     href: 'https://ant.design',
-      //     blankTarget: true,
-      //   },
-      // ]}
-    />
+    <div style={{ textAlign: 'center', margin: 10 }}>
+      &copy; {currentYear} Higress
+      {
+        systemState.version && (
+          <>
+            <br />
+            v{systemState.version}
+          </>
+        )
+      }
+    </div>
   );
 };
 

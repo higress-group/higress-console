@@ -103,6 +103,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
+            pattern: /^[a-z0-9][a-z0-9.-]*$/,
             message: t('route.routeForm.routeNameRequired'),
           },
         ]}

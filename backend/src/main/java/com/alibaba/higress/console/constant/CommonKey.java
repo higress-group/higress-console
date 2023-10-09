@@ -26,6 +26,12 @@ public class CommonKey {
 
     public final static String MCP_NAMESPACE = "mcp";
 
+    public final static String VERSION_KEY = CONFIG_KEY_PREFIX + "build.version";
+
+    public final static String DEV_BUILD_KEY = CONFIG_KEY_PREFIX + "build.dev";
+
+    public final static boolean DEV_BUILD_DEFAULT = true;
+
     public final static String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";
 
     public final static String CONFIG_MAP_NAME_KEY_DEFAULT = "higress-console";

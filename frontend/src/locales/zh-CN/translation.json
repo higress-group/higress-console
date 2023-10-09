@@ -430,10 +430,25 @@
       "500": "服务器内部错误"
     }
   },
+  "user": {
+    "changePassword": {
+      "title": "修改密码",
+      "username": "用户名",
+      "oldPassword": "当前密码",
+      "oldPasswordRequired": "请输入当前密码",
+      "newPassword": "新密码",
+      "newPasswordRequired": "请输入新密码",
+      "confirmPassword": "确认新密码",
+      "confirmPasswordRequired": "请确认新密码",
+      "confirmPasswordMismatched": "两次输入的新密码不一致",
+      "reloginPrompt": "登录密码已更改，请重新登录。"
+    }
+  },
   "misc": {
     "language": "语言",
     "logout": "退出登录",
     "confirm": "确定",
+    "submit": "提交",
     "cancel": "取消",
     "edit": "编辑",
     "delete": "删除",
@@ -445,6 +460,7 @@
     "save": "保存",
     "strategy": "策略",
     "configure": "配置",
+    "information": "信息",
     "seconds": "秒",
     "tbd": "页面开发中，即将推出...",
     "yes": "是",

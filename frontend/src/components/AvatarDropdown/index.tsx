@@ -1,8 +1,8 @@
 import { logout } from '@/services';
 import store from '@/store';
-import { LogoutOutlined } from '@ant-design/icons';
+import { LockOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown } from 'antd';
-import { history } from 'ice';
+import { definePageConfig, history } from 'ice';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,7 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
 
   const { t } = useTranslation();
 
-  const loginOut = async () => {
+  const doLogout = async () => {
     await logout();
     const pathname = history?.location?.pathname;
     history?.push({
@@ -27,21 +27,29 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
     });
   };
 
-  const onMenuClick = useCallback((event: MenuInfo) => {
-    const { key } = event;
-    if (key === 'logout') {
-      userDispatcher.updateCurrentUser({});
-      loginOut();
-    }
+  const onLogoutClick = useCallback((event: MenuInfo) => {
+    userDispatcher.updateCurrentUser({});
+    doLogout();
+  }, []);
+
+  const onChangePasswordClick = useCallback((event: MenuInfo) => {
+    history?.push(`/user/changePassword`);
   }, []);
 
   const menu = {
     items: [
       {
+        key: 'changePassword',
+        label: t('user.changePassword.title'),
+        icon: <LockOutlined />,
+        onClick: onChangePasswordClick,
+        className: styles.menu,
+      },
+      {
         key: 'logout',
         label: t('misc.logout'),
         icon: <LogoutOutlined />,
-        onClick: onMenuClick,
+        onClick: onLogoutClick,
         className: styles.menu,
       },
     ],
