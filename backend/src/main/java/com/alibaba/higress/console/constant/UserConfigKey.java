@@ -26,6 +26,7 @@ public class UserConfigKey {
     public static final String DASHBOARD_URL = "dashboard.url";
     public static final String CHAT_ENABLED = "chat.enabled";
     public static final String CHAT_ENDPOINT = "chat.endpoint";
+    public static final String ADMIN_PASSWORD_CHANGE_DISABLED = "admin.password-change.disabled";
 
     private static final Map<String, Class<?>> CONFIG_VALUE_TYPES = new HashMap<>();
 
@@ -34,6 +35,7 @@ public class UserConfigKey {
         CONFIG_VALUE_TYPES.put(DASHBOARD_URL, String.class);
         CONFIG_VALUE_TYPES.put(CHAT_ENABLED, Boolean.class);
         CONFIG_VALUE_TYPES.put(CHAT_ENDPOINT, String.class);
+        CONFIG_VALUE_TYPES.put(ADMIN_PASSWORD_CHANGE_DISABLED, Boolean.class);
     }
 
     public static Class<?> getConfigValueType(String key) {
