@@ -195,6 +195,11 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
+        boolean disabled = configService.getBoolean(UserConfigKey.ADMIN_PASSWORD_CHANGE_DISABLED, false);
+        if (disabled) {
+            throw new IllegalStateException("Password change is disabled.");
+        }
+
         AdminConfig adminConfig = getAdminConfig();
         if (!adminConfig.getUsername().equals(username)) {
             throw new ValidationException("Unknown username: " + username);
