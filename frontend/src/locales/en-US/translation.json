@@ -29,9 +29,22 @@
     "autoLogin": "Auto login",
     "forgotPassword": "Forgot password",
     "usernamePlaceholder": "Username",
-    "usernameRequired": "Please input the username!",
+    "usernameRequired": "Please input username",
     "passwordPlaceholder": "Password",
-    "passwordRequired": "Please input the password!"
+    "passwordRequired": "Please input password"
+  },
+  "init": {
+    "title": "System Setup",
+    "header": "Setup Admin Account",
+    "usernamePlaceholder": "Username",
+    "usernameRequired": "Please input username",
+    "passwordPlaceholder": "Password",
+    "passwordRequired": "Please input password",
+    "confirmPasswordPlaceholder": "Re-type Password",
+    "confirmPasswordRequired": "Please re-type the password here",
+    "confirmPasswordMismatched": "Password does not match. Enter the password again here.",
+    "initSuccess": "Setup completed. Redirecting to the login page.",
+    "initFailed": "Setup operation failed."
   },
   "domain": {
     "columns": {

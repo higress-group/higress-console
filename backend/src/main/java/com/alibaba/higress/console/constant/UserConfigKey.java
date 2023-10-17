@@ -36,6 +36,7 @@ public class UserConfigKey {
         CONFIG_VALUE_TYPES.put(CHAT_ENABLED, Boolean.class);
         CONFIG_VALUE_TYPES.put(CHAT_ENDPOINT, String.class);
         CONFIG_VALUE_TYPES.put(ADMIN_PASSWORD_CHANGE_DISABLED, Boolean.class);
+        CONFIG_VALUE_TYPES.put(SYSTEM_INITIALIZED, Boolean.class);
     }
 
     public static Class<?> getConfigValueType(String key) {

@@ -52,9 +52,7 @@ web:
 admin:
   username: admin
   displayName: Admin
-  password:
-    length: 8 # The length of random password generated during installation
-    value: "" # If set, the value will be used as the admin password for login, and Helm won't generate a random password.
+  password: "" # If set, the value will be used as the admin password for login.
 
 chat:
   enabled: false
