@@ -13,6 +13,12 @@ export default {
     path: '/',
     routes: [
       {
+        name: 'init.title',
+        path: '/init',
+        hideFromMenu: true,
+        usePureLayout: true,
+      },
+      {
         name: 'login.title',
         path: '/login',
         hideFromMenu: true,

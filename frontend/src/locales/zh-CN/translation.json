@@ -20,6 +20,19 @@
   "index": {
     "title": "Higress Console"
   },
+  "init": {
+    "title": "系统初始化",
+    "header": "初始化管理员账号",
+    "usernamePlaceholder": "用户名",
+    "usernameRequired": "请输入用户名",
+    "passwordPlaceholder": "密码",
+    "passwordRequired": "请输入密码",
+    "confirmPasswordPlaceholder": "确认密码",
+    "confirmPasswordRequired": "请确认密码",
+    "confirmPasswordMismatched": "两次输入的密码不一致",
+    "initSuccess": "初始化成功，稍后将跳转至登录页面。",
+    "initFailed": "初始化操作失败。"
+  },
   "login": {
     "title": "登录",
     "buttonText": "登录",

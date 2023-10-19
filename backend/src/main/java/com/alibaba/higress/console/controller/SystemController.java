@@ -40,6 +40,8 @@ import com.alibaba.higress.console.service.ConfigService;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SystemService;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author CH3CHO
  */
@@ -65,6 +67,11 @@ public class SystemController {
     @Autowired
     public void setSystemService(SystemService systemService) {
         this.systemService = systemService;
+    }
+
+    @PostConstruct
+    public void syncSystemState() {
+        configService.setConfig(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized());
     }
 
     @PostMapping("/init")

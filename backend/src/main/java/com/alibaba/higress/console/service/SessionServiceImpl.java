@@ -89,10 +89,15 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    public boolean isAdminInitialized() {
+        return tryGetAdminConfig() != null;
+    }
+
+    @Override
     public void initializeAdmin(User user) {
-        boolean initialized = configService.getBoolean(UserConfigKey.SYSTEM_INITIALIZED, false);
+        boolean initialized = isAdminInitialized();
         if (initialized) {
-            throw new IllegalStateException("System is already initialized.");
+            throw new IllegalStateException("Admin user is already initialized.");
         }
         V1Secret secret;
         try {
@@ -174,7 +179,11 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
 
-        AdminConfig config = getAdminConfig();
+        AdminConfig config = tryGetAdminConfig();
+        if (config == null) {
+            return null;
+        }
+
         String rawToken;
         try {
             rawToken = AesUtil.decrypt(config.getEncryptKey(), config.getEncryptIv(), token);
@@ -253,16 +262,21 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private AdminConfig getAdminConfig() {
+        AdminConfig config = tryGetAdminConfig();
+        if (config == null) {
+            throw new IllegalStateException("No valid admin config is available.");
+        }
+        return config;
+    }
+
+    private AdminConfig tryGetAdminConfig() {
         AdminConfig localAdminConfig = adminConfigCache.get();
-        if (localAdminConfig == null || localAdminConfig.isExpired(configTtl)) {
+        if (localAdminConfig == null || !localAdminConfig.isExpired(configTtl)) {
             localAdminConfig = loadAdminConfig();
-            if (localAdminConfig != null) {
+            if (localAdminConfig != null && localAdminConfig.isValid()) {
                 localAdminConfig.setLastUpdateTimestamp(System.currentTimeMillis());
                 adminConfigCache.set(localAdminConfig);
             }
-        }
-        if (localAdminConfig == null || !localAdminConfig.isValid()) {
-            throw new IllegalStateException("No valid admin config is available.");
         }
         return localAdminConfig;
     }

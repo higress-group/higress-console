@@ -1,31 +1,16 @@
 import logo from '@/assets/logo.png';
 import LanguageDropdown from '@/components/LanguageDropdown';
-import { LOGIN_PROMPT } from '@/interfaces/config';
+import { LOGIN_PROMPT, SYSTEM_INITIALIZED } from '@/interfaces/config';
 import type { LoginParams, UserInfo } from '@/interfaces/user';
 import { login } from '@/services';
 import store from '@/store';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
-import { history, useAuth } from 'ice';
+import { history, useAuth, useNavigate } from 'ice';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
-
-const LoginMessage: React.FC<{
-  content: string;
-}> = ({ content }) => {
-  return (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      message={content}
-      type="error"
-      showIcon
-    />
-  );
-};
 
 const Login: React.FC = () => {
   const { t } = useTranslation();
@@ -34,9 +19,14 @@ const Login: React.FC = () => {
   const [, userDispatcher] = store.useModel('user');
   const [configModel] = store.useModel('config');
   const [, setAuth] = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const properties = configModel ? configModel.properties : {};
+    if (!properties[SYSTEM_INITIALIZED]) {
+      navigate('/init', { replace: true });
+      return;
+    }
     setLoginPrompt(properties[LOGIN_PROMPT]);
   }, [configModel]);
 
@@ -47,8 +37,6 @@ const Login: React.FC = () => {
   async function handleSubmit(values: LoginParams) {
     try {
       const user = await login(values);
-      // eslint-disable-next-line no-console
-      console.log(user);
       // We only support admin role at the moment.
       user.type = 'admin';
       message.success(t('login.loginSuccess'));
@@ -66,8 +54,6 @@ const Login: React.FC = () => {
       return;
     } catch (error) {
       message.error(t('login.loginFailed'));
-      // eslint-disable-next-line no-console
-      console.log(error);
     }
   }
   return (

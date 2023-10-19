@@ -50,7 +50,7 @@ request.interceptors.response.use(
         }
         // Unauthorized. Jump to the login page.
         Promise.reject(error);
-        if (window.location.href.indexOf('/login') === -1) {
+        if (window.location.href.indexOf('/init') === -1 && window.location.href.indexOf('/login') === -1) {
           window.location.href = `/login?redirect=${window.location.pathname}`;
         }
         return;

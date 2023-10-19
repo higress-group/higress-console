@@ -22,6 +22,8 @@ import com.alibaba.higress.console.controller.dto.User;
  */
 public interface SessionService {
 
+    boolean isAdminInitialized();
+
     void initializeAdmin(User user);
 
     User login(String username, String password);
