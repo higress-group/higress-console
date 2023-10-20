@@ -20,19 +20,6 @@
   "index": {
     "title": "Higress Console"
   },
-  "login": {
-    "title": "Login",
-    "buttonText": "Login",
-    "loginSuccess": "Login successful!",
-    "loginFailed": "Login failed. Please try again.",
-    "incorrectCredentials": "Incorrect username or password.",
-    "autoLogin": "Auto login",
-    "forgotPassword": "Forgot password",
-    "usernamePlaceholder": "Username",
-    "usernameRequired": "Please input username",
-    "passwordPlaceholder": "Password",
-    "passwordRequired": "Please input password"
-  },
   "init": {
     "title": "System Setup",
     "header": "Setup Admin Account",
@@ -45,6 +32,19 @@
     "confirmPasswordMismatched": "Password does not match. Enter the password again here.",
     "initSuccess": "Setup completed. Redirecting to the login page.",
     "initFailed": "Setup operation failed."
+  },
+  "login": {
+    "title": "Login",
+    "buttonText": "Login",
+    "loginSuccess": "Login successful!",
+    "loginFailed": "Login failed. Please try again.",
+    "incorrectCredentials": "Incorrect username or password.",
+    "autoLogin": "Auto login",
+    "forgotPassword": "Forgot password",
+    "usernamePlaceholder": "Username",
+    "usernameRequired": "Please input username",
+    "passwordPlaceholder": "Password",
+    "passwordRequired": "Please input password"
   },
   "domain": {
     "columns": {
@@ -307,6 +307,18 @@
       },
       "parameter": "Parameter"
     },
+    "keyValueGroup": {
+      "columns": {
+        "key": "Key",
+        "value": "ֵValue",
+        "operation": "Action"
+      },
+      "required": {
+        "key": "Please input annotation key.",
+        "value": "Please input annotation value."
+      },
+      "config": "Annotation"
+    },
     "routeForm": {
       "routeName": "Route Name",
       "routeNameTip": "Using a name related to the business scenario is recommended. e.g.: user-default, user-gray, etc.",
@@ -322,12 +334,14 @@
       "pathMatcherRequired": "Please input the path match target.",
       "pathMatcherPlacedholder": "Path match target. e.g.: /user",
       "caseInsensitive": "Case Insensitive",
-      "method": "Method",
-      "methodMatcherPlaceholder": "HTTP method to match. Multiple selections are allowed. If left blank, it will match all the HTTP methods.",
-      "header": "Request Header",
+      "method": "Methods",
+      "methodMatcherPlaceholder": "HTTP methods to match. Multiple selections are allowed. If left blank, it will match all the HTTP methods.",
+      "header": "Request Headers",
       "headerTooltip": "The relation among different arguments is \"and\".",
-      "query": "Query Parameter",
+      "query": "Query Parameters",
       "queryTooltip": "The relation among different arguments is \"and\".",
+      "customConfigs": "Custom Annotations",
+      "customConfigsTip": "Click this \"?\" to view the configuration guide.",
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
       "targetServiceNamedPlaceholder": "Search target service by name"

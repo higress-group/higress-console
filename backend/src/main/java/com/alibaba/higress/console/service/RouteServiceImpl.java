@@ -98,11 +98,6 @@ public class RouteServiceImpl implements RouteService {
     public Route update(Route route) {
         V1Ingress ingress = kubernetesModelConverter.route2Ingress(route);
 
-        V1Ingress existedIngress = kubernetesClientService.readIngress(ingress.getMetadata().getName());
-        if (existedIngress != null) {
-            kubernetesModelConverter.migrateCustomAnnotations(existedIngress, ingress);
-        }
-
         V1Ingress updatedIngress;
         try {
             updatedIngress = kubernetesClientService.replaceIngress(ingress);

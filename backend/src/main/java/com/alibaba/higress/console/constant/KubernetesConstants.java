@@ -25,6 +25,7 @@ public class KubernetesConstants {
 
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
+        public static final String NGINX_INGRESS_KEY_PREFIX = "nginx.ingress.kubernetes.io/";
         public final static String DISABLED_KEY_EXTRA_PREFIX = "disabled.";
         public static final String TRUE_VALUE = "true";
         public static final String USE_REGEX_KEY = "higress.io/use-regex";

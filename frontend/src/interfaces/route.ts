@@ -112,6 +112,9 @@ export interface WasmPluginData {
   imageVersion?: string;
   phase?: string;
   priority?: number;
+  customConfigs?: {
+    [key: string]: string;
+  };
 
   resKey?: string;
   key?: string;
