@@ -111,11 +111,6 @@ interface DataType {
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
-interface FactorGroupProps {
-  id: string;
-  onChange: (record) => void;
-}
-
 const FactorGroup: React.FC = ({ value, onChange }) => {
   const { t } = useTranslation();
 

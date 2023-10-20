@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.higress.console.controller.dto.route.CorsConfig;
 import com.alibaba.higress.console.controller.dto.route.HeaderControlConfig;
@@ -70,8 +71,9 @@ public class Route implements VersionedDto {
 
     private ProxyNextUpstreamConfig proxyNextUpstream;
 
-    // TODO: Not supported yet.
     private CorsConfig cors;
 
     private HeaderControlConfig headerControl;
+
+    private Map<String, String> customConfigs;
 }

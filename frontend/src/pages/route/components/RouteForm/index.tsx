@@ -1,13 +1,16 @@
+import i18n, { lngs } from '@/i18n';
 import { OptionItem } from '@/interfaces/common';
 import { Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
+import { InfoCircleOutlined, QuestionCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select } from 'antd';
+import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
+import KeyValueGroup from '../KeyValueGroup';
 
 const { Option } = Select;
 
@@ -59,7 +62,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
     if (value) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      const { name, domains, path, headers, methods, urlParams, services } = value;
+      const { name, domains, path, headers, methods, urlParams, services, customConfigs } = value;
       const [service] = services;
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
@@ -67,6 +70,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       urlParams && urlParams.map((query) => {
         return { ...query, uid: uniqueId() };
       });
+      const customConfigArray = customConfigs ? Object.keys(customConfigs).map((key) => {
+        return { uid: uniqueId(), key, value: customConfigs[key] };
+      }) : [];
       form.setFieldsValue({
         name,
         domains: domains || [],
@@ -75,6 +81,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         headers: headers || [],
         urlParams: urlParams || [],
         services: service ? upstreamServiceToString(service) : null,
+        customConfigs: customConfigArray,
       });
     }
   }, [_services, _domains, value]);
@@ -86,9 +93,22 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       if (values.domains && !Array.isArray(values.domains)) {
         values.domains = [values.domains];
       }
+      if (values.customConfigs) {
+        const customConfigsObj = {};
+        for (const config of values.customConfigs) {
+          if (config.key) {
+            customConfigsObj[config.key] = config.value || '';
+          }
+        }
+        values.customConfigs = customConfigsObj;
+      }
       return values;
     },
   }));
+
+  const lang = i18n.language;
+  const langConfig = lngs.find(l => l.code === lang);
+  const officialSiteLang = langConfig?.officialSiteCode || lang.toLowerCase();
 
   return (
     <Form
@@ -206,6 +226,21 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           tooltip={t('route.routeForm.queryTooltip')}
         >
           <FactorGroup />
+        </Form.Item>
+        <Form.Item
+          label={
+            <>
+              {t('route.routeForm.customConfigs')}
+              <Tooltip title={t('route.routeForm.customConfigsTip')}>
+                <a href={`https://higress.io/${officialSiteLang}/docs/user/annotation-use-case`} target="_blank">
+                  <QuestionCircleOutlined className="ant-form-item-tooltip" />
+                </a>
+              </Tooltip>
+            </>
+          }
+          name="customConfigs"
+        >
+          <KeyValueGroup />
         </Form.Item>
         <Form.Item
           label={t('route.routeForm.targetService')}

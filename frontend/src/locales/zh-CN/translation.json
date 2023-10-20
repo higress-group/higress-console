@@ -307,6 +307,18 @@
       },
       "parameter": "参数"
     },
+    "keyValueGroup": {
+      "columns": {
+        "key": "Key",
+        "value": "值",
+        "operation": "操作"
+      },
+      "required": {
+        "key": "请输入Key",
+        "value": "请输入值"
+      },
+      "config": "注解"
+    },
     "routeForm": {
       "routeName": "路由名称",
       "routeNameTip": "推荐结合业务场景命名，例如user-default、user-gray等",
@@ -328,6 +340,8 @@
       "headerTooltip": "多个参数之间是“与”关系",
       "query": "请求参数（Query）",
       "queryTooltip": "多个参数之间是“与”关系",
+      "customConfigs": "附加注解（Annotation）",
+      "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务"

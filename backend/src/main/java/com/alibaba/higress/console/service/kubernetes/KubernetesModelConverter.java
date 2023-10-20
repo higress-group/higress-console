@@ -65,6 +65,7 @@ import com.alibaba.higress.console.controller.dto.route.RoutePredicate;
 import com.alibaba.higress.console.controller.dto.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.console.controller.dto.route.UpstreamService;
 import com.alibaba.higress.console.controller.exception.BusinessException;
+import com.alibaba.higress.console.controller.exception.ValidationException;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.console.service.kubernetes.crd.mcp.V1RegistryConfig;
@@ -75,7 +76,6 @@ import com.alibaba.higress.console.service.kubernetes.crd.wasm.V1alpha1WasmPlugi
 import com.alibaba.higress.console.util.TypeUtil;
 import com.google.common.base.Splitter;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
@@ -138,44 +138,6 @@ public class KubernetesModelConverter {
         this.kubernetesClientService = kubernetesClientService;
     }
 
-    public void migrateCustomAnnotations(KubernetesObject src, KubernetesObject dst) {
-        V1ObjectMeta srcMetadata = src.getMetadata();
-        if (srcMetadata == null) {
-            return;
-        }
-
-        if (MapUtils.isEmpty(srcMetadata.getAnnotations())) {
-            return;
-        }
-
-        V1ObjectMeta dstMetadata = Objects.requireNonNull(dst.getMetadata());
-        Map<String, String> dstAnnotations = dstMetadata.getAnnotations();
-        if (dstAnnotations == null) {
-            dstAnnotations = new HashMap<>();
-            dstMetadata.setAnnotations(dstAnnotations);
-        }
-
-        for (Map.Entry<String, String> entry : srcMetadata.getAnnotations().entrySet()) {
-            if (isCustomAnnotation(entry.getKey())) {
-                dstAnnotations.put(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-
-    private static boolean isCustomAnnotation(String key) {
-        if (SUPPORTED_ANNOTATIONS.contains(key)) {
-            return false;
-        }
-        if (!key.startsWith(KubernetesConstants.Annotation.KEY_PREFIX)) {
-            return true;
-        }
-        if (key.contains(KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD)
-            || key.contains(KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD)) {
-            return false;
-        }
-        return true;
-    }
-
     public boolean isIngressSupported(V1Ingress ingress) {
         if (ingress.getMetadata() == null) {
             return false;
@@ -220,6 +182,7 @@ public class KubernetesModelConverter {
         Route route = new Route();
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
+        fillCustomConfigs(route, ingress.getMetadata());
         return route;
     }
 
@@ -230,6 +193,7 @@ public class KubernetesModelConverter {
         fillIngressMetadata(ingress, route);
         fillIngressSpec(ingress, route);
         fillIngressCors(ingress, route);
+        fillIngressAnnotations(ingress, route);
         return ingress;
     }
 
@@ -810,6 +774,19 @@ public class KubernetesModelConverter {
         fillRouteCors(route, metadata);
     }
 
+    private static void fillCustomConfigs(Route route, V1ObjectMeta metadata) {
+        if (metadata == null || MapUtils.isEmpty(metadata.getAnnotations())) {
+            return;
+        }
+        Map<String, String> customConfigs = new HashMap<>();
+        for (Map.Entry<String, String> annotation : metadata.getAnnotations().entrySet()) {
+            if (isCustomAnnotation(annotation.getKey())) {
+                customConfigs.put(annotation.getKey(), annotation.getValue());
+            }
+        }
+        route.setCustomConfigs(customConfigs);
+    }
+
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
         fillPathPredicates(route, metadata, path);
         fillRouteDestinations(route, metadata, path.getBackend());
@@ -849,6 +826,28 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isNotEmpty(cors.getExposeHeaders())) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY,
                 StringUtils.join(cors.getExposeHeaders(), CommonKey.COMMA));
+        }
+    }
+
+    private void fillIngressAnnotations(V1Ingress ingress, Route route) {
+        if (MapUtils.isEmpty(route.getCustomConfigs())) {
+            return;
+        }
+        for (Map.Entry<String, String> config : route.getCustomConfigs().entrySet()) {
+            String key = config.getKey();
+            if (!isCustomAnnotation(key)) {
+                throw new ValidationException("Annotation [" + key + "] is already supported by Console. "
+                    + "Please configure it in the corresponding section instead of using custom annotations.");
+            }
+            if (key.startsWith(KubernetesConstants.Annotation.NGINX_INGRESS_KEY_PREFIX)) {
+                String higressKey = KubernetesConstants.Annotation.KEY_PREFIX
+                    + key.substring(KubernetesConstants.Annotation.NGINX_INGRESS_KEY_PREFIX.length());
+                if (!isCustomAnnotation(higressKey)) {
+                    throw new ValidationException("Annotation [" + key + "] is already supported by Console. "
+                        + "Please configure it in the corresponding section instead of using custom annotations.");
+                }
+            }
+            KubernetesUtil.setAnnotation(ingress, config.getKey(), config.getValue());
         }
     }
 
@@ -1618,5 +1617,19 @@ public class KubernetesModelConverter {
         boolean functionEnabled) {
         String actualKey = functionEnabled ? key : KubernetesConstants.Annotation.DISABLED_KEY_EXTRA_PREFIX + key;
         KubernetesUtil.setAnnotation(metadata, actualKey, value);
+    }
+
+    private static boolean isCustomAnnotation(String key) {
+        if (SUPPORTED_ANNOTATIONS.contains(key)) {
+            return false;
+        }
+        if (!key.startsWith(KubernetesConstants.Annotation.KEY_PREFIX)) {
+            return true;
+        }
+        if (key.contains(KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD)
+            || key.contains(KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD)) {
+            return false;
+        }
+        return true;
     }
 }
