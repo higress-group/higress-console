@@ -17,7 +17,7 @@ header:
     - 'deploy/*'
     - 'helm/**'
     - 'backend/mvnw*'
-    - 'backend/pom.xml'
+    - 'backend/**/pom.xml'
     - 'backend/*.sh'
     - 'backend/**/*.json'
     - 'backend/**/*.md'
