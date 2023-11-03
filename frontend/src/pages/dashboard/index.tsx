@@ -157,7 +157,7 @@ const Dashboard: React.FC = () => {
                       </pre>
                     </li>
                     <li>
-                      {t('dashboard.configNotes.tem2_2')}
+                      {t('dashboard.configNotes.item2_2')}
                       <pre className={`${styles.mb0}`}>
                         GF_SECURITY_COOKIE_SECURE=true<br />
                         GF_SECURITY_COOKIE_SAMESITE=none<br />
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
                       <Input type="text" style={{ width: 200 }} />
                     </Form.Item>
                     <Form.Item>
-                      <Button type="primary" htmlType="submit">{t('dashboard.configNotes.k8s.item3_download')}</Button>
+                      <Button type="primary" htmlType="submit">{t('dashboard.configNotes.item3_download')}</Button>
                     </Form.Item>
                   </Form>
                   <Image
@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
                     }}
                   />
                 </li>
-                <li>{t('dashboard.configNotes.k8s.item4')}</li>
+                <li>{t('dashboard.configNotes.item4')}</li>
               </ol>
             </Panel>
           </Collapse>
