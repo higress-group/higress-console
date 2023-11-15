@@ -1,8 +1,2 @@
 Use the following URL to access the console:
-{{- range $path := .Values.ingress.paths }}
-  http{{ if $.Values.tlsSecretName }}s{{ end }}://{{ $.Values.domain }}{{ .path }}
-{{- end }}
-{{- if or .Values.global.local .Values.global.kind }}
-  Since Higress Console is running in local mode, you may need to add the following line into your hosts file before accessing the console:
-  127.0.0.1 {{ $.Values.domain }}
-{{- end }}
+hgctl dashboard console
