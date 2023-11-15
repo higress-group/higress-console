@@ -15,7 +15,7 @@
     "routeConfig": "Route Config",
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
-    "pluginMarket": "Plugin Market"
+    "pluginManagement": "Plugin Management"
   },
   "index": {
     "title": "Higress Console"
