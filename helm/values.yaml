@@ -27,15 +27,6 @@ service:
   type: ClusterIP
   port: 8080
 
-domain: console.higress.io
-tlsSecretName: ""
-
-ingress:
-  annotations: {}
-  paths:
-    - path: /
-      pathType: Prefix
-
 resources:
   requests:
     cpu: 250m
