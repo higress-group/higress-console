@@ -66,7 +66,7 @@ export default {
         icon: <SafetyCertificateOutlined />,
       },
       {
-        name: 'menu.pluginMarket',
+        name: 'menu.pluginManagement',
         path: '/plugin',
         icon: <WindowsOutlined />,
       },

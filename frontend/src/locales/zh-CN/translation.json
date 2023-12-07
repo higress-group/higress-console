@@ -15,7 +15,7 @@
     "routeConfig": "路由配置",
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
-    "pluginMarket": "插件市场"
+    "pluginManagement": "插件配置"
   },
   "index": {
     "title": "Higress Console"
