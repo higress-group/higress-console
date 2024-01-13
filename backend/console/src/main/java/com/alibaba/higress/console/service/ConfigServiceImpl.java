@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -118,19 +119,7 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public void setConfig(String key, String value) {
-        V1ConfigMap configMap = getConfigMap();
-        if (configMap == null) {
-            throw new IllegalStateException("No ConfigMap is available. Please reinstall Higress Console.");
-        }
-        if (configMap.getData() == null) {
-            configMap.setData(new HashMap<>());
-        }
-        configMap.getData().put(key, value);
-        try {
-            kubernetesClientService.replaceConfigMap(configMap);
-        } catch (ApiException e) {
-            throw new BusinessException("Error occurs when updating ConfigMap.", e);
-        }
+        setConfigs(Collections.singletonMap(key, value));
     }
 
     @Override
@@ -159,8 +148,30 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public void setConfigs(Map<String, Object> configs) {
-        if (MapUtils.isNotEmpty(configs)) {
-            configs.forEach(this::setConfig);
+        if (MapUtils.isEmpty(configs)) {
+            return;
+        }
+
+        V1ConfigMap configMap = getConfigMap();
+        if (configMap == null) {
+            configMap = initConfigMap();
+        }
+        Map<String, String> data = configMap.getData();
+        if (data == null) {
+            data = new HashMap<>();
+            configMap.setData(data);
+        }
+        for (Map.Entry<String, Object> config : configs.entrySet()) {
+            if (config.getValue() == null) {
+                data.remove(config.getKey());
+            } else {
+                data.put(config.getKey(), config.getValue().toString());
+            }
+        }
+        try {
+            kubernetesClientService.replaceConfigMap(configMap);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when updating ConfigMap.", e);
         }
     }
 
@@ -194,8 +205,20 @@ public class ConfigServiceImpl implements ConfigService {
         try {
             return kubernetesClientService.readConfigMap(configMapName);
         } catch (ApiException e) {
-            log.error("Error occurs when reading ConfigMap " + configMapName, e);
-            return null;
+            throw new BusinessException("Error occurs when reading ConfigMap " + configMapName, e);
+        }
+    }
+
+    private V1ConfigMap initConfigMap() {
+        V1ConfigMap configMap = new V1ConfigMap();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        configMap.metadata(metadata);
+        metadata.setName(configMapName);
+        configMap.setData(Collections.emptyMap());
+        try {
+            return kubernetesClientService.createConfigMap(configMap);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading ConfigMap " + configMapName, e);
         }
     }
 }
