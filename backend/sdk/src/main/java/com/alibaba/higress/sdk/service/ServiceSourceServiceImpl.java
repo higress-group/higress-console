@@ -70,9 +70,6 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
-                return PaginatedResult.createFromFullList(Collections.emptyList(), query);
-            }
             throw new BusinessException("Error occurs when getting McpBridge.", e);
         }
         List<ServiceSource> serviceSources = Collections.emptyList();
@@ -94,13 +91,11 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
 
     @Override
     public ServiceSource addOrUpdate(ServiceSource serviceSource) {
-        V1McpBridge mcpBridge = null;
+        V1McpBridge mcpBridge;
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
-            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                throw new BusinessException("Error occurs when getting McpBridge.", e);
-            }
+            throw new BusinessException("Error occurs when getting McpBridge.", e);
         }
         try {
             if (null == mcpBridge) {
@@ -130,21 +125,19 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
-                return;
-            }
             throw new BusinessException("Error occurs when getting McpBridge.", e);
+        }
+        if (mcpBridge == null) {
+            return;
         }
         V1RegistryConfig registry = kubernetesModelConverter.removeV1McpBridgeRegistry(mcpBridge, name);
         if (StringUtils.isNotEmpty(registry.getAuthSecretName())) {
             try {
                 kubernetesClientService.deleteSecret(registry.getAuthSecretName());
             } catch (ApiException e) {
-                if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                    String message = "Error occurs when deleting the secret associated with ServiceSource named "
-                        + registry.getName();
-                    throw new BusinessException(message, e);
-                }
+                String message =
+                    "Error occurs when deleting the secret associated with ServiceSource named " + registry.getName();
+                throw new BusinessException(message, e);
             }
         }
         try {
@@ -160,9 +153,6 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
-                return null;
-            }
             throw new BusinessException("Error occurs when getting McpBridge.", e);
         }
         if (null == mcpBridge || CollectionUtils.isEmpty(mcpBridge.getSpec().getRegistries())) {
@@ -180,13 +170,11 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
 
     @Override
     public ServiceSource add(ServiceSource serviceSource) {
-        V1McpBridge mcpBridge = null;
+        V1McpBridge mcpBridge;
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
         } catch (ApiException e) {
-            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                throw new BusinessException("Error occurs when getting McpBridge.", e);
-            }
+            throw new BusinessException("Error occurs when getting McpBridge.", e);
         }
         try {
             if (null == mcpBridge) {
@@ -262,17 +250,16 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
             try {
                 secret = kubernetesClientService.readSecret(registry.getAuthSecretName());
             } catch (ApiException e) {
-                if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
-                    secret = new V1Secret();
-                    V1ObjectMeta metadata = new V1ObjectMeta();
-                    metadata.setName(registry.getAuthSecretName());
-                    secret.setMetadata(metadata);
-                    secretLost = true;
-                } else {
-                    String message = "Error occurs when getting the secret associated with ServiceSource named "
-                        + serviceSource.getName();
-                    throw new BusinessException(message, e);
-                }
+                String message = "Error occurs when getting the secret associated with ServiceSource named "
+                    + serviceSource.getName();
+                throw new BusinessException(message, e);
+            }
+            if (secret == null) {
+                secret = new V1Secret();
+                V1ObjectMeta metadata = new V1ObjectMeta();
+                metadata.setName(registry.getAuthSecretName());
+                secret.setMetadata(metadata);
+                secretLost = true;
             }
             secret.setData(secretData);
             try {
@@ -325,11 +312,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
             try {
                 secret = kubernetesClientService.readSecret(registry.getAuthSecretName());
             } catch (ApiException e) {
-                if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
-                    secret = null;
-                } else {
-                    throw new BusinessException("Error occurs when getting McpBridge.", e);
-                }
+                throw new BusinessException("Error occurs when getting McpBridge.", e);
             }
             if (secret != null && MapUtils.isNotEmpty(secret.getData())) {
                 authN.setEnabled(true);
