@@ -1252,6 +1252,10 @@ public class KubernetesModelConverter {
                     e);
             }
 
+            if (configMap == null) {
+                continue;
+            }
+
             Domain domain = configMap2Domain(configMap);
 
             if (Domain.EnableHttps.OFF.equals(domain.getEnableHttps())) {

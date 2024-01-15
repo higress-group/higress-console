@@ -74,7 +74,12 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public Route query(String routeName) {
-        V1Ingress ingress = kubernetesClientService.readIngress(routeName);
+        V1Ingress ingress;
+        try {
+            ingress = kubernetesClientService.readIngress(routeName);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading the Ingress with name: " + routeName, e);
+        }
         return ingress != null ? kubernetesModelConverter.ingress2Route(ingress) : null;
     }
 

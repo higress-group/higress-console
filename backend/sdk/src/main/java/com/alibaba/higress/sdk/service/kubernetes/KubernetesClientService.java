@@ -239,14 +239,15 @@ public class KubernetesClientService {
         }
     }
 
-    public V1Ingress readIngress(String name) {
+    public V1Ingress readIngress(String name) throws ApiException {
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         try {
             return apiInstance.readNamespacedIngress(name, controllerNamespace, null);
         } catch (ApiException e) {
-            log.error("getIngress Status code: " + e.getCode() + "Reason: " + e.getResponseBody() + "Response headers: "
-                + e.getResponseHeaders(), e);
-            return null;
+            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+            }
+            throw e;
         }
     }
 
@@ -299,7 +300,14 @@ public class KubernetesClientService {
 
     public V1ConfigMap readConfigMap(String name) throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
+        try {
+            return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     public void deleteConfigMap(String name) throws ApiException {
@@ -341,7 +349,14 @@ public class KubernetesClientService {
 
     public V1Secret readSecret(String name) throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
-        return coreV1Api.readNamespacedSecret(name, controllerNamespace, null);
+        try {
+            return coreV1Api.readNamespacedSecret(name, controllerNamespace, null);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     public V1Secret createSecret(V1Secret secret) throws ApiException {
@@ -418,9 +433,16 @@ public class KubernetesClientService {
 
     public V1McpBridge readMcpBridge(String name) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        Object response = customObjectsApi.getNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
-            controllerNamespace, V1McpBridge.PLURAL, name);
-        return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1McpBridge.API_GROUP, V1McpBridge.VERSION,
+                controllerNamespace, V1McpBridge.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     public List<V1alpha1WasmPlugin> listWasmPlugin() throws ApiException {
@@ -487,9 +509,16 @@ public class KubernetesClientService {
 
     public V1alpha1WasmPlugin readWasmPlugin(String name) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        Object response = customObjectsApi.getNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
-            V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, name);
-        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
+                V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     private void checkResponseStatus(V1Status status) {

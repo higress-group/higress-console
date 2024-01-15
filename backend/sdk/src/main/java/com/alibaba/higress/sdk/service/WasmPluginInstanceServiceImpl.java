@@ -129,9 +129,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
                 existedCr = existedCrs.get(0);
             }
         } catch (ApiException e) {
-            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
-            }
+            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
         }
 
         if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
@@ -178,13 +176,11 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
 
     @Override
     public void delete(WasmPluginInstanceScope scope, String target, String pluginName) {
-        List<V1alpha1WasmPlugin> existedCrs = null;
+        List<V1alpha1WasmPlugin> existedCrs;
         try {
             existedCrs = kubernetesClientService.listWasmPlugin(pluginName);
         } catch (ApiException e) {
-            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
-            }
+            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
         }
         deletePluginInstances(existedCrs, scope, target);
     }
@@ -195,9 +191,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
         try {
             existedCrs = kubernetesClientService.listWasmPlugin();
         } catch (ApiException e) {
-            if (e.getCode() != HttpStatus.NOT_FOUND.value()) {
-                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
-            }
+            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
         }
         deletePluginInstances(existedCrs, scope, target);
     }
