@@ -59,6 +59,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -122,6 +123,8 @@ public class KubernetesClientService {
     @Value("${" + ConfigKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
     private String controllerAccessToken;
 
+    private boolean ingressV1Supported;
+
     @PostConstruct
     public void init() throws IOException {
         if (checkInCluster()) {
@@ -135,6 +138,24 @@ public class KubernetesClientService {
             }
             log.info("init KubernetesClientService LoadKubeConfig");
         }
+
+        initializeK8sCapabilities();
+    }
+
+    private void initializeK8sCapabilities() {
+        try {
+            NetworkingV1Api networkingV1Api = new NetworkingV1Api(client);
+            List<V1APIResource> networkingV1ApiResources = networkingV1Api.getAPIResources().getResources();
+            ingressV1Supported = CollectionUtils.isNotEmpty(networkingV1ApiResources)
+                && networkingV1ApiResources.stream().anyMatch(r -> "Ingress".equals(r.getKind()));
+        } catch (ApiException e) {
+            log.error("Failed to load NetworkingV1 API resources from K8s", e);
+            ingressV1Supported = false;
+        }
+    }
+
+    public boolean checkIngressV1Supported() {
+        return ingressV1Supported;
     }
 
     public boolean checkHigress() throws ApiException {

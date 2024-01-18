@@ -12,16 +12,21 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.higress.console.constant.CapabilityKey;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.controller.dto.SystemInfo;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +63,14 @@ public class SystemServiceImpl implements SystemService {
     private boolean devBuild = SystemConfigKey.DEV_BUILD_DEFAULT;
 
     private String fullVersion;
+    private List<String> capabilities;
+
+    private KubernetesClientService kubernetesClientService;
+
+    @Autowired
+    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+        this.kubernetesClientService = kubernetesClientService;
+    }
 
     @PostConstruct
     public void initialize() {
@@ -65,10 +78,16 @@ public class SystemServiceImpl implements SystemService {
         if (devBuild) {
             fullVersion += "-dev-" + COMMIT_ID;
         }
+
+        List<String> capabilities = new ArrayList<>();
+        if (kubernetesClientService.checkIngressV1Supported()) {
+            capabilities.add(CapabilityKey.CONFIG_INGRESS_V1);
+        }
+        this.capabilities = capabilities;
     }
 
     @Override
     public SystemInfo getSystemInfo() {
-        return new SystemInfo(fullVersion);
+        return new SystemInfo(fullVersion, capabilities);
     }
 }

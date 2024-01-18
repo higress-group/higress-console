@@ -10,22 +10,9 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.controller.dto;
+package com.alibaba.higress.console.constant;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public class CapabilityKey {
 
-import java.util.List;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SystemInfo {
-
-    private String version;
-
-    private List<String> capabilities;
+    public static final String CONFIG_INGRESS_V1 = "config.ingress.v1";
 }
