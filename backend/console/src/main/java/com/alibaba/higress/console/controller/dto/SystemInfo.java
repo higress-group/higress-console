@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,4 +26,6 @@ import lombok.NoArgsConstructor;
 public class SystemInfo {
 
     private String version;
+
+    private List<String> capabilities;
 }

@@ -290,6 +290,7 @@
       "EQUAL": "精确匹配",
       "REGULAR": "正则匹配"
     },
+    "unsupported": "注意：路由配置功能暂不支持版本低于1.19.0的Kubenetes。敬请谅解。",
     "createRoute": "创建路由",
     "editRoute": "编辑路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",

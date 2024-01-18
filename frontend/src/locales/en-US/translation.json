@@ -290,6 +290,7 @@
       "EQUAL": "Equal",
       "REGULAR": "Regex"
     },
+    "unsupported": "Note: Route management feature doesn't support Kubenetes with version < 1.19.0 at the moment.",
     "createRoute": "Create Route",
     "editRoute": "Edit Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",

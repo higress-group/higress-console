@@ -7,14 +7,15 @@ import {
   upstreamServiceToString,
 } from '@/interfaces/route';
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
+import store from '@/store';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
-import { history } from 'ice';
 
 interface RouteFormProps {
   name: string;
@@ -31,6 +32,9 @@ interface RouteFormProps {
 
 const RouteList: React.FC = () => {
   const { t } = useTranslation();
+
+  const [systemState] = store.useModel('system');
+  const routeManagementSupported = systemState && systemState.capabilities && systemState.capabilities.indexOf('config.ingress.v1') !== -1;
 
   const columns = [
     {
@@ -73,13 +77,15 @@ const RouteList: React.FC = () => {
       key: 'action',
       width: 200,
       align: 'center',
-      render: (_, record) => (
-        <Space size="small">
-          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
-          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
-          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
-        </Space>
-      ),
+      render: (_, record) => {
+        routeManagementSupported && (
+          <Space size="small">
+            <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
+            <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+            <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
+          </Space>
+        ) || (<></>)
+      },
     },
   ];
 
@@ -190,6 +196,18 @@ const RouteList: React.FC = () => {
 
   return (
     <PageContainer>
+      {
+        routeManagementSupported || (
+          <Alert
+            description={t('route.unsupported')}
+            type="error"
+            showIcon
+            style={{
+              marginBottom: 16,
+            }}
+          />
+        )
+      }
       <Form
         form={form}
         style={{
@@ -203,7 +221,7 @@ const RouteList: React.FC = () => {
       >
         <Row gutter={24}>
           <Col span={4}>
-            <Button type="primary" onClick={onShowDrawer}>
+            <Button type="primary" onClick={onShowDrawer} disabled={!routeManagementSupported}>
               {t('route.createRoute')}
             </Button>
           </Col>
@@ -241,7 +259,7 @@ const RouteList: React.FC = () => {
         open={openDrawer}
         extra={
           <Space>
-            <Button onClick={handleDrawerCancel}>取消</Button>
+            <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
             <Button type="primary" onClick={handleDrawerOK}>
               {t('misc.confirm')}
             </Button>
