@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.alibaba.higress</groupId>
+		<groupId>io.higress.api</groupId>
 		<artifactId>higress-admin-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>

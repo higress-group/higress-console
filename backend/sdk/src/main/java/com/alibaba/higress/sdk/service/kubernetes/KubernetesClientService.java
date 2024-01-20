@@ -20,29 +20,24 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.alibaba.higress.sdk.constant.ConfigKey;
+import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
@@ -64,8 +59,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressList;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
@@ -79,10 +72,12 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 @Slf4j
-@org.springframework.stereotype.Service
 public class KubernetesClientService {
 
-    private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+    private static final String KUBE_CONFIG_DEFAULT_PATH =
+        Paths.get(System.getProperty("user.home"), "/.kube/config").toString();
+    private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH =
+        "/var/run/secrets/kubernetes.io/serviceaccount/token";
     private static final String CONTROLLER_ACCESS_TOKEN_FILE_PATH = "/var/run/secrets/access-token/token";
     private static final String DEFAULT_LABEL_SELECTORS =
         buildLabelSelector(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
@@ -93,46 +88,45 @@ public class KubernetesClientService {
 
     private Boolean inCluster;
 
-    @Value("${" + ConfigKey.KUBE_CONFIG_KEY + ":}")
-    private String kubeConfig;
+    private final String kubeConfig;
 
-    @Value("${" + ConfigKey.CONTROLLER_SERVICE_NAME_KEY + ":" + ConfigKey.CONTROLLER_SERVICE_NAME_DEFAULT + "}")
-    private String controllerServiceName = ConfigKey.CONTROLLER_SERVICE_NAME_DEFAULT;
+    private final String controllerServiceName;
 
-    @Value("${" + ConfigKey.NS_KEY + ":" + ConfigKey.NS_DEFAULT + "}")
-    private String controllerNamespace = ConfigKey.NS_DEFAULT;
+    private final String controllerNamespace;
 
-    @Value("#{'${" + ConfigKey.PROTECTED_NSES_KEY + ":" + ConfigKey.PROTECTED_NSES + "}'.split('"
-        + Separators.LIST_CONFIG_SEPARATOR + "')}")
-    private Set<String> protectedNses =
-        new HashSet<>(Arrays.asList(ConfigKey.PROTECTED_NSES.split(Separators.LIST_CONFIG_SEPARATOR)));
+    private final String controllerIngressClassName;
 
-    @Value("${" + ConfigKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":" + ConfigKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT
-        + "}")
-    private String controllerIngressClassName = ConfigKey.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
+    private final String controllerServiceHost;
 
-    @Value("${" + ConfigKey.CONTROLLER_SERVICE_HOST_KEY + ":" + ConfigKey.CONTROLLER_SERVICE_HOST_DEFAULT + "}")
-    private String controllerServiceHost = ConfigKey.CONTROLLER_SERVICE_HOST_DEFAULT;
+    private final int controllerServicePort;
 
-    @Value("${" + ConfigKey.CONTROLLER_SERVICE_PORT_KEY + ":" + ConfigKey.CONTROLLER_SERVICE_PORT_DEFAULT + "}")
-    private int controllerServicePort = ConfigKey.CONTROLLER_SERVICE_PORT_DEFAULT;
+    private final String controllerJwtPolicy;
 
-    @Value("${" + ConfigKey.CONTROLLER_JWT_POLICY_KEY + ":" + ConfigKey.CONTROLLER_JWT_POLICY_DEFAULT + "}")
-    private String controllerJwtPolicy = ConfigKey.CONTROLLER_JWT_POLICY_DEFAULT;
-
-    @Value("${" + ConfigKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
     private String controllerAccessToken;
 
     private boolean ingressV1Supported;
 
-    @PostConstruct
-    public void init() throws IOException {
-        if (checkInCluster()) {
+    public KubernetesClientService(HigressServiceConfig config) throws IOException {
+        validateConfig(config);
+
+        this.kubeConfig = config.getKubeConfigPath();
+        this.controllerNamespace = config.getControllerNamespace();
+        this.controllerServiceName = config.getControllerServiceName();
+        this.controllerServiceHost = config.getControllerServiceHost();
+        this.controllerServicePort = config.getControllerServicePort();
+        this.controllerIngressClassName = config.getIngressClassName();
+        this.controllerJwtPolicy = config.getControllerJwtPolicy();
+        this.controllerAccessToken = config.getControllerAccessToken();
+        this.inCluster = isInCluster();
+
+        if (inCluster) {
             client = ClientBuilder.cluster().build();
+            if (StringUtils.isEmpty(controllerAccessToken)) {
+                controllerAccessToken = readTokenFromFile();
+            }
             log.info("init KubernetesClientService InCluster");
         } else {
-            String kubeConfigPath =
-                !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : ConfigKey.KUBE_CONFIG_DEFAULT_PATH;
+            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
             try (FileReader reader = new FileReader(kubeConfigPath)) {
                 client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
             }
@@ -154,42 +148,12 @@ public class KubernetesClientService {
         }
     }
 
-    public boolean checkIngressV1Supported() {
+    public boolean isIngressV1Supported() {
         return ingressV1Supported;
     }
 
-    public boolean checkHigress() throws ApiException {
-        CoreV1Api api = new CoreV1Api(client);
-        V1NamespaceList list = api.listNamespace(null, null, null, null, null, null, null, null, null, null);
-        for (V1Namespace item : list.getItems()) {
-            if (item.getMetadata() != null && ConfigKey.NS_DEFAULT.equals(item.getMetadata().getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public String checkControllerService() {
-        // try {
-        // Configuration.setDefaultApiClient(client);
-        // CoreV1Api api = new CoreV1Api();
-        // V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null,
-        // null);
-        // for (V1Service item : list.getItems()) {
-        // if (controllerServiceName.equals(item.getMetadata().getName())) {
-        // log.info("Get Higress Controller name {}, namespace {}", item.getMetadata().getName(),
-        // item.getMetadata().getNamespace());
-        // return item.getMetadata().getName() + "." + item.getMetadata().getNamespace();
-        // }
-        // }
-        // } catch (Exception e) {
-        // log.error("checkControllerService fail use default ", e);
-        // }
-        return inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
-    }
-
     public boolean isNamespaceProtected(String namespace) {
-        return controllerNamespace.equals(namespace) || protectedNses.contains(namespace);
+        return KubernetesConstants.KUBE_SYSTEM_NS.equals(namespace) || controllerNamespace.equals(namespace);
     }
 
     public List<RegistryzService> gatewayServiceList() throws IOException {
@@ -220,11 +184,8 @@ public class KubernetesClientService {
         return null;
     }
 
-    public boolean checkInCluster() {
-        if (inCluster == null) {
-            inCluster = new File(POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH).exists();
-        }
-        return inCluster;
+    private static boolean isInCluster() {
+        return new File(POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH).exists();
     }
 
     public List<V1Ingress> listIngress() {
@@ -546,11 +507,11 @@ public class KubernetesClientService {
         // TODO: Throw exception accordingly.
     }
 
-    private Request buildControllerRequest(String path) throws IOException {
-        String serviceUrl = checkControllerService();
-        String url = "http://" + serviceUrl + ":" + controllerServicePort + path;
+    private Request buildControllerRequest(String path) {
+        String serviceHost = inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
+        String url = "http://" + serviceHost + ":" + controllerServicePort + path;
         Request.Builder builder = new Request.Builder().url(url);
-        String token = checkInCluster() ? readTokenFromFile() : getTokenFromConfiguration();
+        String token = controllerAccessToken;
         if (!Strings.isNullOrEmpty(token)) {
             builder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
@@ -565,10 +526,6 @@ public class KubernetesClientService {
         return FileUtils.readFileToString(new File(fileName), Charset.defaultCharset());
     }
 
-    private String getTokenFromConfiguration() {
-        return controllerAccessToken;
-    }
-
     private void renderDefaultLabels(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
     }
@@ -578,5 +535,28 @@ public class KubernetesClientService {
             objects.sort(Comparator.comparing(o -> o.getMetadata() != null ? o.getMetadata().getName() : null));
         }
         return objects;
+    }
+
+    private static void validateConfig(HigressServiceConfig config) {
+        if (isInCluster()) {
+            if (StringUtils.isEmpty(config.getControllerServiceName())) {
+                throw new IllegalArgumentException("controllerServiceName is required");
+            }
+        } else {
+            if (StringUtils.isEmpty(config.getControllerServiceHost())) {
+                throw new IllegalArgumentException("controllerServiceHost is required");
+            }
+        }
+        if (StringUtils.isEmpty(config.getControllerNamespace())) {
+            throw new IllegalArgumentException("controllerNamespace is required");
+        }
+        if (config.getControllerServicePort() == null) {
+            throw new IllegalArgumentException("controllerServicePort is required");
+        } else if (config.getControllerServicePort() <= 0 || config.getControllerServicePort() > 65535) {
+            throw new IllegalArgumentException("controllerServicePort is invalid");
+        }
+        if (StringUtils.isEmpty(config.getControllerJwtPolicy())) {
+            throw new IllegalArgumentException("controllerJwtPolicy is required");
+        }
     }
 }

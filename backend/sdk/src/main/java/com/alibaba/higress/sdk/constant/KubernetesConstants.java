@@ -14,6 +14,8 @@ package com.alibaba.higress.sdk.constant;
 
 public class KubernetesConstants {
 
+    public static final String KUBE_SYSTEM_NS = "kube-system";
+
     public static final String K8S_CERT = "cert";
     public static final String K8S_ENABLE_HTTPS = "enableHttps";
 

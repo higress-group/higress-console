@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
@@ -96,7 +95,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author CH3CHO
  */
 @Slf4j
-@org.springframework.stereotype.Service
 public class KubernetesModelConverter {
 
     private static final String PSEUDO_HEADER_PREFIX = ":";
@@ -106,7 +104,7 @@ public class KubernetesModelConverter {
     private static final Set<String> SUPPORTED_ANNOTATIONS;
     private static final Integer DEFAULT_WEIGHT = 100;
 
-    private KubernetesClientService kubernetesClientService;
+    private final KubernetesClientService kubernetesClientService;
 
     static {
         V1TypedLocalObjectReference mcpBridgeReference = new V1TypedLocalObjectReference();
@@ -135,8 +133,7 @@ public class KubernetesModelConverter {
         SUPPORTED_ANNOTATIONS = Collections.unmodifiableSet(supportedAnnotations);
     }
 
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+    public KubernetesModelConverter(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
     }
 

@@ -33,7 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.openapi4j.core.util.TreeUtil;
 import org.openapi4j.parser.model.v3.Schema;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -72,8 +70,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author CH3CHO
  */
 @Slf4j
-@Service
-public class WasmPluginServiceImpl implements WasmPluginService {
+class WasmPluginServiceImpl implements WasmPluginService {
 
     private static final String PLUGINS_RESOURCE_FOLDER = "plugins/";
     private static final String PLUGINS_PROPERTIES_FILE = PLUGINS_RESOURCE_FOLDER + "plugins.properties";
@@ -95,17 +92,13 @@ public class WasmPluginServiceImpl implements WasmPluginService {
 
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
-    private KubernetesClientService kubernetesClientService;
+    private final KubernetesClientService kubernetesClientService;
 
-    private KubernetesModelConverter kubernetesModelConverter;
+    private final KubernetesModelConverter kubernetesModelConverter;
 
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+    public WasmPluginServiceImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesClientService = kubernetesClientService;
-    }
-
-    @Resource
-    public void setKubernetesModelConverter(KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesModelConverter = kubernetesModelConverter;
     }
 

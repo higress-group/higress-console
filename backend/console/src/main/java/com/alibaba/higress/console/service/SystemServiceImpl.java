@@ -80,7 +80,7 @@ public class SystemServiceImpl implements SystemService {
         }
 
         List<String> capabilities = new ArrayList<>();
-        if (kubernetesClientService.checkIngressV1Supported()) {
+        if (kubernetesClientService.isIngressV1Supported()) {
             capabilities.add(CapabilityKey.CONFIG_INGRESS_V1);
         }
         this.capabilities = capabilities;

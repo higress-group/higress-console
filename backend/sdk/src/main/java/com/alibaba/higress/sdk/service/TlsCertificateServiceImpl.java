@@ -15,11 +15,8 @@ package com.alibaba.higress.sdk.service;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -32,20 +29,17 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Secret;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
-public class TlsCertificateServiceImpl implements TlsCertificateService {
+@Slf4j
+class TlsCertificateServiceImpl implements TlsCertificateService {
 
-    private KubernetesClientService kubernetesClientService;
-    private KubernetesModelConverter kubernetesModelConverter;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
 
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+    public TlsCertificateServiceImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesClientService = kubernetesClientService;
-    }
-
-    @Resource
-    public void setKubernetesModelConverter(KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesModelConverter = kubernetesModelConverter;
     }
 

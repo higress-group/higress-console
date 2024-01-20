@@ -15,6 +15,7 @@ package com.alibaba.higress.sdk.service.kubernetes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -40,13 +41,16 @@ import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 
+import static org.mockito.Mockito.mock;
+
 public class KubernetesModelConverterTest {
 
     private KubernetesModelConverter converter;
 
     @BeforeEach
     public void setUp() {
-        converter = new KubernetesModelConverter();
+        KubernetesClientService service = mock(KubernetesClientService.class);
+        converter = new KubernetesModelConverter(service);
     }
 
     @AfterEach
@@ -577,6 +581,7 @@ public class KubernetesModelConverterTest {
         route.setDomains(new ArrayList<>());
         route.setPath(new RoutePredicate());
         route.setCors(new CorsConfig());
+        route.setCustomConfigs(new HashMap<>());
         return route;
     }
 }

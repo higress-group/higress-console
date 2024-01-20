@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +33,10 @@ public class WasmPluginServiceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        service = new WasmPluginServiceImpl();
         KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
         when(kubernetesClientService.listWasmPlugin()).thenReturn(Collections.emptyList());
-        service.setKubernetesClientService(kubernetesClientService);
+        KubernetesModelConverter kubernetesModelConverter = mock(KubernetesModelConverter.class);
+        service = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
         service.initialize();
     }
 

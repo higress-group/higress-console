@@ -22,6 +22,22 @@ public class SystemConfigKey {
 
     public static final boolean DEV_BUILD_DEFAULT = true;
 
+    public static final String NS_KEY = CONFIG_KEY_PREFIX + "ns";
+
+    public static final String KUBE_CONFIG_KEY = CONFIG_KEY_PREFIX + "kube-config";
+
+    public static final String CONTROLLER_ACCESS_TOKEN_KEY = CONFIG_KEY_PREFIX + "controller.access-token";
+
+    public static final String CONTROLLER_JWT_POLICY_KEY = CONFIG_KEY_PREFIX + "controller.jwt-policy";
+
+    public static final String CONTROLLER_SERVICE_PORT_KEY = CONFIG_KEY_PREFIX + "controller.service.port";
+
+    public static final String CONTROLLER_SERVICE_HOST_KEY = CONFIG_KEY_PREFIX + "controller.service.host";
+
+    public static final String CONTROLLER_INGRESS_CLASS_NAME_KEY = CONFIG_KEY_PREFIX + "controller.ingress-class-name";
+
+    public static final String CONTROLLER_SERVICE_NAME_KEY = CONFIG_KEY_PREFIX + "controller.service.name";
+
     public static final String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";
 
     public static final String CONFIG_MAP_NAME_KEY_DEFAULT = "higress-console";
