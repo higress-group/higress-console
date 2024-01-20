@@ -78,7 +78,7 @@ const RouteList: React.FC = () => {
       width: 200,
       align: 'center',
       render: (_, record) => {
-        routeManagementSupported && (
+        return routeManagementSupported && (
           <Space size="small">
             <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
             <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
