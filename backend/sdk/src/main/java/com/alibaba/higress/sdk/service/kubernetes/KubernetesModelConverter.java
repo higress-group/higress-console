@@ -1625,6 +1625,9 @@ public class KubernetesModelConverter {
     }
 
     private static boolean isCustomAnnotation(String key) {
+        if (key.startsWith(KubernetesConstants.Annotation.DISABLED_KEY_EXTRA_PREFIX)) {
+            key = key.substring(KubernetesConstants.Annotation.DISABLED_KEY_EXTRA_PREFIX.length());
+        }
         if (SUPPORTED_ANNOTATIONS.contains(key)) {
             return false;
         }
