@@ -99,6 +99,7 @@ import lombok.extern.slf4j.Slf4j;
 @org.springframework.stereotype.Service
 public class KubernetesModelConverter {
 
+    private static final String PSEUDO_HEADER_PREFIX = ":";
     private static final Splitter LINE_SPLITTER = Splitter.on('\n').trimResults().omitEmptyStrings();
     private static final Splitter FIELD_SPLITTER = Splitter.on(Pattern.compile(" +")).trimResults().omitEmptyStrings();
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
@@ -1053,6 +1054,13 @@ public class KubernetesModelConverter {
                 headers.add(headerPredicate);
                 return;
             }
+            KeyedRoutePredicate pseudoHeaderPredicate =
+                buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.PSEUDO_HEADER_MATCH_KEYWORD);
+            if (pseudoHeaderPredicate != null) {
+                pseudoHeaderPredicate.setKey(PSEUDO_HEADER_PREFIX + pseudoHeaderPredicate.getKey());
+                headers.add(pseudoHeaderPredicate);
+                return;
+            }
             KeyedRoutePredicate queryPredicate =
                 buildKeyedRoutePredicate(k, v, KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD);
             if (queryPredicate != null) {
@@ -1602,8 +1610,13 @@ public class KubernetesModelConverter {
 
     private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
-        String annotationName = String.format(KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT,
-            predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
+        String key = keyedRoutePredicate.getKey();
+        String format = KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT;
+        if (key.startsWith(PSEUDO_HEADER_PREFIX)) {
+            key = key.substring(PSEUDO_HEADER_PREFIX.length());
+            format = KubernetesConstants.Annotation.PSEUDO_HEADER_MATCH_KEY_FORMAT;
+        }
+        String annotationName = String.format(format, predicateType.getAnnotationPrefix(), key);
         KubernetesUtil.setAnnotation(metadata, annotationName, keyedRoutePredicate.getMatchValue());
     }
 
@@ -1635,6 +1648,7 @@ public class KubernetesModelConverter {
             return true;
         }
         if (key.contains(KubernetesConstants.Annotation.HEADER_MATCH_KEYWORD)
+            || key.contains(KubernetesConstants.Annotation.PSEUDO_HEADER_MATCH_KEYWORD)
             || key.contains(KubernetesConstants.Annotation.QUERY_MATCH_KEYWORD)) {
             return false;
         }
