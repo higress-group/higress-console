@@ -32,8 +32,6 @@ import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
@@ -41,12 +39,14 @@ import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeList;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginList;
 import com.alibaba.higress.sdk.service.kubernetes.model.IstioEndpointShard;
 import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzService;
+import com.google.common.net.HttpHeaders;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiClient;
@@ -226,7 +226,7 @@ public class KubernetesClientService {
         try {
             return apiInstance.readNamespacedIngress(name, controllerNamespace, null);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
                 return null;
             }
             throw e;
@@ -258,7 +258,7 @@ public class KubernetesClientService {
         try {
             status = apiInstance.deleteNamespacedIngress(name, controllerNamespace, null, null, null, null, null, null);
         } catch (ApiException ae) {
-            if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (ae.getCode() == HttpStatus.NOT_FOUND) {
                 // The Ingress to be deleted is already gone or never existed.
                 return;
             }
@@ -285,7 +285,7 @@ public class KubernetesClientService {
         try {
             return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
                 return null;
             }
             throw e;
@@ -298,7 +298,7 @@ public class KubernetesClientService {
         try {
             status = coreV1Api.deleteNamespacedConfigMap(name, controllerNamespace, null, null, null, null, null, null);
         } catch (ApiException ae) {
-            if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (ae.getCode() == HttpStatus.NOT_FOUND) {
                 // The ConfigMap to be deleted is already gone or never existed.
                 return;
             }
@@ -334,7 +334,7 @@ public class KubernetesClientService {
         try {
             return coreV1Api.readNamespacedSecret(name, controllerNamespace, null);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
                 return null;
             }
             throw e;
@@ -364,7 +364,7 @@ public class KubernetesClientService {
         try {
             status = coreV1Api.deleteNamespacedSecret(name, controllerNamespace, null, null, null, null, null, null);
         } catch (ApiException ae) {
-            if (ae.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (ae.getCode() == HttpStatus.NOT_FOUND) {
                 // The Secret to be deleted is already gone or never existed.
                 return;
             }
@@ -420,7 +420,7 @@ public class KubernetesClientService {
                 controllerNamespace, V1McpBridge.PLURAL, name);
             return client.getJSON().deserialize(client.getJSON().serialize(response), V1McpBridge.class);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
                 return null;
             }
             throw e;
@@ -496,7 +496,7 @@ public class KubernetesClientService {
                 V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, name);
             return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.value()) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
                 return null;
             }
             throw e;

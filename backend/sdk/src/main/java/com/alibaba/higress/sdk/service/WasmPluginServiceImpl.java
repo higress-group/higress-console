@@ -40,12 +40,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi4j.core.util.TreeUtil;
 import org.openapi4j.parser.model.v3.Schema;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginConfig;
@@ -387,7 +387,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
         try {
             addedCr = kubernetesClientService.createWasmPlugin(cr);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException("Error occurs when adding a new Wasm plugin.", e);
@@ -441,7 +441,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             try {
                 updatedCr = kubernetesClientService.replaceWasmPlugin(cr);
             } catch (ApiException e) {
-                if (e.getCode() == HttpStatus.CONFLICT.value()) {
+                if (e.getCode() == HttpStatus.CONFLICT) {
                     throw new ResourceConflictException();
                 }
                 throw new BusinessException("Error occurs when updating the Wasm plugin wth name " + crName, e);
@@ -458,7 +458,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
         try {
             updatedCr = kubernetesClientService.createWasmPlugin(cr);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException("Error occurs when adding the Wasm plugin CR wth name " + crName, e);

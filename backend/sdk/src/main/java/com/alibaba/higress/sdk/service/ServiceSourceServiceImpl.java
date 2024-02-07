@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
@@ -104,7 +104,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -191,7 +191,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -282,7 +282,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
                     registry.setAuthSecretName(secretName);
                     done = true;
                 } catch (ApiException e) {
-                    if (e.getCode() == HttpStatus.CONFLICT.value()) {
+                    if (e.getCode() == HttpStatus.CONFLICT) {
                         continue;
                     }
                     String message = "Error occurs when creating the secret associated with ServiceSource named "

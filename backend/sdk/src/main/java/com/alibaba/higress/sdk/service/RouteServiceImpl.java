@@ -17,10 +17,10 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
@@ -80,7 +80,7 @@ class RouteServiceImpl implements RouteService {
         try {
             newIngress = kubernetesClientService.createIngress(ingress);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -97,7 +97,7 @@ class RouteServiceImpl implements RouteService {
         try {
             updatedIngress = kubernetesClientService.replaceIngress(ingress);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(

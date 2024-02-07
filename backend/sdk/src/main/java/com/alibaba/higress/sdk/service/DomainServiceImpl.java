@@ -17,11 +17,11 @@ import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -60,7 +60,7 @@ class DomainServiceImpl implements DomainService {
         try {
             newDomainConfigMap = kubernetesClientService.createConfigMap(domainConfigMap);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException("Error occurs when adding a new domain.", e);
@@ -118,7 +118,7 @@ class DomainServiceImpl implements DomainService {
         try {
             updatedConfigMap = kubernetesClientService.replaceConfigMap(domainConfigMap);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
