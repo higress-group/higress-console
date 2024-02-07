@@ -51,7 +51,7 @@ public class HigressServiceConfig {
 
         private Builder() {}
 
-        private Builder withKubeConfigPath(String kubeConfigPath) {
+        public Builder withKubeConfigPath(String kubeConfigPath) {
             this.kubeConfigPath = kubeConfigPath;
             return this;
         }
