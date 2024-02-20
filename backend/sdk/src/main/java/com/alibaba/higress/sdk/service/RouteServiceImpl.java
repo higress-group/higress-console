@@ -15,15 +15,12 @@ package com.alibaba.higress.sdk.service;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
@@ -33,26 +30,19 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
-public class RouteServiceImpl implements RouteService {
+@Slf4j
+class RouteServiceImpl implements RouteService {
 
-    private KubernetesClientService kubernetesClientService;
-    private KubernetesModelConverter kubernetesModelConverter;
-    private WasmPluginInstanceService wasmPluginInstanceService;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
+    private final WasmPluginInstanceService wasmPluginInstanceService;
 
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+    public RouteServiceImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesClientService = kubernetesClientService;
-    }
-
-    @Resource
-    public void setKubernetesModelConverter(KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesModelConverter = kubernetesModelConverter;
-    }
-
-    @Resource
-    public void setWasmPluginInstanceService(WasmPluginInstanceService wasmPluginInstanceService) {
         this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
@@ -90,7 +80,7 @@ public class RouteServiceImpl implements RouteService {
         try {
             newIngress = kubernetesClientService.createIngress(ingress);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -107,7 +97,7 @@ public class RouteServiceImpl implements RouteService {
         try {
             updatedIngress = kubernetesClientService.replaceIngress(ingress);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(

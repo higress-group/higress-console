@@ -21,17 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
@@ -45,22 +42,19 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
-public class ServiceSourceServiceImpl implements ServiceSourceService {
+@Slf4j
+class ServiceSourceServiceImpl implements ServiceSourceService {
 
     private static final int SECRET_NAME_ATTEMPTS = 5;
 
-    private KubernetesClientService kubernetesClientService;
-    private KubernetesModelConverter kubernetesModelConverter;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
 
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
+    public ServiceSourceServiceImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesClientService = kubernetesClientService;
-    }
-
-    @Resource
-    public void setKubernetesModelConverter(KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesModelConverter = kubernetesModelConverter;
     }
 
@@ -110,7 +104,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -197,7 +191,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                 kubernetesClientService.replaceMcpBridge(mcpBridge);
             }
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
@@ -288,7 +282,7 @@ public class ServiceSourceServiceImpl implements ServiceSourceService {
                     registry.setAuthSecretName(secretName);
                     done = true;
                 } catch (ApiException e) {
-                    if (e.getCode() == HttpStatus.CONFLICT.value()) {
+                    if (e.getCode() == HttpStatus.CONFLICT) {
                         continue;
                     }
                     String message = "Error occurs when creating the secret associated with ServiceSource named "

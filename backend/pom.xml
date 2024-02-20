@@ -10,11 +10,12 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>com.alibaba.higress</groupId>
+	<groupId>io.higress.api</groupId>
 	<artifactId>higress-admin-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>higress-admin-parent</name>
 	<description>Admin Project for Higress</description>
+	<url>http://higress.io</url>
 
 	<packaging>pom</packaging>
 
@@ -22,6 +23,31 @@
 		<module>sdk</module>
 		<module>console</module>
 	</modules>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>git@github.com:alibaba/higress.git</url>
+		<connection>scm:git@github.com:alibaba/higress.git</connection>
+		<developerConnection>scm:git@github.com:alibaba/higress.git</developerConnection>
+	</scm>
+
+	<developers>
+		<developer>
+			<name>johnlanni</name>
+			<email>zty98751@alibaba-inc.com</email>
+		</developer>
+		<developer>
+			<name>CH3CHO</name>
+			<email>ch3cho@qq.com</email>
+		</developer>
+	</developers>
 
 	<properties>
 		<java.version>17</java.version>
@@ -42,12 +68,16 @@
 		<git-commit-id-plugin.version>6.0.0</git-commit-id-plugin.version>
 		<license-plugin.version>4.1</license-plugin.version>
 		<checkstyle-plugin.version>3.2.1</checkstyle-plugin.version>
+		<maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+		<central-publishing-maven-plugin.version>0.3.0</central-publishing-maven-plugin.version>
 
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
 
 		<app.build.version>1.2.1</app.build.version>
 		<app.build.dev>true</app.build.dev>
+
+		<delombok.output>${project.basedir}/target/delombok-sources</delombok.output>
 	</properties>
 
 	<dependencyManagement>
@@ -123,9 +153,74 @@
 					<artifactId>git-commit-id-maven-plugin</artifactId>
 					<version>${git-commit-id-plugin.version}</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${maven-gpg-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.sonatype.central</groupId>
+					<artifactId>central-publishing-maven-plugin</artifactId>
+					<version>${central-publishing-maven-plugin.version}</version>
+					<extensions>true</extensions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<compilerVersion>${maven.compiler.source}</compilerVersion>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-maven-plugin</artifactId>
+				<version>${lombok.version}.0</version>
+				<configuration>
+					<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+					<outputDirectory>${delombok.output}</outputDirectory>
+					<addOutputDirectory>false</addOutputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>delombok</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<charset>UTF-8</charset>
+					<sourcepath>${delombok.output}</sourcepath>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
@@ -167,6 +262,31 @@
 						<version>2.1.1</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
+					<tokenAuth>true</tokenAuth>
+					<excludeArtifacts>
+						<artifact>higress-console</artifact>
+					</excludeArtifacts>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

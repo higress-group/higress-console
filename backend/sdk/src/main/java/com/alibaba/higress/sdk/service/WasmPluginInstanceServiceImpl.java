@@ -19,17 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi4j.core.util.TreeUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginConfig;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -39,26 +36,19 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 
 import io.kubernetes.client.openapi.ApiException;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
-public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
+@Slf4j
+class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
-    private WasmPluginService wasmPluginService;
-    private KubernetesClientService kubernetesClientService;
-    private KubernetesModelConverter kubernetesModelConverter;
+    private final WasmPluginService wasmPluginService;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
 
-    @Resource
-    public void setWasmPluginService(WasmPluginService wasmPluginService) {
+    public WasmPluginInstanceServiceImpl(WasmPluginService wasmPluginService,
+        KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
         this.wasmPluginService = wasmPluginService;
-    }
-
-    @Resource
-    public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
-    }
-
-    @Resource
-    public void setKubernetesModelConverter(KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesModelConverter = kubernetesModelConverter;
     }
 
@@ -165,7 +155,7 @@ public class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService 
                 result = kubernetesClientService.replaceWasmPlugin(result);
             }
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(

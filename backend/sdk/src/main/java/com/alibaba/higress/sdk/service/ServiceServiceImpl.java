@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
@@ -38,11 +36,13 @@ import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@org.springframework.stereotype.Service
-public class ServiceServiceImpl implements ServiceService {
+class ServiceServiceImpl implements ServiceService {
 
-    @Resource
-    private KubernetesClientService kubernetesClientService;
+    private final KubernetesClientService kubernetesClientService;
+
+    public ServiceServiceImpl(KubernetesClientService kubernetesClientService) {
+        this.kubernetesClientService = kubernetesClientService;
+    }
 
     @Override
     public PaginatedResult<Service> list(CommonPageQuery query) {
@@ -89,7 +89,8 @@ public class ServiceServiceImpl implements ServiceService {
                 }
             }
 
-            services.sort(Comparator.comparing(Service::getNamespace).thenComparing(Service::getName).thenComparing(Service::getPort));
+            services.sort(Comparator.comparing(Service::getNamespace).thenComparing(Service::getName)
+                .thenComparing(Service::getPort));
 
             return PaginatedResult.createFromFullList(services, query);
         } catch (Exception e) {

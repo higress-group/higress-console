@@ -15,15 +15,13 @@ package com.alibaba.higress.sdk.service;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -39,20 +37,21 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@org.springframework.stereotype.Service
-public class DomainServiceImpl implements DomainService {
+class DomainServiceImpl implements DomainService {
 
-    @Resource
-    private KubernetesClientService kubernetesClientService;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
+    private final RouteService routeService;
+    private final WasmPluginInstanceService wasmPluginInstanceService;
 
-    @Resource
-    private KubernetesModelConverter kubernetesModelConverter;
-
-    @Resource
-    private RouteService routeService;
-
-    @Resource
-    private WasmPluginInstanceService wasmPluginInstanceService;
+    public DomainServiceImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter, RouteService routeService,
+        WasmPluginInstanceService wasmPluginInstanceService) {
+        this.kubernetesClientService = kubernetesClientService;
+        this.kubernetesModelConverter = kubernetesModelConverter;
+        this.routeService = routeService;
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
+    }
 
     @Override
     public Domain add(Domain domain) {
@@ -61,7 +60,7 @@ public class DomainServiceImpl implements DomainService {
         try {
             newDomainConfigMap = kubernetesClientService.createConfigMap(domainConfigMap);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException("Error occurs when adding a new domain.", e);
@@ -119,7 +118,7 @@ public class DomainServiceImpl implements DomainService {
         try {
             updatedConfigMap = kubernetesClientService.replaceConfigMap(domainConfigMap);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT.value()) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
