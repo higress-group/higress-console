@@ -134,6 +134,11 @@ spec:
             memory: {{ $config.resources.limits.memory }}
       restartPolicy: Always
       serviceAccountName: {{ $appName }}
+      {{- if .Values.o11y.prometheus.securityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.o11y.prometheus.securityContext.fsGroup }}
+        runAsUser: {{ .Values.o11y.prometheus.securityContext.runAsUser }}
+      {{- end }}
       volumes:
       - name: data
         persistentVolumeClaim:
