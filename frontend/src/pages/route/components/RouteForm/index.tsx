@@ -63,7 +63,6 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     if (value) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
       const { name, domains, path, headers, methods, urlParams, services, customConfigs } = value;
-      const [service] = services;
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
@@ -80,7 +79,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         methods: methods || [],
         headers: headers || [],
         urlParams: urlParams || [],
-        services: service ? upstreamServiceToString(service) : null,
+        services: services ? services.map(upstreamServiceToString) : null,
         customConfigs: customConfigArray,
       });
     }
@@ -254,6 +253,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           ]}
         >
           <Select
+            mode="multiple"
             showSearch
             allowClear
             placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
