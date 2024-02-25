@@ -67,6 +67,7 @@ o11y:
     storage: 1Gi
     pvc:
       storageClassName: ""
+    securityContext: {}
   prometheus:
     replicas: 1
     image:
@@ -81,5 +82,29 @@ o11y:
         cpu: 500m
         memory: 2Gi
     securityContext: {}
+  promtail:
+    image:
+      repository: grafana/promtail
+      tag: 2.9.4
+    port: 3101
+    resources:
+      limits:
+        cpu: 500m
+        memory: 2Gi
+    securityContext: {}
+    gatewayLabelSelector: app=higress-gateway # Label selector used to select gateway pods
+  loki:
+    replicas: 1
+    image:
+      repository: grafana/loki
+      tag: 2.9.4
+    ports:
+      http: 3100
+      grpc: 9095
+    storage: 1Gi
+    pvc:
+      storageClassName: ""
+    securityContext: {}
+
 pvc:
   rwxSupported: true

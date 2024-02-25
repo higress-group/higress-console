@@ -77,8 +77,10 @@ public class DashboardServiceImpl implements DashboardService {
         ImmutableSet.of("connection", "content-length", "content-encoding", "server", "transfer-encoding");
 
     private static final String DATASOURCE_UID_PLACEHOLDER = "${datasource.id}";
-    private static final String DASHBOARD_DATA_PATH = "/dashboard/main.json";
-    private static final String DATASOURCE_TYPE = "prometheus";
+    private static final String MAIN_DASHBOARD_DATA_PATH = "/dashboard/main.json";
+    private static final String LOG_DASHBOARD_DATA_PATH = "/dashboard/logs.json";
+    private static final String PROM_DATASOURCE_TYPE = "prometheus";
+    private static final String LOKI_DATASOURCE_TYPE = "loki";
     private static final String DATASOURCE_ACCESS = "proxy";
 
     private static final ExecutorService EXECUTOR =
@@ -100,18 +102,26 @@ public class DashboardServiceImpl implements DashboardService {
     @Value("${" + SystemConfigKey.DASHBOARD_PASSWORD_KEY + ":" + SystemConfigKey.DASHBOARD_PASSWORD_DEFAULT + "}")
     private String password = SystemConfigKey.DASHBOARD_PASSWORD_DEFAULT;
 
-    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_NAME_KEY + ":" + SystemConfigKey.DASHBOARD_DATASOURCE_NAME_DEFAULT + "}")
-    private String datasourceName = SystemConfigKey.DASHBOARD_DATASOURCE_NAME_DEFAULT;
+    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_PROM_NAME_KEY + ":"
+        + SystemConfigKey.DASHBOARD_DATASOURCE_PROM_NAME_DEFAULT + "}")
+    private String promDatasourceName = SystemConfigKey.DASHBOARD_DATASOURCE_PROM_NAME_DEFAULT;
 
-    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_URL_KEY + ":}")
-    private String datasourceUrl;
+    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_PROM_URL_KEY + ":}")
+    private String promDatasourceUrl;
+
+    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_LOKI_NAME_KEY + ":"
+        + SystemConfigKey.DASHBOARD_DATASOURCE_LOKI_NAME_DEFAULT + "}")
+    private String lokiDatasourceName = SystemConfigKey.DASHBOARD_DATASOURCE_LOKI_NAME_DEFAULT;
+
+    @Value("${" + SystemConfigKey.DASHBOARD_DATASOURCE_LOKI_URL_KEY + ":}")
+    private String lokiDatasourceUrl;
 
     @Value("${" + SystemConfigKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_KEY + ":"
         + SystemConfigKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_DEFAULT + "}")
     private int proxyConnectionTimeout = SystemConfigKey.DASHBOARD_PROXY_CONNECTION_TIMEOUT_DEFAULT;
 
-    @Value("${" + SystemConfigKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_KEY + ":" + SystemConfigKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT
-        + "}")
+    @Value("${" + SystemConfigKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_KEY + ":"
+        + SystemConfigKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT + "}")
     private int proxySocketTimeout = SystemConfigKey.DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT;
 
     private ConfigService configService;
@@ -119,8 +129,10 @@ public class DashboardServiceImpl implements DashboardService {
     private CloseableHttpClient realServerClient;
     private String realServerBaseUrl;
 
-    private String dashboardConfiguration;
-    private GrafanaDashboard configuredDashboard;
+    private String mainDashboardConfiguration;
+    private GrafanaDashboard configuredMainDashboard;
+    private String logDashboardConfiguration;
+    private GrafanaDashboard configuredLogDashboard;
 
     @Resource
     public void setConfigService(ConfigService configService) {
@@ -130,10 +142,12 @@ public class DashboardServiceImpl implements DashboardService {
     @PostConstruct
     public void initialize() {
         try {
-            dashboardConfiguration = IOUtils.resourceToString(DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
-            configuredDashboard = GrafanaClient.parseDashboardData(dashboardConfiguration);
+            mainDashboardConfiguration = IOUtils.resourceToString(MAIN_DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
+            configuredMainDashboard = GrafanaClient.parseDashboardData(mainDashboardConfiguration);
+            logDashboardConfiguration = IOUtils.resourceToString(LOG_DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
+            configuredLogDashboard = GrafanaClient.parseDashboardData(logDashboardConfiguration);
         } catch (IOException e) {
-            throw new IllegalStateException("Error occurs when loading dashboard data from resource.", e);
+            throw new IllegalStateException("Error occurs when loading dashboard configurations from resource.", e);
         }
 
         if (isBuiltIn()) {
@@ -164,66 +178,26 @@ public class DashboardServiceImpl implements DashboardService {
         if (!isBuiltIn()) {
             throw new IllegalStateException("No built-in dashboard is available.");
         }
-        DashboardInfo dashboardInfo = getDashboardInfo();
-        if (!overwrite && dashboardInfo != null && StringUtils.isNotEmpty(dashboardInfo.getUrl())) {
-            throw new IllegalStateException(
-                "Built-in dashboard is already initialized, and the overwrite flag is not set.");
-        }
+
         List<Datasource> datasources;
         try {
             datasources = grafanaClient.getDatasources();
         } catch (IOException e) {
             throw new BusinessException("Error occurs when loading datasources from Grafana.", e);
         }
+        String promDatasourceUid = configurePrometheusDatasource(datasources);
+        String lokiDatasourceUid = configureLokiDatasource(datasources);
 
-        String datasourceUid = null;
-        if (CollectionUtils.isNotEmpty(datasources)) {
-            datasourceUid = datasources.stream().filter(ds -> datasourceName.equals(ds.getName())).findFirst()
-                .map(Datasource::getUid).orElse(null);
-        }
-        if (datasourceUid == null) {
-            Datasource datasource = new Datasource();
-            datasource.setType(DATASOURCE_TYPE);
-            datasource.setName(datasourceName);
-            datasource.setUrl(datasourceUrl);
-            datasource.setAccess(DATASOURCE_ACCESS);
-            try {
-                DatasourceCreationResult result = grafanaClient.createDatasource(datasource);
-                if (result.getDatasource() == null) {
-                    throw new BusinessException("Creating data source call returns success but no datasource object."
-                        + " Message=" + result.getMessage());
-                }
-                datasourceUid = result.getDatasource().getUid();
-            } catch (IOException e) {
-                throw new BusinessException("Error occurs when creating Higress datasource info in Grafana.", e);
-            }
-        }
-
-        String dashboardData = buildConfigData(datasourceUid);
-        GrafanaDashboard dashboard;
+        List<GrafanaSearchResult> results;
         try {
-            dashboard = GrafanaClient.parseDashboardData(dashboardData);
+            results = grafanaClient.search(null, SearchType.DB, null, null);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BusinessException("Error occurs when loading dashboard info from Grafana.", e);
         }
-        try {
-            if (dashboardInfo != null && StringUtils.isNotEmpty(dashboardInfo.getUid())) {
-                String uid = dashboardInfo.getUid();
-                GrafanaDashboard existedDashboard = grafanaClient.getDashboard(uid);
-                if (existedDashboard != null) {
-                    dashboard.setId(existedDashboard.getId());
-                    dashboard.setUid(uid);
-                    dashboard.setVersion(existedDashboard.getVersion());
-                }
-            }
-            if (dashboard.getId() == null) {
-                grafanaClient.createDashboard(dashboard);
-            } else {
-                grafanaClient.updateDashboard(dashboard);
-            }
-        } catch (IOException e) {
-            throw new BusinessException("Error occurs when creating Higress dashboard in Grafana.", e);
-        }
+        configureDashboard(results, configuredMainDashboard.getTitle(), mainDashboardConfiguration, promDatasourceUid,
+            overwrite);
+        configureDashboard(results, configuredLogDashboard.getTitle(), logDashboardConfiguration, lokiDatasourceUid,
+            overwrite);
     }
 
     @Override
@@ -238,8 +212,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public String buildConfigData(String dataSourceUid) {
-        return dashboardConfiguration.replace(DATASOURCE_UID_PLACEHOLDER, dataSourceUid);
+    public String buildConfigData(String datasourceUid) {
+        return buildConfigData(mainDashboardConfiguration, datasourceUid);
     }
 
     @Override
@@ -255,6 +229,100 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
+    private String configurePrometheusDatasource(List<Datasource> existedDatasources) {
+        String datasourceUid = null;
+        if (CollectionUtils.isNotEmpty(existedDatasources)) {
+            datasourceUid = existedDatasources.stream().filter(ds -> promDatasourceUrl.equals(ds.getUrl())).findFirst()
+                .map(Datasource::getUid).orElse(null);
+        }
+        if (datasourceUid == null) {
+            Datasource datasource = new Datasource();
+            datasource.setType(PROM_DATASOURCE_TYPE);
+            datasource.setName(promDatasourceName);
+            datasource.setUrl(promDatasourceUrl);
+            datasource.setAccess(DATASOURCE_ACCESS);
+            try {
+                DatasourceCreationResult result = grafanaClient.createDatasource(datasource);
+                if (result.getDatasource() == null) {
+                    throw new BusinessException("Creating data source call returns success but no datasource object."
+                        + " Message=" + result.getMessage());
+                }
+                datasourceUid = result.getDatasource().getUid();
+            } catch (IOException e) {
+                throw new BusinessException("Error occurs when creating Prometheus datasource in Grafana.", e);
+            }
+        }
+        return datasourceUid;
+    }
+
+    private String configureLokiDatasource(List<Datasource> existedDatasources) {
+        String datasourceUid = null;
+        if (CollectionUtils.isNotEmpty(existedDatasources)) {
+            datasourceUid = existedDatasources.stream().filter(ds -> lokiDatasourceUrl.equals(ds.getUrl())).findFirst()
+                .map(Datasource::getUid).orElse(null);
+        }
+        if (datasourceUid == null) {
+            Datasource datasource = new Datasource();
+            datasource.setType(LOKI_DATASOURCE_TYPE);
+            datasource.setName(lokiDatasourceName);
+            datasource.setUrl(lokiDatasourceUrl);
+            datasource.setAccess(DATASOURCE_ACCESS);
+            try {
+                DatasourceCreationResult result = grafanaClient.createDatasource(datasource);
+                if (result.getDatasource() == null) {
+                    throw new BusinessException("Creating data source call returns success but no datasource object."
+                        + " Message=" + result.getMessage());
+                }
+                datasourceUid = result.getDatasource().getUid();
+            } catch (IOException e) {
+                throw new BusinessException("Error occurs when creating Loki datasource in Grafana.", e);
+            }
+        }
+        return datasourceUid;
+    }
+
+    private void configureDashboard(List<GrafanaSearchResult> results, String title, String configuration,
+        String datasourceUid, boolean overwrite) {
+        if (StringUtils.isEmpty(title)) {
+            throw new IllegalStateException("No title is found in the configured dashboard.");
+        }
+
+        String existedDashboardUid = results.stream().filter(r -> title.equals(r.getTitle()))
+            .map(GrafanaSearchResult::getUid).findFirst().orElse(null);
+        if (StringUtils.isNotEmpty(existedDashboardUid) && !overwrite) {
+            return;
+        }
+
+        String dashboardData = buildConfigData(configuration, datasourceUid);
+        GrafanaDashboard dashboard;
+        try {
+            dashboard = GrafanaClient.parseDashboardData(dashboardData);
+            dashboard.setId(null);
+            dashboard.setUid(null);
+            dashboard.setVersion(null);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to parse the configured dashboard data.", e);
+        }
+
+        try {
+            if (StringUtils.isNotEmpty(existedDashboardUid)) {
+                GrafanaDashboard existedDashboard = grafanaClient.getDashboard(existedDashboardUid);
+                if (existedDashboard != null) {
+                    dashboard.setId(existedDashboard.getId());
+                    dashboard.setUid(existedDashboardUid);
+                    dashboard.setVersion(existedDashboard.getVersion());
+                }
+            }
+            if (dashboard.getId() == null) {
+                grafanaClient.createDashboard(dashboard);
+            } else {
+                grafanaClient.updateDashboard(dashboard);
+            }
+        } catch (IOException e) {
+            throw new BusinessException("Error occurs when creating Higress dashboard in Grafana.", e);
+        }
+    }
+
     private DashboardInfo getBuiltInDashboardInfo() {
         List<GrafanaSearchResult> results;
         try {
@@ -265,7 +333,7 @@ public class DashboardServiceImpl implements DashboardService {
         if (CollectionUtils.isEmpty(results)) {
             return new DashboardInfo(true, null, null);
         }
-        String expectedTitle = configuredDashboard.getTitle();
+        String expectedTitle = configuredMainDashboard.getTitle();
         if (StringUtils.isEmpty(expectedTitle)) {
             throw new IllegalStateException("No title is found in the configured dashboard.");
         }
@@ -280,7 +348,11 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private boolean isBuiltIn() {
-        return StringUtils.isNoneBlank(apiBaseUrl, datasourceUrl);
+        return StringUtils.isNoneBlank(apiBaseUrl, promDatasourceUrl, lokiDatasourceUrl);
+    }
+
+    private String buildConfigData(String dashboardConfiguration, String datasourceUid) {
+        return dashboardConfiguration.replace(DATASOURCE_UID_PLACEHOLDER, datasourceUid);
     }
 
     private HttpUriRequest buildRealServerRequest(HttpServletRequest originalRequest) throws IOException {
@@ -326,12 +398,6 @@ public class DashboardServiceImpl implements DashboardService {
         public void run() {
             while (!Thread.interrupted()) {
                 try {
-                    if (!overwrite) {
-                        DashboardInfo dashboardInfo = getDashboardInfo();
-                        if (dashboardInfo != null && !StringUtils.isEmpty(dashboardInfo.getUrl())) {
-                            return;
-                        }
-                    }
                     initializeDashboard(overwrite);
                     return;
                 } catch (Exception ex) {

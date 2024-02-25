@@ -35,6 +35,7 @@ data:
 
     [users]
     default_theme=light
+    viewers_can_edit=true
 
     [security]
     allow_embedding=true
