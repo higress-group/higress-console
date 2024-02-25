@@ -80,9 +80,6 @@ o11y:
       limits:
         cpu: 500m
         memory: 2Gi
-    securityContext:
-      enabled: true
-      runAsUser: 0
-      fsGroup: 0
+    securityContext: {}
 pvc:
   rwxSupported: true
