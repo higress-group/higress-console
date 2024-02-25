@@ -345,7 +345,7 @@
       "customConfigsTip": "Click this \"?\" to view the configuration guide.",
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
-      "targetServiceNamedPlaceholder": "Search target service by name"
+      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
     }
   },
   "chart": {
