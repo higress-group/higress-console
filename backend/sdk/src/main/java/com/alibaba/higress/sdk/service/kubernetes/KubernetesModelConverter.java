@@ -1353,7 +1353,7 @@ public class KubernetesModelConverter {
                 if (!valueBuilder.isEmpty()) {
                     valueBuilder.append("\n");
                 }
-                valueBuilder.append(service.getWeight()).append("% ");
+                valueBuilder.append(service.getWeight() == null ? DEFAULT_WEIGHT : service.getWeight()).append("% ");
                 valueBuilder.append(service.getName());
                 if (service.getPort() != null) {
                     valueBuilder.append(":").append(service.getPort());

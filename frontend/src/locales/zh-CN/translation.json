@@ -345,7 +345,7 @@
       "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
-      "targetServiceNamedPlaceholder": "搜索服务名称选择服务"
+      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
     }
   },
   "chart": {
