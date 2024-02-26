@@ -134,6 +134,8 @@ spec:
             memory: {{ $config.resources.limits.memory }}
       restartPolicy: Always
       serviceAccountName: {{ $appName }}
+      securityContext:
+        {{- toYaml .Values.o11y.prometheus.securityContext | nindent 8 }}
       volumes:
       - name: data
         persistentVolumeClaim:

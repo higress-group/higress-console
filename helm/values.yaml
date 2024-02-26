@@ -80,6 +80,6 @@ o11y:
       limits:
         cpu: 500m
         memory: 2Gi
-
+    securityContext: {}
 pvc:
   rwxSupported: true
