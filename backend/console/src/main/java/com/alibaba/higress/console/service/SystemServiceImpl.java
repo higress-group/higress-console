@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -41,12 +43,7 @@ public class SystemServiceImpl implements SystemService {
     static {
         String commitId = null;
         try {
-            Properties properties = new Properties();
-            properties.load(SystemServiceImpl.class.getResourceAsStream("/git.properties"));
-            commitId = properties.getProperty("git.commit.id");
-            if (commitId != null && commitId.length() > 7) {
-                commitId = commitId.substring(0, 7);
-            }
+            commitId = loadGitCommitId();
         } catch (Exception ex) {
             log.error("Failed to load git properties.", ex);
         }
@@ -89,5 +86,21 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public SystemInfo getSystemInfo() {
         return new SystemInfo(fullVersion, capabilities);
+    }
+
+    private static String loadGitCommitId() throws IOException {
+        try (InputStream input = SystemServiceImpl.class.getResourceAsStream("/git.properties")) {
+            if (input == null) {
+                log.warn("git.properties not found.");
+                return null;
+            }
+            Properties properties = new Properties();
+            properties.load(input);
+            String commitId = properties.getProperty("git.commit.id");
+            if (commitId != null && commitId.length() > 7) {
+                commitId = commitId.substring(0, 7);
+            }
+            return commitId;
+        }
     }
 }
