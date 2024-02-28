@@ -56,7 +56,7 @@
             "uid": "${datasource.id}"
           },
           "editorMode": "builder",
-          "expr": "{app=~\".+\"} |= ``",
+          "expr": "{authority=~\".+\"} |= ``",
           "queryType": "range",
           "refId": "A"
         }
