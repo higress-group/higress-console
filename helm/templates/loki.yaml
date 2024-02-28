@@ -1,6 +1,7 @@
-{{- if .Values.o11y.enabled }}
+{{- $o11y := merge (dict) .Values.o11y .Values.global.o11y  }}
+{{- if $o11y.enabled }}
 {{- $appName := (include "higress-console-loki.name" .) }}
-{{- $config := .Values.o11y.loki }}
+{{- $config := $o11y.loki }}
 {{- $ports := $config.ports -}}
 {{- $storageClassName := $config.pvc.storageClassName }}
 {{- $existedPvc := (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $appName) }}
@@ -11,6 +12,7 @@
     {{- end }}
   {{- end }}
 {{- end }}
+{{- $pvc := merge (dict) .Values.pvc .Values.global.pvc}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -84,7 +86,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
+  {{- if or (or .Values.global.local .Values.global.kind) (not $pvc.rwxSupported) }}
   - ReadWriteOnce
+  {{- else }}
+  - ReadWriteMany
+  {{- end }}
   storageClassName: {{ $storageClassName }}
   resources:
     requests:
@@ -108,7 +114,7 @@ spec:
         app: {{ $appName }}
     spec:
       securityContext:
-        {{- toYaml .Values.o11y.loki.securityContext | nindent 8 }}
+        {{- toYaml $config.securityContext | nindent 8 }}
       containers:
       - name: loki
         args:

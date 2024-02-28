@@ -1,6 +1,7 @@
-{{- if .Values.o11y.enabled }}
+{{- $o11y := merge (dict) .Values.o11y .Values.global.o11y  }}
+{{- if $o11y.enabled }}
 {{- $appName := (include "higress-console-promtail.name" .) }}
-{{- $config := .Values.o11y.promtail }}
+{{- $config := $o11y.promtail }}
 {{- $port := $config.port -}}
 apiVersion: v1
 kind: ConfigMap
@@ -156,7 +157,7 @@ spec:
           readOnly: true
       serviceAccountName: {{ $appName }}
       securityContext:
-        {{- toYaml .Values.o11y.promtail.securityContext | nindent 8 }}
+        {{- toYaml $config.securityContext | nindent 8 }}
       volumes:
       - name: config
         configMap:

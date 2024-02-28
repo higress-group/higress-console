@@ -2,6 +2,47 @@ global:
   local: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
   kind: false # Deprecated. Please use "global.local" instead. Will be removed later.
   ingressClass: "higress"
+  # Observability (o11y) configurations
+  o11y:
+    enabled: false
+    grafana:
+      replicas: 1
+      image:
+        repository: grafana/grafana
+        tag: 9.3.6
+      port: 3000
+      storage: 1Gi
+      pvc:
+        storageClassName: ""
+      securityContext: {}
+    prometheus:
+      replicas: 1
+      image:
+        repository: prom/prometheus
+        tag: v2.40.7
+      port: 9090
+      storage: 1Gi
+      pvc:
+        storageClassName: ""
+      resources:
+        limits:
+          cpu: 500m
+          memory: 2Gi
+      securityContext: {}
+    loki:
+      replicas: 1
+      image:
+        repository: grafana/loki
+        tag: 2.9.4
+      ports:
+        http: 3100
+        grpc: 9095
+      storage: 1Gi
+      pvc:
+        storageClassName: ""
+      securityContext: {}
+  pvc:
+    rwxSupported: true
 
 replicaCount: 1
 
@@ -57,54 +98,7 @@ certmanager:
     tag: v1.11.0
 
 o11y:
-  enabled: false
-  grafana:
-    replicas: 1
-    image:
-      repository: grafana/grafana
-      tag: 9.3.6
-    port: 3000
-    storage: 1Gi
-    pvc:
-      storageClassName: ""
-    securityContext: {}
-  prometheus:
-    replicas: 1
-    image:
-      repository: prom/prometheus
-      tag: v2.40.7
-    port: 9090
-    storage: 1Gi
-    pvc:
-      storageClassName: ""
-    resources:
-      limits:
-        cpu: 500m
-        memory: 2Gi
-    securityContext: {}
-  promtail:
-    image:
-      repository: grafana/promtail
-      tag: 2.9.4
-    port: 3101
-    resources:
-      limits:
-        cpu: 500m
-        memory: 2Gi
-    securityContext: {}
-    gatewayLabelSelector: app=higress-gateway # Label selector used to select gateway pods
-  loki:
-    replicas: 1
-    image:
-      repository: grafana/loki
-      tag: 2.9.4
-    ports:
-      http: 3100
-      grpc: 9095
-    storage: 1Gi
-    pvc:
-      storageClassName: ""
-    securityContext: {}
+  __placeholder__: true
 
 pvc:
-  rwxSupported: true
+  __placeholder__: true
