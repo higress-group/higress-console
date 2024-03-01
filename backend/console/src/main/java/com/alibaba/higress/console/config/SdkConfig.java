@@ -70,7 +70,7 @@ public class SdkConfig {
 
     @PostConstruct
     public void initialize() throws IOException {
-        HigressServiceConfig config = HigressServiceConfig.builder().withIngressClassName(controllerIngressClassName)
+        HigressServiceConfig config = HigressServiceConfig.builder().withKubeConfigPath(kubeConfig).withIngressClassName(controllerIngressClassName)
             .withControllerNamespace(controllerNamespace).withControllerServiceName(controllerServiceName)
             .withControllerServiceHost(controllerServiceHost).withControllerServicePort(controllerServicePort)
             .withControllerJwtPolicy(controllerJwtPolicy).withControllerAccessToken(controllerAccessToken).build();
