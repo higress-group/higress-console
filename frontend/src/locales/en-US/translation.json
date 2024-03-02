@@ -53,7 +53,9 @@
       "certificate": "Certificate",
       "action": "Action"
     },
+    "defaultDomain": "Default Domain",
     "createDomain": "Create Domain",
+    "EditDomain": "Edit Domain",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentDomainName}}</1>?",
     "domainForm": {
       "name": "Domain",

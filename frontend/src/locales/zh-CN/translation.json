@@ -53,7 +53,9 @@
       "certificate": "证书",
       "action": "操作"
     },
+    "defaultDomain": "缺省域名",
     "createDomain": "创建域名",
+    "editDomain": "编辑域名",
     "deleteConfirmation": "确定删除 <1>{{currentDomainName}}</1> 吗？",
     "domainForm": {
       "name": "域名",
