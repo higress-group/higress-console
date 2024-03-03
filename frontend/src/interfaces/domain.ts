@@ -23,3 +23,5 @@ export interface DomainResponse {
   pageSize: number;
   total: number;
 }
+
+export const DEFAULT_DOMAIN = "higress-default-domain";

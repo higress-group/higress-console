@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import { Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
+import { DEFAULT_DOMAIN, Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
 import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -27,6 +27,9 @@ const DomainList: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       ellipsis: true,
+      render: (_, record) => {
+        return record.name === DEFAULT_DOMAIN ? t('domain.defaultDomain') : record.name;
+      },
     },
     {
       title: t('domain.columns.protocol'),
@@ -45,13 +48,16 @@ const DomainList: React.FC = () => {
       key: 'action',
       width: 200,
       align: 'center',
-      render: (_, record) => (
-        <Space size="small">
-          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
-          <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
-          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
-        </Space>
-      ),
+      render: (_, record) => {
+        const isDefaultDomain = record.name === DEFAULT_DOMAIN;
+        return (
+          <Space size="small">
+            {isDefaultDomain || (<a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>)}
+            <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
+            {isDefaultDomain || (<a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>)}
+          </Space>
+        )
+      },
     },
   ];
 
@@ -68,6 +74,21 @@ const DomainList: React.FC = () => {
     manual: true,
     onSuccess: (result: Domain[], params) => {
       const _dataSource = result || [];
+
+      const defaultDomain: Domain = {
+        id: DEFAULT_DOMAIN,
+        name: DEFAULT_DOMAIN,
+        enableHttps: EnableHttpsValue.off,
+      };
+      for (let i = 0; i < _dataSource.length; ++i) {
+        if (_dataSource[i].name === DEFAULT_DOMAIN) {
+          Object.assign(defaultDomain, _dataSource[i]);
+          _dataSource.splice(i, 1);
+          break;
+        }
+      }
+      _dataSource.splice(0, 0, defaultDomain);
+
       _dataSource.forEach((i) => {
         i.key || (i.key = i.id || i.name);
         i.mustHttps = [];
@@ -110,7 +131,7 @@ const DomainList: React.FC = () => {
     try {
       const values: DomainFormProps = formRef.current && (await formRef.current.handleSubmit());
       const { name, certIdentifier } = values;
-      const data = { name };
+      const data = { name: name || currentDomain?.name };
       let enableHttps = EnableHttpsValue.off;
       if (values.protocol === Protocol.https) {
         if (values.certIdentifier) {
@@ -119,7 +140,7 @@ const DomainList: React.FC = () => {
         enableHttps = values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
       }
       Object.assign(data, { enableHttps });
-      if (currentDomain) {
+      if (currentDomain?.version) {
         await updateGatewayDomain({ version: currentDomain.version, ...data } as Domain);
       } else {
         await addGatewayDomain(data as Domain);
@@ -205,7 +226,7 @@ const DomainList: React.FC = () => {
         </p>
       </Modal>
       <Drawer
-        title={t('domain.createDomain')}
+        title={t(currentDomain ? 'domain.editDomain' : 'domain.createDomain')}
         placement="right"
         width={660}
         onClose={handleDrawerCancel}
