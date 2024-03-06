@@ -39,6 +39,7 @@ import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeList;
@@ -102,7 +103,7 @@ public class KubernetesClientService {
 
     private final String controllerJwtPolicy;
 
-    private String controllerAccessToken;
+    private final String controllerAccessToken;
 
     private boolean ingressV1Supported;
 
@@ -121,9 +122,6 @@ public class KubernetesClientService {
 
         if (inCluster) {
             client = ClientBuilder.cluster().build();
-            if (StringUtils.isEmpty(controllerAccessToken)) {
-                controllerAccessToken = readTokenFromFile();
-            }
             log.info("init KubernetesClientService InCluster");
         } else {
             String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
@@ -160,11 +158,16 @@ public class KubernetesClientService {
         Request request = buildControllerRequest("/debug/registryz");
         log.info("gatewayServiceList url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
-            if (response.body() != null) {
-                String responseString = new String(response.body().bytes());
-                if (StringUtils.isNotEmpty(responseString)) {
-                    return JSON.parseArray(responseString, RegistryzService.class);
-                }
+            if (!response.isSuccessful()) {
+                throw new BusinessException(
+                    "Failed to get gateway service list from controller. Code=" + response.code());
+            }
+            if (response.body() == null) {
+                throw new BusinessException("Empty response got from controller when loading gateway service list.");
+            }
+            String responseString = new String(response.body().bytes());
+            if (StringUtils.isNotEmpty(responseString)) {
+                return JSON.parseArray(responseString, RegistryzService.class);
             }
         }
         return null;
@@ -174,11 +177,15 @@ public class KubernetesClientService {
         Request request = buildControllerRequest("/debug/endpointShardz");
         log.info("gatewayServiceEndpoint url {}", request.url());
         try (Response response = okHttpClient.newCall(request).execute()) {
-            if (response.body() != null) {
-                String responseString = new String(response.body().bytes());
-                if (StringUtils.isNotEmpty(responseString)) {
-                    return JSON.parseObject(responseString, new TypeReference<>() {});
-                }
+            if (!response.isSuccessful()) {
+                throw new BusinessException("Failed to get service endpoints from controller. Code=" + response.code());
+            }
+            if (response.body() == null) {
+                throw new BusinessException("Empty response got from controller when loading service endpoints.");
+            }
+            String responseString = new String(response.body().bytes());
+            if (StringUtils.isNotEmpty(responseString)) {
+                return JSON.parseObject(responseString, new TypeReference<>() {});
             }
         }
         return null;
@@ -507,11 +514,14 @@ public class KubernetesClientService {
         // TODO: Throw exception accordingly.
     }
 
-    private Request buildControllerRequest(String path) {
+    private Request buildControllerRequest(String path) throws IOException {
         String serviceHost = inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
         String url = "http://" + serviceHost + ":" + controllerServicePort + path;
         Request.Builder builder = new Request.Builder().url(url);
         String token = controllerAccessToken;
+        if (Strings.isNullOrEmpty(token) && inCluster) {
+            token = readTokenFromFile();
+        }
         if (!Strings.isNullOrEmpty(token)) {
             builder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
