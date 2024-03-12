@@ -71,11 +71,17 @@ public class SystemConfigKey {
 
     public static final String DASHBOARD_PASSWORD_DEFAULT = "admin";
 
-    public static final String DASHBOARD_DATASOURCE_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.name";
+    public static final String DASHBOARD_DATASOURCE_PROM_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.prom.name";
 
-    public static final String DASHBOARD_DATASOURCE_NAME_DEFAULT = "Prometheus";
+    public static final String DASHBOARD_DATASOURCE_PROM_NAME_DEFAULT = "Prometheus";
 
-    public static final String DASHBOARD_DATASOURCE_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.url";
+    public static final String DASHBOARD_DATASOURCE_PROM_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.prom.url";
+
+    public static final String DASHBOARD_DATASOURCE_LOKI_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.loki.name";
+
+    public static final String DASHBOARD_DATASOURCE_LOKI_NAME_DEFAULT = "Loki";
+
+    public static final String DASHBOARD_DATASOURCE_LOKI_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.loki.url";
 
     public static final String DASHBOARD_PROXY_CONNECTION_TIMEOUT_KEY =
         CONFIG_KEY_PREFIX + "dashboard.proxy.connection-timeout";

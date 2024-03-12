@@ -1,6 +1,7 @@
-{{- if .Values.o11y.enabled }}
+{{- $o11y := merge (dict) .Values.o11y .Values.global.o11y  }}
+{{- if $o11y.enabled }}
 {{- $appName := (include "higress-console-grafana.name" .) }}
-{{- $config := .Values.o11y.grafana }}
+{{- $config := $o11y.grafana }}
 {{- $port := $config.port -}}
 {{- $storageClassName := $config.pvc.storageClassName }}
 {{- $existedPvc := (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $appName) }}
@@ -11,6 +12,7 @@
     {{- end }}
   {{- end }}
 {{- end }}
+{{- $pvc := merge (dict) .Values.pvc .Values.global.pvc}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,6 +37,7 @@ data:
 
     [users]
     default_theme=light
+    viewers_can_edit=true
 
     [security]
     allow_embedding=true
@@ -46,7 +49,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
+  {{- if or (or .Values.global.local .Values.global.kind) (not $pvc.rwxSupported) }}
   - ReadWriteOnce
+  {{- else }}
+  - ReadWriteMany
+  {{- end }}
   storageClassName: {{ $storageClassName }}
   resources:
     requests:

@@ -79,3 +79,19 @@ Create a default fully qualified app name for cert-manager
 {{- $consoleName := include "higress-console.name" . }}
 {{- printf "%s-cert-manager" ($consoleName | trunc 52) }}
 {{- end }}
+
+{{/*
+Create a default fully qualified app name for promtail
+*/}}
+{{- define "higress-console-promtail.name" -}}
+{{- $consoleName := include "higress-console.name" . }}
+{{- printf "%s-promtail" ($consoleName | trunc 52) }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name for loki
+*/}}
+{{- define "higress-console-loki.name" -}}
+{{- $consoleName := include "higress-console.name" . }}
+{{- printf "%s-loki" ($consoleName | trunc 52) }}
+{{- end }}

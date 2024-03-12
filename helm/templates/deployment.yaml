@@ -1,3 +1,4 @@
+{{- $o11y := merge (dict) .Values.o11y .Values.global.o11y }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,11 +46,15 @@ spec:
               value: {{ include "higress-console.name" . }}
             - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
               value: {{ include "higress-console.controller.jwtPolicy" . }}
-            {{- if .Values.o11y.enabled }}
+            {{- if $o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
-              value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.grafana.port }}{{ include "higress-console-grafana.path" . }}
-            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
-              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ .Values.o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
+              value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ $o11y.grafana.port }}{{ include "higress-console-grafana.path" . }}
+            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL # Kept for backward-compatibility. To be removed later.
+              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ $o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
+            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_PROM_URL
+              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ $o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
+            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_LOKI_URL
+              value: http://{{ include "higress-console-loki.name" . }}.{{ .Release.Namespace }}:{{ $o11y.loki.ports.http }}
             {{- end }}
             - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
               value: {{ .Values.global.ingressClass }}
