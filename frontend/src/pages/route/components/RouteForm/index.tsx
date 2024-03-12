@@ -1,6 +1,6 @@
 import i18n, { lngs } from '@/i18n';
 import { OptionItem } from '@/interfaces/common';
-import { Domain } from '@/interfaces/domain';
+import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { InfoCircleOutlined, QuestionCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
@@ -56,7 +56,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     const domains = _domains as Domain[];
     domains && domains.forEach(domain => {
       const { name } = domain;
-      _domainOptions.push({ label: name, value: name });
+      name !== DEFAULT_DOMAIN && _domainOptions.push({ label: name, value: name });
     });
     setDomainOptions(_domainOptions);
 

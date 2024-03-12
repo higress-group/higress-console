@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.GeneralName;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -768,7 +769,6 @@ public class KubernetesModelConverter {
             fillHeaderAndQueryConfig(annotations, route);
             fillMethodConfig(annotations, route);
             fillHeaderConfigConfig(annotations, route);
-
         }
         fillRouteCors(route, metadata);
     }
@@ -1235,16 +1235,17 @@ public class KubernetesModelConverter {
     }
 
     private void fillIngressTls(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
-        if (CollectionUtils.isEmpty(route.getDomains())) {
-            return;
+        List<String> domains = route.getDomains();
+        if (CollectionUtils.isEmpty(domains)) {
+            domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
 
-        if (route.getDomains().size() > 1) {
+        if (domains.size() > 1) {
             throw new IllegalArgumentException("Only one domain is allowed.");
         }
 
         List<V1IngressTLS> tlses = null;
-        for (String domainName : route.getDomains()) {
+        for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
             }
@@ -1272,7 +1273,9 @@ public class KubernetesModelConverter {
             }
 
             V1IngressTLS tls = new V1IngressTLS();
-            tls.setHosts(Collections.singletonList(domain.getName()));
+            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)){
+                tls.setHosts(Collections.singletonList(domainName));
+            }
             tls.setSecretName(domain.getCertIdentifier());
             if (tlses == null) {
                 tlses = new ArrayList<>();

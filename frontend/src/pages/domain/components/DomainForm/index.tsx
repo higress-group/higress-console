@@ -1,5 +1,5 @@
 import { OptionItem } from '@/interfaces/common';
-import { EnableHttpsValue, Protocol } from '@/interfaces/domain';
+import { DEFAULT_DOMAIN, EnableHttpsValue, Protocol } from '@/interfaces/domain';
 import { TlsCertificate } from '@/interfaces/tls-certificate';
 import { getTlsCertificates } from '@/services';
 import { QuestionCircleOutlined } from '@ant-design/icons';
@@ -56,26 +56,40 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
       form={form}
       layout="vertical"
     >
-      <Form.Item
-        label={t('domain.domainForm.name')}
-        required
-        name="name"
-        tooltip={t('domain.domainForm.nameTooltip')}
-        rules={[
-          {
-            required: true,
-            pattern: /^(\*\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,6}$/,
-            message: t('domain.domainForm.nameRequired'),
-          },
-        ]}
-      >
-        <Input
-          showCount
-          allowClear
-          disabled={value}
-          maxLength={63}
-        />
-      </Form.Item>
+      {
+        value?.name === DEFAULT_DOMAIN && (
+          <Form.Item
+            required
+            label={t('domain.domainForm.name')}
+          >
+            <Input
+              disabled={value}
+              value={t('domain.defaultDomain') as string}
+            />
+          </Form.Item>
+        ) || (
+          <Form.Item
+            label={t('domain.domainForm.name')}
+            required
+            name="name"
+            tooltip={t('domain.domainForm.nameTooltip')}
+            rules={[
+              {
+                required: true,
+                pattern: /^(\*\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,6}$/,
+                message: t('domain.domainForm.nameRequired'),
+              },
+            ]}
+          >
+            <Input
+              showCount
+              allowClear
+              disabled={value}
+              maxLength={63}
+            />
+          </Form.Item>
+        )
+      }
       <Form.Item
         label={t('domain.domainForm.protocol')}
         required
@@ -142,7 +156,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
           </div>
         ) : null
       }
-    </Form>
+    </Form >
   );
 });
 
