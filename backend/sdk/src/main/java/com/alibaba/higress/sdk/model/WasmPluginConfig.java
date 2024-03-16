@@ -14,7 +14,7 @@ package com.alibaba.higress.sdk.model;
 
 import java.util.Map;
 
-import org.openapi4j.parser.model.v3.Schema;
+import io.swagger.v3.oas.models.media.Schema;
 
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;

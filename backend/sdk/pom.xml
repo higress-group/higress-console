@@ -29,8 +29,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.openapi4j</groupId>
-			<artifactId>openapi-parser</artifactId>
+			<groupId>io.swagger.parser.v3</groupId>
+			<artifactId>swagger-parser</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba</groupId>

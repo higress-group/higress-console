@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import io.swagger.v3.core.util.Yaml;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openapi4j.core.util.TreeUtil;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
@@ -124,7 +124,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
         if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
             try {
-                Map<String, Object> configurations = (Map<String, Object>)TreeUtil.yaml
+                Map<String, Object> configurations = (Map<String, Object>) Yaml.mapper()
                     .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
                 instance.setConfigurations(configurations);
             } catch (IOException e) {
