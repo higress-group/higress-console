@@ -34,12 +34,14 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openapi4j.core.util.TreeUtil;
-import org.openapi4j.parser.model.v3.Schema;
 
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -129,7 +131,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
                     continue;
                 }
                 String content = IOUtils.toString(stream, CHARSET);
-                Plugin plugin = TreeUtil.yaml.readValue(content, Plugin.class);
+                Plugin plugin = Yaml.mapper().readValue(content, Plugin.class);
                 fillPluginConfigExample(plugin, content);
                 cacheItem.plugin = plugin;
             } catch (IOException ex) {
@@ -173,7 +175,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             return;
         }
         Schema schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema();
-        schema.setExtension(EXAMPLE_RAW_PROPERTY_NAME, example);
+        schema.addExtension(EXAMPLE_RAW_PROPERTY_NAME, example);
     }
 
     private String extractConfigExample(String content) throws IOException {
@@ -594,19 +596,23 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
                 return new WasmPluginConfig();
             }
-
-            Schema schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema().copy();
+            Schema schema = null;
+            try {
+                schema = Json.mapper().readValue(Json.mapper().writeValueAsString(plugin.getSpec().getConfigSchema().getOpenApiV3Schema()), Schema.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
             applyI18nResources(schema, language);
             return new WasmPluginConfig(schema);
         }
 
-        private void applyI18nResources(Schema schema, String language) {
+        private void applyI18nResources(Schema<?> schema, String language) {
             applyI18nResources(schema, schema.getExtensions(), language);
             if (MapUtils.isNotEmpty(schema.getProperties())) {
                 schema.getProperties().values().forEach(s -> applyI18nResources(s, language));
             }
-            if (schema.getItemsSchema() != null) {
-                applyI18nResources(schema.getItemsSchema(), language);
+            if (schema.getItems() != null) {
+                applyI18nResources(schema.getItems(), language);
             }
         }
 
