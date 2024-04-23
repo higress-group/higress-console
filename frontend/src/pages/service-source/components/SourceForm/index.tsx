@@ -154,6 +154,12 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 max={65535}
                 placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
               />
+              {
+                sourceType === ServiceSourceTypes.nacos2.key &&
+                (
+                  <div>{t('serviceSource.serviceSourceForm.naco2PortNote')}</div>
+                )
+              }
             </Form.Item>
           </>
         )
