@@ -252,6 +252,7 @@
       "nacosGroups": "Nacos Service Groups",
       "nacosGroupsRequired": "Please input Nacos service groups.",
       "nacosGroupsPlaceholder": "Nacos Service Groups",
+      "naco2PortNote": "The port calculated by \"PortAbove+1000\" shall be kept accessiable as well. Otherwise, the service source won't function properly.",
       "consulNamespace": "Consul Namespace",
       "consulNamespaceTooltip": "Namespace info is required for Concul service sources.",
       "consulNamespaceRequired": "Please input Consul namespace.",
