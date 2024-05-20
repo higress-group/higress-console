@@ -252,6 +252,7 @@
       "nacosGroups": "Nacos服务分组列表",
       "nacosGroupsRequired": "请输入Nacos服务分组列表",
       "nacosGroupsPlaceholder": "Nacos服务分组列表",
+      "naco2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
       "consulNamespace": "Consul命名空间",
       "consulNamespaceTooltip": "Consul类型的服务来源需要填写命名空间",
       "consulNamespaceRequired": "请输入Concul命名空间",

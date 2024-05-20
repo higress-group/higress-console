@@ -15,7 +15,7 @@ package com.alibaba.higress.sdk.model.wasmplugin;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openapi4j.parser.model.v3.Contact;
+import io.swagger.v3.oas.models.info.Contact;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
