@@ -90,7 +90,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     onSuccess: (res) => {
       setConfigData(res);
       if (!defaultValue) {
-        let exampleRaw = res?.schema.exampleRaw;
+        let exampleRaw = res?.schema?.extensions['x-example-raw'];
         if (isChangeExampleRaw) {
           // 需要冒号后面加空格
           exampleRaw = 'allow: []';
