@@ -92,4 +92,16 @@ public class SystemConfigKey {
         CONFIG_KEY_PREFIX + "dashboard.proxy.socket-timeout";
 
     public static final int DASHBOARD_PROXY_SOCKET_TIMEOUT_DEFAULT = 2 * 60 * 1000;
+
+    public static final String AI_PROXY_SERVICE_URL_KEY = CONFIG_KEY_PREFIX + "ai-proxy.service.url";
+
+    public static final String AI_PROXY_SERVICE_TOKEN_KEY = CONFIG_KEY_PREFIX + "ai-proxy.service.token";
+
+    public static final String AI_PROXY_CONNECTION_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "ai-proxy.connection-timeout";
+
+    public static final int AI_PROXY_CONNECTION_TIMEOUT_DEFAULT = 1200;
+
+    public static final String AI_PROXY_SOCKET_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "ai-proxy.socket-timeout";
+
+    public static final int AI_PROXY_SOCKET_TIMEOUT_DEFAULT = 2 * 60 * 1000;
 }
