@@ -68,6 +68,15 @@ service:
   type: ClusterIP
   port: 8080
 
+ingress:
+  enabled: false
+  domain: console.higress.io
+  tlsSecretName: ""
+  annotations: {}
+  paths:
+    - path: /
+      pathType: Prefix
+
 resources:
   requests:
     cpu: 250m
