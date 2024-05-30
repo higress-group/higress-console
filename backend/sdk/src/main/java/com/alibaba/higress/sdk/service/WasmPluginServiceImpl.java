@@ -86,7 +86,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
     private static final Pattern I18N_EXTENSION_KEY_PATTERN = Pattern.compile("^x-(.+)-i18n$");
     private static final String DEFAULT_PLUGIN_VERSION = "1.0.0";
 
-    private static final String EXAMPLE_RAW_PROPERTY_NAME = "exampleRaw";
+    private static final String EXAMPLE_RAW_PROPERTY_NAME = "x-example-raw";
 
     private static final Pattern YAML_CONTENT_PATTERN = Pattern.compile("^(\\s*)(\\S.*)\\s*$");
     private static final String YAML_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
