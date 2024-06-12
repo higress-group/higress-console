@@ -147,13 +147,15 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 },
               ]}
             >
-              <Input
-                allowClear
-                type="number"
-                min={1}
-                max={65535}
-                placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
-              />
+              <Form.Item name="port" noStyle>
+                <Input
+                  allowClear
+                  type="number"
+                  min={1}
+                  max={65535}
+                  placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
+                />
+              </Form.Item>
               {
                 sourceType === ServiceSourceTypes.nacos2.key &&
                 (
