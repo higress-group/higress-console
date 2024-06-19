@@ -1,0 +1,28 @@
+apiVersion: 1.0.0
+info:
+  category: custom
+  name: ai-security-guard
+  title: AI内容安全
+  x-title-i18n:
+    zh-CN: AI内容安全
+  description: 基于阿里云内容安全对大模型的输入输出进行安全检测
+  x-description-i18n:
+    zh-CN: 基于阿里云内容安全对大模型的输入输出进行安全检测
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: rinfx
+spec:
+  phase: UNSPECIFIED_PHASE
+  priority: 300
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: dns
+        serviceName: safecheck
+        servicePort: 443
+        domain: green-cip.cn-shanghai.aliyuncs.com
+        ak: xxxxxxxxxxxxxxxxxxxx
+        sk: xxxxxxxxxxxxxxxxxxxx
+
