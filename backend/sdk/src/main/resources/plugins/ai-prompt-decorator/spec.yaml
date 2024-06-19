@@ -20,14 +20,12 @@ spec:
       type: object
       example:
         decorators:
-        - name: hangzhou-guide
-          decorator:
-            prepend:
-            - role: system
-              content: "你将使用英语回答问题"
-            - role: user
-              content: "假设你现在所在地点为杭州"
-            append:
-            - role: user
-              content: "在介绍杭州时，避开杭州的饮食"
+          - name: data-assistant
+            decorator:
+              prepend:
+                - role: system
+                  content: 如果有人问你关于插件的问题，你应该回答出所有插件的名称、功能、执行阶段以及执行优先级。
+              append:
+                - role: user
+                  content: 你应该以表格的形式回答，除了表格之外不要有其他内容。
 
