@@ -12,7 +12,7 @@
     {{- end }}
   {{- end }}
 {{- end }}
-{{- $pvc := merge (dict) .Values.pvc .Values.global.pvc}}
+{{- $pvc := merge (dict) .Values.global.pvc .Values.pvc}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
