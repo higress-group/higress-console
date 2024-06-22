@@ -16,12 +16,19 @@ info:
     email: admin@higress.io
 spec:
   phase: AUTHN
-  priority: 910
+  priority: 430
   configSchema:
     openAPIV3Schema:
       type: object
       example:
-        status_code: 200
-        headers:
-          - Content-Type=application/json
-        body: "{\"hello\":\"world\"}"
+        timeout: 5000
+        endpoint: /graphql
+        domain: api.github.com
+        gql: |
+          query ($owner:String! $name:String!){
+             repository(owner:$owner, name:$name) {
+               name
+               forkCount
+               description
+            }
+          }

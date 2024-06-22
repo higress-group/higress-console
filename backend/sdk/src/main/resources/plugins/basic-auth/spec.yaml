@@ -5,9 +5,9 @@ info:
   title: Basic Auth
   x-title-i18n:
     zh-CN: Basic 认证
-  description: This plugin implements an authentication function based on HTTP Basic Auth standard.
+  description: implement authentication feature based on HTTP Basic Auth standard.
   x-description-i18n:
-    zh-CN: 本插件实现了基于 HTTP Basic Auth 标准进行认证鉴权的功能。
+    zh-CN: 实现基于 HTTP Basic Auth 标准进行认证鉴权的功能。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
@@ -16,7 +16,7 @@ info:
     email: admin@higress.io
 spec:
   phase: AUTHN
-  priority: 320
+  priority: 10
   configSchema:
     openAPIV3Schema:
       type: object
@@ -84,7 +84,6 @@ spec:
       example:
         global_auth: false
         consumers:
-          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
           - name: consumer1
             credential: admin:123456
           - name: consumer2

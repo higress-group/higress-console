@@ -14,7 +14,7 @@ info:
     name: rinfx
 spec:
   phase: UNSPECIFIED_PHASE
-  priority: 550
+  priority: 280
   configSchema:
     openAPIV3Schema:
       type: object
@@ -29,4 +29,3 @@ spec:
           serviceName: qwen
           domain: dashscope.aliyuncs.com
           sk: sk-xxxxxxxxxxxxxxxxxxx
-

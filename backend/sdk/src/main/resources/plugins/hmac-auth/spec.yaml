@@ -16,14 +16,13 @@ info:
     email: admin@higress.io
 spec:
   phase: AUTHN
-  priority: 330
+  priority: 50
   configSchema:
     openAPIV3Schema:
       type: object
       example:
         global_auth: false
         consumers:
-          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
           - key: appKey-example-1
             secret: appSecret-example-1
             name: consumer-1
