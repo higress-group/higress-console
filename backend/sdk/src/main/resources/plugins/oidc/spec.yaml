@@ -8,7 +8,7 @@ info:
   description: Implement user authentication based on the OpenID Connect standard.
   x-description-i18n:
     zh-CN: 实现基于 OpenID Connect 标准的用户身份验证。
-  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
     name: Higress Team

@@ -8,7 +8,7 @@ info:
   description: Block HTTP requests based on characteristics like URI and request headers, which can be used to prevent some of the resources being accessed.
   x-description-i18n:
     zh-CN: 基于 URI、请求头等特征屏蔽 HTTP 请求，可以用于防护部分站点资源不对外部暴露。
-  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
   version: 1.0.0
   contact:
     name: Higress Team
