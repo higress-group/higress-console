@@ -1,0 +1,34 @@
+apiVersion: 1.0.0
+info:
+  category: transformation
+  name: transformer
+  title: Transformer
+  x-title-i18n:
+    zh-CN: 请求/响应转换
+  description: Convert request/response headers, request query parameters, and request/response body parameters.
+  x-description-i18n:
+    zh-CN: 对请求/响应头、请求查询参数、请求/响应体参数进行转换。
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 910
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        reqRules:
+        - operate: remove
+          headers:
+          - key: X-remove
+        respRules:
+        - operate: add
+          body:
+          - key: foo.bar
+            value: value
+
+

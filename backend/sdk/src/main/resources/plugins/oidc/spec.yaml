@@ -1,0 +1,37 @@
+apiVersion: 1.0.0
+info:
+  category: auth
+  name: oidc
+  title: OIDC Auth
+  x-title-i18n:
+    zh-CN: OIDC 认证
+  description: Implement user authentication based on the OpenID Connect standard.
+  x-description-i18n:
+    zh-CN: 实现基于 OpenID Connect 标准的用户身份验证。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHZ
+  #priority: 330
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        issuer: "https://dev-65874123.okta.com"
+        redirect_url: "http://foo.bar.com/a/oauth2/callback"
+        scopes:
+          - "openid"
+          - "email"
+        client_url: "http://foo.bar.com/a"
+        cookie_domain: "foo.bar.com"
+        client_id: "xxxxxxxxxxxxxxx"
+        client_secret: "xxxxxxx"
+        service_domain: "dev-65874123.okta.com"
+        service_name: "okta"
+        service_port: 443
+        service_source: "dns"
+        timeout_millis: 2000

@@ -3,9 +3,11 @@ info:
   category: auth
   name: jwt-auth/v1
   title: JWT Auth
-  description: 实现了基于JSON Web Tokens进行认证鉴权的功能，支持从HTTP请求的URL参数、请求头、Cookie字段解析JWT，同时验证该Token是否有权限访问
+  x-title-i18n:
+    zh-CN: JWT 认证
+  description: Implement an authentication and authorization feature based on JSON Web Tokens, which supports extracting JWT from URL parameters, request headers and cookies, and checking whether the given token is allowed to access the corresponding resource.
   x-description-i18n:
-    en-US: Implement an authentication and authorization feature based on JSON Web Tokens, which supports extracting JWT from URL parameters, request headers and cookies, and checking whether the given token is allowed to access the corresponding resource.
+    zh-CN: 实现了基于 JSON Web Token 进行认证鉴权的功能，支持从 HTTP 请求的 URL 参数、请求头、Cookie 字段解析 JWT，同时验证该 Token 是否有权限访问。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:

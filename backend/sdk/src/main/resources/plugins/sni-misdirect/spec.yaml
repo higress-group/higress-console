@@ -1,6 +1,6 @@
 apiVersion: 1.0.0
 info:
-  category: other
+  category: traffic
   name: sni-misdirect/v1
   title: SNI Misdirect
   description: SNI 连接错误复用处理插件

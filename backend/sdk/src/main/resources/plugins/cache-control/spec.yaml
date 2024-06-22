@@ -1,0 +1,25 @@
+apiVersion: 1.0.0
+info:
+  category: transformation
+  name: cache-control
+  title: Cache Control
+  x-title-i18n:
+    zh-CN: 缓存控制
+  description: Add Expires and Cache-Control headers to the response headers to facilitate browser caching of specific file types, such as jpg, png, and other image files.
+  x-description-i18n:
+    zh-CN: 为响应头部添加 Expires 和 Cache-Control 头部，从而方便浏览器对特定后缀的文件进行缓存，例如 jpg、png 等图片文件。
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 910
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        suffix: jpg|png|jpeg
+        expires: 3600

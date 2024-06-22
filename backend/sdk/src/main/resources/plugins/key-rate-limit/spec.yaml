@@ -1,11 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: security
+  category: traffic
   name: key-rate-limit/v1
   title: Key Rate Limit
-  description: 根据特定键值实现限流，键值来源可以是 URL 参数、HTTP 请求头
+  x-title-i18n:
+    zh-CN: 基于 Key 限流
+  description: Perform rate-limiting based on given keys and values, which can be extracted from URL parameters and HTTP request headers.
   x-description-i18n:
-    en-US: Perform rate-limiting based on given keys and values, which can be extracted from URL parameters and HTTP request headers.
+    zh-CN: 根据特定键值实现限流，键值来源可以是 URL 参数、HTTP 请求头。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
   version: 1.0.0
   contact:

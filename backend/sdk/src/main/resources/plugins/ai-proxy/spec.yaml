@@ -1,13 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: custom
+  category: ai
   name: ai-proxy
-  title: AI代理
+  title: AI Proxy
   x-title-i18n:
-    zh-CN: AI代理
-  description: 通过AI助手提供智能对话服务
+    zh-CN: AI 代理
+  description: Provide unified OpenAI API compatible interface to call different AI service providers.
   x-description-i18n:
-    zh-CN: 通过AI助手提供智能对话服务
+    zh-CN: 实现了基于 OpenAI API 规范的代理功能，通过统一的接口调用不同的 AI 服务提供商。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
   version: 1.0.0
   contact:
