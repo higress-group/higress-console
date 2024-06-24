@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -118,8 +119,8 @@ public class AiProxyController {
             reloadServiceInfoFromK8s();
             ThreadFactory tf =
                 new ThreadFactoryBuilder().setDaemon(true).setNameFormat("AiProxyController-SecretLoader-%d").build();
-            Executors.newSingleThreadScheduledExecutor(tf).scheduleWithFixedDelay(this::reloadServiceInfoFromK8s,
-                SECRET_RELOAD_INTERVAL, SECRET_RELOAD_INTERVAL, TimeUnit.MILLISECONDS);
+            new ScheduledThreadPoolExecutor(1, tf).scheduleWithFixedDelay(this::reloadServiceInfoFromK8s,
+                    SECRET_RELOAD_INTERVAL, SECRET_RELOAD_INTERVAL, TimeUnit.MILLISECONDS);
         }
     }
 
