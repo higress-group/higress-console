@@ -67,8 +67,8 @@ public class SessionServiceImpl implements SessionService {
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT + "}")
     private int cookieMaxAge = SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
 
-    @Value("${" + SystemConfigKey.ADMIN_SECRET_NAME_KEY + ":" + SystemConfigKey.ADMIN_SECRET_NAME_DEFAULT + "}")
-    private String secretName = SystemConfigKey.ADMIN_SECRET_NAME_DEFAULT;
+    @Value("${" + SystemConfigKey.SECRET_NAME_KEY + ":" + SystemConfigKey.SECRET_NAME_DEFAULT + "}")
+    private String secretName = SystemConfigKey.SECRET_NAME_DEFAULT;
 
     @Value("${" + SystemConfigKey.ADMIN_CONFIG_TTL_KEY + ":" + SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT + "}")
     private long configTtl = SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT;

@@ -40,7 +40,7 @@ spec:
               value: C.UTF-8
             - name: HIGRESS_CONSOLE_NS
               value: {{ .Release.Namespace }}
-            - name: HIGRESS_CONSOLE_ADMIN_SECRET
+            - name: HIGRESS_CONSOLE_SECRET_NAME
               value: {{ include "higress-console.name" . }}
             - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
               value: {{ include "higress-console.name" . }}

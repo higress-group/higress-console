@@ -42,9 +42,9 @@ public class SystemConfigKey {
 
     public static final String CONFIG_MAP_NAME_KEY_DEFAULT = "higress-console";
 
-    public static final String ADMIN_SECRET_NAME_KEY = CONFIG_KEY_PREFIX + "admin.secret";
+    public static final String SECRET_NAME_KEY = CONFIG_KEY_PREFIX + "secret.name";
 
-    public static final String ADMIN_SECRET_NAME_DEFAULT = "higress-console";
+    public static final String SECRET_NAME_DEFAULT = "higress-console";
 
     public static final String ADMIN_COOKIE_NAME_KEY = CONFIG_KEY_PREFIX + "admin.cookie.name";
 
