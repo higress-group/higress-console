@@ -14,7 +14,7 @@ info:
     name: rinfx
 spec:
   phase: UNSPECIFIED_PHASE
-  priority: 280
+  priority: 550
   configSchema:
     openAPIV3Schema:
       type: object

@@ -16,7 +16,7 @@ info:
     email: admin@higress.io
 spec:
   phase: AUTHN
-  priority: 50
+  priority: 330
   configSchema:
     openAPIV3Schema:
       type: object

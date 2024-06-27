@@ -16,7 +16,7 @@ info:
     email: ch3cho@qq.com
 spec:
   phase: UNSPECIFIED_PHASE
-  priority: 250
+  priority: 100
   configSchema:
     openAPIV3Schema:
       type: object
