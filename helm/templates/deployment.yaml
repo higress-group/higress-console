@@ -1,4 +1,4 @@
-{{- $o11y := merge (dict) .Values.o11y .Values.global.o11y }}
+{{- $o11y := merge (dict) .Values.global.o11y .Values.o11y }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
