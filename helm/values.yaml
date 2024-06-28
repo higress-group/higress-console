@@ -8,7 +8,7 @@ global:
     grafana:
       replicas: 1
       image:
-        repository: grafana/grafana
+        repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/grafana
         tag: 9.3.6
       port: 3000
       storage: 1Gi
@@ -18,7 +18,7 @@ global:
     prometheus:
       replicas: 1
       image:
-        repository: prom/prometheus
+        repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/prometheus
         tag: v2.40.7
       port: 9090
       storage: 1Gi
@@ -32,7 +32,7 @@ global:
     loki:
       replicas: 1
       image:
-        repository: grafana/loki
+        repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/loki
         tag: 2.9.4
       ports:
         http: 3100
