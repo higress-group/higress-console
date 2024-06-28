@@ -1,13 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: custom
+  category: ai
   name: ai-token-ratelimit
-  title: AI Token 限流
+  title: AI Token Rate Limit
   x-title-i18n:
     zh-CN: AI Token 限流
-  description: 对大模型服务进行 Token 限流
+  description: Implement token rate limiting based on specific keys, where the key source can be URL parameters, HTTP request headers, client IP addresses, etc.
   x-description-i18n:
-    zh-CN: 对大模型服务进行 Token 限流
+    zh-CN: 基于特定键值实现 token 限流，键值来源可以是 URL 参数、HTTP 请求头、客户端 IP 地址等。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
   version: 1.0.0
   contact:

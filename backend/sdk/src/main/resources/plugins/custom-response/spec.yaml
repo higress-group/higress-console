@@ -1,11 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: traffic
+  category: transformation
   name: custom-response/v1
   title: Custom Response
-  description: 支持配置自定义的响应，包括自定义 HTTP 应答状态码、HTTP 应答头，以及 HTTP 应答 Body
+  x-title-i18n:
+    zh-CN: 自定义应答
+  description: Support configuring custom responses, including HTTP response status code, header and body.
   x-description-i18n:
-    en-US: Support configuring custom responses, including HTTP response status code, header and body
+    zh-CN: 支持配置自定义的响应，包括自定义 HTTP 应答状态码、HTTP 应答头，以及 HTTP 应答 Body。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
   version: 1.0.0
   contact:

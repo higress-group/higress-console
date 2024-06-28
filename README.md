@@ -55,7 +55,7 @@ npm run build
 #### 第二步、编译 & 镜像
 
 ```bash
-sh bulid.sh 
+cd backend && sh bulid.sh
 # 脚本中涉及docker命令，本地调试可注释
 ```
 
