@@ -58,6 +58,8 @@ spec:
             {{- end }}
             - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
               value: {{ .Values.global.ingressClass }}
+            - name: SPRINGFOX_DOCUMENTATION_ENABLED
+              value: "{{ .Values.swagger.enabled }}"
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
