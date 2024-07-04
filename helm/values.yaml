@@ -103,7 +103,7 @@ certmanager:
   enabled: false
   replicas: 1
   image:
-    repository: quay.io/jetstack
+    repository: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress
     tag: v1.11.0
 
 o11y:
