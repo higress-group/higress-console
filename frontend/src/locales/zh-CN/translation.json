@@ -117,7 +117,8 @@
       "targetDomain": "作用域名：",
       "targetRoute": "作用路由：",
       "enableStatus": "开启状态",
-      "dataEditor": "数据编辑器 - YAML"
+      "dataEditor": "数据编辑器 - YAML",
+      "globalConfigWarning": "注意：以上配置将会在所有域名和路由上生效。请谨慎配置。"
     },
     "builtIns": {
       "rewrite": {
@@ -297,6 +298,7 @@
     "createRoute": "创建路由",
     "editRoute": "编辑路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
+    "noCustomIngresses": "注：列表中仅包含通过控制台页面创建的路由配置。",
     "factorGroup": {
       "columns": {
         "key": "Key",

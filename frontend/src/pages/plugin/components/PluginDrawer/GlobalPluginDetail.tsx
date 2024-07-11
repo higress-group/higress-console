@@ -1,11 +1,13 @@
 import CodeEditor from '@/components/CodeEditor';
-import { Alert, Divider, Form, Spin, Switch, message } from 'antd';
+import { Alert, Divider, Form, Spin, Switch, message, Space, Typography } from 'antd';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
 import { t } from 'i18next';
 import { useSearchParams } from 'ice';
+
+const { Text } = Typography;
 
 export interface IPluginData {
   configurations: object;
@@ -174,6 +176,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           <Divider orientation="left">{t('plugins.configForm.dataEditor')}</Divider>
           {!getConfigLoading && !getDataLoading && (
             <CodeEditor defaultValue={defaultValue} onChange={(val) => setRawConfigurations(val)} />
+          )}
+          {!getConfigLoading && !getDataLoading && !isRoutePlugin && !isDomainPlugin && (
+            <Space direction="horizontal" style={{ marginTop: "0.5rem" }}>
+              <Text>{t('plugins.configForm.globalConfigWarning')}</Text>
+            </Space>
           )}
         </Form>
       </Spin>

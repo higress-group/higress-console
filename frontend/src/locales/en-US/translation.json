@@ -117,7 +117,8 @@
       "targetDomain": "Target Domain: ",
       "targetRoute": "Target Route: ",
       "enableStatus": "Enabled",
-      "dataEditor": "Configuration Editor - YAML"
+      "dataEditor": "Configuration Editor - YAML",
+      "globalConfigWarning": "Note: Configurations above will be applied to all domains the routes. Please edit with caution."
     },
     "builtIns": {
       "rewrite": {
@@ -297,6 +298,7 @@
     "createRoute": "Create Route",
     "editRoute": "Edit Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
+    "noCustomIngresses": "Note: Only routes created from the console are listed above.",
     "factorGroup": {
       "columns": {
         "key": "Key",
