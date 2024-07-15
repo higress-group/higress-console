@@ -3,9 +3,11 @@ info:
   category: auth
   name: key-auth/v1
   title: Key Auth
-  description: 基于 API Key 实现身份认证和鉴权
+  x-title-i18n:
+    zh-CN: Key 认证
+  description: Authentication based on API Key.
   x-description-i18n:
-    en-US: Authentication based on API Key
+    zh-CN: 基于 API Key 实现身份认证和鉴权。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
@@ -114,11 +116,10 @@ spec:
         - allow
       example:
         global_auth: false
-        # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
         consumers:
-          - credential: 2bda943c-ba2b-11ec-ba07-00163e1250b5
+          - credential: key-example1
             name: consumer1
-          - credential: c8c8e9ca-558e-4a2d-bb62-e700dcc40e35
+          - credential: key-example2
             name: consumer2
         keys:
           - apikey

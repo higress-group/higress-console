@@ -1,13 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: custom
+  category: ai
   name: ai-rag
-  title: AI检索增强生成
+  title: AI RAG
   x-title-i18n:
-    zh-CN: AI检索增强生成
-  description: 通过RAG技术优化大模型生成内容
+    zh-CN: AI 检索增强生成
+  description: Simplify the development of RAG applications by integrating with Alibaba Cloud Vector Retrieval Service (DashVector) and optimize the generated content of large models.
   x-description-i18n:
-    zh-CN: 通过RAG技术优化大模型生成内容
+    zh-CN: 通过对接阿里云向量检索服务（DashVector）简化 RAG 应用的开发，优化大模型的生成内容。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
   version: 1.0.0
   contact:

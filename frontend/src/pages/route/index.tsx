@@ -11,11 +11,13 @@ import store from '@/store';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+
+const { Text } = Typography;
 
 interface RouteFormProps {
   name: string;
@@ -235,6 +237,11 @@ const RouteList: React.FC = () => {
         </Row>
       </Form>
       <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
+      {!loading && (
+        <Space direction="horizontal" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
+          <Text>{t('route.noCustomIngresses')}</Text>
+        </Space>
+      )}
       <Modal
         title={
           <div>

@@ -2,10 +2,12 @@ apiVersion: 1.0.0
 info:
   category: auth
   name: hmac-auth/v1
-  title:  HMAC Auth
-  description: 基于 HMAC 算法为 HTTP 请求生成不可伪造的签名，并基于签名实现身份认证和鉴权
+  title: HMAC Auth
+  x-title-i18n:
+    zh-CN: HMAC 认证
+  description: Generate a unforgeable signatures using HMAC algorithms and perform authentication and authorization with it.
   x-description-i18n:
-    en-US: Generate a unforgeable signatures using HMAC algorithms and perform authentication and authorization with it
+    zh-CN: 基于 HMAC 算法为 HTTP 请求生成不可伪造的签名，并基于签名实现身份认证和鉴权。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
@@ -21,7 +23,6 @@ spec:
       example:
         global_auth: false
         consumers:
-          # 注意！该凭证仅做示例使用，请勿用于具体业务，造成安全风险
           - key: appKey-example-1
             secret: appSecret-example-1
             name: consumer-1

@@ -1,0 +1,32 @@
+apiVersion: 1.0.0
+info:
+  category: traffic
+  name: request-validation
+  title: Request Validation
+  x-title-i18n:
+    zh-CN: 请求校验
+  description: Validate the requests forwarded to the upstream service in advance, which can verify the data of the request body and headers.
+  x-description-i18n:
+    zh-CN: 提前验证向上游服务转发的请求，可以验证请求的 Body 以及 Header 的数据。
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 220
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        body_schema:
+          type: object
+          required:
+            - boolean_payload
+          properties:
+            boolean_payload:
+              type: boolean
+        rejected_code: 403
+        rejected_msg: "请求被拒绝"
