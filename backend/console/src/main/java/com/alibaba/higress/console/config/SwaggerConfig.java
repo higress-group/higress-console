@@ -12,7 +12,6 @@
  */
 package com.alibaba.higress.console.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,19 +28,15 @@ import springfox.documentation.spring.web.plugins.Docket;
 @EnableOpenApi
 public class SwaggerConfig {
 
-    @Value("${swagger.enabled}")
-    Boolean swaggerEnabled;
-
     @Bean
-    public Docket petApi() {
+    public Docket docket() {
         ApiInfo apiInfo = new ApiInfoBuilder().title("Higress Console")
-            .contact(new Contact("Rick", "https://github.com/alibaba/higress", "xxiuhui@qq.com"))
+            .contact(new Contact("CH3CHO", "https://github.com/higress-group/higress-console", "ch3cho@qq.com"))
             .description(
                 "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices.")
-            .license("test").licenseUrl("test").version("1.0").termsOfServiceUrl("URL").build();
+            .license("Apache 2.0").licenseUrl("http://www.apache.org/licenses/LICENSE-2.0").build();
         return new Docket(DocumentationType.OAS_30).apiInfo(apiInfo).enable(true).select()
             .apis(RequestHandlerSelectors.basePackage("com.alibaba.higress.console.controller"))
             .paths(PathSelectors.any()).build().pathMapping("/");
     }
-
 }
