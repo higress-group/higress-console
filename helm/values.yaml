@@ -91,7 +91,7 @@ web:
     prompt: "" # If set, a prompt message will be displayed on the login page.
 
 swagger:
-  enabled: true
+  enabled: false
 
 admin:
   username: admin
