@@ -1,9 +1,9 @@
 import { Button, Drawer, Space } from 'antd';
-
-import { useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import GlobalPluginDetail from './GlobalPluginDetail';
+import GlobalPluginDetail_form from './GlobalPluginDetail_form'; // 假设这是你要引入的新组件
 import RoutePluginDetail from './RoutePluginDetail';
 
 import { getI18nValue } from '../../utils';
@@ -22,13 +22,14 @@ const PLUGIN_COMP_MAP = {
 export default function PluginDrawer(props) {
   const { t } = useTranslation();
   const { pluginDrawerRef, routerDetail, onSuccess } = props;
-  const routePluginDetailRef = useRef<{ submit: () => {} }>(null);
-  const globalPluginDetailRef = useRef<{ submit: () => {} }>(null);
+  const routePluginDetailRef = useRef(null);
+  const globalPluginDetailRef = useRef(null);
+  const globalPluginDetailFormRef = useRef(null); // 新增的引用
 
   const [activePluginData, setActivePluginData] = useState({ title: '', key: '' });
-
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isFormView, setIsFormView] = useState(false); // 新增的状态变量
 
   const onCloseDrawer = () => {
     setOpen(false);
@@ -39,13 +40,18 @@ export default function PluginDrawer(props) {
       routePluginDetailRef.current?.submit();
       return;
     }
-    globalPluginDetailRef.current?.submit();
+    if (isFormView) {
+      globalPluginDetailFormRef.current?.submit();
+    } else {
+      globalPluginDetailRef.current?.submit();
+    }
   };
 
   useImperativeHandle(pluginDrawerRef, () => ({
     onOpen: (data) => {
       setOpen(true);
       setActivePluginData(data);
+      console.log('Received data:', data);
     },
   }));
 
@@ -80,14 +86,35 @@ export default function PluginDrawer(props) {
           }}
         />
       ) : (
-        <GlobalPluginDetail
-          data={activePluginData}
-          ref={globalPluginDetailRef}
-          onSuccess={() => {
-            onCloseDrawer();
-            onSuccess?.();
-          }}
-        />
+        <>
+          {/* 新增的切换按钮 */}
+          <Button
+            type="link"
+            onClick={() => setIsFormView(!isFormView)}
+            style={{ marginBottom: '16px' }}
+          >
+            {isFormView ? t('switchToYAML') : t('switchToForm')}
+          </Button>
+          {isFormView ? (
+            <GlobalPluginDetail_form
+              ref={globalPluginDetailFormRef}
+              data={activePluginData}
+              onSuccess={() => {
+                onCloseDrawer();
+                onSuccess?.();
+              }}
+            />
+          ) : (
+            <GlobalPluginDetail
+              ref={globalPluginDetailRef}
+              data={activePluginData}
+              onSuccess={() => {
+                onCloseDrawer();
+                onSuccess?.();
+              }}
+            />
+          )}
+        </>
       )}
     </Drawer>
   );
