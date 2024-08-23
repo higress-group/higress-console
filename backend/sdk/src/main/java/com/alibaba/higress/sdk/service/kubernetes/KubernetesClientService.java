@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClassSpec;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +110,8 @@ public class KubernetesClientService {
 
     private boolean ingressV1Supported;
 
+    private String workMode;
+
     public KubernetesClientService(HigressServiceConfig config) throws IOException {
         validateConfig(config);
 
@@ -132,6 +137,8 @@ public class KubernetesClientService {
         }
 
         initializeK8sCapabilities();
+        initGatewayClass();
+        getIngressOrGatewayMode();
     }
 
     private void initializeK8sCapabilities() {
@@ -146,10 +153,57 @@ public class KubernetesClientService {
         }
     }
 
+    private void initGatewayClass() {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+
+        V1GatewayClass gatewayClass = new V1GatewayClass();
+        gatewayClass.setMetadata(new V1ObjectMeta());
+        gatewayClass.getMetadata().setName(V1GatewayClass.DEFAULT_NAME);
+        gatewayClass.setSpec(new V1GatewayClassSpec());
+
+        try {
+            Object existingGatewayClass = customObjectsApi.getClusterCustomObject(V1GatewayClass.API_GROUP, V1GatewayClass.VERSION,
+                    V1GatewayClass.PLURAL, V1GatewayClass.DEFAULT_NAME);
+            log.info("GatewayClass already exists: " + existingGatewayClass);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {  // 如果不存在，则创建新的 GatewayClass
+                try {
+                    Object response = customObjectsApi.createClusterCustomObject(V1GatewayClass.API_GROUP, V1GatewayClass.VERSION,
+                            V1GatewayClass.PLURAL, gatewayClass, null, null, null);
+                    log.info("Created GatewayClass: " + response);
+                } catch (ApiException ex) {
+                    throw new BusinessException("Failed to create GatewayClass",
+                            ex);
+                }
+            } else {
+                throw new BusinessException("Failed to check if GatewayClass exists",
+                        e);
+            }
+        }
+    }
+
+    private void getIngressOrGatewayMode(){
+        // 读取全局配置，看当前是ingress or gateway 模式
+        V1ConfigMap higressConfig;
+        try {
+            higressConfig = readConfigMap(HigressConstants.DEFAULT_CONFIG);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading the ConfigMap with name:"+HigressConstants.DEFAULT_CONFIG,
+                    e);
+        }
+        Map<String, String> data = higressConfig.getData();
+        workMode = "ingress";
+        if (data!=null && data.containsKey("workMode")){
+            workMode = data.get("workMode");
+        }
+    }
     public boolean isIngressV1Supported() {
         return ingressV1Supported;
     }
 
+    public boolean isIngressWorkMode(){
+        return workMode.equals("ingress");
+    }
     public boolean isNamespaceProtected(String namespace) {
         return KubernetesConstants.KUBE_SYSTEM_NS.equals(namespace) || controllerNamespace.equals(namespace);
     }

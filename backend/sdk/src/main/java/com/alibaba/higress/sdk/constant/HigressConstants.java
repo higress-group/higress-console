@@ -20,4 +20,5 @@ public class HigressConstants {
     public static final int CONTROLLER_SERVICE_PORT_DEFAULT = 15014;
     public static final String CONTROLLER_JWT_POLICY_DEFAULT = KubernetesConstants.JwtPolicy.THIRD_PARTY_JWT;
     public static final String DEFAULT_DOMAIN = "higress-default-domain";
+    public static final String DEFAULT_CONFIG = "higress-config";
 }
