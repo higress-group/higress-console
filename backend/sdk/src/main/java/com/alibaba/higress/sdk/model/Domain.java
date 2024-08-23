@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -37,5 +39,5 @@ public class Domain implements VersionedDto {
 
     private String enableHttps;
 
-    private String certIdentifier;
+    private Map<Integer, String> portAndCertMap;
 }

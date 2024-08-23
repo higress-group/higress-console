@@ -37,6 +37,8 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -243,7 +245,7 @@ public class KubernetesModelConverter {
 
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
-        configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
+        configMap.put(KubernetesConstants.K8S_CERT, JSON.toJSONString(domain.getPortAndCertMap()));
         configMap.put(KubernetesConstants.K8S_ENABLE_HTTPS, domain.getEnableHttps());
         domainConfigMap.data(configMap);
 
@@ -263,7 +265,17 @@ public class KubernetesModelConverter {
             throw new IllegalArgumentException("The ConfigMap data is illegal");
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
-        domain.setCertIdentifier(configMapData.get(KubernetesConstants.K8S_CERT));
+        String certData = configMapData.get(KubernetesConstants.K8S_CERT);
+        //
+        try {
+            domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
+        }catch(JSONException e){
+            // 原先ingress模式下的cert
+            Map<Integer, String> portCertMap = new HashMap<>();
+            portCertMap.put(443, certData);
+            domain.setPortAndCertMap(portCertMap);
+        }
+
         domain.setEnableHttps(configMapData.get(KubernetesConstants.K8S_ENABLE_HTTPS));
         return domain;
     }
@@ -1268,7 +1280,7 @@ public class KubernetesModelConverter {
                 continue;
             }
 
-            if (StringUtils.isEmpty(domain.getCertIdentifier())) {
+            if (StringUtils.isEmpty(domain.getPortAndCertMap().get(443))) {
                 continue;
             }
 
@@ -1276,7 +1288,7 @@ public class KubernetesModelConverter {
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)){
                 tls.setHosts(Collections.singletonList(domainName));
             }
-            tls.setSecretName(domain.getCertIdentifier());
+            tls.setSecretName(domain.getPortAndCertMap().get(443));
             if (tlses == null) {
                 tlses = new ArrayList<>();
                 spec.setTls(tlses);
