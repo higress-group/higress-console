@@ -39,6 +39,8 @@ import javax.security.auth.x500.X500Principal;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -93,6 +95,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author CH3CHO
@@ -199,6 +202,66 @@ public class KubernetesModelConverter {
         return ingress;
     }
 
+    public V1Gateway domain2Gateway(Domain domain){
+        V1Gateway gateway = new V1Gateway();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName(domainName2GatewayName(domain.getName()));
+        metadata.setResourceVersion(domain.getVersion());
+        // TODO: consider the gateway's spec here.
+        metadata.setNamespace(HigressConstants.NS_DEFAULT);
+        gateway.setMetadata(metadata);
+        // set the gateway address to higress-gateway
+        V1GatewaySpec spec = new V1GatewaySpec().addDefaultAddress();
+        spec.setGatewayClassName(V1GatewayClass.DEFAULT_NAME);
+        List<V1GatewaySpecListeners> listeners = new ArrayList<>();
+        if (domain.getPortAndCertMap().isEmpty()){
+            // 提示错误信息
+            log.error("Domain must have at least one port!");
+            return null;
+        }
+        domain.getPortAndCertMap().forEach((port, cert) -> {
+            V1GatewaySpecListeners listener = new V1GatewaySpecListeners();
+            listener.setName(domain.getName()+Separators.DASH+port);
+            listener.setPort(port);
+            listener.setHostname(domain.getName());
+            listener.setProtocol("HTTP");
+            if(!"".equals(cert)){ //证书不为空
+                listener.setProtocol("HTTPS");
+                V1GatewaySpecTls tls = V1GatewaySpecListeners.getDefaultTls(cert);
+                listener.setTls(tls);
+            }
+            listener.setAllowedRoutes(V1GatewaySpecListeners.getDefaultAllowedRoutes());
+            listeners.add(listener);
+        });
+        spec.setListeners(listeners);
+        gateway.setSpec(spec);
+        return gateway;
+    }
+
+
+
+    public Domain gateway2Domain(V1Gateway gateway){
+        Domain domain = new Domain();
+        V1ObjectMeta metadata = gateway.getMetadata();
+        if (metadata != null) {
+            domain.setVersion(metadata.getResourceVersion());
+        }
+        List<V1GatewaySpecListeners> listeners = gateway.getSpec().getListeners();
+        domain.setName(listeners.get(0).getHostname());
+        domain.setEnableHttps("OFF");
+        for (V1GatewaySpecListeners listener:listeners){
+            if(listener.getTls() == null){
+                domain.getPortAndCertMap().put(listener.getPort(),"");
+            }else{
+                domain.setEnableHttps("ON");
+                domain.getPortAndCertMap().put(listener.getPort(),
+                        listener.getTls().getCertificateRefs().get(0).getName());
+            }
+        }
+        // TODO: find HTTPRoute named "port-xxx-tls-redirect", if domain in hostnames -> domain.setEnableHttps("FORCE");
+        return domain;
+    }
+
     private static void fillRouteCors(Route route, V1ObjectMeta metadata) {
         if (metadata == null || metadata.getAnnotations() == null) {
             return;
@@ -283,6 +346,11 @@ public class KubernetesModelConverter {
     public String domainName2ConfigMapName(String domainName) {
         return CommonKey.DOMAIN_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
     }
+
+    public String domainName2GatewayName(String domainName) {
+        return domainName.replace('.', '-');
+    }
+
 
     public V1Secret tlsCertificate2Secret(TlsCertificate certificate) {
         V1Secret secret = new V1Secret();

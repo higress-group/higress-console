@@ -21,17 +21,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClassSpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewayList;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
+import io.kubernetes.client.openapi.models.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,15 +56,6 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressList;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Strings;
@@ -353,6 +342,21 @@ public class KubernetesClientService {
         }
     }
 
+    public V1ConfigMap readOrCreateConfigMap(String name) throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        try {
+            return coreV1Api.readNamespacedConfigMap(name, controllerNamespace, null);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                // ConfigMap not found, create a new one
+                V1ConfigMap newConfigMap = new V1ConfigMap();
+                newConfigMap.setMetadata(new V1ObjectMeta().name(name));
+                return createConfigMap(newConfigMap);
+            }
+            throw e;
+        }
+    }
+
     public void deleteConfigMap(String name) throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         V1Status status;
@@ -485,6 +489,123 @@ public class KubernetesClientService {
                 return null;
             }
             throw e;
+        }
+    }
+
+    public List<V1Gateway> listGateway() {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.listNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
+                    controllerNamespace, V1Gateway.PLURAL, null, null, null, null, null, null, null, null, null, null);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            V1GatewayList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
+            return sortKubernetesObjects(list.getItems());
+        } catch (ApiException e) {
+            log.error("listGateway Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                    + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public V1Gateway createGateway(V1Gateway gateway) throws ApiException {
+        modifyLoadBalancerPorts(null, gateway);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.createNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
+                controllerNamespace, V1Gateway.PLURAL, gateway, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
+    }
+
+    public V1Gateway replaceGateway(V1Gateway gateway) throws ApiException {
+        V1ObjectMeta metadata = gateway.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("gateway doesn't have a valid metadata.");
+        }
+        V1Gateway gatewayOri = readGateway(metadata.getName());
+        modifyLoadBalancerPorts(gatewayOri, gateway);
+        gateway.getMetadata().setResourceVersion(gatewayOri.getMetadata().getResourceVersion());
+        //TODO: consider different ns
+        metadata.setNamespace(controllerNamespace);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.replaceNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
+                controllerNamespace, V1Gateway.PLURAL, metadata.getName(), gateway, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
+    }
+
+    public void deleteGateway(String name) throws ApiException {
+        V1Gateway gateway = readGateway(name);
+        modifyLoadBalancerPorts(gateway, null);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        customObjectsApi.deleteNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION, controllerNamespace,
+                V1Gateway.PLURAL, name, null, null, null, null, null);
+    }
+
+    public V1Gateway readGateway(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
+                    controllerNamespace, V1Gateway.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    public void modifyLoadBalancerPorts(V1Gateway gatewayOri, V1Gateway gatewayReplaced) {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        try {
+            // 获取配置中的端口计数
+            V1ConfigMap portConfig = readOrCreateConfigMap(HigressConstants.PORT_CONFIG);
+            Map<String, String> portCount = portConfig.getData();
+            if (portCount == null) portCount = new HashMap<>();
+            V1Service service = coreV1Api.readNamespacedService(V1GatewayClass.DEFAULT_NAME, controllerNamespace, null);
+            List<V1ServicePort> ports = Objects.requireNonNull(service.getSpec()).getPorts();
+            assert ports != null;
+
+            // 合并端口监听列表并统计端口出现频率
+            Map<Integer, Integer> portFrequency = new HashMap<>();
+            if(gatewayOri != null){
+                List<V1GatewaySpecListeners> listenersOri = gatewayOri.getSpec().getListeners();
+                for (V1GatewaySpecListeners listener : listenersOri) {
+                    portFrequency.put(listener.getPort(), portFrequency.getOrDefault(listener.getPort(), 0) - 1);
+                }
+            }
+            if(gatewayReplaced != null){
+                List<V1GatewaySpecListeners> listenersReplaced = gatewayReplaced.getSpec().getListeners();
+                for (V1GatewaySpecListeners listener : listenersReplaced) {
+                    portFrequency.put(listener.getPort(), portFrequency.getOrDefault(listener.getPort(), 0) + 1);
+                }
+            }
+
+            for (Map.Entry<Integer, Integer> entry : portFrequency.entrySet()) {
+                Integer port = entry.getKey();
+                Integer freq = entry.getValue();
+                if(port == 80 || port == 443 || freq == 0) continue;
+                int count = Integer.parseInt(portCount.getOrDefault(port.toString(), "0")) + (freq>0?1:-1);
+
+                if (count <= 0) {
+                    portCount.remove(port.toString());
+                    // 删除端口
+                    ports.removeIf(p -> p.getPort().equals(port));
+                } else {
+                    portCount.put(port.toString(), Integer.toString(count));
+                    if(count==1) {
+                        V1ServicePort servicePort = new V1ServicePort().port(port);
+                        servicePort.setProtocol("TCP");
+                        servicePort.setName("port"+Separators.DASH+ port);
+                        ports.add(servicePort);
+                    }
+                }
+            }
+
+            portConfig.setData(portCount);
+            replaceConfigMap(portConfig);
+            service.getSpec().setPorts(ports);
+            coreV1Api.replaceNamespacedService(V1GatewayClass.DEFAULT_NAME, controllerNamespace, service, null, null, null, null);
+        } catch (ApiException e) {
+            log.error("Error when modifying LoadBalancer ports ", e);
         }
     }
 
