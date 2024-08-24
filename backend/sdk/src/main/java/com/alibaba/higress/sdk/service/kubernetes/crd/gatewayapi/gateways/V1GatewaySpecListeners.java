@@ -17,7 +17,10 @@ import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,7 +53,26 @@ public class V1GatewaySpecListeners {
   @SerializedName(SERIALIZED_NAME_TLS)
   private V1GatewaySpecTls tls;
 
-
+  @NotNull
+  public static V1GatewaySpecTls getDefaultTls(String cert) {
+    V1GatewaySpecTls tls = new V1GatewaySpecTls();
+    List<V1GatewaySpecTlsCertificateRefs> certificateRefs = new ArrayList<>();
+    V1GatewaySpecTlsCertificateRefs certificateRef = new V1GatewaySpecTlsCertificateRefs();
+    certificateRef.setKind("Secret");
+    certificateRef.setName(cert);
+    certificateRefs.add(certificateRef);
+    tls.setCertificateRefs(certificateRefs);
+    tls.setMode(V1GatewaySpecTls.ModeEnum.TERMINATE);
+    return tls;
+  }
+  @NotNull
+  public static V1GatewaySpecAllowedRoutes getDefaultAllowedRoutes() {
+    V1GatewaySpecAllowedRoutes allowedRoute = new V1GatewaySpecAllowedRoutes();
+    V1GatewaySpecAllowedRoutesNamespaces ns = new V1GatewaySpecAllowedRoutesNamespaces();
+    ns.setFrom(V1GatewaySpecAllowedRoutesNamespaces.FromEnum.ALL);
+    allowedRoute.setNamespaces(ns);
+    return allowedRoute;
+  }
   @Override
   public boolean equals(Object o) {
     if (this == o) {

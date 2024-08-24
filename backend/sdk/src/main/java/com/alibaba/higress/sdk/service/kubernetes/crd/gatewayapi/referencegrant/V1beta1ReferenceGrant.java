@@ -27,13 +27,19 @@ import java.util.Objects;
 
 @Data
 public class V1beta1ReferenceGrant implements io.kubernetes.client.common.KubernetesObject {
+  public static final String API_GROUP = "gateway.networking.k8s.io";
+  public static final String VERSION = "v1";
+  public static final String KIND = "ReferenceGrant";
+  public static final String PLURAL = "referencegrants";
+
+
   public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";
   @SerializedName(SERIALIZED_NAME_API_VERSION)
-  private String apiVersion;
+  private String apiVersion = API_GROUP + "/" + VERSION;
 
   public static final String SERIALIZED_NAME_KIND = "kind";
   @SerializedName(SERIALIZED_NAME_KIND)
-  private String kind;
+  private String kind = KIND;
 
   public static final String SERIALIZED_NAME_METADATA = "metadata";
   @SerializedName(SERIALIZED_NAME_METADATA)
