@@ -27,6 +27,8 @@ import java.util.Objects;
  */
 @Data
 public class V1GatewaySpec {
+  public static final String HIGRESS_GATEWAY_SERVICE = "higress-gateway.higress-system.svc.cluster.local";
+
   public static final String SERIALIZED_NAME_ADDRESSES = "addresses";
   @SerializedName(SERIALIZED_NAME_ADDRESSES)
   private List<V1GatewaySpecAddresses> addresses = null;
@@ -47,6 +49,12 @@ public class V1GatewaySpec {
     return this;
   }
 
+  public V1GatewaySpec addDefaultAddress(){
+    V1GatewaySpecAddresses addressesItem = new V1GatewaySpecAddresses();
+    addressesItem.setType("Hostname");
+    addressesItem.setValue(HIGRESS_GATEWAY_SERVICE);
+    return addAddressesItem(addressesItem);
+  }
 
   @Override
   public boolean equals(Object o) {
