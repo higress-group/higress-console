@@ -90,24 +90,25 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
     editData.imageUrl = `${editData.imageRepository}:${editData.imageVersion}`;
   }
 
+  const builtIn = !!(editData && editData.builtIn);
+
   const [form] = Form.useForm();
 
   const onSubmit = async () => {
-    const values = await form.validateFields();
-    const imageUrl: string = values.imageUrl || '';
-    const lastColonIndex = imageUrl.lastIndexOf(':');
-    const imageRepository = lastColonIndex === -1 ? imageUrl : imageUrl.substring(0, lastColonIndex);
-    const imageVersion = lastColonIndex === -1 ? '' : imageUrl.substring(lastColonIndex + 1);
-    return {
-      ...values,
+    const data = Object.assign({
+      version: 0,
       category: 'custom',
       builtIn: false,
-      icon: '',
-      imageRepository,
-      imageVersion,
-      title: values.name,
-      version: editData?.version || 0,
-    };
+    }, editData, await form.validateFields());
+    if (!builtIn) {
+      const imageUrl: string = data.imageUrl || '';
+      const lastColonIndex = imageUrl.lastIndexOf(':');
+      data.imageRepository = lastColonIndex === -1 ? imageUrl : imageUrl.substring(0, lastColonIndex);
+      data.imageVersion = lastColonIndex === -1 ? '' : imageUrl.substring(lastColonIndex + 1);
+      delete data.imageUrl;
+      data.title = data.name;
+    }
+    return data;
   };
 
   useImperativeHandle(ref, () => ({
@@ -131,23 +132,40 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
           <Input disabled={isEdit} placeholder={t('plugins.custom.namePlaceholder') || ''} />
         </Form.Item>
         <Form.Item label={t('plugins.custom.description')} name="description">
-          <Input.TextArea placeholder={t('plugins.custom.descriptionPlaceholder') || ''} />
+          <Input.TextArea disabled={builtIn} placeholder={t('plugins.custom.descriptionPlaceholder') || ''} />
         </Form.Item>
-        <Form.Item
-          label={t('plugins.custom.imageUrl')}
-          name="imageUrl"
-          rules={[{ required: true }]}
-          tooltip={t('plugins.custom.imageUrlTooltip')}
-        >
-          <Input
-            placeholder={t('plugins.custom.imageUrlPlaceholder') || ''}
-          />
-        </Form.Item>
+        {
+          builtIn
+            ? (
+              <Form.Item
+                label={t('plugins.custom.imageUrl')}
+                name="imageVersion"
+                rules={[{ required: true }]}
+                tooltip={t('plugins.custom.imageUrlTooltip')}
+              >
+                <Form.Item name="imageVersion" noStyle>
+                  <Input addonBefore={`${editData.imageRepository}:`} />
+                </Form.Item>
+              </Form.Item>
+            )
+            : (
+              <Form.Item
+                label={t('plugins.custom.imageUrl')}
+                name="imageUrl"
+                rules={[{ required: true }]}
+                tooltip={t('plugins.custom.imageUrlTooltip')}
+              >
+                <Input
+                  placeholder={t('plugins.custom.imageUrlPlaceholder') || ''}
+                />
+              </Form.Item>
+            )
+        }
         <Form.Item label={t('plugins.custom.phase')} name="phase" rules={[{ required: true }]}>
-          <Select options={phaseOptions} placeholder={t('plugins.custom.phasePlaceholder')} />
+          <Select disabled={builtIn} options={phaseOptions} placeholder={t('plugins.custom.phasePlaceholder')} />
         </Form.Item>
         <Form.Item label={t('plugins.custom.priority')} name="priority" rules={[{ required: true }]}>
-          <InputNumber max={1000} min={1} style={{ width: '100%' }} placeholder={t('plugins.custom.priorityPlaceholder') || ''} />
+          <InputNumber disabled={builtIn} max={1000} min={1} style={{ width: '100%' }} placeholder={t('plugins.custom.priorityPlaceholder') || ''} />
         </Form.Item>
       </Form>
     </div>
