@@ -1,0 +1,24 @@
+apiVersion: 1.0.0
+info:
+  category: transformation
+  name: geo-ip
+  title: Geo IP
+  x-title-i18n:
+    zh-CN: IP 地理位置
+  description: Query the geographical location information based on the user IP, and then pass the geographical location information to subsequent plugins through request attributes and newly added request headers.
+  x-description-i18n:
+    zh-CN: 根据用户 IP 查询出地理位置信息，然后通过请求属性和新添加的请求头把地理位置信息传递给后续插件。
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: ranxuxin001
+spec:
+  phase: AUTHN
+  priority: 440
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        ip_protocol: ipv4
+        ip_source_type: header
+        ip_header_name: X-Real-Ip
