@@ -36,10 +36,22 @@ public class V1HTTPRouteSpecPath {
    */
   @JsonAdapter(TypeEnum.Adapter.class)
   public enum TypeEnum {
+    /**
+     * EXACT matches the path exactly as specified.
+     * This is a core match type and must be supported by all implementations.
+     */
     EXACT("Exact"),
-    
+
+    /**
+     * PATHPREFIX matches the beginning of the path against the specified value.
+     * This is a core match type and must be supported by all implementations.
+     */
     PATHPREFIX("PathPrefix"),
-    
+
+    /**
+     * REGULAREXPRESSION allows matching the path using a regular expression.
+     * This is an implementation-specific match type and may vary depending on the implementation.
+     */
     REGULAREXPRESSION("RegularExpression");
 
     private String value;
@@ -97,9 +109,9 @@ public class V1HTTPRouteSpecPath {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecPath v1HTTPRouteSpecPath = (V1HTTPRouteSpecPath) o;
-    return Objects.equals(this.type, v1HTTPRouteSpecPath.type) &&
-        Objects.equals(this.value, v1HTTPRouteSpecPath.value);
+    V1HTTPRouteSpecPath v1HttpRouteSpecPath = (V1HTTPRouteSpecPath) o;
+    return Objects.equals(this.type, v1HttpRouteSpecPath.type) &&
+        Objects.equals(this.value, v1HttpRouteSpecPath.value);
   }
 
   @Override

@@ -35,8 +35,17 @@ public class V1GatewaySpecAllowedRoutesNamespaces {
    */
   @JsonAdapter(FromEnum.Adapter.class)
   public enum FromEnum {
+    /**
+     * Routes in all namespaces may be used by this Gateway.
+     */
     ALL("All"),
+    /**
+     * Routes in namespaces selected by the selector may be used by this Gateway.
+     */
     SELECTOR("Selector"),
+    /**
+     *  only Routes in the same namespace may be used by this Gateway.
+     */
     SAME("Same");
     private String value;
 

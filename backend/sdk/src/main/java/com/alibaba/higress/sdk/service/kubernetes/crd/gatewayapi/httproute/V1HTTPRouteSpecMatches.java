@@ -41,22 +41,58 @@ public class V1HTTPRouteSpecMatches {
    */
   @JsonAdapter(MethodEnum.Adapter.class)
   public enum MethodEnum {
+    /**
+     * GET is an HTTP method used to request data from a specified resource.
+     * Commonly used to retrieve information.
+     */
     GET("GET"),
-    
+
+    /**
+     * HEAD is an HTTP method used to request headers from a specified resource.
+     * Similar to GET, but without the response body.
+     */
     HEAD("HEAD"),
-    
+
+    /**
+     * POST is an HTTP method used to send data to a server to create/update a resource.
+     * Commonly used for submitting form data or uploading files.
+     */
     POST("POST"),
-    
+
+    /**
+     * PUT is an HTTP method used to update or create a resource at the specified resource.
+     * Typically used for updating existing resources.
+     */
     PUT("PUT"),
-    
+
+    /**
+     * DELETE is an HTTP method used to delete a specified resource.
+     * Used for removing resources from the server.
+     */
     DELETE("DELETE"),
-    
+
+    /**
+     * CONNECT is an HTTP method used to establish a tunnel to the server identified by the target resource.
+     * Commonly used for tunneling HTTP requests over a network.
+     */
     CONNECT("CONNECT"),
-    
+
+    /**
+     * OPTIONS is an HTTP method used to describe the communication options for the target resource.
+     * Used to determine the capabilities of a server, such as allowed HTTP methods.
+     */
     OPTIONS("OPTIONS"),
-    
+
+    /**
+     * TRACE is an HTTP method used to perform a message loop-back test along the path to the target resource.
+     * Typically used for diagnostic purposes.
+     */
     TRACE("TRACE"),
-    
+
+    /**
+     * PATCH is an HTTP method used to apply partial modifications to a resource.
+     * Often used when you need to update a resource with a few changes rather than replacing the entire resource.
+     */
     PATCH("PATCH");
 
     private String value;
@@ -135,11 +171,11 @@ public class V1HTTPRouteSpecMatches {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecMatches v1HTTPRouteSpecMatches = (V1HTTPRouteSpecMatches) o;
-    return Objects.equals(this.headers, v1HTTPRouteSpecMatches.headers) &&
-        Objects.equals(this.method, v1HTTPRouteSpecMatches.method) &&
-        Objects.equals(this.path, v1HTTPRouteSpecMatches.path) &&
-        Objects.equals(this.queryParams, v1HTTPRouteSpecMatches.queryParams);
+    V1HTTPRouteSpecMatches v1HttpRouteSpecMatches = (V1HTTPRouteSpecMatches) o;
+    return Objects.equals(this.headers, v1HttpRouteSpecMatches.headers) &&
+        Objects.equals(this.method, v1HttpRouteSpecMatches.method) &&
+        Objects.equals(this.path, v1HttpRouteSpecMatches.path) &&
+        Objects.equals(this.queryParams, v1HttpRouteSpecMatches.queryParams);
   }
 
   @Override

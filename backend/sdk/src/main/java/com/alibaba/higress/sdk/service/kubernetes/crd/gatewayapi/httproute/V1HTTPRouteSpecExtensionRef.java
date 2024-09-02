@@ -46,10 +46,10 @@ public class V1HTTPRouteSpecExtensionRef {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecExtensionRef v1HTTPRouteSpecExtensionRef = (V1HTTPRouteSpecExtensionRef) o;
-    return Objects.equals(this.group, v1HTTPRouteSpecExtensionRef.group) &&
-        Objects.equals(this.kind, v1HTTPRouteSpecExtensionRef.kind) &&
-        Objects.equals(this.name, v1HTTPRouteSpecExtensionRef.name);
+    V1HTTPRouteSpecExtensionRef v1HttpRouteSpecExtensionRef = (V1HTTPRouteSpecExtensionRef) o;
+    return Objects.equals(this.group, v1HttpRouteSpecExtensionRef.group) &&
+        Objects.equals(this.kind, v1HttpRouteSpecExtensionRef.kind) &&
+        Objects.equals(this.name, v1HttpRouteSpecExtensionRef.name);
   }
 
   @Override

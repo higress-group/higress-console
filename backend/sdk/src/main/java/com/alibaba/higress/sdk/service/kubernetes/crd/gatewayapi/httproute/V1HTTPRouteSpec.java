@@ -14,8 +14,6 @@
 package com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute;
 
 import com.google.gson.annotations.SerializedName;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -64,10 +62,10 @@ public class V1HTTPRouteSpec {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpec v1HTTPRouteSpec = (V1HTTPRouteSpec) o;
-    return Objects.equals(this.hostnames, v1HTTPRouteSpec.hostnames) &&
-        Objects.equals(this.parentRefs, v1HTTPRouteSpec.parentRefs) &&
-        Objects.equals(this.rules, v1HTTPRouteSpec.rules);
+    V1HTTPRouteSpec v1HttpRouteSpec = (V1HTTPRouteSpec) o;
+    return Objects.equals(this.hostnames, v1HttpRouteSpec.hostnames) &&
+        Objects.equals(this.parentRefs, v1HttpRouteSpec.parentRefs) &&
+        Objects.equals(this.rules, v1HttpRouteSpec.rules);
   }
 
   @Override

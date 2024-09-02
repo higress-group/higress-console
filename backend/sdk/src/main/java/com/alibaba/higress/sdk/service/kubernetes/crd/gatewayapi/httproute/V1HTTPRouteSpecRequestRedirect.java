@@ -47,8 +47,16 @@ public class V1HTTPRouteSpecRequestRedirect {
    */
   @JsonAdapter(SchemeEnum.Adapter.class)
   public enum SchemeEnum {
+    /**
+     * HTTP is used to specify that the scheme in the `Location` header should be "http".
+     * This is commonly used for non-secure redirects.
+     */
     HTTP("http"),
-    
+
+    /**
+     * HTTPS is used to specify that the scheme in the `Location` header should be "https".
+     * This is commonly used for secure redirects.
+     */
     HTTPS("https");
 
     private String value;
@@ -107,12 +115,12 @@ public class V1HTTPRouteSpecRequestRedirect {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRequestRedirect v1HTTPRouteSpecRequestRedirect = (V1HTTPRouteSpecRequestRedirect) o;
-    return Objects.equals(this.hostname, v1HTTPRouteSpecRequestRedirect.hostname) &&
-        Objects.equals(this.path, v1HTTPRouteSpecRequestRedirect.path) &&
-        Objects.equals(this.port, v1HTTPRouteSpecRequestRedirect.port) &&
-        Objects.equals(this.scheme, v1HTTPRouteSpecRequestRedirect.scheme) &&
-        Objects.equals(this.statusCode, v1HTTPRouteSpecRequestRedirect.statusCode);
+    V1HTTPRouteSpecRequestRedirect v1HttpRouteSpecRequestRedirect = (V1HTTPRouteSpecRequestRedirect) o;
+    return Objects.equals(this.hostname, v1HttpRouteSpecRequestRedirect.hostname) &&
+        Objects.equals(this.path, v1HttpRouteSpecRequestRedirect.path) &&
+        Objects.equals(this.port, v1HttpRouteSpecRequestRedirect.port) &&
+        Objects.equals(this.scheme, v1HttpRouteSpecRequestRedirect.scheme) &&
+        Objects.equals(this.statusCode, v1HttpRouteSpecRequestRedirect.statusCode);
   }
 
   @Override

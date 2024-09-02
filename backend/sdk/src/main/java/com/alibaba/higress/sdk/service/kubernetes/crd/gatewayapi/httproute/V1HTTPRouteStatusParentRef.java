@@ -58,13 +58,13 @@ public class V1HTTPRouteStatusParentRef {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteStatusParentRef v1HTTPRouteStatusParentRef = (V1HTTPRouteStatusParentRef) o;
-    return Objects.equals(this.group, v1HTTPRouteStatusParentRef.group) &&
-        Objects.equals(this.kind, v1HTTPRouteStatusParentRef.kind) &&
-        Objects.equals(this.name, v1HTTPRouteStatusParentRef.name) &&
-        Objects.equals(this.namespace, v1HTTPRouteStatusParentRef.namespace) &&
-        Objects.equals(this.port, v1HTTPRouteStatusParentRef.port) &&
-        Objects.equals(this.sectionName, v1HTTPRouteStatusParentRef.sectionName);
+    V1HTTPRouteStatusParentRef v1HttpRouteStatusParentRef = (V1HTTPRouteStatusParentRef) o;
+    return Objects.equals(this.group, v1HttpRouteStatusParentRef.group) &&
+        Objects.equals(this.kind, v1HttpRouteStatusParentRef.kind) &&
+        Objects.equals(this.name, v1HttpRouteStatusParentRef.name) &&
+        Objects.equals(this.namespace, v1HttpRouteStatusParentRef.namespace) &&
+        Objects.equals(this.port, v1HttpRouteStatusParentRef.port) &&
+        Objects.equals(this.sectionName, v1HttpRouteStatusParentRef.sectionName);
   }
 
   @Override

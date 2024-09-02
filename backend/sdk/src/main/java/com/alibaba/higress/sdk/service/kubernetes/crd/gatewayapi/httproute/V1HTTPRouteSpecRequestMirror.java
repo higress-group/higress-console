@@ -38,8 +38,8 @@ public class V1HTTPRouteSpecRequestMirror {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRequestMirror v1HTTPRouteSpecRequestMirror = (V1HTTPRouteSpecRequestMirror) o;
-    return Objects.equals(this.backendRef, v1HTTPRouteSpecRequestMirror.backendRef);
+    V1HTTPRouteSpecRequestMirror v1HttpRouteSpecRequestMirror = (V1HTTPRouteSpecRequestMirror) o;
+    return Objects.equals(this.backendRef, v1HttpRouteSpecRequestMirror.backendRef);
   }
 
   @Override

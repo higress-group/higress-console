@@ -43,9 +43,9 @@ public class V1HTTPRouteSpecUrlRewrite {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecUrlRewrite v1HTTPRouteSpecUrlRewrite = (V1HTTPRouteSpecUrlRewrite) o;
-    return Objects.equals(this.hostname, v1HTTPRouteSpecUrlRewrite.hostname) &&
-        Objects.equals(this.path, v1HTTPRouteSpecUrlRewrite.path);
+    V1HTTPRouteSpecUrlRewrite v1HttpRouteSpecUrlRewrite = (V1HTTPRouteSpecUrlRewrite) o;
+    return Objects.equals(this.hostname, v1HttpRouteSpecUrlRewrite.hostname) &&
+        Objects.equals(this.path, v1HttpRouteSpecUrlRewrite.path);
   }
 
   @Override
