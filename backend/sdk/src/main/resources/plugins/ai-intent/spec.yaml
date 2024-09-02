@@ -1,0 +1,32 @@
+apiVersion: 1.0.0
+info:
+  category: ai
+  name: ai-intent
+  title: AI Intent
+  x-title-i18n:
+    zh-CN: AI 意图识别
+  description: Intelligently assess the compatibility between a user's request and the capabilities of a specific domain or agent, thereby enhancing the effectiveness of different models and improving the user experience.
+  x-description-i18n:
+    zh-CN: 智能判断用户请求与某个领域或 agent 的功能契合度，从而提升不同模型的应用效果和用户体验。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: lizhou0
+spec:
+  phase: UNSPECIFIED_PHASE
+  priority: 700
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        scene:
+          category: "金融|电商|法律|Higress"
+          prompt: "你是一个智能类别识别助手，负责根据用户提出的问题和预设的类别，确定问题属于哪个预设的类别，并给出相应的类别。用户提出的问题为:'%s',预设的类别为'%s'，直接返回一种具体类别，如果没有找到就返回'NotFound'。"
+        llm:
+          proxyServiceName: "intent-service.static"
+          proxyUrl: "http://127.0.0.1:80/intent/compatible-mode/v1/chat/completions"
+          proxyDomain: "127.0.0.1"
+          proxyPort: "80"
+          proxyModel: "qwen-long"
+          proxyApiKey: ""
+          proxyTimeout: "10000"
