@@ -43,8 +43,16 @@ public class V1HTTPRouteSpecRequestRedirectPath {
    */
   @JsonAdapter(TypeEnum.Adapter.class)
   public enum TypeEnum {
+    /**
+     * REPLACEFULLPATH is used to replace the entire path of the request with a new path.
+     * This modifier is typically used when you need to completely change the path in a request.
+     */
     REPLACEFULLPATH("ReplaceFullPath"),
-    
+
+    /**
+     * REPLACEPREFIXMATCH is used to replace the matching prefix of the path in the request.
+     * This modifier is commonly used when you want to modify just the beginning of the path while preserving the rest.
+     */
     REPLACEPREFIXMATCH("ReplacePrefixMatch");
 
     private String value;
@@ -98,10 +106,10 @@ public class V1HTTPRouteSpecRequestRedirectPath {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRequestRedirectPath v1HTTPRouteSpecRequestRedirectPath = (V1HTTPRouteSpecRequestRedirectPath) o;
-    return Objects.equals(this.replaceFullPath, v1HTTPRouteSpecRequestRedirectPath.replaceFullPath) &&
-        Objects.equals(this.replacePrefixMatch, v1HTTPRouteSpecRequestRedirectPath.replacePrefixMatch) &&
-        Objects.equals(this.type, v1HTTPRouteSpecRequestRedirectPath.type);
+    V1HTTPRouteSpecRequestRedirectPath v1HttpRouteSpecRequestRedirectPath = (V1HTTPRouteSpecRequestRedirectPath) o;
+    return Objects.equals(this.replaceFullPath, v1HttpRouteSpecRequestRedirectPath.replaceFullPath) &&
+        Objects.equals(this.replacePrefixMatch, v1HttpRouteSpecRequestRedirectPath.replacePrefixMatch) &&
+        Objects.equals(this.type, v1HttpRouteSpecRequestRedirectPath.type);
   }
 
   @Override

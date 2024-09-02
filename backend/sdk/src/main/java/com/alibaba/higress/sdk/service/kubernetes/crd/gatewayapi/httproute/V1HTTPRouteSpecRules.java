@@ -73,10 +73,10 @@ public class V1HTTPRouteSpecRules {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRules v1HTTPRouteSpecRules = (V1HTTPRouteSpecRules) o;
-    return Objects.equals(this.backendRefs, v1HTTPRouteSpecRules.backendRefs) &&
-        Objects.equals(this.filters, v1HTTPRouteSpecRules.filters) &&
-        Objects.equals(this.matches, v1HTTPRouteSpecRules.matches);
+    V1HTTPRouteSpecRules v1HttpRouteSpecRules = (V1HTTPRouteSpecRules) o;
+    return Objects.equals(this.backendRefs, v1HttpRouteSpecRules.backendRefs) &&
+        Objects.equals(this.filters, v1HttpRouteSpecRules.filters) &&
+        Objects.equals(this.matches, v1HttpRouteSpecRules.matches);
   }
 
   @Override

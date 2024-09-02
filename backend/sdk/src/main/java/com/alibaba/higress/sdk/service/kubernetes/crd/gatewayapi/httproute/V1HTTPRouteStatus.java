@@ -45,8 +45,8 @@ public class V1HTTPRouteStatus {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteStatus v1HTTPRouteStatus = (V1HTTPRouteStatus) o;
-    return Objects.equals(this.parents, v1HTTPRouteStatus.parents);
+    V1HTTPRouteStatus v1HttpRouteStatus = (V1HTTPRouteStatus) o;
+    return Objects.equals(this.parents, v1HttpRouteStatus.parents);
   }
 
   @Override

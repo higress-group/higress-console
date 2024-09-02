@@ -42,9 +42,9 @@ public class V1HTTPRouteSpecRequestHeaderModifierAdd {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRequestHeaderModifierAdd v1HTTPRouteSpecRequestHeaderModifierAdd = (V1HTTPRouteSpecRequestHeaderModifierAdd) o;
-    return Objects.equals(this.name, v1HTTPRouteSpecRequestHeaderModifierAdd.name) &&
-        Objects.equals(this.value, v1HTTPRouteSpecRequestHeaderModifierAdd.value);
+    V1HTTPRouteSpecRequestHeaderModifierAdd v1HttpRouteSpecRequestHeaderModifierAdd = (V1HTTPRouteSpecRequestHeaderModifierAdd) o;
+    return Objects.equals(this.name, v1HttpRouteSpecRequestHeaderModifierAdd.name) &&
+        Objects.equals(this.value, v1HttpRouteSpecRequestHeaderModifierAdd.value);
   }
 
   @Override

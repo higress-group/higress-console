@@ -57,10 +57,10 @@ public class V1HTTPRouteStatusParents {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteStatusParents v1HTTPRouteStatusParents = (V1HTTPRouteStatusParents) o;
-    return Objects.equals(this.conditions, v1HTTPRouteStatusParents.conditions) &&
-        Objects.equals(this.controllerName, v1HTTPRouteStatusParents.controllerName) &&
-        Objects.equals(this.parentRef, v1HTTPRouteStatusParents.parentRef);
+    V1HTTPRouteStatusParents v1HttpRouteStatusParents = (V1HTTPRouteStatusParents) o;
+    return Objects.equals(this.conditions, v1HttpRouteStatusParents.conditions) &&
+        Objects.equals(this.controllerName, v1HttpRouteStatusParents.controllerName) &&
+        Objects.equals(this.parentRef, v1HttpRouteStatusParents.parentRef);
   }
 
   @Override

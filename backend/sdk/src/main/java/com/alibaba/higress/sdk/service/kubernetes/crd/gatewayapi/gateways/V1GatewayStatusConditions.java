@@ -53,10 +53,19 @@ public class V1GatewayStatusConditions {
    */
   @JsonAdapter(StatusEnum.Adapter.class)
   public enum StatusEnum {
+    /**
+     * Represents the state where the condition is true.
+     */
     TRUE("True"),
-    
+
+    /**
+     * Represents the state where the condition is false.
+     */
     FALSE("False"),
-    
+
+    /**
+     * Represents an unknown state.
+     */
     UNKNOWN("Unknown");
 
     private String value;

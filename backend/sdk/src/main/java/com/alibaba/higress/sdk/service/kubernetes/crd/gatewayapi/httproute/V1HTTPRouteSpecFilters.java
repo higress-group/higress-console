@@ -56,16 +56,41 @@ public class V1HTTPRouteSpecFilters {
    */
   @JsonAdapter(TypeEnum.Adapter.class)
   public enum TypeEnum {
+    /**
+     * RequestHeaderModifier is a core filter type used to modify the headers of incoming HTTP requests.
+     * All implementations must support this filter type.
+     */
     REQUESTHEADERMODIFIER("RequestHeaderModifier"),
-    
+
+    /**
+     * ResponseHeaderModifier is a core filter type used to modify the headers of outgoing HTTP responses.
+     * All implementations must support this filter type.
+     */
     RESPONSEHEADERMODIFIER("ResponseHeaderModifier"),
-    
+
+    /**
+     * RequestMirror is an extended filter type used to mirror HTTP requests to another service or destination.
+     * Implementers are encouraged to support this filter type.
+     */
     REQUESTMIRROR("RequestMirror"),
-    
+
+    /**
+     * RequestRedirect is a core filter type used to redirect HTTP requests to a different URL.
+     * All implementations must support this filter type.
+     */
     REQUESTREDIRECT("RequestRedirect"),
-    
+
+    /**
+     * URLRewrite is a core filter type used to rewrite the URL path or query in an HTTP request.
+     * All implementations must support this filter type.
+     */
     URLREWRITE("URLRewrite"),
-    
+
+    /**
+     * ExtensionRef is an implementation-specific filter type used for custom filters defined by the implementer.
+     * This type should be set to "ExtensionRef" for custom filters, and the specific configuration is specified using the ExtensionRef field.
+     * If a reference to a custom filter type cannot be resolved, the filter MUST NOT be skipped, and the request must receive an HTTP error response.
+     */
     EXTENSIONREF("ExtensionRef");
 
     private String value;
@@ -124,14 +149,14 @@ public class V1HTTPRouteSpecFilters {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecFilters v1HTTPRouteSpecFilters = (V1HTTPRouteSpecFilters) o;
-    return Objects.equals(this.extensionRef, v1HTTPRouteSpecFilters.extensionRef) &&
-        Objects.equals(this.requestHeaderModifier, v1HTTPRouteSpecFilters.requestHeaderModifier) &&
-        Objects.equals(this.requestMirror, v1HTTPRouteSpecFilters.requestMirror) &&
-        Objects.equals(this.requestRedirect, v1HTTPRouteSpecFilters.requestRedirect) &&
-        Objects.equals(this.responseHeaderModifier, v1HTTPRouteSpecFilters.responseHeaderModifier) &&
-        Objects.equals(this.type, v1HTTPRouteSpecFilters.type) &&
-        Objects.equals(this.urlRewrite, v1HTTPRouteSpecFilters.urlRewrite);
+    V1HTTPRouteSpecFilters v1HttpRouteSpecFilters = (V1HTTPRouteSpecFilters) o;
+    return Objects.equals(this.extensionRef, v1HttpRouteSpecFilters.extensionRef) &&
+        Objects.equals(this.requestHeaderModifier, v1HttpRouteSpecFilters.requestHeaderModifier) &&
+        Objects.equals(this.requestMirror, v1HttpRouteSpecFilters.requestMirror) &&
+        Objects.equals(this.requestRedirect, v1HttpRouteSpecFilters.requestRedirect) &&
+        Objects.equals(this.responseHeaderModifier, v1HttpRouteSpecFilters.responseHeaderModifier) &&
+        Objects.equals(this.type, v1HttpRouteSpecFilters.type) &&
+        Objects.equals(this.urlRewrite, v1HttpRouteSpecFilters.urlRewrite);
   }
 
   @Override
