@@ -7,7 +7,7 @@ import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography } from
 import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BUILTIN_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
+import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 import { getI18nValue } from '../../utils';
 
 const { Paragraph } = Typography;
@@ -29,12 +29,6 @@ const PluginList = forwardRef((props: Props, ref) => {
   const { data, onOpen, onEdit, onDelete } = props;
   const [searchParams] = useSearchParams();
 
-  const type = searchParams.get('type');
-
-  const showBuiltInPlugins = useMemo(() => {
-    return type === 'route';
-  }, [type]);
-
   const handleClickPlugin = (item) => {
     onOpen(item);
   };
@@ -46,8 +40,8 @@ const PluginList = forwardRef((props: Props, ref) => {
   }, {
     manual: true,
     onSuccess: (result = []) => {
-      if (showBuiltInPlugins) {
-        setPluginList(BUILTIN_PLUGIN_LIST.concat(result) as any);
+      if (searchParams.get('type') === 'route') {
+        setPluginList(BUILTIN_ROUTE_PLUGIN_LIST.concat(result) as any);
         return;
       }
       setPluginList(result);
@@ -67,6 +61,51 @@ const PluginList = forwardRef((props: Props, ref) => {
   }, []);
 
   i18n.on('languageChanged', () => loadWasmPlugins());
+
+  const createPluginDropdown = (plugin) => {
+    if (BUILTIN_ROUTE_PLUGIN_LIST.some(p => p.key === plugin.key)) {
+      return null;
+    }
+    const items = [
+      {
+        key: 'edit',
+        label: (
+          <span
+            onClick={() => {
+              onEdit?.(plugin);
+            }}
+          >
+            {t('misc.edit')}
+          </span>
+        ),
+      },
+    ];
+    if (!plugin.builtIn) {
+      items.push({
+        key: 'delete',
+        label: (
+          <Popconfirm
+            title={t('plugins.deleteConfirmation')}
+            onConfirm={() => {
+              onDelete?.(plugin.name);
+            }}
+          >
+            <span>{t('misc.delete')}</span>
+          </Popconfirm>
+        ),
+        danger: true,
+      });
+    }
+    return (
+      <Dropdown
+        menu={{
+          items,
+        }}
+      >
+        <EllipsisOutlined />
+      </Dropdown>
+    )
+  };
 
   return (
     <Row gutter={[16, 16]}>
@@ -101,42 +140,9 @@ const PluginList = forwardRef((props: Props, ref) => {
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {getI18nValue(item, 'title')}
                     </div>
-                    {item.builtIn === false ? (
-                      <Dropdown
-                        menu={{
-                          items: [
-                            {
-                              key: 'edit',
-                              label: (
-                                <span
-                                  onClick={() => {
-                                    onEdit?.(item);
-                                  }}
-                                >
-                                  {t('misc.edit')}
-                                </span>
-                              ),
-                            },
-                            {
-                              key: 'delete',
-                              label: (
-                                <Popconfirm
-                                  title={t('plugins.deleteConfirmation')}
-                                  onConfirm={() => {
-                                    onDelete?.(item.name);
-                                  }}
-                                >
-                                  <span>{t('misc.delete')}</span>
-                                </Popconfirm>
-                              ),
-                              danger: true,
-                            },
-                          ],
-                        }}
-                      >
-                        <EllipsisOutlined />
-                      </Dropdown>
-                    ) : undefined}
+                    {
+                      createPluginDropdown(item)
+                    }
                   </div>
                 }
                 description={
