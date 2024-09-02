@@ -21,7 +21,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
@@ -29,7 +36,19 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewayList;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
-import io.kubernetes.client.openapi.models.*;
+
+import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressList;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServicePort;
+import io.kubernetes.client.openapi.models.V1Status;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -155,7 +174,7 @@ public class KubernetesClientService {
                     V1GatewayClass.PLURAL, V1GatewayClass.DEFAULT_NAME);
             log.info("GatewayClass already exists: " + existingGatewayClass);
         } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND) {  // 如果不存在，则创建新的 GatewayClass
+            if (e.getCode() == HttpStatus.NOT_FOUND) {  // if not exist, create new GatewayClass
                 try {
                     Object response = customObjectsApi.createClusterCustomObject(V1GatewayClass.API_GROUP, V1GatewayClass.VERSION,
                             V1GatewayClass.PLURAL, gatewayClass, null, null, null);
@@ -172,7 +191,7 @@ public class KubernetesClientService {
     }
 
     private void getIngressOrGatewayMode(){
-        // 读取全局配置，看当前是ingress or gateway 模式
+        // read config, check if ingress or gateway mode
         V1ConfigMap higressConfig;
         try {
             higressConfig = readConfigMap(HigressConstants.DEFAULT_CONFIG);
@@ -556,15 +575,16 @@ public class KubernetesClientService {
     public void modifyLoadBalancerPorts(V1Gateway gatewayOri, V1Gateway gatewayReplaced) {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         try {
-            // 获取配置中的端口计数
+            // get port counter from config
             V1ConfigMap portConfig = readOrCreateConfigMap(HigressConstants.PORT_CONFIG);
             Map<String, String> portCount = portConfig.getData();
-            if (portCount == null) portCount = new HashMap<>();
+            if (portCount == null) {
+                portCount = new HashMap<>();
+            }
             V1Service service = coreV1Api.readNamespacedService(V1GatewayClass.DEFAULT_NAME, controllerNamespace, null);
             List<V1ServicePort> ports = Objects.requireNonNull(service.getSpec()).getPorts();
             assert ports != null;
 
-            // 合并端口监听列表并统计端口出现频率
             Map<Integer, Integer> portFrequency = new HashMap<>();
             if(gatewayOri != null){
                 List<V1GatewaySpecListeners> listenersOri = gatewayOri.getSpec().getListeners();
@@ -582,12 +602,13 @@ public class KubernetesClientService {
             for (Map.Entry<Integer, Integer> entry : portFrequency.entrySet()) {
                 Integer port = entry.getKey();
                 Integer freq = entry.getValue();
-                if(port == 80 || port == 443 || freq == 0) continue;
+                if(port == 80 || port == 443 || freq == 0) {
+                    continue;
+                }
                 int count = Integer.parseInt(portCount.getOrDefault(port.toString(), "0")) + (freq>0?1:-1);
 
                 if (count <= 0) {
                     portCount.remove(port.toString());
-                    // 删除端口
                     ports.removeIf(p -> p.getPort().equals(port));
                 } else {
                     portCount.put(port.toString(), Integer.toString(count));

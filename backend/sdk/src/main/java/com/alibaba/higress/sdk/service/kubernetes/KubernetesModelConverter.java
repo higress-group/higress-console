@@ -40,7 +40,10 @@ import javax.security.auth.x500.X500Principal;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
-import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.*;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecTls;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -95,7 +98,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author CH3CHO
@@ -215,7 +217,6 @@ public class KubernetesModelConverter {
         spec.setGatewayClassName(V1GatewayClass.DEFAULT_NAME);
         List<V1GatewaySpecListeners> listeners = new ArrayList<>();
         if (domain.getPortAndCertMap().isEmpty()){
-            // 提示错误信息
             log.error("Domain must have at least one port!");
             return null;
         }
@@ -225,7 +226,7 @@ public class KubernetesModelConverter {
             listener.setPort(port);
             listener.setHostname(domain.getName());
             listener.setProtocol("HTTP");
-            if(!"".equals(cert)){ //证书不为空
+            if(!"".equals(cert)){ //tls is not null
                 listener.setProtocol("HTTPS");
                 V1GatewaySpecTls tls = V1GatewaySpecListeners.getDefaultTls(cert);
                 listener.setTls(tls);
@@ -333,7 +334,7 @@ public class KubernetesModelConverter {
         try {
             domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
         }catch(JSONException e){
-            // 原先ingress模式下的cert
+            // ingress-left cert
             Map<Integer, String> portCertMap = new HashMap<>();
             portCertMap.put(443, certData);
             domain.setPortAndCertMap(portCertMap);
