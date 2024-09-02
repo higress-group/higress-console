@@ -54,12 +54,12 @@ public class V1HTTPRouteSpecRequestMirrorBackendRef {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecRequestMirrorBackendRef v1HTTPRouteSpecRequestMirrorBackendRef = (V1HTTPRouteSpecRequestMirrorBackendRef) o;
-    return Objects.equals(this.group, v1HTTPRouteSpecRequestMirrorBackendRef.group) &&
-        Objects.equals(this.kind, v1HTTPRouteSpecRequestMirrorBackendRef.kind) &&
-        Objects.equals(this.name, v1HTTPRouteSpecRequestMirrorBackendRef.name) &&
-        Objects.equals(this.namespace, v1HTTPRouteSpecRequestMirrorBackendRef.namespace) &&
-        Objects.equals(this.port, v1HTTPRouteSpecRequestMirrorBackendRef.port);
+    V1HTTPRouteSpecRequestMirrorBackendRef v1HttpRouteSpecRequestMirrorBackendRef = (V1HTTPRouteSpecRequestMirrorBackendRef) o;
+    return Objects.equals(this.group, v1HttpRouteSpecRequestMirrorBackendRef.group) &&
+        Objects.equals(this.kind, v1HttpRouteSpecRequestMirrorBackendRef.kind) &&
+        Objects.equals(this.name, v1HttpRouteSpecRequestMirrorBackendRef.name) &&
+        Objects.equals(this.namespace, v1HttpRouteSpecRequestMirrorBackendRef.namespace) &&
+        Objects.equals(this.port, v1HttpRouteSpecRequestMirrorBackendRef.port);
   }
 
   @Override

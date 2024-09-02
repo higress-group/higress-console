@@ -39,8 +39,16 @@ public class V1HTTPRouteSpecHeaders {
    */
   @JsonAdapter(TypeEnum.Adapter.class)
   public enum TypeEnum {
+    /**
+     * EXACT is a core match type that matches the header value exactly.
+     * All implementations must support this match type.
+     */
     EXACT("Exact"),
-    
+
+    /**
+     * REGULAREXPRESSION is an implementation-specific match type that allows matching header values using regular expressions.
+     * The specific regular expression dialect supported may vary between implementations.
+     */
     REGULAREXPRESSION("RegularExpression");
 
     private String value;
@@ -98,10 +106,10 @@ public class V1HTTPRouteSpecHeaders {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecHeaders v1HTTPRouteSpecHeaders = (V1HTTPRouteSpecHeaders) o;
-    return Objects.equals(this.name, v1HTTPRouteSpecHeaders.name) &&
-        Objects.equals(this.type, v1HTTPRouteSpecHeaders.type) &&
-        Objects.equals(this.value, v1HTTPRouteSpecHeaders.value);
+    V1HTTPRouteSpecHeaders v1HttpRouteSpecHeaders = (V1HTTPRouteSpecHeaders) o;
+    return Objects.equals(this.name, v1HttpRouteSpecHeaders.name) &&
+        Objects.equals(this.type, v1HttpRouteSpecHeaders.type) &&
+        Objects.equals(this.value, v1HttpRouteSpecHeaders.value);
   }
 
   @Override

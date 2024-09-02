@@ -39,8 +39,16 @@ public class V1HTTPRouteSpecQueryParams {
    */
   @JsonAdapter(TypeEnum.Adapter.class)
   public enum TypeEnum {
+    /**
+     * EXACT matches the query parameter value exactly as specified.
+     * This is an extended match type that is commonly supported by implementations.
+     */
     EXACT("Exact"),
-    
+
+    /**
+     * REGULAREXPRESSION allows matching the query parameter value using a regular expression.
+     * This is an implementation-specific match type, and the supported regular expression dialect may vary depending on the implementation.
+     */
     REGULAREXPRESSION("RegularExpression");
 
     private String value;
@@ -98,10 +106,10 @@ public class V1HTTPRouteSpecQueryParams {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecQueryParams v1HTTPRouteSpecQueryParams = (V1HTTPRouteSpecQueryParams) o;
-    return Objects.equals(this.name, v1HTTPRouteSpecQueryParams.name) &&
-        Objects.equals(this.type, v1HTTPRouteSpecQueryParams.type) &&
-        Objects.equals(this.value, v1HTTPRouteSpecQueryParams.value);
+    V1HTTPRouteSpecQueryParams v1HttpRouteSpecQueryParams = (V1HTTPRouteSpecQueryParams) o;
+    return Objects.equals(this.name, v1HttpRouteSpecQueryParams.name) &&
+        Objects.equals(this.type, v1HttpRouteSpecQueryParams.type) &&
+        Objects.equals(this.value, v1HttpRouteSpecQueryParams.value);
   }
 
   @Override

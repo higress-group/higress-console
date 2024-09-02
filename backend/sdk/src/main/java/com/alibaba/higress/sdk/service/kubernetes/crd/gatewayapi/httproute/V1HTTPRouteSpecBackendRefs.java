@@ -72,14 +72,14 @@ public class V1HTTPRouteSpecBackendRefs {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecBackendRefs v1HTTPRouteSpecBackendRefs = (V1HTTPRouteSpecBackendRefs) o;
-    return Objects.equals(this.filters, v1HTTPRouteSpecBackendRefs.filters) &&
-        Objects.equals(this.group, v1HTTPRouteSpecBackendRefs.group) &&
-        Objects.equals(this.kind, v1HTTPRouteSpecBackendRefs.kind) &&
-        Objects.equals(this.name, v1HTTPRouteSpecBackendRefs.name) &&
-        Objects.equals(this.namespace, v1HTTPRouteSpecBackendRefs.namespace) &&
-        Objects.equals(this.port, v1HTTPRouteSpecBackendRefs.port) &&
-        Objects.equals(this.weight, v1HTTPRouteSpecBackendRefs.weight);
+    V1HTTPRouteSpecBackendRefs v1HttpRouteSpecBackendRefs = (V1HTTPRouteSpecBackendRefs) o;
+    return Objects.equals(this.filters, v1HttpRouteSpecBackendRefs.filters) &&
+        Objects.equals(this.group, v1HttpRouteSpecBackendRefs.group) &&
+        Objects.equals(this.kind, v1HttpRouteSpecBackendRefs.kind) &&
+        Objects.equals(this.name, v1HttpRouteSpecBackendRefs.name) &&
+        Objects.equals(this.namespace, v1HttpRouteSpecBackendRefs.namespace) &&
+        Objects.equals(this.port, v1HttpRouteSpecBackendRefs.port) &&
+        Objects.equals(this.weight, v1HttpRouteSpecBackendRefs.weight);
   }
 
   @Override

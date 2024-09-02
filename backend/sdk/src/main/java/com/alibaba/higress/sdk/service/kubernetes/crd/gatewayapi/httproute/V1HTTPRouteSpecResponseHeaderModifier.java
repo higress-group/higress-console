@@ -72,10 +72,10 @@ public class V1HTTPRouteSpecResponseHeaderModifier {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteSpecResponseHeaderModifier v1HTTPRouteSpecResponseHeaderModifier = (V1HTTPRouteSpecResponseHeaderModifier) o;
-    return Objects.equals(this.add, v1HTTPRouteSpecResponseHeaderModifier.add) &&
-        Objects.equals(this.remove, v1HTTPRouteSpecResponseHeaderModifier.remove) &&
-        Objects.equals(this.set, v1HTTPRouteSpecResponseHeaderModifier.set);
+    V1HTTPRouteSpecResponseHeaderModifier v1HttpRouteSpecResponseHeaderModifier = (V1HTTPRouteSpecResponseHeaderModifier) o;
+    return Objects.equals(this.add, v1HttpRouteSpecResponseHeaderModifier.add) &&
+        Objects.equals(this.remove, v1HttpRouteSpecResponseHeaderModifier.remove) &&
+        Objects.equals(this.set, v1HttpRouteSpecResponseHeaderModifier.set);
   }
 
   @Override

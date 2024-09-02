@@ -15,8 +15,6 @@ package com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute;
 
 import com.google.gson.annotations.SerializedName;
 import io.kubernetes.client.openapi.models.V1ListMeta;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -58,11 +56,11 @@ public class V1HTTPRouteList implements io.kubernetes.client.common.KubernetesLi
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteList v1HTTPRouteList = (V1HTTPRouteList) o;
-    return Objects.equals(this.apiVersion, v1HTTPRouteList.apiVersion) &&
-        Objects.equals(this.items, v1HTTPRouteList.items) &&
-        Objects.equals(this.kind, v1HTTPRouteList.kind) &&
-        Objects.equals(this.metadata, v1HTTPRouteList.metadata);
+    V1HTTPRouteList v1HttpRouteList = (V1HTTPRouteList) o;
+    return Objects.equals(this.apiVersion, v1HttpRouteList.apiVersion) &&
+        Objects.equals(this.items, v1HttpRouteList.items) &&
+        Objects.equals(this.kind, v1HttpRouteList.kind) &&
+        Objects.equals(this.metadata, v1HttpRouteList.metadata);
   }
 
   @Override

@@ -52,10 +52,19 @@ public class V1HTTPRouteStatusConditions {
    */
   @JsonAdapter(StatusEnum.Adapter.class)
   public enum StatusEnum {
+    /**
+     * Represents the state where the condition is true.
+     */
     TRUE("True"),
-    
+
+    /**
+     * Represents the state where the condition is false.
+     */
     FALSE("False"),
-    
+
+    /**
+     * Represents an unknown state.
+     */
     UNKNOWN("Unknown");
 
     private String value;
@@ -113,13 +122,13 @@ public class V1HTTPRouteStatusConditions {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    V1HTTPRouteStatusConditions v1HTTPRouteStatusConditions = (V1HTTPRouteStatusConditions) o;
-    return Objects.equals(this.lastTransitionTime, v1HTTPRouteStatusConditions.lastTransitionTime) &&
-        Objects.equals(this.message, v1HTTPRouteStatusConditions.message) &&
-        Objects.equals(this.observedGeneration, v1HTTPRouteStatusConditions.observedGeneration) &&
-        Objects.equals(this.reason, v1HTTPRouteStatusConditions.reason) &&
-        Objects.equals(this.status, v1HTTPRouteStatusConditions.status) &&
-        Objects.equals(this.type, v1HTTPRouteStatusConditions.type);
+    V1HTTPRouteStatusConditions v1HttpRouteStatusConditions = (V1HTTPRouteStatusConditions) o;
+    return Objects.equals(this.lastTransitionTime, v1HttpRouteStatusConditions.lastTransitionTime) &&
+        Objects.equals(this.message, v1HttpRouteStatusConditions.message) &&
+        Objects.equals(this.observedGeneration, v1HttpRouteStatusConditions.observedGeneration) &&
+        Objects.equals(this.reason, v1HttpRouteStatusConditions.reason) &&
+        Objects.equals(this.status, v1HttpRouteStatusConditions.status) &&
+        Objects.equals(this.type, v1HttpRouteStatusConditions.type);
   }
 
   @Override

@@ -39,7 +39,16 @@ public class V1GatewaySpecTls {
    */
   @JsonAdapter(ModeEnum.Adapter.class)
   public enum ModeEnum {
+    /**
+     * The TLS session between the downstream client and the Gateway is terminated at the Gateway.
+     * This mode requires certificates to be specified in some way, such as populating the certificateRefs field.
+     */
     TERMINATE("Terminate"),
+    /**
+     * The TLS session is NOT terminated by the Gateway.
+     * This implies that the Gateway can't decipher the TLS stream except for the ClientHello message of the TLS protocol.
+     * The certificateRefs field is ignored in this mode.
+     */
     PASSTHROUGH("Passthrough");
 
     private String value;
