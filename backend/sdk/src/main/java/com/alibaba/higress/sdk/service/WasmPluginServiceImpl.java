@@ -53,10 +53,13 @@ import com.alibaba.higress.sdk.model.wasmplugin.Plugin;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginCategory;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginInfo;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginSpec;
+import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 
@@ -266,9 +269,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
             for (V1alpha1WasmPlugin cr : crs) {
                 WasmPlugin plugin = kubernetesModelConverter.wasmPluginFromCr(cr);
                 if (plugin.getBuiltIn()) {
-                    WasmPlugin builtInPlugin = plugins.stream()
-                        .filter(p -> p.getName().equals(plugin.getName())).findFirst().orElse(null);
-                    if (builtInPlugin != null){
+                    WasmPlugin builtInPlugin =
+                        plugins.stream().filter(p -> p.getName().equals(plugin.getName())).findFirst().orElse(null);
+                    if (builtInPlugin != null) {
                         builtInPlugin.setImageRepository(plugin.getImageRepository());
                         builtInPlugin.setImageVersion(plugin.getImageVersion());
                         continue;
@@ -394,8 +397,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
             throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
         }
 
-        V1alpha1WasmPlugin updatedCr;
-        if (CollectionUtils.isEmpty(existedCrs)) {
+        V1alpha1WasmPlugin updatedCr = null;
+
+        if (existedCrs.stream().allMatch(KubernetesUtil::isInternalResource)) {
             WasmPlugin plugin = builtInPlugin.buildWasmPlugin();
             plugin.setImageVersion(imageVersion);
             V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
@@ -410,16 +414,23 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 throw new BusinessException(
                     "Error occurs when adding a new Wasm plugin with name: " + cr.getMetadata().getName(), e);
             }
-        } else {
-            V1alpha1WasmPlugin existedCr = existedCrs.get(0);
+        }
 
-            WasmPlugin plugin = kubernetesModelConverter.wasmPluginFromCr(existedCr);
-            plugin.setImageVersion(imageVersion);
-            updatedCr = kubernetesModelConverter.wasmPluginToCr(plugin);
-            kubernetesModelConverter.mergeWasmPluginSpec(existedCr, updatedCr);
+        for (V1alpha1WasmPlugin existedCr : existedCrs) {
+            V1alpha1WasmPluginSpec spec = existedCr.getSpec();
+            if (spec == null) {
+                continue;
+            }
+            String url = spec.getUrl();
+            if (StringUtils.isEmpty(url)) {
+                continue;
+            }
+            ImageUrl imageUrl = ImageUrl.parse(url);
+            imageUrl.setTag(imageVersion);
+            spec.setUrl(imageUrl.toUrlString());
 
             try {
-                updatedCr = kubernetesClientService.replaceWasmPlugin(updatedCr);
+                updatedCr = kubernetesClientService.replaceWasmPlugin(existedCr);
             } catch (ApiException e) {
                 if (e.getCode() == HttpStatus.CONFLICT) {
                     throw new ResourceConflictException();
@@ -428,6 +439,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
                     "Error occurs when updating the Wasm plugin wth name " + existedCr.getMetadata().getName(), e);
             }
         }
+
+        assert updatedCr != null;
 
         return kubernetesModelConverter.wasmPluginFromCr(updatedCr);
     }
