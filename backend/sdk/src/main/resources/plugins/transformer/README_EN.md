@@ -12,14 +12,14 @@ Plugin execution priority: `410`
 
 ## Configuration Fields
 | Name | Data Type | Fill Requirement | Default Value | Description |
-| :----: | :----: | :----: | :----: | -------- |
+| ---- | ------ | ------ | ------ | -------- |
 | reqRules | string | Optional, at least one of reqRules or respRules must be filled | - | Request transformer configuration, specifying the transformation operation type and rules for transforming request headers, request query parameters, and request body |
 | respRules | string | Optional, at least one of reqRules or respRules must be filled | - | Response transformer configuration, specifying the transformation operation type and rules for transforming response headers and response body |
 
 The configuration fields for each item in `reqRules` and `respRules` are as follows:
 
 | Name | Data Type | Fill Requirement | Default Value | Description |
-| :----: | :----: | :----: | :----: | -------- |
+| ------ | ------ | ------ | ------ | -------- |
 | operate | string | Required, optional values are `remove`, `rename`, `replace`, `add`, `append`, `map`, `dedupe` | - | Specifies the transformation operation type. Supported operation types include remove (remove), rename (rename), replace (replace), add (add), append (append), map (map), dedupe (dedupe). When there are multiple transformation rules of different types, they are executed in the order of the above operation types. |
 | mapSource | string | Optional, optional values are `headers`, `querys`, `body` | - | Valid only when operate is `map`. Specifies the mapping source. If this field is not filled, the default mapping source is itself. |
 | headers | array of object | Optional | - | Specifies transformation rules for request/response headers. |
@@ -29,7 +29,7 @@ The configuration fields for each item in `reqRules` and `respRules` are as foll
 The configuration fields for each item in `headers`, `querys`, `body` are as follows:
 
 | Name | Data Type | Fill Requirement | Default Value | Description |
-| :----: | :----: | :----: | -------- | --------------------------------------------------- |
+| ------ | ------ | ------ | -------- | --------------------------------------------------- |
 | key | string | Optional | - | Used when operate is `remove`, see [Transformation Operation Types](#转换操作类型) for details. |
 | oldKey | string | Optional | - | Used when operate is `rename`, see [Transformation Operation Types](#转换操作类型) for details. |
 | newKey | string | Optional | - | Used when operate is `rename`, see [Transformation Operation Types](#转换操作类型) for details. |
@@ -58,7 +58,7 @@ Note:
 
 ## Transformation Operation Types
 | Operation Type | Key Field Meaning | Value Field Meaning | Description |
-| :----: | :----: | :----: | ------------------------------------------------------------ |
+| ------ | ------ | ------ | ------------------------------------------------------------ |
 | Remove remove | Target key | Not required | If the specified `key` exists, delete it; otherwise, no operation |
 | Rename rename | Target oldKey | New key name newKey | If the specified `oldKey:value` exists, rename its key to `newKey`, resulting in `newKey:value`; otherwise, no operation |
 | Replace replace | Target key | New value newValue | If the specified `key:value` exists, update its value to `newValue`, resulting in `key:newValue`; otherwise, no operation |

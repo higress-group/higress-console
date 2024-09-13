@@ -2,7 +2,7 @@
 
 ## 配置说明
 | Name | Type | Requirement | Default | Description |
-| :-: | :-:  | :-:  | :-: | :-: |
+| --- | ---  | ---  | --- | --- |
 | serviceSource | string | requried | - | 服务来源，填dns |
 | serviceName | string | requried | - | 服务名 |
 | servicePort | string | requried | - | 服务端口 |
