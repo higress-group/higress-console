@@ -4,6 +4,7 @@ info:
   type: oss
   category: transformation
   name: transformer
+  image: platform_wasm/transformer
   title: Transformer
   x-title-i18n:
     zh-CN: 请求/响应转换
@@ -20,6 +21,19 @@ spec:
   phase: AUTHN
   priority: 410
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        reqRules:
+        - operate: remove
+          headers:
+          - key: X-remove
+        respRules:
+        - operate: add
+          body:
+          - key: foo.bar
+            value: value
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

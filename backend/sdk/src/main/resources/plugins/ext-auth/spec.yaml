@@ -4,6 +4,7 @@ info:
   type: oss
   category: auth
   name: ext-auth
+  image: platform_wasm/ext-auth
   title: Ext Auth
   x-title-i18n:
     zh-CN: 外部认证
@@ -18,6 +19,17 @@ spec:
   phase: AUTHN
   priority: 360
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        http_service:
+          endpoint_mode: envoy
+          endpoint:
+            service_name: ext-auth.backend.svc.cluster.local
+            service_port: 8090
+            path_prefix: /auth
+          timeout: 1000
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

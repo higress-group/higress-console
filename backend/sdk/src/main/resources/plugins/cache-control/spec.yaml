@@ -4,6 +4,7 @@ info:
   type: oss
   category: transformation
   name: cache-control
+  image: platform_wasm/cache-control
   title: Browser Cache Control
   x-title-i18n:
     zh-CN: 浏览器缓存控制
@@ -20,6 +21,12 @@ spec:
   phase: AUTHN
   priority: 420
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        suffix: jpg|png|jpeg
+        expires: 3600
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

@@ -3,6 +3,7 @@ info:
   gatewayMinVersion: "2.0.0"
   type: oss
   category: ai
+  image: platform_wasm/ai-history
   name: ai-history
   title: AI History
   x-title-i18n:
@@ -18,6 +19,15 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 650
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redis:
+          serviceName: my-redis.dns
+          timeout: 2000
+        fillHistoryCnt: 3
+        cacheTTL: 3600
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

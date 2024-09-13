@@ -4,6 +4,7 @@ info:
   type: oss
   category: traffic
   name: ip-restriction
+  image: platform_wasm/ip-restriction
   title: IP Restriction
   x-title-i18n:
     zh-CN: IP 限制
@@ -20,6 +21,14 @@ spec:
   phase: AUTHN
   priority: 210
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        ip_source_type: origin-source
+        allow:
+          - 10.0.0.1
+          - 192.168.0.0/16
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

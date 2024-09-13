@@ -3,7 +3,8 @@ info:
   gatewayMinVersion: ""
   type: enterprise
   category: auth
-  name: oauth/v1
+  name: oauth
+  image: platform_wasm/oauth
   title: OAuth2
   x-title-i18n:
     zh-CN: OAuth2 认证

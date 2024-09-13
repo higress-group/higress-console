@@ -3,7 +3,8 @@ info:
   gatewayMinVersion: ""
   type: enterprise
   category: traffic
-  name: key-rate-limit/v1
+  name: key-rate-limit
+  image: platform_wasm/key-rate-limit
   title: Key Rate Limit
   x-title-i18n:
     zh-CN: 基于 Key 限流
@@ -20,6 +21,16 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 10
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        limit_by_header: x-api-key
+        limit_keys:
+          - key: example-key-a
+            query_per_second: 10
+          - key: example-key-b
+            query_per_minute: 1000
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

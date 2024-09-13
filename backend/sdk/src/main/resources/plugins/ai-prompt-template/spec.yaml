@@ -3,6 +3,7 @@ info:
   gatewayMinVersion: ""
   type: enterprise
   category: ai
+  image: platform_wasm/prompt-template
   name: ai-prompt-template
   title: AI Prompt Template
   x-title-i18n:
@@ -18,6 +19,19 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 500
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        templates:
+        - name: developer-chat
+          template:
+            model: gpt-3.5-turbo
+            messages:
+            - role: system
+              content: '你是一个 {{program}} 专家，编程语言为 {{language}}'
+            - role: user
+              content: '帮我写一个 {{program}} 程序'
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

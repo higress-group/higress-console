@@ -4,6 +4,7 @@ info:
   type: oss
   category: auth
   name: opa
+  image: platform_wasm/opa
   title: OPA
   x-title-i18n:
     zh-CN: OPA
@@ -20,6 +21,16 @@ spec:
   phase: AUTHN
   priority: 225
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: k8s
+        serviceName: opa
+        servicePort: 8181
+        namespace: higress-backend
+        policy: example1
+        timeout: 5s
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

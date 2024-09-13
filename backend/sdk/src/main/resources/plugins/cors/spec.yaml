@@ -4,6 +4,7 @@ info:
   type: oss
   category: security
   name: cors
+  image: platform_wasm/cors
   title: CORS
   x-title-i18n:
     zh-CN: 跨域资源共享
@@ -20,6 +21,20 @@ spec:
   phase: AUTHZ
   priority: 340
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        allow_origins:
+          - '*'
+        allow_methods:
+          - '*'
+        allow_headers:
+          - '*'
+        expose_headers:
+          - '*'
+        allow_credentials: false
+        max_age: 7200
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

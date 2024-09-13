@@ -3,7 +3,8 @@ info:
   gatewayMinVersion: ""  
   type: enterprise
   category: security
-  name: waf/v1
+  name: waf
+  image: platform_wasm/waf
   title: WAF
   x-title-i18n:
     zh-CN: WAF 防护
@@ -20,6 +21,11 @@ spec:
   phase: AUTHZ
   priority: 330
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        useCRS: true
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

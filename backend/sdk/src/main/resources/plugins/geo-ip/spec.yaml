@@ -4,6 +4,7 @@ info:
   type: oss
   category: transformation
   name: geo-ip
+  image: platform_wasm/geo-ip
   title: Geo IP
   x-title-i18n:
     zh-CN: IP 地理位置
@@ -18,6 +19,13 @@ spec:
   phase: AUTHN
   priority: 440
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        ip_protocol: ipv4
+        ip_source_type: header
+        ip_header_name: X-Real-Ip
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

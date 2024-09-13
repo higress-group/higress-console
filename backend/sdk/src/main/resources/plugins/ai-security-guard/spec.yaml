@@ -3,6 +3,7 @@ info:
   gatewayMinVersion: "2.0.0"
   type: enterprise
   category: ai
+  image: platform_wasm/ai-security-guard
   name: ai-security-guard
   title: AI Security Guard
   x-title-i18n:
@@ -18,6 +19,16 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 300
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: dns
+        serviceName: safecheck
+        servicePort: 443
+        domain: green-cip.cn-shanghai.aliyuncs.com
+        ak: xxxxxxxxxxxxxxxxxxxx
+        sk: xxxxxxxxxxxxxxxxxxxx
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

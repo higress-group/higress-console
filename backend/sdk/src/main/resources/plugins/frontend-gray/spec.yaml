@@ -4,6 +4,7 @@ info:
   type: oss
   category: transformation
   name: frontend-gray
+  image: platform_wasm/frontend-gray
   title: Frontend Gray
   x-title-i18n:
     zh-CN: 前端灰度
@@ -18,6 +19,30 @@ spec:
   phase: AUTHN
   priority: 450
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        grayKey: userid
+        rules:
+          - name: inner-user
+            grayKeyValue:
+              - '00000001'
+              - '00000005'
+          - name: beta-user
+            grayKeyValue:
+              - '00000002'
+              - '00000003'
+            grayTagKey: level
+            grayTagValue:
+              - level3
+              - level5
+        baseDeployment:
+          version: base
+        grayDeployments:
+          - name: beta-user
+            version: gray
+            enabled: true
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

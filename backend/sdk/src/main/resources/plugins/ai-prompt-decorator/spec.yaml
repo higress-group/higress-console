@@ -3,6 +3,7 @@ info:
   gatewayMinVersion: ""
   type: enterprise
   category: ai
+  image: platform_wasm/prompt-decorator
   name: ai-prompt-decorator
   title: AI Prompt Decorator
   x-title-i18n:
@@ -18,6 +19,21 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 450
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        decorators:
+        - name: hangzhou-guide
+          decorator:
+            prepend:
+            - role: system
+              content: "你将使用英语回答问题"
+            - role: user
+              content: "假设你现在所在地点为杭州"
+            append:
+            - role: user
+              content: "在介绍杭州时，避开杭州的饮食"
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

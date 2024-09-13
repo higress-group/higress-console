@@ -3,6 +3,7 @@ info:
   gatewayMinVersion: ""
   type: oss
   category: ai
+  image: platform_wasm/ai-quota
   name: ai-quota
   title: AI Quota
   x-title-i18n:
@@ -18,6 +19,17 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 750
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redis_key_prefix: "chat_quota:"
+        admin_consumer: consumer3
+        admin_path: /quota
+        redis:
+          service_name: redis-service.default.svc.cluster.local
+          service_port: 6379
+          timeout: 2000
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

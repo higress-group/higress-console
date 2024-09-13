@@ -4,6 +4,7 @@ info:
   type: enterprise
   category: traffic
   name: cluster-key-rate-limit
+  image: platform_wasm/cluster-key-rate-limit
   title: Key Cluster Rate Limit
   x-title-i18n:
     zh-CN: 基于 Key 集群限流
@@ -20,6 +21,29 @@ spec:
   phase: UNSPECIFIED_PHASE
   priority: 20
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        rule_name: default_rule
+        rule_items:
+        - limit_by_param: apikey
+          limit_keys:
+          - key: 9a342114-ba8a-11ec-b1bf-00163e1250b5
+            query_per_minute: 10
+          - key: a6a6d7f2-ba8a-11ec-bec2-00163e1250b5
+            query_per_hour: 100
+        - limit_by_per_param: apikey
+          limit_keys:
+          - key: "regexp:^a.*"
+            query_per_second: 10
+          - key: "regexp:^b.*"
+            query_per_minute: 100
+          - key: "*"
+            query_per_hour: 1000
+        redis:
+          service_name: redis.static
+        show_limit_quota_header: true
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

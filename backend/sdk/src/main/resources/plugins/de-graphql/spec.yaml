@@ -4,6 +4,7 @@ info:
   type: oss
   category: transformation
   name: de-graphql
+  image: platform_wasm/de-graphql
   title: DeGraphQL
   x-title-i18n:
     zh-CN: DeGraphQL
@@ -20,6 +21,21 @@ spec:
   phase: AUTHN
   priority: 430
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        timeout: 5000
+        endpoint: /graphql
+        domain: api.github.com
+        gql: |
+          query ($owner:String! $name:String!){
+             repository(owner:$owner, name:$name) {
+               name
+               forkCount
+               description
+            }
+          }
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:
