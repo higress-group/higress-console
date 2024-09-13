@@ -16,7 +16,7 @@ info:
   contact:
     name: yuemingming
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 650
   configSchema:
     openAPIV3Schema:

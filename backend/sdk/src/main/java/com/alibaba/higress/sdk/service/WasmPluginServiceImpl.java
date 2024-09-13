@@ -649,7 +649,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
             PluginSpec spec = plugin.getSpec();
             if (spec != null) {
-                wasmPlugin.setPhase(spec.getPhase());
+                wasmPlugin.setPhase(spec.getPhase() == "default" ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
                 wasmPlugin.setPriority(spec.getPriority());
             }
 

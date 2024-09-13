@@ -16,7 +16,7 @@ info:
     name: xingyunyang01
   gatewayMinVersion: ""
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 20
   routeConfigSchema:
     openAPIV3Schema:

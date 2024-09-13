@@ -16,7 +16,7 @@ info:
   contact:
     name: johnlanni
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 150
   configSchema:
     openAPIV3Schema:
