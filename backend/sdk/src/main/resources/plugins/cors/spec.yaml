@@ -1,10 +1,11 @@
 apiVersion: 1.0.0
 info:
+  type: oss
   category: security
   name: cors
   title: CORS
   x-title-i18n:
-    zh-CN: CORS
+    zh-CN: 跨域资源共享
   description: Enables CORS (Cross-Origin Resource Sharing) HTTP response headers for the server.
   x-description-i18n:
     zh-CN: 为服务端启用 CORS（Cross-Origin Resource Sharing，跨域资源共享）的返回 HTTP 响应头。

@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: auth
   name: oidc
   title: OIDC Auth

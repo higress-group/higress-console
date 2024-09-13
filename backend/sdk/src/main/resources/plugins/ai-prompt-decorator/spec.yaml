@@ -1,10 +1,11 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: ai
   name: ai-prompt-decorator
   title: AI Prompt Decorator
   x-title-i18n:
-    zh-CN: AI 提示词修饰
+    zh-CN: AI 提示词
   description: Add additional prompts before and after the user's input to simplify the interaction between the user and the large language model.
   x-description-i18n:
     zh-CN: 在用户输入的提示词前后添加额外的修饰，简化用户与大语言模型的交互。
