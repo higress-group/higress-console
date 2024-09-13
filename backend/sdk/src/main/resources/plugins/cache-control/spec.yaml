@@ -2,7 +2,7 @@ apiVersion: 1.0.0
 info:
   gatewayMinVersion: ""
   type: oss
-  category: transformation
+  category: transform
   name: cache-control
   image: platform_wasm/cache-control
   title: Browser Cache Control

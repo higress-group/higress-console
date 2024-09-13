@@ -2,7 +2,7 @@ apiVersion: 1.0.0
 info:
   gatewayMinVersion: "2.0.0"  
   type: oss
-  category: transformation
+  category: transform
   name: transformer
   image: platform_wasm/transformer
   title: Transformer

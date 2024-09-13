@@ -2,7 +2,7 @@ apiVersion: 1.0.0
 info:
   gatewayMinVersion: ""
   type: oss
-  category: transformation
+  category: transform
   name: de-graphql
   image: platform_wasm/de-graphql
   title: DeGraphQL
