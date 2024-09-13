@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: ai
   name: ai-security-guard
   title: AI Security Guard

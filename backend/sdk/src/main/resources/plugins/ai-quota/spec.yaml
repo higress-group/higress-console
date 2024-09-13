@@ -1,10 +1,11 @@
 apiVersion: 1.0.0
 info:
+  type: oss
   category: ai
   name: ai-quota
   title: AI Quota
   x-title-i18n:
-    zh-CN: AI 配额
+    zh-CN: AI 配额管理
   description: Implement quota-based rate limiting according to assigned fixed quotas, while also supporting quota management capabilities, including querying, refreshing, and adjusting quotas.
   x-description-i18n:
     zh-CN: 根据分配固定的 quota 进行 quota 策略限流，同时支持 quota 管理能力，包括查询 quota、刷新 quota、增减 quota。

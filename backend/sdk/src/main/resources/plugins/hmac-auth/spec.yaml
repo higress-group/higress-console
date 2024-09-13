@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: auth
   name: hmac-auth/v1
   title: HMAC Auth

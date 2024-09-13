@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: oss
   category: traffic
   name: request-validation
   title: Request Validation

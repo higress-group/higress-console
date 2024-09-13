@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: security
   name: bot-detect/v1
   title: Bot Detect

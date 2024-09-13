@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  type: enterprise
   category: traffic
   name: cluster-key-rate-limit
   title: Key Cluster Rate Limit
