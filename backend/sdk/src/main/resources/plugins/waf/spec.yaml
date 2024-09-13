@@ -23,3 +23,8 @@ spec:
       type: object
       example:
         useCRS: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        useCRS: true

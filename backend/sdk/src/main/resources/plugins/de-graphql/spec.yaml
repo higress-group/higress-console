@@ -33,3 +33,18 @@ spec:
                description
             }
           }
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        timeout: 5000
+        endpoint: /graphql
+        domain: api.github.com
+        gql: |
+          query ($owner:String! $name:String!){
+             repository(owner:$owner, name:$name) {
+               name
+               forkCount
+               description
+            }
+          }

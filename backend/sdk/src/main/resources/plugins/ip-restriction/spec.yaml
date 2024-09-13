@@ -26,3 +26,11 @@ spec:
         allow:
           - 10.0.0.1
           - 192.168.0.0/16
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        ip_source_type: origin-source
+        allow:
+          - 10.0.0.1
+          - 192.168.0.0/16

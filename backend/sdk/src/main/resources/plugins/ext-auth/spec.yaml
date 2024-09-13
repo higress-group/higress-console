@@ -27,3 +27,14 @@ spec:
             service_port: 8090
             path_prefix: /auth
           timeout: 1000
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        http_service:
+          endpoint_mode: envoy
+          endpoint:
+            service_name: ext-auth.backend.svc.cluster.local
+            service_port: 8090
+            path_prefix: /auth
+          timeout: 1000

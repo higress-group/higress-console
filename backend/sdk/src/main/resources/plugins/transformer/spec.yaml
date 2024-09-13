@@ -31,3 +31,16 @@ spec:
           body:
           - key: foo.bar
             value: value
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        reqRules:
+        - operate: remove
+          headers:
+          - key: X-remove
+        respRules:
+        - operate: add
+          body:
+          - key: foo.bar
+            value: value

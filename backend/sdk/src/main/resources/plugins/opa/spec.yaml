@@ -28,3 +28,13 @@ spec:
         namespace: higress-backend
         policy: example1
         timeout: 5s
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: k8s
+        serviceName: opa
+        servicePort: 8181
+        namespace: higress-backend
+        policy: example1
+        timeout: 5s

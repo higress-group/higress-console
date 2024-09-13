@@ -18,6 +18,130 @@ info:
 spec:
   phase: UNSPECIFIED_PHASE
   priority: 100
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      required:
+        - providerConfig
+      properties:
+        provider:
+          type: object
+          title: AI服务提供商配置
+          x-title-i18n:
+            zh-CN: AI服务提供商配置
+          description: AI服务提供商配置，包含API接口、模型和知识库文件等信息
+          x-description-i18n:
+            zh-CN: AI服务提供商配置，包含API接口、模型和知识库文件等信息
+          required:
+            - typ
+          properties:
+            apiTokens:
+              type: array
+              title: API Tokens
+              x-title-i18n:
+                zh-CN: API Tokens
+              description: 在请求AI服务时用于认证的API Token列表。不同的AI服务提供商可能有不同的名称。部分供应商只支持配置一个API Token（如Azure OpenAI）。
+              x-description-i18n:
+                zh-CN: 在请求AI服务时用于认证的API Token列表。不同的AI服务提供商可能有不同的名称。部分供应商只支持配置一个API Token（如Azure OpenAI）。
+              items:
+                type: string
+                title: apiToken
+                x-title-i18n:
+                  en-US: apiToken
+            azureServiceUrl:
+              type: string
+              title: Azure OpenAI Service URL
+              x-title-i18n:
+                zh-CN: Azure OpenAI Service URL
+              description: 仅适用于Azure OpenAI服务。要请求的OpenAI服务的完整URL，包含api-version等参数
+              x-description-i18n:
+                zh-CN: 仅适用于Azure OpenAI服务。要请求的OpenAI服务的完整URL，包含api-version等参数
+            context:
+              type: object
+              title: 模型对话上下文
+              x-title-i18n:
+                zh-CN: 模型对话上下文
+              description: 配置一个外部获取对话上下文的文件来源，用于在AI请求中补充对话上下文
+              x-description-i18n:
+                zh-CN: 配置一个外部获取对话上下文的文件来源，用于在AI请求中补充对话上下文
+              required:
+                - fileUrl
+                - serviceName
+                - servicePort
+              properties:
+                serviceName:
+                  type: string
+                  title: 上游服务名称
+                  x-title-i18n:
+                    zh-CN: 上游服务名称
+                  description: 文件服务所对应的网关内上游服务名称
+                  x-description-i18n:
+                    zh-CN: 文件服务所对应的网关内上游服务名称
+                servicePort:
+                  type: integer
+                  title: 上游服务端口
+                  x-title-i18n:
+                    zh-CN: 上游服务端口
+                  description: 文件服务所对应的网关内上游服务名称
+                  x-description-i18n:
+                    zh-CN: 文件服务所对应的网关内上游服务名称
+                url:
+                  type: string
+                  title: 文件URL
+                  x-title-i18n:
+                    zh-CN: 文件URL
+                  description: 用于获取对话上下文的文件的URL。目前仅支持HTTP和HTTPS协议，纯文本格式文件
+                  x-description-i18n:
+                    zh-CN: 用于获取对话上下文的文件的URL。目前仅支持HTTP和HTTPS协议，纯文本格式文件
+            modelMapping:
+              type: object
+              title: 模型名称映射表
+              x-title-i18n:
+                zh-CN: 模型名称映射表
+              description: 用于将请求中的模型名称映射为目标AI服务商支持的模型名称。支持通过“*”来配置全局映射
+              x-description-i18n:
+                zh-CN: 用于将请求中的模型名称映射为目标AI服务商支持的模型名称。支持通过“*”来配置全局映射
+              additionalProperties:
+                type: string
+            moonshotFileId:
+              type: string
+              title: Moonshot File ID
+              x-title-i18n:
+                zh-CN: Moonshot File ID
+              description: 仅适用于Moonshot AI服务。Moonshot AI服务的文件 ID，其内容用于补充 AI 请求上下文
+              x-description-i18n:
+                zh-CN: 仅适用于Moonshot AI服务。Moonshot AI服务的文件 ID，其内容用于补充 AI 请求上下文
+            protocol:
+              type: string
+              title: 对外接口协议
+              x-title-i18n:
+                zh-CN: 对外接口协议
+              description: 通过本插件对外提供的AI服务接口协议。默认值为“openai”，即OpenAI的接口协议。如需保留原有接口协议，可配置为“original"
+              x-description-i18n:
+                zh-CN: 通过本插件对外提供的AI服务接口协议。默认值为“openai”，即OpenAI的接口协议。如需保留原有接口协议，可配置为“original"
+            timeout:
+              type: integer
+              title: 请求超时
+              x-title-i18n:
+                zh-CN: 请求超时
+              description: 请求AI服务的超时时间，单位为毫秒。默认值为120000，即2分钟
+              x-description-i18n:
+                zh-CN: 请求AI服务的超时时间，单位为毫秒。默认值为120000，即2分钟
+            type:
+              type: string
+              title: AI服务提供商
+              x-title-i18n:
+                zh-CN: AI服务提供商
+              description: AI服务提供商类型，目前支持的取值为："moonshot"、"qwen"、"openai"、"azure"
+              x-description-i18n:
+                zh-CN: AI服务提供商类型，目前支持的取值为："moonshot"、"qwen"、"openai"、"azure"
+      example:
+        provider:
+          apiTokens:
+            - YOUR_DASHSCOPE_API_TOKEN
+          modelMapping:
+            '*': qwen-turbo
+          type: qwen
   configSchema:
     openAPIV3Schema:
       type: object

@@ -31,4 +31,19 @@ spec:
           servicePort: 443
           domain: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
           collection: news_embedings
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        dashscope:
+          apiKey: xxxxxxxxxxxxxxxxxxxx
+          serviceName: dashscope
+          servicePort: 443
+          domain: dashscope.aliyuncs.com
+        dashvector:
+          apiKey: xxxxxxxxxxxxxxxxxxxx
+          serviceName: dashvector
+          servicePort: 443
+          domain: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
+          collection: news_embedings
 

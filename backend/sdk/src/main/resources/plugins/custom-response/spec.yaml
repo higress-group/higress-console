@@ -26,3 +26,11 @@ spec:
         headers:
           - Content-Type=application/json
         body: "{\"hello\":\"world\"}"
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        status_code: 200
+        headers:
+          - Content-Type=application/json
+        body: "{\"hello\":\"world\"}"

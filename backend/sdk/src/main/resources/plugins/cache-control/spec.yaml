@@ -24,3 +24,9 @@ spec:
       example:
         suffix: jpg|png|jpeg
         expires: 3600
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        suffix: jpg|png|jpeg
+        expires: 3600

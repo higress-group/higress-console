@@ -40,3 +40,27 @@ spec:
           - name: beta-user
             version: gray
             enabled: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        grayKey: userid
+        rules:
+          - name: inner-user
+            grayKeyValue:
+              - '00000001'
+              - '00000005'
+          - name: beta-user
+            grayKeyValue:
+              - '00000002'
+              - '00000003'
+            grayTagKey: level
+            grayTagValue:
+              - level3
+              - level5
+        baseDeployment:
+          version: base
+        grayDeployments:
+          - name: beta-user
+            version: gray
+            enabled: true

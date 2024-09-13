@@ -32,4 +32,18 @@ spec:
           - '*'
         allow_credentials: false
         max_age: 7200
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        allow_origins:
+          - '*'
+        allow_methods:
+          - '*'
+        allow_headers:
+          - '*'
+        expose_headers:
+          - '*'
+        allow_credentials: false
+        max_age: 7200
 

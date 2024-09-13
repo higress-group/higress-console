@@ -40,3 +40,27 @@ spec:
             - reasoning_steps
             - answer
           additionalProperties: false
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceName: qwen
+        serviceDomain: dashscope.aliyuncs.com
+        apiKey: [Your API Key]
+        servicePath: /compatible-mode/v1/chat/completions
+        jsonSchema:
+          title: ReasoningSchema
+          type: object
+          properties:
+            reasoning_steps:
+              type: array
+              items:
+                type: string
+              description: The reasoning steps leading to the final conclusion.
+            answer:
+              type: string
+              description: The final answer, taking into account the reasoning steps.
+          required:
+            - reasoning_steps
+            - answer
+          additionalProperties: false

@@ -33,3 +33,20 @@ spec:
           - match_rule_domain: '*.bar.com'
             match_rule_path: '/foo'
             match_rule_type: 'prefix'
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redirect_url: 'http://foo.bar.com/oauth2/callback'
+        oidc_issuer_url: 'https://dev-o43xb1mz7ya7ach4.us.auth0.com/'
+        client_id: 'XXXXXXXXXXXXXXXX'
+        client_secret: 'XXXXXXXXXXXXXXXX'
+        scope: 'openid email offline_access'
+        cookie_secret: 'nqavJrGvRmQxWwGNptLdyUVKcBNZ2b18Guc1n_8DCfY='
+        service_name: 'auth.dns'
+        service_port: 443
+        match_type: 'whitelist'
+        match_list:
+          - match_rule_domain: '*.bar.com'
+            match_rule_path: '/foo'
+            match_rule_type: 'prefix'

@@ -25,3 +25,12 @@ spec:
           timeout: 2000
         fillHistoryCnt: 3
         cacheTTL: 3600
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redis:
+          serviceName: my-redis.dns
+          timeout: 2000
+        fillHistoryCnt: 3
+        cacheTTL: 3600

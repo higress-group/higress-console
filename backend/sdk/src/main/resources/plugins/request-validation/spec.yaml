@@ -18,6 +18,19 @@ info:
 spec:
   phase: AUTHN
   priority: 220
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        body_schema:
+          type: object
+          required:
+            - boolean_payload
+          properties:
+            boolean_payload:
+              type: boolean
+        rejected_code: 403
+        rejected_msg: "请求被拒绝"
   configSchema:
     openAPIV3Schema:
       type: object

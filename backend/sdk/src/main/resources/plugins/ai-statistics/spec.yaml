@@ -21,3 +21,8 @@ spec:
       type: object
       example:
         enable: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        enable: true

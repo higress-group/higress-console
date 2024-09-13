@@ -23,3 +23,10 @@ spec:
         ip_protocol: ipv4
         ip_source_type: header
         ip_header_name: X-Real-Ip
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        ip_protocol: ipv4
+        ip_source_type: header
+        ip_header_name: X-Real-Ip
