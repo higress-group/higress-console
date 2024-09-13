@@ -32,8 +32,8 @@ static_resources:
                       address: hunyuan.tencentcloudapi.com
                       port_value: 443
       transport_socket:
-        name: envoy.transport_sockets.tls
-        typed_config:
+        name: envoy.transport_sockets.tlsgatewayMinVersion: ""
+typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           "sni": "hunyuan.tencentcloudapi.com"
 ```

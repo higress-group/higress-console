@@ -13,6 +13,7 @@ info:
   version: 1.0.0
   contact:
     name: johnlanni
+  gatewayMinVersion: "2.0.0"    
 spec:
   phase: AUTHN
   priority: 10

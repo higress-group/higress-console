@@ -1,5 +1,6 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: "2.0.0"
   type: oss
   category: ai
   name: ai-history

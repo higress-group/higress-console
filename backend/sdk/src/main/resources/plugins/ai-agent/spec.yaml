@@ -13,6 +13,7 @@ info:
   version: 1.0.0
   contact:
     name: xingyunyang01
+  gatewayMinVersion: ""
 spec:
   phase: UNSPECIFIED_PHASE
   priority: 20
