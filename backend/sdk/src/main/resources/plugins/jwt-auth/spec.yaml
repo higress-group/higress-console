@@ -18,6 +18,12 @@ info:
 spec:
   phase: AUTHN
   priority: 340
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        allows:
+        - consumer1
   configSchema:
     openAPIV3Schema:
       type: object
