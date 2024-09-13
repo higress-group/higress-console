@@ -2,6 +2,7 @@ apiVersion: 1.0.0
 info:
   type: enterprise
   category: ai
+  image: platform_wasm/ai-proxy
   name: ai-proxy
   title: AI Proxy
   x-title-i18n:

@@ -3,6 +3,7 @@ info:
   type: oss
   category: transformation
   name: geo-ip
+  image: platform_wasm/geo-ip
   title: Geo IP
   x-title-i18n:
     zh-CN: IP 地理位置

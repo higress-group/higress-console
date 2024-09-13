@@ -3,6 +3,7 @@ info:
   type: oss
   category: security
   name: cors
+  image: platform_wasm/cors
   title: CORS
   x-title-i18n:
     zh-CN: 跨域资源共享

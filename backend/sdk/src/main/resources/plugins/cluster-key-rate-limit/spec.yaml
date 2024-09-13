@@ -3,6 +3,7 @@ info:
   type: enterprise
   category: traffic
   name: cluster-key-rate-limit
+  image: platform_wasm/cluster-key-rate-limit
   title: Key Cluster Rate Limit
   x-title-i18n:
     zh-CN: 基于 Key 集群限流

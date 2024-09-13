@@ -3,6 +3,7 @@ info:
   type: enterprise
   category: ai
   name: ai-statistics
+  image: platform_wasm/ai-statistics
   title: AI Statistics
   x-title-i18n:
     zh-CN: AI 统计

@@ -2,7 +2,8 @@ apiVersion: 1.0.0
 info:
   type: enterprise
   category: auth
-  name: key-auth/v1
+  name: key-auth
+  image: platform_wasm/key-auth
   title: Key Auth
   x-title-i18n:
     zh-CN: Key 认证

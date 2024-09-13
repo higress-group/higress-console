@@ -3,6 +3,7 @@ info:
   type: oss
   category: traffic
   name: request-validation
+  image: platform_wasm/request-validation
   title: Request Validation
   x-title-i18n:
     zh-CN: 请求校验

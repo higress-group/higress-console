@@ -3,6 +3,7 @@ info:
   type: oss
   category: traffic
   name: ip-restriction
+  image: platform_wasm/ip-restriction
   title: IP Restriction
   x-title-i18n:
     zh-CN: IP 限制

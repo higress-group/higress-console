@@ -2,6 +2,7 @@ apiVersion: 1.0.0
 info:
   type: enterprise
   category: ai
+  image: platform_wasm/prompt-template
   name: ai-prompt-template
   title: AI Prompt Template
   x-title-i18n:

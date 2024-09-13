@@ -3,6 +3,7 @@ info:
   type: oss
   category: transformation
   name: frontend-gray
+  image: platform_wasm/frontend-gray
   title: Frontend Gray
   x-title-i18n:
     zh-CN: 前端灰度

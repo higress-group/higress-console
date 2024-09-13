@@ -3,6 +3,7 @@ info:
   type: oss
   category: transformation
   name: de-graphql
+  image: platform_wasm/de-graphql
   title: DeGraphQL
   x-title-i18n:
     zh-CN: DeGraphQL

@@ -3,6 +3,7 @@ info:
   type: oss
   category: auth
   name: ext-auth
+  image: platform_wasm/ext-auth
   title: Ext Auth
   x-title-i18n:
     zh-CN: 外部认证

@@ -3,6 +3,7 @@ info:
   type: enterprise
   category: ai
   name: ai-token-ratelimit
+  image: platform_wasm/ai-token-ratelimit
   title: AI Token Rate Limit
   x-title-i18n:
     zh-CN: AI Token 限流

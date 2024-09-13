@@ -3,6 +3,7 @@ info:
   type: oss
   category: auth
   name: opa
+  image: platform_wasm/opa
   title: OPA
   x-title-i18n:
     zh-CN: OPA

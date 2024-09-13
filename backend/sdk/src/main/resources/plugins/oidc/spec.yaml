@@ -3,6 +3,7 @@ info:
   type: enterprise
   category: auth
   name: oidc
+  image: platform_wasm/oidc
   title: OIDC Auth
   x-title-i18n:
     zh-CN: OIDC 认证

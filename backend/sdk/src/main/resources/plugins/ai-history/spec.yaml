@@ -2,6 +2,7 @@ apiVersion: 1.0.0
 info:
   type: oss
   category: ai
+  image: platform_wasm/ai-history
   name: ai-history
   title: AI History
   x-title-i18n:

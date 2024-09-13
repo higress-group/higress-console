@@ -3,6 +3,7 @@ info:
   type: enterprise
   category: ai
   name: ai-transformer
+  image: platform_wasm/ai-transformer
   title: AI Transformer
   x-title-i18n:
     zh-CN: AI 请求/响应转换

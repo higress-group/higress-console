@@ -2,7 +2,8 @@ apiVersion: 1.0.0
 info:
   type: enterprise
   category: auth
-  name: hmac-auth/v1
+  name: hmac-auth
+  image: platform_wasm/hmac-auth
   title: HMAC Auth
   x-title-i18n:
     zh-CN: HMAC 认证

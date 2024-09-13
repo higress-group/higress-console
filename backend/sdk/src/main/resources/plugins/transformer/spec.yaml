@@ -3,6 +3,7 @@ info:
   type: oss
   category: transformation
   name: transformer
+  image: platform_wasm/transformer
   title: Transformer
   x-title-i18n:
     zh-CN: 请求/响应转换
