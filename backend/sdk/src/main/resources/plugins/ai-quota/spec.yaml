@@ -16,7 +16,7 @@ info:
   contact:
     name: 2456868764
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 750
   configSchema:
     openAPIV3Schema:

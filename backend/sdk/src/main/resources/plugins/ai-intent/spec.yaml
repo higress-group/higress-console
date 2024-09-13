@@ -16,7 +16,7 @@ info:
   contact:
     name: lizhou0
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 700
   configSchema:
     openAPIV3Schema:
