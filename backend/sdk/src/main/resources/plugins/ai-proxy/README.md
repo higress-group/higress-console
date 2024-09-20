@@ -602,6 +602,51 @@ provider:
 }
 ```
 
+### 使用original协议代理百炼智能体应用
+**配置信息**
+
+```yaml
+provider:
+  type: qwen
+  apiTokens:
+    - "YOUR_DASHSCOPE_API_TOKEN"
+  protocol: original
+```
+
+**请求实例**
+```json
+{
+  "input": {
+      "prompt": "介绍一下Dubbo"
+  },
+  "parameters":  {},
+  "debug": {}
+}
+```
+
+**响应实例**
+
+```json
+{
+    "output": {
+        "finish_reason": "stop",
+        "session_id": "677e7e8fbb874e1b84792b65042e1599",
+        "text": "Apache Dubbo 是一个..."
+    },
+    "usage": {
+        "models": [
+            {
+                "output_tokens": 449,
+                "model_id": "qwen-max",
+                "input_tokens": 282
+            }
+        ]
+    },
+    "request_id": "b59e45e3-5af4-91df-b7c6-9d746fd3297c"
+}
+```
+
+
 ### 使用月之暗面配合其原生的文件上下文
 
 提前上传文件至月之暗面，以文件内容作为上下文使用其 AI 服务。
@@ -697,7 +742,7 @@ provider:
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Ni Hao! (That's \"hello\" in Chinese!)\n\nI am LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner. I'm not a human, but a computer program designed to simulate conversations and answer questions to the best of my ability. I'm happy to chat with you in Chinese or help with any questions or topics you'd like to discuss!"
+        "content": "😊 Ni Hao! (That's \"hello\" in Chinese!)\n\nI am LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner. I'm not a human, but a computer program designed to simulate conversations and answer questions to the best of my ability. I'm happy to chat with you in Chinese or help with any questions or topics you'd like to discuss! 😊"
       },
       "logprobs": null,
       "finish_reason": "stop"
