@@ -807,9 +807,9 @@ public class KubernetesModelConverterTest {
     void secret2TlsCertificateTestValidSecretWithoutCertAndKeyShouldReturnTlsCertificateWithoutCertAndKey() {
         V1Secret secret = new V1Secret();
         secret.setMetadata(new V1ObjectMeta() {{
-            setName("test-secret");
-            setResourceVersion("123");
-        }});
+                setName("test-secret");
+                setResourceVersion("123");
+            }});
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
 
@@ -827,9 +827,9 @@ public class KubernetesModelConverterTest {
     void secret2TlsCertificateTestNullMetadataShouldReturnTlsCertificateWithoutNameAndVersion() {
         V1Secret secret = new V1Secret();
         secret.setData(new HashMap<String, byte[]>() {{
-            put(KubernetesConstants.SECRET_TLS_CRT_FIELD, "certData".getBytes());
-            put(KubernetesConstants.SECRET_TLS_KEY_FIELD, "keyData".getBytes());
-        }});
+                put(KubernetesConstants.SECRET_TLS_CRT_FIELD, "certData".getBytes());
+                put(KubernetesConstants.SECRET_TLS_KEY_FIELD, "keyData".getBytes());
+            }});
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
 
@@ -844,9 +844,9 @@ public class KubernetesModelConverterTest {
     void secret2TlsCertificateTestEmptyDataShouldReturnTlsCertificateWithoutCertAndKey() {
         V1Secret secret = new V1Secret();
         secret.setMetadata(new V1ObjectMeta() {{
-            setName("test-secret");
-            setResourceVersion("123");
-        }});
+                setName("test-secret");
+                setResourceVersion("123");
+            }});
         secret.setData(Collections.emptyMap());
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
@@ -1251,8 +1251,8 @@ public class KubernetesModelConverterTest {
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
         rule.setDomain(new ArrayList<String>() {{
-            add("higress.cn");
-        }});
+                add("higress.cn");
+            }});
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1270,8 +1270,8 @@ public class KubernetesModelConverterTest {
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
         rule.setDomain(new ArrayList<String>() {{
-            add("higress.cn");
-        }});
+                add("higress.cn");
+            }});
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1289,8 +1289,8 @@ public class KubernetesModelConverterTest {
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
         rule.setIngress(new ArrayList<String>() {{
-            add("test-route");
-        }});
+                add("test-route");
+            }});
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1308,8 +1308,8 @@ public class KubernetesModelConverterTest {
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
         rule.setIngress(new ArrayList<String>() {{
-            add("test-route");
-        }});
+                add("test-route");
+            }});
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1688,8 +1688,8 @@ public class KubernetesModelConverterTest {
         metadata.setName("test-ingress");
         metadata.setResourceVersion("1");
         metadata.setAnnotations(new HashMap<String, String>() {{
-            put("higress.cn", "annotation-value");
-        }});
+                put("higress.cn", "annotation-value");
+            }});
 
         V1Ingress ingress = new V1Ingress();
         ingress.setMetadata(metadata);
