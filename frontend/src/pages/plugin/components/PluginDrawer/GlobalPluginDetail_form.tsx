@@ -1,10 +1,12 @@
-import { Alert, Divider, Form, Spin, Switch, message, Space, Typography, Input, Button } from 'antd';
+import { Alert, Divider, Form, Spin, Switch, message, Space, Typography, Input, Button, Select, Descriptions } from 'antd';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
-import { t } from 'i18next';
+import i18next, { t } from 'i18next';
 import { useSearchParams } from 'ice';
 import ArrayForm from './ArrayForm'
+import yaml from 'js-yaml'
+
 const { Text } = Typography;
 
 export interface IPluginData {
@@ -82,8 +84,9 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
       setDefaultValue(res.rawConfigurations);
-      //console.log('default_raw:', res.rawConfigurations);
       getConfig(pluginName);
+      const yam = schemaToFormValues(res.rawConfigurations);
+      form.setFieldsValue(yam);
     },
   });
   const { loading: getConfigLoading, run: getConfig } = useRequest(servicesApi.getWasmPluginsConfig, {
@@ -101,6 +104,7 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       form.setFieldsValue({
         enabled: pluginData?.enabled,
       });
+
     },
   });
 
@@ -112,44 +116,63 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
     },
   });
 
-
-
-  function generateFields(scm,  prefix = '') {
-    const properties =scm.properties;
+  function generateFields(scm, prefix = '') {
+    const properties = scm.properties;
+    const requiredFields = scm.required || [];
     const dict = {};
-    if(!properties){
+    if (!properties) {
       return (<div>inValid schema!</div>)
     }
     return Object.entries(properties).map(([key, value]) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
+      let translatedTitle = value.title;
+      let tip = null;
+      if (value.hasOwnProperty('description')) {
+        tip = value.description;
+        if (i18next.language === "en-US") {
+          tip = value['x-description-i18n'] && value['x-description-i18n'][i18next.language];
+        }
+      }
+      if (i18next.language === "en-US") {
+        translatedTitle = (value['x-title-i18n'][i18next.language]) ? value['x-title-i18n'][i18next.language] : key;
+      }
+      const isRequired = requiredFields.includes(key);
       if (value.type === 'object' && value.properties) {
         // 如果是嵌套的对象，则递归生成子表单
-        return generateFields(value,  fullKey);
+        return generateFields(value, fullKey);
       }
-      
+
       const { type, title } = value;
-      //console.log(rawConfigurations);
       let fieldComponent;
+      let validationRules = [];
+      if (isRequired) {
+        validationRules.push({ required: true, message: `${translatedTitle} 是必填的` });
+      }
       switch (type) {
         case 'string':
-          fieldComponent = <Input />;
+          fieldComponent = <Input placeholder={tip || ''} />;
           break;
         case 'integer':
-          fieldComponent = <Input type="number" />;
-          break; 
+          fieldComponent = <Input type="number" placeholder={tip || ''} />;
+          break;
         case 'boolean':
-          fieldComponent = <Switch />;
+          fieldComponent = (
+            <Select placeholder={tip || ''}>
+              <Select.Option value={true}>true</Select.Option>
+              <Select.Option value={false}>false</Select.Option>
+            </Select>
+          );
           break;
         case 'array':
-          dict[value.items.title]=value.items
-          return(
+          dict[value.items.title] = value.items
+          return (
             <Form.Item
-          label={fullKey}
-          name={fullKey}
-          
-        >
-          <ArrayForm  array={value.items} />
-        </Form.Item>
+              label={translatedTitle}
+              name={fullKey}
+              rules={validationRules}
+            >
+              <ArrayForm array={value.items} />
+            </Form.Item>
           )
         case 'object':
           return
@@ -158,14 +181,15 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       }
       return (
         <Form.Item
-          key={fullKey}
+          key={translatedTitle}
           name={fullKey}
-          label={`${title}:`}
+          label={translatedTitle}
+          rules={validationRules}
         >
           {fieldComponent}
         </Form.Item>
       );
-      
+
     });
   }
 
@@ -174,36 +198,40 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
     function processFormValues(formValues) {
       // 创建一个新对象，以避免修改原始对象
       const newFormValues = JSON.parse(JSON.stringify(formValues));
-    
       // 遍历所有表单字段
       for (const key in newFormValues) {
         if (newFormValues.hasOwnProperty(key)) {
           const value = newFormValues[key];
-    
           // 检查字段是否为数组
           if (Array.isArray(value)) {
             // 如果数组中的元素是字典
             if (value.every(item => typeof item === 'object' && !Array.isArray(item))) {
               // 遍历数组中的每个对象
-              value.forEach(item => {
-                // 如果对象有 uid 属性，则删除它
+              const filteredItems = value.filter(item => {
+                // 删除 uid 属性
                 delete item.uid;
-    
-                // 如果对象有 Item 属性，则将数组转换为字符串数组
-                if ('Item' in item) {
-                  newFormValues[key] = value.map(obj => obj.Item);
-                  return newFormValues; // 一旦转换，无需继续遍历
+
+                // 如果对象有 Item 属性，并且 Item 值为 null，则删除 Item
+                if ('Item' in item && item.Item === null) {
+                  delete item.Item;
                 }
+
+                // 如果删除 Item 后，对象只剩下 uid，则返回 false 表示要删除该项
+                return Object.keys(item).length > 0;
               });
+
+              // 替换原数组
+              newFormValues[key] = filteredItems;
             }
           }
         }
       }
-    
+
       return newFormValues;
     }
-    formValues=processFormValues(formValues);
-    
+
+    formValues = processFormValues(formValues);
+
     function buildObjectFromPath(path, value) {
       const parts = path.split('.');
       let current = result;
@@ -218,52 +246,92 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       // 设置最后一级的值
       current[parts[parts.length - 1]] = value;
     }
-  
+
     Object.entries(formValues).forEach(([key, value]) => {
       if (value !== undefined) {
         buildObjectFromPath(key, value);
       }
     });
-  
+
     return result;
   }
 
-  function objectToYaml(obj, indent = ''): string {
+  function schemaToYaml(obj, indent = ''): string {
     let result = '';
-  
+
     Object.entries(obj).forEach(([key, value]) => {
+      // 忽略名为 'enabled' 的字段
+      if (key === 'enabled') return;
+
       if (value === null) {
         result += `${indent}${key}: null\n`;
       } else if (Array.isArray(value)) {
         result += `${indent}${key}:\n`;
         value.forEach((item, index) => {
           if (typeof item === 'object') {
-            result += `${indent}  -\n${objectToYaml(item, indent + '    ')}`;
+            result += `${indent}  -\n${schemaToYaml(item, indent + '    ')}`;
           } else {
             result += `${indent}  - ${item}\n`;
           }
         });
       } else if (typeof value === 'object') {
-        result += `${indent}${key}:\n${objectToYaml(value, indent + '  ')}`;
+        result += `${indent}${key}:\n${schemaToYaml(value, indent + '  ')}`;
       } else {
         result += `${indent}${key}: ${value}\n`;
       }
     });
-  
+
     return result;
+  }
+
+  function schemaToFormValues(yamlString) {
+    try {
+      const parsedObj = yaml.load(yamlString);
+      let uidCounter = 1; // 初始化 uid 计数器
+      function flattenObject(obj, parentKey = '') {
+        let flatResult = {};
+        let currentUid = uidCounter;
+        Object.keys(obj).forEach((key) => {
+          const newKey = parentKey ? `${parentKey}.${key}` : key;
+          if (Array.isArray(obj[key])) {
+            obj[key].forEach((item, index) => {
+              const uid = currentUid++;
+              if (typeof item === 'object' && item !== null) {
+                const newItem = { uid };
+                Object.keys(item).forEach(subKey => {
+                  newItem[subKey] = item[subKey];
+                });
+                flatResult[newKey] = flatResult[newKey] || [];
+                flatResult[newKey].push(newItem);
+              } else {
+                const newItem = { uid, Item: item };
+                flatResult[newKey] = flatResult[newKey] || [];
+                flatResult[newKey].push(newItem);
+              }
+            });
+            currentUid += obj[key].length;
+          } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            Object.assign(flatResult, flattenObject(obj[key], newKey));
+          } else if (typeof obj[key] === 'boolean') {
+            // 特殊处理布尔类型
+            flatResult[newKey] = obj[key];
+          } else {
+            flatResult[newKey] = obj[key];
+          }
+        });
+
+        return flatResult;
+      }
+      return flattenObject(parsedObj, '');
+    } catch (error) {
+      console.error('Error parsing YAML:', error);
+      return {};
+    }
   }
 
   const onSubmit = async () => {
     await form.validateFields();
     const values = form.getFieldsValue();
-/*     console.log('form',form.getFieldsValue());
-    const scm=formValuesToSchema(values)
-    console.log('scm',scm)
-    const yamlString = objectToYaml(scm);
-    console.log('yaml',yamlString);
-    
-    setRawConfigurations(yamlString); */
-    console.log(rawConfigurations);
     const params = {
       ...pluginData,
       enabled: values.enabled,
@@ -287,7 +355,6 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
   };
 
   useEffect(() => {
-    
     if (isRoutePlugin || isDomainPlugin) {
       getData({
         name: queryName,
@@ -297,7 +364,6 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
     }
     getData(pluginName);
   }, [pluginName, queryName]);
-
 
   useImperativeHandle(ref, () => ({
     submit: onSubmit,
@@ -310,14 +376,13 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
     };
   }, [isRoutePlugin, isDomainPlugin, queryName]);
 
-  const fieldChange=()=>{
-    if(!getConfigLoading && !getDataLoading){
+  const fieldChange = () => {
+    if (!getConfigLoading && !getDataLoading) {
       const values = form.getFieldsValue();
-      const scm=formValuesToSchema(values);
-      const yamlString = objectToYaml(scm);
+      const scm = formValuesToSchema(values);
+      const yamlString = schemaToYaml(scm);
       setRawConfigurations(yamlString);
     }
-    
   }
 
   return (
@@ -332,17 +397,17 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
           </Form.Item>
 
           {!getConfigLoading && !getDataLoading && schema && (
-            generateFields(schema)
+            generateFields(schema.jsonSchema)
           )}
           {!getConfigLoading && !getDataLoading && !isRoutePlugin && !isDomainPlugin && (
             <Space direction="horizontal" style={{ marginTop: "0.5rem" }}>
               <Text>{t('plugins.configForm.globalConfigWarning')}</Text>
             </Space>
           )}
-        </Form> 
+        </Form>
       </Spin>
     </div>
-    
+
   );
 });
 

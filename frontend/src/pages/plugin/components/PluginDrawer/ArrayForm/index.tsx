@@ -5,9 +5,9 @@ import { uniqueId } from 'lodash';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
+import i18next from 'i18next';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
-
 
 interface Item {
   key: string;
@@ -64,18 +64,15 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const save = async () => {
     try {
       const values = await form.validateFields();
-
       handleSave({ ...record, ...values });
     } catch (errInfo) {
-      // eslint-disable-next-line no-console
-      console.log('Save failed:', errInfo);
+      console.error('Save failed:', errInfo);
     }
   };
 
   let childNode = children;
 
   const node = <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-    
 
   if (editable) {
     childNode = (
@@ -114,15 +111,22 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       item.uid = uniqueId();
     }
   }
+
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
-  
-  const defaultColumns: Array<ColumnTypes[number] & { editable?: boolean; dataIndex: string }> = [];
+
+  const defaultColumns: any[] = [];
   if (array.type === 'object') {
     Object.entries(array.properties).forEach(([key, prop]) => {
+      let translatedTitle = prop.title;
+      if (i18next.language === "en-US") {
+        translatedTitle = (prop['x-title-i18n'][i18next.language]) ? prop['x-title-i18n'][i18next.language] : key;
+      }
+      const isRequired = (array.required || []).includes(key);
       defaultColumns.push({
-        title: t(key),
+        title: translatedTitle,
         dataIndex: key,
         editable: true,
+        required: isRequired,
       });
     });
   } else {
@@ -138,17 +142,16 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     dataIndex: 'operation',
     width: 60,
     render: (_, record: { uid: number }) =>
-      (dataSource.length >= 1 ? (
-        <div onClick={() => handleDelete(record.uid)}>
-          <DeleteOutlined />
-        </div>
-      ) : null),
+    (dataSource.length >= 1 ? (
+      <div onClick={() => handleDelete(record.uid)}>
+        <DeleteOutlined />
+      </div>
+    ) : null),
   });
 
   const handleAdd = () => {
     const newData: DataType = {
       uid: uniqueId(),
-
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
@@ -190,6 +193,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
         editable: col.editable,
         dataIndex: col.dataIndex,
         title: col.title,
+        required: col.required,  // 添加 required 属性
         nodeType: col.dataIndex === 'matchType' ? 'select' : 'input',
         handleSave,
       }),
@@ -205,6 +209,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
         dataSource={dataSource}
         columns={columns as ColumnTypes}
         pagination={false}
+        rowKey={(record) => record.uid}
       />
       <Button onClick={handleAdd} type="link">
         <PlusOutlined />
