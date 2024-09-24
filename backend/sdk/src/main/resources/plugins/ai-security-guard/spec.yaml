@@ -28,6 +28,8 @@ spec:
         domain: green-cip.cn-shanghai.aliyuncs.com
         ak: xxxxxxxxxxxxxxxxxxxx
         sk: xxxxxxxxxxxxxxxxxxxx
+        checkRequest: false
+        checkResponse: false
   routeConfigSchema:
     openAPIV3Schema:
       type: object
