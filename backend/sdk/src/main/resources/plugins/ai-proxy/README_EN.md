@@ -1,10 +1,10 @@
 ---
-title: AI Agent
-keywords: [AI Gateway, AI Agent]
-description: AI Agent plugin configuration reference
+title: AI Proxy
+keywords: [AI Gateway, AI Proxy]
+description: AI Proxy plugin configuration reference
 ---
 ## Function Description
-`AI Agent` plugin implements AI agent functionality based on OpenAI API contracts. It currently supports AI service providers such as OpenAI, Azure OpenAI, Moonshot, and Qwen.
+`AI Proxy` plugin implements AI proxy functionality based on OpenAI API contracts. It currently supports AI service providers such as OpenAI, Azure OpenAI, Moonshot, and Qwen.
 
 > **Note:**
 > When the request path suffix matches `/v1/chat/completions`, corresponding to text generation scenarios, the request body will be parsed using OpenAI's text generation protocol and then converted to the corresponding LLM vendor's text generation protocol.
@@ -212,7 +212,7 @@ provider:
     'text-embedding-v1': 'text-embedding-v1'
     '*': "qwen-turbo"
 ```
-### Using original protocol to Proxy Baichuan AI Agent application
+### Using original protocol to Proxy Baichuan AI Proxy application
 **Configuration Information**
 ```yaml
 provider:
