@@ -10,6 +10,11 @@ agent流程图如下：
 ![ai-agent](https://img.alicdn.com/imgextra/i1/O1CN01PGSDW31WQfEPm173u_!!6000000002783-0-tps-2733-1473.jpg)
 
 
+## 运行属性
+
+插件执行阶段：`默认阶段`
+插件执行优先级：`200`
+
 ## 配置字段
 
 ### 基本配置

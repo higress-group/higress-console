@@ -17,7 +17,7 @@ info:
   gatewayMinVersion: ""
 spec:
   phase: default
-  priority: 20
+  priority: 200
   routeConfigSchema:
     openAPIV3Schema:
       type: object

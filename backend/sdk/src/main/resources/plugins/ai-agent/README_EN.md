@@ -9,8 +9,8 @@ The agent flow chart is as follows:
 ![ai-agent](https://github.com/user-attachments/assets/b0761a0c-1afa-496c-a98e-bb9f38b340f8)  
 
 ## Runtime Properties
-Plugin execution phase: `Default Phase`  
-Plugin execution priority: `20`  
+Plugin execution phase: `Default Phase`
+Plugin execution priority: `200`
 
 ## Configuration Fields
 
