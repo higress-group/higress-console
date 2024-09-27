@@ -1602,6 +1602,9 @@ public class KubernetesModelConverter {
     }
 
     private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(), keyedRoutePredicate.getMatchValue())){
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String annotationName = String.format(KubernetesConstants.Annotation.QUERY_MATCH_KEY_FORMAT,
             predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
@@ -1609,6 +1612,9 @@ public class KubernetesModelConverter {
     }
 
     private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(), keyedRoutePredicate.getMatchValue())){
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String key = keyedRoutePredicate.getKey();
         String format = KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT;
