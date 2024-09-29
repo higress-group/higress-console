@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -1208,21 +1209,32 @@ public class KubernetesModelConverter {
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
             setFunctionalAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
             setFunctionalAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getRemove())) {
-            setFunctionalAnnotation(metadata, removeKey, StringUtils.join(config.getRemove(), Separators.COMMA),
+            setFunctionalAnnotation(metadata, removeKey,
+                StringUtils.join(
+                    config.getRemove().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()),
+                    Separators.COMMA),
                 enabled);
         }
     }
 
     private String getHeaderConfig(Header header) {
+        if (StringUtils.isEmpty(header.getKey())) {
+            return null;
+        }
+        if (StringUtils.isEmpty(header.getValue())) {
+            return header.getKey() + Separators.SPACE;
+        }
         return header.getKey() + Separators.SPACE + header.getValue();
     }
 
@@ -1273,7 +1285,7 @@ public class KubernetesModelConverter {
             }
 
             V1IngressTLS tls = new V1IngressTLS();
-            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)){
+            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
