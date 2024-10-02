@@ -9,7 +9,7 @@ import yaml from 'js-yaml'
 
 const { Text } = Typography;
 
-export interface IPluginData {
+export interface PluginData {
   configurations: object;
   enabled: boolean;
   pluginName: string;
@@ -20,16 +20,16 @@ export interface IPluginData {
   version: string;
 }
 
-export interface IPropsData {
+export interface PropsData {
   name?: string;
   category: string;
 }
-export interface IProps {
-  data: IPropsData;
+export interface Props {
+  data: PropsData;
   onSuccess: () => void;
 }
 
-const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
+const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
   const { data, onSuccess } = props;
   const { name: pluginName = '', category = '' } = data || {};
 
@@ -72,7 +72,7 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
 
   const [form] = Form.useForm();
 
-  const [pluginData, setPluginData] = useState<IPluginData>();
+  const [pluginData, setPluginData] = useState<PluginData>();
   const [schema, setSchema] = useState('');
 
   const [rawConfigurations, setRawConfigurations] = useState('');
@@ -80,7 +80,7 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
 
   const { loading: getDataLoading, run: getData } = useRequest(pluginInstancesApi.get, {
     manual: true,
-    onSuccess: (res: IPluginData) => {
+    onSuccess: (res: PluginData) => {
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
       setDefaultValue(res.rawConfigurations);
@@ -104,7 +104,6 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       form.setFieldsValue({
         enabled: pluginData?.enabled,
       });
-
     },
   });
 
@@ -196,31 +195,19 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
   function formValuesToSchema(formValues) {
     const result = {};
     function processFormValues(formValues) {
-      // 创建一个新对象，以避免修改原始对象
       const newFormValues = JSON.parse(JSON.stringify(formValues));
-      // 遍历所有表单字段
       for (const key in newFormValues) {
         if (newFormValues.hasOwnProperty(key)) {
           const value = newFormValues[key];
-          // 检查字段是否为数组
           if (Array.isArray(value)) {
-            // 如果数组中的元素是字典
             if (value.every(item => typeof item === 'object' && !Array.isArray(item))) {
-              // 遍历数组中的每个对象
               const filteredItems = value.filter(item => {
-                // 删除 uid 属性
                 delete item.uid;
-
-                // 如果对象有 Item 属性，并且 Item 值为 null，则删除 Item
                 if ('Item' in item && item.Item === null) {
                   delete item.Item;
                 }
-
-                // 如果删除 Item 后，对象只剩下 uid，则返回 false 表示要删除该项
                 return Object.keys(item).length > 0;
               });
-
-              // 替换原数组
               newFormValues[key] = filteredItems;
             }
           }
@@ -238,12 +225,10 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
       for (let i = 0; i < parts.length - 1; i++) {
         const part = parts[i];
         if (!current[part]) {
-          // 如果当前层级不存在，则创建空对象
           current[part] = {};
         }
         current = current[part];
       }
-      // 设置最后一级的值
       current[parts[parts.length - 1]] = value;
     }
 
@@ -258,11 +243,8 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
 
   function schemaToYaml(obj, indent = ''): string {
     let result = '';
-
     Object.entries(obj).forEach(([key, value]) => {
-      // 忽略名为 'enabled' 的字段
       if (key === 'enabled') return;
-
       if (value === null) {
         result += `${indent}${key}: null\n`;
       } else if (Array.isArray(value)) {
@@ -287,7 +269,7 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
   function schemaToFormValues(yamlString) {
     try {
       const parsedObj = yaml.load(yamlString);
-      let uidCounter = 1; // 初始化 uid 计数器
+      let uidCounter = 1;
       function flattenObject(obj, parentKey = '') {
         let flatResult = {};
         let currentUid = uidCounter;
@@ -313,7 +295,6 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
           } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             Object.assign(flatResult, flattenObject(obj[key], newKey));
           } else if (typeof obj[key] === 'boolean') {
-            // 特殊处理布尔类型
             flatResult[newKey] = obj[key];
           } else {
             flatResult[newKey] = obj[key];
@@ -411,4 +392,4 @@ const GlobalPluginDetail_form = forwardRef((props: IProps, ref) => {
   );
 });
 
-export default GlobalPluginDetail_form;
+export default GlobalPluginDetailForm;

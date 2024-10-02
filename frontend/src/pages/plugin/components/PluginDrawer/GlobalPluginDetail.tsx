@@ -82,10 +82,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     manual: true,
     onSuccess: (res: IPluginData) => {
       setPluginData(res);
-      console.log('config:', res);
       setRawConfigurations(res.rawConfigurations);
       setDefaultValue(res.rawConfigurations);
-      console.log('default_raw:', res.rawConfigurations);
       getConfig(pluginName);
     },
   });
@@ -93,7 +91,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     manual: true,
     onSuccess: (res) => {
       setConfigData(res);
-      console.log('res:', res);
       if (!defaultValue) {
         let exampleRaw = res?.schema?.extensions['x-example-raw'];
         if (isChangeExampleRaw) {
@@ -102,7 +99,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         }
         setRawConfigurations(exampleRaw);
         setDefaultValue(exampleRaw);
-        console.log('default_exam:', exampleRaw);
       }
       form.setFieldsValue({
         enabled: pluginData?.enabled,

@@ -66,7 +66,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       const values = await form.validateFields();
       handleSave({ ...record, ...values });
     } catch (errInfo) {
-      console.error('Save failed:', errInfo);
+      console.error('Save failed: ', errInfo);
     }
   };
 
@@ -97,7 +97,6 @@ type EditableTableProps = Parameters<typeof Table>[0];
 
 interface DataType {
   uid: number;
-
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -118,7 +117,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
   if (array.type === 'object') {
     Object.entries(array.properties).forEach(([key, prop]) => {
       let translatedTitle = prop.title;
-      if (i18next.language === "en-US") {
+      if (i18next.language === "en-US" && prop.hasOwnProperty('x-title-i18n')) {
         translatedTitle = (prop['x-title-i18n'][i18next.language]) ? prop['x-title-i18n'][i18next.language] : key;
       }
       const isRequired = (array.required || []).includes(key);
@@ -138,7 +137,6 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
   }
 
   defaultColumns.push({
-    title: t('route.factorGroup.columns.operation'),
     dataIndex: 'operation',
     width: 60,
     render: (_, record: { uid: number }) =>
@@ -193,7 +191,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
         editable: col.editable,
         dataIndex: col.dataIndex,
         title: col.title,
-        required: col.required,  // 添加 required 属性
+        required: col.required,
         nodeType: col.dataIndex === 'matchType' ? 'select' : 'input',
         handleSave,
       }),
@@ -213,7 +211,6 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       />
       <Button onClick={handleAdd} type="link">
         <PlusOutlined />
-        {t('route.factorGroup.parameter')}
       </Button>
     </div>
   );

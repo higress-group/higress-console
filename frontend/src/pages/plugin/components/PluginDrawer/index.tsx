@@ -3,7 +3,7 @@ import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react
 import { useTranslation } from 'react-i18next';
 
 import GlobalPluginDetail from './GlobalPluginDetail';
-import GlobalPluginDetail_form from './GlobalPluginDetail_form'; // 假设这是你要引入的新组件
+import GlobalPluginDetail_form from './GlobalPluginDetailForm';
 import RoutePluginDetail from './RoutePluginDetail';
 
 import { getI18nValue } from '../../utils';
@@ -24,12 +24,12 @@ export default function PluginDrawer(props) {
   const { pluginDrawerRef, routerDetail, onSuccess } = props;
   const routePluginDetailRef = useRef(null);
   const globalPluginDetailRef = useRef(null);
-  const globalPluginDetailFormRef = useRef(null); // 新增的引用
+  const globalPluginDetailFormRef = useRef(null);
 
   const [activePluginData, setActivePluginData] = useState({ title: '', key: '' });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isFormView, setIsFormView] = useState(false); // 新增的状态变量
+  const [isFormView, setIsFormView] = useState(false);
 
   const onCloseDrawer = () => {
     setOpen(false);
@@ -93,7 +93,7 @@ export default function PluginDrawer(props) {
             onClick={() => setIsFormView(!isFormView)}
             style={{ marginBottom: '16px' }}
           >
-            {isFormView ? t('switchToYAML') : t('switchToForm')}
+            {isFormView ? 'switchToYAML' : 'switchToForm'}
           </Button>
           {isFormView ? (
             <GlobalPluginDetail_form
