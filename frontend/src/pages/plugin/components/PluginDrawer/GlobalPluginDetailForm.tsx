@@ -1,4 +1,4 @@
-import { Alert, Divider, Form, Spin, Switch, message, Space, Typography, Input, Button, Select, Descriptions } from 'antd';
+import { Alert, Form, Spin, Switch, message, Space, Typography, Input, Select } from 'antd';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
@@ -24,13 +24,19 @@ export interface PropsData {
   name?: string;
   category: string;
 }
+
 export interface Props {
   data: PropsData;
   onSuccess: () => void;
+  sharedData: string;
+  setSharedData: (newData: string) => void;
+  enabled: boolean;
+  setEnabled: (newEnabled: boolean) => void;
+  currentTabKey: string
 }
 
 const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
-  const { data, onSuccess } = props;
+  const { data, onSuccess, sharedData, setSharedData,enabled, setEnabled, currentTabKey } = props;
   const { name: pluginName = '', category = '' } = data || {};
 
   const [searchParams] = useSearchParams();
@@ -83,7 +89,8 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
     onSuccess: (res: PluginData) => {
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
-      setDefaultValue(res.rawConfigurations);
+      setSharedData(res.rawConfigurations);
+      setDefaultValue(sharedData);
       getConfig(pluginName);
       const yam = schemaToFormValues(res.rawConfigurations);
       form.setFieldsValue(yam);
@@ -115,25 +122,25 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
     },
   });
 
+  function getLocalizedText(obj: any, key: string, fallback?: string) {
+    const i18nKey = `x-${key}-i18n`;
+    const i18nObj = obj[i18nKey];
+    return i18nObj && i18nObj[i18next.language] || obj[key] || fallback;
+  }
+
   function generateFields(scm, prefix = '') {
     const properties = scm.properties;
     const requiredFields = scm.required || [];
     const dict = {};
     if (!properties) {
-      return (<div>inValid schema!</div>)
+      return (<div>{t('misc.invalidSchema')}</div>)
     }
     return Object.entries(properties).map(([key, value]) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      let translatedTitle = value.title;
+      let translatedTitle = getLocalizedText(value, 'title', key);
       let tip = null;
       if (value.hasOwnProperty('description')) {
-        tip = value.description;
-        if (i18next.language === "en-US") {
-          tip = value['x-description-i18n'] && value['x-description-i18n'][i18next.language];
-        }
-      }
-      if (i18next.language === "en-US") {
-        translatedTitle = (value['x-title-i18n'][i18next.language]) ? value['x-title-i18n'][i18next.language] : key;
+          tip = getLocalizedText(value, 'description', value.description);
       }
       const isRequired = requiredFields.includes(key);
       if (value.type === 'object' && value.properties) {
@@ -145,7 +152,7 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
       let fieldComponent;
       let validationRules = [];
       if (isRequired) {
-        validationRules.push({ required: true, message: `${translatedTitle} 是必填的` });
+        validationRules.push({ required: true, message: `${translatedTitle} `+ `${t('misc.isRequired')}` });
       }
       switch (type) {
         case 'string':
@@ -200,9 +207,12 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
         if (newFormValues.hasOwnProperty(key)) {
           const value = newFormValues[key];
           if (Array.isArray(value)) {
-            if (value.every(item => typeof item === 'object' && !Array.isArray(item))) {
+            // 处理FormValues的object类型数据
+            if (value.every(item => typeof item === 'object' )) {
+              // 过滤uid
               const filteredItems = value.filter(item => {
                 delete item.uid;
+                // 删除不必要的空数据
                 if ('Item' in item && item.Item === null) {
                   delete item.Item;
                 }
@@ -251,7 +261,18 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
         result += `${indent}${key}:\n`;
         value.forEach((item, index) => {
           if (typeof item === 'object') {
-            result += `${indent}  -\n${schemaToYaml(item, indent + '    ')}`;
+            // 处理对象的第一个键值对直接跟在 - 后面
+            let firstEntry = true;
+            result += `${indent}  - `;
+            Object.entries(item).forEach(([innerKey, innerValue], i) => {
+              if (firstEntry) {
+                result += `${innerKey}: ${innerValue}`;
+                firstEntry = false;
+              } else {
+                result += `\n${indent}    ${innerKey}: ${innerValue}`;
+              }
+            });
+            result += '\n';
           } else {
             result += `${indent}  - ${item}\n`;
           }
@@ -346,6 +367,17 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
     getData(pluginName);
   }, [pluginName, queryName]);
 
+  useEffect(() => {
+    if (currentTabKey === "form") {
+      setDefaultValue(sharedData);
+      form.setFieldsValue(schemaToFormValues(sharedData))
+      form.setFieldsValue({
+        enabled: enabled,
+      });
+    }
+  }, [currentTabKey]);
+
+
   useImperativeHandle(ref, () => ({
     submit: onSubmit,
   }));
@@ -362,6 +394,7 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
       const values = form.getFieldsValue();
       const scm = formValuesToSchema(values);
       const yamlString = schemaToYaml(scm);
+      setSharedData(yamlString);
       setRawConfigurations(yamlString);
     }
   }
@@ -372,9 +405,11 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
         {alertStatus.isShow && (
           <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
         )}
-        <Form name="basic" form={form} autoComplete="off" layout="vertical" onFieldsChange={fieldChange}>
+        <Form name="basic" form={form} autoComplete="off" layout="vertical" onFieldsChange={fieldChange} key={defaultValue}>
           <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
-            <Switch />
+          <Switch onChange={(val) =>{
+              setEnabled(val);
+            }}/>
           </Form.Item>
 
           {!getConfigLoading && !getDataLoading && schema && (

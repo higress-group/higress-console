@@ -497,6 +497,10 @@
     "seconds": "秒",
     "tbd": "页面开发中，即将推出...",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "switchToYAML": "切换至YAML方式",
+    "switchToForm": "切换至表单方式",
+    "isRequired": "是必填的",
+    "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
   }
 }

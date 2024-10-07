@@ -1,4 +1,4 @@
-import { Button, Drawer, Space } from 'antd';
+import { Button, Drawer, Space, Tabs } from 'antd';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -29,18 +29,22 @@ export default function PluginDrawer(props) {
   const [activePluginData, setActivePluginData] = useState({ title: '', key: '' });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isFormView, setIsFormView] = useState(false);
+  const [currentTabKey, setCurrentTabKey] = useState('form');
+  const [sharedData, setSharedData] = useState('');
+  const [enabled, setEnabled] = useState();
 
   const onCloseDrawer = () => {
     setOpen(false);
   };
+
+  const { TabPane } = Tabs;
 
   const onSubmit = () => {
     if (isRoutePlugin) {
       routePluginDetailRef.current?.submit();
       return;
     }
-    if (isFormView) {
+    if (currentTabKey==="form") {
       globalPluginDetailFormRef.current?.submit();
     } else {
       globalPluginDetailRef.current?.submit();
@@ -87,33 +91,38 @@ export default function PluginDrawer(props) {
         />
       ) : (
         <>
-          {/* 新增的切换按钮 */}
-          <Button
-            type="link"
-            onClick={() => setIsFormView(!isFormView)}
-            style={{ marginBottom: '16px' }}
-          >
-            {isFormView ? 'switchToYAML' : 'switchToForm'}
-          </Button>
-          {isFormView ? (
+        <Tabs activeKey={currentTabKey} onChange={(key) => setCurrentTabKey(key)}>
+          <TabPane tab={t('misc.switchToForm')} key="form">
             <GlobalPluginDetail_form
               ref={globalPluginDetailFormRef}
               data={activePluginData}
+              sharedData={sharedData}
+              setSharedData={setSharedData}
+              enabled={enabled}
+              setEnabled={setEnabled}
+              currentTabKey={currentTabKey}
               onSuccess={() => {
                 onCloseDrawer();
                 onSuccess?.();
               }}
             />
-          ) : (
+          </TabPane>
+          <TabPane tab={t('misc.switchToYAML')} key="yaml">
             <GlobalPluginDetail
               ref={globalPluginDetailRef}
               data={activePluginData}
+              sharedData={sharedData}
+              setSharedData={setSharedData}
+              enabled={enabled}
+              setEnabled={setEnabled}
+              currentTabKey={currentTabKey}
               onSuccess={() => {
                 onCloseDrawer();
                 onSuccess?.();
               }}
             />
-          )}
+          </TabPane>
+        </Tabs>
         </>
       )}
     </Drawer>
