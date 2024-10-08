@@ -2,7 +2,7 @@ apiVersion: 1.0.0
 info:
   gatewayMinVersion: ""
   type: oss
-  category: traffic
+  category: security
   name: ip-restriction
   image: platform_wasm/ip-restriction
   title: IP Restriction

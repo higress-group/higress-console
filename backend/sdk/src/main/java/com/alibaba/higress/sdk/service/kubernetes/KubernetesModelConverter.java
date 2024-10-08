@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -1208,21 +1209,32 @@ public class KubernetesModelConverter {
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
             setFunctionalAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
             setFunctionalAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getRemove())) {
-            setFunctionalAnnotation(metadata, removeKey, StringUtils.join(config.getRemove(), Separators.COMMA),
+            setFunctionalAnnotation(metadata, removeKey,
+                StringUtils.join(
+                    config.getRemove().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()),
+                    Separators.COMMA),
                 enabled);
         }
     }
 
     private String getHeaderConfig(Header header) {
+        if (StringUtils.isEmpty(header.getKey())) {
+            return null;
+        }
+        if (StringUtils.isEmpty(header.getValue())) {
+            return header.getKey() + Separators.SPACE;
+        }
         return header.getKey() + Separators.SPACE + header.getValue();
     }
 
@@ -1273,7 +1285,7 @@ public class KubernetesModelConverter {
             }
 
             V1IngressTLS tls = new V1IngressTLS();
-            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)){
+            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
@@ -1602,6 +1614,9 @@ public class KubernetesModelConverter {
     }
 
     private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(), keyedRoutePredicate.getMatchValue())){
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String annotationName = String.format(KubernetesConstants.Annotation.QUERY_MATCH_KEY_FORMAT,
             predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
@@ -1609,6 +1624,9 @@ public class KubernetesModelConverter {
     }
 
     private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(), keyedRoutePredicate.getMatchValue())){
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String key = keyedRoutePredicate.getKey();
         String format = KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT;

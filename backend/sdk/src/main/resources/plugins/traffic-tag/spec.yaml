@@ -7,10 +7,10 @@ info:
   # 插件名称
   name: traffic-tag
   # 国际版插件标题
-  title: traffic-tag
+  title: Traffic Tagging
   x-title-i18n:
     # 插件标题
-    zh-CN: traffic-tag
+    zh-CN: 流量染色
   # 国际版插件简介
   description: Mark request traffic by adding specific request headers based on weight or specific request content.
   x-description-i18n:
@@ -22,6 +22,7 @@ info:
   image: platform_wasm/traffic-tag
   # 支持的最小网关版本
   gatewayMinVersion: ""
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
 spec:
   # 执行阶段
   phase: default

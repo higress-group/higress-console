@@ -145,7 +145,11 @@
         "set": "更新",
         "remove": "删除",
         "action": "操作",
-        "addNewRule": "添加新规则"
+        "addNewRule": "添加新规则",
+        "headerTypeRequired": "请选择Header类型",
+        "actionTypeRequired": "请选择操作类型",
+        "keyRequired": "请输入Header Key",
+        "valueRequired": "请输入Header Value"
       },
       "cors": {
         "allowOrigins": "允许的访问来源",
