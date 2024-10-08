@@ -24,13 +24,19 @@ export interface IPropsData {
   name?: string;
   category: string;
 }
+
 export interface IProps {
   data: IPropsData;
   onSuccess: () => void;
+  sharedData: string;
+  setSharedData: (newData: string) => void;
+  enabled: boolean;
+  setEnabled: (newEnabled: boolean) => void;
+  currentTabKey: string
 }
 
 const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
-  const { data, onSuccess } = props;
+  const { data, onSuccess, sharedData, setSharedData, enabled, setEnabled, currentTabKey } = props;
   const { name: pluginName = '', category = '' } = data || {};
 
   const [searchParams] = useSearchParams();
@@ -83,7 +89,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     onSuccess: (res: IPluginData) => {
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
-      setDefaultValue(res.rawConfigurations);
+      setDefaultValue(sharedData);
       getConfig(pluginName);
     },
   });
@@ -101,7 +107,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         setDefaultValue(exampleRaw);
       }
       form.setFieldsValue({
-        enabled: pluginData?.enabled,
+        enabled: enabled,
       });
     },
   });
@@ -151,6 +157,15 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     getData(pluginName);
   }, [pluginName, queryName]);
 
+  useEffect(() => {
+    if (currentTabKey === "yaml" && sharedData) {
+      setDefaultValue(sharedData);
+      form.setFieldsValue({
+        enabled: enabled,
+      });
+    }
+  }, [currentTabKey]);
+
   useImperativeHandle(ref, () => ({
     submit: onSubmit,
   }));
@@ -168,14 +183,20 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         {alertStatus.isShow && (
           <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
         )}
-        <Form name="basic" form={form} autoComplete="off">
+        <Form name="basic" form={form} autoComplete="off" layout="vertical" >
           <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
-            <Switch />
+            <Switch onChange={(val) =>{
+              setEnabled(val);
+            }}/>
           </Form.Item>
 
           <Divider orientation="left">{t('plugins.configForm.dataEditor')}</Divider>
           {!getConfigLoading && !getDataLoading && (
-            <CodeEditor defaultValue={defaultValue} onChange={(val) => setRawConfigurations(val)} />
+            <CodeEditor key={defaultValue} defaultValue={defaultValue} 
+            onChange={(val) => {
+              setRawConfigurations(val);
+              setSharedData(val);
+            }} />
           )}
           {!getConfigLoading && !getDataLoading && !isRoutePlugin && !isDomainPlugin && (
             <Space direction="horizontal" style={{ marginTop: "0.5rem" }}>
