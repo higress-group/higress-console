@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -67,6 +68,16 @@ class DomainServiceImpl implements DomainService {
             }
             throw new BusinessException("Error occurs when adding a new domain.", e);
         }
+        // if gateway mode, create a gateway named "domain_name"
+        // TODO: should consider the gateway's spec here.
+        if(!kubernetesClientService.isIngressWorkMode()){
+            V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
+            try {
+                kubernetesClientService.createGateway(gateway);
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when creating a Gateway", e);
+            }
+        }
         return kubernetesModelConverter.configMap2Domain(newDomainConfigMap);
     }
 
@@ -109,7 +120,15 @@ class DomainServiceImpl implements DomainService {
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when deleting the ConfigMap with name: " + configMapName, e);
         }
-
+        if(!kubernetesClientService.isIngressWorkMode()){
+            String gatewayName = kubernetesModelConverter.domainName2GatewayName(domainName);
+            try {
+                kubernetesClientService.deleteGateway(gatewayName);
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when delete a Gateway", e);
+            }
+        }
+        //TODO: should consider delete instance wasm plugins when delete gateway
         wasmPluginInstanceService.deleteAll(WasmPluginInstanceScope.DOMAIN, domainName);
     }
 
@@ -140,6 +159,14 @@ class DomainServiceImpl implements DomainService {
             routes.forEach(routeService::update);
         }
 
+        if(!kubernetesClientService.isIngressWorkMode()){
+            V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
+            try {
+                kubernetesClientService.replaceGateway(gateway);
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when updating a Gateway", e);
+            }
+        }
         return kubernetesModelConverter.configMap2Domain(updatedConfigMap);
     }
 }
