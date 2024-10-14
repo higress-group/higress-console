@@ -113,13 +113,16 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
 
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
+  function getLocalizedText(obj: any, index: string, key: string) { 
+    const i18nObj = obj[`x-${index}-i18n`]; 
+    if(i18next.language === 'en-US') return i18nObj && i18nObj[i18next.language] || key || ''; 
+    else return i18nObj && i18nObj[i18next.language] || obj[index] || '';
+  }
+
   const defaultColumns: any[] = [];
   if (array.type === 'object') {
     Object.entries(array.properties).forEach(([key, prop]) => {
-      let translatedTitle = prop.title;
-      if (i18next.language === "en-US" && prop.hasOwnProperty('x-title-i18n')) {
-        translatedTitle = (prop['x-title-i18n'][i18next.language]) ? prop['x-title-i18n'][i18next.language] : key;
-      }
+      let translatedTitle = getLocalizedText(prop, 'title', key);
       const isRequired = (array.required || []).includes(key);
       defaultColumns.push({
         title: translatedTitle,

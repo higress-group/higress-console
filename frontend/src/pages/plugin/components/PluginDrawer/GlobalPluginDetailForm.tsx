@@ -122,10 +122,10 @@ const GlobalPluginDetailForm = forwardRef((props: Props, ref) => {
     },
   });
 
-  function getLocalizedText(obj: any, key: string, fallback?: string) {
-    const i18nKey = `x-${key}-i18n`;
-    const i18nObj = obj[i18nKey];
-    return i18nObj && i18nObj[i18next.language] || obj[key] || fallback;
+  function getLocalizedText(obj: any, index: string, key: string) { 
+    const i18nObj = obj[`x-${index}-i18n`]; 
+    if(i18next.language === 'en-US') return i18nObj && i18nObj[i18next.language] || key || ''; 
+    else return i18nObj && i18nObj[i18next.language] || obj[index] || '';
   }
 
   function generateFields(scm, prefix = '') {
