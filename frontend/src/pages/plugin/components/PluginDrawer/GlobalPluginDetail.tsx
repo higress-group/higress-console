@@ -359,7 +359,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const onSubmit = async () => {
     await form.validateFields();
     const values = form.getFieldsValue();
-    console.log(rawConfigurations);
 
     const params = {
       ...pluginData,
