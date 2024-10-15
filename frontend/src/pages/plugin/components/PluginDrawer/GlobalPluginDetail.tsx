@@ -343,6 +343,19 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     }
   }
 
+  function mergeValues(a, b) {
+    const result = { ...b };
+    Object.keys(a).forEach(key => {
+      // 如果 a 中的键存在于 b 中，并且它们都是对象，则递归合并
+      if (result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+        result[key] = mergeValues(a[key], result[key]);
+      } else {
+        result[key] = a[key];
+      }
+    });
+    return result;
+  }
+
   const onSubmit = async () => {
     await form.validateFields();
     const values = form.getFieldsValue();
@@ -398,16 +411,14 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       setDefaultValue(rawConfigurations);
     }
     else if (currentTabKey === "form"){
-      if (rawConfigurations) {
-        form.setFieldsValue(yamlToFormValues(rawConfigurations));
-      }
-      else{
         let en = form.getFieldsValue().enabled;
         form.resetFields();
         form.setFieldsValue({
           enabled: en,
         });
-      }
+      if (rawConfigurations) {
+        form.setFieldsValue(yamlToFormValues(rawConfigurations));
+      }     
       setDefaultValue(rawConfigurations);
     }
   }, [currentTabKey]);
@@ -426,7 +437,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const fieldChange = () => {
     if (!getConfigLoading && !getDataLoading && currentTabKey === "form") {
       const values = form.getFieldsValue();
-      const scm = formValuesToSchema(values);
+      const rawValues = yamlToFormValues(rawConfigurations);
+      console.log("raw:",rawValues)
+      console.log("formvalues:",values)
+      const mergedValues = mergeValues(values, rawValues);
+      const scm = formValuesToSchema(mergedValues);
       const yamlString = schemaToYaml(scm);
       setRawConfigurations(yamlString);
     }
