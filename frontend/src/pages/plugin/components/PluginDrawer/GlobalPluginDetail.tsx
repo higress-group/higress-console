@@ -437,8 +437,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     if (!getConfigLoading && !getDataLoading && currentTabKey === "form") {
       const values = form.getFieldsValue();
       const rawValues = yamlToFormValues(rawConfigurations);
-      console.log("raw:",rawValues)
-      console.log("formvalues:",values)
       const mergedValues = mergeValues(values, rawValues);
       const scm = formValuesToSchema(mergedValues);
       const yamlString = schemaToYaml(scm);
