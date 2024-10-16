@@ -160,6 +160,14 @@ class DomainServiceImpl implements DomainService {
         }
 
         if(!kubernetesClientService.isIngressWorkMode()){
+            try {
+                boolean isDomainForIngress = kubernetesClientService.readGateway(domain.getName()) == null;
+                if (isDomainForIngress) {
+                    return kubernetesModelConverter.configMap2Domain(updatedConfigMap);
+                }
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when querying a Gateway", e);
+            }
             V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
             try {
                 kubernetesClientService.replaceGateway(gateway);
@@ -168,5 +176,14 @@ class DomainServiceImpl implements DomainService {
             }
         }
         return kubernetesModelConverter.configMap2Domain(updatedConfigMap);
+    }
+    public Domain addOrUpdate(Domain domain){
+        Domain existingDomain = query(domain.getName());
+        if (existingDomain == null) {
+            return add(domain);
+        } else {
+            domain.setVersion(existingDomain.getVersion());
+            return put(domain);
+        }
     }
 }

@@ -185,6 +185,41 @@ public class KubernetesModelConverter {
         return true;
     }
 
+    public boolean isGatewaySupported(V1Gateway gateway) {
+        if (gateway.getMetadata() == null) {
+            return false;
+        }
+        V1GatewaySpec spec = gateway.getSpec();
+        if (spec == null) {
+            return false;
+        }
+        if (StringUtils.isEmpty(spec.getGatewayClassName())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return false;
+        }
+        // Check each listener
+        for (V1GatewaySpecListeners listener : spec.getListeners()) {
+            if (StringUtils.isEmpty(listener.getName())) {
+                return false;
+            }
+            if (listener.getProtocol() == null ||
+                    (!listener.getProtocol().equals("HTTP") && !listener.getProtocol().equals("HTTPS"))) {
+                return false;
+            }
+            if (listener.getProtocol().equals("HTTPS")) {
+                V1GatewaySpecTls tls = listener.getTls();
+                if (tls == null || CollectionUtils.isEmpty(tls.getCertificateRefs())) {
+                    return false;
+                }
+            }
+            if (listener.getPort() == null || listener.getPort() <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
     public Route ingress2Route(V1Ingress ingress) {
         Route route = new Route();
         fillRouteMetadata(route, ingress.getMetadata());
@@ -222,11 +257,13 @@ public class KubernetesModelConverter {
         }
         domain.getPortAndCertMap().forEach((port, cert) -> {
             V1GatewaySpecListeners listener = new V1GatewaySpecListeners();
-            listener.setName(domain.getName()+Separators.DASH+port);
+            listener.setName(KubernetesUtil.normalizeDomainName(domain.getName())+Separators.DASH+port);
             listener.setPort(port);
-            listener.setHostname(domain.getName());
+            if (!Separators.ASTERISK.equals(domain.getName())) {
+                listener.setHostname(domain.getName());
+            }
             listener.setProtocol("HTTP");
-            if(!"".equals(cert)){ //tls is not null
+            if (!"".equals(cert)){
                 listener.setProtocol("HTTPS");
                 V1GatewaySpecTls tls = V1GatewaySpecListeners.getDefaultTls(cert);
                 listener.setTls(tls);
@@ -237,30 +274,6 @@ public class KubernetesModelConverter {
         spec.setListeners(listeners);
         gateway.setSpec(spec);
         return gateway;
-    }
-
-
-
-    public Domain gateway2Domain(V1Gateway gateway){
-        Domain domain = new Domain();
-        V1ObjectMeta metadata = gateway.getMetadata();
-        if (metadata != null) {
-            domain.setVersion(metadata.getResourceVersion());
-        }
-        List<V1GatewaySpecListeners> listeners = gateway.getSpec().getListeners();
-        domain.setName(listeners.get(0).getHostname());
-        domain.setEnableHttps("OFF");
-        for (V1GatewaySpecListeners listener:listeners){
-            if(listener.getTls() == null){
-                domain.getPortAndCertMap().put(listener.getPort(),"");
-            }else{
-                domain.setEnableHttps("ON");
-                domain.getPortAndCertMap().put(listener.getPort(),
-                        listener.getTls().getCertificateRefs().get(0).getName());
-            }
-        }
-        // TODO: find HTTPRoute named "port-xxx-tls-redirect", if domain in hostnames -> domain.setEnableHttps("FORCE");
-        return domain;
     }
 
     private static void fillRouteCors(Route route, V1ObjectMeta metadata) {
@@ -330,11 +343,10 @@ public class KubernetesModelConverter {
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
         String certData = configMapData.get(KubernetesConstants.K8S_CERT);
-        //
         try {
             domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
         }catch(JSONException e){
-            // ingress-left cert
+            // ingress-style cert (Only String) -> turn to map[443:certName]
             Map<Integer, String> portCertMap = new HashMap<>();
             portCertMap.put(443, certData);
             domain.setPortAndCertMap(portCertMap);
@@ -349,9 +361,12 @@ public class KubernetesModelConverter {
     }
 
     public String domainName2GatewayName(String domainName) {
-        return domainName.replace('.', '-');
+        return KubernetesUtil.normalizeDomainName(domainName).replace('.', '-');
     }
 
+    public String gatewayName2DomainName(String gatewayName) {
+        return gatewayName.replace('-', '.');
+    }
 
     public V1Secret tlsCertificate2Secret(TlsCertificate certificate) {
         V1Secret secret = new V1Secret();
