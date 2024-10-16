@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: ai
   name: ai-token-ratelimit
+  image: platform_wasm/ai-token-ratelimit
   title: AI Token Rate Limit
   x-title-i18n:
     zh-CN: AI Token 限流
@@ -13,9 +16,24 @@ info:
   contact:
     name: rinfx
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 600
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        rule_name: default_rule
+        rule_items:
+          - limit_by_per_ip: from-remote-addr
+            limit_keys:
+              - key: 0.0.0.0/0
+                token_per_minute: 100
+        redis:
+          service_name: redis.static
+          service_port: 6379
+          username: default
+          password: '123456'
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

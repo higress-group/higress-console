@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
-  category: transformation
-  name: custom-response/v1
+  gatewayMinVersion: ""
+  type: enterprise
+  category: transform
+  name: custom-response
+  image: platform_wasm/custom-response
   title: Custom Response
   x-title-i18n:
     zh-CN: 自定义应答
@@ -18,6 +21,14 @@ spec:
   phase: AUTHN
   priority: 910
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        status_code: 200
+        headers:
+          - Content-Type=application/json
+        body: "{\"hello\":\"world\"}"
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

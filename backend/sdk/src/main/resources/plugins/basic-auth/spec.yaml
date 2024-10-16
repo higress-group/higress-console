@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: auth
-  name: basic-auth/v1
+  name: basic-auth
+  image: platform_wasm/basic-auth
   title: Basic Auth
   x-title-i18n:
     zh-CN: Basic 认证
@@ -17,23 +20,25 @@ info:
 spec:
   phase: AUTHN
   priority: 320
-  configSchema:
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       properties:
-        global_auth:
-          type: boolean
-          scope: GLOBAL
-          title: 是否开启全局认证
+        allow:
+          type: array
+          title: 授权访问的调用方列表
           x-title-i18n:
-            en-US: Enable Global Auth
-          description: 若不开启全局认证，则全局配置只提供凭证信息。只有在域名或路由上进行了配置才会启用认证。
+            en-US: Allowed Consumers
+          description: 对于匹配上述条件的请求，允许访问的调用方列表
           x-description-i18n:
-            en-US: If set to false, only consumer info will be accepted from the global config. Auth feature shall only be enabled if the corresponding domain or route is configured.
-          example: false
+            en-US: Consumers to be allowed for matched requests
+          items:
+            type: string
+            example:
+              - consumer1
         consumers:
           type: array
-          scope: GLOBAL
+          x-scope: GLOBAL
           title: 调用方列表
           x-title-i18n:
             en-US: Consumer List
@@ -66,21 +71,61 @@ spec:
             required:
               - name
               - credential
-        allow:
-          type: array
-          title: 授权访问的调用方列表
+      example:
+        allows:
+        - consumer1
+        - consumer2        
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        global_auth:
+          type: boolean
+          x-scope: GLOBAL
+          title: 是否开启全局认证
           x-title-i18n:
-            en-US: Allowed Consumers
-          description: 对于匹配上述条件的请求，允许访问的调用方列表
+            en-US: Enable Global Auth
+          description: 若不开启全局认证，则全局配置只提供凭证信息。只有在域名或路由上进行了配置才会启用认证。
           x-description-i18n:
-            en-US: Consumers to be allowed for matched requests
+            en-US: If set to false, only consumer info will be accepted from the global config. Auth feature shall only be enabled if the corresponding domain or route is configured.
+          example: false
+        consumers:
+          type: array
+          x-scope: GLOBAL
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 服务调用方列表，用于对请求进行认证
+          x-description-i18n:
+            en-US: List of service consumers which will be used in request authentication
           items:
-            type: string
-            example:
-              - consumer1
+            type: object
+            properties:
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 该调用方的名称
+                x-description-i18n:
+                  en-US: The name of the consumer
+                example:
+                  - consumer1
+              credential:
+                type: string
+                title: 访问凭证
+                x-title-i18n:
+                  en-US: Credential
+                description: 该调用方的访问凭证
+                x-description-i18n:
+                  en-US: The credential of the consumer
+                example:
+                  - admin:123456
+            required:
+              - name
+              - credential
       required:
         - consumers
-        - allow
       example:
         global_auth: false
         consumers:

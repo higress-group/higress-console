@@ -82,7 +82,9 @@ public class WasmPluginsController {
             throw new ValidationException("Plugin name in the URL doesn't match the one in the body.");
         }
         plugin.validate();
-        WasmPlugin updatedPlugin = wasmPluginService.updateCustom(plugin);
+        WasmPlugin updatedPlugin = Boolean.TRUE.equals(plugin.getBuiltIn())
+            ? wasmPluginService.updateBuiltIn(plugin.getName(), plugin.getImageVersion())
+            : wasmPluginService.updateCustom(plugin);
         return ControllerUtil.buildResponseEntity(updatedPlugin);
     }
 

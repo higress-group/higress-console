@@ -34,10 +34,6 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -57,11 +53,20 @@ import com.alibaba.higress.sdk.model.wasmplugin.Plugin;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginCategory;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginInfo;
 import com.alibaba.higress.sdk.model.wasmplugin.PluginSpec;
+import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Preconditions;
 
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.oas.models.media.Schema;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -174,7 +179,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
             return;
         }
-        Schema schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema();
+        Schema<?> schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema();
         schema.addExtension(EXAMPLE_RAW_PROPERTY_NAME, example);
     }
 
@@ -255,22 +260,29 @@ class WasmPluginServiceImpl implements WasmPluginService {
     @Override
     public PaginatedResult<WasmPlugin> list(WasmPluginPageQuery query) {
         String lang = query != null ? query.getLang() : null;
-        List<Object> plugins = new ArrayList<>(builtInPlugins);
+        List<WasmPlugin> plugins = new ArrayList<>();
+        for (PluginCacheItem item : builtInPlugins) {
+            plugins.add(item.buildWasmPlugin(lang));
+        }
         try {
-            List<V1alpha1WasmPlugin> customPluginCrs = kubernetesClientService.listWasmPlugin(null, null, false);
-            plugins.addAll(customPluginCrs);
+            List<V1alpha1WasmPlugin> crs = kubernetesClientService.listWasmPlugin();
+            for (V1alpha1WasmPlugin cr : crs) {
+                WasmPlugin plugin = kubernetesModelConverter.wasmPluginFromCr(cr);
+                if (plugin.getBuiltIn()) {
+                    WasmPlugin builtInPlugin =
+                        plugins.stream().filter(p -> p.getName().equals(plugin.getName())).findFirst().orElse(null);
+                    if (builtInPlugin != null) {
+                        builtInPlugin.setImageRepository(plugin.getImageRepository());
+                        builtInPlugin.setImageVersion(plugin.getImageVersion());
+                        continue;
+                    }
+                }
+                plugins.add(plugin);
+            }
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing custom Wasm plugins", e);
         }
-        return PaginatedResult.createFromFullList(plugins, query, o -> {
-            if (o instanceof PluginCacheItem) {
-                return ((PluginCacheItem)o).buildWasmPlugin(lang);
-            }
-            if (o instanceof V1alpha1WasmPlugin) {
-                return kubernetesModelConverter.wasmPluginFromCr((V1alpha1WasmPlugin)o);
-            }
-            throw new IllegalStateException("Unexpected element type: " + o.getClass().getName());
-        });
+        return PaginatedResult.createFromFullList(plugins, query);
     }
 
     @Override
@@ -325,7 +337,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
         if (CollectionUtils.isNotEmpty(crs)) {
             // TODO: Config of a custom plugin is not supported yet. Return an empty schema instead.
             WasmPluginConfig config = new WasmPluginConfig();
-            Schema schema = new Schema();
+            Schema<?> schema = new Schema<>();
             schema.setType("object");
             config.setSchema(schema);
             return config;
@@ -364,6 +376,73 @@ class WasmPluginServiceImpl implements WasmPluginService {
         }
 
         return null;
+    }
+
+    @Override
+    public WasmPlugin updateBuiltIn(String name, String imageVersion) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "name cannot be blank.");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(imageVersion), "imageVersion cannot be blank.");
+
+        PluginCacheItem builtInPlugin =
+            builtInPlugins.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+        if (builtInPlugin == null) {
+            throw new ResourceConflictException("No built-in plugin is found with the given name: " + name);
+        }
+
+        List<V1alpha1WasmPlugin> existedCrs;
+        try {
+            final String pluginVersion = builtInPlugin.getPlugin().getInfo().getVersion();
+            existedCrs = kubernetesClientService.listWasmPlugin(name, pluginVersion, true);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
+        }
+
+        V1alpha1WasmPlugin updatedCr = null;
+
+        if (existedCrs.stream().allMatch(KubernetesUtil::isInternalResource)) {
+            WasmPlugin plugin = builtInPlugin.buildWasmPlugin();
+            plugin.setImageVersion(imageVersion);
+            V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
+            // Make sure it is disabled by default.
+            cr.getSpec().setDefaultConfigDisable(true);
+            try {
+                updatedCr = kubernetesClientService.createWasmPlugin(cr);
+            } catch (ApiException e) {
+                if (e.getCode() == HttpStatus.CONFLICT) {
+                    throw new ResourceConflictException();
+                }
+                throw new BusinessException(
+                    "Error occurs when adding a new Wasm plugin with name: " + cr.getMetadata().getName(), e);
+            }
+        }
+
+        for (V1alpha1WasmPlugin existedCr : existedCrs) {
+            V1alpha1WasmPluginSpec spec = existedCr.getSpec();
+            if (spec == null) {
+                continue;
+            }
+            String url = spec.getUrl();
+            if (StringUtils.isEmpty(url)) {
+                continue;
+            }
+            ImageUrl imageUrl = ImageUrl.parse(url);
+            imageUrl.setTag(imageVersion);
+            spec.setUrl(imageUrl.toUrlString());
+
+            try {
+                updatedCr = kubernetesClientService.replaceWasmPlugin(existedCr);
+            } catch (ApiException e) {
+                if (e.getCode() == HttpStatus.CONFLICT) {
+                    throw new ResourceConflictException();
+                }
+                throw new BusinessException(
+                    "Error occurs when updating the Wasm plugin wth name " + existedCr.getMetadata().getName(), e);
+            }
+        }
+
+        assert updatedCr != null;
+
+        return kubernetesModelConverter.wasmPluginFromCr(updatedCr);
     }
 
     @Override
@@ -549,6 +628,10 @@ class WasmPluginServiceImpl implements WasmPluginService {
             }
         }
 
+        public WasmPlugin buildWasmPlugin() {
+            return buildWasmPlugin(null);
+        }
+
         public WasmPlugin buildWasmPlugin(String language) {
             WasmPlugin wasmPlugin = new WasmPlugin();
             wasmPlugin.setName(name);
@@ -580,7 +663,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
             PluginSpec spec = plugin.getSpec();
             if (spec != null) {
-                wasmPlugin.setPhase(spec.getPhase());
+                wasmPlugin.setPhase("default".equals(spec.getPhase()) ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
                 wasmPlugin.setPriority(spec.getPriority());
             }
 
@@ -596,9 +679,11 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
                 return new WasmPluginConfig();
             }
-            Schema schema = null;
+            Schema<?> schema;
             try {
-                schema = Json.mapper().readValue(Json.mapper().writeValueAsString(plugin.getSpec().getConfigSchema().getOpenApiV3Schema()), Schema.class);
+                schema = Json.mapper().readValue(
+                    Json.mapper().writeValueAsString(plugin.getSpec().getConfigSchema().getOpenApiV3Schema()),
+                    Schema.class);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }

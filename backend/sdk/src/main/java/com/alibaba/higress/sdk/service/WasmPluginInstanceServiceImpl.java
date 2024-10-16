@@ -12,8 +12,19 @@
  */
 package com.alibaba.higress.sdk.service;
 
+
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.Separators;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -24,19 +35,13 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import io.kubernetes.client.openapi.ApiException;
 import io.swagger.v3.core.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
 
 @Slf4j
 class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
@@ -50,6 +55,21 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         this.wasmPluginService = wasmPluginService;
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
+    }
+
+    @Override
+    public List<WasmPluginInstance> list(String pluginName) {
+        List<V1alpha1WasmPlugin> plugins;
+        try {
+            plugins = kubernetesClientService.listWasmPlugin(pluginName);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing WasmPlugin.", e);
+        }
+        if (CollectionUtils.isEmpty(plugins)) {
+            return Collections.emptyList();
+        }
+        return plugins.stream().map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
+            .flatMap(Collection::stream).toList();
     }
 
     @Override
@@ -69,6 +89,11 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName) {
+        return query(scope, target, pluginName, null);
+    }
+
+    @Override
+    public WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal) {
         List<V1alpha1WasmPlugin> plugins;
         try {
             plugins = kubernetesClientService.listWasmPlugin(pluginName);
@@ -77,10 +102,15 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         }
         WasmPluginInstance instance = null;
         if (CollectionUtils.isNotEmpty(plugins)) {
-            instance = kubernetesModelConverter.getWasmPluginInstanceFromCr(plugins.get(0), scope, target);
-        }
-        if (instance == null) {
-            instance = new WasmPluginInstance(null, scope, target, pluginName, null, false, null, null);
+            for (V1alpha1WasmPlugin plugin : plugins) {
+                if (internal != null && internal != KubernetesUtil.isInternalResource(plugin)) {
+                    continue;
+                }
+                instance = kubernetesModelConverter.getWasmPluginInstanceFromCr(plugin, scope, target);
+                if (instance != null) {
+                    break;
+                }
+            }
         }
         return instance;
     }
@@ -121,7 +151,9 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         try {
             List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
             if (CollectionUtils.isNotEmpty(existedCrs)) {
-                existedCr = existedCrs.get(0);
+                existedCr =
+                    existedCrs.stream().filter(cr -> instance.isInternal() == KubernetesUtil.isInternalResource(cr))
+                        .findFirst().orElse(null);
             }
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when getting WasmPlugin.", e);
@@ -129,8 +161,8 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
         if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
             try {
-                Map<String, Object> configurations = (Map<String, Object>) Yaml.mapper()
-                        .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
+                Map<String, Object> configurations = (Map<String, Object>)Yaml.mapper()
+                    .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
                 instance.setConfigurations(configurations);
             } catch (IOException e) {
                 throw new ValidationException(
@@ -151,7 +183,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 if (!version.equals(plugin.getPluginVersion())) {
                     throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
                 }
-                result = kubernetesModelConverter.wasmPluginToCr(plugin);
+                result = kubernetesModelConverter.wasmPluginToCr(plugin, instance.getInternal());
                 kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
                 result = kubernetesClientService.createWasmPlugin(result);
             } else {
@@ -182,7 +214,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public void deleteAll(WasmPluginInstanceScope scope, String target) {
-        List<V1alpha1WasmPlugin> existedCrs = null;
+        List<V1alpha1WasmPlugin> existedCrs;
         try {
             existedCrs = kubernetesClientService.listWasmPlugin();
         } catch (ApiException e) {

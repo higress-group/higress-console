@@ -1,10 +1,13 @@
 apiVersion: 1.0.0
 info:
-  category: transformation
+  gatewayMinVersion: ""
+  type: oss
+  category: transform
   name: cache-control
-  title: Cache Control
+  image: platform_wasm/cache-control
+  title: Browser Cache Control
   x-title-i18n:
-    zh-CN: 缓存控制
+    zh-CN: 浏览器缓存控制
   description: Add Expires and Cache-Control headers to the response headers to facilitate browser caching of specific file types, such as jpg, png, and other image files.
   x-description-i18n:
     zh-CN: 为响应头部添加 Expires 和 Cache-Control 头部，从而方便浏览器对特定后缀的文件进行缓存，例如 jpg、png 等图片文件。
@@ -18,6 +21,12 @@ spec:
   phase: AUTHN
   priority: 420
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        suffix: jpg|png|jpeg
+        expires: 3600
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

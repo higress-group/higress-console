@@ -4,6 +4,7 @@ import { Mode } from '@/interfaces/config';
 import { ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
 import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
 import store from '@/store';
+import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -62,7 +63,7 @@ const SourceList: React.FC = () => {
       key: 'action',
       width: 140,
       align: 'center',
-      render: (_, record) => record.builtIn ? null : (
+      render: (_, record) => record.internal || record.builtIn ? null : (
         <Space size="small">
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
@@ -92,8 +93,15 @@ const SourceList: React.FC = () => {
         });
       }
       sources.forEach(i => {
-        i.key || (i.key = i.name + '_' + i.type)
+        i.key || (i.key = i.name + '_' + i.type);
+        i.internal = isInternalResource(i.name);
       });
+      sources.sort((i1, i2) => {
+        if (i1.internal !== i2.internal) {
+          return i1.internal ? 1 : -1
+        }
+        return i1.name.localeCompare(i2.name);
+      })
       setDataSource(sources);
     },
   });

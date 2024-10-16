@@ -61,6 +61,10 @@ public class ServiceSource implements VersionedDto {
 
     private Integer port;
 
+    private String protocol;
+
+    private String sni;
+
     private Map<String, Object> properties;
 
     private ServiceSourceAuthN authN;

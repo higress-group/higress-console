@@ -8,6 +8,7 @@ import {
 } from '@/interfaces/route';
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
 import store from '@/store';
+import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -36,7 +37,7 @@ const RouteList: React.FC = () => {
   const { t } = useTranslation();
 
   const [systemState] = store.useModel('system');
-  const routeManagementSupported = systemState && systemState.capabilities && systemState.capabilities.indexOf('config.ingress.v1') !== -1;
+  const routeManagementSupported = !(systemState && systemState.capabilities && systemState.capabilities.indexOf('config.ingress.v1') === -1);
 
   const columns = [
     {
@@ -80,7 +81,7 @@ const RouteList: React.FC = () => {
       width: 200,
       align: 'center',
       render: (_, record) => {
-        return routeManagementSupported && (
+        return !record.internal && routeManagementSupported && (
           <Space size="small">
             <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
             <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
@@ -104,10 +105,17 @@ const RouteList: React.FC = () => {
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
     onSuccess: (result: Route[], params) => {
-      result &&
-        result.forEach((i) => {
-          i.key || (i.key = i.id ? `${i.id}` : i.name);
-        });
+      result = result || [];
+      result.forEach((i) => {
+        i.key || (i.key = i.id ? `${i.id}` : i.name);
+        i.internal = isInternalResource(i.name);
+      });
+      result.sort((i1, i2) => {
+        if (i1.internal !== i2.internal) {
+          return i1.internal ? 1 : -1
+        }
+        return i1.name.localeCompare(i2.name);
+      })
       setDataSource(result || []);
     },
   });

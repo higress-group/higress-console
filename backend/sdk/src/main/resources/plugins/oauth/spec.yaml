@@ -1,0 +1,41 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: enterprise
+  category: auth
+  name: oauth
+  image: platform_wasm/oauth
+  title: OAuth2
+  x-title-i18n:
+    zh-CN: OAuth2 认证
+  description: Authentication based on OAuth2.
+  x-description-i18n:
+    zh-CN: 基于 OAuth2 实现身份认证和鉴权。
+  iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 350
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        allows:
+        - consumer1
+        - consumer2        
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        global_auth: false
+        consumers:
+        - name: consumer1
+          client_id: 12345678-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+          client_secret: abcdefgh-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        - name: consumer2
+          client_id: 87654321-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+          client_secret: hgfedcba-xxxx-xxxx-xxxx-xxxxxxxxxxxx

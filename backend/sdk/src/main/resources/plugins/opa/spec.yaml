@@ -1,0 +1,42 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: auth
+  name: opa
+  image: platform_wasm/opa
+  title: OPA
+  x-title-i18n:
+    zh-CN: OPA
+  description: Implemented OPA policy control.
+  x-description-i18n:
+    zh-CN: 实现了 OPA 策略控制
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: AUTHN
+  priority: 225
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: k8s
+        serviceName: opa
+        servicePort: 8181
+        namespace: higress-backend
+        policy: example1
+        timeout: 5s
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceSource: k8s
+        serviceName: opa
+        servicePort: 8181
+        namespace: higress-backend
+        policy: example1
+        timeout: 5s
