@@ -128,14 +128,13 @@ public class AiProxyController {
             V1Secret secret = kubernetesClientService.readSecret(secretName);
             Map<String, byte[]> data = secret.getData();
             if (MapUtils.isEmpty(data)) {
-                log.error("Secret {} is empty.", secretName);
+                log.warn("Secret {} is empty.", secretName);
                 return;
             }
             byte[] serviceUrlData = data.get(SERVICE_URL_KEY);
             byte[] serviceTokenData = data.get(SERVICE_TOKEN_KEY);
             if (serviceUrlData == null || serviceUrlData.length == 0 || serviceTokenData == null
                 || serviceTokenData.length == 0) {
-                log.error("Secret {} does not contain service URL or token for ai-proxy.", secretName);
                 return;
             }
             serviceInfoHolder.set(new ServiceInfo(new String(serviceUrlData), new String(serviceTokenData)));

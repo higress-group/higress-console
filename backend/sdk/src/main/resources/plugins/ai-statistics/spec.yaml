@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: ai
   name: ai-statistics
+  image: platform_wasm/ai-statistics
   title: AI Statistics
   x-title-i18n:
     zh-CN: AI 统计
@@ -13,10 +16,35 @@ info:
   contact:
     name: rinfx
 spec:
-  phase: UNSPECIFIED_PHASE
+  phase: default
   priority: 200
   configSchema:
     openAPIV3Schema:
       type: object
       example:
-        enable: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        # attributes:
+        # - key: consumer # 配合认证鉴权记录consumer
+        #   value_source: request_header
+        #   value: x-mse-consumer
+        #   apply_to_log: true   # 是否将信息添加到日志中
+        #   apply_to_span: false # 是否将信息添加到链路追踪span attribute中
+        # - key: question # 记录问题
+        #   value_source: request_body
+        #   value: messages.@reverse.0.content
+        #   apply_to_log: true
+        #   apply_to_span: false
+        # - key: answer   # 在流式响应中提取大模型的回答
+        #   value_source: response_streaming_body
+        #   value: choices.0.delta.content
+        #   rule: append
+        #   apply_to_log: true
+        #   apply_to_span: false
+        # - key: answer   # 在非流式响应中提取大模型的回答
+        #   value_source: response_body
+        #   value: choices.0.message.content
+        #   apply_to_log: true
+        #   apply_to_span: false

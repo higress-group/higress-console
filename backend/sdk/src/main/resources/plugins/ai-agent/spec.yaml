@@ -1,0 +1,70 @@
+apiVersion: 1.0.0
+info:
+  type: oss
+  category: ai
+  image: platform_wasm/ai-agent
+  name: ai-agent
+  title: AI Agent
+  x-title-i18n:
+    zh-CN: AI 智能体
+  description: Quickly build intelligent agent applications with zero code, support interaction with large models and external services, and tool calls.
+  x-description-i18n:
+    zh-CN: 通过零代码实现智能体应用的快速构建，支持大模型与外部服务 API 的交互和调用。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: xingyunyang01
+  gatewayMinVersion: ""
+spec:
+  phase: default
+  priority: 200
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        llm:
+          apiKey: xxxxxxxxxxxxxxxxxx
+          domain: dashscope.aliyuncs.com
+          serviceName: dashscope.dns
+          servicePort: 443
+          path: /compatible-mode/v1/chat/completions
+          model: qwen-max-0403
+          maxIterations: 2
+        promptTemplate:
+          language: CH
+        apis:
+          - apiProvider:
+              domain: restapi.amap.com
+              serviceName: geo.dns
+              servicePort: 80
+              apiKey:
+                in: query
+                name: key
+                value: xxxxxxxxxxxxxxx
+              api: |
+                ......
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        llm:
+          apiKey: xxxxxxxxxxxxxxxxxx
+          domain: dashscope.aliyuncs.com
+          serviceName: dashscope.dns
+          servicePort: 443
+          path: /compatible-mode/v1/chat/completions
+          model: qwen-max-0403
+          maxIterations: 2
+        promptTemplate:
+          language: CH
+        apis:
+          - apiProvider:
+              domain: restapi.amap.com
+              serviceName: geo.dns
+              servicePort: 80
+              apiKey:
+                in: query
+                name: key
+                value: xxxxxxxxxxxxxxx
+              api: |
+                ......

@@ -12,16 +12,21 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -103,5 +108,29 @@ public class KubernetesUtil {
 
     public static String buildLabelSelector(String name, String value) {
         return name + Separators.EQUALS_SIGN + value;
+    }
+
+    public static String buildLabelSelectors(Map<String, String> labels) {
+        if (MapUtils.isEmpty(labels)) {
+            return StringUtils.EMPTY;
+        }
+        return labels.entrySet().stream().map(e -> buildLabelSelector(e.getKey(), e.getValue()))
+            .reduce((a, b) -> a + Separators.COMMA + b).orElse(StringUtils.EMPTY);
+    }
+
+    public static boolean isInternalResource(KubernetesObject object) {
+        String name = getObjectName(object);
+        return name != null && name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+    }
+
+    private static final List<String> INTERNAL_RESOURCE_NAME_SUFFIXES =
+        Arrays.asList(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX + "." + V1McpBridge.REGISTRY_TYPE_DNS,
+            HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX + "." + V1McpBridge.REGISTRY_TYPE_DNS);
+
+    public static boolean isInternalService(String serviceName) {
+        if (StringUtils.isEmpty(serviceName)) {
+            return false;
+        }
+        return INTERNAL_RESOURCE_NAME_SUFFIXES.stream().anyMatch(serviceName::endsWith);
     }
 }

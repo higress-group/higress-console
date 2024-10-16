@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: auth
   name: oidc
+  image: platform_wasm/oidc
   title: OIDC Auth
   x-title-i18n:
     zh-CN: OIDC 认证
@@ -11,9 +14,7 @@ info:
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
   version: 1.0.0
   contact:
-    name: Higress Team
-    url: http://higress.io/
-    email: admin@higress.io
+    name: Jing-ze
 spec:
   phase: AUTHN
   priority: 350
@@ -21,17 +22,33 @@ spec:
     openAPIV3Schema:
       type: object
       example:
-        issuer: "https://dev-65874123.okta.com"
-        redirect_url: "http://foo.bar.com/a/oauth2/callback"
-        scopes:
-          - "openid"
-          - "email"
-        client_url: "http://foo.bar.com/a"
-        cookie_domain: "foo.bar.com"
-        client_id: "xxxxxxxxxxxxxxx"
-        client_secret: "xxxxxxx"
-        service_domain: "dev-65874123.okta.com"
-        service_name: "okta"
+        redirect_url: 'http://foo.bar.com/oauth2/callback'
+        oidc_issuer_url: 'https://dev-o43xb1mz7ya7ach4.us.auth0.com/'
+        client_id: 'XXXXXXXXXXXXXXXX'
+        client_secret: 'XXXXXXXXXXXXXXXX'
+        scope: 'openid email offline_access'
+        cookie_secret: 'nqavJrGvRmQxWwGNptLdyUVKcBNZ2b18Guc1n_8DCfY='
+        service_name: 'auth.dns'
         service_port: 443
-        service_source: "dns"
-        timeout_millis: 2000
+        match_type: 'whitelist'
+        match_list:
+          - match_rule_domain: '*.bar.com'
+            match_rule_path: '/foo'
+            match_rule_type: 'prefix'
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redirect_url: 'http://foo.bar.com/oauth2/callback'
+        oidc_issuer_url: 'https://dev-o43xb1mz7ya7ach4.us.auth0.com/'
+        client_id: 'XXXXXXXXXXXXXXXX'
+        client_secret: 'XXXXXXXXXXXXXXXX'
+        scope: 'openid email offline_access'
+        cookie_secret: 'nqavJrGvRmQxWwGNptLdyUVKcBNZ2b18Guc1n_8DCfY='
+        service_name: 'auth.dns'
+        service_port: 443
+        match_type: 'whitelist'
+        match_list:
+          - match_rule_domain: '*.bar.com'
+            match_rule_path: '/foo'
+            match_rule_type: 'prefix'

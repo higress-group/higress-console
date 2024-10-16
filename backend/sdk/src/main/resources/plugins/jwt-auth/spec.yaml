@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: auth
-  name: jwt-auth/v1
+  name: jwt-auth
+  image: platform_wasm/jwt-auth
   title: JWT Auth
   x-title-i18n:
     zh-CN: JWT 认证
@@ -17,6 +20,12 @@ info:
 spec:
   phase: AUTHN
   priority: 340
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        allows:
+        - consumer1
   configSchema:
     openAPIV3Schema:
       type: object
