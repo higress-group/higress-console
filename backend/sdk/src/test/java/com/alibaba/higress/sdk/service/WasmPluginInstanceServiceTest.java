@@ -122,10 +122,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance domainInstance1 =
             service.query(WasmPluginInstanceScope.DOMAIN, "some random domain", TEST_BUILT_IN_PLUGIN_NAME);
-        Assertions.assertNotNull(domainInstance1);
-        Assertions.assertFalse(domainInstance1.getEnabled());
-        Assertions.assertNull(domainInstance1.getConfigurations());
-        Assertions.assertNull(domainInstance1.getInternal());
+        Assertions.assertNull(domainInstance1);
 
         WasmPluginInstance routeInstance =
             service.query(WasmPluginInstanceScope.ROUTE, route, TEST_BUILT_IN_PLUGIN_NAME);
@@ -136,10 +133,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance routeInstance1 =
             service.query(WasmPluginInstanceScope.ROUTE, "some random route", TEST_BUILT_IN_PLUGIN_NAME);
-        Assertions.assertNotNull(routeInstance1);
-        Assertions.assertFalse(routeInstance1.getEnabled());
-        Assertions.assertNull(routeInstance1.getConfigurations());
-        Assertions.assertNull(routeInstance1.getInternal());
+        Assertions.assertNull(routeInstance1);
     }
 
     @Test
