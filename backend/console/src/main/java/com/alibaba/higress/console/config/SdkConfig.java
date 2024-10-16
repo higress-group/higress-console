@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
+import com.alibaba.higress.sdk.service.OpenAPIService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -120,5 +121,10 @@ public class SdkConfig {
     @Bean
     public WasmPluginInstanceService wasmPluginInstanceService() {
         return serviceProvider.wasmPluginInstanceService();
+    }
+
+    @Bean
+    public OpenAPIService openApiService() {
+        return serviceProvider.openApiService();
     }
 }

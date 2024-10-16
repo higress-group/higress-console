@@ -12,12 +12,6 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
@@ -25,14 +19,18 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class KubernetesUtil {
 
     private static final ObjectMapper YAML =
-        new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
+            new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE));
 
     public static String toYaml(Object obj) {
         try {
@@ -91,6 +89,23 @@ public class KubernetesUtil {
         return name;
     }
 
+    public static String normalizeRouteName(String name) {
+        // for openapi
+        // domain and path: foo.bar.com/user/{userId}
+        // turns to       : foo.bar.com-user-userId
+        if (StringUtils.isNotBlank(name) && name.startsWith(Separators.ASTERISK)) {
+            name = CommonKey.WILDCARD + name.substring(Separators.ASTERISK.length());
+        }
+        name = name.replace("/", "-")
+                .replaceAll("-\\{", "-")
+                .replaceAll("\\{", "-")
+                .replaceAll("}", "").toLowerCase();
+        return name;
+    }
+
+    public static String getReferenceGrantName(String name, String type) {
+        return name+Separators.DASH+type;
+    }
 
     public static String joinLabelSelectors(String... selectors) {
         return String.join(Separators.COMMA, selectors);
@@ -98,7 +113,7 @@ public class KubernetesUtil {
 
     public static String buildDomainLabelSelector(String domainName) {
         return buildLabelSelector(KubernetesConstants.Label.DOMAIN_KEY_PREFIX + normalizeDomainName(domainName),
-            KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
+                KubernetesConstants.Label.DOMAIN_VALUE_DUMMY);
     }
 
     public static String buildLabelSelector(String name, String value) {
