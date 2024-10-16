@@ -37,6 +37,12 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gate
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewayList;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteList;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.referencegrant.V1beta1ReferenceGrant;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.referencegrant.V1beta1ReferenceGrantSpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.referencegrant.V1beta1ReferenceGrantSpecFrom;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.referencegrant.V1beta1ReferenceGrantSpecTo;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
@@ -120,6 +126,10 @@ public class KubernetesClientService {
 
     private String workMode;
 
+    public String httpRouteNameSpace;
+
+    public String gatewayNameSpace;
+
     public KubernetesClientService(HigressServiceConfig config) throws IOException {
         validateConfig(config);
 
@@ -132,6 +142,8 @@ public class KubernetesClientService {
         this.controllerJwtPolicy = config.getControllerJwtPolicy();
         this.controllerAccessToken = config.getControllerAccessToken();
         this.inCluster = isInCluster();
+        this.httpRouteNameSpace = controllerNamespace;
+        this.gatewayNameSpace = controllerNamespace;
 
         if (inCluster) {
             client = ClientBuilder.cluster().build();
@@ -147,6 +159,11 @@ public class KubernetesClientService {
         initializeK8sCapabilities();
         initGatewayClass();
         getIngressOrGatewayMode();
+        try {
+            createSecretReferenceGrantForGateway();
+        } catch (ApiException e) {
+            log.error("Failed to create secret referenceGrant for gateway", e);
+        }
     }
 
     private void initializeK8sCapabilities() {
@@ -208,12 +225,39 @@ public class KubernetesClientService {
     public boolean isIngressV1Supported() {
         return ingressV1Supported;
     }
-
     public boolean isIngressWorkMode() {
         return workMode.equals("ingress");
     }
     public boolean isNamespaceProtected(String namespace) {
         return KubernetesConstants.KUBE_SYSTEM_NS.equals(namespace) || controllerNamespace.equals(namespace);
+    }
+
+    private void createSecretReferenceGrantForGateway() throws ApiException {
+        if (isIngressWorkMode() || controllerNamespace.equals(gatewayNameSpace)) {
+            return;
+        }
+        String referenceGrantName = KubernetesUtil.getReferenceGrantName(controllerNamespace, "gateway2secret");
+        V1beta1ReferenceGrant v1beta1ReferenceGrant = readReferenceGrant(referenceGrantName, controllerNamespace);
+        if (v1beta1ReferenceGrant == null) {
+            v1beta1ReferenceGrant = new V1beta1ReferenceGrant();
+            V1ObjectMeta metadata = new V1ObjectMeta();
+            metadata.setName(referenceGrantName);
+            metadata.setNamespace(controllerNamespace);
+            v1beta1ReferenceGrant.setMetadata(metadata);
+            V1beta1ReferenceGrantSpec spec = new V1beta1ReferenceGrantSpec();
+            V1beta1ReferenceGrantSpecFrom from = new V1beta1ReferenceGrantSpecFrom();
+            from.setNamespace(gatewayNameSpace);
+            from.setKind(V1Gateway.KIND);
+            from.setGroup(V1Gateway.API_GROUP);
+            spec.getFrom().add(from);
+            V1beta1ReferenceGrantSpecTo to = new V1beta1ReferenceGrantSpecTo();
+            to.setKind("Secret");
+            to.setGroup("");
+            spec.getTo().add(to);
+            v1beta1ReferenceGrant.setSpec(spec);
+            createReferenceGrant(v1beta1ReferenceGrant);
+        }
+
     }
 
     public List<RegistryzService> gatewayServiceList() throws IOException {
@@ -515,7 +559,7 @@ public class KubernetesClientService {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         try {
             Object response = customObjectsApi.listNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
-                    controllerNamespace, V1Gateway.PLURAL, null, null, null, null, null, null, null, null, null, null);
+                    gatewayNameSpace, V1Gateway.PLURAL, null, null, null, null, null, null, null, null, null, null);
             io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
             V1GatewayList list = json.deserialize(json.serialize(response), V1GatewayList.class);
             return sortKubernetesObjects(list.getItems());
@@ -530,7 +574,7 @@ public class KubernetesClientService {
         modifyLoadBalancerPorts(null, gateway);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
-                controllerNamespace, V1Gateway.PLURAL, gateway, null, null, null);
+                gatewayNameSpace, V1Gateway.PLURAL, gateway, null, null, null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
     }
 
@@ -542,11 +586,10 @@ public class KubernetesClientService {
         V1Gateway gatewayOri = readGateway(metadata.getName());
         modifyLoadBalancerPorts(gatewayOri, gateway);
         gateway.getMetadata().setResourceVersion(gatewayOri.getMetadata().getResourceVersion());
-        //TODO: consider different ns
-        metadata.setNamespace(controllerNamespace);
+        metadata.setNamespace(gatewayNameSpace);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.replaceNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
-                controllerNamespace, V1Gateway.PLURAL, metadata.getName(), gateway, null, null);
+                gatewayNameSpace, V1Gateway.PLURAL, metadata.getName(), gateway, null, null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
     }
 
@@ -554,7 +597,7 @@ public class KubernetesClientService {
         V1Gateway gateway = readGateway(name);
         modifyLoadBalancerPorts(gateway, null);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        customObjectsApi.deleteNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION, controllerNamespace,
+        customObjectsApi.deleteNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION, gatewayNameSpace,
                 V1Gateway.PLURAL, name, null, null, null, null, null);
     }
 
@@ -562,7 +605,7 @@ public class KubernetesClientService {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         try {
             Object response = customObjectsApi.getNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
-                    controllerNamespace, V1Gateway.PLURAL, name);
+                    gatewayNameSpace, V1Gateway.PLURAL, name);
             return client.getJSON().deserialize(client.getJSON().serialize(response), V1Gateway.class);
         } catch (ApiException e) {
             if (e.getCode() == HttpStatus.NOT_FOUND) {
@@ -581,7 +624,7 @@ public class KubernetesClientService {
             if (portCount == null) {
                 portCount = new HashMap<>();
             }
-            V1Service service = coreV1Api.readNamespacedService(V1GatewayClass.DEFAULT_NAME, controllerNamespace, null);
+            V1Service service = coreV1Api.readNamespacedService(V1GatewayClass.DEFAULT_NAME, gatewayNameSpace, null);
             List<V1ServicePort> ports = Objects.requireNonNull(service.getSpec()).getPorts();
             assert ports != null;
 
@@ -624,11 +667,166 @@ public class KubernetesClientService {
             portConfig.setData(portCount);
             replaceConfigMap(portConfig);
             service.getSpec().setPorts(ports);
-            coreV1Api.replaceNamespacedService(V1GatewayClass.DEFAULT_NAME, controllerNamespace, service, null, null, null, null);
+            coreV1Api.replaceNamespacedService(V1GatewayClass.DEFAULT_NAME, gatewayNameSpace, service, null, null, null, null);
         } catch (ApiException e) {
             log.error("Error when modifying LoadBalancer ports ", e);
         }
     }
+
+    public List<V1HTTPRoute> listHttpRouteByDomain(String domainName) {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        String labelSelectors = joinLabelSelectors(DEFAULT_LABEL_SELECTORS, buildDomainLabelSelector(domainName));
+        try {
+            Object response = customObjectsApi.listNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
+                    httpRouteNameSpace, V1HTTPRoute.PLURAL, null, null, null, null, labelSelectors, null, null, null, null, null);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            V1HTTPRouteList list = json.deserialize(json.serialize(response), V1HTTPRouteList.class);
+            if (list == null) {
+                return Collections.emptyList();
+            }
+            return sortKubernetesObjects(list.getItems());
+        } catch (ApiException e) {
+            log.error("listHttpRouteByDomain Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                    + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public List<V1HTTPRoute> listHttpRoute() {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.listNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
+                    httpRouteNameSpace, V1HTTPRoute.PLURAL, null, null, null, null, null, null, null, null, null, null);
+            io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
+            V1HTTPRouteList list = json.deserialize(json.serialize(response), V1HTTPRouteList.class);
+            if (list == null) {
+                return Collections.emptyList();
+            }
+            return sortKubernetesObjects(list.getItems());
+        } catch (ApiException e) {
+            log.error("listHttpRouteByDomain Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
+                    + "Response headers: " + e.getResponseHeaders(), e);
+            return null;
+        }
+    }
+
+    public V1HTTPRoute readHttpRoute(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
+                    httpRouteNameSpace, V1HTTPRoute.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1HTTPRoute.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    public V1HTTPRoute createHttpRoute(V1HTTPRoute httpRoute) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.createNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
+                httpRouteNameSpace, V1HTTPRoute.PLURAL, httpRoute, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1HTTPRoute.class);
+    }
+
+    public void deleteHttpRoute(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        customObjectsApi.deleteNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION, httpRouteNameSpace,
+                V1HTTPRoute.PLURAL, name, null, null, null, null, null);
+    }
+
+    public V1HTTPRoute replaceHttpRoute(V1HTTPRoute httpRoute) throws ApiException {
+        V1ObjectMeta metadata = httpRoute.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("httpRoute doesn't have a valid metadata.");
+        }
+        metadata.setNamespace(httpRouteNameSpace);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.replaceNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
+                httpRouteNameSpace, V1HTTPRoute.PLURAL, metadata.getName(), httpRoute, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1HTTPRoute.class);
+    }
+
+    public V1beta1ReferenceGrant addReferenceGrantForHttpRoute2Service(String fromNamespace, String toNamespace) throws ApiException {
+        if (fromNamespace.equals(toNamespace)) {
+            return null;
+        }
+        String referenceGrantName = KubernetesUtil.getReferenceGrantName(toNamespace, "httproute2service");
+        V1beta1ReferenceGrant v1beta1ReferenceGrant = readReferenceGrant(referenceGrantName, toNamespace);
+        if (v1beta1ReferenceGrant == null) {
+            v1beta1ReferenceGrant = new V1beta1ReferenceGrant();
+            V1ObjectMeta metadata = new V1ObjectMeta();
+            metadata.setName(referenceGrantName);
+            metadata.setNamespace(toNamespace);
+            v1beta1ReferenceGrant.setMetadata(metadata);
+            V1beta1ReferenceGrantSpec spec = new V1beta1ReferenceGrantSpec();
+            V1beta1ReferenceGrantSpecFrom from = new V1beta1ReferenceGrantSpecFrom();
+            from.setNamespace(fromNamespace);
+            from.setKind(V1HTTPRoute.KIND);
+            from.setGroup(V1HTTPRoute.API_GROUP);
+            spec.getFrom().add(from);
+            V1beta1ReferenceGrantSpecTo to = new V1beta1ReferenceGrantSpecTo();
+            to.setKind("Service");
+            to.setGroup("");
+            spec.getTo().add(to);
+            v1beta1ReferenceGrant.setSpec(spec);
+            return createReferenceGrant(v1beta1ReferenceGrant);
+        } else {
+            List<V1beta1ReferenceGrantSpecFrom> froms = v1beta1ReferenceGrant.getSpec().getFrom();
+            for (V1beta1ReferenceGrantSpecFrom from : froms) {
+                if (fromNamespace.equals(from.getNamespace())) {
+                    return v1beta1ReferenceGrant;
+                }
+            }
+            V1beta1ReferenceGrantSpecFrom from = new V1beta1ReferenceGrantSpecFrom();
+            from.setNamespace(fromNamespace);
+            from.setKind(V1HTTPRoute.KIND);
+            from.setGroup(V1HTTPRoute.API_GROUP);
+            froms.add(from);
+            return replaceReferenceGrant(v1beta1ReferenceGrant);
+        }
+    }
+    public V1beta1ReferenceGrant readReferenceGrant(String name, String nameSpace) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1beta1ReferenceGrant.API_GROUP, V1beta1ReferenceGrant.VERSION,
+                    nameSpace, V1beta1ReferenceGrant.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1beta1ReferenceGrant.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+    public V1beta1ReferenceGrant createReferenceGrant(V1beta1ReferenceGrant referenceGrant) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        String namespace = controllerNamespace;
+        if (referenceGrant.getMetadata()!=null && referenceGrant.getMetadata().getNamespace() != null) {
+            namespace = referenceGrant.getMetadata().getNamespace();
+        }
+        Object response = customObjectsApi.createNamespacedCustomObject(V1beta1ReferenceGrant.API_GROUP, V1beta1ReferenceGrant.VERSION,
+                namespace, V1beta1ReferenceGrant.PLURAL, referenceGrant, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1beta1ReferenceGrant.class);
+    }
+
+    public V1beta1ReferenceGrant replaceReferenceGrant(V1beta1ReferenceGrant referenceGrant) throws ApiException{
+        V1ObjectMeta metadata = referenceGrant.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("gateway doesn't have a valid metadata.");
+        }
+        String namespace = controllerNamespace;
+        if (metadata.getNamespace() != null) {
+            namespace = referenceGrant.getMetadata().getNamespace();
+        }
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response = customObjectsApi.replaceNamespacedCustomObject(V1beta1ReferenceGrant.API_GROUP, V1beta1ReferenceGrant.VERSION,
+                namespace, V1beta1ReferenceGrant.PLURAL, metadata.getName(), referenceGrant, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1beta1ReferenceGrant.class);
+    }
+
 
     public List<V1alpha1WasmPlugin> listWasmPlugin() throws ApiException {
         return listWasmPlugin(null, null, null);

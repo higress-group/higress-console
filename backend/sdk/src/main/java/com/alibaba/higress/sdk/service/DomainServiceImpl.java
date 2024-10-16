@@ -69,7 +69,6 @@ class DomainServiceImpl implements DomainService {
             throw new BusinessException("Error occurs when adding a new domain.", e);
         }
         // if gateway mode, create a gateway named "domain_name"
-        // TODO: should consider the gateway's spec here.
         if(!kubernetesClientService.isIngressWorkMode()){
             V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
             try {
@@ -128,7 +127,6 @@ class DomainServiceImpl implements DomainService {
                 throw new BusinessException("Error occurs when delete a Gateway", e);
             }
         }
-        //TODO: should consider delete instance wasm plugins when delete gateway
         wasmPluginInstanceService.deleteAll(WasmPluginInstanceScope.DOMAIN, domainName);
     }
 

@@ -52,6 +52,14 @@ public class V1HTTPRouteSpec {
         return this;
     }
 
+    public V1HTTPRouteSpec addRulesItem(V1HTTPRouteSpecRules rulesItem) {
+        if (this.rules == null) {
+            this.rules = new ArrayList<>();
+        }
+        this.rules.add(rulesItem);
+        return this;
+    }
+
 
     @Override
     public boolean equals(Object o) {

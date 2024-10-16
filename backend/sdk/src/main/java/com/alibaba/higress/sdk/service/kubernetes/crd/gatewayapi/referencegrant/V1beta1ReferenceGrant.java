@@ -27,7 +27,7 @@ import java.util.Objects;
 @Data
 public class V1beta1ReferenceGrant implements io.kubernetes.client.common.KubernetesObject {
     public static final String API_GROUP = "gateway.networking.k8s.io";
-    public static final String VERSION = "v1";
+    public static final String VERSION = "v1beta1";
     public static final String KIND = "ReferenceGrant";
     public static final String PLURAL = "referencegrants";
 

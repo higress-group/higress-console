@@ -30,7 +30,7 @@ import java.util.Objects;
  * HTTPRouteMatch defines the predicate used to match requests to a given action. Multiple match types are ANDed together, i.e. the match will evaluate to true only if all conditions are satisfied.   For example, the match below will match a HTTP request only if its path starts with &#x60;/foo&#x60; AND it contains the &#x60;version: v1&#x60; header:   &#x60;&#x60;&#x60; match:    path:    value: \&quot;/foo\&quot;  headers:  - name: \&quot;version\&quot;    value \&quot;v1\&quot;   &#x60;&#x60;&#x60;
  */
 @Data
-public class V1HTTPRouteSpecMatches {
+public class V1HTTPRouteSpecMatches implements Cloneable{
     public static final String SERIALIZED_NAME_HEADERS = "headers";
     public static final String SERIALIZED_NAME_METHOD = "method";
     public static final String SERIALIZED_NAME_PATH = "path";
@@ -58,6 +58,11 @@ public class V1HTTPRouteSpecMatches {
         }
         this.queryParams.add(queryParamsItem);
         return this;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     @Override

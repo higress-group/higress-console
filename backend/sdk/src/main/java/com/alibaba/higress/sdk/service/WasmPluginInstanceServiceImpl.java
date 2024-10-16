@@ -12,17 +12,8 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import io.swagger.v3.core.util.Yaml;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -34,9 +25,18 @@ import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
-
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.v3.core.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
@@ -46,7 +46,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     private final KubernetesModelConverter kubernetesModelConverter;
 
     public WasmPluginInstanceServiceImpl(WasmPluginService wasmPluginService,
-        KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
+                                         KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
         this.wasmPluginService = wasmPluginService;
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
@@ -64,7 +64,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             return Collections.emptyList();
         }
         return plugins.stream().map(p -> kubernetesModelConverter.getWasmPluginInstanceFromCr(p, scope, target))
-            .filter(Objects::nonNull).toList();
+                .filter(Objects::nonNull).toList();
     }
 
     @Override
@@ -100,7 +100,12 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         } else {
             if (StringUtils.isEmpty(target)) {
                 throw new IllegalArgumentException(
-                    "instance.target must not be null or empty when scope is not GLOBAL.");
+                        "instance.target must not be null or empty when scope is not GLOBAL.");
+            }
+            if (!kubernetesClientService.isIngressWorkMode()) {
+                if (!HigressConstants.NS_DEFAULT.equals(kubernetesClientService.httpRouteNameSpace)) {
+                    target = kubernetesClientService.httpRouteNameSpace + Separators.SLASH + target;
+                }
             }
         }
 
@@ -125,11 +130,11 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
             try {
                 Map<String, Object> configurations = (Map<String, Object>) Yaml.mapper()
-                    .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
+                        .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
                 instance.setConfigurations(configurations);
             } catch (IOException e) {
                 throw new ValidationException(
-                    "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
+                        "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
             }
         }
 
@@ -159,7 +164,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
-                "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
+                    "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
         }
         return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, scope, target);
     }
@@ -197,7 +202,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     kubernetesClientService.replaceWasmPlugin(cr);
                 } catch (ApiException e) {
                     throw new BusinessException(
-                        "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);
+                            "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);
                 }
             }
         }

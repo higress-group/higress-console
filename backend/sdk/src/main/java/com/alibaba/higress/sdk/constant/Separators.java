@@ -31,4 +31,6 @@ public class Separators {
     public static final String UNDERSCORE = "_";
 
     public static final String COLON = ":";
+
+    public static final String SLASH = "/";
 }
