@@ -12,20 +12,19 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 
 public interface DomainService {
 
-    Domain add(Domain domain) throws BusinessException;
+    Domain add(Domain domain);
 
-    PaginatedResult<Domain> list(CommonPageQuery query) throws BusinessException;
+    PaginatedResult<Domain> list(CommonPageQuery query);
 
-    Domain query(String domainName) throws BusinessException;
+    Domain query(String domainName);
 
-    void delete(String domainName) throws BusinessException;
+    void delete(String domainName);
 
-    Domain put(Domain domain) throws BusinessException;
+    Domain put(Domain domain);
 }

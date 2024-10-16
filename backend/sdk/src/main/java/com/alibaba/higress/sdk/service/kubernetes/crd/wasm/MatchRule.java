@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,12 +35,18 @@ public class MatchRule {
 
     private List<String> ingress;
 
+    private List<String> service;
+
     public static MatchRule forDomain(String domain) {
-        return new MatchRule(null, null, Collections.singletonList(domain), null);
+        return new MatchRule(null, null, Collections.singletonList(domain), null, null);
     }
 
     public static MatchRule forIngress(String ingress) {
-        return new MatchRule(null, null, null, Collections.singletonList(ingress));
+        return new MatchRule(null, null, null, Collections.singletonList(ingress), null);
+    }
+
+    public static MatchRule forService(String service) {
+        return new MatchRule(null, null, null, null, Collections.singletonList(service));
     }
 
     public boolean keyEquals(MatchRule rule) {
@@ -48,12 +56,22 @@ public class MatchRule {
         if ((ingress == null) == (rule.ingress != null)) {
             return false;
         }
+        if ((service == null) == (rule.service != null)) {
+            return false;
+        }
         if (domain != null && (domain.size() != rule.domain.size() || !domain.containsAll(rule.domain))) {
             return false;
         }
         if (ingress != null && (ingress.size() != rule.ingress.size() || !ingress.containsAll(rule.ingress))) {
             return false;
         }
+        if (service != null && (service.size() != rule.service.size() || !service.containsAll(rule.service))) {
+            return false;
+        }
         return true;
+    }
+
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(domain) && CollectionUtils.isEmpty(ingress) && CollectionUtils.isEmpty(service);
     }
 }

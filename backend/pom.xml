@@ -322,7 +322,7 @@
 						</executions>
 						<configuration>
 							<quiet>true</quiet>
-							<header>${basedir}/style/copyright</header>
+							<header>${session.executionRootDirectory}/style/copyright</header>
 							<includes>
 								<include>**/src/main/java/**</include>
 								<include>**/src/main/resources/**</include>
