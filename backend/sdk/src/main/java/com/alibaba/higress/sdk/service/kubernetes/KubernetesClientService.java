@@ -190,7 +190,7 @@ public class KubernetesClientService {
         }
     }
 
-    private void getIngressOrGatewayMode(){
+    private void getIngressOrGatewayMode() {
         // read config, check if ingress or gateway mode
         V1ConfigMap higressConfig;
         try {
@@ -201,7 +201,7 @@ public class KubernetesClientService {
         }
         Map<String, String> data = higressConfig.getData();
         workMode = "ingress";
-        if (data!=null && data.containsKey("workMode")){
+        if (data!=null && data.containsKey("workMode")) {
             workMode = data.get("workMode");
         }
     }
@@ -209,7 +209,7 @@ public class KubernetesClientService {
         return ingressV1Supported;
     }
 
-    public boolean isIngressWorkMode(){
+    public boolean isIngressWorkMode() {
         return workMode.equals("ingress");
     }
     public boolean isNamespaceProtected(String namespace) {
@@ -517,7 +517,7 @@ public class KubernetesClientService {
             Object response = customObjectsApi.listNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
                     controllerNamespace, V1Gateway.PLURAL, null, null, null, null, null, null, null, null, null, null);
             io.kubernetes.client.openapi.JSON json = new io.kubernetes.client.openapi.JSON();
-            V1GatewayList list = json.deserialize(json.serialize(response), V1McpBridgeList.class);
+            V1GatewayList list = json.deserialize(json.serialize(response), V1GatewayList.class);
             return sortKubernetesObjects(list.getItems());
         } catch (ApiException e) {
             log.error("listGateway Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
@@ -586,13 +586,13 @@ public class KubernetesClientService {
             assert ports != null;
 
             Map<Integer, Integer> portFrequency = new HashMap<>();
-            if(gatewayOri != null){
+            if (gatewayOri != null) {
                 List<V1GatewaySpecListeners> listenersOri = gatewayOri.getSpec().getListeners();
                 for (V1GatewaySpecListeners listener : listenersOri) {
                     portFrequency.put(listener.getPort(), portFrequency.getOrDefault(listener.getPort(), 0) - 1);
                 }
             }
-            if(gatewayReplaced != null){
+            if (gatewayReplaced != null) {
                 List<V1GatewaySpecListeners> listenersReplaced = gatewayReplaced.getSpec().getListeners();
                 for (V1GatewaySpecListeners listener : listenersReplaced) {
                     portFrequency.put(listener.getPort(), portFrequency.getOrDefault(listener.getPort(), 0) + 1);
@@ -602,7 +602,7 @@ public class KubernetesClientService {
             for (Map.Entry<Integer, Integer> entry : portFrequency.entrySet()) {
                 Integer port = entry.getKey();
                 Integer freq = entry.getValue();
-                if(port == 80 || port == 443 || freq == 0) {
+                if (port == 80 || port == 443 || freq == 0) {
                     continue;
                 }
                 int count = Integer.parseInt(portCount.getOrDefault(port.toString(), "0")) + (freq>0?1:-1);
@@ -612,7 +612,7 @@ public class KubernetesClientService {
                     ports.removeIf(p -> p.getPort().equals(port));
                 } else {
                     portCount.put(port.toString(), Integer.toString(count));
-                    if(count==1) {
+                    if (count==1) {
                         V1ServicePort servicePort = new V1ServicePort().port(port);
                         servicePort.setProtocol("TCP");
                         servicePort.setName("port"+Separators.DASH+ port);
