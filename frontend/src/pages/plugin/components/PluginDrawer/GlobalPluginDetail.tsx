@@ -347,7 +347,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     const result = { ...b };
     Object.keys(a).forEach(key => {
       // 如果 a 中的键存在于 b 中，并且它们都是对象，则递归合并
-      if (result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+      if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
         result[key] = mergeValues(a[key], result[key]);
       } else {
         result[key] = a[key];
