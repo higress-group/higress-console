@@ -16,7 +16,6 @@ import javax.annotation.Resource;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -52,25 +51,18 @@ public class LlmProvidersController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<LlmProvider>> list(CommonPageQuery query) {
         PaginatedResult<LlmProvider> providers = llmProviderService.list(query);
-        if (CollectionUtils.isNotEmpty(providers.getData())) {
-            providers.getData().forEach(LlmProvider::maskSensitiveData);
-        }
         return ControllerUtil.buildResponseEntity(providers);
     }
 
     @PostMapping
     public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider certificate) {
         LlmProvider newProvider = llmProviderService.addOrUpdate(certificate);
-        newProvider.maskSensitiveData();
         return ControllerUtil.buildResponseEntity(newProvider);
     }
 
     @GetMapping(value = "/{name}")
     public ResponseEntity<Response<LlmProvider>> query(@PathVariable("name") @NotBlank String name) {
         LlmProvider provider = llmProviderService.query(name);
-        if (provider != null){
-            provider.maskSensitiveData();
-        }
         return ControllerUtil.buildResponseEntity(provider);
     }
 
@@ -83,7 +75,6 @@ public class LlmProvidersController {
             throw new ValidationException("Provider name in the URL doesn't match the one in the body.");
         }
         LlmProvider updatedProvider = llmProviderService.addOrUpdate(provider);
-        updatedProvider.maskSensitiveData();
         return ControllerUtil.buildResponseEntity(updatedProvider);
     }
 

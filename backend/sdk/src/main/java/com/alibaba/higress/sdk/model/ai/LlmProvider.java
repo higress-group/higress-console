@@ -15,10 +15,7 @@ package com.alibaba.higress.sdk.model.ai;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import com.alibaba.higress.sdk.util.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
@@ -51,15 +48,6 @@ public class LlmProvider {
             protocol = LlmProviderProtocol.DEFAULT.getValue();
         } else if (null == LlmProviderProtocol.fromValue(protocol)) {
             throw new IllegalArgumentException("Unknown protocol: " + protocol);
-        }
-    }
-
-    public void maskSensitiveData() {
-        if (CollectionUtils.isEmpty(tokens)) {
-            return;
-        }
-        for (int i = 0; i < tokens.size(); ++i) {
-            tokens.set(i, StringUtil.mask(tokens.get(i)));
         }
     }
 }

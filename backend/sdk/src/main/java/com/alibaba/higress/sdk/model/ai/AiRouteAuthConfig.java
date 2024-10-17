@@ -15,11 +15,9 @@ package com.alibaba.higress.sdk.model.ai;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
 
-import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,29 +27,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("AI Route")
-public class AiRoute {
+public class AiRouteAuthConfig {
 
-    private String name;
-    private String version;
-    private List<String> domains;
-    private List<AiUpstream> upstreams;
-    private AiRouteAuthConfig authConfig;
-    private AiRouteFallbackConfig fallbackConfig;
+    private Boolean enabled;
+    private List<String> allowedConsumers;
 
     public void validate() {
-        if (StringUtils.isBlank(name)) {
-            throw new ValidationException("name cannot be blank.");
-        }
-        if (CollectionUtils.isEmpty(upstreams)){
-            throw new ValidationException("upstreams cannot be empty.");
-        }
-        upstreams.forEach(AiUpstream::validate);
-        if (authConfig != null){
-            authConfig.validate();
-        }
-        if (fallbackConfig != null){
-            fallbackConfig.validate();
+        if (Boolean.TRUE.equals(enabled) && CollectionUtils.isEmpty(allowedConsumers)) {
+            throw new ValidationException("allowedConsumers cannot be empty when auth is enabled.");
         }
     }
 }

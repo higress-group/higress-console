@@ -35,7 +35,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     private static final String NAME_KEY = "name";
     private static final String IN_HEADER_KEY = "in_header";
     private static final String IN_QUERY_KEY = "in_query";
-    private static final String KEY_KEY = "key";
+    private static final String KEYS_KEY = "keys";
     private static final String CREDENTIAL_KEY = "credential";
     private static final String ALLOW_KEY = "allow";
 
@@ -124,6 +124,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             instance.setConfigurations(configurations);
         }
 
+        // TODO: Remove this after plugin upgrade.
+        // Add a dummy key to the global keys list because the plugin requires at least one global key.
+        configurations.put(KEYS_KEY, List.of("x-higress-dummy-key"));
+
         Object consumersObj = configurations.computeIfAbsent(CONSUMERS_KEY, k -> new ArrayList<>());
         List<Object> consumers;
         if (consumersObj instanceof List) {
@@ -177,7 +181,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 throw new IllegalArgumentException(
                     "Unsupported key auth credential source: " + keyAuthCredential.getSource());
         }
-        consumerConfig.put(KEY_KEY, List.of(key));
+        consumerConfig.put(KEYS_KEY, List.of(key));
         consumerConfig.put(CREDENTIAL_KEY, credential);
 
         configurations.put(CONSUMERS_KEY, consumers);
@@ -211,6 +215,21 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         return deleted;
     }
 
+    @Override
+    public void updateAllowList(WasmPluginInstance instance, List<String> consumerNames) {
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            configurations = new HashMap<>();
+            instance.setConfigurations(configurations);
+        }
+
+        if (CollectionUtils.isEmpty(consumerNames)) {
+            configurations.remove(ALLOW_KEY);
+        } else {
+            configurations.put(ALLOW_KEY, new ArrayList<>(consumerNames));
+        }
+    }
+
     private KeyAuthCredential mergeExistedConfig(KeyAuthCredential keyAuthCredential,
         Map<String, Object> consumerConfig) {
         KeyAuthCredential existedCredential = parseCredential(consumerConfig);
@@ -230,7 +249,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return null;
         }
 
-        Object keyObj = MapUtils.getObject(consumerMap, KEY_KEY);
+        Object keyObj = MapUtils.getObject(consumerMap, KEYS_KEY);
         if (!(keyObj instanceof List<?> keyList) || keyList.isEmpty()) {
             return null;
         }
