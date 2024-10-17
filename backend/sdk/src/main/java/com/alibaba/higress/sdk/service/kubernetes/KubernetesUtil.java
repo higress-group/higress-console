@@ -97,7 +97,8 @@ public class KubernetesUtil {
     }
 
     public static String joinLabelSelectors(String... selectors) {
-        return String.join(Separators.COMMA, selectors);
+        return String.join(Separators.COMMA,
+            Arrays.stream(selectors).filter(StringUtils::isNotBlank).toArray(String[]::new));
     }
 
     public static String buildDomainLabelSelector(String domainName) {

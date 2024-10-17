@@ -74,7 +74,7 @@ spec:
       example:
         allows:
         - consumer1
-        - consumer2        
+        - consumer2
   configSchema:
     openAPIV3Schema:
       type: object

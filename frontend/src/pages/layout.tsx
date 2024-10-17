@@ -82,8 +82,9 @@ function findRouteByPath(route: Route, pathname?: string): Route | undefined {
     return route;
   }
 
-  if (route.children) {
-    for (const child of route.children) {
+  const childRoutes = route.routes || route.children;
+  if (childRoutes) {
+    for (const child of childRoutes) {
       const matchedRoute = findRouteByPath(child, pathname);
       if (matchedRoute) {
         return matchedRoute;
