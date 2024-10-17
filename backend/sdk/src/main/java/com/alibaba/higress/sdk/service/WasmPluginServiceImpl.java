@@ -94,7 +94,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
     private static final String EXAMPLE_RAW_PROPERTY_NAME = "x-example-raw";
 
     private static final Pattern YAML_CONTENT_PATTERN = Pattern.compile("^(\\s*)(\\S.*)\\s*$");
-    private static final String YAML_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
+    private static final String CONFIG_SCHEMA_PROPERTY_KEY = "configSchema:";
+    private static final String OPEN_API_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
     private static final String YAML_EXAMPLE_PROPERTY_KEY = "example:";
 
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
@@ -186,7 +187,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
     private String extractConfigExample(String content) throws IOException {
         StringBuilder builder = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new StringReader(content))) {
-            boolean foundSchema = false, foundExample = false;
+            boolean foundConfigSchema = false, foundOpenApiV3Schema = false, foundExample = false;
             String schemaOuterIndentation = null, exampleOuterIndentation = null, exampleInnerIndentation = null;
             String line;
             while ((line = reader.readLine()) != null) {
@@ -200,10 +201,16 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 String indentation = yamlContentMatcher.group(1);
                 String unindentedContent = yamlContentMatcher.group(2);
 
-                if (!foundSchema) {
+                if (!foundOpenApiV3Schema) {
+                    if (!foundConfigSchema) {
+                        if (unindentedContent.startsWith(CONFIG_SCHEMA_PROPERTY_KEY)) {
+                            foundConfigSchema = true;
+                        }
+                        continue;
+                    }
                     // We only care about finding the openAPIV3Schema property now.
-                    if (unindentedContent.startsWith(YAML_V3_SCHEMA_PROPERTY_KEY)) {
-                        foundSchema = true;
+                    if (unindentedContent.startsWith(OPEN_API_V3_SCHEMA_PROPERTY_KEY)) {
+                        foundOpenApiV3Schema = true;
                         schemaOuterIndentation = indentation;
                     }
                     continue;
