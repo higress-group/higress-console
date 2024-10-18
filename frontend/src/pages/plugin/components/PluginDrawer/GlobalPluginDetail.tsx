@@ -7,8 +7,8 @@ import { useRequest } from 'ahooks';
 import i18next, { t } from 'i18next';
 import { useSearchParams } from 'ice';
 
-import ArrayForm from './ArrayForm'
-import yaml from 'js-yaml'
+import ArrayForm from './ArrayForm';
+import yaml from 'js-yaml';
 
 const { Text } = Typography;
 const { TabPane } = Tabs;
@@ -39,7 +39,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const { name: pluginName = '', category = '' } = data || {};
 
   const [searchParams] = useSearchParams();
-
   const queryType: string = searchParams.get('type') || '';
   const queryName: string = searchParams.get('name') || '';
   const [currentTabKey, setCurrentTabKey] = useState('form');
@@ -70,6 +69,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         update: servicesApi.updateDomainPluginInstance.bind(servicesApi),
       };
     }
+
     return {
       get: servicesApi.getGlobalPluginInstance.bind(servicesApi),
       update: servicesApi.updateGlobalPluginInstance.bind(servicesApi),
@@ -88,24 +88,25 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const { loading: getDataLoading, run: getData } = useRequest(pluginInstancesApi.get, {
     manual: true,
     onSuccess: (res: IPluginData) => {
-      setCurrentTabKey("form");
+      setCurrentTabKey('form');
       setPluginData(res);
       setRawConfigurations(res.rawConfigurations);
       setDefaultValue(res.rawConfigurations);
       getConfig(pluginName);
       form.resetFields();
-      if(res.rawConfigurations){
+      if (res.rawConfigurations) {
         form.setFieldsValue(yamlToFormValues(res.rawConfigurations));
       }
     },
   });
+
   const { loading: getConfigLoading, run: getConfig } = useRequest(servicesApi.getWasmPluginsConfig, {
     manual: true,
     onSuccess: (res) => {
       setConfigData(res);
       setSchema(res.schema);
-      if (!res.schema.jsonSchema.properties){
-        setCurrentTabKey("yaml");
+      if (!res.schema.jsonSchema.properties) {
+        setCurrentTabKey('yaml');
       }
       if (!defaultValue) {
         let exampleRaw = res?.schema?.extensions['x-example-raw'];
@@ -114,7 +115,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           exampleRaw = 'allow: []';
         }
         form.resetFields();
-        if (exampleRaw){
+        if (exampleRaw) {
           form.setFieldsValue(yamlToFormValues(exampleRaw));
         }
         setRawConfigurations(exampleRaw);
@@ -134,10 +135,12 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     },
   });
 
-  function getLocalizedText(obj: any, index: string, key: string) { 
-    const i18nObj = obj[`x-${index}-i18n`]; 
-    if(i18next.language === 'en-US') return i18nObj && i18nObj[i18next.language] || key || ''; 
-    else return i18nObj && i18nObj[i18next.language] || obj[index] || '';
+  function getLocalizedText(obj: any, index: string, key: string) {
+    const i18nObj = obj[`x-${index}-i18n`];
+    if (i18next.language === 'en-US') {
+      return i18nObj && i18nObj[i18next.language] || key || '';
+    }
+    return i18nObj && i18nObj[i18next.language] || obj[index] || '';
   }
 
   function generateFields(scm, prefix = '') {
@@ -145,14 +148,14 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     const requiredFields = scm.required || [];
     const dict = {};
     if (!properties) {
-      return (<div>{t('misc.invalidSchema')}</div>)
+      return <div>{t('misc.invalidSchema')}</div>;
     }
     return Object.entries(properties).map(([key, value]) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       let translatedTitle = getLocalizedText(value, 'title', key);
       let tip = null;
       if (value.hasOwnProperty('description')) {
-          tip = getLocalizedText(value, 'description', value.description);
+        tip = getLocalizedText(value, 'description', value.description);
       }
       const isRequired = requiredFields.includes(key);
       if (value.type === 'object' && value.properties) {
@@ -164,7 +167,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       let fieldComponent;
       let validationRules = [];
       if (isRequired) {
-        validationRules.push({ required: true, message: `${translatedTitle} `+ `${t('misc.isRequired')}` });
+        validationRules.push({ required: true, message: `${translatedTitle} ` + `${t('misc.isRequired')}` });
       }
       switch (type) {
         case 'string':
@@ -182,7 +185,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           );
           break;
         case 'array':
-          dict[value.items.title] = value.items
+          dict[value.items.title] = value.items;
           return (
             <Form.Item
               label={translatedTitle}
@@ -191,12 +194,13 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             >
               <ArrayForm array={value.items} />
             </Form.Item>
-          )
+          );
         case 'object':
-          return
+          return;
         default:
           throw new Error(`Unsupported type: ${type}`);
       }
+
       return (
         <Form.Item
           key={translatedTitle}
@@ -207,7 +211,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           {fieldComponent}
         </Form.Item>
       );
-
     });
   }
 
@@ -306,7 +309,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       function flattenObject(obj, parentKey = '') {
         let flatResult = {};
         let currentUid = uidCounter;
-        Object.keys(obj).forEach((key) => {
+        Object.keys(obj).forEach(key => {
           const newKey = parentKey ? `${parentKey}.${key}` : key;
           if (Array.isArray(obj[key])) {
             obj[key].forEach((item, index) => {
@@ -406,18 +409,17 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   };
 
   useEffect(() => {
-    if (currentTabKey === "yaml") {
+    if (currentTabKey === 'yaml') {
       setDefaultValue(rawConfigurations);
-    }
-    else if (currentTabKey === "form"){
-        let en = form.getFieldsValue().enabled;
-        form.resetFields();
-        form.setFieldsValue({
-          enabled: en,
-        });
+    } else if (currentTabKey === 'form') {
+      let en = form.getFieldsValue().enabled;
+      form.resetFields();
+      form.setFieldsValue({
+        enabled: en,
+      });
       if (rawConfigurations) {
         form.setFieldsValue(yamlToFormValues(rawConfigurations));
-      }     
+      }
       setDefaultValue(rawConfigurations);
     }
   }, [currentTabKey]);
@@ -434,7 +436,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }, [isRoutePlugin, isDomainPlugin, queryName]);
 
   const fieldChange = () => {
-    if (!getConfigLoading && !getDataLoading && currentTabKey === "form") {
+    if (!getConfigLoading && !getDataLoading && currentTabKey === 'form') {
       const values = form.getFieldsValue();
       const rawValues = yamlToFormValues(rawConfigurations);
       const mergedValues = mergeValues(values, rawValues);
@@ -442,8 +444,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       const yamlString = schemaToYaml(scm);
       setRawConfigurations(yamlString);
     }
-  }
-
+  };
+  
   return (
     <div>
       <Spin spinning={getConfigLoading || getDataLoading || updateLoading}>
@@ -455,7 +457,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             <Switch />
           </Form.Item>
           <Tabs activeKey={currentTabKey} onChange={(key) => setCurrentTabKey(key)}>
-            <TabPane tab={t('misc.switchToForm')} key="form" >
+            <TabPane tab={t('misc.switchToForm')} key="form">
               {!getConfigLoading && !getDataLoading && schema && (
                 generateFields(schema.jsonSchema)
               )}
@@ -463,15 +465,14 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             <TabPane tab={t('misc.switchToYAML')} key="yaml">
               <Divider orientation="left">{t('plugins.configForm.dataEditor')}</Divider>
               {!getConfigLoading && !getDataLoading && (
-                <CodeEditor defaultValue={defaultValue} 
-                onChange={(val) => {
+                <CodeEditor defaultValue={defaultValue} onChange={(val) => {
                   setRawConfigurations(val);
                 }} />
               )}
             </TabPane>
           </Tabs>
           {!getConfigLoading && !getDataLoading && !isRoutePlugin && !isDomainPlugin && (
-            <Space direction="horizontal" style={{ marginTop: "0.5rem" }}>
+            <Space direction="horizontal" style={{ marginTop: '0.5rem' }}>
               <Text>{t('plugins.configForm.globalConfigWarning')}</Text>
             </Space>
           )}
