@@ -113,10 +113,9 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
 
   const [dataSource, setDataSource] = useState<DataType[]>(value || []);
 
-  function getLocalizedText(obj: any, index: string, key: string) { 
-    const i18nObj = obj[`x-${index}-i18n`]; 
-    if(i18next.language === 'en-US') return i18nObj && i18nObj[i18next.language] || key || ''; 
-    else return i18nObj && i18nObj[i18next.language] || obj[index] || '';
+  function getLocalizedText(obj: any, index: string, defaultText: string) {
+    const i18nObj = obj[`x-${index}-i18n`];
+    return i18nObj && i18nObj[i18next.language] || obj[index] || defaultText || '';
   }
 
   const defaultColumns: any[] = [];

@@ -135,12 +135,9 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     },
   });
 
-  function getLocalizedText(obj: any, index: string, key: string) {
+  function getLocalizedText(obj: any, index: string, defaultText: string) {
     const i18nObj = obj[`x-${index}-i18n`];
-    if (i18next.language === 'en-US') {
-      return i18nObj && i18nObj[i18next.language] || key || '';
-    }
-    return i18nObj && i18nObj[i18next.language] || obj[index] || '';
+    return i18nObj && i18nObj[i18next.language] || obj[index] || defaultText || '';
   }
 
   function generateFields(scm, prefix = '') {
