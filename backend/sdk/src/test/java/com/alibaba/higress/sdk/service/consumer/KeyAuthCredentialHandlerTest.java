@@ -171,7 +171,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("zhangsan", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("Bearer sk-123456", consumerMap.get("credential"));
@@ -191,7 +191,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("zhangsan", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("X-API-KEY"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("X-API-KEY"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("sk-123456", consumerMap.get("credential"));
@@ -211,7 +211,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("zhangsan", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("token"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("token"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_query"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_header"));
         Assertions.assertEquals("sk-123456", consumerMap.get("credential"));
@@ -230,7 +230,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("zhangsan", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("Bearer sk-123456", consumerMap.get("credential"));
@@ -250,7 +250,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("zhangsan", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("X-API-KEY"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("X-API-KEY"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("sk-123456", consumerMap.get("credential"));
@@ -313,7 +313,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("lisi", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("Bearer sk-123456", consumerMap.get("credential"));
@@ -333,7 +333,7 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(1, consumers.size());
         Map<String, Object> consumerMap = consumers.get(0);
         Assertions.assertEquals("lisi", consumerMap.get("name"));
-        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("key"));
+        Assertions.assertEquals(List.of("Authorization"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
         Assertions.assertEquals("Bearer sk-123456", consumerMap.get("credential"));
@@ -358,7 +358,7 @@ public class KeyAuthCredentialHandlerTest {
             (List<Map<String, Object>>)configurations.computeIfAbsent("consumers", k -> new ArrayList<>());
         Map<String, Object> consumer = new HashMap<>();
         consumer.put("name", name);
-        consumer.put("key", List.of(key));
+        consumer.put("keys", List.of(key));
         consumer.put("credential", credential);
         if (inHeader) {
             consumer.put("in_header", true);
