@@ -16,7 +16,6 @@ import javax.annotation.Resource;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -35,7 +34,6 @@ import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
-import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 
 @RestController("ConsumersController")
@@ -53,9 +51,6 @@ public class ConsumersController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<Consumer>> list(CommonPageQuery query) {
         PaginatedResult<Consumer> consumers = consumerService.list(query);
-        if (CollectionUtils.isNotEmpty(consumers.getData())) {
-            consumers.getData().forEach(ConsumersController::maskSensitiveData);
-        }
         return ControllerUtil.buildResponseEntity(consumers);
     }
 
@@ -63,7 +58,6 @@ public class ConsumersController {
     public ResponseEntity<Response<Consumer>> add(@RequestBody Consumer consumer) {
         consumer.validate(false);
         Consumer newConsumer = consumerService.addOrUpdate(consumer);
-        maskSensitiveData(newConsumer);
         return ControllerUtil.buildResponseEntity(newConsumer);
     }
 
@@ -83,7 +77,6 @@ public class ConsumersController {
         }
         consumer.validate(true);
         Consumer updatedConsumer = consumerService.addOrUpdate(consumer);
-        maskSensitiveData(updatedConsumer);
         return ControllerUtil.buildResponseEntity(updatedConsumer);
     }
 
@@ -91,11 +84,5 @@ public class ConsumersController {
     public ResponseEntity<Response<Consumer>> delete(@PathVariable("name") @NotBlank String name) {
         consumerService.delete(name);
         return ResponseEntity.noContent().build();
-    }
-
-    private static void maskSensitiveData(Consumer consumer) {
-        if (consumer != null && CollectionUtils.isNotEmpty(consumer.getCredentials())) {
-            consumer.getCredentials().forEach(Credential::maskSensitiveData);
-        }
     }
 }

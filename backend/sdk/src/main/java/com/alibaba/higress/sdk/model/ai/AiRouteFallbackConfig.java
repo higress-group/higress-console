@@ -15,43 +15,41 @@ package com.alibaba.higress.sdk.model.ai;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
 
-import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("AI Route")
-public class AiRoute {
+public class AiRouteFallbackConfig {
 
-    private String name;
-    private String version;
-    private List<String> domains;
+    private Boolean enabled;
     private List<AiUpstream> upstreams;
-    private AiRouteAuthConfig authConfig;
-    private AiRouteFallbackConfig fallbackConfig;
+    private String fallbackStrategy;
 
     public void validate() {
-        if (StringUtils.isBlank(name)) {
-            throw new ValidationException("name cannot be blank.");
+        if (!Boolean.TRUE.equals(enabled)) {
+            return;
         }
-        if (CollectionUtils.isEmpty(upstreams)){
-            throw new ValidationException("upstreams cannot be empty.");
+        if (StringUtils.isNotEmpty(fallbackStrategy)) {
+            switch (fallbackStrategy) {
+                case AiRouteFallbackStrategy.RANDOM:
+                case AiRouteFallbackStrategy.SEQUENCE:
+                    break;
+                default:
+                    throw new ValidationException("unknown fallback strategy: " + fallbackStrategy);
+            }
+        }
+        if (CollectionUtils.isEmpty(upstreams)) {
+            throw new ValidationException("upstreams cannot be empty when fallback is enabled.");
         }
         upstreams.forEach(AiUpstream::validate);
-        if (authConfig != null){
-            authConfig.validate();
-        }
-        if (fallbackConfig != null){
-            fallbackConfig.validate();
-        }
     }
 }

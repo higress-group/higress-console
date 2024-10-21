@@ -12,29 +12,12 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
-import org.apache.commons.lang3.StringUtils;
+public final class AiRouteFallbackStrategy {
 
-import com.alibaba.higress.sdk.exception.ValidationException;
-
-import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("AI Route Upstream")
-public class AiUpstream {
-
-    private String provider;
-    private Integer weight;
-
-    public void validate() {
-        if (StringUtils.isEmpty(provider)) {
-            throw new ValidationException("provider cannot be null or empty.");
-        }
+    private AiRouteFallbackStrategy() {
     }
+
+    public static final String RANDOM = "RAND";
+
+    public static final String SEQUENCE = "SEQ";
 }

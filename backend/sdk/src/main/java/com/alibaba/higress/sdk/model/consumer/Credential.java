@@ -55,6 +55,4 @@ public class Credential {
     }
 
     public void validate(boolean forUpdate) {}
-
-    public void maskSensitiveData() {}
 }

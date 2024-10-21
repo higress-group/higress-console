@@ -12,8 +12,11 @@
  */
 package com.alibaba.higress.sdk.service.consumer;
 
+import java.util.List;
+
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 
 public interface ConsumerService {
@@ -25,4 +28,6 @@ public interface ConsumerService {
     Consumer query(String consumerName);
 
     void delete(String consumerName);
+
+    void updateAllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames);
 }

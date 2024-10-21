@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,13 +31,18 @@ import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
+import com.alibaba.higress.sdk.model.ai.AiRouteAuthConfig;
+import com.alibaba.higress.sdk.model.ai.AiRouteFallbackConfig;
+import com.alibaba.higress.sdk.model.ai.AiRouteFallbackStrategy;
 import com.alibaba.higress.sdk.model.ai.AiUpstream;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.RouteService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
@@ -62,15 +68,18 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final LlmProviderService llmProviderService;
 
+    private final ConsumerService consumerService;
+
     private final String routeFallbackEnvoyFilterConfig;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
-        LlmProviderService llmProviderService) {
+        LlmProviderService llmProviderService, ConsumerService consumerService) {
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.kubernetesClientService = kubernetesClientService;
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
+        this.consumerService = consumerService;
 
         try {
             this.routeFallbackEnvoyFilterConfig =
@@ -151,6 +160,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         writeAiRouteResources(route);
+        writeAiRouteFallbackResources(route);
 
         return kubernetesModelConverter.configMap2AiRoute(updatedConfigMap);
     }
@@ -158,13 +168,15 @@ public class AiRouteServiceImpl implements AiRouteService {
     private void writeAiRouteResources(AiRoute aiRoute) {
         String routeName = aiRoute.getName() + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
         Route route = buildRoute(routeName, aiRoute);
+        setUpstreams(route, aiRoute.getUpstreams());
         saveRoute(route);
-
-        writeAiRouteFallbackResources(aiRoute);
+        writeAuthConfigResources(routeName, aiRoute.getAuthConfig());
     }
 
     private void writeAiRouteFallbackResources(AiRoute aiRoute) {
-        if (aiRoute.getFallbackUpstream() == null || StringUtils.isEmpty(aiRoute.getFallbackUpstream().getProvider())) {
+        AiRouteFallbackConfig fallbackConfig = aiRoute.getFallbackConfig();
+        if (fallbackConfig == null || !Boolean.TRUE.equals(fallbackConfig.getEnabled())
+            || CollectionUtils.isEmpty(fallbackConfig.getUpstreams())) {
             return;
         }
 
@@ -178,6 +190,17 @@ public class AiRouteServiceImpl implements AiRouteService {
         fallbackHeaderPredicate.setMatchValue(originalRouteName);
         fallbackHeaderPredicate.setCaseSensitive(true);
         route.setHeaders(List.of(fallbackHeaderPredicate));
+        String fallbackStrategy = fallbackConfig.getFallbackStrategy();
+        List<AiUpstream> fallbackUpStreams;
+        if (StringUtils.isEmpty(fallbackStrategy) || AiRouteFallbackStrategy.RANDOM.equals(fallbackStrategy)) {
+            fallbackUpStreams = fallbackConfig.getUpstreams();
+            fallbackUpStreams.forEach(upstream -> upstream.setWeight(1));
+        } else if (AiRouteFallbackStrategy.SEQUENCE.equals(fallbackStrategy)) {
+            fallbackUpStreams = List.of(fallbackConfig.getUpstreams().get(0));
+        } else {
+            throw new BusinessException("Unknown fallback strategy: " + fallbackStrategy);
+        }
+        setUpstreams(route, fallbackUpStreams);
         saveRoute(route);
 
         StringBuilder envoyFilterBuilder = new StringBuilder(routeFallbackEnvoyFilterConfig);
@@ -199,6 +222,14 @@ public class AiRouteServiceImpl implements AiRouteService {
             throw new BusinessException(
                 "Error occurs when writing the fallback EnvoyFilter for AI route: " + aiRoute.getName(), e);
         }
+
+        writeAuthConfigResources(fallbackRouteName, aiRoute.getAuthConfig());
+    }
+
+    private void writeAuthConfigResources(String routeName, AiRouteAuthConfig authConfig) {
+        List<String> allowedConsumers = authConfig != null && Boolean.TRUE.equals(authConfig.getEnabled())
+            ? authConfig.getAllowedConsumers() : List.of();
+        consumerService.updateAllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
     }
 
     private Route buildRoute(String routeName, AiRoute aiRoute) {
@@ -206,17 +237,23 @@ public class AiRouteServiceImpl implements AiRouteService {
         route.setName(routeName);
         route.setPath(new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true));
         route.setDomains(aiRoute.getDomains());
-        if (aiRoute.getUpstreams() != null) {
-            List<UpstreamService> services = new ArrayList<>(aiRoute.getUpstreams().size());
-            for (AiUpstream upstream : aiRoute.getUpstreams()) {
-                UpstreamService service = llmProviderService.buildUpstreamService(upstream.getProvider());
-                service.setVersion(null);
-                service.setWeight(upstream.getWeight());
-                services.add(service);
-            }
-            route.setServices(services);
-        }
         return route;
+    }
+
+    private void setUpstreams(Route route, List<AiUpstream> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            route.setServices(List.of());
+            return;
+        }
+
+        List<UpstreamService> services = new ArrayList<>(upstreams.size());
+        for (AiUpstream upstream : upstreams) {
+            UpstreamService service = llmProviderService.buildUpstreamService(upstream.getProvider());
+            service.setVersion(null);
+            service.setWeight(upstream.getWeight());
+            services.add(service);
+        }
+        route.setServices(services);
     }
 
     private void deleteAiRouteResources(String aiRouteName) {

@@ -63,11 +63,7 @@ public class ConsumerServiceImpl implements ConsumerService {
                 if (plugin == null) {
                     throw new BusinessException("Plugin " + config.getPluginName() + " not found");
                 }
-                instance = new WasmPluginInstance();
-                instance.setPluginName(plugin.getName());
-                instance.setPluginVersion(plugin.getPluginVersion());
-                instance.setInternal(true);
-                instance.setScope(WasmPluginInstanceScope.GLOBAL);
+                instance = createInstance(WasmPluginInstanceScope.GLOBAL, null, config.getPluginName());
             }
             if (config.saveConsumer(instance, consumer)) {
                 instancesToUpdate.add(instance);
@@ -112,6 +108,18 @@ public class ConsumerServiceImpl implements ConsumerService {
         }
     }
 
+    @Override
+    public void updateAllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
+        for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
+            WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, config.getPluginName(), true);
+            if (instance == null) {
+                instance = createInstance(scope, target, config.getPluginName());
+            }
+            config.updateAllowList(instance, consumerNames);
+            wasmPluginInstanceService.addOrUpdate(instance);
+        }
+    }
+
     private SortedMap<String, Consumer> getConsumers() {
         SortedMap<String, Consumer> consumers = new TreeMap<>();
         for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
@@ -129,5 +137,19 @@ public class ConsumerServiceImpl implements ConsumerService {
             }
         }
         return consumers;
+    }
+
+    private WasmPluginInstance createInstance(WasmPluginInstanceScope scope, String target, String pluginName) {
+        WasmPlugin plugin = wasmPluginService.query(pluginName, null);
+        if (plugin == null) {
+            throw new BusinessException("Plugin " + pluginName + " not found");
+        }
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setPluginName(plugin.getName());
+        instance.setPluginVersion(plugin.getPluginVersion());
+        instance.setInternal(true);
+        instance.setScope(scope);
+        instance.setTarget(target);
+        return instance;
     }
 }

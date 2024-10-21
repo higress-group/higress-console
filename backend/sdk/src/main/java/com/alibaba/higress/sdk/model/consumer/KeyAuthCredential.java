@@ -17,7 +17,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.sdk.util.StringUtil;
 
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
@@ -77,11 +76,5 @@ public class KeyAuthCredential extends Credential {
         if (!forUpdate && StringUtils.isBlank(value)) {
             throw new ValidationException("value cannot be blank.");
         }
-    }
-
-    @Override
-    public void maskSensitiveData() {
-        super.maskSensitiveData();
-        this.value = StringUtil.mask(this.value);
     }
 }

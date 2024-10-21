@@ -111,6 +111,8 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         List<String> tokens = provider.getTokens();
         if (CollectionUtils.isNotEmpty(tokens)) {
             configurations.put(PROVIDER_API_TOKENS_KEY, tokens);
+        } else {
+            configurations.remove(PROVIDER_API_TOKENS_KEY);
         }
 
         TokenFailoverConfig failoverConfig = provider.getTokenFailoverConfig();
