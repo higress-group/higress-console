@@ -1,5 +1,5 @@
 import CodeEditor from '@/components/CodeEditor';
-import { Alert, Form, Spin, Switch, message, Space, Typography, Input, Select, Divider, Tabs } from 'antd';
+import { Alert, Form, Spin, Switch, message, Space, Typography, Input, Select, Divider, Tabs, Card } from 'antd';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import * as servicesApi from '@/services';
@@ -111,7 +111,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       if (!defaultValue) {
         let exampleRaw = res?.schema?.extensions['x-example-raw'];
         if (isChangeExampleRaw) {
-          // 需要冒号后面加空格
+          // Need a space after the colon
           exampleRaw = 'allow: []';
         }
         form.resetFields();
@@ -135,6 +135,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     },
   });
 
+  const handleInputChange = (name, value) => {
+    form.setFieldValue(name, value);
+  };
+
   function getLocalizedText(obj: any, index: string, defaultText: string) {
     const i18nObj = obj[`x-${index}-i18n`];
     return i18nObj && i18nObj[i18next.language] || obj[index] || defaultText || '';
@@ -143,7 +147,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   function generateFields(scm, prefix = '') {
     const properties = scm.properties;
     const requiredFields = scm.required || [];
-    const dict = {};
     if (!properties) {
       return <div>{t('misc.invalidSchema')}</div>;
     }
@@ -156,22 +159,54 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       }
       const isRequired = requiredFields.includes(key);
       if (value.type === 'object' && value.properties) {
-        // 如果是嵌套的对象，则递归生成子表单
-        return generateFields(value, fullKey);
+        // If it's a nested object, recursively generate the sub-form
+        return (
+          <Card
+            title={translatedTitle}
+            style={{
+              marginBottom: 12,
+              padding: '8px',
+            }}
+            key={fullKey}
+          >
+            {generateFields(value, fullKey)}
+          </Card>
+        );
       }
 
       const { type, title } = value;
       let fieldComponent;
       let validationRules = [];
-      if (isRequired) {
+      if (isRequired && currentTabKey !== 'yaml') {
         validationRules.push({ required: true, message: `${translatedTitle} ` + `${t('misc.isRequired')}` });
       }
       switch (type) {
         case 'string':
-          fieldComponent = <Input placeholder={tip || ''} />;
+          fieldComponent = (
+            <Input
+              placeholder={tip || ''}
+              onChange={(e) => handleInputChange(fullKey, e.target.value)}
+            />
+          );
           break;
         case 'integer':
-          fieldComponent = <Input type="number" placeholder={tip || ''} />;
+          fieldComponent = (
+            <Input
+              type="number"
+              placeholder={tip || ''}
+              onChange={(e) => handleInputChange(fullKey, parseInt(e.target.value, 10))}
+            />
+          );
+          break;
+        case 'number':
+          fieldComponent = (
+            <Input
+              type="number"
+              step="any"
+              placeholder={tip || ''}
+              onChange={(e) => handleInputChange(fullKey, parseFloat(e.target.value))}
+            />
+          );
           break;
         case 'boolean':
           fieldComponent = (
@@ -182,7 +217,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           );
           break;
         case 'array':
-          dict[value.items.title] = value.items;
           return (
             <Form.Item
               label={translatedTitle}
@@ -227,10 +261,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           continue;
         }
         const filteredItems = value.filter(item => {
-          //uid用来唯一标识每条数据，转换结果并不需要显示uid，这里删除。
+          // The UID is used to uniquely identify each data item. But the transformation result does not need to display the UID, so it is removed here.
           delete item.uid;
           if ('Item' in item && item.Item === null) {
-            // "Item"是作为纯数组类型字段的里数据名，为避免转换后显示Item:null，这里删除空值部分。
+            // "Item" is used as the data name in purely array type fields. To avoid displaying "Item: null" after conversion, empty values are removed here.
             delete item.Item;
           }
           return Object.keys(item).length > 0;
@@ -273,30 +307,43 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       } else if (Array.isArray(value)) {
         result += `${indent}${key}:\n`;
         value.forEach((item, index) => {
-          if (typeof item === 'object') {
-            // 处理对象的第一个键值对直接跟在 - 后面
-            let firstEntry = true;
-            result += `${indent}  - `;
-            Object.entries(item).forEach(([innerKey, innerValue], i) => {
-              if (firstEntry) {
-                result += `${innerKey}: ${innerValue}`;
-                firstEntry = false;
-              } else {
-                result += `\n${indent}    ${innerKey}: ${innerValue}`;
-              }
-            });
-            result += '\n';
+          if (typeof item === 'object' && !Array.isArray(item)) {
+            // Check if the object has only one key named "Item"
+            const keys = Object.keys(item);
+            if (keys.length === 1 && keys[0] === 'Item') {
+              result += `${indent}  - ${quoteIfString(item.Item)}\n`;
+            } else {
+              // Handle the first key-value pair of the object directly following the '-'
+              let firstEntry = true;
+              result += `${indent}  - `;
+              Object.entries(item).forEach(([innerKey, innerValue], i) => {
+                if (firstEntry) {
+                  result += `${innerKey}: ${quoteIfString(innerValue)}`;
+                  firstEntry = false;
+                } else {
+                  result += `\n${indent}    ${innerKey}: ${quoteIfString(innerValue)}`;
+                }
+              });
+              result += '\n';
+            }
           } else {
-            result += `${indent}  - ${item}\n`;
+            result += `${indent}  - ${quoteIfString(item)}\n`;
           }
         });
       } else if (typeof value === 'object') {
         result += `${indent}${key}:\n${schemaToYaml(value, indent + '  ')}`;
       } else {
-        result += `${indent}${key}: ${value}\n`;
+        result += `${indent}${key}: ${quoteIfString(value)}\n`;
       }
     });
     return result;
+  }
+  
+  function quoteIfString(value) {
+    if (typeof value === 'string') {
+      return `"${value}"`;
+    }
+    return value;
   }
 
   function yamlToFormValues(yamlString) {
@@ -339,24 +386,56 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       return flattenObject(parsedObj, '');
     } catch (error) {
       console.error('Error parsing YAML:', error);
-      return {};
+      return null;
     }
+  }
+
+  function removeOnlyUidItems(obj) {
+    if (Array.isArray(obj)) {
+      return obj.filter(item => {
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+          const keys = Object.keys(item);
+          const nonEmptyKeys = keys.filter(key => item[key] != null && item[key] !== "");
+          if (nonEmptyKeys.length === 1 && nonEmptyKeys.includes('uid')) {
+            return false;
+          }
+        }
+        return true;
+      }).map(removeOnlyUidItems);
+    } else if (typeof obj === 'object' && obj !== null) {
+      const newObj = {};
+      Object.keys(obj).forEach(key => {
+        newObj[key] = removeOnlyUidItems(obj[key]);
+      });
+      return newObj;
+    }
+    return obj;
   }
 
   function mergeValues(a, b) {
     const result = { ...b };
+    a = removeOnlyUidItems(a)
     Object.keys(a).forEach(key => {
-      // 如果 a 中的键存在于 b 中，并且它们都是对象，则递归合并
+      // If the key in a exists in b and both are objects, then recursively merge them
       if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
         result[key] = mergeValues(a[key], result[key]);
-      } else {
+      } 
+      else if (a[key] === '' || a[key] === null){
+        delete result[key];
+      }
+      else {
         result[key] = a[key];
+      }
+      if (Array.isArray(a[key]) && a[key].length === 0){
+        delete result[key];
       }
     });
     return result;
   }
 
   const onSubmit = async () => {
+    let obj = removeOnlyUidItems(form.getFieldsValue())
+    form.setFieldsValue(obj)
     await form.validateFields();
     const values = form.getFieldsValue();
 
@@ -395,7 +474,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }, [pluginName, queryName]);
 
   const resetForm = () => {
-    // 选择插件变化时重置表单和其他状态
+    // Reset the form and other states when the plugin selection changes
     form.resetFields();
     setPluginData(undefined);
     setConfigData(undefined);
@@ -410,13 +489,19 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       setDefaultValue(rawConfigurations);
     } else if (currentTabKey === 'form') {
       let en = form.getFieldsValue().enabled;
+      let formBefore = form.getFieldsValue();
       form.resetFields();
+      if (rawConfigurations) {
+        if (yamlToFormValues(rawConfigurations) != null){
+          form.setFieldsValue(yamlToFormValues(rawConfigurations));
+        }
+        else {
+          form.setFieldsValue(formBefore);
+        }  
+      }
       form.setFieldsValue({
         enabled: en,
       });
-      if (rawConfigurations) {
-        form.setFieldsValue(yamlToFormValues(rawConfigurations));
-      }
       setDefaultValue(rawConfigurations);
     }
   }, [currentTabKey]);
@@ -442,6 +527,15 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       setRawConfigurations(yamlString);
     }
   };
+
+  const tryCatchRender = (scm) => {
+    try {
+        return generateFields(scm);
+    } catch (error) {
+        console.error(error);
+        return <div>{t('misc.invalidSchema')}</div>;
+    }
+  };
   
   return (
     <div>
@@ -456,11 +550,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           <Tabs activeKey={currentTabKey} onChange={(key) => setCurrentTabKey(key)}>
             <TabPane tab={t('misc.switchToForm')} key="form">
               {!getConfigLoading && !getDataLoading && schema && (
-                generateFields(schema.jsonSchema)
+                tryCatchRender(schema.jsonSchema)
               )}
             </TabPane>
             <TabPane tab={t('misc.switchToYAML')} key="yaml">
-              <Divider orientation="left">{t('plugins.configForm.dataEditor')}</Divider>
               {!getConfigLoading && !getDataLoading && (
                 <CodeEditor defaultValue={defaultValue} onChange={(val) => {
                   setRawConfigurations(val);

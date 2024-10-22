@@ -34,7 +34,7 @@ interface EditableCellProps {
   children: React.ReactNode;
   dataIndex: keyof Item;
   record: Item;
-  nodeType: 'select' | 'input';
+  nodeType: string;
   handleSave: (record: Item) => void;
 }
 
@@ -66,13 +66,69 @@ const EditableCell: React.FC<EditableCellProps> = ({
       const values = await form.validateFields();
       handleSave({ ...record, ...values });
     } catch (errInfo) {
-      console.error('Save failed: ', errInfo);
+      handleSave({ ...record, ...form.getFieldsValue() });
     }
   };
 
   let childNode = children;
+  let node;
 
-  const node = <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+  const handleInputChange = (name, value) => {
+    form.setFieldValue(name, value);
+  };
+
+  switch (nodeType) {
+    case 'string':
+      node = (
+        <Input
+          ref={inputRef} 
+          onPressEnter={save} 
+          onBlur={save} 
+          onChange={(e) => handleInputChange(dataIndex, e.target.value)} 
+        />
+      );
+      break;
+    case 'integer':
+      node = (
+        <Input 
+          type="number" 
+          ref={inputRef} 
+          onPressEnter={save} 
+          onBlur={save} 
+          onChange={(e) => handleInputChange(dataIndex, parseInt(e.target.value, 10))}
+        />
+      );
+      break;
+    case 'number':
+      node = (
+        <Input
+          type="number" 
+          step="any" 
+          ref={inputRef} 
+          onPressEnter={save} 
+          onBlur={save} 
+          onChange={(e) => handleInputChange(dataIndex, parseFloat(e.target.value))}
+        />
+      )
+      break;
+    case 'boolean':
+      node = (
+        <Select ref={inputRef} onPressEnter={save} onBlur={save}>
+          <Select.Option value={true}>true</Select.Option>
+          <Select.Option value={false}>false</Select.Option>
+        </Select>
+      );
+      break;
+    default:
+      node = (
+        <Input
+          ref={inputRef} 
+          onPressEnter={save} 
+          onBlur={save} 
+          onChange={(e) => handleInputChange(dataIndex, e.target.value)} 
+        />
+      );
+    }
 
   if (editable) {
     childNode = (
@@ -82,6 +138,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
         rules={[
           {
             required: true,
+            message: `${title} ` + `${t('misc.isRequired')}`
           },
         ]}
       >
@@ -128,6 +185,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
         dataIndex: key,
         editable: true,
         required: isRequired,
+        nodeType: prop.type,
       });
     });
   } else {
@@ -135,6 +193,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       title: t(array.title),
       dataIndex: 'Item',
       editable: true,
+      nodeType: array.type,
     });
   }
 
