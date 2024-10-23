@@ -35,6 +35,7 @@ interface EditableCellProps {
   dataIndex: keyof Item;
   record: Item;
   nodeType: string;
+  required: boolean;
   handleSave: (record: Item) => void;
 }
 
@@ -45,6 +46,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   dataIndex,
   nodeType,
   record,
+  required,
   handleSave,
   ...restProps
 }) => {
@@ -137,7 +139,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
         name={dataIndex}
         rules={[
           {
-            required: true,
+            required: required,
             message: `${title} ` + `${t('misc.isRequired')}`
           },
         ]}
@@ -193,6 +195,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       title: t(array.title),
       dataIndex: 'Item',
       editable: true,
+      required: true,
       nodeType: array.type,
     });
   }
@@ -253,7 +256,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
         dataIndex: col.dataIndex,
         title: col.title,
         required: col.required,
-        nodeType: col.dataIndex === 'matchType' ? 'select' : 'input',
+        nodeType: col.nodeType,
         handleSave,
       }),
     };

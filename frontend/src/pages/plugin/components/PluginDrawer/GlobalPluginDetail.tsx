@@ -420,13 +420,12 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
         result[key] = mergeValues(a[key], result[key]);
       } 
-      else if (a[key] === '' || a[key] === null){
+      else if (!a[key]) {
         delete result[key];
-      }
-      else {
+      } else {
         result[key] = a[key];
       }
-      if (Array.isArray(a[key]) && a[key].length === 0){
+      if (Array.isArray(a[key]) && a[key].length === 0) {
         delete result[key];
       }
     });
@@ -492,10 +491,9 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       let formBefore = form.getFieldsValue();
       form.resetFields();
       if (rawConfigurations) {
-        if (yamlToFormValues(rawConfigurations) != null){
+        if (yamlToFormValues(rawConfigurations) != null) {
           form.setFieldsValue(yamlToFormValues(rawConfigurations));
-        }
-        else {
+        } else {
           form.setFieldsValue(formBefore);
         }  
       }
@@ -543,7 +541,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         {alertStatus.isShow && (
           <Alert style={{ marginBottom: '10px' }} message={alertStatus.message} type="warning" showIcon />
         )}
-        <Form name="basic" form={form} autoComplete="off" layout="vertical" onFieldsChange={fieldChange} key={defaultValue}>
+        <Form name="basic" form={form} autoComplete="off" layout="vertical" onFieldsChange={fieldChange}>
           <Form.Item label={t('plugins.configForm.enableStatus')} name="enabled" valuePropName="checked">
             <Switch />
           </Form.Item>
@@ -555,7 +553,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             </TabPane>
             <TabPane tab={t('misc.switchToYAML')} key="yaml">
               {!getConfigLoading && !getDataLoading && (
-                <CodeEditor defaultValue={defaultValue} onChange={(val) => {
+                // Set defaultValue as the key to force a refresh of CodeEditor
+                <CodeEditor defaultValue={defaultValue} key={defaultValue} onChange={(val) => {
                   setRawConfigurations(val);
                 }} />
               )}
