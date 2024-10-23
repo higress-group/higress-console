@@ -115,7 +115,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       break;
     case 'boolean':
       node = (
-        <Select ref={inputRef} onPressEnter={save} onBlur={save}>
+        <Select ref={inputRef} onBlur={save}>
           <Select.Option value={true}>true</Select.Option>
           <Select.Option value={false}>false</Select.Option>
         </Select>

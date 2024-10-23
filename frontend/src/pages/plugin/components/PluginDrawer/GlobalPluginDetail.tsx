@@ -219,6 +219,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         case 'array':
           return (
             <Form.Item
+              key={fullKey}
               label={translatedTitle}
               name={fullKey}
               rules={validationRules}
@@ -234,7 +235,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
       return (
         <Form.Item
-          key={translatedTitle}
+          key={fullKey}
           name={fullKey}
           label={translatedTitle}
           rules={validationRules}
