@@ -420,8 +420,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       // If the key in a exists in b and both are objects, then recursively merge them
       if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
         result[key] = mergeValues(a[key], result[key]);
-      } 
-      else if (!a[key]) {
+      } else if (!a[key]) {
         delete result[key];
       } else {
         result[key] = a[key];
