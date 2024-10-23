@@ -341,7 +341,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   
   function quoteIfString(value) {
     if (typeof value === 'string') {
-      return `"${value}"`;
+      const escapedValue = JSON.stringify(value);
+      return escapedValue;
     }
     return value;
   }
