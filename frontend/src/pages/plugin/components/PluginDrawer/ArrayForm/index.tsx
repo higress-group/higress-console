@@ -36,7 +36,7 @@ interface EditableCellProps {
   record: Item;
   nodeType: string;
   required: boolean;
-  handleSave: (record: Item) => void;
+  handleSave: (record: Item, valid: boolean) => void;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -64,12 +64,11 @@ const EditableCell: React.FC<EditableCellProps> = ({
   }, [editing]);
 
   const save = async () => {
-    try {
-      const values = await form.validateFields();
-      handleSave({ ...record, ...values });
-    } catch (errInfo) {
-      handleSave({ ...record, ...form.getFieldsValue() });
-    }
+    form.validateFields().then(values => {
+      handleSave({ ...record, ...values }, true);
+    }).catch (e => {
+      handleSave({ ...record, ...form.getFieldsValue()}, false);
+    })
   };
 
   let childNode = children;
@@ -156,6 +155,8 @@ type EditableTableProps = Parameters<typeof Table>[0];
 
 interface DataType {
   uid: number;
+  new: boolean;
+  invalid: boolean;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -191,8 +192,9 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       });
     });
   } else {
+    let translatedTitle = getLocalizedText(array, 'title', '');
     defaultColumns.push({
-      title: t(array.title),
+      title: translatedTitle,
       dataIndex: 'Item',
       editable: true,
       required: true,
@@ -214,6 +216,8 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
   const handleAdd = () => {
     const newData: DataType = {
       uid: uniqueId(),
+      new: true,
+      invalid: true,
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
@@ -225,13 +229,15 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     onChange(newData);
   };
 
-  const handleSave = (row: DataType) => {
+  const handleSave = (row: DataType, valid: boolean) => {
     const newData = [...dataSource];
     const index = newData.findIndex((item) => row.uid === item.uid);
     const item = newData[index];
     newData.splice(index, 1, {
       ...item,
       ...row,
+      new: false,
+      invalid: !valid,
     });
     setDataSource(newData);
     onChange(newData);

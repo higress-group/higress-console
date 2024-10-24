@@ -139,6 +139,19 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     form.setFieldValue(name, value);
   };
 
+  const validateArrayTypes = (value) => {
+    const validTypes = ['string', 'integer', 'number', 'boolean'];
+    if (value.type !== 'object') {
+      return validTypes.includes(value.type);
+    }
+    if (value.properties) {
+      return Object.values(value.properties).every(property => {
+        return validTypes.includes(property.type);
+      });
+    }
+    return false;
+  };
+
   function getLocalizedText(obj: any, index: string, defaultText: string) {
     const i18nObj = obj[`x-${index}-i18n`];
     return i18nObj && i18nObj[i18next.language] || obj[index] || defaultText || '';
@@ -150,15 +163,15 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     if (!properties) {
       return <div>{t('misc.invalidSchema')}</div>;
     }
-    return Object.entries(properties).map(([key, value]) => {
+    return Object.entries(properties).map(([key, property]) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
-      let translatedTitle = getLocalizedText(value, 'title', key);
+      let translatedTitle = getLocalizedText(property, 'title', key);
       let tip = null;
-      if (value.hasOwnProperty('description')) {
-        tip = getLocalizedText(value, 'description', value.description);
+      if (property.hasOwnProperty('description')) {
+        tip = getLocalizedText(property, 'description', property.description);
       }
       const isRequired = requiredFields.includes(key);
-      if (value.type === 'object' && value.properties) {
+      if (property.type === 'object' && property.properties) {
         // If it's a nested object, recursively generate the sub-form
         return (
           <Card
@@ -169,12 +182,12 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             }}
             key={fullKey}
           >
-            {generateFields(value, fullKey)}
+            {generateFields(property, fullKey)}
           </Card>
         );
       }
 
-      const { type, title } = value;
+      const { type, title } = property;
       let fieldComponent;
       let validationRules = [];
       if (isRequired && currentTabKey !== 'yaml') {
@@ -217,6 +230,17 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           );
           break;
         case 'array':
+          if (!validateArrayTypes(property.items)){
+            throw new Error(`Unsupported array's type`);
+          }
+          validationRules.push({
+            validator(_, value) {
+              if (Array.isArray(value) && value.some(i => !i.new && i.invalid)) {
+                return Promise.reject();
+              }
+              return Promise.resolve();
+            }
+          });
           return (
             <Form.Item
               key={fullKey}
@@ -224,7 +248,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
               name={fullKey}
               rules={validationRules}
             >
-              <ArrayForm array={value.items} />
+              <ArrayForm array={property.items} />
             </Form.Item>
           );
         case 'object':
@@ -248,35 +272,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   function formValuesToSchema(formValues) {
     const result = {};
-    function processFormValues(formValues) {
-      const newFormValues = JSON.parse(JSON.stringify(formValues));
-      for (const key in newFormValues) {
-        if (!newFormValues.hasOwnProperty(key)) {
-          continue;
-        }
-        const value = newFormValues[key];
-        if (!Array.isArray(value)) {
-          continue;
-        }
-        if (!value.every(item => typeof item === 'object' && !Array.isArray(item))) {
-          continue;
-        }
-        const filteredItems = value.filter(item => {
-          // The UID is used to uniquely identify each data item. But the transformation result does not need to display the UID, so it is removed here.
-          delete item.uid;
-          if ('Item' in item && item.Item === null) {
-            // "Item" is used as the data name in purely array type fields. To avoid displaying "Item: null" after conversion, empty values are removed here.
-            delete item.Item;
-          }
-          return Object.keys(item).length > 0;
-        });
-        newFormValues[key] = filteredItems;
-      }
-      return newFormValues;
-    }
-
-    formValues = processFormValues(formValues);
-
+    const newFormValues = JSON.parse(JSON.stringify(formValues));
+    formValues = processFormValues(newFormValues);
     function buildObjectFromPath(path, value) {
       const parts = path.split('.');
       let current = result;
@@ -392,22 +389,26 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     }
   }
 
-  function removeOnlyUidItems(obj) {
+  function processFormValues(obj) {
     if (Array.isArray(obj)) {
       return obj.filter(item => {
         if (item && typeof item === 'object' && !Array.isArray(item)) {
+          // Remove unnecessary fields for the YAML result
+          delete item.uid;
+          delete item.new;
+          delete item.invalid;
           const keys = Object.keys(item);
           const nonEmptyKeys = keys.filter(key => item[key] != null && item[key] !== "");
-          if (nonEmptyKeys.length === 1 && nonEmptyKeys.includes('uid')) {
+          if (nonEmptyKeys.length === 0) {
             return false;
           }
         }
         return true;
-      }).map(removeOnlyUidItems);
+      }).map(processFormValues);
     } else if (typeof obj === 'object' && obj !== null) {
       const newObj = {};
       Object.keys(obj).forEach(key => {
-        newObj[key] = removeOnlyUidItems(obj[key]);
+        newObj[key] = processFormValues(obj[key]);
       });
       return newObj;
     }
@@ -416,7 +417,8 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   function mergeValues(a, b) {
     const result = { ...b };
-    a = removeOnlyUidItems(a)
+    const newA = JSON.parse(JSON.stringify(a));
+    a = processFormValues(newA);
     Object.keys(a).forEach(key => {
       // If the key in a exists in b and both are objects, then recursively merge them
       if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
@@ -434,8 +436,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }
 
   const onSubmit = async () => {
-    let obj = removeOnlyUidItems(form.getFieldsValue())
-    form.setFieldsValue(obj)
     await form.validateFields();
     const values = form.getFieldsValue();
 
@@ -529,10 +529,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   const tryCatchRender = (scm) => {
     try {
-        return generateFields(scm);
+      return generateFields(scm);
     } catch (error) {
-        console.error(error);
-        return <div>{t('misc.invalidSchema')}</div>;
+      console.error(error);
+      return <div>{t('misc.invalidSchema')}</div>;
     }
   };
   
