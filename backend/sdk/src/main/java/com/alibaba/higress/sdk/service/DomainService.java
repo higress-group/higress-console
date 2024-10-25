@@ -26,5 +26,7 @@ public interface DomainService {
 
     void delete(String domainName);
 
-    Domain put(Domain domain);
+    Domain put(Domain domain) throws BusinessException;
+
+    Domain addOrUpdate(Domain domain) throws BusinessException;
 }

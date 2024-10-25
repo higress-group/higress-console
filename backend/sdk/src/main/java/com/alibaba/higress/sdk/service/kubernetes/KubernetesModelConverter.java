@@ -38,6 +38,13 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecTls;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -183,6 +190,41 @@ public class KubernetesModelConverter {
         return true;
     }
 
+    public boolean isGatewaySupported(V1Gateway gateway) {
+        if (gateway.getMetadata() == null) {
+            return false;
+        }
+        V1GatewaySpec spec = gateway.getSpec();
+        if (spec == null) {
+            return false;
+        }
+        if (StringUtils.isEmpty(spec.getGatewayClassName())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return false;
+        }
+        // Check each listener
+        for (V1GatewaySpecListeners listener : spec.getListeners()) {
+            if (StringUtils.isEmpty(listener.getName())) {
+                return false;
+            }
+            if (listener.getProtocol() == null ||
+                    (!listener.getProtocol().equals("HTTP") && !listener.getProtocol().equals("HTTPS"))) {
+                return false;
+            }
+            if (listener.getProtocol().equals("HTTPS")) {
+                V1GatewaySpecTls tls = listener.getTls();
+                if (tls == null || CollectionUtils.isEmpty(tls.getCertificateRefs())) {
+                    return false;
+                }
+            }
+            if (listener.getPort() == null || listener.getPort() <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
     public Route ingress2Route(V1Ingress ingress) {
         Route route = new Route();
         fillRouteMetadata(route, ingress.getMetadata());
@@ -200,6 +242,43 @@ public class KubernetesModelConverter {
         fillIngressCors(ingress, route);
         fillIngressAnnotations(ingress, route);
         return ingress;
+    }
+
+    public V1Gateway domain2Gateway(Domain domain){
+        V1Gateway gateway = new V1Gateway();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName(domainName2GatewayName(domain.getName()));
+        metadata.setResourceVersion(domain.getVersion());
+        // TODO: consider the gateway's spec here.
+        metadata.setNamespace(HigressConstants.NS_DEFAULT);
+        gateway.setMetadata(metadata);
+        // set the gateway address to higress-gateway
+        V1GatewaySpec spec = new V1GatewaySpec().addDefaultAddress();
+        spec.setGatewayClassName(V1GatewayClass.DEFAULT_NAME);
+        List<V1GatewaySpecListeners> listeners = new ArrayList<>();
+        if (domain.getPortAndCertMap().isEmpty()){
+            log.error("Domain must have at least one port!");
+            return null;
+        }
+        domain.getPortAndCertMap().forEach((port, cert) -> {
+            V1GatewaySpecListeners listener = new V1GatewaySpecListeners();
+            listener.setName(KubernetesUtil.normalizeDomainName(domain.getName())+Separators.DASH+port);
+            listener.setPort(port);
+            if (!Separators.ASTERISK.equals(domain.getName())) {
+                listener.setHostname(domain.getName());
+            }
+            listener.setProtocol("HTTP");
+            if (!"".equals(cert)){
+                listener.setProtocol("HTTPS");
+                V1GatewaySpecTls tls = V1GatewaySpecListeners.getDefaultTls(cert);
+                listener.setTls(tls);
+            }
+            listener.setAllowedRoutes(V1GatewaySpecListeners.getDefaultAllowedRoutes());
+            listeners.add(listener);
+        });
+        spec.setListeners(listeners);
+        gateway.setSpec(spec);
+        return gateway;
     }
 
     private static void fillRouteCors(Route route, V1ObjectMeta metadata) {
@@ -250,7 +329,7 @@ public class KubernetesModelConverter {
 
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
-        configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
+        configMap.put(KubernetesConstants.K8S_CERT, JSON.toJSONString(domain.getPortAndCertMap()));
         configMap.put(KubernetesConstants.K8S_ENABLE_HTTPS, domain.getEnableHttps());
         domainConfigMap.data(configMap);
 
@@ -270,7 +349,16 @@ public class KubernetesModelConverter {
             throw new IllegalArgumentException("No data is found in the ConfigMap.");
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
-        domain.setCertIdentifier(configMapData.get(KubernetesConstants.K8S_CERT));
+        String certData = configMapData.get(KubernetesConstants.K8S_CERT);
+        try {
+            domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
+        }catch(JSONException e){
+            // ingress-style cert (Only String) -> turn to map[443:certName]
+            Map<Integer, String> portCertMap = new HashMap<>();
+            portCertMap.put(443, certData);
+            domain.setPortAndCertMap(portCertMap);
+        }
+
         domain.setEnableHttps(configMapData.get(KubernetesConstants.K8S_ENABLE_HTTPS));
         return domain;
     }
@@ -278,6 +366,13 @@ public class KubernetesModelConverter {
     public String domainName2ConfigMapName(String domainName) {
         return CommonKey.DOMAIN_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
     }
+
+    public String domainName2GatewayName(String domainName) {
+        return KubernetesUtil.normalizeDomainName(domainName).replace('.', '-');
+    }
+
+    public String gatewayName2DomainName(String gatewayName) {
+        return gatewayName.replace('-', '.');
 
     public V1ConfigMap aiRoute2ConfigMap(AiRoute route) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
@@ -1452,7 +1547,7 @@ public class KubernetesModelConverter {
                 continue;
             }
 
-            if (StringUtils.isEmpty(domain.getCertIdentifier())) {
+            if (StringUtils.isEmpty(domain.getPortAndCertMap().get(443))) {
                 continue;
             }
 
@@ -1460,7 +1555,7 @@ public class KubernetesModelConverter {
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
-            tls.setSecretName(domain.getCertIdentifier());
+            tls.setSecretName(domain.getPortAndCertMap().get(443));
             if (tlses == null) {
                 tlses = new ArrayList<>();
                 spec.setTls(tlses);
