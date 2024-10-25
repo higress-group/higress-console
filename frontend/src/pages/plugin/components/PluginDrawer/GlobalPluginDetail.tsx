@@ -167,7 +167,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       let translatedTitle = getLocalizedText(property, 'title', key);
       let tip = null;
-      if (property.hasOwnProperty('description')) {
+      if ('description' in property) {
         tip = getLocalizedText(property, 'description', property.description);
       }
       const isRequired = requiredFields.includes(key);
@@ -191,7 +191,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       let fieldComponent;
       let validationRules = [];
       if (isRequired && currentTabKey !== 'yaml') {
-        validationRules.push({ required: true, message: `${translatedTitle} ` + `${t('misc.isRequired')}` });
+        validationRules.push({ required: true, message: `${translatedTitle} ${t('misc.isRequired')}` });
       }
       switch (type) {
         case 'string':
@@ -224,13 +224,13 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         case 'boolean':
           fieldComponent = (
             <Select placeholder={tip || ''}>
-              <Select.Option value={true}>true</Select.Option>
+              <Select.Option value>true</Select.Option>
               <Select.Option value={false}>false</Select.Option>
             </Select>
           );
           break;
         case 'array':
-          if (!validateArrayTypes(property.items)){
+          if (!validateArrayTypes(property.items)) {
             throw new Error(`Unsupported array's type`);
           }
           validationRules.push({
@@ -239,7 +239,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
                 return Promise.reject();
               }
               return Promise.resolve();
-            }
+            },
           });
           return (
             <Form.Item
@@ -336,7 +336,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     });
     return result;
   }
-  
+
   function quoteIfString(value) {
     if (typeof value === 'string') {
       const escapedValue = JSON.stringify(value);
@@ -349,7 +349,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     try {
       const parsedObj = yaml.load(yamlString);
       let uidCounter = 1;
-      function flattenObject(obj, parentKey = '') {
+      const flattenObject = (obj, parentKey = '') => {
         let flatResult = {};
         let currentUid = uidCounter;
         Object.keys(obj).forEach(key => {
@@ -421,9 +421,13 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     a = processFormValues(newA);
     Object.keys(a).forEach(key => {
       // If the key in a exists in b and both are objects, then recursively merge them
-      if (a[key] != null && result.hasOwnProperty(key) && typeof a[key] === 'object' && !Array.isArray(a[key]) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+      if (
+        a[key] != null && key in result &&
+        typeof a[key] === 'object' && !Array.isArray(a[key]) &&
+        typeof result[key] === 'object' && !Array.isArray(result[key])
+      ) {
         result[key] = mergeValues(a[key], result[key]);
-      } else if (!a[key]) {
+      } else if (!a[key] && a[key] !== false) {
         delete result[key];
       } else {
         result[key] = a[key];
@@ -496,7 +500,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           form.setFieldsValue(yamlToFormValues(rawConfigurations));
         } else {
           form.setFieldsValue(formBefore);
-        }  
+        }
       }
       form.setFieldsValue({
         enabled: en,
@@ -535,7 +539,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       return <div>{t('misc.invalidSchema')}</div>;
     }
   };
-  
+
   return (
     <div>
       <Spin spinning={getConfigLoading || getDataLoading || updateLoading}>
@@ -554,10 +558,14 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
             </TabPane>
             <TabPane tab={t('misc.switchToYAML')} key="yaml">
               {!getConfigLoading && !getDataLoading && (
-                // Set defaultValue as the key to force a refresh of CodeEditor
-                <CodeEditor defaultValue={defaultValue} key={defaultValue} onChange={(val) => {
-                  setRawConfigurations(val);
-                }} />
+                <CodeEditor
+                  defaultValue={defaultValue}
+                  // Set defaultValue as the key to force a refresh of CodeEditor
+                  key={defaultValue}
+                  onChange={(val) => {
+                    setRawConfigurations(val);
+                  }}
+                />
               )}
             </TabPane>
           </Tabs>

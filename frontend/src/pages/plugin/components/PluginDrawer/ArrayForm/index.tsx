@@ -66,8 +66,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const save = async () => {
     form.validateFields().then(values => {
       handleSave({ ...record, ...values }, true);
-    }).catch (e => {
-      handleSave({ ...record, ...form.getFieldsValue()}, false);
+    }).catch(e => {
+      handleSave({ ...record, ...form.getFieldsValue() }, false);
     })
   };
 
@@ -82,20 +82,20 @@ const EditableCell: React.FC<EditableCellProps> = ({
     case 'string':
       node = (
         <Input
-          ref={inputRef} 
-          onPressEnter={save} 
-          onBlur={save} 
-          onChange={(e) => handleInputChange(dataIndex, e.target.value)} 
+          ref={inputRef}
+          onPressEnter={save}
+          onBlur={save}
+          onChange={(e) => handleInputChange(dataIndex, e.target.value)}
         />
       );
       break;
     case 'integer':
       node = (
-        <Input 
-          type="number" 
-          ref={inputRef} 
-          onPressEnter={save} 
-          onBlur={save} 
+        <Input
+          type="number"
+          ref={inputRef}
+          onPressEnter={save}
+          onBlur={save}
           onChange={(e) => handleInputChange(dataIndex, parseInt(e.target.value, 10))}
         />
       );
@@ -103,11 +103,11 @@ const EditableCell: React.FC<EditableCellProps> = ({
     case 'number':
       node = (
         <Input
-          type="number" 
-          step="any" 
-          ref={inputRef} 
-          onPressEnter={save} 
-          onBlur={save} 
+          type="number"
+          step="any"
+          ref={inputRef}
+          onPressEnter={save}
+          onBlur={save}
           onChange={(e) => handleInputChange(dataIndex, parseFloat(e.target.value))}
         />
       )
@@ -115,7 +115,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     case 'boolean':
       node = (
         <Select ref={inputRef} onBlur={save}>
-          <Select.Option value={true}>true</Select.Option>
+          <Select.Option value>true</Select.Option>
           <Select.Option value={false}>false</Select.Option>
         </Select>
       );
@@ -123,13 +123,13 @@ const EditableCell: React.FC<EditableCellProps> = ({
     default:
       node = (
         <Input
-          ref={inputRef} 
-          onPressEnter={save} 
-          onBlur={save} 
-          onChange={(e) => handleInputChange(dataIndex, e.target.value)} 
+          ref={inputRef}
+          onPressEnter={save}
+          onBlur={save}
+          onChange={(e) => handleInputChange(dataIndex, e.target.value)}
         />
       );
-    }
+  }
 
   if (editable) {
     childNode = (
@@ -138,8 +138,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
         name={dataIndex}
         rules={[
           {
-            required: required,
-            message: `${title} ` + `${t('misc.isRequired')}`
+            required,
+            message: `${title} ${t('misc.isRequired')}`,
           },
         ]}
       >
@@ -206,11 +206,11 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     dataIndex: 'operation',
     width: 60,
     render: (_, record: { uid: number }) =>
-    (dataSource.length >= 1 ? (
-      <div onClick={() => handleDelete(record.uid)}>
-        <DeleteOutlined />
-      </div>
-    ) : null),
+      (dataSource.length >= 1 ? (
+        <div onClick={() => handleDelete(record.uid)}>
+          <DeleteOutlined />
+        </div>
+      ) : null),
   });
 
   const handleAdd = () => {
