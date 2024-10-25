@@ -145,7 +145,11 @@
         "set": "Set",
         "remove": "Remove",
         "action": "Action",
-        "addNewRule": "Add New Rule"
+        "addNewRule": "Add New Rule",
+        "headerTypeRequired": "Please select header type",
+        "actionTypeRequired": "Please select action type",
+        "keyRequired": "Please input header key",
+        "valueRequired": "Please input header value"
       },
       "cors": {
         "allowOrigins": "Allow Origins",

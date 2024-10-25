@@ -1,0 +1,68 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: ai
+  image: platform_wasm/json-resp
+  name: ai-json-resp
+  title: AI JSON Format
+  x-title-i18n:
+    zh-CN: AI JSON 格式化
+  description: LLM Response Structuring Plugin, designed to structure AI responses based on a default or user-configured JSON Schema, facilitating subsequent plugin processing. Note that currently, only non-streaming responses are supported.
+  x-description-i18n:
+    zh-CN: LLM响应结构化插件，用于根据默认或用户配置的Json Schema对AI的响应进行结构化，以便后续插件处理。注意目前只支持非流式响应。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+spec:
+  phase: default
+  priority: 150
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceName: qwen
+        serviceDomain: dashscope.aliyuncs.com
+        apiKey: [Your API Key]
+        servicePath: /compatible-mode/v1/chat/completions
+        jsonSchema:
+          title: ReasoningSchema
+          type: object
+          properties:
+            reasoning_steps:
+              type: array
+              items:
+                type: string
+              description: The reasoning steps leading to the final conclusion.
+            answer:
+              type: string
+              description: The final answer, taking into account the reasoning steps.
+          required:
+            - reasoning_steps
+            - answer
+          additionalProperties: false
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        serviceName: qwen
+        serviceDomain: dashscope.aliyuncs.com
+        apiKey: [Your API Key]
+        servicePath: /compatible-mode/v1/chat/completions
+        jsonSchema:
+          title: ReasoningSchema
+          type: object
+          properties:
+            reasoning_steps:
+              type: array
+              items:
+                type: string
+              description: The reasoning steps leading to the final conclusion.
+            answer:
+              type: string
+              description: The final answer, taking into account the reasoning steps.
+          required:
+            - reasoning_steps
+            - answer
+          additionalProperties: false

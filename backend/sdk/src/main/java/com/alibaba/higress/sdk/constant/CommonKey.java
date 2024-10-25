@@ -25,4 +25,8 @@ public class CommonKey {
     public static final String DOMAIN = "domain";
 
     public static final String DOMAIN_PREFIX = DOMAIN + Separators.DASH;
+
+    public static final String AI_ROUTE = "ai-route";
+
+    public static final String AI_ROUTE_PREFIX = AI_ROUTE + Separators.DASH;
 }

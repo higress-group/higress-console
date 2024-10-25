@@ -32,3 +32,7 @@ export const getYamlEmptyValString = (value) => {
   yamlString = yamlString.replaceAll("'######'", '');
   return yamlString;
 };
+
+export const isInternalResource = (name: string) => {
+  return name && name.endsWith('.internal');
+};

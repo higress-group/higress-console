@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: enterprise
   category: security
-  name: bot-detect/v1
+  name: bot-detect
+  image: platform_wasm/bot-detect
   title: Bot Detect
   x-title-i18n:
     zh-CN: 机器人拦截
@@ -18,6 +21,12 @@ spec:
   phase: AUTHZ
   priority: 310
   configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        blocked_code: 404
+        blocked_message: "resource not found"
+  routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:

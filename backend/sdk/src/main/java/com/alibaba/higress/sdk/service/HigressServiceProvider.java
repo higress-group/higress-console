@@ -15,6 +15,9 @@ package com.alibaba.higress.sdk.service;
 import java.io.IOException;
 
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
+import com.alibaba.higress.sdk.service.ai.AiRouteService;
+import com.alibaba.higress.sdk.service.ai.LlmProviderService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
@@ -44,4 +47,10 @@ public interface HigressServiceProvider {
     WasmPluginService wasmPluginService();
 
     WasmPluginInstanceService wasmPluginInstanceService();
+
+    ConsumerService consumerService();
+
+    AiRouteService aiRouteService();
+
+    LlmProviderService llmProviderService();
 }

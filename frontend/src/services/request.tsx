@@ -19,7 +19,7 @@ request.interceptors.request.use((config) => {
       ...config.headers,
     };
   }
-  if (config.method && config.method.toUpperCase() == 'GET' && config.url) {
+  if (config.method && config.method.toUpperCase() === 'GET' && config.url) {
     config.url = `${config.url}${config.url.indexOf('?') === -1 ? '?' : '&'}ts=${Date.now()}`;
   }
   return config;

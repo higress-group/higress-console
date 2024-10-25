@@ -25,23 +25,29 @@ public enum WasmPluginInstanceScope {
     /**
      * Global
      */
-    GLOBAL("global"),
+    GLOBAL("global", 0),
     /**
      * Domain level
      */
-    DOMAIN("domain"),
+    DOMAIN("domain", 10),
     /**
      * Route level
      */
-    ROUTE("route");
+    ROUTE("route", 100),
+    /**
+     * Service level
+     */
+    SERVICE("service", 1000);
 
     private static final Map<String, WasmPluginInstanceScope> ID_SCOPE_MAPPING = Arrays
         .stream(WasmPluginInstanceScope.values()).collect(Collectors.toMap(WasmPluginInstanceScope::getId, s -> s));
 
     private final String id;
+    private final int priority;
 
-    WasmPluginInstanceScope(String id) {
+    WasmPluginInstanceScope(String id, int priority) {
         this.id = id;
+        this.priority = priority;
     }
 
     public static WasmPluginInstanceScope fromId(String id) {

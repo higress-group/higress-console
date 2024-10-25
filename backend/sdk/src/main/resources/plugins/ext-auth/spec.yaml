@@ -1,0 +1,42 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: "2.0.0"
+  type: oss
+  category: auth
+  name: ext-auth
+  image: platform_wasm/ext-auth
+  title: Ext Auth
+  x-title-i18n:
+    zh-CN: 外部认证
+  description: Sends an authentication request to an external authorization service to check whether the client request is authorized.
+  x-description-i18n:
+    zh-CN: 实现了向外部授权服务发送鉴权请求，以检查客户端请求是否得到授权。
+  iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: hanxiantao
+spec:
+  phase: AUTHN
+  priority: 360
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        http_service:
+          endpoint_mode: envoy
+          endpoint:
+            service_name: ext-auth.backend.svc.cluster.local
+            service_port: 8090
+            path_prefix: /auth
+          timeout: 1000
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        http_service:
+          endpoint_mode: envoy
+          endpoint:
+            service_name: ext-auth.backend.svc.cluster.local
+            service_port: 8090
+            path_prefix: /auth
+          timeout: 1000

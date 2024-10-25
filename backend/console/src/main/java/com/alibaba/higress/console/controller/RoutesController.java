@@ -29,10 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
-import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.sdk.service.RouteService;
 
 @RestController("RoutesController")
@@ -55,6 +56,12 @@ public class RoutesController {
 
     @PostMapping
     public ResponseEntity<Response<Route>> add(@RequestBody Route route) {
+        if (StringUtils.isEmpty(route.getName())){
+            throw new ValidationException("Route name is required.");
+        }
+        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Adding an internal route is not allowed.");
+        }
         return ControllerUtil.buildResponseEntity(routeService.add(route));
     }
 
@@ -66,11 +73,17 @@ public class RoutesController {
         } else if (!StringUtils.equals(routeName, route.getName())) {
             throw new ValidationException("Route name in the URL doesn't match the one in the body.");
         }
+        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Updating an internal route is not allowed.");
+        }
         return ControllerUtil.buildResponseEntity(routeService.update(route));
     }
 
     @DeleteMapping("/{name}")
     public ResponseEntity<Response<Route>> delete(@PathVariable("name") @NotBlank String name) {
+        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Deleting an internal route is not allowed.");
+        }
         routeService.delete(name);
         return ResponseEntity.noContent().build();
     }

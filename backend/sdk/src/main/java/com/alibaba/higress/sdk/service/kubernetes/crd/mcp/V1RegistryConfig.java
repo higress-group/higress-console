@@ -22,9 +22,20 @@ import lombok.Data;
 public class V1RegistryConfig {
 
     /**
+     * tcp,http,https,http2,grpc,grpcs,dubbo
+     */
+    public static final String SERIALIZED_NAME_PROTOCOL = "protocol";
+    @SerializedName(SERIALIZED_NAME_PROTOCOL)
+    private String protocol;
+
+    public static final String SERIALIZED_NAME_SNI = "sni";
+    @SerializedName(SERIALIZED_NAME_SNI)
+    private String sni;
+
+    public static final String SERIALIZED_NAME_TYPE = "type";
+    /**
      * nacos,nacos2,zookeeper,consul,eureka
      */
-    public static final String SERIALIZED_NAME_TYPE = "type";
     @SerializedName(SERIALIZED_NAME_TYPE)
     private String type;
 
