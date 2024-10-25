@@ -1,7 +1,10 @@
 apiVersion: 1.0.0
 info:
+  gatewayMinVersion: ""
+  type: oss
   category: traffic
   name: request-validation
+  image: platform_wasm/request-validation
   title: Request Validation
   x-title-i18n:
     zh-CN: 请求校验
@@ -17,6 +20,19 @@ info:
 spec:
   phase: AUTHN
   priority: 220
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        body_schema:
+          type: object
+          required:
+            - boolean_payload
+          properties:
+            boolean_payload:
+              type: boolean
+        rejected_code: 403
+        rejected_msg: "请求被拒绝"
   configSchema:
     openAPIV3Schema:
       type: object

@@ -142,7 +142,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
     }
 
     @Override
-    public ServiceSource query(String name) throws BusinessException {
+    public ServiceSource query(String name) {
         V1McpBridge mcpBridge;
         try {
             mcpBridge = kubernetesClientService.readMcpBridge(V1McpBridge.DEFAULT_NAME);
@@ -200,7 +200,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
         return serviceSource;
     }
 
-    private void syncAuthSecret(ServiceSource serviceSource, V1RegistryConfig registry) throws BusinessException {
+    private void syncAuthSecret(ServiceSource serviceSource, V1RegistryConfig registry) {
         ServiceSourceAuthN authN = serviceSource.getAuthN();
         boolean authEnabledCurrent = StringUtils.isNotBlank(registry.getAuthSecretName());
         boolean authEnabledTarget = authN != null && Boolean.TRUE.equals(authN.getEnabled());

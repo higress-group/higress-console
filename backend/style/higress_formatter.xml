@@ -268,7 +268,7 @@
     <setting id="org.eclipse.jdt.core.formatter.insert_space_after_question_in_conditional" value="insert"/>
     <!--org.eclipse.jdt.core.formatter.insert_space_before_question_in_conditional=Java:SPACE_BEFORE_QUEST-->
     <setting id="org.eclipse.jdt.core.formatter.insert_space_before_question_in_conditional" value="insert"/>
-    <!--org.eclipse.jdt.core.formatter.insert_space_before_opening_paren_in_annotation=Java:SPACE_BEFORE_ANOTATION_PARAMETER_LIST-->
+    <!--org.eclipse.jdt.core.formatter.insert_space_before_opening_paren_in_annotation=Java:SPACE_BEFORE_ANNOTATION_PARAMETER_LIST-->
     <setting id="org.eclipse.jdt.core.formatter.insert_space_before_opening_paren_in_annotation"
              value="do not insert"/>
 

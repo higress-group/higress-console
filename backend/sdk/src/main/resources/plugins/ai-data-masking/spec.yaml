@@ -1,0 +1,92 @@
+apiVersion: 1.0.0
+info:
+  type: oss
+  category: ai
+  image: platform_wasm/ai-data-masking
+  name: ai-data-masking
+  title: AI data masking
+  x-title-i18n:
+    zh-CN: AI 数据脱敏
+  description: Intercept, replace, and restore sensitive information in requests/responses.
+  x-description-i18n:
+    zh-CN: 对请求/响应中的敏感信息进行拦截、替换、还原
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+  gatewayMinVersion: "2.0.0"    
+spec:
+  phase: AUTHN
+  priority: 991
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        system_deny: true
+        deny_openai: true
+        deny_jsonpath:
+          - "$.messages[*].content"
+        deny_message: "Question or answer contains sensitive words and has been blocked."
+        deny_words:
+          - "Custom Sensitive Word 1"
+          - "Custom Sensitive Word 2"
+        replace_roles:
+          - regex: "%{MOBILE}"
+            type: "replace"
+            value: "****"
+            # Phone number: 13800138000 -> ****
+          - regex: "%{EMAILLOCALPART}@%{HOSTNAME:domain}"
+            type: "replace"
+            restore: true
+            value: "****@$domain"
+            # Email:  admin@gmail.com -> ****@gmail.com
+          - regex: "%{IP}"
+            type: "replace"
+            restore: true
+            value: "***.***.***.***"
+            # IP: 192.168.0.1 -> ***.***.***.***
+          - regex: "%{IDCARD}"
+            type: "replace"
+            value: "****"
+            # ID card: 110000000000000000 -> ****
+          - regex: "sk-[0-9a-zA-Z]*"
+            restore: true
+            type: "hash"
+            # hash sk-12345 -> 9cb495455da32f41567dab1d07f1973d
+            # The hashed value is provided to the large model, and within the data returned by the large model, the hash value is reversed back to its original value.
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        system_deny: true
+        deny_openai: true
+        deny_jsonpath:
+          - "$.messages[*].content"
+        deny_message: "Question or answer contains sensitive words and has been blocked."
+        deny_words:
+          - "Custom Sensitive Word 1"
+          - "Custom Sensitive Word 2"
+        replace_roles:
+          - regex: "%{MOBILE}"
+            type: "replace"
+            value: "****"
+            # Phone number: 13800138000 -> ****
+          - regex: "%{EMAILLOCALPART}@%{HOSTNAME:domain}"
+            type: "replace"
+            restore: true
+            value: "****@$domain"
+            # Email:  admin@gmail.com -> ****@gmail.com
+          - regex: "%{IP}"
+            type: "replace"
+            restore: true
+            value: "***.***.***.***"
+            # IP: 192.168.0.1 -> ***.***.***.***
+          - regex: "%{IDCARD}"
+            type: "replace"
+            value: "****"
+            # ID card: 110000000000000000 -> ****
+          - regex: "sk-[0-9a-zA-Z]*"
+            restore: true
+            type: "hash"
+            # hash sk-12345 -> 9cb495455da32f41567dab1d07f1973d
+            # The hashed value is provided to the large model, and within the data returned by the large model, the hash value is reversed back to its original value.

@@ -51,7 +51,13 @@ export default function Layout() {
       }}
       menu={{ defaultOpenAll: true }}
       menuDataRender={(items) => {
-        return items.filter(i => !i.hideFromMenu).map(i => Object.assign({}, i, { name: t(i.name || '') }));
+        function translateMenuItem(item) {
+          return Object.assign({}, item, {
+            name: t(item.name || ''),
+            children: item.children && item.children.map(translateMenuItem) || null,
+          })
+        }
+        return items.filter(i => !i.hideFromMenu).map(translateMenuItem);
       }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {
@@ -76,11 +82,12 @@ function findRouteByPath(route: Route, pathname?: string): Route | undefined {
     return route;
   }
 
-  if (route.routes) {
-    for (const subRoute of route.routes) {
-      const matchedSubRoute = findRouteByPath(subRoute, pathname);
-      if (matchedSubRoute) {
-        return matchedSubRoute;
+  const childRoutes = route.routes || route.children;
+  if (childRoutes) {
+    for (const child of childRoutes) {
+      const matchedRoute = findRouteByPath(child, pathname);
+      if (matchedRoute) {
+        return matchedRoute;
       }
     }
   }

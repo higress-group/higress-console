@@ -1,0 +1,68 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: transform
+  name: frontend-gray
+  image: platform_wasm/frontend-gray
+  title: Frontend Gray
+  x-title-i18n:
+    zh-CN: 前端灰度
+  description: Implement the function of frontend user grayscale. Through this plugin, not only can it be used for business A/B experiments, but also through grayscale matching with monitoring, rollback strategies to ensure the stability of system release and operation and maintenance.
+  x-description-i18n:
+    zh-CN: 实现了前端用户灰度的的功能，通过此插件，不但可以用于业务 A/B 实验，同时通过可灰度配合可监控，可回滚策略保证系统发布运维的稳定性。
+  iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: heimanba
+spec:
+  phase: AUTHN
+  priority: 450
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        grayKey: userid
+        rules:
+          - name: inner-user
+            grayKeyValue:
+              - '00000001'
+              - '00000005'
+          - name: beta-user
+            grayKeyValue:
+              - '00000002'
+              - '00000003'
+            grayTagKey: level
+            grayTagValue:
+              - level3
+              - level5
+        baseDeployment:
+          version: base
+        grayDeployments:
+          - name: beta-user
+            version: gray
+            enabled: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        grayKey: userid
+        rules:
+          - name: inner-user
+            grayKeyValue:
+              - '00000001'
+              - '00000005'
+          - name: beta-user
+            grayKeyValue:
+              - '00000002'
+              - '00000003'
+            grayTagKey: level
+            grayTagValue:
+              - level3
+              - level5
+        baseDeployment:
+          version: base
+        grayDeployments:
+          - name: beta-user
+            version: gray
+            enabled: true

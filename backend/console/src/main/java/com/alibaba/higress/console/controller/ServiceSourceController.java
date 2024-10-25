@@ -27,13 +27,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.sdk.model.ServiceSource;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.CommonPageQuery;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 
 @RestController("ServiceSourceController")
@@ -58,6 +59,9 @@ public class ServiceSourceController {
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
+        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Adding an internal service source is not allowed.");
+        }
         ServiceSource finalServiceSource = serviceSourceService.add(serviceSource);
         stripSensitiveInfo(finalServiceSource);
         return ControllerUtil.buildResponseEntity(finalServiceSource);
@@ -70,6 +74,9 @@ public class ServiceSourceController {
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
+        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Updating an internal service source is not allowed.");
+        }
         ServiceSource finalServiceSource = serviceSourceService.addOrUpdate(serviceSource);
         stripSensitiveInfo(finalServiceSource);
         return ControllerUtil.buildResponseEntity(finalServiceSource);
@@ -77,6 +84,9 @@ public class ServiceSourceController {
 
     @DeleteMapping("/{name}")
     public ResponseEntity<Response<ServiceSource>> delete(@PathVariable("name") @NotBlank String name) {
+        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+            throw new ValidationException("Deleting an internal service source is not allowed.");
+        }
         serviceSourceService.delete(name);
         return ResponseEntity.noContent().build();
     }
