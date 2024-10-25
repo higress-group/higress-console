@@ -96,6 +96,7 @@ public class KubernetesUtil {
         return name;
     }
 
+
     public static String joinLabelSelectors(String... selectors) {
         return String.join(Separators.COMMA,
             Arrays.stream(selectors).filter(StringUtils::isNotBlank).toArray(String[]::new));
