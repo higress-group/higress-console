@@ -21,6 +21,8 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -112,6 +114,13 @@ public class ConsumerServiceImpl implements ConsumerService {
     public void updateAllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
         for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
             WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, config.getPluginName(), true);
+            if (CollectionUtils.isEmpty(consumerNames)) {
+                if (instance != null) {
+                    wasmPluginInstanceService.delete(scope, target, config.getPluginName());
+                }
+                continue;
+            }
+
             if (instance == null) {
                 instance = createInstance(scope, target, config.getPluginName());
             }

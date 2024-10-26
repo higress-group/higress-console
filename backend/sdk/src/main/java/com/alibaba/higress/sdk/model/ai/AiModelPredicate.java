@@ -12,14 +12,20 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
-public final class LlmProviderType {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    private LlmProviderType() {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AiModelPredicate {
+
+    private Boolean enabled;
+    private String prefix;
+
+    public void validate() {
     }
-
-    public static final String QWEN = "qwen";
-
-    public static final String OPENAI = "openai";
-
-    public static final String MOONSHOT = "moonshot";
 }

@@ -57,6 +57,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     static {
         PROVIDER_HANDLERS = Stream.of(
             new DefaultLlmProviderHandler(LlmProviderType.OPENAI, "api.openai.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.QWEN, "dashscope.aliyuncs.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS))
             .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
