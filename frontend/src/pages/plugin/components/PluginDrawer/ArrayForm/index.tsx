@@ -11,6 +11,7 @@ const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface Item {
   key: string;
+  data: object;
 }
 
 interface EditableRowProps {
@@ -60,15 +61,17 @@ const EditableCell: React.FC<EditableCellProps> = ({
   });
 
   useEffect(() => {
-    form.setFieldsValue({ ...record });
-  }, [editing]);
+    if (record && record.data) {
+      form.setFieldsValue({ ...record.data });
+    }
+  }, [editing, record]);
 
   const save = async () => {
     form.validateFields().then(values => {
-      handleSave({ ...record, ...values }, true);
+      handleSave({ ...record, data: values }, true);
     }).catch(e => {
-      handleSave({ ...record, ...form.getFieldsValue() }, false);
-    })
+      handleSave({ ...record, data: form.getFieldsValue() }, false);
+    });
   };
 
   let childNode = children;
@@ -110,7 +113,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
           onBlur={save}
           onChange={(e) => handleInputChange(dataIndex, parseFloat(e.target.value))}
         />
-      )
+      );
       break;
     case 'boolean':
       node = (
@@ -157,6 +160,7 @@ interface DataType {
   uid: number;
   new: boolean;
   invalid: boolean;
+  data: object;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -169,9 +173,12 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     if (!item.uid) {
       item.uid = uniqueId();
     }
+    if (!item.data) {
+      item.data = {};
+    }
   }
 
-  const [dataSource, setDataSource] = useState<DataType[]>(value || []);
+  const [dataSource, setDataSource] = useState<DataType[]>(initDataSource);
 
   function getLocalizedText(obj: any, index: string, defaultText: string) {
     const i18nObj = obj[`x-${index}-i18n`];
@@ -218,6 +225,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       uid: uniqueId(),
       new: true,
       invalid: true,
+      data: {},
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
