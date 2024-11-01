@@ -36,6 +36,7 @@ public class AiRoute {
     private String version;
     private List<String> domains;
     private List<AiUpstream> upstreams;
+    private AiModelPredicate modelPredicate;
     private AiRouteAuthConfig authConfig;
     private AiRouteFallbackConfig fallbackConfig;
 
@@ -47,6 +48,9 @@ public class AiRoute {
             throw new ValidationException("upstreams cannot be empty.");
         }
         upstreams.forEach(AiUpstream::validate);
+        if (modelPredicate != null){
+            modelPredicate.validate();
+        }
         if (authConfig != null){
             authConfig.validate();
         }

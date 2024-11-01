@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
@@ -126,7 +127,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     }
 
     protected static String generateServiceProviderName(String llmProviderName) {
-        return HigressConstants.LLM_SERVICE_NAME_PREFIX + llmProviderName
+        return CommonKey.LLM_SERVICE_NAME_PREFIX + llmProviderName
             + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
     }
 

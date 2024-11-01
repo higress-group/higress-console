@@ -28,6 +28,7 @@ public final class BuiltInPluginName {
     public static final String AI_INTENT = "ai-intent";
     public static final String AI_QUOTA = "ai-quota";
     public static final String AI_AGENT = "ai-agent";
+    public static final String MODEL_ROUTER = "model-router";
 
     // Auth
     public static final String BASIC_AUTH = "basic-auth";

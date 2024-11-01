@@ -15,14 +15,18 @@ package com.alibaba.higress.sdk.service.ai;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -31,7 +35,10 @@ import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.WasmPlugin;
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.ai.AiModelPredicate;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
 import com.alibaba.higress.sdk.model.ai.AiRouteAuthConfig;
 import com.alibaba.higress.sdk.model.ai.AiRouteFallbackConfig;
@@ -42,6 +49,8 @@ import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.RouteService;
+import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.WasmPluginService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
@@ -60,6 +69,9 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
         Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
+    private static final String MODEL_ROUTER_ENABLE_KEY = "enable";
+    private static final String ADD_HEADER_KEY_KEY = "add_header_key";
+
     private final KubernetesModelConverter kubernetesModelConverter;
 
     private final KubernetesClientService kubernetesClientService;
@@ -70,16 +82,23 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final ConsumerService consumerService;
 
+    private final WasmPluginService wasmPluginService;
+
+    private final WasmPluginInstanceService wasmPluginInstanceService;
+
     private final String routeFallbackEnvoyFilterConfig;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
-        LlmProviderService llmProviderService, ConsumerService consumerService) {
+        LlmProviderService llmProviderService, ConsumerService consumerService, WasmPluginService wasmPluginService,
+        WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.kubernetesClientService = kubernetesClientService;
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
         this.consumerService = consumerService;
+        this.wasmPluginService = wasmPluginService;
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
 
         try {
             this.routeFallbackEnvoyFilterConfig =
@@ -94,6 +113,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     @Override
     public AiRoute add(AiRoute route) {
+        fillDefaultValues(route);
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap newConfigMap;
         try {
@@ -147,6 +167,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     @Override
     public AiRoute update(AiRoute route) {
+        fillDefaultValues(route);
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap updatedConfigMap;
         try {
@@ -165,12 +186,21 @@ public class AiRouteServiceImpl implements AiRouteService {
         return kubernetesModelConverter.configMap2AiRoute(updatedConfigMap);
     }
 
+    private void fillDefaultValues(AiRoute route) {
+        AiModelPredicate modelPredicate = route.getModelPredicate();
+        if (modelPredicate != null && Boolean.TRUE.equals(modelPredicate.getEnabled())
+            && StringUtils.isEmpty(modelPredicate.getPrefix())) {
+            modelPredicate.setPrefix(route.getName());
+        }
+    }
+
     private void writeAiRouteResources(AiRoute aiRoute) {
-        String routeName = aiRoute.getName() + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+        String routeName = buildRouteResourceName(aiRoute.getName());
         Route route = buildRoute(routeName, aiRoute);
         setUpstreams(route, aiRoute.getUpstreams());
         saveRoute(route);
         writeAuthConfigResources(routeName, aiRoute.getAuthConfig());
+        writeModelRouteResources(aiRoute.getModelPredicate());
     }
 
     private void writeAiRouteFallbackResources(AiRoute aiRoute) {
@@ -180,16 +210,18 @@ public class AiRouteServiceImpl implements AiRouteService {
             return;
         }
 
-        final String originalRouteName = aiRoute.getName() + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+        final String originalRouteName = buildRouteResourceName(aiRoute.getName());
 
-        final String fallbackRouteName = aiRoute.getName() + HigressConstants.FALLBACK_ROUTE_NAME_SUFFIX
-            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+        final String fallbackRouteName = buildFallbackRouteResourceName(aiRoute.getName());
         Route route = buildRoute(fallbackRouteName, aiRoute);
         KeyedRoutePredicate fallbackHeaderPredicate = new KeyedRoutePredicate(HigressConstants.FALLBACK_FROM_HEADER);
         fallbackHeaderPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.name());
         fallbackHeaderPredicate.setMatchValue(originalRouteName);
         fallbackHeaderPredicate.setCaseSensitive(true);
-        route.setHeaders(List.of(fallbackHeaderPredicate));
+        if (route.getHeaders() == null) {
+            route.setHeaders(new ArrayList<>());
+        }
+        route.getHeaders().add(fallbackHeaderPredicate);
         String fallbackStrategy = fallbackConfig.getFallbackStrategy();
         List<AiUpstream> fallbackUpStreams;
         if (StringUtils.isEmpty(fallbackStrategy) || AiRouteFallbackStrategy.RANDOM.equals(fallbackStrategy)) {
@@ -232,11 +264,59 @@ public class AiRouteServiceImpl implements AiRouteService {
         consumerService.updateAllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
     }
 
+    private void writeModelRouteResources(AiModelPredicate modelPredicate) {
+        if (modelPredicate == null || !Boolean.TRUE.equals(modelPredicate.getEnabled())) {
+            return;
+        }
+
+        final String pluginName = BuiltInPluginName.MODEL_ROUTER;
+        WasmPluginInstance instance =
+            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
+        if (instance == null) {
+            WasmPlugin plugin = wasmPluginService.query(pluginName, null);
+            if (plugin == null) {
+                throw new BusinessException("Plugin " + pluginName + " not found");
+            }
+            instance = new WasmPluginInstance();
+            instance.setPluginName(plugin.getName());
+            instance.setPluginVersion(plugin.getPluginVersion());
+            instance.setInternal(true);
+            instance.setScope(WasmPluginInstanceScope.GLOBAL);
+        }
+        instance.setEnabled(true);
+
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            // Just in case it is a readonly empty map.
+            configurations = new HashMap<>();
+            instance.setConfigurations(configurations);
+        }
+
+        configurations.put(MODEL_ROUTER_ENABLE_KEY, Boolean.TRUE);
+        configurations.put(ADD_HEADER_KEY_KEY, HigressConstants.MODEL_ROUTER_HEADER);
+
+        wasmPluginInstanceService.addOrUpdate(instance);
+    }
+
     private Route buildRoute(String routeName, AiRoute aiRoute) {
         Route route = new Route();
         route.setName(routeName);
         route.setPath(new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true));
         route.setDomains(aiRoute.getDomains());
+
+        AiModelPredicate modelPredicate = aiRoute.getModelPredicate();
+        if (modelPredicate != null && Boolean.TRUE.equals(modelPredicate.getEnabled())
+            && StringUtils.isNotEmpty(modelPredicate.getPrefix())) {
+            KeyedRoutePredicate modelHeaderPredicate = new KeyedRoutePredicate(HigressConstants.MODEL_ROUTER_HEADER);
+            modelHeaderPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.name());
+            modelHeaderPredicate.setMatchValue(modelPredicate.getPrefix());
+            modelHeaderPredicate.setCaseSensitive(true);
+            if (route.getHeaders() == null) {
+                route.setHeaders(new ArrayList<>());
+            }
+            route.getHeaders().add(modelHeaderPredicate);
+        }
+
         return route;
     }
 
@@ -257,20 +337,19 @@ public class AiRouteServiceImpl implements AiRouteService {
     }
 
     private void deleteAiRouteResources(String aiRouteName) {
-        String routeName = aiRouteName + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
-        routeService.delete(routeName);
+        String resourceName = buildRouteResourceName(aiRouteName);
+        routeService.delete(resourceName);
 
         try {
-            kubernetesClientService.deleteEnvoyFilter(routeName);
+            kubernetesClientService.deleteEnvoyFilter(resourceName);
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND) {
-                throw new BusinessException("Error occurs when deleting the EnvoyFilter with name: " + routeName, e);
+                throw new BusinessException("Error occurs when deleting the EnvoyFilter with name: " + resourceName, e);
             }
         }
 
-        String fallbackRouteName =
-            aiRouteName + HigressConstants.FALLBACK_ROUTE_NAME_SUFFIX + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
-        routeService.delete(fallbackRouteName);
+        String fallbackResourceName = buildFallbackRouteResourceName(aiRouteName);
+        routeService.delete(fallbackResourceName);
     }
 
     private void saveRoute(Route route) {
@@ -281,5 +360,14 @@ public class AiRouteServiceImpl implements AiRouteService {
             route.setVersion(existedRoute.getVersion());
             routeService.update(route);
         }
+    }
+
+    private static String buildRouteResourceName(String routeName) {
+        return CommonKey.AI_ROUTE_PREFIX + routeName + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+    }
+
+    private static String buildFallbackRouteResourceName(String routeName) {
+        return CommonKey.AI_ROUTE_PREFIX + routeName + HigressConstants.FALLBACK_ROUTE_NAME_SUFFIX
+            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
     }
 }
