@@ -289,7 +289,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
     function processArray(array) {
       return array.map(item => {
-        if (item.data) {
+        if (item.data != null && item.data !== "") {
           return item.data;
         }
         return item;
@@ -321,22 +321,18 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           if (typeof item === 'object' && !Array.isArray(item)) {
             // Check if the object has only one key named "Item"
             const keys = Object.keys(item);
-            if (keys.length === 1 && keys[0] === 'Item') {
-              result += `${indent}  - ${quoteIfString(item.Item)}\n`;
-            } else {
-              // Handle the first key-value pair of the object directly following the '-'
-              let firstEntry = true;
-              result += `${indent}  - `;
-              Object.entries(item).forEach(([innerKey, innerValue], i) => {
-                if (firstEntry) {
-                  result += `${innerKey}: ${quoteIfString(innerValue)}`;
-                  firstEntry = false;
-                } else {
-                  result += `\n${indent}    ${innerKey}: ${quoteIfString(innerValue)}`;
-                }
-              });
-              result += '\n';
-            }
+            // Handle the first key-value pair of the object directly following the '-'
+            let firstEntry = true;
+            result += `${indent}  - `;
+            Object.entries(item).forEach(([innerKey, innerValue], i) => {
+              if (firstEntry) {
+                result += `${innerKey}: ${quoteIfString(innerValue)}`;
+                firstEntry = false;
+              } else {
+                result += `\n${indent}    ${innerKey}: ${quoteIfString(innerValue)}`;
+              }
+            });
+            result += '\n';
           } else {
             result += `${indent}  - ${quoteIfString(item)}\n`;
           }
@@ -369,13 +365,13 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           if (Array.isArray(obj[key])) {
             obj[key].forEach((item, index) => {
               const uid = uidCounter++;
-              const newItem = { uid, data: {} };
+              const newItem = { uid, data: item === 'object' ? {} : '' };
               if (typeof item === 'object' && item !== null) {
                 Object.keys(item).forEach(subKey => {
                   newItem.data[subKey] = item[subKey];
                 });
               } else {
-                newItem.data.Item = item;
+                newItem.data = item;
               }
               flatResult[newKey] = flatResult[newKey] || [];
               flatResult[newKey].push(newItem);
@@ -401,9 +397,13 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       return obj.filter(item => {
         if (item && typeof item === 'object' && !Array.isArray(item)) {
           // Remove empty data
-          const keys = Object.keys(item.data);
-          const nonEmptyKeys = keys.filter(key => item.data[key] != null && item.data[key] !== "");
-          if (nonEmptyKeys.length === 0) {
+          if (typeof item.data === 'object') {
+            const keys = Object.keys(item.data);
+            const nonEmptyKeys = keys.filter(key => item.data[key] != null && item.data[key] !== "");
+            if (nonEmptyKeys.length === 0) {
+              return false;
+            }
+          } else if (!item.data && item.data !== false) {
             return false;
           }
         }

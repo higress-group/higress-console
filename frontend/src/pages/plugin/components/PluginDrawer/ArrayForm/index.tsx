@@ -11,7 +11,7 @@ const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface Item {
   key: string;
-  data: object;
+  data: any;
 }
 
 interface EditableRowProps {
@@ -61,8 +61,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
   });
 
   useEffect(() => {
-    if (record && record.data) {
-      form.setFieldsValue({ ...record.data });
+    if (record && record.data != null && record.data !== "") {
+      if (typeof record.data === 'object') {
+        form.setFieldsValue({ ...record.data });
+      } else {
+        form.setFieldsValue({ Item: record.data });
+      }
     }
   }, [editing, record]);
 
@@ -160,7 +164,7 @@ interface DataType {
   uid: number;
   new: boolean;
   invalid: boolean;
-  data: object;
+  data: any;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -172,9 +176,6 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
   for (const item of initDataSource) {
     if (!item.uid) {
       item.uid = uniqueId();
-    }
-    if (!item.data) {
-      item.data = {};
     }
   }
 
@@ -225,7 +226,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       uid: uniqueId(),
       new: true,
       invalid: true,
-      data: {},
+      data: array.type === 'object' ? {} : '',
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
@@ -241,11 +242,13 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     const newData = [...dataSource];
     const index = newData.findIndex((item) => row.uid === item.uid);
     const item = newData[index];
+    const newDataValue = array.type === 'object' ? row.data : row.data.Item;
     newData.splice(index, 1, {
       ...item,
       ...row,
       new: false,
       invalid: !valid,
+      data: newDataValue,
     });
     setDataSource(newData);
     onChange(newData);
