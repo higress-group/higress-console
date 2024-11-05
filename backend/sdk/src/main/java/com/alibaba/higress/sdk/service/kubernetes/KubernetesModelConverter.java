@@ -72,6 +72,7 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -449,6 +450,7 @@ public class KubernetesModelConverter {
         spec.setPhase(plugin.getPhase());
         spec.setPriority(plugin.getPriority());
         spec.setUrl(buildImageUrl(plugin.getImageRepository(), plugin.getImageVersion()));
+        setDefaultValues(spec);
         cr.setSpec(spec);
 
         return cr;
@@ -479,6 +481,7 @@ public class KubernetesModelConverter {
             dstSpec.getMatchRules().addAll(srcSpec.getMatchRules());
         }
         sortWasmPluginMatchRules(dstSpec.getMatchRules());
+        setDefaultValues(dstSpec);
     }
 
     public List<WasmPluginInstance> getWasmPluginInstancesFromCr(V1alpha1WasmPlugin plugin) {
@@ -727,6 +730,7 @@ public class KubernetesModelConverter {
                 throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
         sortWasmPluginMatchRules(matchRules);
+        setDefaultValues(spec);
     }
 
     public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, WasmPluginInstanceScope scope, String target) {
@@ -865,6 +869,10 @@ public class KubernetesModelConverter {
             return 0;
         }
         return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
+    }
+
+    private static void setDefaultValues(V1alpha1WasmPluginSpec spec) {
+        spec.setFailStrategy(FailStrategy.FAIL_OPEN.getName());
     }
 
     private static int compareStringLists(List<String> l1, List<String> l2) {
