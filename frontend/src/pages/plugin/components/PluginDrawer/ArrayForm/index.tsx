@@ -9,6 +9,8 @@ import i18next from 'i18next';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
+const PRIMITIVE_VALUE_DATA_INDEX = "Item";
+
 interface Item {
   key: string;
   data: any;
@@ -65,7 +67,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       if (typeof record.data === 'object') {
         form.setFieldsValue({ ...record.data });
       } else {
-        form.setFieldsValue({ Item: record.data });
+        form.setFieldValue(PRIMITIVE_VALUE_DATA_INDEX, record.data);
       }
     }
   }, [editing, record]);
@@ -203,7 +205,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     let translatedTitle = getLocalizedText(array, 'title', '');
     defaultColumns.push({
       title: translatedTitle,
-      dataIndex: 'Item',
+      dataIndex: PRIMITIVE_VALUE_DATA_INDEX,
       editable: true,
       required: true,
       nodeType: array.type,
@@ -242,7 +244,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     const newData = [...dataSource];
     const index = newData.findIndex((item) => row.uid === item.uid);
     const item = newData[index];
-    const newDataValue = array.type === 'object' ? row.data : row.data.Item;
+    const newDataValue = array.type === 'object' ? row.data : row.data[PRIMITIVE_VALUE_DATA_INDEX];
     newData.splice(index, 1, {
       ...item,
       ...row,

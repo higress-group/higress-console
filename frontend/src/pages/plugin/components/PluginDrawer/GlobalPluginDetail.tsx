@@ -319,7 +319,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
         result += `${indent}${key}:\n`;
         value.forEach((item, index) => {
           if (typeof item === 'object' && !Array.isArray(item)) {
-            // Check if the object has only one key named "Item"
             const keys = Object.keys(item);
             // Handle the first key-value pair of the object directly following the '-'
             let firstEntry = true;
