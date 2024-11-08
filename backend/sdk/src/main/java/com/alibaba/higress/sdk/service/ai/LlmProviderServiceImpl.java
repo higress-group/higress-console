@@ -12,8 +12,10 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import static com.alibaba.higress.sdk.service.ai.LlmProviderHandler.PROVIDER_ID_KEY;
-import static com.alibaba.higress.sdk.service.ai.LlmProviderHandler.PROVIDER_TYPE_KEY;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.ACTIVE_PROVIDER_ID;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDERS;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,13 +30,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.BuiltInPluginName;
-import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
-import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
@@ -43,14 +43,10 @@ import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.WasmPluginService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
 @SuppressWarnings("unchecked")
 public class LlmProviderServiceImpl implements LlmProviderService {
-
-    private static final String ACTIVE_PROVIDER_ID_KEY = "activeProviderId";
-    private static final String PROVIDERS_KEY = "providers";
 
     private static final Map<String, LlmProviderHandler> PROVIDER_HANDLERS;
 
@@ -59,18 +55,39 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.OPENAI, "api.openai.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.QWEN, "dashscope.aliyuncs.com", 443,
-                V1McpBridge.PROTOCOL_HTTPS))
+                V1McpBridge.PROTOCOL_HTTPS),
+            new AzureLlmProviderHandler(),
+            new DefaultLlmProviderHandler(LlmProviderType.AI360, "api.360.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.GITHUB, "models.inference.ai.azure.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.GROQ, "api.groq.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.BAICHUAN, "api.baichuan-ai.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.YI, "api.lingyiwanwu.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.DEEPSEEK, "api.deepseek.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new OllamaLlmProviderHandler(),
+            new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.minimax.chat", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "aip.baidubce.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.STEPFUN, "api.stepfun.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.MINIMAX, "api.minimax.chat", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.GEMINI, "generativelanguage.googleapis.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.MISTRAL, "api.mistral.ai", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.COHERE, "api.cohere.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.DOUBAO, "ark.cn-beijing.volces.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS))
             .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
     }
 
     private final ServiceSourceService serviceSourceService;
-    private final WasmPluginService wasmPluginService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
-    public LlmProviderServiceImpl(ServiceSourceService serviceSourceService, WasmPluginService wasmPluginService,
+    public LlmProviderServiceImpl(ServiceSourceService serviceSourceService,
         WasmPluginInstanceService wasmPluginInstanceService) {
         this.serviceSourceService = serviceSourceService;
-        this.wasmPluginService = wasmPluginService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
@@ -81,22 +98,17 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
         }
 
+        handler.validateConfig(provider.getRawConfigs());
+
         fillDefaultValues(provider);
 
         final String pluginName = BuiltInPluginName.AI_PROXY;
         WasmPluginInstance instance =
             wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
         if (instance == null) {
-            WasmPlugin plugin = wasmPluginService.query(pluginName, null);
-            if (plugin == null) {
-                throw new BusinessException("Plugin " + pluginName + " not found");
-            }
-            instance = new WasmPluginInstance();
-            instance.setPluginName(plugin.getName());
-            instance.setPluginVersion(plugin.getPluginVersion());
+            instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
             instance.setInternal(true);
-            instance.setScope(WasmPluginInstanceScope.GLOBAL);
-            instance.setConfigurations(new HashMap<>());
+            instance.setGlobalTarget();
         }
         instance.setEnabled(true);
 
@@ -107,10 +119,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             instance.setConfigurations(configurations);
         }
 
-        Object providersObj = configurations.get(PROVIDERS_KEY);
+        Object providersObj = configurations.get(PROVIDERS);
         if (!(providersObj instanceof List)) {
             providersObj = new ArrayList<>();
-            configurations.put(PROVIDERS_KEY, providersObj);
+            configurations.put(PROVIDERS, providersObj);
         }
 
         List<Object> providers = (List<Object>)providersObj;
@@ -120,7 +132,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 continue;
             }
             Map<String, Object> providerMap = (Map<String, Object>)providerObj;
-            if (provider.getName().equals(providerMap.get(PROVIDER_ID_KEY))) {
+            if (provider.getName().equals(providerMap.get(PROVIDER_ID))) {
                 providerConfig = providerMap;
                 break;
             }
@@ -129,21 +141,23 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             providerConfig = new HashMap<>();
             providers.add(providerConfig);
         }
+        if (MapUtils.isNotEmpty(provider.getRawConfigs())) {
+            providerConfig.putAll(provider.getRawConfigs());
+        }
         handler.saveConfig(provider, providerConfig);
         wasmPluginInstanceService.addOrUpdate(instance);
 
-        ServiceSource serviceSource = handler.buildServiceSource(provider.getName());
+        ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
         serviceSourceService.addOrUpdate(serviceSource);
 
-        UpstreamService upstreamService = handler.buildUpstreamService(provider.getName());
+        UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
         WasmPluginInstance serviceInstance = new WasmPluginInstance();
         serviceInstance.setPluginName(instance.getPluginName());
         serviceInstance.setPluginVersion(instance.getPluginVersion());
-        serviceInstance.setScope(WasmPluginInstanceScope.SERVICE);
-        serviceInstance.setTarget(upstreamService.getName());
+        serviceInstance.setTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName());
         serviceInstance.setEnabled(true);
         serviceInstance.setInternal(true);
-        serviceInstance.setConfigurations(Map.of(ACTIVE_PROVIDER_ID_KEY, provider.getName()));
+        serviceInstance.setConfigurations(Map.of(ACTIVE_PROVIDER_ID, provider.getName()));
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
 
         return query(provider.getName());
@@ -167,8 +181,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         // Find the global config.
-        WasmPluginInstance globalInstance = instances.stream()
-            .filter(instance -> WasmPluginInstanceScope.GLOBAL.equals(instance.getScope())).findFirst().orElse(null);
+        WasmPluginInstance globalInstance =
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
 
         if (globalInstance == null) {
             return;
@@ -179,7 +193,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             return;
         }
 
-        Object providersObj = globalConfigurations.get(PROVIDERS_KEY);
+        Object providersObj = globalConfigurations.get(PROVIDERS);
         if (!(providersObj instanceof List)) {
             return;
         }
@@ -193,7 +207,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 continue;
             }
             Map<String, Object> providerMap = (Map<String, Object>)providerObj;
-            if (providerName.equals(providerMap.get(PROVIDER_ID_KEY))) {
+            if (providerName.equals(providerMap.get(PROVIDER_ID))) {
                 providers.remove(i);
                 deletedProvider = providerMap;
                 break;
@@ -205,14 +219,14 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         // Delete other resources related to the deleted provider.
-        Object type = deletedProvider.get(PROVIDER_TYPE_KEY);
+        Object type = deletedProvider.get(PROVIDER_TYPE);
         if (type != null) {
             LlmProviderHandler handler = PROVIDER_HANDLERS.get((String)type);
             if (handler != null) {
-                UpstreamService upstreamService = handler.buildUpstreamService(providerName);
+                UpstreamService upstreamService = handler.buildUpstreamService(providerName, deletedProvider);
                 wasmPluginInstanceService.delete(WasmPluginInstanceScope.SERVICE, upstreamService.getName(),
                     BuiltInPluginName.AI_PROXY);
-                ServiceSource serviceSource = handler.buildServiceSource(providerName);
+                ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
                 serviceSourceService.delete(serviceSource.getName());
             }
         }
@@ -234,7 +248,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 "Provider type " + provider.getType() + " of provider " + providerName + " is not supported");
         }
 
-        return handler.buildUpstreamService(provider.getName());
+        return handler.buildUpstreamService(provider.getName(), provider.getRawConfigs());
     }
 
     private SortedMap<String, LlmProvider> getProviders() {
@@ -246,7 +260,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         if (MapUtils.isEmpty(instance.getConfigurations())) {
             return new TreeMap<>();
         }
-        Object providersObj = instance.getConfigurations().get(PROVIDERS_KEY);
+        Object providersObj = instance.getConfigurations().get(PROVIDERS);
         if (!(providersObj instanceof List<?> providerList)) {
             return new TreeMap<>();
         }
@@ -265,7 +279,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     }
 
     private LlmProvider extractProvider(Map<String, Object> configurations) {
-        String type = MapUtils.getString(configurations, PROVIDER_TYPE_KEY);
+        String type = MapUtils.getString(configurations, PROVIDER_TYPE);
         if (StringUtils.isBlank(type)) {
             return null;
         }
