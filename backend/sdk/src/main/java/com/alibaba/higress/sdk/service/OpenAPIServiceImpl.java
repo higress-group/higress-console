@@ -12,9 +12,12 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.OpenAPISpecification;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.openapi.OpenAPIParameter;
 import com.alibaba.higress.sdk.model.openapi.OpenAPIPathDescription;
 import com.alibaba.higress.sdk.model.openapi.OpenAPIServer;
@@ -44,10 +47,14 @@ public class OpenAPIServiceImpl implements OpenAPIService{
     private final DomainService domainService;
     private final RouteService routeService;
 
-    public OpenAPIServiceImpl(KubernetesClientService kubernetesClientService, DomainService domainService, RouteService routeService) {
+    private final WasmPluginInstanceService wasmPluginInstanceService;
+
+    public OpenAPIServiceImpl(KubernetesClientService kubernetesClientService, DomainService domainService,
+                              RouteService routeService, WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesClientService = kubernetesClientService;
         this.domainService = domainService;
         this.routeService = routeService;
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
 
@@ -57,8 +64,8 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         List<DomainInfo> domainInfos = processDomains(openApi);
         addOrUpdateDomains(domainInfos);
 
-        List<Route> routes = processRoutes(openApi);
-        addRoutes(routes, openApi.getPaths(), domainInfos);
+        List<RouteInfo> routeInfos = processRoutes(openApi);
+        addRoutes(routeInfos, openApi.getPaths(), domainInfos);
 
         return null;
     }
@@ -78,6 +85,16 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         DomainInfo(Domain domain, PathAndType pathAndType) {
             this.domain = domain;
             this.pathAndType = pathAndType;
+        }
+    }
+
+    private static class RouteInfo {
+        Route route;
+        List<WasmPluginInstance> instances;
+
+        RouteInfo(Route route, List<WasmPluginInstance> instances) {
+            this.route = route;
+            this.instances = instances;
         }
     }
 
@@ -113,6 +130,7 @@ public class OpenAPIServiceImpl implements OpenAPIService{
 
         for (String host : hosts) {
             Domain domain = new Domain();
+            domain.setIsIngressMode(kubernetesClientService.isIngressWorkMode());
             domain.setName(host);
             // For absolute URLs, create a DomainInfo for each scheme
             domain.setEnableHttps(Domain.EnableHttps.OFF);
@@ -123,9 +141,11 @@ public class OpenAPIServiceImpl implements OpenAPIService{
                 } else if ("https".equalsIgnoreCase(scheme)) {
                     domain.setEnableHttps(Domain.EnableHttps.ON);
                     // TODO: change the default tls name
-                    String tls = "default_tls";
+                    String tls;
                     if (server.getExtensions()!=null && server.getExtensions().containsKey("tls_name")) {
                         tls= (String) server.getExtensions().get("tls_name");
+                    } else {
+                        throw new BusinessException("error openapi specification: protocol is https but without cert");
                     }
                     portAndCertMap.put(443, tls);
                 }
@@ -271,8 +291,8 @@ public class OpenAPIServiceImpl implements OpenAPIService{
     }
 
 
-    private List<Route> processRoutes(OpenAPISpecification openApi) {
-        List<Route> routes = new ArrayList<>();
+    private List<RouteInfo> processRoutes(OpenAPISpecification openApi) {
+        List<RouteInfo> routeInfos = new ArrayList<>();
         Map<String, OpenAPIPathDescription> paths = openApi.getPaths();
 
         for (Map.Entry<String, OpenAPIPathDescription> entry : paths.entrySet()) {
@@ -280,6 +300,7 @@ public class OpenAPIServiceImpl implements OpenAPIService{
             OpenAPIPathDescription pathItem = entry.getValue();
 
             Route route = new Route();
+            route.setIsIngressMode(kubernetesClientService.isIngressWorkMode());
             route.setName(path);
             RoutePredicate routePath = new RoutePredicate(RoutePredicateTypeEnum.EQUAL.toString(), path, false);
             route.setPath(routePath);
@@ -291,11 +312,12 @@ public class OpenAPIServiceImpl implements OpenAPIService{
                 routePath.setMatchValue(regexPath);
                 routePath.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
             }
-            setRouteProperties(route, pathItem);
-            routes.add(route);
+            List<WasmPluginInstance> instances = new ArrayList<>();
+            setRouteProperties(route, pathItem, instances);
+            routeInfos.add(new RouteInfo(route, instances));
         }
 
-        return routes;
+        return routeInfos;
     }
 
     private List<OpenAPIParameter> getFirstOperationParameters(OpenAPIPathDescription pathItem) {
@@ -356,7 +378,7 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         return regex.toString();
     }
 
-    private void setRouteProperties(Route route, OpenAPIPathDescription pathItem) {
+    private void setRouteProperties(Route route, OpenAPIPathDescription pathItem, List<WasmPluginInstance> instances) {
         List<String> methods = new ArrayList<>();
         if (pathItem.getGet() != null) {
             methods.add(V1HTTPRouteSpecMatches.MethodEnum.GET.toString());
@@ -384,14 +406,48 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         }
         
         route.setMethods(methods);
-        // backend
-        if (pathItem.getExtensions()!=null && pathItem.getExtensions().containsKey("x-backend")) {
-            String backendInfo = (String) pathItem.getExtensions().get("x-backend");
-            if (backendInfo != null) {
-                route.setServices(Collections.singletonList(new UpstreamService(backendInfo, null, null, null)));
+        // TODO: backend -> weight
+        if (pathItem.getExtensions()!=null && pathItem.getExtensions().containsKey("x-backends")) {
+            @SuppressWarnings("unchecked")
+            Map<String, List<String>> backends = (Map<String, List<String>>) pathItem.getExtensions().get("x-backends");
+            List<UpstreamService> services = new ArrayList<>();
+            if (backends.get("name")!=null && backends.get("weight")!=null) {
+                List<String> names = backends.get("name");
+                List<String> weights = backends.get("weight");
+                for (int i = 0; i < names.size(); i++) {
+                    UpstreamService service = new UpstreamService();
+                    service.setName(names.get(i));
+                    if (i < weights.size()) {
+                        service.setWeight(Integer.parseInt(weights.get(i)));
+                    }
+                    services.add(service);
+                }
+            }
+            route.setServices(services);
+        }
+        // TODO: wasm ->
+        if (pathItem.getExtensions()!=null && pathItem.getExtensions().containsKey("policy")) {
+            @SuppressWarnings("unchecked")
+            Map<String, List<String>> wasm = (Map<String, List<String>>) pathItem.getExtensions().get("wasm");
+            if (wasm.get("pluginName")!=null && wasm.get("enabled")!=null && wasm.get("rawConfigurations")!=null) {
+                List<String> pluginNames = wasm.get("pluginName");
+                List<String> enabled = wasm.get("enabled"); 
+                List<String> rawConfigs = wasm.get("rawConfigurations");
+                for (int i = 0; i < pluginNames.size(); i++) {
+                    WasmPluginInstance instance = new WasmPluginInstance();
+                    instance.setScope(WasmPluginInstanceScope.ROUTE);
+                    instance.setPluginName(pluginNames.get(i));
+                    if (i < enabled.size()) {
+                        instance.setEnabled(Boolean.parseBoolean(enabled.get(i)));
+                    }
+                    if (i < rawConfigs.size()) {
+                        instance.setRawConfigurations(rawConfigs.get(i));
+                    }
+                    instances.add(instance);
+                }
             }
         }
-        // TODO: wasm
+
     }
 
     private void addOrUpdateDomains(List<DomainInfo> domainInfos) {
@@ -400,8 +456,10 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         }
     }
 
-    private void addRoutes(List<Route> routes, Map<String, OpenAPIPathDescription> paths, List<DomainInfo> domainInfos) {
-        for (Route route : routes){
+    private void addRoutes(List<RouteInfo> routeInfos, Map<String, OpenAPIPathDescription> paths, List<DomainInfo> domainInfos) {
+        for (RouteInfo routeInfo : routeInfos){
+            Route route = routeInfo.route;
+            List<WasmPluginInstance> instances = routeInfo.instances;
             String path = route.getName();
             String matchType = route.getPath().getMatchType();
             String matchValue = route.getPath().getMatchValue();
@@ -422,6 +480,12 @@ public class OpenAPIServiceImpl implements OpenAPIService{
                         route.setName(KubernetesUtil.normalizeRouteName(host+path));
                         route.setDomains(Collections.singletonList(host));
                         routeService.add(route);
+                        if (CollectionUtils.isNotEmpty(instances)) {
+                            for (WasmPluginInstance instance: instances) {
+                                instance.setTarget(KubernetesUtil.normalizeRouteName(host+path));
+                                wasmPluginInstanceService.addOrUpdate(instance);
+                            }
+                        }
                     }
                 }
             } else {
@@ -436,6 +500,12 @@ public class OpenAPIServiceImpl implements OpenAPIService{
                         route.getPath().setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
                     }
                     routeService.add(route);
+                    if (CollectionUtils.isNotEmpty(instances)) {
+                        for (WasmPluginInstance instance: instances) {
+                            instance.setTarget(KubernetesUtil.normalizeRouteName(domainInfo.domain.getName()+path));
+                            wasmPluginInstanceService.addOrUpdate(instance);
+                        }
+                    }
                 }
             }
         }

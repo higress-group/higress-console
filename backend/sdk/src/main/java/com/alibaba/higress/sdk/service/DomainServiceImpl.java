@@ -69,7 +69,7 @@ class DomainServiceImpl implements DomainService {
             throw new BusinessException("Error occurs when adding a new domain.", e);
         }
         // if gateway mode, create a gateway named "domain_name"
-        if(!kubernetesClientService.isIngressWorkMode()){
+        if(!domain.getIsIngressMode()){
             V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
             try {
                 kubernetesClientService.createGateway(gateway);
@@ -108,6 +108,7 @@ class DomainServiceImpl implements DomainService {
 
     @Override
     public void delete(String domainName) {
+        Domain domain = query(domainName);
         PaginatedResult<Route> routes = routeService.list(new RoutePageQuery(domainName));
         if (CollectionUtils.isNotEmpty(routes.getData())) {
             throw new IllegalArgumentException("The domain has routes. Please delete them first.");
@@ -119,7 +120,7 @@ class DomainServiceImpl implements DomainService {
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when deleting the ConfigMap with name: " + configMapName, e);
         }
-        if(!kubernetesClientService.isIngressWorkMode()){
+        if(!domain.getIsIngressMode()){
             String gatewayName = kubernetesModelConverter.domainName2GatewayName(domainName);
             try {
                 kubernetesClientService.deleteGateway(gatewayName);
@@ -157,15 +158,7 @@ class DomainServiceImpl implements DomainService {
             routes.forEach(routeService::update);
         }
 
-        if(!kubernetesClientService.isIngressWorkMode()){
-            try {
-                boolean isDomainForIngress = kubernetesClientService.readGateway(domain.getName()) == null;
-                if (isDomainForIngress) {
-                    return kubernetesModelConverter.configMap2Domain(updatedConfigMap);
-                }
-            } catch (ApiException e) {
-                throw new BusinessException("Error occurs when querying a Gateway", e);
-            }
+        if(!domain.getIsIngressMode()){
             V1Gateway gateway = kubernetesModelConverter.domain2Gateway(domain);
             try {
                 kubernetesClientService.replaceGateway(gateway);

@@ -32,6 +32,7 @@ public class Domain implements VersionedDto {
         public static final String ON = "on";
         public static final String FORCE = "force";
     }
+    private Boolean isIngressMode;
 
     private String name;
 

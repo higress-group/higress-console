@@ -228,6 +228,30 @@ public class KubernetesClientService {
     public boolean isIngressWorkMode() {
         return workMode.equals("ingress");
     }
+
+    public Boolean setIngressMode(Boolean isIngressMode) throws ApiException {
+        if (isIngressMode == null) {
+            isIngressMode = true; // default to ingress mode
+        }
+
+        V1ConfigMap higressConfig = readConfigMap(HigressConstants.DEFAULT_CONFIG);
+        if (higressConfig == null) {
+            throw new BusinessException("ConfigMap not found: " + HigressConstants.DEFAULT_CONFIG);
+        }
+
+        Map<String, String> data = higressConfig.getData();
+        if (data == null) {
+            data = new HashMap<>();
+            higressConfig.setData(data);
+        }
+
+        data.put("workMode", isIngressMode ? "ingress" : "gateway");
+
+        replaceConfigMap(higressConfig);
+        getIngressOrGatewayMode();
+        return isIngressWorkMode();
+    }
+
     public boolean isNamespaceProtected(String namespace) {
         return KubernetesConstants.KUBE_SYSTEM_NS.equals(namespace) || controllerNamespace.equals(namespace);
     }

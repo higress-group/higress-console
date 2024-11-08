@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
+
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.route.Header;
 import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
@@ -47,7 +47,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTT
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecRules;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecUrlRewrite;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecUrlRewritePath;
-import org.apache.commons.collections4.CollectionUtils;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -203,6 +203,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
@@ -229,6 +230,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
@@ -255,6 +257,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
@@ -281,6 +284,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
@@ -308,6 +312,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
@@ -336,6 +341,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
@@ -364,6 +370,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.ingress2Route(ingress);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(true);
         expectedRoute.setName(metadata.getName());
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
@@ -789,6 +796,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setName("test-route");
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
@@ -811,6 +819,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setDomains(Collections.singletonList("example.com"));
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
@@ -836,6 +845,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
         expectedRoute.setCustomConfigs(null);
@@ -860,6 +870,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
         expectedRoute.setCustomConfigs(null);
@@ -889,6 +900,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
         expectedRoute.setCustomConfigs(null);
@@ -953,6 +965,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         expectedRoute.setServices(Collections.singletonList(new UpstreamService()));
         expectedRoute.setCors(null);
         expectedRoute.setCustomConfigs(null);
@@ -984,6 +997,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1019,6 +1033,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1062,6 +1077,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1119,6 +1135,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1174,6 +1191,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1224,6 +1242,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");
@@ -1287,6 +1306,7 @@ public class KubernetesModelConverterTest {
         Route route = converter.httpRoute2Route(httpRoute);
 
         Route expectedRoute = buildBasicRoute();
+        expectedRoute.setIsIngressMode(false);
         RoutePredicate pathPredicate = expectedRoute.getPath();
         pathPredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
         pathPredicate.setMatchValue("/");

@@ -34,6 +34,8 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     private final WasmPluginInstanceService wasmPluginInstanceService;
     private final OpenAPIService openApiService;
 
+    private final HigressConfigService higressConfigService;
+
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
@@ -47,7 +49,8 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService);
         domainService = new DomainServiceImpl(kubernetesClientService, kubernetesModelConverter, routeService,
             wasmPluginInstanceService);
-        openApiService = new OpenAPIServiceImpl(kubernetesClientService, domainService, routeService);
+        openApiService = new OpenAPIServiceImpl(kubernetesClientService, domainService, routeService, wasmPluginInstanceService);
+        higressConfigService = new HigressConfigServiceImpl(kubernetesClientService);
     }
 
     @Override
@@ -98,5 +101,10 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     @Override
     public OpenAPIService openApiService() {
         return openApiService;
+    }
+
+    @Override
+    public HigressConfigService higressConfigService() {
+        return higressConfigService;
     }
 }

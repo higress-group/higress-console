@@ -34,6 +34,7 @@ import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.WasmPluginService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.HigressConfigService;
 
 @Configuration
 public class SdkConfig {
@@ -126,5 +127,10 @@ public class SdkConfig {
     @Bean
     public OpenAPIService openApiService() {
         return serviceProvider.openApiService();
+    }
+
+    @Bean
+    public HigressConfigService higressConfigService() {
+        return serviceProvider.higressConfigService();
     }
 }

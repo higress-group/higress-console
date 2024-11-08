@@ -15,7 +15,8 @@
     "routeConfig": "路由配置",
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
-    "pluginManagement": "插件配置"
+    "pluginManagement": "插件配置",
+    "config": "Higress 配置"
   },
   "index": {
     "title": "Higress Console"
@@ -51,7 +52,8 @@
       "name": "域名",
       "protocol": "协议",
       "certificate": "证书",
-      "action": "操作"
+      "action": "操作",
+      "port": "端口"
     },
     "defaultDomain": "缺省域名",
     "createDomain": "创建域名",
@@ -71,7 +73,15 @@
       "certificatePlaceholder": "请输入证书",
       "mustHttps": "是否强制HTTPS",
       "mustHttpsTooltip": "目前支持阿里云SSL证书服务上的证书",
-      "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）"
+      "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）",
+      "portAndCertMap": "端口和证书映射",
+      "portAndCertMapTooltip": "端口和证书映射用于指定每个端口的证书。如果是ingress模式，默认对80端口使用HTTP协议，443端口使用HTTPS协议。",
+      "addPortAndCert": "添加",
+      "portAndCertMapRequired": "请至少添加一个端口和证书映射",
+      "portRequired": "端口号不能为空",
+      "portDuplicate": "不能有重复的端口号",
+      "certificateRequiredWhenHttps": "使用HTTPS协议时必须选择证书",
+      "ingressModeConstraint": "Ingress模式下只能使用80端口(HTTP)或443端口(HTTPS)"
     }
   },
   "dashboard": {
@@ -350,7 +360,9 @@
       "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
-      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
+      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选",
+      "weightTip": "目标服务的权重",
+      "weightMustBeNumber": "权重必须为数字"
     }
   },
   "chart": {
@@ -498,5 +510,15 @@
     "tbd": "页面开发中，即将推出...",
     "yes": "是",
     "no": "否"
+  },
+  "higressConfig": {
+    "title": "配置工作模式",
+    "higressWorkMode": "Higress 工作模式",
+    "modeRequired": "请选择 HigressWorkMode 工作模式",
+    "gatewayMode": "gateway api模式",
+    "ingressMode": "ingress模式",
+    "fetchError": "获取 Higress 工作模式失败",
+    "updateSuccess": "更新 Higress 工作模式成功",
+    "updateError": "更新 Higress 工作模式失败"
   }
 }

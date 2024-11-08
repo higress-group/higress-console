@@ -24,8 +24,10 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.swagger.v3.core.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -102,7 +104,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 throw new IllegalArgumentException(
                         "instance.target must not be null or empty when scope is not GLOBAL.");
             }
-            if (!kubernetesClientService.isIngressWorkMode()) {
+            if (!isTargetIngressWorkMode(target)) {
                 if (!HigressConstants.NS_DEFAULT.equals(kubernetesClientService.httpRouteNameSpace)) {
                     target = kubernetesClientService.httpRouteNameSpace + Separators.SLASH + target;
                 }
@@ -167,6 +169,28 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
         }
         return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, scope, target);
+    }
+
+    public Boolean isTargetIngressWorkMode(String target) {
+        V1Ingress ingress;
+        try {
+            ingress = kubernetesClientService.readIngress(target);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading the Ingress with name: " + target, e);
+        }
+        if (ingress != null) {
+            return Boolean.TRUE;
+        }
+        V1HTTPRoute httpRoute;
+        try {
+            httpRoute = kubernetesClientService.readHttpRoute(target);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when reading the HttpRoute with name: " + target, e);
+        }
+        if (httpRoute != null) {
+            return Boolean.FALSE;
+        }
+        return Boolean.TRUE;
     }
 
     @Override

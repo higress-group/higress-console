@@ -270,6 +270,7 @@ public class KubernetesModelConverter {
 
     public Route ingress2Route(V1Ingress ingress) {
         Route route = new Route();
+        route.setIsIngressMode(Boolean.TRUE);
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
         fillCustomConfigs(route, ingress.getMetadata());
@@ -289,6 +290,7 @@ public class KubernetesModelConverter {
 
     public Route httpRoute2Route(V1HTTPRoute httpRoute){
         Route route = new Route();
+        route.setIsIngressMode(Boolean.FALSE);
         fillRouteMetadata(route, httpRoute.getMetadata());
         fillRouteInfoFromHttpRoute(route, httpRoute.getSpec(), httpRoute.getMetadata());
         fillCustomConfigs(route, httpRoute.getMetadata());
@@ -390,6 +392,8 @@ public class KubernetesModelConverter {
         configMap.put(CommonKey.DOMAIN, domain.getName());
         configMap.put(KubernetesConstants.K8S_CERT, JSON.toJSONString(domain.getPortAndCertMap()));
         configMap.put(KubernetesConstants.K8S_ENABLE_HTTPS, domain.getEnableHttps());
+        configMap.put(KubernetesConstants.WorkMode.KEY,
+                domain.getIsIngressMode() ? KubernetesConstants.WorkMode.INGRESS : KubernetesConstants.WorkMode.GATEWAY);
         domainConfigMap.data(configMap);
 
         return domainConfigMap;
@@ -409,12 +413,18 @@ public class KubernetesModelConverter {
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
         String certData = configMapData.get(KubernetesConstants.K8S_CERT);
+        domain.setIsIngressMode(Boolean.TRUE);
         try {
             domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
+            String workMode = configMapData.get(KubernetesConstants.WorkMode.KEY);
+            // if workMode is null -> set to true(ingress)
+            domain.setIsIngressMode(!KubernetesConstants.WorkMode.GATEWAY.equals(workMode));
         }catch(JSONException e){
             // ingress-style cert (Only String) -> turn to map[443:certName]
             Map<Integer, String> portCertMap = new HashMap<>();
-            portCertMap.put(443, certData);
+            if (StringUtils.isNotEmpty(certData)) {
+                portCertMap.put(443, certData);
+            }
             domain.setPortAndCertMap(portCertMap);
         }
 
@@ -1572,10 +1582,11 @@ public class KubernetesModelConverter {
         }
         V1HTTPRouteSpecParentRefs parentRef = new V1HTTPRouteSpecParentRefs();
         if (!domains.isEmpty()) {
-            if (!Separators.ASTERISK.equals(domains.get(0))) {
-                spec.addHostnamesItem(domains.get(0));
+            String domainName = domains.get(0);
+            if (!Separators.ASTERISK.equals(domainName)) {
+                spec.addHostnamesItem(domainName);
             }
-            parentRef.setName(domainName2GatewayName(domains.get(0)));
+            parentRef.setName(domainName2GatewayName(domainName));
             parentRef.setNamespace(kubernetesClientService.gatewayNameSpace);
         }
         spec.addParentRefsItem(parentRef);
@@ -1796,7 +1807,7 @@ public class KubernetesModelConverter {
             if (headerControl.getResponse() != null) {
                 V1HTTPRouteSpecFilters filter = new V1HTTPRouteSpecFilters();
                 V1HTTPRouteSpecResponseHeaderModifier responseHeaderModifier = new V1HTTPRouteSpecResponseHeaderModifier();
-                HeaderControlStageConfig config = headerControl.getRequest();
+                HeaderControlStageConfig config = headerControl.getResponse();
                 fillHeaderModifier(config, null, responseHeaderModifier, false);
                 filter.setResponseHeaderModifier(responseHeaderModifier);
                 filter.setType(V1HTTPRouteSpecFilters.TypeEnum.RESPONSEHEADERMODIFIER);
@@ -1809,6 +1820,9 @@ public class KubernetesModelConverter {
     }
 
     private void fillHeaderModifier(HeaderControlStageConfig config, V1HTTPRouteSpecRequestHeaderModifier requestHeader, V1HTTPRouteSpecResponseHeaderModifier responseHeader, Boolean isRequest){
+        if (config == null) {
+            return;
+        }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
             for (Header header : config.getAdd()) {
                 V1HTTPRouteSpecRequestHeaderModifierAdd add = new V1HTTPRouteSpecRequestHeaderModifierAdd();

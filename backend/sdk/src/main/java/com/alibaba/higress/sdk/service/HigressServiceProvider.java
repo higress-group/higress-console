@@ -46,4 +46,6 @@ public interface HigressServiceProvider {
     WasmPluginInstanceService wasmPluginInstanceService();
 
     OpenAPIService openApiService();
+
+    HigressConfigService higressConfigService();
 }

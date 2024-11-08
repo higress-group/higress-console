@@ -15,7 +15,8 @@
     "routeConfig": "Route Config",
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
-    "pluginManagement": "Plugin Management"
+    "pluginManagement": "Plugin Management",
+    "config": "Higress Config"
   },
   "index": {
     "title": "Higress Console"
@@ -51,7 +52,8 @@
       "name": "Domain",
       "protocol": "Protocol",
       "certificate": "Certificate",
-      "action": "Action"
+      "action": "Action",
+      "port": "Port"
     },
     "defaultDomain": "Default Domain",
     "createDomain": "Create Domain",
@@ -71,7 +73,15 @@
       "certificatePlaceholder": "Please input the certificate identifier.",
       "mustHttps": "Force HTTPS",
       "mustHttpsTooltip": "Only certificates provided by SSL Certificates Service of Alibaba Clound are supported now.",
-      "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service"
+      "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service",
+      "portAndCertMap": "Port and Certificate Mapping",
+      "portAndCertMapTooltip": "The port and certificate mapping is used to specify the port and certificate for each port. If the port is not specified, the default certificate will be used.",
+      "addPortAndCert": "add",
+      "portAndCertMapRequired": "Please add at least one port and certificate mapping.",
+      "portRequired": "Port cannot be empty",
+      "portDuplicate": "Port cannot be duplicated",
+      "certificateRequiredWhenHttps": "Certificate is required when using HTTPS protocol",
+      "ingressModeConstraint": "Ingress mode only supports port 80 (HTTP) or port 443 (HTTPS)"
     }
   },
   "dashboard": {
@@ -350,7 +360,9 @@
       "customConfigsTip": "Click this \"?\" to view the configuration guide.",
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
-      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
+      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed.",
+      "weightTip": "Weight of the target service",
+      "weightMustBeNumber": "Weight must be a number"
     }
   },
   "chart": {
@@ -498,5 +510,15 @@
     "tbd": "Still in development. To be released soon...",
     "yes": "Yes",
     "no": "No"
+  },
+  "higressConfig": {
+    "title": "Work Mode Configuration",
+    "higressWorkMode": "Higress Work Mode",
+    "modeRequired": "Please select Higress Work Mode",
+    "gatewayMode": "Gateway API Mode",
+    "ingressMode": "Ingress Mode",
+    "fetchError": "Failed to fetch Higress Work Mode",
+    "updateSuccess": "Successfully updated Higress Work Mode",
+    "updateError": "Failed to update Higress Work Mode"
   }
 }
