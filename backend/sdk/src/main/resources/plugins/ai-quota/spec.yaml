@@ -1,0 +1,42 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: ai
+  image: platform_wasm/ai-quota
+  name: ai-quota
+  title: AI Quota
+  x-title-i18n:
+    zh-CN: AI 配额管理
+  description: Implement quota-based rate limiting according to assigned fixed quotas, while also supporting quota management capabilities, including querying, refreshing, and adjusting quotas.
+  x-description-i18n:
+    zh-CN: 根据分配固定的 quota 进行 quota 策略限流，同时支持 quota 管理能力，包括查询 quota、刷新 quota、增减 quota。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: 2456868764
+spec:
+  phase: default
+  priority: 750
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redis_key_prefix: "chat_quota:"
+        admin_consumer: consumer3
+        admin_path: /quota
+        redis:
+          service_name: redis-service.default.svc.cluster.local
+          service_port: 6379
+          timeout: 2000
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        redis_key_prefix: "chat_quota:"
+        admin_consumer: consumer3
+        admin_path: /quota
+        redis:
+          service_name: redis-service.default.svc.cluster.local
+          service_port: 6379
+          timeout: 2000

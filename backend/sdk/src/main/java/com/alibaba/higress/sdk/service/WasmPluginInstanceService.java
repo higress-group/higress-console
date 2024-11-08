@@ -19,9 +19,13 @@ import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 
 public interface WasmPluginInstanceService {
 
+    List<WasmPluginInstance> list(String pluginName);
+
     List<WasmPluginInstance> list(WasmPluginInstanceScope scope, String target);
 
     WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName);
+
+    WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal);
 
     WasmPluginInstance addOrUpdate(WasmPluginInstance instance);
 

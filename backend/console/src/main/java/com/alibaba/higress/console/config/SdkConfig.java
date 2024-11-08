@@ -32,6 +32,9 @@ import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.TlsCertificateService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.WasmPluginService;
+import com.alibaba.higress.sdk.service.ai.AiRouteService;
+import com.alibaba.higress.sdk.service.ai.LlmProviderService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.HigressConfigService;
@@ -72,10 +75,11 @@ public class SdkConfig {
 
     @PostConstruct
     public void initialize() throws IOException {
-        HigressServiceConfig config = HigressServiceConfig.builder().withKubeConfigPath(kubeConfig).withIngressClassName(controllerIngressClassName)
-            .withControllerNamespace(controllerNamespace).withControllerServiceName(controllerServiceName)
-            .withControllerServiceHost(controllerServiceHost).withControllerServicePort(controllerServicePort)
-            .withControllerJwtPolicy(controllerJwtPolicy).withControllerAccessToken(controllerAccessToken).build();
+        HigressServiceConfig config = HigressServiceConfig.builder().withKubeConfigPath(kubeConfig)
+            .withIngressClassName(controllerIngressClassName).withControllerNamespace(controllerNamespace)
+            .withControllerServiceName(controllerServiceName).withControllerServiceHost(controllerServiceHost)
+            .withControllerServicePort(controllerServicePort).withControllerJwtPolicy(controllerJwtPolicy)
+            .withControllerAccessToken(controllerAccessToken).build();
         serviceProvider = HigressServiceProvider.create(config);
     }
 
@@ -132,5 +136,19 @@ public class SdkConfig {
     @Bean
     public HigressConfigService higressConfigService() {
         return serviceProvider.higressConfigService();
+    }
+    @Bean
+    public ConsumerService consumerService() {
+        return serviceProvider.consumerService();
+    }
+
+    @Bean
+    public AiRouteService aiRouteService() {
+        return serviceProvider.aiRouteService();
+    }
+
+    @Bean
+    public LlmProviderService llmProviderService() {
+        return serviceProvider.llmProviderService();
     }
 }

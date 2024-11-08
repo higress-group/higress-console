@@ -37,9 +37,15 @@ public class WasmPluginInstance implements VersionedDto {
 
     private String pluginVersion;
 
+    private Boolean internal;
+
     private Boolean enabled;
 
     private String rawConfigurations;
 
     private Map<String, Object> configurations;
+
+    public boolean isInternal() {
+        return Boolean.TRUE.equals(internal);
+    }
 }

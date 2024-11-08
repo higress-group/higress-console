@@ -19,6 +19,7 @@ public class KubernetesConstants {
     public static final String K8S_CERT = "cert";
     public static final String K8S_ENABLE_HTTPS = "enableHttps";
 
+    public static final String DATA_FIELD = "data";
     public static final String TYPE_FIELD = "type";
     public static final String SECRET_TYPE_TLS = "kubernetes.io/tls";
     public static final String SECRET_TLS_CRT_FIELD = "tls.crt";
@@ -67,7 +68,8 @@ public class KubernetesConstants {
         public static final String HEADER_MATCH_KEYWORD = "-match-header-";
         public static final String HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + HEADER_MATCH_KEYWORD + "%s";
         public static final String PSEUDO_HEADER_MATCH_KEYWORD = "-match-pseudo-header-";
-        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD + "%s";
+        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT =
+            "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD + "%s";
         public static final String METHOD_KEY = "higress.io/match-method";
 
         public static final String IGNORE_PATH_CASE_KEY = "higress.io/ignore-path-case";
@@ -80,7 +82,11 @@ public class KubernetesConstants {
     public static class Label {
         public static final String DOMAIN_KEY_PREFIX = "higress.io/domain_";
         public static final String DOMAIN_VALUE_DUMMY = "true";
+        public static final String CONFIG_MAP_TYPE_KEY = "higress.io/config-map-type";
+        public static final String CONFIG_MAP_TYPE_VALUE_DOMAIN = "domain";
+        public static final String CONFIG_MAP_TYPE_VALUE_AI_ROUTE = "ai-route";
         public static final String RESOURCE_DEFINER_KEY = "higress.io/resource-definer";
+        public static final String INTERNAL_KEY = "higress.io/internal";
         public static final String RESOURCE_DEFINER_VALUE = "higress";
         public static final String WASM_PLUGIN_NAME_KEY = "higress.io/wasm-plugin-name";
         public static final String WASM_PLUGIN_VERSION_KEY = "higress.io/wasm-plugin-version";
@@ -95,9 +101,7 @@ public class KubernetesConstants {
     }
 
     public static class JwtPolicy {
-
         public static final String FIRST_PARTY_JWT = "first-party-jwt";
-
         public static final String THIRD_PARTY_JWT = "third-party-jwt";
     }
 }

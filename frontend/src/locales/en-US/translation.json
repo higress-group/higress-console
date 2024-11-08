@@ -155,7 +155,11 @@
         "set": "Set",
         "remove": "Remove",
         "action": "Action",
-        "addNewRule": "Add New Rule"
+        "addNewRule": "Add New Rule",
+        "headerTypeRequired": "Please select header type",
+        "actionTypeRequired": "Please select action type",
+        "keyRequired": "Please input header key",
+        "valueRequired": "Please input header value"
       },
       "cors": {
         "allowOrigins": "Allow Origins",
@@ -509,7 +513,11 @@
     "seconds": "Sec(s)",
     "tbd": "Still in development. To be released soon...",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "switchToYAML": "YAML View",
+    "switchToForm": "Form View",
+    "isRequired": "is required",
+    "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
   },
   "higressConfig": {
     "title": "Work Mode Configuration",

@@ -13,9 +13,13 @@
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
+    "aiServiceManagement": "AI流量入口管理",
+    "aiRouteManagement": "AI路由管理",
+    "llmProviderManagement": "AI服务提供者管理",
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
     "pluginManagement": "插件配置",
+    "consumerManagement": "消费者管理",
     "config": "Higress 配置"
   },
   "index": {
@@ -46,6 +50,30 @@
     "usernameRequired": "请输入用户名！",
     "passwordPlaceholder": "密码",
     "passwordRequired": "请输入密码！"
+  },
+  "aiRoute": {
+    "columns": {
+      "name": "名称",
+      "domains": "域名",
+      "upstreams": "服务",
+      "auth": "请求授权",
+      "action": "操作"
+    },
+    "create": "创建AI路由",
+    "edit": "编辑AI路由",
+    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
+    "authNotEnabled": "未开启认证",
+    "authEnabledWithoutConsumer": "未授权任何人访问"
+  },
+  "consumer": {
+    "columns": {
+      "name": "消费者名称",
+      "credentialTypes": "认证方式",
+      "action": "操作"
+    },
+    "create": "创建消费者",
+    "edit": "编辑消费者",
+    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
   },
   "domain": {
     "columns": {
@@ -111,6 +139,22 @@
       "item4": "强烈建议填写 Grafana 的 HTTPS URL 以确保监控面板可以在本页面内正常显示。"
     }
   },
+  "llmProvider": {
+    "columns": {
+      "type": "类型",
+      "name": "名称",
+      "tokens": "认证令牌",
+      "action": "操作"
+    },
+    "providerTypes": {
+      "openai": "OpenAI",
+      "qwen": "通义千问",
+      "moonshot": "月之暗面"
+    },
+    "create": "提供AI服务提供者",
+    "edit": "编辑AI服务提供者",
+    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
+  },
   "plugins": {
     "title": "策略配置",
     "subTitle": {
@@ -155,7 +199,11 @@
         "set": "更新",
         "remove": "删除",
         "action": "操作",
-        "addNewRule": "添加新规则"
+        "addNewRule": "添加新规则",
+        "headerTypeRequired": "请选择Header类型",
+        "actionTypeRequired": "请选择操作类型",
+        "keyRequired": "请输入Header Key",
+        "valueRequired": "请输入Header Value"
       },
       "cors": {
         "allowOrigins": "允许的访问来源",
@@ -509,7 +557,11 @@
     "seconds": "秒",
     "tbd": "页面开发中，即将推出...",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "switchToYAML": "YAML视图",
+    "switchToForm": "表单视图",
+    "isRequired": "是必填的",
+    "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
   },
   "higressConfig": {
     "title": "配置工作模式",

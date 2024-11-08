@@ -15,6 +15,12 @@ package com.alibaba.higress.sdk.service;
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.ai.AiRouteService;
+import com.alibaba.higress.sdk.service.ai.AiRouteServiceImpl;
+import com.alibaba.higress.sdk.service.ai.LlmProviderService;
+import com.alibaba.higress.sdk.service.ai.LlmProviderServiceImpl;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerServiceImpl;
 
 import java.io.IOException;
 
@@ -33,6 +39,9 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     private final WasmPluginService wasmPluginService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
     private final OpenAPIService openApiService;
+    private final ConsumerService consumerService;
+    private final AiRouteService aiRouteService;
+    private final LlmProviderService llmProviderService;
 
     private final HigressConfigService higressConfigService;
 
@@ -51,6 +60,12 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             wasmPluginInstanceService);
         openApiService = new OpenAPIServiceImpl(kubernetesClientService, domainService, routeService, wasmPluginInstanceService);
         higressConfigService = new HigressConfigServiceImpl(kubernetesClientService);
+        consumerService = new ConsumerServiceImpl(wasmPluginService, wasmPluginInstanceService);
+        llmProviderService =
+            new LlmProviderServiceImpl(serviceSourceService, wasmPluginService, wasmPluginInstanceService);
+        aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
+            llmProviderService, consumerService, wasmPluginService, wasmPluginInstanceService);
+
     }
 
     @Override
@@ -106,5 +121,19 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     @Override
     public HigressConfigService higressConfigService() {
         return higressConfigService;
+    }
+    @Override
+    public ConsumerService consumerService() {
+        return consumerService;
+    }
+
+    @Override
+    public AiRouteService aiRouteService() {
+        return aiRouteService;
+    }
+
+    @Override
+    public LlmProviderService llmProviderService() {
+        return llmProviderService;
     }
 }

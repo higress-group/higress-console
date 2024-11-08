@@ -56,7 +56,7 @@ public class ApiStandardizationAspect {
         this.sessionService = sessionService;
     }
 
-    @Around("execution(* com.alibaba.higress.console.controller.*Controller.*(..))")
+    @Around("execution(* com.alibaba.higress.console.controller..*Controller.*(..))")
     public Object intercept(ProceedingJoinPoint point) {
         ServletRequestAttributes requestAttributes =
             (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
