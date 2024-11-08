@@ -1625,6 +1625,9 @@ public class KubernetesModelConverter {
             }
             Domain domain = configMap2Domain(configMap);
             Map<Integer, String> portAndCertMap = domain.getPortAndCertMap();
+            if (portAndCertMap.get(80)==null || StringUtils.isNotEmpty(portAndCertMap.get(80))) {
+                throw new BusinessException("The domain does not have port 80 for HTTP enabled.");
+            }
 
             if (Domain.EnableHttps.OFF.equals(domain.getEnableHttps())) {
                 continue;
