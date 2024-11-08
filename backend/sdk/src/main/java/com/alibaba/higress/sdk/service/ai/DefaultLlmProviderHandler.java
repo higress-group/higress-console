@@ -12,8 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import com.alibaba.higress.sdk.model.ServiceSource;
-import com.alibaba.higress.sdk.model.route.UpstreamService;
+import java.util.Map;
+
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
 class DefaultLlmProviderHandler extends AbstractLlmProviderHandler {
@@ -36,22 +36,22 @@ class DefaultLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    public ServiceSource buildServiceSource(String providerName) {
-        ServiceSource serviceSource = new ServiceSource();
-        serviceSource.setName(generateServiceProviderName(providerName));
-        serviceSource.setType(V1McpBridge.REGISTRY_TYPE_DNS);
-        serviceSource.setDomain(domain);
-        serviceSource.setPort(port);
-        serviceSource.setProtocol(protocol);
-        return serviceSource;
+    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
+        return V1McpBridge.REGISTRY_TYPE_DNS;
     }
 
     @Override
-    public UpstreamService buildUpstreamService(String providerName) {
-        UpstreamService service = new UpstreamService();
-        service.setName(generateServiceProviderName(providerName) + "." + V1McpBridge.REGISTRY_TYPE_DNS);
-        service.setPort(port);
-        service.setWeight(100);
-        return service;
+    protected String getServiceDomain(Map<String, Object> providerConfig) {
+        return domain;
+    }
+
+    @Override
+    protected int getServicePort(Map<String, Object> providerConfig) {
+        return port;
+    }
+
+    @Override
+    protected String getServiceProtocol(Map<String, Object> providerConfig) {
+        return protocol;
     }
 }

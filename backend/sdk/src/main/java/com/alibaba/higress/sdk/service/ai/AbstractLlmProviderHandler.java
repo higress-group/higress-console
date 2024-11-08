@@ -12,6 +12,18 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_ENABLED;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_FAILURE_THRESHOLD;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_INTERVAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_MODEL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_TIMEOUT;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_SUCCESS_THRESHOLD;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTOCOL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,44 +35,28 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.TokenFailoverConfig;
+import com.alibaba.higress.sdk.model.route.UpstreamService;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
 abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
 
-    private static final String PROTOCOL_KEY = "protocol";
-    private static final String PROVIDER_API_TOKENS_KEY = "apiTokens";
-    private static final String PROVIDER_MODEL_MAPPING_KEY = "modelMapping";
-    private static final String FAILOVER_KEY = "failover";
-    private static final String FAILOVER_ENABLED_KEY = "enabled";
-    private static final String FAILOVER_FAILURE_THRESHOLD_KEY = "failureThreshold";
-    private static final String FAILOVER_SUCCESS_THRESHOLD_KEY = "successThreshold";
-    private static final String FAILOVER_HEALTH_CHECK_INTERVAL_KEY = "healthCheckInterval";
-    private static final String FAILOVER_HEALTH_CHECK_TIMEOUT_KEY = "healthCheckTimeout";
-    private static final String FAILOVER_HEALTH_CHECK_MODEL_KEY = "healthCheckModel";
-
+    @Override
     public abstract String getType();
 
+    @Override
     @SuppressWarnings("unchecked")
     public boolean loadConfig(LlmProvider provider, Map<String, Object> configurations) {
-        String id = MapUtils.getString(configurations, PROVIDER_ID_KEY);
+        String id = MapUtils.getString(configurations, PROVIDER_ID);
         if (StringUtils.isBlank(id)) {
             return false;
         }
 
-        Object modelMappingObj = configurations.get(PROVIDER_MODEL_MAPPING_KEY);
-        Map<String, String> modelMapping = null;
-        if (modelMappingObj instanceof Map<?, ?> modelMappingMap) {
-            modelMapping = new HashMap<>(modelMappingMap.size());
-            for (Map.Entry<?, ?> entry : modelMappingMap.entrySet()) {
-                if (entry.getKey() instanceof String key && entry.getValue() instanceof String value) {
-                    modelMapping.put(key, value);
-                }
-            }
-        }
-
-        Object tokensObj = configurations.get(PROVIDER_API_TOKENS_KEY);
+        Object tokensObj = configurations.get(PROVIDER_API_TOKENS);
         List<String> tokens = null;
         if (tokensObj instanceof List<?> tokensList) {
             tokens = new ArrayList<>(tokensList.size());
@@ -72,13 +68,13 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         }
 
         TokenFailoverConfig failoverConfig = null;
-        Object failoverObj = configurations.get(FAILOVER_KEY);
+        Object failoverObj = configurations.get(FAILOVER);
         if (failoverObj instanceof Map<?, ?> failoverMap) {
             failoverConfig = buildTokenFailoverConfig((Map<String, Object>)failoverMap);
         }
 
         LlmProviderProtocol protocol =
-            LlmProviderProtocol.fromPluginValue(MapUtils.getString(configurations, PROTOCOL_KEY));
+            LlmProviderProtocol.fromPluginValue(MapUtils.getString(configurations, PROTOCOL));
         if (protocol == null) {
             protocol = LlmProviderProtocol.DEFAULT;
         }
@@ -86,49 +82,87 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
 
         provider.setName(id);
         provider.setType(getType());
-        provider.setModelMapping(modelMapping);
         provider.setTokens(tokens);
         provider.setTokenFailoverConfig(failoverConfig);
+        provider.setRawConfigs(new HashMap<>(configurations));
         return true;
     }
 
+    @Override
     public void saveConfig(LlmProvider provider, Map<String, Object> configurations) {
-        configurations.put(PROVIDER_ID_KEY, provider.getName());
-        configurations.put(PROVIDER_TYPE_KEY, getType());
+        configurations.put(PROVIDER_ID, provider.getName());
+        configurations.put(PROVIDER_TYPE, getType());
 
         LlmProviderProtocol protocol = LlmProviderProtocol.fromValue(provider.getProtocol());
         if (protocol == null) {
             protocol = LlmProviderProtocol.DEFAULT;
-            configurations.put(PROTOCOL_KEY, protocol.getPluginValue());
-        }
-
-        Map<String, String> modelMapping = provider.getModelMapping();
-        if (MapUtils.isNotEmpty(modelMapping)) {
-            configurations.put(PROVIDER_MODEL_MAPPING_KEY, new HashMap<>(modelMapping));
-        } else {
-            configurations.remove(PROVIDER_MODEL_MAPPING_KEY);
+            configurations.put(PROTOCOL, protocol.getPluginValue());
         }
 
         List<String> tokens = provider.getTokens();
         if (CollectionUtils.isNotEmpty(tokens)) {
-            configurations.put(PROVIDER_API_TOKENS_KEY, tokens);
+            configurations.put(PROVIDER_API_TOKENS, tokens);
         } else {
-            configurations.remove(PROVIDER_API_TOKENS_KEY);
+            configurations.remove(PROVIDER_API_TOKENS);
         }
 
         TokenFailoverConfig failoverConfig = provider.getTokenFailoverConfig();
         if (failoverConfig == null) {
-            configurations.remove(FAILOVER_KEY);
+            configurations.remove(FAILOVER);
         } else {
             Map<String, Object> failoverMap = new HashMap<>();
             saveTokenFailoverConfig(failoverConfig, failoverMap);
-            configurations.put(FAILOVER_KEY, failoverMap);
+            configurations.put(FAILOVER, failoverMap);
         }
     }
 
+    @Override
+    public void validateConfig(Map<String, Object> configurations) {}
+
+    @Override
+    public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {
+        ServiceSource serviceSource = new ServiceSource();
+        serviceSource.setName(generateServiceProviderName(providerName));
+        serviceSource.setType(getServiceRegistryType(providerConfig));
+        serviceSource.setProtocol(getServiceProtocol(providerConfig));
+
+        String domain = getServiceDomain(providerConfig);
+        int port = getServicePort(providerConfig);
+        if (V1McpBridge.REGISTRY_TYPE_STATIC.equals(serviceSource.getType())) {
+            serviceSource.setDomain(domain + Separators.COLON + port);
+            serviceSource.setPort(V1McpBridge.STATIC_PORT);
+        } else {
+            serviceSource.setDomain(domain);
+            serviceSource.setPort(port);
+        }
+
+        return serviceSource;
+    }
+
+    @Override
+    public UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig) {
+        UpstreamService service = new UpstreamService();
+        String registryType = getServiceRegistryType(providerConfig);
+        service.setName(generateServiceProviderName(providerName) + Separators.DOT + registryType);
+        if (V1McpBridge.REGISTRY_TYPE_STATIC.equals(registryType)) {
+            service.setPort(V1McpBridge.STATIC_PORT);
+        } else {
+            service.setPort(getServicePort(providerConfig));
+        }
+        service.setWeight(100);
+        return service;
+    }
+
+    protected abstract String getServiceRegistryType(Map<String, Object> providerConfig);
+
+    protected abstract String getServiceDomain(Map<String, Object> providerConfig);
+
+    protected abstract int getServicePort(Map<String, Object> providerConfig);
+
+    protected abstract String getServiceProtocol(Map<String, Object> providerConfig);
+
     protected static String generateServiceProviderName(String llmProviderName) {
-        return CommonKey.LLM_SERVICE_NAME_PREFIX + llmProviderName
-            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+        return CommonKey.LLM_SERVICE_NAME_PREFIX + llmProviderName + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
     }
 
     private TokenFailoverConfig buildTokenFailoverConfig(Map<String, Object> failoverMap) {
@@ -136,21 +170,21 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
             return null;
         }
         TokenFailoverConfig failoverConfig = new TokenFailoverConfig();
-        failoverConfig.setEnabled(MapUtils.getBoolean(failoverMap, FAILOVER_ENABLED_KEY, false));
-        failoverConfig.setFailureThreshold(MapUtils.getInteger(failoverMap, FAILOVER_FAILURE_THRESHOLD_KEY));
-        failoverConfig.setSuccessThreshold(MapUtils.getInteger(failoverMap, FAILOVER_SUCCESS_THRESHOLD_KEY));
-        failoverConfig.setHealthCheckInterval(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_INTERVAL_KEY));
-        failoverConfig.setHealthCheckTimeout(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_TIMEOUT_KEY));
-        failoverConfig.setHealthCheckModel(MapUtils.getString(failoverMap, FAILOVER_HEALTH_CHECK_MODEL_KEY));
+        failoverConfig.setEnabled(MapUtils.getBoolean(failoverMap, FAILOVER_ENABLED, false));
+        failoverConfig.setFailureThreshold(MapUtils.getInteger(failoverMap, FAILOVER_FAILURE_THRESHOLD));
+        failoverConfig.setSuccessThreshold(MapUtils.getInteger(failoverMap, FAILOVER_SUCCESS_THRESHOLD));
+        failoverConfig.setHealthCheckInterval(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_INTERVAL));
+        failoverConfig.setHealthCheckTimeout(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_TIMEOUT));
+        failoverConfig.setHealthCheckModel(MapUtils.getString(failoverMap, FAILOVER_HEALTH_CHECK_MODEL));
         return failoverConfig;
     }
 
     private void saveTokenFailoverConfig(TokenFailoverConfig failoverConfig, Map<String, Object> failoverMap) {
-        failoverMap.put(FAILOVER_ENABLED_KEY, failoverConfig.getEnabled());
-        failoverMap.put(FAILOVER_FAILURE_THRESHOLD_KEY, failoverConfig.getFailureThreshold());
-        failoverMap.put(FAILOVER_SUCCESS_THRESHOLD_KEY, failoverConfig.getSuccessThreshold());
-        failoverMap.put(FAILOVER_HEALTH_CHECK_INTERVAL_KEY, failoverConfig.getHealthCheckInterval());
-        failoverMap.put(FAILOVER_HEALTH_CHECK_TIMEOUT_KEY, failoverConfig.getHealthCheckTimeout());
-        failoverMap.put(FAILOVER_HEALTH_CHECK_MODEL_KEY, failoverConfig.getHealthCheckModel());
+        failoverMap.put(FAILOVER_ENABLED, failoverConfig.getEnabled());
+        failoverMap.put(FAILOVER_FAILURE_THRESHOLD, failoverConfig.getFailureThreshold());
+        failoverMap.put(FAILOVER_SUCCESS_THRESHOLD, failoverConfig.getSuccessThreshold());
+        failoverMap.put(FAILOVER_HEALTH_CHECK_INTERVAL, failoverConfig.getHealthCheckInterval());
+        failoverMap.put(FAILOVER_HEALTH_CHECK_TIMEOUT, failoverConfig.getHealthCheckTimeout());
+        failoverMap.put(FAILOVER_HEALTH_CHECK_MODEL, failoverConfig.getHealthCheckModel());
     }
 }

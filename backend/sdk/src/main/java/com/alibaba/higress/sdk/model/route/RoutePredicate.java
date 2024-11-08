@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import com.alibaba.higress.sdk.exception.ValidationException;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,4 +33,17 @@ public class RoutePredicate {
     private String matchValue;
 
     private Boolean caseSensitive;
+
+    public void validate() {
+        if (this.getMatchType() == null) {
+            throw new ValidationException("matchType is required");
+        }
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.fromName(this.getMatchType());
+        if (predicateType == null) {
+            throw new ValidationException("Unknown matchType: " + this.getMatchType());
+        }
+        if (this.getMatchValue() == null) {
+            throw new ValidationException("matchValue is required");
+        }
+    }
 }

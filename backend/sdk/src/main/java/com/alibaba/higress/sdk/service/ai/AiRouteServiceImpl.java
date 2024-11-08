@@ -25,17 +25,18 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.BuiltInPluginName;
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.plugin.config.ModelMapperConfig;
+import com.alibaba.higress.sdk.constant.plugin.config.ModelRouterConfig;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.AiModelPredicate;
@@ -50,12 +51,12 @@ import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.WasmPluginService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
 import com.alibaba.higress.sdk.util.StringUtil;
+import com.google.common.annotations.VisibleForTesting;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -69,8 +70,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
         Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
-    private static final String MODEL_ROUTER_ENABLE_KEY = "enable";
-    private static final String ADD_HEADER_KEY_KEY = "add_header_key";
+    private static final String MODEL_ROUTING_HEADER = "x-higress-llm-model";
 
     private final KubernetesModelConverter kubernetesModelConverter;
 
@@ -82,22 +82,19 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final ConsumerService consumerService;
 
-    private final WasmPluginService wasmPluginService;
-
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
     private final String routeFallbackEnvoyFilterConfig;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
-        LlmProviderService llmProviderService, ConsumerService consumerService, WasmPluginService wasmPluginService,
+        LlmProviderService llmProviderService, ConsumerService consumerService,
         WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.kubernetesClientService = kubernetesClientService;
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
         this.consumerService = consumerService;
-        this.wasmPluginService = wasmPluginService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
 
         try {
@@ -191,11 +188,6 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private void fillDefaultValues(AiRoute route) {
         fillDefaultWeights(route.getUpstreams());
-        AiModelPredicate modelPredicate = route.getModelPredicate();
-        if (modelPredicate != null && Boolean.TRUE.equals(modelPredicate.getEnabled())
-            && StringUtils.isEmpty(modelPredicate.getPrefix())) {
-            modelPredicate.setPrefix(route.getName());
-        }
         AiRouteFallbackConfig fallbackConfig = route.getFallbackConfig();
         if (fallbackConfig != null && Boolean.TRUE.equals(fallbackConfig.getEnabled())) {
             fillDefaultWeights(fallbackConfig.getUpstreams());
@@ -221,7 +213,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         setUpstreams(route, aiRoute.getUpstreams());
         saveRoute(route);
         writeAuthConfigResources(routeName, aiRoute.getAuthConfig());
-        writeModelRouteResources(aiRoute.getModelPredicate());
+        writeModelRouteResources(aiRoute.getModelPredicates());
+        writeModelMappingResources(routeName, aiRoute.getUpstreams());
     }
 
     private void writeAiRouteFallbackResources(AiRoute aiRoute) {
@@ -241,6 +234,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         fallbackHeaderPredicate.setCaseSensitive(true);
         if (route.getHeaders() == null) {
             route.setHeaders(new ArrayList<>());
+        } else {
+            route.setHeaders(new ArrayList<>(route.getHeaders()));
         }
         route.getHeaders().add(fallbackHeaderPredicate);
         String fallbackStrategy = fallbackConfig.getFallbackStrategy();
@@ -277,6 +272,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         writeAuthConfigResources(fallbackRouteName, aiRoute.getAuthConfig());
+        writeModelMappingResources(fallbackRouteName, fallbackUpStreams);
     }
 
     private void writeAuthConfigResources(String routeName, AiRouteAuthConfig authConfig) {
@@ -285,8 +281,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         consumerService.updateAllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
     }
 
-    private void writeModelRouteResources(AiModelPredicate modelPredicate) {
-        if (modelPredicate == null || !Boolean.TRUE.equals(modelPredicate.getEnabled())) {
+    private void writeModelRouteResources(List<AiModelPredicate> modelPredicates) {
+        if (CollectionUtils.isEmpty(modelPredicates)) {
             return;
         }
 
@@ -294,15 +290,9 @@ public class AiRouteServiceImpl implements AiRouteService {
         WasmPluginInstance instance =
             wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
         if (instance == null) {
-            WasmPlugin plugin = wasmPluginService.query(pluginName, null);
-            if (plugin == null) {
-                throw new BusinessException("Plugin " + pluginName + " not found");
-            }
-            instance = new WasmPluginInstance();
-            instance.setPluginName(plugin.getName());
-            instance.setPluginVersion(plugin.getPluginVersion());
+            instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
             instance.setInternal(true);
-            instance.setScope(WasmPluginInstanceScope.GLOBAL);
+            instance.setGlobalTarget();
         }
         instance.setEnabled(true);
 
@@ -313,10 +303,48 @@ public class AiRouteServiceImpl implements AiRouteService {
             instance.setConfigurations(configurations);
         }
 
-        configurations.put(MODEL_ROUTER_ENABLE_KEY, Boolean.TRUE);
-        configurations.put(ADD_HEADER_KEY_KEY, HigressConstants.MODEL_ROUTER_HEADER);
+        configurations.put(ModelRouterConfig.MODEL_TO_HEADER, MODEL_ROUTING_HEADER);
 
         wasmPluginInstanceService.addOrUpdate(instance);
+    }
+
+    private void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER);
+            return;
+        }
+
+        final String pluginName = BuiltInPluginName.MODEL_MAPPER;
+        for (AiUpstream upstream : upstreams) {
+            UpstreamService upstreamService = llmProviderService.buildUpstreamService(upstream.getProvider());
+
+            Map<WasmPluginInstanceScope, String> targets = Map.of(WasmPluginInstanceScope.ROUTE, routeName,
+                WasmPluginInstanceScope.SERVICE, upstreamService.getName());
+
+            if (MapUtils.isEmpty(upstream.getModelMapping())) {
+                wasmPluginInstanceService.delete(targets, pluginName);
+                continue;
+            }
+
+            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, pluginName, true);
+            if (instance == null) {
+                instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
+                instance.setInternal(true);
+                instance.setTargets(targets);
+            }
+            instance.setEnabled(true);
+
+            Map<String, Object> configurations = instance.getConfigurations();
+            if (MapUtils.isEmpty(configurations)) {
+                // Just in case it is a readonly empty map.
+                configurations = new HashMap<>();
+                instance.setConfigurations(configurations);
+            }
+
+            configurations.put(ModelMapperConfig.MODEL_MAPPING, new HashMap<>(upstream.getModelMapping()));
+
+            wasmPluginInstanceService.addOrUpdate(instance);
+        }
     }
 
     private Route buildRoute(String routeName, AiRoute aiRoute) {
@@ -325,20 +353,49 @@ public class AiRouteServiceImpl implements AiRouteService {
         route.setPath(new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true));
         route.setDomains(aiRoute.getDomains());
 
-        AiModelPredicate modelPredicate = aiRoute.getModelPredicate();
-        if (modelPredicate != null && Boolean.TRUE.equals(modelPredicate.getEnabled())
-            && StringUtils.isNotEmpty(modelPredicate.getPrefix())) {
-            KeyedRoutePredicate modelHeaderPredicate = new KeyedRoutePredicate(HigressConstants.MODEL_ROUTER_HEADER);
-            modelHeaderPredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.name());
-            modelHeaderPredicate.setMatchValue(modelPredicate.getPrefix());
-            modelHeaderPredicate.setCaseSensitive(true);
-            if (route.getHeaders() == null) {
-                route.setHeaders(new ArrayList<>());
+        List<AiModelPredicate> modelPredicates = aiRoute.getModelPredicates();
+        if (CollectionUtils.isNotEmpty(modelPredicates)) {
+            KeyedRoutePredicate headerRoutePredicate = new KeyedRoutePredicate(MODEL_ROUTING_HEADER);
+            if (modelPredicates.size() == 1) {
+                AiModelPredicate modelPredicate = modelPredicates.get(0);
+                headerRoutePredicate.setMatchType(modelPredicate.getMatchType());
+                headerRoutePredicate.setMatchValue(modelPredicate.getMatchValue());
+            } else {
+                headerRoutePredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+                headerRoutePredicate.setMatchValue(buildModelRoutingHeaderRegex(modelPredicates));
             }
-            route.getHeaders().add(modelHeaderPredicate);
+            route.setHeaders(List.of(headerRoutePredicate));
         }
 
         return route;
+    }
+
+    @VisibleForTesting
+    String buildModelRoutingHeaderRegex(List<AiModelPredicate> modelPredicates) {
+        StringBuilder regexBuilder = new StringBuilder();
+        regexBuilder.append("^(");
+        for (int i = 0; i < modelPredicates.size(); i++) {
+            AiModelPredicate modelPredicate = modelPredicates.get(i);
+            if (i > 0) {
+                regexBuilder.append("|");
+            }
+            if (modelPredicate.getMatchType().equals(RoutePredicateTypeEnum.REGULAR.toString())) {
+                // Shouldn't happen as we have checked it in the caller.
+                throw new IllegalArgumentException(
+                    "Regular expression match is not supported for model routing header.");
+            }
+            regexBuilder.append(escapeForRegexMatch(modelPredicate.getMatchValue()));
+            if (RoutePredicateTypeEnum.PRE == RoutePredicateTypeEnum.fromName(modelPredicate.getMatchType())) {
+                regexBuilder.append(".*");
+            }
+        }
+        regexBuilder.append(")");
+        return regexBuilder.toString();
+    }
+
+    @VisibleForTesting
+    String escapeForRegexMatch(String value) {
+        return value.replaceAll("[\\[\\]{}()^$|*+?.\\\\]", "\\\\$0");
     }
 
     private void setUpstreams(Route route, List<AiUpstream> upstreams) {
