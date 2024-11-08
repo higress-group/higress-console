@@ -38,12 +38,12 @@ export default {
       },
       {
         name: 'higressConfig.title',
-        path: '/higress-config',
+        path: '/higress-configs',
         hideFromMenu: true,
         routes: [
           {
             name: 'higressConfig.title',
-            path: '/higress-config',
+            path: '/higress-configs',
           },
         ],
       },

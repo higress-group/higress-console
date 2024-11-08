@@ -37,7 +37,7 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   }, []);
 
   const onHigressConfigClick = useCallback((event: MenuInfo) => {
-    history?.push(`/higress-config`);
+    history?.push(`/higress-configs`);
   }, []);
 
   const menu = {
