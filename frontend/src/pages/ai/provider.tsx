@@ -35,6 +35,12 @@ const LlmProviderList: React.FC = () => {
       ellipsis: true,
     },
     {
+      title: t('service.columns.endpoints'),
+      dataIndex: 'endpoints',
+      key: 'endpoints',
+      ellipsis: true,
+    },
+    {
       title: t('llmProvider.columns.tokens'),
       dataIndex: 'tokens',
       key: 'tokens',
@@ -80,7 +86,7 @@ const LlmProviderList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({});
+    run();
   }, []);
 
   const onEditDrawer = (llmProvider: LlmProvider) => {
@@ -95,20 +101,19 @@ const LlmProviderList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      // const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+      const values = formRef.current ? await formRef.current.handleSubmit() : {};
 
-      // if (currentLlmProvider) {
-      //   await updateLlmProvider({ version: currentLlmProvider.version, ...values } as LlmProvider);
-      // } else {
-      //   await addLlmProvider(values as LlmProvider);
-      // }
+      if (currentLlmProvider) {
+        // version 进行创建或强制更新操作时需设置为 0。
+        await updateLlmProvider({ version: 0, ...values } as LlmProvider);
+      } else {
+        await addLlmProvider(values as LlmProvider);
+      }
 
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
-    } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
-    }
+    } catch (errInfo) {}
   };
 
   const handleDrawerCancel = () => {

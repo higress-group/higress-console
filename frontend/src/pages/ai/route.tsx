@@ -1,5 +1,5 @@
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
-import { deleteAiRoute, getAiRoutes } from '@/services/ai-route';
+import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -109,7 +109,7 @@ const AiRouteList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({});
+    run();
   }, []);
 
   const onEditDrawer = (aiRoute: AiRoute) => {
@@ -124,13 +124,15 @@ const AiRouteList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      // const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+      const values = formRef.current ? await formRef.current.handleSubmit() : {};
+      console.log('values', values)
+      if(!values) return false;
 
-      // if (currentAiRoute) {
-      //   await updateAiRoute({ version: currentAiRoute.version, ...values } as AiRoute);
-      // } else {
-      //   await addAiRoute(values as AiRoute);
-      // }
+      if (currentAiRoute) {
+        await updateAiRoute({ version: currentAiRoute.version, ...values } as AiRoute);
+      } else {
+        await addAiRoute(values as AiRoute);
+      }
 
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();

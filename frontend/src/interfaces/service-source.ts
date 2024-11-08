@@ -49,3 +49,13 @@ export const ServiceSourceTypes = {
   static: { key: 'static', name: 'serviceSource.types.static.name', i18n: true, enabled: true },
   dns: { key: 'dns', name: 'serviceSource.types.dns.name', i18n: true, enabled: true },
 };
+
+interface ListEntry {
+  provider: string;
+  width: number;
+}
+
+export interface CustomComponentHandles {
+  addItem: (any) => void;
+  getList: () => Array<ListEntry>;
+};

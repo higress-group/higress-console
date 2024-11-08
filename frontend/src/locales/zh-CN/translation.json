@@ -141,9 +141,23 @@
       "qwen": "通义千问",
       "moonshot": "月之暗面"
     },
+    "providerForm": {
+      "label": {
+        "type": "类型",
+        "name": "名称"
+      },
+      "placeholder": {
+        "type": "请选择类型",
+        "name": "请输入名称",
+        "tokens": "请输入认证令牌"
+      },
+      "rules": {
+        "name": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。"
+      }
+    },
     "create": "提供AI服务提供者",
     "edit": "编辑AI服务提供者",
-    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
+    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？"
   },
   "plugins": {
     "title": "策略配置",
