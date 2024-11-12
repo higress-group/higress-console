@@ -114,6 +114,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     @Override
     public AiRoute add(AiRoute route) {
         fillDefaultValues(route);
+
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap newConfigMap;
         try {
@@ -126,6 +127,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         writeAiRouteResources(route);
+        writeAiRouteFallbackResources(route);
 
         return kubernetesModelConverter.configMap2AiRoute(newConfigMap);
     }
@@ -168,6 +170,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     @Override
     public AiRoute update(AiRoute route) {
         fillDefaultValues(route);
+
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap updatedConfigMap;
         try {
@@ -187,10 +190,28 @@ public class AiRouteServiceImpl implements AiRouteService {
     }
 
     private void fillDefaultValues(AiRoute route) {
+        fillDefaultWeights(route.getUpstreams());
         AiModelPredicate modelPredicate = route.getModelPredicate();
         if (modelPredicate != null && Boolean.TRUE.equals(modelPredicate.getEnabled())
             && StringUtils.isEmpty(modelPredicate.getPrefix())) {
             modelPredicate.setPrefix(route.getName());
+        }
+        AiRouteFallbackConfig fallbackConfig = route.getFallbackConfig();
+        if (fallbackConfig != null && Boolean.TRUE.equals(fallbackConfig.getEnabled())) {
+            fillDefaultWeights(fallbackConfig.getUpstreams());
+            if (StringUtils.isEmpty(fallbackConfig.getFallbackStrategy())) {
+                fallbackConfig.setFallbackStrategy(AiRouteFallbackStrategy.RANDOM);
+            }
+        }
+    }
+
+    private void fillDefaultWeights(List<AiUpstream> upstreams) {
+        if (upstreams == null || upstreams.size() != 1) {
+            return;
+        }
+        AiUpstream upstream = upstreams.get(0);
+        if (upstream != null) {
+            upstream.setWeight(100);
         }
     }
 
