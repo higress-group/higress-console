@@ -125,11 +125,11 @@ const AiRouteList: React.FC = () => {
   const handleDrawerOK = async () => {
     try {
       const values = formRef.current ? await formRef.current.handleSubmit() : {};
-      console.log('values', values)
-      if(!values) return false;
+      if (!values) return false;
 
       if (currentAiRoute) {
-        await updateAiRoute({ version: currentAiRoute.version, ...values } as AiRoute);
+        const params: AiRoute = { version: currentAiRoute.version, ...values };
+        await updateAiRoute(params);
       } else {
         await addAiRoute(values as AiRoute);
       }
@@ -138,7 +138,9 @@ const AiRouteList: React.FC = () => {
       formRef.current && formRef.current.reset();
       refresh();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      setOpenDrawer(false);
+      formRef.current && formRef.current.reset();
+      refresh();
     }
   };
 
@@ -162,6 +164,7 @@ const AiRouteList: React.FC = () => {
   };
 
   const handleModalCancel = () => {
+    setConfirmLoading(false);
     setOpenModal(false);
     setCurrentAiRoute(null);
   };
@@ -206,6 +209,7 @@ const AiRouteList: React.FC = () => {
         title={t(currentAiRoute ? "aiRoute.edit" : "aiRoute.create")}
         placement="right"
         width={660}
+        destroyOnClose
         onClose={handleDrawerCancel}
         open={openDrawer}
         extra={
@@ -229,8 +233,8 @@ const AiRouteList: React.FC = () => {
         okText={t('misc.confirm')}
       >
         <p>
-          <Trans t={t} i18nKey="aiRoute.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{ currentAiRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
+          <Trans t={t} i18nKey="llmProvider.deleteRoute">
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>
       </Modal>

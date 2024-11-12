@@ -14,10 +14,10 @@ const RedoOutlinedBtn = (props) => {
 
   return (
     <Form.Item label="&nbsp;">
-      <Button 
-        onClick={handleClick} 
-        disabled={getList && getList.loading} 
-        icon={<RedoOutlined spin={getList && getList.loading}/>}
+      <Button
+        onClick={handleClick}
+        disabled={getList && getList.loading}
+        icon={<RedoOutlined spin={getList && getList.loading} />}
       />
     </Form.Item>
   )
@@ -25,12 +25,13 @@ const RedoOutlinedBtn = (props) => {
 
 // 跳转按钮
 const HistoryButton = (props) => {
-  const { text='', path='' } = props;
+  const { text = '', path = '' } = props;
 
   return (
-    <Button 
-      type="link" style={{ padding: 0 }} 
-      onClick={()=>history?.push(path)}
+    <Button
+      type="link"
+      style={{ padding: 0 }}
+      onClick={() => history?.push(path)}
     >
       {text}
     </Button>
@@ -41,56 +42,57 @@ const UpstreamsTable = React.forwardRef<CustomComponentHandles>((props, ref) => 
   const [dataSource, setDataSource] = useState<any[]>([]);
 
   useImperativeHandle(ref, () => ({
+    setDataSource,
     addItem: (item) => {
-      setDataSource([ ...dataSource, item ].map(i => ({...i, provider: i.name, weight: 100 })));
+      setDataSource([...dataSource, item].map(i => ({ provider: i.name, weight: 100, ...i })));
     },
     getList: () => {
       return dataSource.map(({ provider, weight }) => ({ provider, weight }));
-    }
+    },
   }));
 
   const columns = [
     {
       title: '服务',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'provider',
+      key: 'provider',
     },
     {
       title: '权重',
       dataIndex: 'weight',
       key: 'weight',
       render: (_, record) => (
-        <InputNumber 
-          min={0} 
-          max={100} 
+        <InputNumber
+          min={0}
+          max={100}
           defaultValue={record.weight}
           addonAfter="%"
           style={{ width: "100%" }}
           onChange={val => weightChange(val, record)}
         />
-      )
+      ),
     },
     {
       title: '操作',
       dataIndex: 'operation',
       key: 'operation',
       render: (_, record) => (
-        <Button type="link" onClick={()=> deleteData(record)}>删除</Button>
+        <Button type="link" onClick={() => deleteData(record)}>删除</Button>
       ),
     },
   ];
 
   const deleteData = (record) => {
-    const newList = dataSource.filter(i => i.name!== record.name);
+    const newList = dataSource.filter(i => i.provider !== record.provider);
     setDataSource(newList);
   };
 
   const weightChange = (val, record) => {
     const newList = dataSource.map(i => {
-      if(i.name === record.name) {
+      if (i.provider === record.provider) {
         return {
-         ...i,
-          weight: val
+          ...i,
+          weight: val,
         }
       }
       return i;
@@ -101,8 +103,8 @@ const UpstreamsTable = React.forwardRef<CustomComponentHandles>((props, ref) => 
 
   return (
     <>
-      <Table 
-        rowKey="name"
+      <Table
+        rowKey="provider"
         size="small"
         pagination={false}
         columns={columns}

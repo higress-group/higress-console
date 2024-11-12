@@ -105,7 +105,8 @@ const LlmProviderList: React.FC = () => {
 
       if (currentLlmProvider) {
         // version 进行创建或强制更新操作时需设置为 0。
-        await updateLlmProvider({ version: 0, ...values } as LlmProvider);
+        const params: LlmProvider = { version: 0, ...values };
+        await updateLlmProvider(params);
       } else {
         await addLlmProvider(values as LlmProvider);
       }
@@ -113,7 +114,11 @@ const LlmProviderList: React.FC = () => {
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
-    } catch (errInfo) {}
+    } catch (errInfo) {
+      setOpenDrawer(false);
+      formRef.current && formRef.current.reset();
+      refresh();
+    }
   };
 
   const handleDrawerCancel = () => {
@@ -129,13 +134,20 @@ const LlmProviderList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteLlmProvider(currentLlmProvider.name);
+    try {
+      await deleteLlmProvider(currentLlmProvider.name);
+    } catch (err) {
+      setConfirmLoading(false);
+      setOpenModal(false);
+      refresh();
+    }
     setConfirmLoading(false);
     setOpenModal(false);
     refresh();
   };
 
   const handleModalCancel = () => {
+    setConfirmLoading(false);
     setOpenModal(false);
     setCurrentLlmProvider(null);
   };
