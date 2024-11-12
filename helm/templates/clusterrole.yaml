@@ -25,4 +25,6 @@ rules:
   - apiGroups: ["extensions.higress.io"]
     resources: ["wasmplugins"]
     verbs: ["*"]
-    
+  - apiGroups: ["networking.istio.io"]
+    resources: ["envoyfilters"]
+    verbs: ["*"]
