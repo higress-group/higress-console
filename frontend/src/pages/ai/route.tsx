@@ -7,6 +7,7 @@ import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+import { HistoryButton } from './components/RouteForm/Components';
 
 interface FormRef {
   reset: () => void;
@@ -78,10 +79,12 @@ const AiRouteList: React.FC = () => {
       title: t('aiRoute.columns.action'),
       dataIndex: 'action',
       key: 'action',
-      width: 140,
+      width: 240,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <a onClick={() => onUse(record)}>{t('llmProvider.providerForm.howtouse')}</a>
+          <HistoryButton text={t('misc.strategy')} path="/plugin" />
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -96,6 +99,7 @@ const AiRouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [useDrawer, setUseDrawer] = useState(false)
 
   const { loading, run, refresh } = useRequest(getAiRoutes, {
     manual: true,
@@ -111,6 +115,16 @@ const AiRouteList: React.FC = () => {
   useEffect(() => {
     run();
   }, []);
+
+  const onUse = (aiRoute: AiRoute) => {
+    setCurrentAiRoute(aiRoute);
+    setUseDrawer(true);
+  };
+
+  const closeUse = () => {
+    setCurrentAiRoute(null);
+    setUseDrawer(false);
+  }
 
   const onEditDrawer = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);
@@ -157,10 +171,14 @@ const AiRouteList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteAiRoute(currentAiRoute.name);
-    setConfirmLoading(false);
-    setOpenModal(false);
-    refresh();
+    try {
+      await deleteAiRoute(currentAiRoute.name);
+    } catch (err) {
+      handleModalCancel()
+      setConfirmLoading(false);
+      setOpenModal(false);
+      refresh();
+    }
   };
 
   const handleModalCancel = () => {
@@ -223,6 +241,14 @@ const AiRouteList: React.FC = () => {
       >
         <RouteForm ref={formRef} value={currentAiRoute} />
       </Drawer>
+      <Modal
+        title={t("llmProvider.providerForm.AirouterUse")}
+        open={useDrawer}
+        onOk={closeUse}
+        onCancel={closeUse}
+      >
+        TBD
+      </Modal>
       <Modal
         title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}

@@ -1,8 +1,8 @@
-import { ServiceSourceTypes, CustomComponentHandles } from '@/interfaces/service-source';
-import { Form, Input, Select, Tabs, Switch, Button } from 'antd';
+import { CustomComponentHandles } from '@/interfaces/service-source';
+import { Form, Input, Select, Switch, Button } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RedoOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { getLlmProviders } from '@/services/llm-provider';
 import { Domain } from '@/interfaces/domain';
@@ -12,7 +12,8 @@ import { useRequest } from 'ahooks';
 import { getGatewayDomains } from '@/services';
 import { RedoOutlinedBtn, HistoryButton, UpstreamsTable } from './Components';
 
-const ConsumerForm: React.FC = forwardRef((props, ref) => {
+
+const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
@@ -168,14 +169,15 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
-            message: t('llmProvider.providerForm.placeholder.name'),
+            pattern: /^(?!-)[A-Za-z0-9-]{0,63}[A-Za-z0-9]$/,
+            message: t('serviceSource.serviceSourceForm.nameRequired'),
           },
         ]}
       >
         <Input
           showCount
           allowClear
-          maxLength={200}
+          maxLength={63}
           disabled={value}
           placeholder={t('llmProvider.providerForm.rules.name')}
         />
@@ -185,19 +187,19 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       <div style={{ display: 'flex' }}>
         <Form.Item
           style={{ flex: 1, marginRight: '8px' }}
-          label={"域名"}
+          label={t("llmProvider.providerForm.label.domain")}
           required
           name="domains"
           rules={[
             {
               required: true,
-              message: "请输入域名",
+              message: t("llmProvider.providerForm.placeholder.domain"),
             },
           ]}
-          extra={(<HistoryButton text={"创建域名"} path={"/domain"} />)}
+          extra={(<HistoryButton text={t("llmProvider.providerForm.creatDomain")} path={"/domain"} />)}
         >
           <Select
-            placeholder={"请选择域名"}
+            placeholder={t("serviceSource.serviceSourceForm.domainRequired")}
           >
             {
               domainsList.map((item) => {
@@ -221,10 +223,10 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       {/* 是否启用基于模型的路由匹配规则 */}
       <Form.Item
         name="modelPredicate_enabled"
-        label="是否启用基于模型的路由匹配规则"
+        label={t('llmProvider.providerForm.label.modelPredicate')}
         valuePropName="checked"
         initialValue={false}
-        extra="启用后，若请求目标服务失败，网关会改为请求降级服务。"
+        extra={t('llmProvider.providerForm.label.extra')}
       >
         <Switch onChange={e => setModelPredicateEnabled(e)} />
       </Form.Item>
@@ -234,17 +236,17 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         modelPredicate_enabled ?
           <Form.Item
             name="modelPredicate_prefix"
-            label="匹配本路由所需的模型名称前缀"
+            label={t('llmProvider.providerForm.label.modelPredicatePrefix')}
             required
             rules={[
               {
                 required: true,
-                message: "请输入域名",
+                message: t('llmProvider.providerForm.rules.modelPredicatePrefix'),
               },
             ]}
           >
             <Input.TextArea
-              placeholder={`匹配本路由所需的模型名称前缀（不包含结尾的“/”）`}
+              placeholder={t('llmProvider.providerForm.placeholder.modelPredicatePrefix')}
               rows={2}
             />
           </Form.Item> : null
@@ -254,15 +256,15 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       <div style={{ display: 'flex' }}>
         <Form.Item
           style={{ flex: 1, marginRight: '8px' }}
-          label={"目标AI服务"}
+          label={t('llmProvider.providerForm.label.aiName')}
           required
           hasFeedback={upstreamsError}
           validateStatus={upstreamsError ? "error" : ''}
-          help={upstreamsError ? "请选择并添加目标AI服务" : null}
+          help={upstreamsError ? t('llmProvider.providerForm.placeholder.aiName') : null}
           name="upstreams_target"
-          extra={(<HistoryButton text={"创建AI服务"} path={"/ai/provider"} />)}
+          extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
         >
-          <Select placeholder={"请选择"}>
+          <Select placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
             {
               llmList.map((item) => {
                 return (
@@ -300,7 +302,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       <Form.Item
         hasFeedback={upstreamsError}
         validateStatus={upstreamsError ? "error" : ''}
-        help={upstreamsError ? "请选择并添加目标AI服务" : null}
+        help={upstreamsError ? t('llmProvider.providerForm.placeholder.aiName') : null}
       >
         <UpstreamsTable ref={upstreamsRef} />
       </Form.Item>
@@ -308,10 +310,10 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       {/* 降级服务 */}
       <Form.Item
         name="fallbackConfig_enabled"
-        label="降级服务"
+        label={t('llmProvider.providerForm.label.fallbackConfig')}
         valuePropName="checked"
         initialValue={false}
-        extra="启用后，若请求目标服务失败，网关会改为请求降级服务。"
+        extra={t('llmProvider.providerForm.label.fallbackConfigExtra')}
       >
         <Switch onChange={e => setFallbackConfigEnabled(e)} />
       </Form.Item>
@@ -323,18 +325,18 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             <div style={{ display: 'flex' }}>
               <Form.Item
                 style={{ flex: 1, marginRight: '8px' }}
-                label={"降级服务列表"}
+                label={t('llmProvider.providerForm.label.fallbackConfigList')}
                 required
                 name="fallbackConfig_upstreams"
                 rules={[
                   {
                     required: true,
-                    message: "请选择降级服务",
+                    message: t('llmProvider.providerForm.placeholder.fallbackConfigList'),
                   },
                 ]}
               >
                 <Select
-                  placeholder={"请选择降级服务"}
+                  placeholder={t('llmProvider.providerForm.placeholder.fallbackConfigList')}
                 >
                   {
                     llmList.map((item) => {
@@ -357,20 +359,20 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             {/* 路由降级策略 */}
             <Form.Item
               style={{ flex: 1, marginRight: '8px' }}
-              label={"路由降级策略"}
+              label={t('llmProvider.providerForm.label.routeStrategy')}
               required
               name="fallbackConfig_strategy"
               initialValue={"RAND"}
               rules={[
                 {
                   required: true,
-                  message: "请选择路由降级策略",
+                  message: t('llmProvider.providerForm.label.routeStrategy'),
                 },
               ]}
             >
-              <Select placeholder={"请选择"}>
-                <Select.Option value={'RAND'}>随机选择列表中的一个服务提供商进行降级，只降级一次（默认）</Select.Option>
-                <Select.Option value={'SEQ'}>按服务提供商列表顺序逐个尝试降级，直至请求成功或所有提供商均尝试过为止</Select.Option>
+              <Select placeholder={t('llmProvider.providerForm.label.routeStrategy')}>
+                <Select.Option value={'RAND'}>{t('llmProvider.providerForm.label.routeStrategy1')}</Select.Option>
+                <Select.Option value={'SEQ'}>{t('llmProvider.providerForm.label.routeStrategy')}</Select.Option>
               </Select>
             </Form.Item>
           </>
@@ -380,10 +382,10 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       {/* 请求认证设置 */}
       <Form.Item
         name="authConfig_enabled"
-        label="是否启用请求认证"
+        label={t('llmProvider.providerForm.label.authConfig')}
         valuePropName="checked"
         initialValue={false}
-        extra="启用后，只有包含指定消费者认证信息的请求可以请求本路由。"
+        extra={t('llmProvider.providerForm.label.authConfigExtra')}
       >
         <Switch onChange={e => setAuthConfigEnabled(e)} />
       </Form.Item>
@@ -393,19 +395,19 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         <div style={{ display: 'flex' }}>
           <Form.Item
             style={{ flex: 1, marginRight: '8px' }}
-            label={"允许请求本路由的消费者名称列表"}
+            label={t('llmProvider.providerForm.label.authConfigList')}
             required
             name="authConfig_allowedConsumers"
             rules={[
               {
                 required: true,
-                message: "请选择允许请求本路由的消费者名称列表",
+                message: t('llmProvider.providerForm.label.authConfigList'),
               },
             ]}
-            extra={(<HistoryButton text={"创建消费者"} path={"/consumer"} />)}
+            extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
           >
             <Select
-              placeholder={"请选择允许请求本路由的消费者名称列表"}
+              placeholder={t('llmProvider.providerForm.label.authConfigList')}
             >
               {
                 consumerList.map((item) => {

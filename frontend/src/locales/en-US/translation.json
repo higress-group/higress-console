@@ -101,6 +101,61 @@
       "item4": "Input the HTTPS URL of Grafana is highly recommended to ensure the dashboard can be shown with in this page correctly."
     }
   },
+  "llmProvider": {
+    "Columns": {
+      "Type": "Type",
+      "Name": "Name",
+      "Tokens": "authentication token",
+      "Action": "action"
+    },
+      "ProviderTypes": {
+      "OpenAI": "OpenAI",
+      "qwen": "Tongyi Qianwen",
+      "Moonshot": "Dark Side of the Moon"
+    },
+    "providerForm": {
+      "label": {
+        "Type": "Type",
+        "Name": "Name",
+        "Domain": "Domain name",
+        "modelPredicate": "Whether to enable model-based route matching rules",
+        "Extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "modelPredicatePrefix": "Match the model name prefix required for this route",
+        "aiName": "Target AI Service",
+        "aiNameExtra": "Create AI services",
+        "fallbackConfig": "Downgrade service",
+        "FallbackConfigExtra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "fallbackConfigList": "Downgrade service list",
+        "RouteStrategy": "Routing downgrade strategy",
+        "routeStrategy1": "Randomly select a service provider in the list to downgrade, only downgrade once (default) ",
+        "routeStrategy2": "Attempt downgrades one by one in the order of the list of service providers until the request succeeds or all providers have tried",
+        "AuthConfig": "Whether to enable request authentication",
+        "AuthConfigExtra": "When enabled, only requests containing the specified consumer authentication information can request this route.",
+        "AuthConfigList": "List of consumer names allowed to request this route",
+        "Weight": "weight"
+      },
+      "Placeholder": {
+        "Type": "Please select type",
+        "Name": "Please enter a name",
+        "Tokens": "Please enter authentication token",
+        "Domain": "Please enter domain name",
+        "aiName": "Please select and add target AI service",
+        "modelPredicatePrefix": "Please select the model name prefix required to match this route",
+        "fallbackConfigList": "Please select a list of downgrade services",
+        "RouteStrategy": "Please select a route degradation strategy",
+        "AuthConfigList": "Please select a list of consumer names that are allowed to request this route."
+      },
+      "Rules": {
+        "modelPredicatePrefix": "Matches the model name prefix required by this route (excluding the ending '/') ",
+        "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
+      },
+      "creatDomain": "Create a domain name"
+    },
+    "Create": "Provide AI service providers",
+    "Edit": "Edit AI service provider",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
+    "DeleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?"
+  },
   "plugins": {
     "title": "Strategy Configuration",
     "subTitle": {

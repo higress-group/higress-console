@@ -144,20 +144,47 @@
     "providerForm": {
       "label": {
         "type": "类型",
-        "name": "名称"
+        "name": "名称",
+        "domain": "域名",
+        "modelPredicate": "是否启用基于模型的路由匹配规则",
+        "extra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
+        "modelPredicatePrefix": "匹配本路由所需的模型名称前缀",
+        "aiName": "目标AI服务",
+        "aiNameExtra": "创建AI服务",
+        "fallbackConfig": "降级服务",
+        "fallbackConfigExtra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
+        "fallbackConfigList": "降级服务列表",
+        "routeStrategy": "路由降级策略",
+        "routeStrategy1": "随机选择列表中的一个服务提供商进行降级，只降级一次（默认）",
+        "routeStrategy2": "按服务提供商列表顺序逐个尝试降级，直至请求成功或所有提供商均尝试过为止",
+        "authConfig": "是否启用请求认证",
+        "authConfigExtra": "启用后，只有包含指定消费者认证信息的请求可以请求本路由。",
+        "authConfigList": "允许请求本路由的消费者名称列表",
+        "weight": "权重"
       },
       "placeholder": {
         "type": "请选择类型",
         "name": "请输入名称",
-        "tokens": "请输入认证令牌"
+        "tokens": "请输入认证令牌",
+        "domain": "请输入域名",
+        "aiName": "请选择并添加目标AI服务",
+        "modelPredicatePrefix": "请选择匹配本路由所需的模型名称前缀",
+        "fallbackConfigList": "请选择降级服务列表",
+        "routeStrategy": "请选择路由降级策略",
+        "authConfigList": "请选择允许请求本路由的消费者名称列表"
       },
       "rules": {
+        "modelPredicatePrefix": "匹配本路由所需的模型名称前缀（不包含结尾的“/”）",
         "name": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。"
-      }
+      },
+      "creatDomain": "创建域名",
+      "howtouse": "使用方法",
+      "AirouterUse": "AI路由使用方法"
     },
     "create": "提供AI服务提供者",
     "edit": "编辑AI服务提供者",
-    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？"
+    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？",
+    "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？"
   },
   "plugins": {
     "title": "策略配置",

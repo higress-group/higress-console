@@ -3,6 +3,7 @@ import { Form, Button, Table, InputNumber } from 'antd';
 import { RedoOutlined } from '@ant-design/icons';
 import { history } from 'ice';
 import { CustomComponentHandles } from '@/interfaces/service-source';
+import { useTranslation } from 'react-i18next';
 
 // 刷新按钮
 const RedoOutlinedBtn = (props) => {
@@ -39,6 +40,7 @@ const HistoryButton = (props) => {
 };
 
 const UpstreamsTable = React.forwardRef<CustomComponentHandles>((props, ref) => {
+  const { t } = useTranslation();
   const [dataSource, setDataSource] = useState<any[]>([]);
 
   useImperativeHandle(ref, () => ({
@@ -53,12 +55,12 @@ const UpstreamsTable = React.forwardRef<CustomComponentHandles>((props, ref) => 
 
   const columns = [
     {
-      title: '服务',
+      title: t('aiRoute.columns.upstreams'), // '服务',
       dataIndex: 'provider',
       key: 'provider',
     },
     {
-      title: '权重',
+      title: t('llmProvider.providerForm.label.weight'), // '权重',
       dataIndex: 'weight',
       key: 'weight',
       render: (_, record) => (
@@ -73,11 +75,13 @@ const UpstreamsTable = React.forwardRef<CustomComponentHandles>((props, ref) => 
       ),
     },
     {
-      title: '操作',
+      title: t('plugins.builtIns.headerControl.action'), // 操作
       dataIndex: 'operation',
       key: 'operation',
       render: (_, record) => (
-        <Button type="link" onClick={() => deleteData(record)}>删除</Button>
+        <Button type="link" onClick={() => deleteData(record)}>
+          {t('misc.delete')}
+        </Button>
       ),
     },
   ];
