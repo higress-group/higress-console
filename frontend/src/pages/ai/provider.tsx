@@ -1,13 +1,14 @@
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
-import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, RedoOutlined, EyeTwoTone, EyeInvisibleTwoTone } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
 
+const { Text } = Typography;
 const providerTypeDisplayName = {
   openai: 'llmProvider.providerTypes.openai',
   qwen: 'llmProvider.providerTypes.qwen',
@@ -18,6 +19,35 @@ interface FormRef {
   reset: () => void;
   handleSubmit: () => Promise<FormProps>;
 }
+
+const EllipsisMiddle: React.FC = (params: { token: String }) => {
+  const { token } = params;
+  const [isHidden, setIsHidden] = useState(true);
+
+  const toggledText = () => {
+    if (isHidden) {
+      let frontKeyword = token.slice(0, 3);
+      let backKeyword = token.slice(-3);
+      return `${frontKeyword}******${backKeyword}`;
+    } else {
+      return token;
+    }
+  };
+
+  return (
+    <div
+      style={{ marginBottom: '10px' }}
+    >
+      <Text>{toggledText()}</Text>
+      <span
+        style={{ cursor: 'pointer', marginLeft: '2px' }}
+        onClick={() => setIsHidden(!isHidden)}
+      >
+        {isHidden ? <EyeTwoTone /> : <EyeInvisibleTwoTone />}
+      </span>
+    </div>
+  );
+};
 
 const LlmProviderList: React.FC = () => {
   const { t } = useTranslation();
@@ -48,7 +78,7 @@ const LlmProviderList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.map((token) => <EllipsisMiddle token={token} />);
       },
     },
     {

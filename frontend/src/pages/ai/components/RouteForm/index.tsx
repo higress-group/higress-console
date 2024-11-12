@@ -1,8 +1,7 @@
-import { CustomComponentHandles } from '@/interfaces/service-source';
-import { Form, Input, Select, Switch, Button } from 'antd';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Form, Input, Select, Switch, Button, Space, InputNumber } from 'antd';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { getLlmProviders } from '@/services/llm-provider';
 import { Domain } from '@/interfaces/domain';
@@ -10,7 +9,7 @@ import { getConsumers } from '@/services/consumer';
 import { Consumer } from '@/interfaces/consumer';
 import { useRequest } from 'ahooks';
 import { getGatewayDomains } from '@/services';
-import { RedoOutlinedBtn, HistoryButton, UpstreamsTable } from './Components';
+import { RedoOutlinedBtn, HistoryButton } from './Components';
 
 
 const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
@@ -21,8 +20,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [fallbackConfig_enabled, setFallbackConfigEnabled] = useState(false);
   const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
   // 目标AI服务错误提示
-  const [upstreamsError, setUpstreamsError] = useState(false);
-  const upstreamsRef = useRef<CustomComponentHandles>(null);
+  const [upstreamsError, setUpstreamsError] = useState<any>(false);
 
   const [llmList, setLlmList] = useState<LlmProvider[]>([]);
   const llmResult = useRequest(getLlmProviders, {
@@ -71,9 +69,6 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   const initForm = () => {
     const { name = "", domains, upstreams = [] } = value;
-    if (upstreams?.length) {
-      upstreamsRef.current?.setDataSource(upstreams);
-    }
 
     const _modelPredicate_enabled = value?.modelPredicate?.enabled || false;
     const _authConfig_enabled = value?.authConfig?.enabled || false;
@@ -103,16 +98,28 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
-      const upstreams = upstreamsRef.current?.getList();
+      const { upstreams = [] } = values;
 
       if (!upstreams?.length) {
-        setUpstreamsError(true);
+        setUpstreamsError("aiName");
         return false;
       }
 
+      // 判断 AI 服务权重相加是否等于 100
+      const sumWeights: any = upstreams.reduce((accumulator, currentObject) => {
+        return parseInt(accumulator) + parseInt(currentObject.weight);
+      }, 0)
+
+      if (sumWeights !== 100) {
+        setUpstreamsError('weight');
+        return false;
+      }
+
+      setUpstreamsError(false);
+
       const {
-        name = '',
-        domains = [],
+        name,
+        domains,
         modelPredicate_prefix = '',
         fallbackConfig_upstreams = '',
         fallbackConfig_strategy = '',
@@ -188,14 +195,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         <Form.Item
           style={{ flex: 1, marginRight: '8px' }}
           label={t("llmProvider.providerForm.label.domain")}
-          required
           name="domains"
-          rules={[
-            {
-              required: true,
-              message: t("llmProvider.providerForm.placeholder.domain"),
-            },
-          ]}
           extra={(<HistoryButton text={t("llmProvider.providerForm.creatDomain")} path={"/domain"} />)}
         >
           <Select
@@ -253,58 +253,94 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
 
       {/* 目标AI服务 upstreams */}
-      <div style={{ display: 'flex' }}>
-        <Form.Item
-          style={{ flex: 1, marginRight: '8px' }}
-          label={t('llmProvider.providerForm.label.aiName')}
-          required
-          hasFeedback={upstreamsError}
-          validateStatus={upstreamsError ? "error" : ''}
-          help={upstreamsError ? t('llmProvider.providerForm.placeholder.aiName') : null}
-          name="upstreams_target"
-          extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
-        >
-          <Select placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
-            {
-              llmList.map((item) => {
-                return (
-                  <Select.Option
-                    key={item.name}
-                    value={item.name}
-                  >
-                    {item.name}
-                  </Select.Option>
-                )
-              })
-            }
-          </Select>
-        </Form.Item>
-
-        <Form.Item label="&nbsp;">
-          <Button
-            style={{ marginRight: '8px' }}
-            onClick={() => {
-              const upstreams_target = form.getFieldValue('upstreams_target');
-
-              if (upstreams_target) {
-                const target_item = llmList.find(i => i.name === upstreams_target) ?? {};
-                upstreamsRef.current?.addItem(target_item);
-
-                form.resetFields(["upstreams_target"]);
-                setUpstreamsError(false);
-              }
-            }}
-            icon={<PlusOutlined />}
-          />
-        </Form.Item>
-        <RedoOutlinedBtn getList={llmResult} />
-      </div>
       <Form.Item
+        required
+        style={{ marginBottom: 8 }}
+        label={t('llmProvider.providerForm.label.aiName')}
         hasFeedback={upstreamsError}
         validateStatus={upstreamsError ? "error" : ''}
-        help={upstreamsError ? t('llmProvider.providerForm.placeholder.aiName') : null}
+        help={upstreamsError ? t(`llmProvider.providerForm.placeholder.${upstreamsError}`) : null}
+        extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
       >
-        <UpstreamsTable ref={upstreamsRef} />
+        <Form.List name="upstreams">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Space
+                  key={key}
+                  style={{
+                    display: 'flex',
+                  }}
+                  align="start"
+                >
+                  <Form.Item
+                    {...restField}
+                    style={{ width: "100%" }}
+                    name={[name, 'provider']}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('llmProvider.providerForm.placeholder.aiName'),
+                      },
+                    ]}
+                  >
+                    <Select style={{ width: "200px" }} placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
+                      {
+                        llmList.map((item) => {
+                          const selectArr = form.getFieldValue('upstreams').map(i => i && i.provider) || [];
+                          return (
+                            <Select.Option
+                              key={item.name}
+                              value={item.name}
+                              disabled={!!selectArr.includes(item.name)}
+                            >
+                              {item.name}
+                            </Select.Option>
+                          )
+                        })
+                      }
+                    </Select>
+                  </Form.Item>
+                  <Form.Item
+                    style={{ width: "100%" }}
+                    {...restField}
+                    name={[name, 'weight']}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('llmProvider.providerForm.label.weight'),
+                      },
+                    ]}
+                  >
+                    <InputNumber
+                      style={{ width: "200px" }}
+                      min={0}
+                      max={100}
+                      addonAfter="%"
+                    />
+                  </Form.Item>
+
+                  <Form.Item>
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Form.Item>
+                </Space>
+              ))}
+              <Form.Item>
+                <Button
+                  type="dashed"
+                  onClick={async () => {
+                    await form.validateFields();
+                    add()
+                  }}
+                  block
+                  icon={<PlusOutlined />}
+                >
+                  添加目标AI服务
+                </Button>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
       </Form.Item>
 
       {/* 降级服务 */}
@@ -413,7 +449,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 consumerList.map((item) => {
                   return (
                     <Select.Option
-                      key={item.name}
+                      key={String(item.name)}
                       value={item.name}
                     >
                       {item.name}

@@ -168,6 +168,7 @@
         "tokens": "请输入认证令牌",
         "domain": "请输入域名",
         "aiName": "请选择并添加目标AI服务",
+        "weight": "目标AI服务权重相加应等于 100",
         "modelPredicatePrefix": "请选择匹配本路由所需的模型名称前缀",
         "fallbackConfigList": "请选择降级服务列表",
         "routeStrategy": "请选择路由降级策略",
