@@ -8,56 +8,54 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 const { Option } = Select;
 
 const providerTypeDisplayName = [
-  { key: 'openai', label:'llmProvider.providerTypes.openai' },
-  { key: 'qwen', label:'llmProvider.providerTypes.qwen' },
+  { key: 'openai', label: 'llmProvider.providerTypes.openai' },
+  { key: 'qwen', label: 'llmProvider.providerTypes.qwen' },
 ];
 
-const ProviderForm: React.FC = forwardRef((props, ref) => {
+const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
-  const { value } = props; 
   const [form] = Form.useForm();
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     form.resetFields();
-    if(value) {
-      const { 
-        name, 
-        type, 
-        protocol, 
-        tokens, 
-        modelMapping={}, 
-        tokenFailoverConfig={} 
-      } = value;
-      const { 
-        enabled=false, 
-        failureThreshold, 
-        successThreshold, 
-        healthCheckInterval, 
-        healthCheckTimeout, 
-        healthCheckModel 
+    if (props.value) {
+      const {
+        name,
+        type,
+        protocol,
+        tokens,
+        modelMapping = {},
+        tokenFailoverConfig = {},
+      } = props.value;
+      const {
+        failureThreshold,
+        successThreshold,
+        healthCheckInterval,
+        healthCheckTimeout,
+        healthCheckModel,
       } = tokenFailoverConfig ?? {};
 
-      setEnabled(enabled);
+      setEnabled(tokenFailoverConfig?.enabled || false);
       form.setFieldsValue({
-        name, 
-        type, 
-        protocol, 
-        tokens, 
-        modelMapping: getModelText(modelMapping), 
-        enabled, 
-        failureThreshold, 
-        successThreshold, 
-        healthCheckInterval, 
-        healthCheckTimeout, 
-        healthCheckModel
-      });
-    };
+        name,
+        type,
+        protocol,
+        tokens,
+        modelMapping: getModelText(modelMapping),
+        enabled,
+        failureThreshold,
+        successThreshold,
+        healthCheckInterval,
+        healthCheckTimeout,
+        healthCheckModel,
+      })
+    }
 
     return () => {
       setEnabled(false);
     }
-  }, [value]);
+  }, [props.value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => {
@@ -75,16 +73,16 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
         modelMapping: getModelMapping(values.modelMapping),
         tokenFailoverConfig: {
           enabled: values.enabled,
-        }
-      };
+        },
+      }
 
-      if(values.enabled) {
+      if (values.enabled) {
         result.tokenFailoverConfig['failureThreshold'] = values.failureThreshold;
         result.tokenFailoverConfig['successThreshold'] = values.successThreshold;
         result.tokenFailoverConfig['healthCheckInterval'] = values.healthCheckInterval;
         result.tokenFailoverConfig['healthCheckTimeout'] = values.healthCheckTimeout;
         result.tokenFailoverConfig['healthCheckModel'] = values.healthCheckModel;
-      };
+      }
 
       return result;
     },
@@ -100,10 +98,10 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
         const [key, value] = line.split('=');
         result[key.trim()] = value.trim();
       });
-      
+
       return result;
     } catch (err) {
-      return {};
+      return {}
     }
   };
 
@@ -111,7 +109,7 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
     try {
       return Object.entries(text).map(([key, value]) => `${key}=${value}`).join('\n');
     } catch (err) {
-      return JSON.stringify(err);
+      return JSON.stringify(err)
     }
   };
 
@@ -136,13 +134,15 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
           placeholder={t('llmProvider.providerForm.placeholder.type')}
         >
           {
-            providerTypeDisplayName.map((item,index) => {
-              return <Select.Option 
-                key={index} 
-                value={item.key}
-              >
-                {t(item.label)}
-              </Select.Option>
+            providerTypeDisplayName.map((item) => {
+              return (
+                <Select.Option
+                  key={item.key}
+                  value={item.key}
+                >
+                  {t(item.label)}
+                </Select.Option>
+              )
             })
           }
         </Select>
@@ -164,7 +164,7 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
           showCount
           allowClear
           maxLength={200}
-          disabled={value}
+          disabled={props.value}
           placeholder={t('llmProvider.providerForm.rules.name')}
         />
       </Form.Item>
@@ -176,8 +176,8 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
         name="protocol"
         initialValue="openai/v1"
       >
-        <Select 
-          allowClear 
+        <Select
+          allowClear
           placeholder={"面向调用者的接口协议"}
         >
           <Select.Option value="openai/v1">
@@ -190,10 +190,12 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
       <Form.List name="tokens">
         {(fields, { add, remove }, { errors }) => (
           <>
-            {fields.length? null: 
-              <div style={{ marginBottom:'8px' }}>
+            {!fields.length ?
+              <div
+                style={{ marginBottom: '8px' }}
+              >
                 {t('llmProvider.columns.tokens')}
-              </div>
+              </div> : null
             }
 
             {fields.map((field, index) => (
@@ -214,27 +216,27 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
                   ]}
                   noStyle
                 >
-                  <Input 
+                  <Input
                     style={{ width: '90%' }}
-                    placeholder={t('llmProvider.providerForm.placeholder.tokens')} 
+                    placeholder={t('llmProvider.providerForm.placeholder.tokens')}
                   />
                 </Form.Item>
                 {/* 删除按钮 */}
-                {fields.length > 1 ? 
-                  (<Button 
-                    type="dashed" 
-                    onClick={() => remove(field.name)} 
+                {fields.length > 1 ?
+                  (<Button
+                    type="dashed"
+                    onClick={() => remove(field.name)}
                     icon={<MinusCircleOutlined />}
-                  />):
-                null}
+                  />) :
+                  null}
               </Form.Item>
             ))}
 
             {/* 添加按钮 */}
             <Form.Item>
-              <Button 
-                type="dashed" 
-                onClick={() => add()} 
+              <Button
+                type="dashed"
+                onClick={() => add()}
                 icon={<PlusOutlined />}
               />
               <Form.ErrorList errors={errors} />
@@ -244,11 +246,11 @@ const ProviderForm: React.FC = forwardRef((props, ref) => {
       </Form.List>
 
       {/* 模型映射 */}
-      <Form.Item 
-        name="modelMapping" 
+      <Form.Item
+        name="modelMapping"
         label="模型映射"
       >
-        <Input.TextArea 
+        <Input.TextArea
           placeholder={`配置请求模型与目标模型的映射关系，示例如下:
 gpt-3=qwen-turbo
 gpt-*=qwen-max
@@ -259,74 +261,74 @@ gpt-*=qwen-max
       </Form.Item>
 
       {/* 令牌降级 */}
-      <Form.Item 
-        name="enabled" 
+      <Form.Item
+        name="enabled"
         label="令牌降级"
         valuePropName="checked"
         extra="启用后，若某一认证令牌返回异常响应的数量超出网值，Higress 将暂停使用该令牌发起请求，直至后续健康检测请求连续收到一定数量的正常响应。"
       >
-        <Switch onChange={e => setEnabled(e)}/>
+        <Switch onChange={e => setEnabled(e)} />
       </Form.Item>
 
       {
-        enabled?
-        <>
-          {/* 令牌不可用时需满足的最小连续请求失败次数 */}
-          <Form.Item 
-            name="failureThreshold"
-            label="令牌不可用时需满足的最小连续请求失败次数"
-            rules={[
-              { required: true, message: "请输入", },
-            ]}
-          >
-            <InputNumber style={{ width: '100%' }}/>
-          </Form.Item>
-    
-          {/* 令牌可用时需满足的最小连续健康检测成功次数 */}
-          <Form.Item 
-            name="successThreshold"
-            label="令牌可用时需满足的最小连续健康检测成功次数"
-            rules={[
-              { required: true, message: "请输入", },
-            ]}
-          >
-            <InputNumber style={{ width: '100%' }}/>
-          </Form.Item>
-    
-          {/* 健康检测请求发起间隔 */}
-          <Form.Item 
-            name="healthCheckInterval"
-            label="健康检测请求发起间隔(ms)"
-            rules={[
-              { required: true, message: "请输入", },
-            ]}
-          >
-            <InputNumber style={{ width: '100%' }}/>
-          </Form.Item>
-    
-          {/* 健康检测请求超时时间 */}
-          <Form.Item 
-            name="healthCheckTimeout"
-            label="健康检测请求超时时间(ms)"
-            rules={[
-              { required: true, message: "请输入", },
-            ]}
-          >
-            <InputNumber style={{ width: '100%' }}/>
-          </Form.Item>
-    
-          {/* 健康检测请求使用的模型名称 */}
-          <Form.Item 
-            name="healthCheckModel"
-            label="健康检测请求使用的模型名称"
-            rules={[
-              { required: true, message: "请输入", },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        </>
-        :null
+        enabled ?
+          <>
+            {/* 令牌不可用时需满足的最小连续请求失败次数 */}
+            <Form.Item
+              name="failureThreshold"
+              label="令牌不可用时需满足的最小连续请求失败次数"
+              rules={[
+                { required: true, message: "请输入" },
+              ]}
+            >
+              <InputNumber style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* 令牌可用时需满足的最小连续健康检测成功次数 */}
+            <Form.Item
+              name="successThreshold"
+              label="令牌可用时需满足的最小连续健康检测成功次数"
+              rules={[
+                { required: true, message: "请输入" },
+              ]}
+            >
+              <InputNumber style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* 健康检测请求发起间隔 */}
+            <Form.Item
+              name="healthCheckInterval"
+              label="健康检测请求发起间隔(ms)"
+              rules={[
+                { required: true, message: "请输入" },
+              ]}
+            >
+              <InputNumber style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* 健康检测请求超时时间 */}
+            <Form.Item
+              name="healthCheckTimeout"
+              label="健康检测请求超时时间(ms)"
+              rules={[
+                { required: true, message: "请输入" },
+              ]}
+            >
+              <InputNumber style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* 健康检测请求使用的模型名称 */}
+            <Form.Item
+              name="healthCheckModel"
+              label="健康检测请求使用的模型名称"
+              rules={[
+                { required: true, message: "请输入" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+          </>
+          : null
       }
 
     </Form>

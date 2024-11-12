@@ -57,5 +57,5 @@ interface ListEntry {
 
 export interface CustomComponentHandles {
   addItem: (any) => void;
-  getList: () => Array<ListEntry>;
-};
+  getList: () => ListEntry[];
+}
