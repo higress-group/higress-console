@@ -5,11 +5,10 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'rea
 import { useTranslation } from 'react-i18next';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
-const { Option } = Select;
-
 const providerTypeDisplayName = [
   { key: 'openai', label: 'llmProvider.providerTypes.openai' },
   { key: 'qwen', label: 'llmProvider.providerTypes.qwen' },
+  { key: 'moonshot', label: 'llmProvider.providerTypes.moonshot' },
 ];
 
 const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
