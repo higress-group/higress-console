@@ -185,7 +185,11 @@
     "create": "提供AI服务提供者",
     "edit": "编辑AI服务提供者",
     "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？",
-    "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？"
+    "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？",
+    "selectModelName": "选择模型服务",
+    "modelProportion": "按比例",
+    "modelName": "按请求 Body 中的模型名称",
+    "addTargetAIservice": "添加目标AI服务"
   },
   "plugins": {
     "title": "策略配置",

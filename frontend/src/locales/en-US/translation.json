@@ -102,59 +102,66 @@
     }
   },
   "llmProvider": {
-    "Columns": {
-      "Type": "Type",
-      "Name": "Name",
-      "Tokens": "authentication token",
-      "Action": "action"
+    "columns": {
+      "type": "Type",
+      "name": "Name",
+      "tokens": "authentication token",
+      "action": "action"
     },
-      "ProviderTypes": {
-      "OpenAI": "OpenAI",
+    "providerTypes": {
+      "openai": "OpenAI",
       "qwen": "Tongyi Qianwen",
-      "Moonshot": "Dark Side of the Moon"
+      "moonshot": "Dark Side of the Moon"
     },
     "providerForm": {
       "label": {
-        "Type": "Type",
-        "Name": "Name",
-        "Domain": "Domain name",
+        "type": "Type",
+        "name": "Name",
+        "domain": "Domain name",
         "modelPredicate": "Whether to enable model-based route matching rules",
-        "Extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
         "modelPredicatePrefix": "Match the model name prefix required for this route",
         "aiName": "Target AI Service",
         "aiNameExtra": "Create AI services",
         "fallbackConfig": "Downgrade service",
-        "FallbackConfigExtra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "fallbackConfigExtra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
         "fallbackConfigList": "Downgrade service list",
-        "RouteStrategy": "Routing downgrade strategy",
+        "routeStrategy": "Routing downgrade strategy",
         "routeStrategy1": "Randomly select a service provider in the list to downgrade, only downgrade once (default) ",
         "routeStrategy2": "Attempt downgrades one by one in the order of the list of service providers until the request succeeds or all providers have tried",
-        "AuthConfig": "Whether to enable request authentication",
-        "AuthConfigExtra": "When enabled, only requests containing the specified consumer authentication information can request this route.",
-        "AuthConfigList": "List of consumer names allowed to request this route",
-        "Weight": "weight"
+        "authConfig": "Whether to enable request authentication",
+        "authConfigExtra": "When enabled, only requests containing the specified consumer authentication information can request this route.",
+        "authConfigList": "List of consumer names allowed to request this route",
+        "weight": "weight"
       },
-      "Placeholder": {
-        "Type": "Please select type",
-        "Name": "Please enter a name",
-        "Tokens": "Please enter authentication token",
-        "Domain": "Please enter domain name",
+      "placeholder": {
+        "type": "Please select type",
+        "name": "Please enter a name",
+        "tokens": "Please enter authentication token",
+        "domain": "Please enter domain name",
         "aiName": "Please select and add target AI service",
+        "weight": "The sum of the target AI service weights should equal 100.",
         "modelPredicatePrefix": "Please select the model name prefix required to match this route",
         "fallbackConfigList": "Please select a list of downgrade services",
-        "RouteStrategy": "Please select a route degradation strategy",
-        "AuthConfigList": "Please select a list of consumer names that are allowed to request this route."
+        "routeStrategy": "Please select a route degradation strategy",
+        "authConfigList": "Please select a list of consumer names that are allowed to request this route."
       },
-      "Rules": {
+      "rules": {
         "modelPredicatePrefix": "Matches the model name prefix required by this route (excluding the ending '/') ",
         "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
       },
-      "creatDomain": "Create a domain name"
+      "creatDomain": "Create a domain name",
+      "howtouse": "How to use",
+      "AirouterUse": "How to use AI routing"
     },
-    "Create": "Provide AI service providers",
-    "Edit": "Edit AI service provider",
+    "create": "Provide AI service providers",
+    "edit": "Edit AI service provider",
     "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
-    "DeleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?"
+    "deleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?",
+    "selectModelName": "Select Model Service",
+    "modelProportion": "proportionally",
+    "modelName": "By Model Name in Request Body",
+    "addTargetAIservice": "Add target AI service"
   },
   "plugins": {
     "title": "Strategy Configuration",

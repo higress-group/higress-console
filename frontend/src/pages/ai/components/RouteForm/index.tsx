@@ -219,7 +219,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         <RedoOutlinedBtn getList={domainsResult} />
       </div>
 
-      <div>选择模型服务</div>
+      <div>{t("llmProvider.selectModelName")}</div>
       <Select
         onChange={async (e) => {
           await form.resetFields(["upstreams", "modelPredicate_prefix"]);
@@ -229,8 +229,8 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         allowClear
         style={{ width: "100%", marginBottom: 24 }}
       >
-        <Select.Option value="Proportion">按比例</Select.Option>
-        <Select.Option value="ModelName">按请求 Body 中的模型名称</Select.Option>
+        <Select.Option value="Proportion">{/* 按比例 */}{t("llmProvider.modelProportion")}</Select.Option>
+        <Select.Option value="ModelName">{/* 按请求 Body 中的模型名称 */}{t("llmProvider.modelName")}</Select.Option>
       </Select>
 
       {
@@ -359,7 +359,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                           add()
                         }}
                       >
-                        添加目标AI服务
+                        {/* 添加目标AI服务 */}{t("llmProvider.addTargetAIservice")}
                       </Button>
                     </Form.Item>
                   </>
