@@ -11,16 +11,15 @@ import { useRequest } from 'ahooks';
 import { getGatewayDomains } from '@/services';
 import { RedoOutlinedBtn, HistoryButton } from './Components';
 
-
 const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
-  const [modelPredicate_enabled, setModelPredicateEnabled] = useState(false);
   const [fallbackConfig_enabled, setFallbackConfigEnabled] = useState(false);
   const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
   // 目标AI服务错误提示
   const [upstreamsError, setUpstreamsError] = useState<any>(false);
+  const [modelService, setModelService] = useState('Proportion');
 
   const [llmList, setLlmList] = useState<LlmProvider[]>([]);
   const llmResult = useRequest(getLlmProviders, {
@@ -63,26 +62,23 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
     return () => {
       setAuthConfigEnabled(false);
       setFallbackConfigEnabled(false);
-      setModelPredicateEnabled(false);
     }
   }, []);
 
   const initForm = () => {
     const { name = "", domains, upstreams = [] } = value;
 
-    const _modelPredicate_enabled = value?.modelPredicate?.enabled || false;
     const _authConfig_enabled = value?.authConfig?.enabled || false;
     const _fallbackConfig_enabled = value?.fallbackConfig?.enabled || false;
 
     setAuthConfigEnabled(_authConfig_enabled);
     setFallbackConfigEnabled(_fallbackConfig_enabled);
-    setModelPredicateEnabled(_modelPredicate_enabled);
+    setModelService(value?.modelPredicate?.enabled ? "Proportion" : "ModelName")
 
     form.setFieldsValue({
       name,
       domains: domains?.length ? domains[0] : undefined,
-      upstreams,
-      modelPredicate_enabled: _modelPredicate_enabled,
+      upstreams: value?.modelPredicate?.enabled ? upstreams[0].provider : upstreams,
       modelPredicate_prefix: value?.modelPredicate?.prefix || "",
       authConfig_enabled: _authConfig_enabled,
       authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || "",
@@ -100,19 +96,21 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const values = await form.validateFields();
       const { upstreams = [] } = values;
 
-      if (!upstreams?.length) {
-        setUpstreamsError("aiName");
-        return false;
-      }
+      if (modelService === "ModelName") {
+        if (!upstreams?.length) {
+          setUpstreamsError("aiName");
+          return false;
+        }
 
-      // 判断 AI 服务权重相加是否等于 100
-      const sumWeights: any = upstreams.reduce((accumulator, currentObject) => {
-        return parseInt(accumulator) + parseInt(currentObject.weight);
-      }, 0)
+        // 判断 AI 服务权重相加是否等于 100
+        const sumWeights: any = upstreams.reduce((accumulator, currentObject) => {
+          return parseInt(accumulator, 10) + parseInt(currentObject.weight, 10);
+        }, 0)
 
-      if (sumWeights !== 100) {
-        setUpstreamsError('weight');
-        return false;
+        if (sumWeights !== 100) {
+          setUpstreamsError('weight');
+          return false;
+        }
       }
 
       setUpstreamsError(false);
@@ -126,16 +124,17 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         authConfig_allowedConsumers = '',
       } = values;
 
+      const isProportion = modelService === "Proportion";
       const payload = {
         name,
         domains: domains ? [domains] : [],
 
 
         modelPredicate: {
-          enabled: values?.modelPredicate_enabled,
+          enabled: isProportion,
         },
 
-        upstreams,
+        upstreams: isProportion ? [{ provider: upstreams, weight: 100 }] : upstreams,
 
         fallbackConfig: {
           enabled: fallbackConfig_enabled,
@@ -146,7 +145,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         },
       };
 
-      if (values?.modelPredicate_enabled) {
+      if (isProportion) {
         payload['modelPredicate']['prefix'] = modelPredicate_prefix;
       }
 
@@ -199,6 +198,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
           extra={(<HistoryButton text={t("llmProvider.providerForm.creatDomain")} path={"/domain"} />)}
         >
           <Select
+            allowClear
             placeholder={t("serviceSource.serviceSourceForm.domainRequired")}
           >
             {
@@ -219,129 +219,155 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         <RedoOutlinedBtn getList={domainsResult} />
       </div>
 
-
-      {/* 是否启用基于模型的路由匹配规则 */}
-      <Form.Item
-        name="modelPredicate_enabled"
-        label={t('llmProvider.providerForm.label.modelPredicate')}
-        valuePropName="checked"
-        initialValue={false}
-        extra={t('llmProvider.providerForm.label.extra')}
+      <div>选择模型服务</div>
+      <Select
+        onChange={async (e) => {
+          await form.resetFields(["upstreams", "modelPredicate_prefix"]);
+          setModelService(e);
+        }}
+        value={modelService}
+        allowClear
+        style={{ width: "100%", marginBottom: 24 }}
       >
-        <Switch onChange={e => setModelPredicateEnabled(e)} />
-      </Form.Item>
+        <Select.Option value="Proportion">按比例</Select.Option>
+        <Select.Option value="ModelName">按请求 Body 中的模型名称</Select.Option>
+      </Select>
 
-      {/* 匹配本路由所需的模型名称前缀（不包含结尾的“/”） */}
       {
-        modelPredicate_enabled ?
-          <Form.Item
-            name="modelPredicate_prefix"
-            label={t('llmProvider.providerForm.label.modelPredicatePrefix')}
-            required
-            rules={[
-              {
-                required: true,
-                message: t('llmProvider.providerForm.rules.modelPredicatePrefix'),
-              },
-            ]}
-          >
-            <Input.TextArea
-              placeholder={t('llmProvider.providerForm.placeholder.modelPredicatePrefix')}
-              rows={2}
-            />
-          </Form.Item> : null
-      }
-
-      {/* 目标AI服务 upstreams */}
-      <Form.Item
-        required
-        style={{ marginBottom: 8 }}
-        label={t('llmProvider.providerForm.label.aiName')}
-        hasFeedback={upstreamsError}
-        validateStatus={upstreamsError ? "error" : ''}
-        help={upstreamsError ? t(`llmProvider.providerForm.placeholder.${upstreamsError}`) : null}
-        extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
-      >
-        <Form.List name="upstreams">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space
-                  key={key}
-                  style={{
-                    display: 'flex',
-                  }}
-                  align="start"
-                >
-                  <Form.Item
-                    {...restField}
-                    style={{ width: "100%" }}
-                    name={[name, 'provider']}
-                    rules={[
-                      {
-                        required: true,
-                        message: t('llmProvider.providerForm.placeholder.aiName'),
-                      },
-                    ]}
-                  >
-                    <Select style={{ width: "200px" }} placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
-                      {
-                        llmList.map((item) => {
-                          const selectArr = form.getFieldValue('upstreams').map(i => i && i.provider) || [];
-                          return (
-                            <Select.Option
-                              key={item.name}
-                              value={item.name}
-                              disabled={!!selectArr.includes(item.name)}
-                            >
-                              {item.name}
-                            </Select.Option>
-                          )
-                        })
-                      }
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    style={{ width: "100%" }}
-                    {...restField}
-                    name={[name, 'weight']}
-                    rules={[
-                      {
-                        required: true,
-                        message: t('llmProvider.providerForm.label.weight'),
-                      },
-                    ]}
-                  >
-                    <InputNumber
-                      style={{ width: "200px" }}
-                      min={0}
-                      max={100}
-                      addonAfter="%"
-                    />
-                  </Form.Item>
-
-                  <Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Form.Item>
-                </Space>
-              ))}
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={async () => {
-                    await form.validateFields();
-                    add()
-                  }}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  添加目标AI服务
-                </Button>
+        modelService === "Proportion" ?
+          <>
+            <Space style={{ display: 'flex' }} align="start">
+              <Form.Item
+                required
+                name="upstreams"
+                style={{ marginBottom: 8 }}
+                label={t('llmProvider.providerForm.label.aiName')}
+                extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
+                rules={[
+                  {
+                    required: true,
+                    message: t('llmProvider.providerForm.placeholder.aiName'),
+                  },
+                ]}
+              >
+                <Select style={{ width: "300px" }} placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
+                  {
+                    llmList.map((item) => (
+                      <Select.Option key={item.name} value={item.name}>
+                        {item.name}
+                      </Select.Option>
+                    ))
+                  }
+                </Select>
               </Form.Item>
-            </>
-          )}
-        </Form.List>
-      </Form.Item>
+
+              <Form.Item
+                name="modelPredicate_prefix"
+                label={t('llmProvider.providerForm.label.modelPredicatePrefix')}
+                required
+                rules={[
+                  {
+                    required: true,
+                    message: t('llmProvider.providerForm.rules.modelPredicatePrefix'),
+                  },
+                ]}
+              >
+                <Input.TextArea
+                  style={{ width: "300px" }}
+                  placeholder={t('llmProvider.providerForm.placeholder.modelPredicatePrefix')}
+                  rows={1}
+                />
+              </Form.Item>
+            </Space>
+          </> :
+          <>
+            {/* 目标AI服务 upstreams */}
+            <Form.Item
+              required
+              style={{ marginBottom: 8 }}
+              label={t('llmProvider.providerForm.label.aiName')}
+              hasFeedback={upstreamsError}
+              validateStatus={upstreamsError ? "error" : ''}
+              help={upstreamsError ? t(`llmProvider.providerForm.placeholder.${upstreamsError}`) : null}
+              extra={(<HistoryButton text={t('llmProvider.providerForm.label.aiNameExtra')} path={"/ai/provider"} />)}
+            >
+              <Form.List name="upstreams">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <Space key={key} style={{ display: 'flex' }} align="start">
+                        <Form.Item
+                          {...restField}
+                          style={{ width: "100%" }}
+                          name={[name, 'provider']}
+                          rules={[
+                            {
+                              required: true,
+                              message: t('llmProvider.providerForm.placeholder.aiName'),
+                            },
+                          ]}
+                        >
+                          <Select style={{ width: "280px" }} placeholder={t('llmProvider.providerForm.placeholder.aiName')}>
+                            {
+                              llmList.map((item) => {
+                                const selectArr = form.getFieldValue('upstreams').map(i => i && i.provider) || [];
+                                return (
+                                  <Select.Option
+                                    key={item.name}
+                                    value={item.name}
+                                    disabled={!!selectArr.includes(item.name)}
+                                  >
+                                    {item.name}
+                                  </Select.Option>
+                                )
+                              })
+                            }
+                          </Select>
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          style={{ width: "100%" }}
+                          name={[name, 'weight']}
+                          rules={[
+                            {
+                              required: true,
+                              message: t('llmProvider.providerForm.label.weight'),
+                            },
+                          ]}
+                        >
+                          <InputNumber
+                            style={{ width: "280px" }}
+                            min={0}
+                            placeholder={t('llmProvider.providerForm.label.weight')}
+                            max={100}
+                            addonAfter="%"
+                          />
+                        </Form.Item>
+
+                        <Form.Item>
+                          <MinusCircleOutlined onClick={() => remove(name)} />
+                        </Form.Item>
+                      </Space>
+                    ))}
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        block
+                        icon={<PlusOutlined />}
+                        onClick={async () => {
+                          await form.validateFields();
+                          add()
+                        }}
+                      >
+                        添加目标AI服务
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </Form.Item>
+          </>
+      }
 
       {/* 降级服务 */}
       <Form.Item
@@ -351,7 +377,11 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         initialValue={false}
         extra={t('llmProvider.providerForm.label.fallbackConfigExtra')}
       >
-        <Switch onChange={e => setFallbackConfigEnabled(e)} />
+        <Switch onChange={e => {
+          setFallbackConfigEnabled(e)
+          form.resetFields(["fallbackConfig_upstreams", "fallbackConfig_strategy"])
+        }}
+        />
       </Form.Item>
 
       {
@@ -371,20 +401,13 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   },
                 ]}
               >
-                <Select
-                  placeholder={t('llmProvider.providerForm.placeholder.fallbackConfigList')}
-                >
+                <Select allowClear placeholder={t('llmProvider.providerForm.placeholder.fallbackConfigList')}>
                   {
-                    llmList.map((item) => {
-                      return (
-                        <Select.Option
-                          key={item.name}
-                          value={item.name}
-                        >
-                          {item.name}
-                        </Select.Option>
-                      )
-                    })
+                    llmList.map((item) => (
+                      <Select.Option key={item.name} value={item.name}>
+                        {item.name}
+                      </Select.Option>
+                    ))
                   }
                 </Select>
               </Form.Item>
@@ -406,7 +429,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 },
               ]}
             >
-              <Select placeholder={t('llmProvider.providerForm.label.routeStrategy')}>
+              <Select allowClear placeholder={t('llmProvider.providerForm.label.routeStrategy')}>
                 <Select.Option value={'RAND'}>{t('llmProvider.providerForm.label.routeStrategy1')}</Select.Option>
                 <Select.Option value={'SEQ'}>{t('llmProvider.providerForm.label.routeStrategy')}</Select.Option>
               </Select>
@@ -423,7 +446,11 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         initialValue={false}
         extra={t('llmProvider.providerForm.label.authConfigExtra')}
       >
-        <Switch onChange={e => setAuthConfigEnabled(e)} />
+        <Switch onChange={e => {
+          setAuthConfigEnabled(e)
+          form.resetFields(["authConfig_allowedConsumers"])
+        }}
+        />
       </Form.Item>
 
       {/* 允许请求本路由的消费者名称列表 */}
@@ -442,16 +469,11 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
             ]}
             extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
           >
-            <Select
-              placeholder={t('llmProvider.providerForm.label.authConfigList')}
-            >
+            <Select allowClear placeholder={t('llmProvider.providerForm.label.authConfigList')}>
               {
                 consumerList.map((item) => {
                   return (
-                    <Select.Option
-                      key={String(item.name)}
-                      value={item.name}
-                    >
+                    <Select.Option key={String(item.name)} value={item.name}>
                       {item.name}
                     </Select.Option>
                   )
