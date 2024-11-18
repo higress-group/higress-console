@@ -324,7 +324,7 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin cr = crCaptor.getValue();
         Assertions.assertNotNull(cr);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME, cr.getMetadata().getName());
-        Assertions.assertNull(cr.getSpec().getDefaultConfigDisable());
+        Assertions.assertTrue(cr.getSpec().getDefaultConfigDisable());
         Assertions.assertNull(cr.getSpec().getDefaultConfig());
         Assertions.assertEquals(1, cr.getSpec().getMatchRules().size());
         MatchRule rule = cr.getSpec().getMatchRules().get(0);
