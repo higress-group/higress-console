@@ -873,6 +873,10 @@ public class KubernetesModelConverter {
 
     private static void setDefaultValues(V1alpha1WasmPluginSpec spec) {
         spec.setFailStrategy(FailStrategy.FAIL_OPEN.getName());
+
+        if (spec.getDefaultConfigDisable() == null){
+            spec.setDefaultConfigDisable(true);
+        }
     }
 
     private static int compareStringLists(List<String> l1, List<String> l2) {
