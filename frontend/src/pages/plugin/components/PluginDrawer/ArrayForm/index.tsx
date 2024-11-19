@@ -9,8 +9,11 @@ import i18next from 'i18next';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
+const PRIMITIVE_VALUE_DATA_INDEX = "Item";
+
 interface Item {
   key: string;
+  data: any;
 }
 
 interface EditableRowProps {
@@ -60,15 +63,21 @@ const EditableCell: React.FC<EditableCellProps> = ({
   });
 
   useEffect(() => {
-    form.setFieldsValue({ ...record });
-  }, [editing]);
+    if (record && record.data != null && record.data !== "") {
+      if (typeof record.data === 'object') {
+        form.setFieldsValue({ ...record.data });
+      } else {
+        form.setFieldValue(PRIMITIVE_VALUE_DATA_INDEX, record.data);
+      }
+    }
+  }, [editing, record]);
 
   const save = async () => {
     form.validateFields().then(values => {
-      handleSave({ ...record, ...values }, true);
+      handleSave({ ...record, data: values }, true);
     }).catch(e => {
-      handleSave({ ...record, ...form.getFieldsValue() }, false);
-    })
+      handleSave({ ...record, data: form.getFieldsValue() }, false);
+    });
   };
 
   let childNode = children;
@@ -110,7 +119,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
           onBlur={save}
           onChange={(e) => handleInputChange(dataIndex, parseFloat(e.target.value))}
         />
-      )
+      );
       break;
     case 'boolean':
       node = (
@@ -157,6 +166,7 @@ interface DataType {
   uid: number;
   new: boolean;
   invalid: boolean;
+  data: any;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -171,7 +181,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     }
   }
 
-  const [dataSource, setDataSource] = useState<DataType[]>(value || []);
+  const [dataSource, setDataSource] = useState<DataType[]>(initDataSource);
 
   function getLocalizedText(obj: any, index: string, defaultText: string) {
     const i18nObj = obj[`x-${index}-i18n`];
@@ -195,7 +205,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     let translatedTitle = getLocalizedText(array, 'title', '');
     defaultColumns.push({
       title: translatedTitle,
-      dataIndex: 'Item',
+      dataIndex: PRIMITIVE_VALUE_DATA_INDEX,
       editable: true,
       required: true,
       nodeType: array.type,
@@ -218,6 +228,7 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
       uid: uniqueId(),
       new: true,
       invalid: true,
+      data: array.type === 'object' ? {} : '',
     };
     setDataSource([...dataSource, newData]);
     onChange([...dataSource, newData]);
@@ -233,11 +244,13 @@ const ArrayForm: React.FC = ({ array, value, onChange }) => {
     const newData = [...dataSource];
     const index = newData.findIndex((item) => row.uid === item.uid);
     const item = newData[index];
+    const newDataValue = array.type === 'object' ? row.data : row.data[PRIMITIVE_VALUE_DATA_INDEX];
     newData.splice(index, 1, {
       ...item,
       ...row,
       new: false,
       invalid: !valid,
+      data: newDataValue,
     });
     setDataSource(newData);
     onChange(newData);
