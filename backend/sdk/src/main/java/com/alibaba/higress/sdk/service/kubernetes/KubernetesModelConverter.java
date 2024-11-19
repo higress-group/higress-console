@@ -333,7 +333,7 @@ public class KubernetesModelConverter {
             V1GatewaySpecListeners listener = new V1GatewaySpecListeners();
             listener.setName(KubernetesUtil.normalizeDomainName(domain.getName())+Separators.DASH+port);
             listener.setPort(port);
-            if (!Separators.ASTERISK.equals(domain.getName())) {
+            if (!Separators.ASTERISK.equals(domain.getName()) && !HigressConstants.DEFAULT_DOMAIN.equals(domain.getName())) {
                 listener.setHostname(domain.getName());
             }
             listener.setProtocol("HTTP");

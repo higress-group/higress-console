@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
 import com.alibaba.higress.sdk.service.strategy.domain.DomainContext;
 import com.alibaba.higress.sdk.service.strategy.domain.DomainStrategy;
 import com.alibaba.higress.sdk.service.strategy.domain.GatewayDomainStrategy;
@@ -27,8 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.ResourceConflictException;
-import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.PaginatedResult;

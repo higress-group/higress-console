@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.route.Header;
 import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
@@ -3026,7 +3028,7 @@ public class KubernetesModelConverterTest {
 
         V1Gateway expectedGateway = new V1Gateway();
         V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName("wildcard");
+        metadata.setName(HigressConstants.DEFAULT_DOMAIN);
         metadata.setResourceVersion("3");
         expectedGateway.setMetadata(metadata);
 
@@ -3035,14 +3037,14 @@ public class KubernetesModelConverterTest {
         List<V1GatewaySpecListeners> listeners = new ArrayList<>();
 
         V1GatewaySpecListeners httpListener = new V1GatewaySpecListeners();
-        httpListener.setName("wildcard-80");
+        httpListener.setName(HigressConstants.DEFAULT_DOMAIN+ Separators.DASH +"80");
         httpListener.setPort(80);
         httpListener.setProtocol("HTTP");
         httpListener.setAllowedRoutes(V1GatewaySpecListeners.getDefaultAllowedRoutes());
         listeners.add(httpListener);
 
         V1GatewaySpecListeners httpsListener = new V1GatewaySpecListeners();
-        httpsListener.setName("wildcard-443");
+        httpsListener.setName(HigressConstants.DEFAULT_DOMAIN+ Separators.DASH +"443");
         httpsListener.setPort(443);
         httpsListener.setProtocol("HTTPS");
         httpsListener.setTls(V1GatewaySpecListeners.getDefaultTls("wildcard-cert"));

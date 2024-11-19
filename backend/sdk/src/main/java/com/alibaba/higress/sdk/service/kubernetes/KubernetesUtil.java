@@ -32,11 +32,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 public class KubernetesUtil {
 
@@ -96,6 +92,9 @@ public class KubernetesUtil {
     public static String normalizeDomainName(String name) {
         if (StringUtils.isNotBlank(name) && name.startsWith(Separators.ASTERISK)) {
             name = CommonKey.WILDCARD + name.substring(Separators.ASTERISK.length());
+            if (CommonKey.WILDCARD.equals(name)) {
+                name = HigressConstants.DEFAULT_DOMAIN;
+            }
         }
         return name;
     }

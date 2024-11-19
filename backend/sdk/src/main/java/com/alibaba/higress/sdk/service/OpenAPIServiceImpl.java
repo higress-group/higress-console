@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.OpenAPISpecification;
@@ -60,6 +61,9 @@ public class OpenAPIServiceImpl implements OpenAPIService{
 
     @Override
     public OpenAPISpecification add(OpenAPISpecification openApi) {
+        if (kubernetesClientService.isIngressWorkMode()) {
+            throw new BusinessException("Ingress mode is not supported for OpenAPI Specification yet");
+        }
 
         List<DomainInfo> domainInfos = processDomains(openApi);
         addOrUpdateDomains(domainInfos);
@@ -82,9 +86,12 @@ public class OpenAPIServiceImpl implements OpenAPIService{
         Domain domain;
         PathAndType pathAndType;
 
-        DomainInfo(Domain domain, PathAndType pathAndType) {
+        List<WasmPluginInstance> instances;
+
+        DomainInfo(Domain domain, PathAndType pathAndType, List<WasmPluginInstance> instances) {
             this.domain = domain;
             this.pathAndType = pathAndType;
+            this.instances = instances;
         }
     }
 
@@ -116,7 +123,7 @@ public class OpenAPIServiceImpl implements OpenAPIService{
     private DomainInfo createDefaultDomainInfo() {
         Domain domain = new Domain();
         domain.setName("*");
-        return new DomainInfo(domain, new PathAndType("/", Boolean.TRUE));
+        return new DomainInfo(domain, new PathAndType("/", Boolean.TRUE), null);
     }
 
     private List<DomainInfo> createDomainInfoFromServer(OpenAPIServer server) {
@@ -151,7 +158,30 @@ public class OpenAPIServiceImpl implements OpenAPIService{
                 }
             }
             domain.setPortAndCertMap(portAndCertMap);
-            domainInfos.add(new DomainInfo(domain, pathAndType));
+            List<WasmPluginInstance> instances = new ArrayList<>();
+            if (server.getExtensions()!=null && server.getExtensions().containsKey("policy")) {
+                @SuppressWarnings("unchecked")
+                Map<String, List<String>> wasm = (Map<String, List<String>>) server.getExtensions().get("policy");
+                if (wasm.get("pluginName")!=null && wasm.get("enabled")!=null && wasm.get("rawConfigurations")!=null) {
+                    List<String> pluginNames = wasm.get("pluginName");
+                    List<String> enabled = wasm.get("enabled");
+                    List<String> rawConfigs = wasm.get("rawConfigurations");
+                    for (int i = 0; i < pluginNames.size(); i++) {
+                        WasmPluginInstance instance = new WasmPluginInstance();
+                        instance.setScope(WasmPluginInstanceScope.DOMAIN);
+                        instance.setPluginName(pluginNames.get(i));
+                        if (i < enabled.size()) {
+                            instance.setEnabled(Boolean.parseBoolean(enabled.get(i)));
+                        }
+                        if (i < rawConfigs.size()) {
+                            instance.setRawConfigurations(rawConfigs.get(i));
+                        }
+                        instance.setTarget(domain.getName());
+                        instances.add(instance);
+                    }
+                }
+            }
+            domainInfos.add(new DomainInfo(domain, pathAndType, instances));
         }
 
         return domainInfos;
@@ -233,7 +263,7 @@ public class OpenAPIServiceImpl implements OpenAPIService{
             }
         } catch (MalformedURLException e) {
             // If URL is relative, return wildcard
-            hosts.add("*");
+            hosts.add(HigressConstants.DEFAULT_DOMAIN);
         }
         
         return hosts;
@@ -425,10 +455,10 @@ public class OpenAPIServiceImpl implements OpenAPIService{
             }
             route.setServices(services);
         }
-        // TODO: wasm ->
+
         if (pathItem.getExtensions()!=null && pathItem.getExtensions().containsKey("policy")) {
             @SuppressWarnings("unchecked")
-            Map<String, List<String>> wasm = (Map<String, List<String>>) pathItem.getExtensions().get("wasm");
+            Map<String, List<String>> wasm = (Map<String, List<String>>) pathItem.getExtensions().get("policy");
             if (wasm.get("pluginName")!=null && wasm.get("enabled")!=null && wasm.get("rawConfigurations")!=null) {
                 List<String> pluginNames = wasm.get("pluginName");
                 List<String> enabled = wasm.get("enabled"); 
@@ -453,6 +483,12 @@ public class OpenAPIServiceImpl implements OpenAPIService{
     private void addOrUpdateDomains(List<DomainInfo> domainInfos) {
         for (DomainInfo domainInfo : domainInfos) {
             domainService.addOrUpdate(domainInfo.domain);
+            List<WasmPluginInstance> instances = domainInfo.instances;
+            if (CollectionUtils.isNotEmpty(instances)) {
+                for (WasmPluginInstance instance: instances) {
+                    wasmPluginInstanceService.addOrUpdate(instance);
+                }
+            }
         }
     }
 
