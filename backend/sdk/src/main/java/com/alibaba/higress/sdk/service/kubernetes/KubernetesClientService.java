@@ -609,6 +609,7 @@ public class KubernetesClientService {
     }
 
     public V1Gateway createGateway(V1Gateway gateway) throws ApiException {
+        renderDefaultLabels(gateway);
         modifyLoadBalancerPorts(null, gateway);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(V1Gateway.API_GROUP, V1Gateway.VERSION,
@@ -621,6 +622,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("gateway doesn't have a valid metadata.");
         }
+        renderDefaultLabels(gateway);
         V1Gateway gatewayOri = readGateway(metadata.getName());
         modifyLoadBalancerPorts(gatewayOri, gateway);
         gateway.getMetadata().setResourceVersion(gatewayOri.getMetadata().getResourceVersion());
@@ -763,6 +765,7 @@ public class KubernetesClientService {
     }
 
     public V1HTTPRoute createHttpRoute(V1HTTPRoute httpRoute) throws ApiException {
+        renderDefaultLabels(httpRoute);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.createNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
                 httpRouteNameSpace, V1HTTPRoute.PLURAL, httpRoute, null, null, null);
@@ -780,6 +783,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("httpRoute doesn't have a valid metadata.");
         }
+        renderDefaultLabels(httpRoute);
         metadata.setNamespace(httpRouteNameSpace);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response = customObjectsApi.replaceNamespacedCustomObject(V1HTTPRoute.API_GROUP, V1HTTPRoute.VERSION,
