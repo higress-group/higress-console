@@ -2159,7 +2159,12 @@ public class KubernetesModelConverter {
         RewriteConfig rewrite = new RewriteConfig();
         rewrite.setEnabled(Boolean.TRUE);
         rewrite.setHost(urlRewrite.getHostname());
-        rewrite.setPath(urlRewrite.getPath().getReplacePrefixMatch());
+        String matchType = route.getPath().getMatchType();
+        if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+            rewrite.setPath(urlRewrite.getPath().getReplacePrefixMatch());
+        } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType) || RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+            rewrite.setPath(urlRewrite.getPath().getReplaceFullPath());
+        }
         route.setRewrite(rewrite);
     }
 
