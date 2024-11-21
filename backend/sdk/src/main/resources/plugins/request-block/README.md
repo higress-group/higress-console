@@ -14,14 +14,16 @@ description: 请求屏蔽插件配置参考
 
 ## 配置字段
 
-| 名称 | 数据类型 | 填写要求 |  默认值 | 描述 |
-| -------- | -------- | -------- | -------- | -------- |
-|  block_urls     |  array of string     | 选填，`block_urls`,`block_headers`,`block_bodies` 中至少必填一项     |   -  |  配置用于匹配需要屏蔽 URL 的字符串   |
-|  block_headers     |  array of string     | 选填，`block_urls`,`block_headers`,`block_bodies` 中至少必填一项     |   -  |  配置用于匹配需要屏蔽请求 Header 的字符串   |
-|  block_bodies     |  array of string     | 选填，`block_urls`,`block_headers`,`block_bodies` 中至少必填一项     |   -  |  配置用于匹配需要屏蔽请求 Body 的字符串   |
-|  blocked_code     |  number     | 选填     |   403  |  配置请求被屏蔽时返回的 HTTP 状态码   |
-|  blocked_message     |  string     | 选填     |   -  |  配置请求被屏蔽时返回的 HTTP 应答 Body   |
-|  case_sensitive     |  bool     | 选填     |   true  |  配置匹配时是否区分大小写，默认区分   |
+| 名称              | 数据类型        | 填写要求                                                                                                | 默认值   | 描述                                     |
+| --------          | --------        | --------                                                                                                | -------- | --------                                 |
+| block_urls        | array of string | 选填，`block_urls`,`block_exact_urls`,`block_regexp_urls`,`block_headers`,`block_bodies` 中至少必填一项 | -        | 配置用于匹配需要屏蔽 URL 的字符串        |
+| block_exact_urls  | array of string | 选填，`block_urls`,`block_exact_urls`,`block_regexp_urls`,`block_headers`,`block_bodies` 中至少必填一项 | -        | 配置用于匹配需要精确屏蔽 URL 的字符串    |
+| block_regexp_urls | array of string | 选填，`block_urls`,`block_exact_urls`,`block_regexp_urls`,`block_headers`,`block_bodies` 中至少必填一项 | -        | 配置用于匹配需要屏蔽 URL 的正则表达式    |
+| block_headers     | array of string | 选填，`block_urls`,`block_exact_urls`,`block_regexp_urls`,`block_headers`,`block_bodies` 中至少必填一项 | -        | 配置用于匹配需要屏蔽请求 Header 的字符串 |
+| block_bodies      | array of string | 选填，`block_urls`,`block_exact_urls`,`block_regexp_urls`,`block_headers`,`block_bodies` 中至少必填一项 | -        | 配置用于匹配需要屏蔽请求 Body 的字符串   |
+| blocked_code      | number          | 选填                                                                                                    | 403      | 配置请求被屏蔽时返回的 HTTP 状态码       |
+| blocked_message   | string          | 选填                                                                                                    | -        | 配置请求被屏蔽时返回的 HTTP 应答 Body    |
+| case_sensitive    | bool            | 选填                                                                                                    | true     | 配置匹配时是否区分大小写，默认区分       |
 
 ## 配置示例
 
@@ -38,6 +40,35 @@ case_sensitive: false
 ```bash
 curl http://example.com?foo=Bar
 curl http://exmaple.com/Swagger.html
+```
+
+
+### 屏蔽精确匹配的请求 url 路径
+
+```yaml
+block_exact_urls:
+- /swagger.html?foo=bar
+case_sensitive: false
+```
+
+根据该配置，下列请求将被禁止访问：
+
+```bash
+curl http://exmaple.com/Swagger.html?foo=Bar
+```
+
+### 屏蔽正则匹配的请求 url 路径
+
+```yaml
+block_exact_urls:
+- .*swagger.*
+case_sensitive: false
+```
+
+根据该配置，下列请求将被禁止访问：
+
+```bash
+curl http://exmaple.com/Swagger.html?foo=Bar
 ```
 
 ### 屏蔽请求 header
