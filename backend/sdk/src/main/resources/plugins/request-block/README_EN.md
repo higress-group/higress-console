@@ -12,14 +12,16 @@ Plugin Execution Stage: `Authentication Stage`
 Plugin Execution Priority: `320`
 
 ## Configuration Fields
-| Name               | Data Type          | Fill Requirement                                         | Default Value | Description                                                |
-|--------------------|--------------------|---------------------------------------------------------|---------------|------------------------------------------------------------|
-| block_urls         | array of string     | Optional, at least one of `block_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching URLs that need to be blocked |
-| block_headers      | array of string     | Optional, at least one of `block_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching request headers that need to be blocked |
-| block_bodies       | array of string     | Optional, at least one of `block_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching request bodies that need to be blocked |
-| blocked_code       | number             | Optional                                                | 403           | Configure the HTTP status code returned when a request is blocked |
-| blocked_message    | string             | Optional                                                | -             | Configure the HTTP response body returned when a request is blocked |
-| case_sensitive      | bool               | Optional                                                | true          | Configure whether matching is case-sensitive, default is case-sensitive |
+| Name              | Data Type       | Filling Requirement                                                                                                             | Default Value | Description                                                                                 |
+| ----------------- | --------------- | -------------------------------------------------------------------------------------------------------------------             | ------------- | ------------------------------------------------                                            |
+| block_urls        | array of string | Optional, at least one of `block_urls`, `block_exact_urls`, `block_regexp_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching URLs to be blocked                                           |
+| block_exact_urls  | array of string | Optional, at least one of `block_urls`, `block_exact_urls`, `block_regexp_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for exactly matching URLs to be blocked                                   |
+| block_regexp_urls | array of string | Optional, at least one of `block_urls`, `block_exact_urls`, `block_regexp_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure regular expressions for matching URLs to be blocked                               |
+| block_headers     | array of string | Optional, at least one of `block_urls`, `block_exact_urls`, `block_regexp_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching request headers to be blocked                                |
+| block_bodies      | array of string | Optional, at least one of `block_urls`, `block_exact_urls`, `block_regexp_urls`, `block_headers`, `block_bodies` must be filled | -             | Configure strings for matching request bodies to be blocked                                 |
+| blocked_code      | number          | Optional                                                                                                                        | 403           | Configure the HTTP status code to return when a request is blocked                          |
+| blocked_message   | string          | Optional                                                                                                                        | -             | Configure the HTTP response body to return when a request is blocked                        |
+| case_sensitive    | bool            | Optional                                                                                                                        | true          | Configure whether case sensitivity is considered during matching, default is case-sensitive |
 
 ## Configuration Example
 ### Blocking Request URL Paths
@@ -34,6 +36,34 @@ Based on this configuration, the following requests will be denied access:
 ```bash
 curl http://example.com?foo=Bar
 curl http://exmaple.com/Swagger.html
+```
+
+### Block requests with exact URL path matches
+
+```yaml
+block_exact_urls:
+- /swagger.html?foo=bar
+case_sensitive: false
+```
+
+Based on this configuration, the following request will be blocked:
+
+```bash
+curl http://exmaple.com/Swagger.html?foo=Bar
+```
+
+### Block requests with URL path regex matches
+
+```yaml
+block_exact_urls:
+- .*swagger.*
+case_sensitive: false
+```
+
+Based on this configuration, the following request will be blocked:
+
+```bash
+curl http://exmaple.com/Swagger.html?foo=Bar
 ```
 
 ### Blocking Request Headers
