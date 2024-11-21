@@ -5,7 +5,7 @@ import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { InfoCircleOutlined, QuestionCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
+import { Checkbox, Form, Input, message, Select, Tooltip, InputNumber } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,16 +26,23 @@ const MethodOptions = [
   { label: "CONNECT", value: "CONNECT" },
 ];
 
-const RouteForm: React.FC = forwardRef((props, ref) => {
+interface RouteFormProps {
+  value?: any;
+  isIngressMode?: boolean;
+}
+
+const RouteForm: React.FC = forwardRef((props: RouteFormProps, ref) => {
   const { t } = useTranslation();
 
-  const { value } = props;
+  const { value, isIngressMode } = props;
   const [form] = Form.useForm();
   const [serviceOptions, setServiceOptions] = useState<OptionItem[]>([]);
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const servicesRef = useRef(new Map());
+  const serviceWeightsRef = useRef(new Map<string, number>());
   const { data: _services = [] } = useRequest(getGatewayServices);
   const { data: _domains = [] } = useRequest(getGatewayDomains);
+  const [serviceWeights, setServiceWeights] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     form.resetFields();
@@ -72,6 +79,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const customConfigArray = customConfigs ? Object.keys(customConfigs).map((key) => {
         return { uid: uniqueId(), key, value: customConfigs[key] };
       }) : [];
+
+      if (services) {
+        services.forEach(service => {
+          const key = upstreamServiceToString(service).split(':')[0];
+          serviceWeightsRef.current.set(key, service.weight);
+        });
+      }
+
       form.setFieldsValue({
         name,
         domains: domains || [],
@@ -86,7 +101,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   }, [_services, _domains, value]);
 
   useImperativeHandle(ref, () => ({
-    reset: () => form.resetFields(),
+    reset: () => {
+      form.resetFields();
+      setServiceWeights(new Map());
+    },
     handleSubmit: async () => {
       const values = await form.validateFields();
       if (values.domains && !Array.isArray(values.domains)) {
@@ -100,6 +118,16 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           }
         }
         values.customConfigs = customConfigsObj;
+      }
+      if (values.services) {
+        values.services = values.services.map(service => {
+          const serviceKey = service.split(':')[0];
+          const weight = serviceWeights.get(serviceKey);
+          return {
+            service,
+            weight: weight || 1,
+          };
+        });
       }
       return values;
     },
@@ -252,13 +280,57 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             },
           ]}
         >
-          <Select
-            mode="multiple"
-            showSearch
-            allowClear
-            placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
-            options={serviceOptions}
-          />
+          {isIngressMode ? (
+            <Select
+              mode="multiple"
+              showSearch
+              allowClear
+              placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
+              options={serviceOptions}
+            />
+          ) : (
+            <Select
+              mode="tags"
+              showSearch
+              allowClear
+              placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
+              options={serviceOptions}
+              tokenSeparators={[',']}
+              tagRender={({ label, value: tagValue, closable, onClose }) => {
+                const serviceKey = tagValue.split(':')[0];
+                const weight = serviceWeightsRef.current.get(serviceKey) || 1;
+                return (
+                  <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <span>{label}</span>
+                    <Tooltip title={t('route.routeForm.weightTip')}>
+                      <InputNumber
+                        min={1}
+                        prefix={<InfoCircleOutlined style={{ color: '#1890ff' }} />}
+                        size="small"
+                        style={{ width: 60, marginLeft: 8 }}
+                        defaultValue={weight}
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
+                        onKeyDown={e => {
+                          if (e.key === 'Backspace' || e.key === 'Delete') {
+                            e.stopPropagation();
+                          }
+                        }}
+                        controls={false}
+                        onChange={newValue => {
+                          const numValue = Number(newValue) || 1;
+                          setServiceWeights(prev => new Map(prev).set(serviceKey, numValue));
+                        }}
+                      />
+                    </Tooltip>
+                    {closable && (
+                      <span style={{ marginLeft: 8, cursor: 'pointer' }} onClick={onClose}>×</span>
+                    )}
+                  </div>
+                );
+              }}
+            />
+          )}
         </Form.Item>
       </Form.Item>
     </Form>
