@@ -1,0 +1,55 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: "2.0.0"
+  category: ai
+  name: model-mapper
+  title: AI Model Mapper
+  x-title-i18n:
+    zh-CN: AI 模型映射
+  description: Implements the functionality of rule-based model value mapping in the LLM protocol.
+  x-description-i18n:
+    zh-CN: 实现了将 LLM 协议中的模型参数取值按照规则进行映射的功能。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+spec:
+  phase: AUTHN
+  priority: 800
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        modelKey:
+          type: string
+          title: Model Key
+          x-title-i18n:
+            zh-CN: Model 字段路径
+          description: The location of the model parameter in the request body.
+          x-description-i18n:
+            zh-CN: 请求body中model参数的位置
+        modelMapping:
+          type: object
+          title: Model Mapping
+          x-title-i18n:
+            zh-CN: 映射关系
+          description: The mapping of model values. You can use "*" as a wildcard for whole or prefix mapping.
+          x-description-i18n:
+            zh-CN: 模型名称映射关系。可使用“*”作为通配符进行完全或前缀匹配。
+          additionalProperties:
+            type: string
+        enableOnPathSuffix:
+          type: array
+          title: Enable On Path Suffixes
+          x-title-i18n:
+            zh-CN: 生效的请求路径
+          description: Only applies to requests with these specific path suffixes.
+          x-description-i18n:
+            zh-CN: 只对这些特定路径后缀的请求生效
+          items:
+            type: string
+      example:
+        modelMapping:
+          'gpt-4-*': "qwen-max"
+          'gpt-4o': "qwen-vl-plus"
+          '*': "qwen-turbo"

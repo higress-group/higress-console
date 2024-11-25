@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static com.alibaba.higress.sdk.util.ListUtil.equalsUnordered;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -50,28 +52,11 @@ public class MatchRule {
     }
 
     public boolean keyEquals(MatchRule rule) {
-        if ((domain == null) == (rule.domain != null)) {
-            return false;
-        }
-        if ((ingress == null) == (rule.ingress != null)) {
-            return false;
-        }
-        if ((service == null) == (rule.service != null)) {
-            return false;
-        }
-        if (domain != null && (domain.size() != rule.domain.size() || !domain.containsAll(rule.domain))) {
-            return false;
-        }
-        if (ingress != null && (ingress.size() != rule.ingress.size() || !ingress.containsAll(rule.ingress))) {
-            return false;
-        }
-        if (service != null && (service.size() != rule.service.size() || !service.containsAll(rule.service))) {
-            return false;
-        }
-        return true;
+        return equalsUnordered(domain, rule.domain) && equalsUnordered(ingress, rule.ingress)
+            && equalsUnordered(service, rule.service);
     }
 
-    public boolean isEmpty() {
+    public boolean hasKey() {
         return CollectionUtils.isEmpty(domain) && CollectionUtils.isEmpty(ingress) && CollectionUtils.isEmpty(service);
     }
 }

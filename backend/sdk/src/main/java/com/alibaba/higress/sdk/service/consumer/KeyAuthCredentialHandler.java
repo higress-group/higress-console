@@ -12,6 +12,14 @@
  */
 package com.alibaba.higress.sdk.service.consumer;
 
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_CREDENTIAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_NAME;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +29,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
@@ -30,14 +38,6 @@ import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
 import com.google.common.net.HttpHeaders;
 
 class KeyAuthCredentialHandler implements CredentialHandler {
-
-    private static final String CONSUMERS_KEY = "consumers";
-    private static final String NAME_KEY = "name";
-    private static final String IN_HEADER_KEY = "in_header";
-    private static final String IN_QUERY_KEY = "in_query";
-    private static final String KEYS_KEY = "keys";
-    private static final String CREDENTIAL_KEY = "credential";
-    private static final String ALLOW_KEY = "allow";
 
     private static final String BEARER_TOKEN_PREFIX = "Bearer ";
 
@@ -61,7 +61,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             if (MapUtils.isEmpty(configurations)) {
                 return false;
             }
-            Object allowObj = configurations.get(ALLOW_KEY);
+            Object allowObj = configurations.get(ALLOW);
             if (allowObj instanceof List<?> allowList && allowList.contains(consumerName)) {
                 return true;
             }
@@ -75,7 +75,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (MapUtils.isEmpty(instance.getConfigurations())) {
             return List.of();
         }
-        Object consumersObj = instance.getConfigurations().get(CONSUMERS_KEY);
+        Object consumersObj = instance.getConfigurations().get(CONSUMERS);
         if (!(consumersObj instanceof List<?> consumerList)) {
             return List.of();
         }
@@ -87,7 +87,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
 
-            String name = MapUtils.getString(consumerMap, NAME_KEY);
+            String name = MapUtils.getString(consumerMap, CONSUMER_NAME);
             if (StringUtils.isBlank(name)) {
                 continue;
             }
@@ -126,9 +126,9 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         // TODO: Remove this after plugin upgrade.
         // Add a dummy key to the global keys list because the plugin requires at least one global key.
-        configurations.put(KEYS_KEY, List.of("x-higress-dummy-key"));
+        configurations.put(KEYS, List.of("x-higress-dummy-key"));
 
-        Object consumersObj = configurations.computeIfAbsent(CONSUMERS_KEY, k -> new ArrayList<>());
+        Object consumersObj = configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
         List<Object> consumers;
         if (consumersObj instanceof List) {
             consumers = new ArrayList<>((List<Object>)consumersObj);
@@ -141,7 +141,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 continue;
             }
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-            if (consumer.getName().equals(consumerMap.get(NAME_KEY))) {
+            if (consumer.getName().equals(consumerMap.get(CONSUMER_NAME))) {
                 consumerConfig = consumerMap;
                 break;
             }
@@ -149,7 +149,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         if (consumerConfig == null) {
             consumerConfig = new HashMap<>();
-            consumerConfig.put(NAME_KEY, consumer.getName());
+            consumerConfig.put(CONSUMER_NAME, consumer.getName());
             consumers.add(consumerConfig);
         } else {
             keyAuthCredential = mergeExistedConfig(keyAuthCredential, consumerConfig);
@@ -166,25 +166,25 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         switch (sourceEnum) {
             case BEARER:
             case HEADER:
-                consumerConfig.put(IN_HEADER_KEY, true);
-                consumerConfig.put(IN_QUERY_KEY, false);
+                consumerConfig.put(IN_HEADER, true);
+                consumerConfig.put(IN_QUERY, false);
                 if (sourceEnum == KeyAuthCredentialSource.BEARER) {
                     key = HttpHeaders.AUTHORIZATION;
                     credential = BEARER_TOKEN_PREFIX + keyAuthCredential.getValue();
                 }
                 break;
             case QUERY:
-                consumerConfig.put(IN_HEADER_KEY, false);
-                consumerConfig.put(IN_QUERY_KEY, true);
+                consumerConfig.put(IN_HEADER, false);
+                consumerConfig.put(IN_QUERY, true);
                 break;
             default:
                 throw new IllegalArgumentException(
                     "Unsupported key auth credential source: " + keyAuthCredential.getSource());
         }
-        consumerConfig.put(KEYS_KEY, List.of(key));
-        consumerConfig.put(CREDENTIAL_KEY, credential);
+        consumerConfig.put(KEYS, List.of(key));
+        consumerConfig.put(CONSUMER_CREDENTIAL, credential);
 
-        configurations.put(CONSUMERS_KEY, consumers);
+        configurations.put(CONSUMERS, consumers);
         return true;
     }
 
@@ -195,7 +195,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (MapUtils.isEmpty(globalConfigurations)) {
             return false;
         }
-        Object consumersObj = globalConfigurations.get(CONSUMERS_KEY);
+        Object consumersObj = globalConfigurations.get(CONSUMERS);
         if (!(consumersObj instanceof List)) {
             return false;
         }
@@ -207,7 +207,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 continue;
             }
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-            if (consumerName.equals(consumerMap.get(NAME_KEY))) {
+            if (consumerName.equals(consumerMap.get(CONSUMER_NAME))) {
                 consumers.remove(i);
                 deleted = true;
             }
@@ -224,9 +224,9 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         }
 
         if (CollectionUtils.isEmpty(consumerNames)) {
-            configurations.remove(ALLOW_KEY);
+            configurations.remove(ALLOW);
         } else {
-            configurations.put(ALLOW_KEY, new ArrayList<>(consumerNames));
+            configurations.put(ALLOW, new ArrayList<>(consumerNames));
         }
     }
 
@@ -244,12 +244,12 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {
-        String credential = MapUtils.getString(consumerMap, CREDENTIAL_KEY);
+        String credential = MapUtils.getString(consumerMap, CONSUMER_CREDENTIAL);
         if (StringUtils.isBlank(credential)) {
             return null;
         }
 
-        Object keyObj = MapUtils.getObject(consumerMap, KEYS_KEY);
+        Object keyObj = MapUtils.getObject(consumerMap, KEYS);
         if (!(keyObj instanceof List<?> keyList) || keyList.isEmpty()) {
             return null;
         }
@@ -267,8 +267,8 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return null;
         }
 
-        Boolean inHeader = MapUtils.getBoolean(consumerMap, IN_HEADER_KEY);
-        Boolean inQuery = MapUtils.getBoolean(consumerMap, IN_QUERY_KEY);
+        Boolean inHeader = MapUtils.getBoolean(consumerMap, IN_HEADER);
+        Boolean inQuery = MapUtils.getBoolean(consumerMap, IN_QUERY);
 
         KeyAuthCredentialSource source;
         if (Boolean.TRUE.equals(inHeader)) {

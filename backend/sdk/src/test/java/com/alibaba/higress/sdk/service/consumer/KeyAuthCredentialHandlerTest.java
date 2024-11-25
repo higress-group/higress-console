@@ -55,30 +55,26 @@ public class KeyAuthCredentialHandlerTest {
     @Test
     public void isConsumerInUseTestNotFound() {
         WasmPluginInstance instance = new WasmPluginInstance();
-        instance.setScope(WasmPluginInstanceScope.GLOBAL);
+        instance.setGlobalTarget();
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-567890");
         addConsumer(instance, "wangwu", true, false, "Authorization", "Bearer sk-135790");
-        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN);
-        domainInstance.setTarget("www.example.com");
+        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN, "www.example.com");
         addAllow(domainInstance, List.of("lisi"));
-        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE);
-        domainInstance.setTarget("test-route");
-        addAllow(domainInstance, List.of("lisi", "wangwu"));
+        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
+        addAllow(routeInstance, List.of("lisi", "wangwu"));
 
         Assertions.assertFalse(handler.isConsumerInUse("zhangsan", List.of(instance, domainInstance, routeInstance)));
     }
 
     @Test
     public void isConsumerInUseTestFoundInOneInstance() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-567890");
-        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN);
-        domainInstance.setTarget("www.example.com");
+        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN, "www.example.com");
         addAllow(domainInstance, List.of("lisi"));
-        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE);
-        routeInstance.setTarget("test-route");
+        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
         addAllow(routeInstance, List.of("lisi", "zhangsan"));
 
         Assertions.assertTrue(handler.isConsumerInUse("zhangsan", List.of(instance, domainInstance, routeInstance)));
@@ -86,22 +82,20 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void isConsumerInUseTestFoundInMultiInstances() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-567890");
-        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN);
-        domainInstance.setScope(WasmPluginInstanceScope.DOMAIN);
+        WasmPluginInstance domainInstance = createInstance(WasmPluginInstanceScope.DOMAIN, "test-domain");
         addAllow(domainInstance, List.of("lisi"));
-        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE);
-        domainInstance.setTarget("test-route");
-        addAllow(domainInstance, List.of("lisi", "zhangsan", "wangwu"));
+        WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
+        addAllow(routeInstance, List.of("lisi", "zhangsan", "wangwu"));
 
         Assertions.assertTrue(handler.isConsumerInUse("zhangsan", List.of(instance, domainInstance, routeInstance)));
     }
 
     @Test
     public void extractConsumersTestEmptyConfiguration() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
 
         List<Consumer> consumers = handler.extractConsumers(instance);
         Assertions.assertNotNull(consumers);
@@ -110,7 +104,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void extractConsumersTestNoConsumers() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(Map.of("test", "value"));
 
         List<Consumer> consumers = handler.extractConsumers(instance);
@@ -120,7 +114,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void extractConsumersTestConsumersNotList() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(Map.of("consumers", "value"));
 
         List<Consumer> consumers = handler.extractConsumers(instance);
@@ -130,7 +124,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void extractConsumersTestEmptyConsumerList() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(Map.of("consumers", List.of()));
 
         List<Consumer> consumers = handler.extractConsumers(instance);
@@ -140,7 +134,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void extractConsumersTestGoodConsumerList() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
         addConsumer(instance, "lisi", true, false, "X-API-KEY", "abcd-1234");
         addConsumer(instance, "wangwu", false, true, "api_key", "efgh-5678");
@@ -161,7 +155,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestFromNothingBearer() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         Consumer consumer = new Consumer("zhangsan",
             List.of(new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, "sk-123456")));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
@@ -179,7 +173,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestBadConsumersHeader() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(new HashMap<>(Map.of("consumers", "value")));
 
         Consumer consumer = new Consumer("zhangsan",
@@ -199,7 +193,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestUpdateQuery() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
 
         Consumer consumer = new Consumer("zhangsan",
@@ -219,7 +213,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestNoUpdateEmptyData() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
 
         Consumer consumer = new Consumer("zhangsan", List.of(new KeyAuthCredential()));
@@ -238,11 +232,11 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestNoUpdatePartialData() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
 
-        Consumer consumer =
-                new Consumer("zhangsan", List.of(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", null)));
+        Consumer consumer = new Consumer("zhangsan",
+            List.of(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", null)));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
@@ -258,7 +252,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void saveConsumerTestDeleteExistedCredential() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
 
         Consumer consumer = new Consumer("zhangsan", List.of(new Credential("DUMMY")));
@@ -271,14 +265,14 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void deleteConsumerTestEmptyConfiguration() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
 
         Assertions.assertFalse(handler.deleteConsumer(instance, "zhangsan"));
     }
 
     @Test
     public void deleteConsumerTestNoConsumers() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(Map.of("test", "value"));
 
         Assertions.assertFalse(handler.deleteConsumer(instance, "zhangsan"));
@@ -286,7 +280,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void deleteConsumerTestBadConsumers() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(Map.of("consumer", "value"));
 
         Assertions.assertFalse(handler.deleteConsumer(instance, "zhangsan"));
@@ -294,7 +288,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void deleteConsumerTestNotFound() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-123456");
 
         Assertions.assertFalse(handler.deleteConsumer(instance, "zhangsan"));
@@ -302,7 +296,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void deleteConsumerTestFoundOnce() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-abcdefg");
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-123456");
 
@@ -321,7 +315,7 @@ public class KeyAuthCredentialHandlerTest {
 
     @Test
     public void deleteConsumerTestFoundTwice() {
-        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL);
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-abcdefg");
         addConsumer(instance, "lisi", true, false, "Authorization", "Bearer sk-123456");
         addConsumer(instance, "zhangsan", false, true, "token", "abcdefg");
@@ -339,11 +333,11 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals("Bearer sk-123456", consumerMap.get("credential"));
     }
 
-    private WasmPluginInstance createInstance(WasmPluginInstanceScope scope) {
+    private WasmPluginInstance createInstance(WasmPluginInstanceScope scope, String target) {
         WasmPluginInstance instance = new WasmPluginInstance();
         instance.setPluginName(handler.getPluginName());
         instance.setPluginVersion("1.0.0");
-        instance.setScope(scope);
+        instance.setTarget(scope, target);
         instance.setInternal(true);
         return instance;
     }

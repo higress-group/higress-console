@@ -12,11 +12,12 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 public enum RoutePredicateTypeEnum {
 
@@ -35,6 +36,9 @@ public enum RoutePredicateTypeEnum {
 
     private final String annotationPrefix;
 
+    private static final Map<String, RoutePredicateTypeEnum> NAME_MAP =
+        Arrays.stream(values()).collect(Collectors.toMap(RoutePredicateTypeEnum::name, t -> t));
+
     private static final Map<String, RoutePredicateTypeEnum> ANNOTATION_PREFIX_MAP =
         Arrays.stream(values()).collect(Collectors.toMap(RoutePredicateTypeEnum::getAnnotationPrefix, t -> t));
 
@@ -44,6 +48,10 @@ public enum RoutePredicateTypeEnum {
 
     public String getAnnotationPrefix() {
         return annotationPrefix;
+    }
+
+    public static RoutePredicateTypeEnum fromName(String name) {
+        return StringUtils.isNotEmpty(name) ? NAME_MAP.get(name.toUpperCase(Locale.ROOT)) : null;
     }
 
     public static RoutePredicateTypeEnum fromAnnotationPrefix(String annotationPrefix) {

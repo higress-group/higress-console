@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 1
 
       - name: Build Higress Console Package
-        run: mvn clean package -f ./backend/pom.xml
+        run: mvn clean package -f ./backend/pom.xml -Dpmd.language=en
 
       - name: Upload Higress Console Package
         uses: actions/upload-artifact@v3

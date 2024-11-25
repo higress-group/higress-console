@@ -36,7 +36,7 @@ public class AiRoute {
     private String version;
     private List<String> domains;
     private List<AiUpstream> upstreams;
-    private AiModelPredicate modelPredicate;
+    private List<AiModelPredicate> modelPredicates;
     private AiRouteAuthConfig authConfig;
     private AiRouteFallbackConfig fallbackConfig;
 
@@ -44,18 +44,18 @@ public class AiRoute {
         if (StringUtils.isBlank(name)) {
             throw new ValidationException("name cannot be blank.");
         }
-        if (CollectionUtils.isEmpty(upstreams)){
+        if (CollectionUtils.isEmpty(upstreams)) {
             throw new ValidationException("upstreams cannot be empty.");
         }
         upstreams.forEach(AiUpstream::validate);
-        if (modelPredicate != null){
-            modelPredicate.validate();
-        }
-        if (authConfig != null){
+        if (authConfig != null) {
             authConfig.validate();
         }
-        if (fallbackConfig != null){
+        if (fallbackConfig != null) {
             fallbackConfig.validate();
+        }
+        if (CollectionUtils.isNotEmpty(modelPredicates)) {
+            modelPredicates.forEach(AiModelPredicate::validate);
         }
     }
 }

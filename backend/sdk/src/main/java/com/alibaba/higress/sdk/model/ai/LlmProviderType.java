@@ -22,4 +22,48 @@ public final class LlmProviderType {
     public static final String OPENAI = "openai";
 
     public static final String MOONSHOT = "moonshot";
+
+    public static final String AZURE = "azure";
+
+    public static final String AI360 = "ai360";
+
+    public static final String GITHUB = "github";
+
+    public static final String GROQ = "groq";
+
+    public static final String BAICHUAN = "baichuan";
+
+    public static final String YI = "yi";
+
+    public static final String DEEPSEEK = "deepseek";
+
+    public static final String ZHIPUAI = "zhipuai";
+
+    public static final String OLLAMA = "ollama";
+
+    public static final String CLAUDE = "claude";
+
+    public static final String BAIDU = "baidu";
+
+    public static final String HUNYUAN = "hunyuan";
+
+    public static final String STEPFUN = "stepfun";
+
+    public static final String MINIMAX = "minimax";
+
+    public static final String CLOUDFLARE = "cloudflare";
+
+    public static final String SPARK = "spark";
+
+    public static final String GEMINI = "gemini";
+
+    public static final String DEEPL = "deepl";
+
+    public static final String MISTRAL = "mistral";
+
+    public static final String COHERE = "cohere";
+
+    public static final String DOUBAO = "doubao";
+
+    public static final String COZE = "coze";
 }
