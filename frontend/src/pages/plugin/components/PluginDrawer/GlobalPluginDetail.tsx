@@ -158,7 +158,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }
 
   function generateFields(scm, prefix = '') {
-    const properties = scm.properties;
+    const { properties } = scm;
     const requiredFields = scm.required || [];
     if (!properties) {
       return <div>{t('misc.invalidSchema')}</div>;
@@ -337,7 +337,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           }
         });
       } else if (typeof value === 'object') {
-        result += `${indent}${key}:\n${schemaToYaml(value, indent + '  ')}`;
+        result += `${indent}${key}:\n${schemaToYaml(value, `${indent}  `)}`;
       } else {
         result += `${indent}${key}: ${quoteIfString(value)}\n`;
       }

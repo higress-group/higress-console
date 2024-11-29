@@ -1,5 +1,5 @@
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
-import { deleteAiRoute, getAiRoutes } from '@/services/ai-route';
+import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -7,6 +7,7 @@ import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+import { HistoryButton } from './components/RouteForm/Components';
 
 interface FormRef {
   reset: () => void;
@@ -78,10 +79,12 @@ const AiRouteList: React.FC = () => {
       title: t('aiRoute.columns.action'),
       dataIndex: 'action',
       key: 'action',
-      width: 140,
+      width: 240,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <a onClick={() => onUse(record)}>{t('llmProvider.providerForm.howtouse')}</a>
+          <HistoryButton text={t('misc.strategy')} path={`/ai/config?name=${record.name}`} />
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -96,6 +99,7 @@ const AiRouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [useDrawer, setUseDrawer] = useState(false)
 
   const { loading, run, refresh } = useRequest(getAiRoutes, {
     manual: true,
@@ -109,8 +113,18 @@ const AiRouteList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({});
+    run();
   }, []);
+
+  const onUse = (aiRoute: AiRoute) => {
+    setCurrentAiRoute(aiRoute);
+    setUseDrawer(true);
+  };
+
+  const closeUse = () => {
+    setCurrentAiRoute(null);
+    setUseDrawer(false);
+  }
 
   const onEditDrawer = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);
@@ -123,21 +137,19 @@ const AiRouteList: React.FC = () => {
   };
 
   const handleDrawerOK = async () => {
-    try {
-      // const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+    const values = formRef.current ? await formRef.current.handleSubmit() : {};
+    if (!values) return false;
 
-      // if (currentAiRoute) {
-      //   await updateAiRoute({ version: currentAiRoute.version, ...values } as AiRoute);
-      // } else {
-      //   await addAiRoute(values as AiRoute);
-      // }
-
-      setOpenDrawer(false);
-      formRef.current && formRef.current.reset();
-      refresh();
-    } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+    if (currentAiRoute) {
+      const params: AiRoute = { version: currentAiRoute.version, ...values };
+      await updateAiRoute(params);
+    } else {
+      await addAiRoute(values as AiRoute);
     }
+
+    setOpenDrawer(false);
+    formRef.current && formRef.current.reset();
+    refresh();
   };
 
   const handleDrawerCancel = () => {
@@ -153,13 +165,18 @@ const AiRouteList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteAiRoute(currentAiRoute.name);
-    setConfirmLoading(false);
-    setOpenModal(false);
-    refresh();
+    try {
+      await deleteAiRoute(currentAiRoute.name);
+    } catch (err) {
+      handleModalCancel()
+      setConfirmLoading(false);
+      setOpenModal(false);
+      refresh();
+    }
   };
 
   const handleModalCancel = () => {
+    setConfirmLoading(false);
     setOpenModal(false);
     setCurrentAiRoute(null);
   };
@@ -204,6 +221,7 @@ const AiRouteList: React.FC = () => {
         title={t(currentAiRoute ? "aiRoute.edit" : "aiRoute.create")}
         placement="right"
         width={660}
+        destroyOnClose
         onClose={handleDrawerCancel}
         open={openDrawer}
         extra={
@@ -218,6 +236,14 @@ const AiRouteList: React.FC = () => {
         <RouteForm ref={formRef} value={currentAiRoute} />
       </Drawer>
       <Modal
+        title={t("llmProvider.providerForm.AirouterUse")}
+        open={useDrawer}
+        onOk={closeUse}
+        onCancel={closeUse}
+      >
+        TBD
+      </Modal>
+      <Modal
         title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}
         onOk={handleModalOk}
@@ -227,8 +253,8 @@ const AiRouteList: React.FC = () => {
         okText={t('misc.confirm')}
       >
         <p>
-          <Trans t={t} i18nKey="aiRoute.deleteConfirmation">
-            确定删除 <span style={{ color: '#0070cc' }}>{{ currentAiRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
+          <Trans t={t} i18nKey="llmProvider.deleteRoute">
+            确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>
       </Modal>

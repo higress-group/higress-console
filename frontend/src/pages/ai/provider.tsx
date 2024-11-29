@@ -1,13 +1,14 @@
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
-import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, RedoOutlined, EyeTwoTone, EyeInvisibleTwoTone } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
 
+const { Text } = Typography;
 const providerTypeDisplayName = {
   openai: 'llmProvider.providerTypes.openai',
   qwen: 'llmProvider.providerTypes.qwen',
@@ -18,6 +19,35 @@ interface FormRef {
   reset: () => void;
   handleSubmit: () => Promise<FormProps>;
 }
+
+const EllipsisMiddle: React.FC = (params: { token: String }) => {
+  const { token } = params;
+  const [isHidden, setIsHidden] = useState(true);
+
+  const toggledText = () => {
+    if (isHidden) {
+      let frontKeyword = token.slice(0, 3);
+      let backKeyword = token.slice(-3);
+      return `${frontKeyword}******${backKeyword}`;
+    } else {
+      return token;
+    }
+  };
+
+  return (
+    <div
+      style={{ marginBottom: '10px' }}
+    >
+      <Text>{toggledText()}</Text>
+      <span
+        style={{ cursor: 'pointer', marginLeft: '2px' }}
+        onClick={() => setIsHidden(!isHidden)}
+      >
+        {isHidden ? <EyeTwoTone /> : <EyeInvisibleTwoTone />}
+      </span>
+    </div>
+  );
+};
 
 const LlmProviderList: React.FC = () => {
   const { t } = useTranslation();
@@ -35,6 +65,12 @@ const LlmProviderList: React.FC = () => {
       ellipsis: true,
     },
     {
+      title: t('service.columns.endpoints'),
+      dataIndex: 'endpoints',
+      key: 'endpoints',
+      ellipsis: true,
+    },
+    {
       title: t('llmProvider.columns.tokens'),
       dataIndex: 'tokens',
       key: 'tokens',
@@ -42,7 +78,7 @@ const LlmProviderList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.map((token) => <EllipsisMiddle token={token} />);
       },
     },
     {
@@ -80,7 +116,7 @@ const LlmProviderList: React.FC = () => {
   });
 
   useEffect(() => {
-    run({});
+    run();
   }, []);
 
   const onEditDrawer = (llmProvider: LlmProvider) => {
@@ -95,19 +131,23 @@ const LlmProviderList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      // const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+      const values = formRef.current ? await formRef.current.handleSubmit() : {};
 
-      // if (currentLlmProvider) {
-      //   await updateLlmProvider({ version: currentLlmProvider.version, ...values } as LlmProvider);
-      // } else {
-      //   await addLlmProvider(values as LlmProvider);
-      // }
+      if (currentLlmProvider) {
+        // version 进行创建或强制更新操作时需设置为 0。
+        const params: LlmProvider = { version: 0, ...values };
+        await updateLlmProvider(params);
+      } else {
+        await addLlmProvider(values as LlmProvider);
+      }
 
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      setOpenDrawer(false);
+      formRef.current && formRef.current.reset();
+      refresh();
     }
   };
 
@@ -124,13 +164,20 @@ const LlmProviderList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteLlmProvider(currentLlmProvider.name);
+    try {
+      await deleteLlmProvider(currentLlmProvider.name);
+    } catch (err) {
+      setConfirmLoading(false);
+      setOpenModal(false);
+      refresh();
+    }
     setConfirmLoading(false);
     setOpenModal(false);
     refresh();
   };
 
   const handleModalCancel = () => {
+    setConfirmLoading(false);
     setOpenModal(false);
     setCurrentLlmProvider(null);
   };
