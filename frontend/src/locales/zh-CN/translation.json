@@ -193,7 +193,17 @@
     "selectModelName": "选择模型服务",
     "modelProportion": "按比例",
     "modelName": "按模型名称",
-    "addTargetAIservice": "添加目标AI服务"
+    "addTargetAIservice": "添加目标AI服务",
+    "modelMatchingType":"模型匹配方式",
+    "pleaseSelect":"请选择",
+    "pleaseEnter":"请输入",
+    "exactMatch":"精确匹配",
+    "prefixMatch":"前缀匹配",
+    "modelNames":"模型名称",
+    "serviceName":"服务名称",
+    "requestPercentage":"请求比例",
+    "targetModel":"目标模型",
+    "modelNameTips":"请求 body 中的 model 参数"
   },
   "plugins": {
     "title": "策略配置",

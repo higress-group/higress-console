@@ -164,7 +164,17 @@
     "selectModelName": "Select Model Service",
     "modelProportion": "Proportionally",
     "modelName": "By model name",
-    "addTargetAIservice": "Add target AI service"
+    "addTargetAIservice": "Add target AI service",
+    "modelMatchingType": "Model matching type",
+    "pleaseSelect": "Please select",
+    "pleaseEnter": "Please enter",
+    "exactMatch": "exact match",
+    "prefixMatch": "Prefix Match",
+    "modelNames": "Model names",
+    "serviceName": "service name",
+    "requestPercentage": "Request Percentage",
+    "targetModel": "TargetModel",
+    "modelNameTips": "Model parameters in the request body"
   },
   "plugins": {
     "title": "Strategy Configuration",
