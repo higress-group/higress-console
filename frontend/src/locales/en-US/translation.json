@@ -115,12 +115,14 @@
     },
     "providerForm": {
       "label": {
-        "type": "Type",
+        "type": "LLM vendor",
         "name": "Name",
+        "serviceName": "Service Name",
         "domain": "Domain name",
+        "agreement": "Agreement",
         "modelPredicate": "Whether to enable model-based route matching rules",
         "extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
-        "modelPredicatePrefix": "Match the model name prefix required for this route",
+        "modelPredicatePrefix": "model name matching rule",
         "aiName": "Target AI Service",
         "aiNameExtra": "Create AI services",
         "fallbackConfig": "Downgrade service",
@@ -135,19 +137,20 @@
         "weight": "weight"
       },
       "placeholder": {
-        "type": "Please select type",
+        "type": "Please select LLM vendor",
         "name": "Please enter a name",
+        "serviceName": "Please enter a service name",
         "tokens": "Please enter authentication token",
         "domain": "Please enter domain name",
         "aiName": "Please select and add target AI service",
-        "weight": "The sum of the target AI service weights should equal 100.",
-        "modelPredicatePrefix": "Please select the model name prefix required to match this route",
+        "weight": "The target AI service request ratio should add up to 100.",
+        "modelPredicatePrefix": "Use Glob syntax to match models, for example: model- *",
         "fallbackConfigList": "Please select a list of downgrade services",
         "routeStrategy": "Please select a route degradation strategy",
         "authConfigList": "Please select a list of consumer names that are allowed to request this route."
       },
       "rules": {
-        "modelPredicatePrefix": "Matches the model name prefix required by this route (excluding the ending '/') ",
+        "modelPredicatePrefix": "Please enter the model name prefix required to match this route",
         "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
       },
       "creatDomain": "Create a domain name",
@@ -159,8 +162,8 @@
     "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
     "deleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?",
     "selectModelName": "Select Model Service",
-    "modelProportion": "proportionally",
-    "modelName": "By Model Name in Request Body",
+    "modelProportion": "Proportionally",
+    "modelName": "By model name",
     "addTargetAIservice": "Add target AI service"
   },
   "plugins": {
@@ -304,7 +307,7 @@
       "namePlaceholder": "Please input a valid name.",
       "domain": "Registry Domain",
       "domainTooltip": "It can be either an IP address or a domain name.",
-      "domainRequired": "Please input the registry address.",
+      "domainRequired": "Please select a domain name",
       "domainPlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, dash (-) and asterisk (*). No longer than 256 characters.",
       "port": "Registry Port",
       "portRequired": "Please input the port.",

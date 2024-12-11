@@ -173,6 +173,10 @@ const AiRouteList: React.FC = () => {
       setOpenModal(false);
       refresh();
     }
+    handleModalCancel();
+    setConfirmLoading(false);
+    setOpenModal(false);
+    refresh();
   };
 
   const handleModalCancel = () => {

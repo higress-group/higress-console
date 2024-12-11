@@ -133,7 +133,7 @@
     "columns": {
       "type": "类型",
       "name": "名称",
-      "tokens": "认证令牌",
+      "tokens": "凭证",
       "action": "操作"
     },
     "providerTypes": {
@@ -143,12 +143,14 @@
     },
     "providerForm": {
       "label": {
-        "type": "类型",
+        "type": "大模型供应商",
         "name": "名称",
+        "serviceName": "服务名称",
+        "agreement": "协议",
         "domain": "域名",
         "modelPredicate": "是否启用基于模型的路由匹配规则",
         "extra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
-        "modelPredicatePrefix": "匹配本路由所需的模型名称前缀",
+        "modelPredicatePrefix": "模型名称匹配规则",
         "aiName": "目标AI服务",
         "aiNameExtra": "创建AI服务",
         "fallbackConfig": "降级服务",
@@ -160,22 +162,24 @@
         "authConfig": "是否启用请求认证",
         "authConfigExtra": "启用后，只有包含指定消费者认证信息的请求可以请求本路由。",
         "authConfigList": "允许请求本路由的消费者名称列表",
-        "weight": "权重"
+        "weight": "请求比例"
       },
       "placeholder": {
-        "type": "请选择类型",
+        "type": "请选择大模型供应商",
         "name": "请输入名称",
-        "tokens": "请输入认证令牌",
+        "agreement": "请选择协议",
+        "serviceName": "请输入服务名称",
+        "tokens": "请输入凭证",
         "domain": "请输入域名",
         "aiName": "请选择并添加目标AI服务",
-        "weight": "目标AI服务权重相加应等于 100",
-        "modelPredicatePrefix": "匹配本路由所需的模型名称前缀（不包含结尾的“/”）",
+        "weight": "目标AI服务请求比例相加应等于 100",
+        "modelPredicatePrefix": "使用 Glob 语法匹配模型,例如：model-*",
         "fallbackConfigList": "请选择降级服务列表",
         "routeStrategy": "请选择路由降级策略",
         "authConfigList": "请选择允许请求本路由的消费者名称列表"
       },
       "rules": {
-        "modelPredicatePrefix": "匹配本路由所需的模型名称前缀（不包含结尾的“/”）",
+        "modelPredicatePrefix": "请输入匹配本路由所需的模型名称前缀",
         "name": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。"
       },
       "creatDomain": "创建域名",
@@ -188,7 +192,7 @@
     "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "selectModelName": "选择模型服务",
     "modelProportion": "按比例",
-    "modelName": "按请求 Body 中的模型名称",
+    "modelName": "按模型名称",
     "addTargetAIservice": "添加目标AI服务"
   },
   "plugins": {
@@ -332,7 +336,7 @@
       "namePlaceholder": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线结尾。长度不超过63个字符。",
       "domain": "注册中心地址",
       "domainTooltip": "注册中心地址，可以是IP或域名",
-      "domainRequired": "请输入注册中心地址",
+      "domainRequired": "请选择域名",
       "domainPlaceholder": "支持大小写字母、数字、短划线（-）和星号（*），不超过256个字符。",
       "port": "注册中心访问端口",
       "portRequired": "请输入访问端口",

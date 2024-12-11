@@ -11,6 +11,10 @@ const providerTypeDisplayName = [
   { key: 'moonshot', label: 'llmProvider.providerTypes.moonshot' },
 ];
 
+const agreementList = [
+  { label: "Openai/v1", value: "openai/v1" },
+];
+
 const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
@@ -117,7 +121,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       form={form}
       layout="vertical"
     >
-      {/* 类型 */}
+      {/* 大模型供应商 */}
       <Form.Item
         label={t('llmProvider.providerForm.label.type')}
         required
@@ -147,15 +151,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         </Select>
       </Form.Item>
 
-      {/* 名称 */}
+      {/* 服务名称 */}
       <Form.Item
-        label={t('llmProvider.providerForm.label.name')}
+        label={t('llmProvider.providerForm.label.serviceName')}
         required
         name="name"
         rules={[
           {
             required: true,
-            message: t('llmProvider.providerForm.placeholder.name'),
+            message: t('llmProvider.providerForm.placeholder.serviceName'),
           },
         ]}
       >
@@ -168,25 +172,27 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         />
       </Form.Item>
 
-      {/* 类型 */}
+      {/* 协议 */}
       <Form.Item
-        label={"面向调用者的接口协议"}
+        label={t('llmProvider.providerForm.label.agreement')}
         required
         name="protocol"
-        initialValue="openai/v1"
+        initialValue={agreementList[0].value}
       >
         <Select
           allowClear
-          placeholder={"面向调用者的接口协议"}
+          placeholder={t('llmProvider.providerForm.rules.agreement')}
         >
-          <Select.Option value="openai/v1">
-            openai/v1
-          </Select.Option>
+          {agreementList.map(item => (
+            <Select.Option value={item.value}>
+              {item.label}
+            </Select.Option>
+          ))}
         </Select>
       </Form.Item>
 
-      {/* 认证令牌 */}
-      <Form.List name="tokens">
+      {/* 凭证 */}
+      <Form.List name="tokens" initialValue={[null]}>
         {(fields, { add, remove }, { errors }) => (
           <>
             {!fields.length ?
