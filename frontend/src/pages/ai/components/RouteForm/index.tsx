@@ -176,7 +176,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
       if (authConfig_enabled) {
         payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers ? [authConfig_allowedConsumers] : [];
       }
-      console.log('payload', payload)
+
       return payload;
     },
   }));
