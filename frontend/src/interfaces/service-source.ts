@@ -49,3 +49,10 @@ export const ServiceSourceTypes = {
   static: { key: 'static', name: 'serviceSource.types.static.name', i18n: true, enabled: true },
   dns: { key: 'dns', name: 'serviceSource.types.dns.name', i18n: true, enabled: true },
 };
+
+export const ServiceProtocols = {
+  http: { key: 'http', name: 'HTTP', tlsEnabled: false },
+  https: { key: 'https', name: 'HTTPS', tlsEnabled: true },
+  grpc: { key: 'grpc', name: 'gRPC', tlsEnabled: false },
+  grpcs: { key: 'grpcs', name: 'gRPCS', tlsEnabled: true },
+};
