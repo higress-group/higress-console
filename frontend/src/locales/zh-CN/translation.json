@@ -72,7 +72,23 @@
     },
     "create": "创建消费者",
     "edit": "编辑消费者",
-    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
+    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
+    "consumerForm": {
+      "name": "消费者名称",
+      "namePlaceholder": "请输入消费者名称",
+      "nameRequired": "请输入消费者名称",
+      "pleaseEnter":"请输入",
+      "pleaseSelect":"请输入"
+    },
+    "selectBEARER": "Authorization: Bearer ${value}",
+    "selectHEADER": "自定义 HTTP Header",
+    "selectQUERY": "查询参数",
+    "tokenSource":"令牌来源",
+    "authenticationToken":"认证令牌",
+    "underDevelopment":"开发中，敬请期待",
+    "randomGeneration":"随机生成",
+    "headerName":"Header 名称",
+    "paramsName":"参数名称"
   },
   "domain": {
     "columns": {

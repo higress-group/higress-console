@@ -46,6 +46,46 @@
     "passwordPlaceholder": "Password",
     "passwordRequired": "Please input password"
   },
+  "aiRoute": {
+    "columns": {
+      "name": "name",
+      "domains": "domains",
+      "upstreams": "upstreams",
+      "auth": "request auth",
+      "action": "action"
+    },
+    "create": "Create an AI route",
+    "edit": "Edit AI route",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
+    "authNotEnabled": "Authentication not enabled",
+    "authEnabledWithoutConsumer": "No one is authorized to access"
+  },
+  "consumer": {
+    "columns": {
+      "name": "consumer name",
+      "credentialTypes": "authentication method",
+      "action": "action"
+    },
+    "create": "create",
+    "edit": "edit",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
+    "consumerForm": {
+      "name": "name",
+      "namePlaceholder": "Please enter a consumer name",
+      "nameRequired": "Please enter a consumer name",
+      "pleaseEnter":"please enter",
+      "pleaseSelect":"please select"
+    },
+    "selectBEARER": "Authorization: Bearer ${value}",
+    "selectHEADER": "Custom HTTP Header",
+    "selectQUERY": "query parameters",
+    "tokenSource":"Token source",
+    "authenticationToken":"Auth token",
+    "underDevelopment":"Under development, stay tuned.",
+    "randomGeneration":"random generation",
+    "headerName":"Header name",
+    "paramsName":"parameter name"
+  },
   "domain": {
     "columns": {
       "name": "Domain",
