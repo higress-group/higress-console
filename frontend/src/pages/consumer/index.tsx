@@ -152,7 +152,9 @@ const ConsumerList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteConsumer(currentConsumer.name);
+    try {
+      await deleteConsumer(currentConsumer.name);
+    } catch (error) {}
     setConfirmLoading(false);
     setOpenModal(false);
     refresh();
