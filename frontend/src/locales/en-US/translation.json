@@ -84,7 +84,13 @@
     "underDevelopment":"Under development, stay tuned.",
     "randomGeneration":"random generation",
     "headerName":"Header name",
-    "paramsName":"parameter name"
+    "paramsName":"parameter name",
+    "deleteSuccess": "delete success",
+    "deleteFailed": "delete failed",
+    "creaetSuccess": "creaet success",
+    "creatFailed": "creat failed",
+    "editSuccess": "edit successfully",
+    "editFailed": "edit failed"
   },
   "domain": {
     "columns": {

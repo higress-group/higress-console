@@ -125,12 +125,15 @@ const ConsumerList: React.FC = () => {
         return message.info(values + t("consumer.underDevelopment"));
       };
 
-      if (currentConsumer) {
-        await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
-      } else {
-        await addConsumer({ ...values, version: 0 } as Consumer);
-      }
-
+      try {
+        if (currentConsumer) {
+          await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
+          message.success(t("consumer.editSuccess"));
+        } else {
+          await addConsumer({ ...values, version: 0 } as Consumer);
+          message.success(t("consumer.creaetSuccess"));
+        }
+      } catch(error) {}
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
@@ -154,6 +157,7 @@ const ConsumerList: React.FC = () => {
     setConfirmLoading(true);
     try {
       await deleteConsumer(currentConsumer.name);
+      message.success(t("consumer.deleteSuccess"));
     } catch (error) {}
     setConfirmLoading(false);
     setOpenModal(false);

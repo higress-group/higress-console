@@ -88,7 +88,13 @@
     "underDevelopment":"开发中，敬请期待",
     "randomGeneration":"随机生成",
     "headerName":"Header 名称",
-    "paramsName":"参数名称"
+    "paramsName":"参数名称",
+    "deleteSuccess": "删除成功",
+    "deleteFailed": "删除失败",
+    "creaetSuccess": "创建成功",
+    "creatFailed": "创建失败",
+    "editSuccess": "编辑成功",
+    "editFailed": "编辑失败"
   },
   "domain": {
     "columns": {
