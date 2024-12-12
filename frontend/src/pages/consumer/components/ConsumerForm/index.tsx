@@ -10,11 +10,16 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const [creSource, setCreSource] = useState('BEARER');
 
   useEffect(() => {
-    const { name = "", credentials = [] } = value;
-    if (name && credentials.length) {
-      setActiveTabKey(credentials[0].type);
-      setCreSource(credentials[0].source);
-      form.setFieldsValue({ name, credentials });
+    if (value) {
+      const { name = "", credentials = [] } = value;
+      if (name && credentials.length) {
+        setActiveTabKey(credentials[0].type);
+        setCreSource(credentials[0].source);
+        form.setFieldsValue({ name, credentials });
+      } else {
+        form.resetFields();
+        setActiveTabKey('key-auth');
+      }
     } else {
       form.resetFields();
       setActiveTabKey('key-auth');
