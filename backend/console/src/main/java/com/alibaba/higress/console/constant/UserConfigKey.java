@@ -24,6 +24,7 @@ public class UserConfigKey {
     public static final String SYSTEM_INITIALIZED = "system.initialized";
     public static final String LOGIN_PAGE_PROMPT_KEY = "login.prompt";
     public static final String DASHBOARD_URL = "dashboard.url";
+    public static final String DASHBOARD_URL_PREFIX = "dashboard.url.";
     public static final String CHAT_ENABLED = "chat.enabled";
     public static final String ADMIN_PASSWORD_CHANGE_DISABLED = "admin.password-change.disabled";
 

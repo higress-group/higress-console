@@ -26,9 +26,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
+import com.alibaba.higress.console.controller.dto.DashboardType;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.console.service.DashboardService;
+import com.alibaba.higress.sdk.exception.ValidationException;
 
 /**
  * @author CH3CHO
@@ -48,25 +49,41 @@ public class DashboardController {
     @GetMapping("/init")
     public ResponseEntity<Response<DashboardInfo>> init(@RequestParam(required = false) Boolean force) {
         dashboardService.initializeDashboard(Boolean.TRUE.equals(force));
-        return info();
+        return info(null);
     }
 
     @GetMapping("/info")
-    public ResponseEntity<Response<DashboardInfo>> info() {
-        return ResponseEntity.ok(Response.success(dashboardService.getDashboardInfo()));
+    public ResponseEntity<Response<DashboardInfo>> info(@RequestParam(required = false) String type) {
+        DashboardType dashboardType = toDashboardType(type);
+        return ResponseEntity.ok(Response.success(dashboardService.getDashboardInfo(dashboardType)));
     }
 
     @PutMapping("/info")
-    public ResponseEntity<Response<DashboardInfo>> setUrl(@RequestBody DashboardInfo dashboardInfo) {
+    public ResponseEntity<Response<DashboardInfo>> setUrl(@RequestParam(required = false) String type,
+        @RequestBody DashboardInfo dashboardInfo) {
+        DashboardType dashboardType = toDashboardType(type);
         if (StringUtils.isEmpty(dashboardInfo.getUrl())) {
             throw new ValidationException("Missing required parameter: url");
         }
-        dashboardService.setDashboardUrl(dashboardInfo.getUrl());
-        return info();
+        dashboardService.setDashboardUrl(dashboardType, dashboardInfo.getUrl());
+        return info(dashboardType.toString());
     }
 
     @GetMapping("/configData")
-    public ResponseEntity<Response<String>> getConfigData(@RequestParam @NotBlank String dataSourceUid) {
-        return ResponseEntity.ok(Response.success(dashboardService.buildConfigData(dataSourceUid)));
+    public ResponseEntity<Response<String>> getConfigData(@RequestParam(required = false) String type,
+        @RequestParam @NotBlank String dataSourceUid) {
+        DashboardType dashboardType = toDashboardType(type);
+        return ResponseEntity.ok(Response.success(dashboardService.buildConfigData(dashboardType, dataSourceUid)));
+    }
+
+    private static DashboardType toDashboardType(String type) {
+        if (StringUtils.isEmpty(type)) {
+            return DashboardType.MAIN;
+        }
+        try {
+            return DashboardType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Unknown dashboard type: " + type);
+        }
     }
 }
