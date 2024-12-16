@@ -13,11 +13,14 @@
 package com.alibaba.higress.sdk.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 
 public interface WasmPluginInstanceService {
+
+    WasmPluginInstance createEmptyInstance(String pluginName);
 
     List<WasmPluginInstance> list(String pluginName);
 
@@ -27,9 +30,15 @@ public interface WasmPluginInstanceService {
 
     WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal);
 
+    WasmPluginInstance query(Map<WasmPluginInstanceScope, String> targets, String pluginName, Boolean internal);
+
     WasmPluginInstance addOrUpdate(WasmPluginInstance instance);
 
     void delete(WasmPluginInstanceScope scope, String target, String pluginName);
 
+    void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName);
+
     void deleteAll(WasmPluginInstanceScope scope, String target);
+
+    void deleteAll(Map<WasmPluginInstanceScope, String> targets);
 }

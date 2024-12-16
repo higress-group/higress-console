@@ -214,8 +214,8 @@ public class WasmPluginInstancesController {
         String name) {
         WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, name, false);
         if (instance == null) {
-            instance = WasmPluginInstance.builder().scope(scope).target(target).pluginName(name).internal(false)
-                .enabled(false).build();
+            instance = WasmPluginInstance.builder().pluginName(name).internal(false).enabled(false).build();
+            instance.setTarget(scope, target);
         }
         return ControllerUtil.buildResponseEntity(instance);
     }
@@ -234,8 +234,7 @@ public class WasmPluginInstancesController {
         if (plugin == null) {
             throw new ValidationException("Unsupported plugin: " + name);
         }
-        instance.setScope(scope);
-        instance.setTarget(target);
+        instance.setTarget(scope, target);
         instance = wasmPluginInstanceService.addOrUpdate(instance);
         return ControllerUtil.buildResponseEntity(instance);
     }
