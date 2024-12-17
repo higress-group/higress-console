@@ -216,6 +216,8 @@
     "modelProportion": "按比例",
     "modelName": "按模型名称",
     "addTargetAIservice": "添加目标AI服务",
+    "addTargetServer": "添加",
+    "operation": "操作",
     "modelMatchingType":"模型匹配方式",
     "pleaseSelect":"请选择",
     "pleaseEnter":"请输入",

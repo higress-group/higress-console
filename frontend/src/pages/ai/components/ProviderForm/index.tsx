@@ -28,7 +28,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         type,
         protocol,
         tokens,
-        modelMapping = {},
+        // modelMapping = {},
         tokenFailoverConfig = {},
       } = props.value;
       const {
@@ -45,7 +45,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         type,
         protocol,
         tokens,
-        modelMapping: getModelText(modelMapping),
+        // modelMapping: getModelText(modelMapping),
         enabled,
         failureThreshold,
         successThreshold,
@@ -73,7 +73,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         tokens: values.tokens,
         version: 0, // 资源版本号。进行创建或强制更新操作时需设置为 0。 /  1 表示强制更新
         protocol: values.protocol,
-        modelMapping: getModelMapping(values.modelMapping),
+        // modelMapping: getModelMapping(values.modelMapping),
         tokenFailoverConfig: {
           enabled: values.enabled,
         },
@@ -108,13 +108,13 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     }
   };
 
-  const getModelText = (text) => {
-    try {
-      return Object.entries(text).map(([key, value]) => `${key}=${value}`).join('\n');
-    } catch (err) {
-      return JSON.stringify(err)
-    }
-  };
+  // const getModelText = (text) => {
+  //   try {
+  //     return Object.entries(text).map(([key, value]) => `${key}=${value}`).join('\n');
+  //   } catch (err) {
+  //     return JSON.stringify(err)
+  //   }
+  // };
 
   return (
     <Form
@@ -222,18 +222,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   noStyle
                 >
                   <Input
-                    style={{ width: '90%' }}
+                    style={{ width: '94%' }}
                     placeholder={t('llmProvider.providerForm.placeholder.tokens')}
                   />
                 </Form.Item>
                 {/* 删除按钮 */}
-                {fields.length > 1 ?
-                  (<Button
+                <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                  <Button
                     type="dashed"
+                    disabled={!(fields.length > 1)}
                     onClick={() => remove(field.name)}
                     icon={<MinusCircleOutlined />}
-                  />) :
-                  null}
+                  />
+                </div>
               </Form.Item>
             ))}
 
@@ -251,7 +252,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       </Form.List>
 
       {/* 模型映射 */}
-      <Form.Item
+      {/* <Form.Item
         name="modelMapping"
         label="模型映射"
       >
@@ -263,7 +264,7 @@ gpt-*=qwen-max
           }
           rows={4}
         />
-      </Form.Item>
+      </Form.Item> */}
 
       {/* 令牌降级 */}
       <Form.Item
@@ -285,6 +286,7 @@ gpt-*=qwen-max
               rules={[
                 { required: true, message: "请输入" },
               ]}
+              initialValue={1}
             >
               <InputNumber style={{ width: '100%' }} />
             </Form.Item>
@@ -296,6 +298,7 @@ gpt-*=qwen-max
               rules={[
                 { required: true, message: "请输入" },
               ]}
+              initialValue={1}
             >
               <InputNumber style={{ width: '100%' }} />
             </Form.Item>
@@ -307,6 +310,7 @@ gpt-*=qwen-max
               rules={[
                 { required: true, message: "请输入" },
               ]}
+              initialValue={5000}
             >
               <InputNumber style={{ width: '100%' }} />
             </Form.Item>
@@ -318,6 +322,7 @@ gpt-*=qwen-max
               rules={[
                 { required: true, message: "请输入" },
               ]}
+              initialValue={10000}
             >
               <InputNumber style={{ width: '100%' }} />
             </Form.Item>

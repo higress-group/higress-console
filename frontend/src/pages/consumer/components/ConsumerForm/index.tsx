@@ -22,6 +22,8 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       }
     } else {
       form.resetFields();
+      setActiveTabKey('');
+      setCreSource('BEARER');
       setActiveTabKey('key-auth');
     }
   }, [value]);
@@ -127,7 +129,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                           name={[name, 'value']}
                           rules={[{ required: true, message: t("consumer.consumerForm.pleaseEnter") }]}
                         >
-                          <Input />
+                          <Input placeholder={t("consumer.consumerForm.pleaseEnter")} />
                         </Form.Item>
                       </Col>
                       <Col span={4} style={{ paddingTop: 30, textAlign: "right" }}>

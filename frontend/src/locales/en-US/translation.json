@@ -211,6 +211,8 @@
     "modelProportion": "Proportionally",
     "modelName": "By model name",
     "addTargetAIservice": "Add target AI service",
+    "addTargetServer": "Add",
+    "operation": "Operation",
     "modelMatchingType": "Model matching type",
     "pleaseSelect": "Please select",
     "pleaseEnter": "Please enter",
