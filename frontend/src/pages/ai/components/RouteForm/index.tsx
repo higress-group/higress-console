@@ -70,14 +70,22 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
     setAuthConfigEnabled(_authConfig_enabled);
     setFallbackConfigEnabled(_fallbackConfig_enabled);
+    const initfallback = { fallbackConfig_enabled: _fallbackConfig_enabled };
+    if (_fallbackConfig_enabled && value?.fallbackConfig?.upstreams) {
+      initfallback['fallbackConfig_upstreams'] = value?.fallbackConfig?.upstreams?.[0]?.provider;
+      try {
+        initfallback['fallbackConfig_modelNames'] = Object.keys(value?.fallbackConfig?.upstreams?.[0]?.modelMapping)[0];
+      } catch (err) {
+        initfallback['fallbackConfig_modelNames'] = '';
+      }
+    }
     const initValues = {
       name,
       domains: domains?.length ? domains[0] : [],
       upstreams,
       authConfig_enabled: _authConfig_enabled,
       authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || "",
-      fallbackConfig_enabled: _fallbackConfig_enabled,
-      fallbackConfig_upstreams: value?.fallbackConfig?.upstreams ? value?.fallbackConfig?.upstreams[0].provider : undefined,
+      ...initfallback,
     };
 
     if (modelPredicates) {
@@ -134,6 +142,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         domains,
         fallbackConfig_upstreams = '',
         authConfig_allowedConsumers = '',
+        fallbackConfig_modelNames = '',
         modelPredicates = [],
       } = values;
 
@@ -161,7 +170,12 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         payload["modelPredicates"] = modelPredicates.map(({ matchType, matchValue }) => ({ matchType, matchValue }));
       }
       if (fallbackConfig_enabled) {
-        payload['fallbackConfig']['upstreams'] = fallbackConfig_upstreams ? [{ provider: fallbackConfig_upstreams }] : [];
+        const _upstreams = {
+          provider: fallbackConfig_upstreams,
+          modelMapping: {},
+        };
+        _upstreams["modelMapping"][fallbackConfig_modelNames] = fallbackConfig_upstreams;
+        payload['fallbackConfig']['upstreams'] = [_upstreams];
         payload['fallbackConfig']['strategy'] = "SEQ";
       }
       if (authConfig_enabled) {
@@ -171,23 +185,25 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
     },
   }));
 
+  const getOptionsForAi = (providerName) => {
+    try { // 通过 【服务名称】 来筛查满足 【目标模型 预定义】 的下拉选项
+      const _list = aiModelproviders.filter(item => item.value.toUpperCase().indexOf(providerName.toUpperCase()) !== -1);
+      if (_list.length) {
+        const _filterList = _list.map(item => item.targetModelList);
+        return _filterList.flatMap(item => item)
+      }
+      return [];
+    } catch (error) { return []; }
+  }
+
   const getOptions = (index) => {
     if (modelService === "ModelName") {
       return []
     }
-
     try {
       const _upstreams = form.getFieldValue("upstreams"); // 查询 ui 全部Ai服务
-      if (_upstreams[index]) {
-        const _upstreams_modelMapping = _upstreams[index]; // 通过传递的 index 筛查出当前Ai服务的【服务名称】。
-        if (_upstreams_modelMapping && _upstreams_modelMapping.provider) { // 通过 【服务名称】 来筛查满足 【目标模型 预定义】 的下拉选项
-          const _list = aiModelproviders.filter(item => item.value.toUpperCase().indexOf(_upstreams_modelMapping.provider.toUpperCase()) !== -1);
-          if (_list.length) {
-            const _filterList = _list.map(item => item.targetModelList);
-            return _filterList.flatMap(item => item)
-          }
-          return [];
-        }
+      if (_upstreams[index]) { // 通过传递的 index 筛查出当前Ai服务的【服务名称】。
+        if (_upstreams[index] && _upstreams[index].provider) return getOptionsForAi(_upstreams[index].provider);
       }
     } catch (err) { return []; }
     return [];
@@ -442,16 +458,30 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
           <div style={{ display: 'flex' }}>
             <Form.Item
               style={{ flex: 1, marginRight: '8px' }}
-              label={t('llmProvider.providerForm.label.fallbackConfigList')} // {/* 降级服务列表 */}
               required
               name="fallbackConfig_upstreams"
+              label={t('llmProvider.providerForm.label.fallbackConfigList')} // {/* 降级服务列表 */}
               rules={[{ required: true, message: t('llmProvider.providerForm.placeholder.fallbackConfigList') }]}
             >
-              <Select allowClear placeholder={t('llmProvider.providerForm.placeholder.fallbackConfigList')}>
+              <Select allowClear placeholder={t('llmProvider.providerForm.placeholder.fallbackConfigList')} onChange={text => setProviderIndex(text)}>
                 { llmList.map((item) => (<Select.Option key={item.name} value={item.name}> {item.name} </Select.Option>))}
               </Select>
             </Form.Item>
-            <RedoOutlinedBtn getList={llmResult} />
+            <Form.Item
+              required
+              style={{ flex: 1 }}
+              name={"fallbackConfig_modelNames"}
+              label={t("llmProvider.targetModel")}
+              rules={[{ required: true, message: t('llmProvider.pleaseEnter') }]}
+            >{/* 模型名称 */}
+              <AutoComplete
+                options={getOptionsForAi(form.getFieldValue("fallbackConfig_upstreams"))}
+                onSearch={text => setModelName(text)}
+                filterOption={(inputValue, option: any) => option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}
+                allowClear
+                placeholder={t("llmProvider.pleaseEnter")}
+              />
+            </Form.Item>
           </div>
         </>
         : null

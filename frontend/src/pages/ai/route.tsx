@@ -97,6 +97,7 @@ const AiRouteList: React.FC = () => {
   const [dataSource, setDataSource] = useState<AiRoute[]>([]);
   const [currentAiRoute, setCurrentAiRoute] = useState<AiRoute>();
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [loadingapi, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [useDrawer, setUseDrawer] = useState(false)
@@ -137,8 +138,12 @@ const AiRouteList: React.FC = () => {
   };
 
   const handleDrawerOK = async () => {
+    setLoading(true);
     const values = formRef.current ? await formRef.current.handleSubmit() : {};
-    if (!values) return false;
+    if (!values) {
+      setLoading(false);
+      return false;
+    }
 
     if (currentAiRoute) {
       const params: AiRoute = { version: currentAiRoute.version, ...values };
@@ -147,6 +152,7 @@ const AiRouteList: React.FC = () => {
       await addAiRoute(values as AiRoute);
     }
 
+    setLoading(false);
     setOpenDrawer(false);
     formRef.current && formRef.current.reset();
     refresh();
@@ -231,7 +237,7 @@ const AiRouteList: React.FC = () => {
         extra={
           <Space>
             <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
-            <Button type="primary" onClick={handleDrawerOK}>
+            <Button type="primary" onClick={handleDrawerOK} loading={loadingapi}>
               {t('misc.confirm')}
             </Button>
           </Space>
