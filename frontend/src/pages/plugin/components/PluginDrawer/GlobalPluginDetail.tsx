@@ -105,11 +105,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     onSuccess: (res) => {
       setConfigData(res);
       setSchema(res.schema);
-      if (!res.schema.jsonSchema.properties) {
+      if (!res.schema?.jsonSchema?.properties) {
         setCurrentTabKey('yaml');
       }
       if (!defaultValue) {
-        let exampleRaw = res?.schema?.extensions['x-example-raw'];
+        let exampleRaw = res.schema?.extensions ? res.schema.extensions['x-example-raw'] : '';
         if (isChangeExampleRaw) {
           // Need a space after the colon
           exampleRaw = 'allow: []';

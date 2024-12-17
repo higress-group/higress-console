@@ -356,6 +356,7 @@
       "name": "名称",
       "domain": "来源地址",
       "port": "来源端口",
+      "protocol": "服务协议",
       "action": "操作"
     },
     "createServiceSource": "创建服务来源",
@@ -375,6 +376,9 @@
       "port": "注册中心访问端口",
       "portRequired": "请输入访问端口",
       "portPlaceholder": "注册中心访问端口",
+      "protocol": "服务协议",
+      "sni": "SNI",
+      "sniPlaceholderForDns": "若服务来源只关联了一个域名且使用与该域名相同的SNI，此处可留空。",
       "zkServicesPath": "服务注册根路径",
       "zkServicesPathTooltip": "Zookeeper类型的服务来源需要填写服务注册的根路径。默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
       "zkServicesPathRequired": "请输入服务注册根路径",

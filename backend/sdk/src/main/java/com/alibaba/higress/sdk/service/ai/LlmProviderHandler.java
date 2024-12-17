@@ -20,9 +20,6 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 
 interface LlmProviderHandler {
 
-    String PROVIDER_ID_KEY = "id";
-    String PROVIDER_TYPE_KEY = "type";
-
     String getType();
 
     default LlmProvider createProvider() {
@@ -33,7 +30,9 @@ interface LlmProviderHandler {
 
     void saveConfig(LlmProvider provider, Map<String, Object> configurations);
 
-    ServiceSource buildServiceSource(String providerName);
+    void validateConfig(Map<String, Object> configurations);
 
-    UpstreamService buildUpstreamService(String providerName);
+    ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
+
+    UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig);
 }

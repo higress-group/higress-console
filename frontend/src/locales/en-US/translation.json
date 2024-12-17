@@ -351,6 +351,7 @@
       "name": "Name",
       "domain": "Source Domain",
       "port": "Source Port",
+      "protocol": "Service Protocol",
       "action": "Action"
     },
     "createServiceSource": "Create Service Source",
@@ -370,6 +371,9 @@
       "port": "Registry Port",
       "portRequired": "Please input the port.",
       "portPlaceholder": "Registry Port",
+      "protocol": "Service Protocol",
+      "sni": "SNI",
+      "sniPlaceholderForDns": "Leave it empty if only one domain is set and to be used as SNI.",
       "zkServicesPath": "Service Registration Root Path",
       "zkServicesPathTooltip": "The root path of service registration are required for Zookeeper service sources. /dubbo and /services are listened by default. The former is the default root path of dubbo services, and the latter is the default root path of Sprin gCloud services",
       "zkServicesPathRequired": "Please input the root path of service registration.",

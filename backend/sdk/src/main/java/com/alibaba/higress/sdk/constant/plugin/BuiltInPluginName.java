@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.constant;
+package com.alibaba.higress.sdk.constant.plugin;
 
 public final class BuiltInPluginName {
 
@@ -29,6 +29,7 @@ public final class BuiltInPluginName {
     public static final String AI_QUOTA = "ai-quota";
     public static final String AI_AGENT = "ai-agent";
     public static final String MODEL_ROUTER = "model-router";
+    public static final String MODEL_MAPPER = "model-mapper";
 
     // Auth
     public static final String BASIC_AUTH = "basic-auth";

@@ -18,7 +18,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -46,6 +49,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.tomcat.util.http.fileupload.util.Streams;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +62,7 @@ import com.alibaba.higress.console.client.grafana.models.SearchType;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
+import com.alibaba.higress.console.controller.dto.DashboardType;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -79,6 +84,7 @@ public class DashboardServiceImpl implements DashboardService {
     private static final String DATASOURCE_UID_PLACEHOLDER = "${datasource.id}";
     private static final String MAIN_DASHBOARD_DATA_PATH = "/dashboard/main.json";
     private static final String LOG_DASHBOARD_DATA_PATH = "/dashboard/logs.json";
+    private static final String AI_DASHBOARD_DATA_PATH = "/dashboard/ai.json";
     private static final String PROM_DATASOURCE_TYPE = "prometheus";
     private static final String LOKI_DATASOURCE_TYPE = "loki";
     private static final String DATASOURCE_ACCESS = "proxy";
@@ -129,10 +135,7 @@ public class DashboardServiceImpl implements DashboardService {
     private CloseableHttpClient realServerClient;
     private String realServerBaseUrl;
 
-    private String mainDashboardConfiguration;
-    private GrafanaDashboard configuredMainDashboard;
-    private String logDashboardConfiguration;
-    private GrafanaDashboard configuredLogDashboard;
+    private Map<DashboardType, DashboardConfiguration> dashboardConfigurations;
 
     @Resource
     public void setConfigService(ConfigService configService) {
@@ -141,14 +144,18 @@ public class DashboardServiceImpl implements DashboardService {
 
     @PostConstruct
     public void initialize() {
+        Map<DashboardType, DashboardConfiguration> dashboardConfigurations = new HashMap<>();
         try {
-            mainDashboardConfiguration = IOUtils.resourceToString(MAIN_DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
-            configuredMainDashboard = GrafanaClient.parseDashboardData(mainDashboardConfiguration);
-            logDashboardConfiguration = IOUtils.resourceToString(LOG_DASHBOARD_DATA_PATH, StandardCharsets.UTF_8);
-            configuredLogDashboard = GrafanaClient.parseDashboardData(logDashboardConfiguration);
+            dashboardConfigurations.put(DashboardType.MAIN,
+                new DashboardConfiguration(DashboardType.MAIN, MAIN_DASHBOARD_DATA_PATH));
+            dashboardConfigurations.put(DashboardType.AI,
+                new DashboardConfiguration(DashboardType.AI, AI_DASHBOARD_DATA_PATH));
+            dashboardConfigurations.put(DashboardType.LOG,
+                new DashboardConfiguration(DashboardType.LOG, LOG_DASHBOARD_DATA_PATH));
         } catch (IOException e) {
             throw new IllegalStateException("Error occurs when loading dashboard configurations from resource.", e);
         }
+        this.dashboardConfigurations = Collections.unmodifiableMap(dashboardConfigurations);
 
         if (isBuiltIn()) {
             try {
@@ -170,7 +177,12 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardInfo getDashboardInfo() {
-        return isBuiltIn() ? getBuiltInDashboardInfo() : getConfiguredDashboardInfo();
+        return getDashboardInfo(DashboardType.MAIN);
+    }
+
+    @Override
+    public DashboardInfo getDashboardInfo(DashboardType type) {
+        return isBuiltIn() ? getBuiltInDashboardInfo(type) : getConfiguredDashboardInfo(type);
     }
 
     @Override
@@ -194,26 +206,39 @@ public class DashboardServiceImpl implements DashboardService {
         } catch (IOException e) {
             throw new BusinessException("Error occurs when loading dashboard info from Grafana.", e);
         }
-        configureDashboard(results, configuredMainDashboard.getTitle(), mainDashboardConfiguration, promDatasourceUid,
-            overwrite);
-        configureDashboard(results, configuredLogDashboard.getTitle(), logDashboardConfiguration, lokiDatasourceUid,
-            overwrite);
+        for (DashboardConfiguration configuration : dashboardConfigurations.values()) {
+            String datasourceId = configuration.getType() == DashboardType.LOG ? lokiDatasourceUid : promDatasourceUid;
+            configureDashboard(results, configuration.getDashboard().getTitle(), configuration.getRaw(), datasourceId,
+                overwrite);
+        }
     }
 
     @Override
     public void setDashboardUrl(String url) {
+        setDashboardUrl(DashboardType.MAIN, url);
+    }
+
+    @Override
+    public void setDashboardUrl(DashboardType type, String url) {
         if (StringUtils.isBlank(url)) {
             throw new IllegalArgumentException("url cannot be null or blank.");
         }
         if (isBuiltIn()) {
             throw new IllegalStateException("Manual dashboard configuration is disabled.");
         }
-        configService.setConfig(UserConfigKey.DASHBOARD_URL, url);
+        DashboardConfiguration configuration = getDashboardConfiguration(type);
+        configService.setConfig(configuration.getConfigKey(), url);
     }
 
     @Override
     public String buildConfigData(String datasourceUid) {
-        return buildConfigData(mainDashboardConfiguration, datasourceUid);
+        return buildConfigData(DashboardType.MAIN, datasourceUid);
+    }
+
+    @Override
+    public String buildConfigData(DashboardType type, String datasourceUid) {
+        DashboardConfiguration configuration = getDashboardConfiguration(type);
+        return buildConfigData(configuration.getRaw(), datasourceUid);
     }
 
     @Override
@@ -323,7 +348,11 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
-    private DashboardInfo getBuiltInDashboardInfo() {
+    private DashboardInfo getBuiltInDashboardInfo(DashboardType type) {
+        DashboardConfiguration configuration = dashboardConfigurations.get(type);
+        if (configuration == null) {
+            throw new IllegalArgumentException("Invalid dashboard type: " + type);
+        }
         List<GrafanaSearchResult> results;
         try {
             results = grafanaClient.search(null, SearchType.DB, null, null);
@@ -333,7 +362,7 @@ public class DashboardServiceImpl implements DashboardService {
         if (CollectionUtils.isEmpty(results)) {
             return new DashboardInfo(true, null, null);
         }
-        String expectedTitle = configuredMainDashboard.getTitle();
+        String expectedTitle = configuration.getDashboard().getTitle();
         if (StringUtils.isEmpty(expectedTitle)) {
             throw new IllegalStateException("No title is found in the configured dashboard.");
         }
@@ -342,8 +371,9 @@ public class DashboardServiceImpl implements DashboardService {
         return result.map(r -> new DashboardInfo(true, r.getUid(), r.getUrl())).orElse(null);
     }
 
-    private DashboardInfo getConfiguredDashboardInfo() {
-        String url = configService.getString(UserConfigKey.DASHBOARD_URL);
+    private DashboardInfo getConfiguredDashboardInfo(DashboardType type) {
+        DashboardConfiguration configuration = dashboardConfigurations.get(type);
+        String url = configService.getString(configuration.getConfigKey());
         return new DashboardInfo(false, null, url);
     }
 
@@ -409,6 +439,33 @@ public class DashboardServiceImpl implements DashboardService {
                     }
                 }
             }
+        }
+    }
+
+    private @NotNull DashboardConfiguration getDashboardConfiguration(DashboardType type) {
+        DashboardConfiguration configuration = dashboardConfigurations.get(type);
+        if (configuration == null) {
+            throw new IllegalArgumentException("Invalid dashboard type: " + type);
+        }
+        return configuration;
+    }
+
+    @lombok.Value
+    private static class DashboardConfiguration {
+
+        DashboardType type;
+        String configKey;
+        String resourcePath;
+        String raw;
+        GrafanaDashboard dashboard;
+
+        public DashboardConfiguration(DashboardType type, String resourcePath) throws IOException {
+            this.type = type;
+            this.configKey = type == DashboardType.MAIN ? UserConfigKey.DASHBOARD_URL
+                : UserConfigKey.DASHBOARD_URL_PREFIX + type.toString().toLowerCase(Locale.ROOT);
+            this.resourcePath = resourcePath;
+            this.raw = IOUtils.resourceToString(resourcePath, StandardCharsets.UTF_8);
+            this.dashboard = GrafanaClient.parseDashboardData(this.raw);
         }
     }
 }

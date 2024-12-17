@@ -26,12 +26,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
-import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.WasmPluginService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,12 +43,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             Stream.of(new KeyAuthCredentialHandler()).collect(Collectors.toMap(CredentialHandler::getType, c -> c));
     }
 
-    private final WasmPluginService wasmPluginService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
-    public ConsumerServiceImpl(WasmPluginService wasmPluginService,
-        WasmPluginInstanceService wasmPluginInstanceService) {
-        this.wasmPluginService = wasmPluginService;
+    public ConsumerServiceImpl(WasmPluginInstanceService wasmPluginInstanceService) {
         this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
@@ -61,11 +56,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             WasmPluginInstance instance =
                 wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, config.getPluginName(), true);
             if (instance == null) {
-                WasmPlugin plugin = wasmPluginService.query(config.getPluginName(), null);
-                if (plugin == null) {
-                    throw new BusinessException("Plugin " + config.getPluginName() + " not found");
-                }
-                instance = createInstance(WasmPluginInstanceScope.GLOBAL, null, config.getPluginName());
+                instance = wasmPluginInstanceService.createEmptyInstance(config.getPluginName());
+                instance.setInternal(true);
+                instance.setGlobalTarget();
             }
             if (config.saveConsumer(instance, consumer)) {
                 instancesToUpdate.add(instance);
@@ -100,7 +93,7 @@ public class ConsumerServiceImpl implements ConsumerService {
         for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
             List<WasmPluginInstance> instances = instancesCache.get(config.getType());
             WasmPluginInstance globalInstance = instances.stream()
-                .filter(i -> WasmPluginInstanceScope.GLOBAL.equals(i.getScope())).findFirst().orElse(null);
+                .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
             if (globalInstance == null) {
                 continue;
             }
@@ -122,7 +115,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             }
 
             if (instance == null) {
-                instance = createInstance(scope, target, config.getPluginName());
+                instance = wasmPluginInstanceService.createEmptyInstance(config.getPluginName());
+                instance.setInternal(true);
+                instance.setTarget(scope, target);
             }
             config.updateAllowList(instance, consumerNames);
             wasmPluginInstanceService.addOrUpdate(instance);
@@ -146,19 +141,5 @@ public class ConsumerServiceImpl implements ConsumerService {
             }
         }
         return consumers;
-    }
-
-    private WasmPluginInstance createInstance(WasmPluginInstanceScope scope, String target, String pluginName) {
-        WasmPlugin plugin = wasmPluginService.query(pluginName, null);
-        if (plugin == null) {
-            throw new BusinessException("Plugin " + pluginName + " not found");
-        }
-        WasmPluginInstance instance = new WasmPluginInstance();
-        instance.setPluginName(plugin.getName());
-        instance.setPluginVersion(plugin.getPluginVersion());
-        instance.setInternal(true);
-        instance.setScope(scope);
-        instance.setTarget(target);
-        return instance;
     }
 }

@@ -18,19 +18,29 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.higress.console.controller.dto.DashboardInfo;
+import com.alibaba.higress.console.controller.dto.DashboardType;
 
 /**
  * @author CH3CHO
  */
 public interface DashboardService {
 
+    @Deprecated
     DashboardInfo getDashboardInfo();
+
+    DashboardInfo getDashboardInfo(DashboardType type);
 
     void initializeDashboard(boolean overwrite);
 
+    @Deprecated
     void setDashboardUrl(String url);
 
+    void setDashboardUrl(DashboardType type, String url);
+
+    @Deprecated
     String buildConfigData(String dataSourceUid);
+
+    String buildConfigData(DashboardType type, String dataSourceUid);
 
     void forwardDashboardRequest(HttpServletRequest request, HttpServletResponse response) throws IOException;
 }

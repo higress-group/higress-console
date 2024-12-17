@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -31,6 +33,7 @@ public class AiUpstream {
 
     private String provider;
     private Integer weight;
+    private Map<String, String> modelMapping;
 
     public void validate() {
         if (StringUtils.isEmpty(provider)) {

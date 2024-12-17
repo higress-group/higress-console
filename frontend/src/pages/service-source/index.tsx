@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import { Mode } from '@/interfaces/config';
-import { ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
+import { ServiceProtocols, ServiceSource, ServiceSourceFormProps, ServiceSourceTypes } from '@/interfaces/service-source';
 import { addServiceSource, deleteServiceSource, getServiceSources, updateServiceSource } from '@/services/service-source';
 import store from '@/store';
 import { isInternalResource } from '@/utils';
@@ -55,6 +55,18 @@ const SourceList: React.FC = () => {
           return '-';
         }
         return value != null ? value : '-';
+      },
+    },
+    {
+      title: t('serviceSource.columns.protocol'),
+      dataIndex: 'protocol',
+      key: 'protocol',
+      render: (value, record) => {
+        if (!value) {
+          return '-';
+        }
+        const protocol = ServiceProtocols[value];
+        return protocol ? protocol.name : value;
       },
     },
     {

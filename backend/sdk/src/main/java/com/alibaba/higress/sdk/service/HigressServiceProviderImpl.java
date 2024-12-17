@@ -55,11 +55,10 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService);
         domainService = new DomainServiceImpl(kubernetesClientService, kubernetesModelConverter, routeService,
             wasmPluginInstanceService);
-        consumerService = new ConsumerServiceImpl(wasmPluginService, wasmPluginInstanceService);
-        llmProviderService =
-            new LlmProviderServiceImpl(serviceSourceService, wasmPluginService, wasmPluginInstanceService);
+        consumerService = new ConsumerServiceImpl(wasmPluginInstanceService);
+        llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService);
         aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
-            llmProviderService, consumerService, wasmPluginService, wasmPluginInstanceService);
+            llmProviderService, consumerService, wasmPluginInstanceService);
     }
 
     @Override
