@@ -56,3 +56,13 @@ export const ServiceProtocols = {
   grpc: { key: 'grpc', name: 'gRPC', tlsEnabled: false },
   grpcs: { key: 'grpcs', name: 'gRPCS', tlsEnabled: true },
 };
+
+interface ListEntry {
+  provider: string;
+  width: number;
+}
+
+export interface CustomComponentHandles {
+  addItem: (any) => void;
+  getList: () => ListEntry[];
+}

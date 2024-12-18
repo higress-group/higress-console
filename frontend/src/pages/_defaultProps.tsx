@@ -70,6 +70,9 @@ export default {
             name: 'menu.aiRouteManagement',
             path: '/ai/route',
           },
+          {
+            path: '/ai/config',
+          },
         ],
       },
       {

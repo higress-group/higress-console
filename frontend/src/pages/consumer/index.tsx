@@ -5,7 +5,7 @@ import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/ser
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Col, Drawer, Form, message, Modal, Row, Space, Table, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ConsumerForm from './components/ConsumerForm';
@@ -96,7 +96,7 @@ const ConsumerList: React.FC = () => {
     manual: true,
     onSuccess: (result) => {
       const consumers = (result || []) as Consumer[];
-      consumers.push({ name: 'test', credentials: [{ type: 'key-auth' }, { type: 'oauth' }] });
+      // consumers.push({ name: 'test', credentials: [{ type: 'key-auth' }, { type: 'oauth' }] });
       consumers.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
@@ -121,13 +121,19 @@ const ConsumerList: React.FC = () => {
   const handleDrawerOK = async () => {
     try {
       const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+      if(!values.name && values) {
+        return message.info(values + t("consumer.underDevelopment"));
+      };
 
-      if (currentConsumer) {
-        await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
-      } else {
-        await addConsumer(values as Consumer);
-      }
-
+      try {
+        if (currentConsumer) {
+          await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
+          message.success(t("consumer.editSuccess"));
+        } else {
+          await addConsumer({ ...values, version: 0 } as Consumer);
+          message.success(t("consumer.creaetSuccess"));
+        }
+      } catch(error) {}
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
@@ -149,7 +155,10 @@ const ConsumerList: React.FC = () => {
 
   const handleModalOk = async () => {
     setConfirmLoading(true);
-    await deleteConsumer(currentConsumer.name);
+    try {
+      await deleteConsumer(currentConsumer.name);
+      message.success(t("consumer.deleteSuccess"));
+    } catch (error) {}
     setConfirmLoading(false);
     setOpenModal(false);
     refresh();
