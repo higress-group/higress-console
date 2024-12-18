@@ -89,7 +89,7 @@ public class KubernetesClientService {
 
     private final OkHttpClient okHttpClient = new OkHttpClient();
 
-    private Boolean inCluster;
+    private final Boolean inClusterMode;
 
     private final String kubeConfig;
 
@@ -120,17 +120,17 @@ public class KubernetesClientService {
         this.controllerIngressClassName = config.getIngressClassName();
         this.controllerJwtPolicy = config.getControllerJwtPolicy();
         this.controllerAccessToken = config.getControllerAccessToken();
-        this.inCluster = isInCluster();
+        this.inClusterMode = Strings.isNullOrEmpty(kubeConfig) && isInCluster();
 
-        if (inCluster) {
+        if (inClusterMode) {
             client = ClientBuilder.cluster().build();
-            log.info("init KubernetesClientService InCluster");
+            log.info("init KubernetesClientService with InCluster mode");
         } else {
             String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
             try (FileReader reader = new FileReader(kubeConfigPath)) {
                 client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
             }
-            log.info("init KubernetesClientService LoadKubeConfig");
+            log.info("init KubernetesClientService with KubeConfig: {}", kubeConfigPath);
         }
 
         initializeK8sCapabilities();
@@ -584,11 +584,11 @@ public class KubernetesClientService {
     }
 
     private Request buildControllerRequest(String path) throws IOException {
-        String serviceHost = inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
+        String serviceHost = inClusterMode ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
         String url = "http://" + serviceHost + ":" + controllerServicePort + path;
         Request.Builder builder = new Request.Builder().url(url);
         String token = controllerAccessToken;
-        if (Strings.isNullOrEmpty(token) && inCluster) {
+        if (Strings.isNullOrEmpty(token) && inClusterMode) {
             token = readTokenFromFile();
         }
         if (!Strings.isNullOrEmpty(token)) {
