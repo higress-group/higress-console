@@ -105,11 +105,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     onSuccess: (res) => {
       setConfigData(res);
       setSchema(res.schema);
-      if (!res.schema.jsonSchema.properties) {
+      if (!res.schema?.jsonSchema?.properties) {
         setCurrentTabKey('yaml');
       }
       if (!defaultValue) {
-        let exampleRaw = res?.schema?.extensions['x-example-raw'];
+        let exampleRaw = res.schema?.extensions ? res.schema.extensions['x-example-raw'] : '';
         if (isChangeExampleRaw) {
           // Need a space after the colon
           exampleRaw = 'allow: []';
@@ -158,7 +158,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }
 
   function generateFields(scm, prefix = '') {
-    const properties = scm.properties;
+    const { properties } = scm;
     const requiredFields = scm.required || [];
     if (!properties) {
       return <div>{t('misc.invalidSchema')}</div>;
@@ -337,7 +337,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           }
         });
       } else if (typeof value === 'object') {
-        result += `${indent}${key}:\n${schemaToYaml(value, indent + '  ')}`;
+        result += `${indent}${key}:\n${schemaToYaml(value, `${indent}  `)}`;
       } else {
         result += `${indent}${key}: ${quoteIfString(value)}\n`;
       }

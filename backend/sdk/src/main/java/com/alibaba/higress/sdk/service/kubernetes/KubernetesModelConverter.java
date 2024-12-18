@@ -100,6 +100,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.TypeUtil;
 import com.google.common.base.Splitter;
 import com.google.gson.Gson;
@@ -674,35 +675,44 @@ public class KubernetesModelConverter {
 
         List<WasmPluginInstance> instances = new ArrayList<>();
         if (ObjectUtils.anyNotNull(spec.getDefaultConfigDisable(), spec.getDefaultConfig())) {
-            WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL)
-                .enabled(Boolean.FALSE.equals(spec.getDefaultConfigDisable())).configurations(spec.getDefaultConfig())
-                .build();
+            WasmPluginInstance instance =
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null))
+                    .enabled(Boolean.FALSE.equals(spec.getDefaultConfigDisable()))
+                    .configurations(spec.getDefaultConfig()).build();
             instances.add(instance);
         }
         if (CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+            List<MatchRule> matchRules = new ArrayList<>(spec.getMatchRules());
+            // Sort here so we can always get the correct order of instances.
+            sortWasmPluginMatchRules(matchRules);
             for (MatchRule rule : spec.getMatchRules()) {
                 boolean enabled = Boolean.FALSE.equals(rule.getConfigDisable());
-                if (CollectionUtils.isNotEmpty(rule.getDomain())) {
-                    for (String domain : rule.getDomain()) {
-                        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN)
-                            .target(domain).enabled(enabled).configurations(rule.getConfig()).build();
-                        instances.add(instance);
+                List<Map<WasmPluginInstanceScope, String>> targetsList = new ArrayList<>();
+                for (WasmPluginInstanceScope scope : WasmPluginInstanceScope.NON_GLOBAL_SCOPES) {
+                    List<String> targets = getTargetsByScope(rule, scope);
+                    if (CollectionUtils.isEmpty(targets)) {
+                        continue;
+                    }
+                    if (targetsList.isEmpty()) {
+                        for (String target : targets) {
+                            targetsList.add(MapUtil.of(scope, target));
+                        }
+                    } else {
+                        List<Map<WasmPluginInstanceScope, String>> newTargetsList = new ArrayList<>();
+                        for (Map<WasmPluginInstanceScope, String> existedTargets : targetsList) {
+                            for (String target : targets) {
+                                Map<WasmPluginInstanceScope, String> newTargets = new HashMap<>(existedTargets);
+                                newTargets.put(scope, target);
+                                newTargetsList.add(newTargets);
+                            }
+                        }
+                        targetsList = newTargetsList;
                     }
                 }
-                if (CollectionUtils.isNotEmpty(rule.getIngress())) {
-                    for (String route : rule.getIngress()) {
-                        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.ROUTE)
-                            .target(route).enabled(enabled).configurations(rule.getConfig()).build();
-                        instances.add(instance);
-                    }
-                }
-                if (CollectionUtils.isNotEmpty(rule.getService())) {
-                    for (String route : rule.getService()) {
-                        WasmPluginInstance instance =
-                            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.SERVICE).target(route)
-                                .enabled(enabled).configurations(rule.getConfig()).build();
-                        instances.add(instance);
-                    }
+                for (Map<WasmPluginInstanceScope, String> targets : targetsList) {
+                    WasmPluginInstance instance = WasmPluginInstance.builder().targets(targets).enabled(enabled)
+                        .configurations(rule.getConfig()).build();
+                    instances.add(instance);
                 }
             }
         }
@@ -714,19 +724,22 @@ public class KubernetesModelConverter {
             normalizePluginInstanceConfigurations(i.getConfigurations());
             i.setRawConfigurations(generateRawConfigurations(i.getConfigurations()));
             i.setInternal(KubernetesUtil.isInternalResource(plugin));
-        });
-        instances.sort((i1, i2) -> {
-            int ret = i1.getScope().compareTo(i2.getScope());
-            if (ret != 0) {
-                return ret;
-            }
-            return ObjectUtils.compare(i1.getTarget(), i2.getTarget());
+            i.syncDeprecatedFields();
         });
         return instances;
     }
 
     public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin, WasmPluginInstanceScope scope,
         String target) {
+        return getWasmPluginInstanceFromCr(plugin, MapUtil.of(scope, target));
+    }
+
+    public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin,
+        Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            return null;
+        }
+
         V1ObjectMeta metadata = plugin.getMetadata();
         if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
             return null;
@@ -745,45 +758,38 @@ public class KubernetesModelConverter {
 
         Boolean enabled = null;
         Map<String, Object> configurations = null;
-        switch (scope) {
-            case GLOBAL:
-                if (target == null) {
-                    enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
-                    configurations = Optional.ofNullable(spec.getDefaultConfig()).orElseGet(HashMap::new);
-                }
-                break;
-            case DOMAIN:
-                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
-                    Optional<MatchRule> rule = spec.getMatchRules().stream()
-                        .filter(r -> r.getDomain() != null && r.getDomain().contains(target)).findFirst();
-                    if (rule.isPresent()) {
-                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
-                        configurations = rule.get().getConfig();
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() != 1) {
+                // We don't support query instances by global and another instance scope.
+                return null;
+            }
+            if (targets.get(WasmPluginInstanceScope.GLOBAL) != null) {
+                return null;
+            }
+            enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
+            configurations = Optional.ofNullable(spec.getDefaultConfig()).orElseGet(HashMap::new);
+        } else if (CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+            for (MatchRule rule : spec.getMatchRules()) {
+                boolean matched = true;
+                for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                    WasmPluginInstanceScope scope = entry.getKey();
+                    String target = entry.getValue();
+                    if (StringUtils.isEmpty(target)) {
+                        continue;
+                    }
+                    List<String> targetsInMatchRule = getTargetsByScope(rule, scope);
+                    if (targetsInMatchRule == null || targetsInMatchRule.size() != 1
+                        || !target.equals(targetsInMatchRule.get(0))) {
+                        matched = false;
+                        break;
                     }
                 }
-                break;
-            case ROUTE:
-                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
-                    Optional<MatchRule> rule = spec.getMatchRules().stream()
-                        .filter(r -> r.getIngress() != null && r.getIngress().contains(target)).findFirst();
-                    if (rule.isPresent()) {
-                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
-                        configurations = rule.get().getConfig();
-                    }
+                if (matched) {
+                    enabled = !Boolean.TRUE.equals(rule.getConfigDisable());
+                    configurations = rule.getConfig();
+                    break;
                 }
-                break;
-            case SERVICE:
-                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
-                    Optional<MatchRule> rule = spec.getMatchRules().stream()
-                        .filter(r -> r.getService() != null && r.getService().contains(target)).findFirst();
-                    if (rule.isPresent()) {
-                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
-                        configurations = rule.get().getConfig();
-                    }
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+            }
         }
 
         if (enabled == null) {
@@ -797,9 +803,33 @@ public class KubernetesModelConverter {
 
         normalizePluginInstanceConfigurations(configurations);
         String rawConfiguration = generateRawConfigurations(configurations);
-        return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
-            .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
-            .rawConfigurations(rawConfiguration).internal(KubernetesUtil.isInternalResource(plugin)).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name).pluginVersion(version)
+                .targets(new HashMap<>(targets)).enabled(enabled).configurations(configurations)
+                .rawConfigurations(rawConfiguration).internal(KubernetesUtil.isInternalResource(plugin)).build();
+        instance.syncDeprecatedFields();
+        return instance;
+    }
+
+    private List<String> getTargetsByScope(MatchRule rule, WasmPluginInstanceScope scope) {
+        return switch (scope) {
+            case GLOBAL -> null;
+            case DOMAIN -> rule.getDomain();
+            case ROUTE -> rule.getIngress();
+            case SERVICE -> rule.getService();
+        };
+    }
+
+    @SuppressWarnings("PMD.SwitchStatementRule")
+    private void setTargetByScope(MatchRule rule, WasmPluginInstanceScope scope, String target) {
+        switch (scope) {
+            case GLOBAL -> {
+            }
+            case DOMAIN -> rule.setDomain(List.of(target));
+            case ROUTE -> rule.setIngress(List.of(target));
+            case SERVICE -> rule.setService(List.of(target));
+            default -> throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -840,6 +870,8 @@ public class KubernetesModelConverter {
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
+        instance.syncDeprecatedFields();
+
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec == null) {
             spec = new V1alpha1WasmPluginSpec();
@@ -856,127 +888,93 @@ public class KubernetesModelConverter {
 
         boolean enabled = instance.getEnabled() == null || instance.getEnabled();
         Map<String, Object> configurations = instance.getConfigurations();
-        WasmPluginInstanceScope scope = instance.getScope();
-        switch (scope) {
-            case GLOBAL:
-                if (instance.getTarget() == null) {
+        Map<WasmPluginInstanceScope, String> targets = instance.getTargets();
+        if (MapUtils.isNotEmpty(targets)) {
+            if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+                if (targets.size() == 1 && targets.get(WasmPluginInstanceScope.GLOBAL) == null) {
                     spec.setDefaultConfigDisable(!enabled);
                     spec.setDefaultConfig(configurations);
                 }
-                break;
-            case DOMAIN:
-                String domain = instance.getTarget();
-                MatchRule domainRule = matchRules.stream()
-                    .filter(r -> r.getDomain() != null && r.getDomain().contains(domain)).findFirst().orElse(null);
-                if (domainRule == null) {
-                    domainRule = MatchRule.forDomain(domain);
-                    matchRules.add(domainRule);
+            } else {
+                MatchRule targetMatchRule = new MatchRule();
+                targetMatchRule.setConfigDisable(!enabled);
+                targetMatchRule.setConfig(configurations);
+                for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                    setTargetByScope(targetMatchRule, entry.getKey(), entry.getValue());
                 }
-                domainRule.setConfigDisable(!enabled);
-                domainRule.setConfig(configurations);
-                break;
-            case ROUTE:
-                String route = instance.getTarget();
-                MatchRule routeRule = matchRules.stream()
-                    .filter(r -> r.getIngress() != null && r.getIngress().contains(route)).findFirst().orElse(null);
-                if (routeRule == null) {
-                    routeRule = MatchRule.forIngress(route);
-                    matchRules.add(routeRule);
+
+                MatchRule existedMatchRule = null;
+                for (MatchRule matchRule : matchRules) {
+                    if (matchRule.keyEquals(targetMatchRule)) {
+                        existedMatchRule = matchRule;
+                        break;
+                    }
                 }
-                routeRule.setConfigDisable(!enabled);
-                routeRule.setConfig(configurations);
-                break;
-            case SERVICE:
-                String service = instance.getTarget();
-                MatchRule serviceRule = matchRules.stream()
-                    .filter(r -> r.getService() != null && r.getService().contains(service)).findFirst().orElse(null);
-                if (serviceRule == null) {
-                    serviceRule = MatchRule.forService(service);
-                    matchRules.add(serviceRule);
+                if (existedMatchRule != null) {
+                    matchRules.remove(existedMatchRule);
                 }
-                serviceRule.setConfigDisable(!enabled);
-                serviceRule.setConfig(configurations);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+                matchRules.add(targetMatchRule);
+            }
         }
         sortWasmPluginMatchRules(matchRules);
         setDefaultValues(spec);
     }
 
     public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, WasmPluginInstanceScope scope, String target) {
+        return removeWasmPluginInstanceFromCr(cr, MapUtil.of(scope, target));
+    }
+
+    public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            return false;
+        }
+
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec == null) {
             return false;
         }
 
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() != 1 || targets.get(WasmPluginInstanceScope.GLOBAL) != null) {
+                return false;
+            }
+            spec.setDefaultConfigDisable(true);
+            spec.setDefaultConfig(null);
+            return true;
+        }
+
+        if (CollectionUtils.isEmpty(spec.getMatchRules())) {
+            return false;
+        }
+
         boolean changed = false;
-        switch (scope) {
-            case GLOBAL:
-                if (target == null) {
-                    spec.setDefaultConfig(null);
-                    changed = true;
-                }
-                break;
-            case DOMAIN:
-                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
+        for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
+            MatchRule rule = it.next();
+
+            boolean matches = true;
+
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                List<String> targetsInRule = getTargetsByScope(rule, entry.getKey());
+                if (targetsInRule == null || !targetsInRule.contains(entry.getValue())) {
+                    matches = false;
                     break;
                 }
-                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
-                    MatchRule rule = it.next();
-                    if (CollectionUtils.isEmpty(rule.getDomain())) {
-                        continue;
-                    }
-                    if (!rule.getDomain().contains(target)) {
-                        continue;
-                    }
-                    changed = true;
-                    rule.getDomain().remove(target);
-                    if (CollectionUtils.isEmpty(rule.getDomain()) && CollectionUtils.isEmpty(rule.getIngress())) {
-                        it.remove();
-                    }
-                }
-                break;
-            case ROUTE:
-                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
-                    break;
-                }
-                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
-                    MatchRule rule = it.next();
-                    if (CollectionUtils.isEmpty(rule.getIngress())) {
-                        continue;
-                    }
-                    if (!rule.getIngress().contains(target)) {
-                        continue;
-                    }
-                    changed = true;
-                    rule.getIngress().remove(target);
-                    if (rule.isEmpty()) {
-                        it.remove();
-                    }
-                }
-                break;
-            case SERVICE:
-                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
-                    break;
-                }
-                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
-                    MatchRule rule = it.next();
-                    if (CollectionUtils.isEmpty(rule.getService())) {
-                        continue;
-                    }
-                    if (!rule.getService().contains(target)) {
-                        continue;
-                    }
-                    changed = true;
-                    rule.getService().remove(target);
-                    if (rule.isEmpty()) {
-                        it.remove();
-                    }
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+            }
+
+            if (!matches) {
+                continue;
+            }
+
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                List<String> targetsInRule = Objects.requireNonNull(getTargetsByScope(rule, entry.getKey()));
+                targetsInRule.remove(entry.getValue());
+            }
+
+            if (rule.hasKey()) {
+                it.remove();
+            }
+
+            changed = true;
         }
         return changed;
     }
@@ -1045,7 +1043,7 @@ public class KubernetesModelConverter {
     private static void setDefaultValues(V1alpha1WasmPluginSpec spec) {
         spec.setFailStrategy(FailStrategy.FAIL_OPEN.getName());
 
-        if (spec.getDefaultConfigDisable() == null){
+        if (spec.getDefaultConfigDisable() == null) {
             spec.setDefaultConfigDisable(true);
         }
     }

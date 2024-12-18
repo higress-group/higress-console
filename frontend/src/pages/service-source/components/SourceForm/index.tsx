@@ -1,4 +1,4 @@
-import { ServiceSourceTypes } from '@/interfaces/service-source';
+import { ServiceProtocols, ServiceSourceTypes } from '@/interfaces/service-source';
 import { Form, Input, Select } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
@@ -13,6 +13,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [sourceType, setSourceType] = useState<string>();
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
+  const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   useEffect(() => {
     form.resetFields();
@@ -27,6 +28,10 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     }
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
+    if (!valueToSet.protocol) {
+      valueToSet.protocol = ServiceProtocols.http.key;
+    }
+    updateUsingTlsProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
   }, [value]);
 
@@ -49,6 +54,12 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         if (values.type === ServiceSourceTypes.static.key) {
           values.port = 80;
         }
+      } else {
+        values.protocol = null;
+      }
+      updateUsingTlsProtocol(values.protocol);
+      if (!usingTlsProtocol) {
+        values.sni = null;
       }
       return values;
     },
@@ -67,6 +78,17 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         form.setFieldValue(["properties", "consulDatacenter"], "dc1");
       }
     }
+    let protocol: string | null = null;
+    if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(type) !== -1) {
+      protocol = form.getFieldValue("protocol") || ServiceProtocols.http.key;
+    }
+    form.setFieldValue("protocol", protocol);
+    updateUsingTlsProtocol(protocol);
+  }
+
+  function updateUsingTlsProtocol(protocol: string | null) {
+    const protocolObj = protocol && ServiceProtocols[protocol];
+    setUsingTlsProtocol(protocolObj && protocolObj.tlsEnabled);
   }
 
   return (
@@ -420,7 +442,41 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           </>
         )
       }
-    </Form>
+      {
+        (sourceType === ServiceSourceTypes.static.key || sourceType === ServiceSourceTypes.dns.key) && (
+          <Form.Item
+            label={t('serviceSource.serviceSourceForm.protocol')}
+            required
+            name="protocol"
+          >
+            <Select
+              onChange={(v) => updateUsingTlsProtocol(v)}
+            >
+              {
+                // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
+                Object.entries(ServiceProtocols).map(([k, v]) =>
+                  (<Option key={k} value={k}>{v.i18n ? t(v.name) : v.name}</Option>))
+              }
+            </Select>
+          </Form.Item>
+        )
+      }
+      {
+        usingTlsProtocol && (
+          <Form.Item
+            label={t('serviceSource.serviceSourceForm.sni')}
+            name="sni"
+          >
+            <Input
+              allowClear
+              maxLength={256}
+              placeholder={form.getFieldValue('type') === ServiceSourceTypes.dns.key
+                             && t('serviceSource.serviceSourceForm.sniPlaceholderForDns') || ''}
+            />
+          </Form.Item>
+        )
+      }
+    </Form >
   );
 });
 

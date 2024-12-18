@@ -1213,8 +1213,9 @@ public class KubernetesModelConverterTest {
     @Test
     void setWasmPluginInstanceToCrTestGlobalScopeShouldSetDefaultConfig() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
-        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).target(null)
-            .enabled(true).configurations(Map.of("key", "value")).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setGlobalTarget();
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1227,8 +1228,9 @@ public class KubernetesModelConverterTest {
     @Test
     void setWasmPluginInstanceToCrTestDomainScopeShouldAddOrUpdateDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
-        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN)
-            .target("higress.cn").enabled(true).configurations(Map.of("key", "value")).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1251,8 +1253,9 @@ public class KubernetesModelConverterTest {
             List.of(new MatchRule(false, Map.of("key", "original"), List.of("higress.cn"), List.of(), List.of())));
         cr.setSpec(spec);
 
-        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN)
-            .target("higress.cn").enabled(true).configurations(Map.of("key", "updated")).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "updated")).build();
+        instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1268,8 +1271,9 @@ public class KubernetesModelConverterTest {
     @Test
     void setWasmPluginInstanceToCrTestRouteScopeShouldAddOrUpdateRouteRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
-        WasmPluginInstance instance = WasmPluginInstance.builder().scope(WasmPluginInstanceScope.ROUTE)
-            .target("route-1").enabled(true).configurations(Map.of("key", "value")).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setTarget(WasmPluginInstanceScope.ROUTE, "route-1");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 

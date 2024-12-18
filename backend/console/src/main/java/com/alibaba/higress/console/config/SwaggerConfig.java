@@ -12,31 +12,27 @@
  */
 package com.alibaba.higress.console.config;
 
+import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 
 @Configuration
-@EnableOpenApi
 public class SwaggerConfig {
 
     @Bean
-    public Docket docket() {
-        ApiInfo apiInfo = new ApiInfoBuilder().title("Higress Console")
-            .contact(new Contact("CH3CHO", "https://github.com/higress-group/higress-console", "ch3cho@qq.com"))
+    public GroupedOpenApi openApi() {
+        Info apiInfo = new Info().title("Higress Console")
+            .contact(new Contact().name("CH3CHO").url("https://github.com/higress-group/higress-console")
+                .email("ch3cho@qq.com"))
             .description(
                 "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices.")
-            .license("Apache 2.0").licenseUrl("http://www.apache.org/licenses/LICENSE-2.0").build();
-        return new Docket(DocumentationType.OAS_30).apiInfo(apiInfo).enable(true).select()
-            .apis(RequestHandlerSelectors.basePackage("com.alibaba.higress.console.controller"))
-            .paths(PathSelectors.any()).build().pathMapping("/");
+            .license(new License().name("Apache 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
+        return GroupedOpenApi.builder().group("Higress").displayName("Higress Console")
+            .addOpenApiCustomiser(openApi -> openApi.info(apiInfo))
+            .packagesToScan("com.alibaba.higress.console.controller").build();
     }
 }

@@ -12,20 +12,20 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.route.RoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class AiModelPredicate {
-
-    private Boolean enabled;
-    private String prefix;
+public class AiModelPredicate extends RoutePredicate {
 
     public void validate() {
+        super.validate();
+        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.fromName(this.getMatchType());
+        if (predicateType == null) {
+            throw new ValidationException("Unknown matchType: " + this.getMatchType());
+        }
+        if (predicateType == RoutePredicateTypeEnum.REGULAR) {
+            throw new ValidationException("AiModelPredicate does not support regular expression matchType");
+        }
     }
 }

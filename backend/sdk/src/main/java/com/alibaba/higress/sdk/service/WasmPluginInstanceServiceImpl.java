@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -38,6 +39,8 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.util.MapUtil;
+
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.swagger.v3.core.util.Yaml;
@@ -55,6 +58,18 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         this.wasmPluginService = wasmPluginService;
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
+    }
+
+    @Override
+    public WasmPluginInstance createEmptyInstance(String pluginName) {
+        WasmPlugin plugin = wasmPluginService.query(pluginName, null);
+        if (plugin == null) {
+            throw new BusinessException("Plugin " + pluginName + " not found");
+        }
+        WasmPluginInstance instance = new WasmPluginInstance();
+        instance.setPluginName(plugin.getName());
+        instance.setPluginVersion(plugin.getPluginVersion());
+        return instance;
     }
 
     @Override
@@ -94,6 +109,11 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public WasmPluginInstance query(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal) {
+        return query(MapUtil.of(scope, target), pluginName, internal);
+    }
+
+    @Override
+    public WasmPluginInstance query(Map<WasmPluginInstanceScope, String> targets, String pluginName, Boolean internal) {
         List<V1alpha1WasmPlugin> plugins;
         try {
             plugins = kubernetesClientService.listWasmPlugin(pluginName);
@@ -106,7 +126,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 if (internal != null && internal != KubernetesUtil.isInternalResource(plugin)) {
                     continue;
                 }
-                instance = kubernetesModelConverter.getWasmPluginInstanceFromCr(plugin, scope, target);
+                instance = kubernetesModelConverter.getWasmPluginInstanceFromCr(plugin, targets);
                 if (instance != null) {
                     break;
                 }
@@ -118,23 +138,31 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     @Override
     @SuppressWarnings("unchecked")
     public WasmPluginInstance addOrUpdate(WasmPluginInstance instance) {
-        WasmPluginInstanceScope scope = instance.getScope();
-        if (scope == null) {
-            throw new IllegalArgumentException("instance.scope cannot be null.");
+        instance.syncDeprecatedFields();
+
+        Map<WasmPluginInstanceScope, String> targets = instance.getTargets();
+        if (MapUtils.isEmpty(targets)) {
+            throw new IllegalArgumentException("instance.targets cannot be empty.");
         }
-        String target = instance.getTarget();
-        if (scope == WasmPluginInstanceScope.GLOBAL) {
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() > 1) {
+                throw new IllegalArgumentException(
+                    "instance.targets cannot contain GLOBAL and other scopes at the same time.");
+            }
+            String target = targets.get(WasmPluginInstanceScope.GLOBAL);
             if (target != null) {
-                throw new IllegalArgumentException("instance.target must be null when scope is GLOBAL.");
+                throw new IllegalArgumentException("instance.target must be empty when scope is GLOBAL.");
             }
         } else {
-            if (StringUtils.isEmpty(target)) {
-                throw new IllegalArgumentException(
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                if (StringUtils.isEmpty(entry.getValue())) {
+                    throw new IllegalArgumentException(
                         "instance.target must not be null or empty when scope is not GLOBAL.");
-            }
-            if (!isTargetIngressWorkMode(target)) {
-                if (!HigressConstants.NS_DEFAULT.equals(kubernetesClientService.httpRouteNameSpace)) {
-                    target = kubernetesClientService.httpRouteNameSpace + Separators.SLASH + target;
+                }
+                if (!isTargetIngressWorkMode(entry.getValue())) {
+                    if (!HigressConstants.NS_DEFAULT.equals(kubernetesClientService.httpRouteNameSpace)) {
+                        entry.setValue(kubernetesClientService.httpRouteNameSpace + Separators.SLASH + entry.getValue());
+                    }
                 }
             }
         }
@@ -198,7 +226,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             throw new BusinessException(
                     "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
         }
-        return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, scope, target);
+        return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, targets);
     }
 
     public Boolean isTargetIngressWorkMode(String target) {
@@ -225,32 +253,48 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public void delete(WasmPluginInstanceScope scope, String target, String pluginName) {
+        delete(MapUtil.of(scope, target), pluginName);
+    }
+
+    @Override
+    public void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName) {
+        if (MapUtils.isEmpty(targets)) {
+            return;
+        }
         List<V1alpha1WasmPlugin> existedCrs;
         try {
             existedCrs = kubernetesClientService.listWasmPlugin(pluginName);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when getting WasmPlugin.", e);
         }
-        deletePluginInstances(existedCrs, scope, target);
+        deletePluginInstances(existedCrs, targets);
     }
 
     @Override
     public void deleteAll(WasmPluginInstanceScope scope, String target) {
+        deleteAll(MapUtil.of(scope, target));
+    }
+
+    @Override
+    public void deleteAll(Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            return;
+        }
         List<V1alpha1WasmPlugin> existedCrs;
         try {
             existedCrs = kubernetesClientService.listWasmPlugin();
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when getting WasmPlugin.", e);
         }
-        deletePluginInstances(existedCrs, scope, target);
+        deletePluginInstances(existedCrs, targets);
     }
 
-    private void deletePluginInstances(List<V1alpha1WasmPlugin> crs, WasmPluginInstanceScope scope, String target) {
+    private void deletePluginInstances(List<V1alpha1WasmPlugin> crs, Map<WasmPluginInstanceScope, String> targets) {
         if (CollectionUtils.isEmpty(crs)) {
             return;
         }
         for (V1alpha1WasmPlugin cr : crs) {
-            boolean needUpdate = kubernetesModelConverter.removeWasmPluginInstanceFromCr(cr, scope, target);
+            boolean needUpdate = kubernetesModelConverter.removeWasmPluginInstanceFromCr(cr, targets);
             if (needUpdate) {
                 try {
                     kubernetesClientService.replaceWasmPlugin(cr);

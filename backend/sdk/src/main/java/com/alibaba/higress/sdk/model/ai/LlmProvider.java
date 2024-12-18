@@ -33,9 +33,9 @@ public class LlmProvider {
     private String name;
     private String type;
     private String protocol;
-    private Map<String, String> modelMapping;
     private List<String> tokens;
     private TokenFailoverConfig tokenFailoverConfig;
+    private Map<String, Object> rawConfigs;
 
     public void validate(boolean forUpdate) {
         if (StringUtils.isBlank(name)) {

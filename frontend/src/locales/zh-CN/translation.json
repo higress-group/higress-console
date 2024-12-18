@@ -73,7 +73,29 @@
     },
     "create": "创建消费者",
     "edit": "编辑消费者",
-    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
+    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
+    "consumerForm": {
+      "name": "消费者名称",
+      "namePlaceholder": "请输入消费者名称",
+      "nameRequired": "请输入消费者名称",
+      "pleaseEnter":"请输入",
+      "pleaseSelect":"请输入"
+    },
+    "selectBEARER": "Authorization: Bearer ${value}",
+    "selectHEADER": "自定义 HTTP Header",
+    "selectQUERY": "查询参数",
+    "tokenSource":"令牌来源",
+    "authenticationToken":"认证令牌",
+    "underDevelopment":"开发中，敬请期待",
+    "randomGeneration":"随机生成",
+    "headerName":"Header 名称",
+    "paramsName":"参数名称",
+    "deleteSuccess": "删除成功",
+    "deleteFailed": "删除失败",
+    "creaetSuccess": "创建成功",
+    "creatFailed": "创建失败",
+    "editSuccess": "编辑成功",
+    "editFailed": "编辑失败"
   },
   "domain": {
     "columns": {
@@ -143,7 +165,7 @@
     "columns": {
       "type": "类型",
       "name": "名称",
-      "tokens": "认证令牌",
+      "tokens": "凭证",
       "action": "操作"
     },
     "providerTypes": {
@@ -151,9 +173,71 @@
       "qwen": "通义千问",
       "moonshot": "月之暗面"
     },
+    "providerForm": {
+      "label": {
+        "type": "大模型供应商",
+        "name": "名称",
+        "serviceName": "服务名称",
+        "agreement": "协议",
+        "domain": "域名",
+        "modelPredicate": "是否启用基于模型的路由匹配规则",
+        "extra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
+        "modelPredicatePrefix": "模型名称匹配规则",
+        "aiName": "目标AI服务",
+        "aiNameExtra": "创建AI服务",
+        "fallbackConfig": "降级服务",
+        "fallbackConfigExtra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
+        "fallbackConfigList": "降级服务列表",
+        "routeStrategy": "路由降级策略",
+        "routeStrategy1": "随机选择列表中的一个服务提供商进行降级，只降级一次（默认）",
+        "routeStrategy2": "按服务提供商列表顺序逐个尝试降级，直至请求成功或所有提供商均尝试过为止",
+        "authConfig": "是否启用请求认证",
+        "authConfigExtra": "启用后，只有包含指定消费者认证信息的请求可以请求本路由。",
+        "authConfigList": "允许请求本路由的消费者名称列表",
+        "weight": "请求比例"
+      },
+      "placeholder": {
+        "type": "请选择大模型供应商",
+        "name": "请输入名称",
+        "agreement": "请选择协议",
+        "serviceName": "请输入服务名称",
+        "tokens": "请输入凭证",
+        "domain": "请输入域名",
+        "aiName": "请选择并添加目标AI服务",
+        "weight": "目标AI服务请求比例相加应等于 100",
+        "modelPredicatePrefix": "使用 Glob 语法匹配模型,例如：model-*",
+        "fallbackConfigList": "请选择降级服务列表",
+        "routeStrategy": "请选择路由降级策略",
+        "authConfigList": "请选择允许请求本路由的消费者名称列表"
+      },
+      "rules": {
+        "modelPredicatePrefix": "请输入匹配本路由所需的模型名称前缀",
+        "name": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。"
+      },
+      "creatDomain": "创建域名",
+      "howtouse": "使用方法",
+      "AirouterUse": "AI路由使用方法"
+    },
     "create": "提供AI服务提供者",
     "edit": "编辑AI服务提供者",
-    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？"
+    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？",
+    "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？",
+    "selectModelName": "选择模型服务",
+    "modelProportion": "按比例",
+    "modelName": "按模型名称",
+    "addTargetAIservice": "添加目标AI服务",
+    "addTargetServer": "添加",
+    "operation": "操作",
+    "modelMatchingType":"模型匹配方式",
+    "pleaseSelect":"请选择",
+    "pleaseEnter":"请输入",
+    "exactMatch":"精确匹配",
+    "prefixMatch":"前缀匹配",
+    "modelNames":"模型名称",
+    "serviceName":"服务名称",
+    "requestPercentage":"请求比例",
+    "targetModel":"目标模型",
+    "modelNameTips":"请求 body 中的 model 参数"
   },
   "plugins": {
     "title": "策略配置",
@@ -282,6 +366,7 @@
       "name": "名称",
       "domain": "来源地址",
       "port": "来源端口",
+      "protocol": "服务协议",
       "action": "操作"
     },
     "createServiceSource": "创建服务来源",
@@ -296,11 +381,14 @@
       "namePlaceholder": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线结尾。长度不超过63个字符。",
       "domain": "注册中心地址",
       "domainTooltip": "注册中心地址，可以是IP或域名",
-      "domainRequired": "请输入注册中心地址",
+      "domainRequired": "请选择域名",
       "domainPlaceholder": "支持大小写字母、数字、短划线（-）和星号（*），不超过256个字符。",
       "port": "注册中心访问端口",
       "portRequired": "请输入访问端口",
       "portPlaceholder": "注册中心访问端口",
+      "protocol": "服务协议",
+      "sni": "SNI",
+      "sniPlaceholderForDns": "若服务来源只关联了一个域名且使用与该域名相同的SNI，此处可留空。",
       "zkServicesPath": "服务注册根路径",
       "zkServicesPathTooltip": "Zookeeper类型的服务来源需要填写服务注册的根路径。默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
       "zkServicesPathRequired": "请输入服务注册根路径",

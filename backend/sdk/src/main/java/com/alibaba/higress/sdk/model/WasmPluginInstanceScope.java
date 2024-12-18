@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.model;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,8 @@ public enum WasmPluginInstanceScope {
      * Service level
      */
     SERVICE("service", 1000);
+
+    public static final List<WasmPluginInstanceScope> NON_GLOBAL_SCOPES = Arrays.asList(DOMAIN, ROUTE, SERVICE);
 
     private static final Map<String, WasmPluginInstanceScope> ID_SCOPE_MAPPING = Arrays
         .stream(WasmPluginInstanceScope.values()).collect(Collectors.toMap(WasmPluginInstanceScope::getId, s -> s));
