@@ -38,7 +38,7 @@ spec:
               - consumer1
         consumers:
           type: array
-          scope: GLOBAL
+          x-scope: GLOBAL
           title: 调用方列表
           x-title-i18n:
             en-US: Consumer List
@@ -74,14 +74,14 @@ spec:
       example:
         allows:
         - consumer1
-        - consumer2        
+        - consumer2
   configSchema:
     openAPIV3Schema:
       type: object
       properties:
         global_auth:
           type: boolean
-          scope: GLOBAL
+          x-scope: GLOBAL
           title: 是否开启全局认证
           x-title-i18n:
             en-US: Enable Global Auth
@@ -91,7 +91,7 @@ spec:
           example: false
         consumers:
           type: array
-          scope: GLOBAL
+          x-scope: GLOBAL
           title: 调用方列表
           x-title-i18n:
             en-US: Consumer List

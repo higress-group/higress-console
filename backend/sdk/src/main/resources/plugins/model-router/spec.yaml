@@ -1,0 +1,67 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: "2.0.0"  
+  category: ai
+  name: model-router
+  title: AI Model Router
+  x-title-i18n:
+    zh-CN: AI 模型路由
+  description: Implements the functionality of routing based on the `model` parameter in the LLM protocol.
+  x-description-i18n:
+    zh-CN: 实现了基于 LLM 协议中的 model 参数路由的功能
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+spec:
+  phase: AUTHN
+  priority: 900
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        enable:
+          type: boolean
+          title: Enabled
+          x-title-i18n:
+            zh-CN: 启用
+          description: 是否开启基于 model 参数路由
+          x-description-i18n:
+            zh-CN: 是否开启基于 model 参数路由
+        modelKey:
+          type: string
+          title: Model Key
+          x-title-i18n:
+            zh-CN: Model 字段名称
+          description: The location of the `model` parameter in the request body
+          x-description-i18n:
+            zh-CN: 请求 body 中 model 参数的位置
+        addProviderHeader:
+          type: string
+          title: Provider Header Key
+          x-title-i18n:
+            zh-CN: Provider Header 名称
+          description: The header where the parsed provider name from the `model` parameter will be placed
+          x-description-i18n:
+            zh-CN: 从 model 参数中解析出的 provider 名字放到哪个请求 header 中
+        modelToHeader:
+          type: string
+          title: Model Header Key
+          x-title-i18n:
+            zh-CN: Model Header 名称
+          description: The header where the parsed model name from the `model` parameter will be placed
+          x-description-i18n:
+            zh-CN: 从 model 参数中解析出的 model 名字放到哪个请求 header 中
+        enableOnPathSuffix:
+          type: array
+          title: Enable On Path Suffixes
+          x-title-i18n:
+            zh-CN: 生效的请求路径
+          description: Only applies to requests with these specific path suffixes.
+          x-description-i18n:
+            zh-CN: 只对这些特定路径后缀的请求生效
+          items:
+            type: string
+      example:
+        addProviderHeader: x-higress-llm-provider
+        modelToHeader: x-higress-llm-model

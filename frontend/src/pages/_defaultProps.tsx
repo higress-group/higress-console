@@ -3,8 +3,10 @@ import {
   DeploymentUnitOutlined,
   FullscreenExitOutlined,
   GlobalOutlined,
-  UnorderedListOutlined,
+  RobotOutlined,
   SafetyCertificateOutlined,
+  UnorderedListOutlined,
+  UserOutlined,
   WindowsOutlined,
 } from '@ant-design/icons';
 
@@ -28,7 +30,7 @@ export default {
         name: '',
         path: '/user',
         hideFromMenu: true,
-        routes: [
+        children: [
           {
             name: 'user.changePassword.title',
             path: '/user/changePassword',
@@ -56,6 +58,23 @@ export default {
         icon: <DeploymentUnitOutlined />,
       },
       {
+        name: 'menu.aiServiceManagement',
+        icon: <RobotOutlined />,
+        children: [
+          {
+            name: 'menu.llmProviderManagement',
+            path: '/ai/provider',
+          },
+          {
+            name: 'menu.aiRouteManagement',
+            path: '/ai/route',
+          },
+          {
+            path: '/ai/config',
+          },
+        ],
+      },
+      {
         name: 'menu.domainManagement',
         path: '/domain',
         icon: <GlobalOutlined />,
@@ -64,6 +83,11 @@ export default {
         name: 'menu.certManagement',
         path: '/tls-certificate',
         icon: <SafetyCertificateOutlined />,
+      },
+      {
+        name: 'menu.consumerManagement',
+        path: '/consumer',
+        icon: <UserOutlined />,
       },
       {
         name: 'menu.pluginManagement',

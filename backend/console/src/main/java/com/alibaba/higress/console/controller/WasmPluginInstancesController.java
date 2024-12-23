@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,17 +30,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
-import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.RouteService;
+import com.alibaba.higress.sdk.service.ServiceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.WasmPluginService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 
 /**
  * @author CH3CHO
@@ -53,6 +58,7 @@ public class WasmPluginInstancesController {
     private WasmPluginInstanceService wasmPluginInstanceService;
     private DomainService domainService;
     private RouteService routeService;
+    private ServiceService serviceService;
 
     @Resource
     public void setWasmPluginService(WasmPluginService wasmPluginService) {
@@ -72,6 +78,11 @@ public class WasmPluginInstancesController {
     @Resource
     public void setRouteService(RouteService routeService) {
         this.routeService = routeService;
+    }
+
+    @Autowired
+    public void setServiceService(ServiceService serviceService) {
+        this.serviceService = serviceService;
     }
 
     @GetMapping(value = "/global/plugin-instances")
@@ -143,24 +154,69 @@ public class WasmPluginInstancesController {
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
         validateRouteName(routeName);
+        if (routeName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Changing Wasm plugin configuration of an internal route is not allowed.");
+        }
         return addOrUpdateInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName, instance);
     }
 
     @DeleteMapping(value = "/routes/{routeName}/plugin-instances/{name}")
     public void deleteRouteInstance(@PathVariable("routeName") @NotBlank String routeName,
         @PathVariable("name") @NotBlank String pluginName) {
+        if (routeName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Changing Wasm plugin configuration of an internal route is not allowed.");
+        }
         deleteInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName);
+    }
+
+    @GetMapping(value = "/services/{serviceName}/plugin-instances")
+    public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
+        listServiceInstances(@PathVariable("serviceName") @NotBlank String serviceName) {
+        validateServiceName(serviceName);
+        return listInstances(WasmPluginInstanceScope.SERVICE, serviceName);
+    }
+
+    @GetMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    public ResponseEntity<Response<WasmPluginInstance>> queryServiceInstance(
+        @PathVariable("serviceName") @NotBlank String serviceName, @PathVariable("name") @NotBlank String pluginName) {
+        validateServiceName(serviceName);
+        return queryInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName);
+    }
+
+    @PutMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateServiceInstance(
+        @PathVariable("serviceName") @NotBlank String serviceName, @PathVariable("name") @NotBlank String pluginName,
+        @RequestBody WasmPluginInstance instance) {
+        validateServiceName(serviceName);
+        if (KubernetesUtil.isInternalService(serviceName)) {
+            throw new ValidationException("Changing Wasm plugin configuration of an internal service is not allowed.");
+        }
+        return addOrUpdateInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName, instance);
+    }
+
+    @DeleteMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    public void deleteServiceInstance(@PathVariable("serviceName") @NotBlank String serviceName,
+        @PathVariable("name") @NotBlank String pluginName) {
+        if (serviceName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Changing Wasm plugin configuration of an internal service is not allowed.");
+        }
+        deleteInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName);
     }
 
     private ResponseEntity<PaginatedResponse<WasmPluginInstance>> listInstances(WasmPluginInstanceScope scope,
         String target) {
         List<WasmPluginInstance> instances = wasmPluginInstanceService.list(scope, target);
+        instances.removeIf(WasmPluginInstance::isInternal);
         return ControllerUtil.buildResponseEntity(PaginatedResult.createFromFullList(instances, null));
     }
 
     private ResponseEntity<Response<WasmPluginInstance>> queryInstance(WasmPluginInstanceScope scope, String target,
         String name) {
-        WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, name);
+        WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, name, false);
+        if (instance == null) {
+            instance = WasmPluginInstance.builder().pluginName(name).internal(false).enabled(false).build();
+            instance.setTarget(scope, target);
+        }
         return ControllerUtil.buildResponseEntity(instance);
     }
 
@@ -171,12 +227,14 @@ public class WasmPluginInstancesController {
         } else if (!StringUtils.equals(name, instance.getPluginName())) {
             throw new ValidationException("Plugin name in the URL doesn't match the one in the body.");
         }
+        if (instance.isInternal()) {
+            throw new ValidationException("Updating an internal Wasm plugin instance is not allowed.");
+        }
         WasmPlugin plugin = wasmPluginService.query(name, null);
         if (plugin == null) {
             throw new ValidationException("Unsupported plugin: " + name);
         }
-        instance.setScope(scope);
-        instance.setTarget(target);
+        instance.setTarget(scope, target);
         instance = wasmPluginInstanceService.addOrUpdate(instance);
         return ControllerUtil.buildResponseEntity(instance);
     }
@@ -186,14 +244,30 @@ public class WasmPluginInstancesController {
     }
 
     private void validateDomainName(String domainName) {
+        if (StringUtils.isEmpty(domainName)) {
+            throw new ValidationException("Domain name is required.");
+        }
         if (domainService.query(domainName) == null) {
             throw new ValidationException("Unknown domain: " + domainName);
         }
     }
 
     private void validateRouteName(String routeName) {
+        if (StringUtils.isEmpty(routeName)) {
+            throw new ValidationException("Route name is required.");
+        }
         if (routeService.query(routeName) == null) {
             throw new ValidationException("Unknown route: " + routeName);
+        }
+    }
+
+    private void validateServiceName(String serviceName) {
+        if (StringUtils.isEmpty(serviceName)) {
+            throw new ValidationException("Service name is required.");
+        }
+        PaginatedResult<Service> services = serviceService.list(null);
+        if (services.getData() != null && services.getData().stream().noneMatch(s -> serviceName.equals(s.getName()))) {
+            throw new ValidationException("Unknown service: " + serviceName);
         }
     }
 }

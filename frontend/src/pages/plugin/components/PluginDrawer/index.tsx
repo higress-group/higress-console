@@ -1,11 +1,8 @@
 import { Button, Drawer, Space } from 'antd';
-
 import { useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import GlobalPluginDetail from './GlobalPluginDetail';
 import RoutePluginDetail from './RoutePluginDetail';
-
 import { getI18nValue } from '../../utils';
 import Cors from '../Cors';
 import HeaderModify from '../HeaderModify';
@@ -26,7 +23,6 @@ export default function PluginDrawer(props) {
   const globalPluginDetailRef = useRef<{ submit: () => {} }>(null);
 
   const [activePluginData, setActivePluginData] = useState({ title: '', key: '' });
-
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 

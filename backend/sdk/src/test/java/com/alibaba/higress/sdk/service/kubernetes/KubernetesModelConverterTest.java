@@ -412,21 +412,21 @@ public class KubernetesModelConverterTest {
         Route route = new Route();
         route.setName("test-route");
         route.setDomains(Collections.singletonList("higress.cn"));
-        route.setCors(new CorsConfig(true,                          // enabled (Boolean)
-            Collections.singletonList("https://higress.cn"),            // allowOrigins (List<String>)
-            Collections.singletonList("GET"),                           // allowMethods (List<String>)
-            Collections.singletonList("Content-Type"),                  // allowHeaders (List<String>)
-            Collections.singletonList("Content-Length"),                // exposeHeaders (List<String>)
-            3600,                                                       // maxAge (Integer)
-            true                                                        // allowCredentials (Boolean)
+        route.setCors(new CorsConfig(true, // enabled (Boolean)
+            Collections.singletonList("https://higress.cn"), // allowOrigins (List<String>)
+            Collections.singletonList("GET"), // allowMethods (List<String>)
+            Collections.singletonList("Content-Type"), // allowHeaders (List<String>)
+            Collections.singletonList("Content-Length"), // exposeHeaders (List<String>)
+            3600, // maxAge (Integer)
+            true // allowCredentials (Boolean)
         ));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals("test-route", ingress.getMetadata().getName());
-        Assertions.assertTrue(Boolean.parseBoolean(
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ENABLED_KEY)));
+        Assertions.assertTrue(Boolean
+            .parseBoolean(ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ENABLED_KEY)));
         Assertions.assertEquals("3600",
             ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY));
         Assertions.assertTrue(Boolean.parseBoolean(
@@ -696,6 +696,8 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setName(converter.domainName2ConfigMapName("domain-name"));
         metadata.setResourceVersion("0.0.1");
+        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+            KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, "domain-name");
         configMap.put(KubernetesConstants.K8S_CERT, "domain-cert");
@@ -759,7 +761,7 @@ public class KubernetesModelConverterTest {
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
             converter.configMap2Domain(configMap);
         });
-        Assertions.assertEquals("The ConfigMap data is illegal", exception.getMessage());
+        Assertions.assertEquals("No data is found in the ConfigMap.", exception.getMessage());
     }
 
     @Test
@@ -780,9 +782,8 @@ public class KubernetesModelConverterTest {
 
     @Test
     void tlsCertificate2SecretTestValidCertificateWithoutDomainsShouldNotSetLabels() {
-        TlsCertificate certificate =
-            TlsCertificate.builder().cert("dummyCert").key("dummyKey").name("test-certificate").version("1")
-                .domains(Collections.emptyList()).build();
+        TlsCertificate certificate = TlsCertificate.builder().cert("dummyCert").key("dummyKey").name("test-certificate")
+            .version("1").domains(Collections.emptyList()).build();
 
         V1Secret secret = converter.tlsCertificate2Secret(certificate);
 
@@ -806,10 +807,12 @@ public class KubernetesModelConverterTest {
     @Test
     void secret2TlsCertificateTestValidSecretWithoutCertAndKeyShouldReturnTlsCertificateWithoutCertAndKey() {
         V1Secret secret = new V1Secret();
-        secret.setMetadata(new V1ObjectMeta() {{
+        secret.setMetadata(new V1ObjectMeta() {
+            {
                 setName("test-secret");
                 setResourceVersion("123");
-            }});
+            }
+        });
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
 
@@ -826,10 +829,12 @@ public class KubernetesModelConverterTest {
     @Test
     void secret2TlsCertificateTestNullMetadataShouldReturnTlsCertificateWithoutNameAndVersion() {
         V1Secret secret = new V1Secret();
-        secret.setData(new HashMap<String, byte[]>() {{
+        secret.setData(new HashMap<String, byte[]>() {
+            {
                 put(KubernetesConstants.SECRET_TLS_CRT_FIELD, "certData".getBytes());
                 put(KubernetesConstants.SECRET_TLS_KEY_FIELD, "keyData".getBytes());
-            }});
+            }
+        });
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
 
@@ -843,10 +848,12 @@ public class KubernetesModelConverterTest {
     @Test
     void secret2TlsCertificateTestEmptyDataShouldReturnTlsCertificateWithoutCertAndKey() {
         V1Secret secret = new V1Secret();
-        secret.setMetadata(new V1ObjectMeta() {{
+        secret.setMetadata(new V1ObjectMeta() {
+            {
                 setName("test-secret");
                 setResourceVersion("123");
-            }});
+            }
+        });
         secret.setData(Collections.emptyMap());
 
         TlsCertificate tlsCertificate = converter.secret2TlsCertificate(secret);
@@ -911,11 +918,9 @@ public class KubernetesModelConverterTest {
 
     @Test
     void wasmPluginToCrTestValidInput_ShouldConvertCorrectly() {
-        WasmPlugin plugin =
-            WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1").category("test-category")
-                .title("Test Plugin").description("A test plugin").icon("test-icon").builtIn(true)
-                .imageRepository("test-repository").imageVersion("test-version").phase("test-phase").priority(10)
-                .build();
+        WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
+            .category("test-category").title("Test Plugin").description("A test plugin").icon("test-icon").builtIn(true)
+            .imageRepository("test-repository").imageVersion("test-version").phase("test-phase").priority(10).build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -948,9 +953,8 @@ public class KubernetesModelConverterTest {
 
     @Test
     void wasmPluginToCrTestNullImageRepositoryShouldHandleCorrectly() {
-        WasmPlugin plugin =
-            WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1").imageRepository(null)
-                .imageVersion("test-version").build();
+        WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
+            .imageRepository(null).imageVersion("test-version").build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -1157,8 +1161,8 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestGlobalScopeShouldSetDefaultConfig() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).target(null).enabled(true)
-                .configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setGlobalTarget();
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1172,8 +1176,8 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestDomainScopeShouldAddOrUpdateDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("higress.cn").enabled(true)
-                .configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1192,12 +1196,13 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestDomainScopeExistingRuleShouldUpdateExistingDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
-        spec.setMatchRules(List.of(new MatchRule(false, Map.of("key", "original"), List.of("higress.cn"), List.of())));
+        spec.setMatchRules(
+            List.of(new MatchRule(false, Map.of("key", "original"), List.of("higress.cn"), List.of(), List.of())));
         cr.setSpec(spec);
 
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("higress.cn").enabled(true)
-                .configurations(Map.of("key", "updated")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "updated")).build();
+        instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1214,8 +1219,8 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestRouteScopeShouldAddOrUpdateRouteRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.ROUTE).target("route-1").enabled(true)
-                .configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+        instance.setTarget(WasmPluginInstanceScope.ROUTE, "route-1");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
@@ -1250,9 +1255,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
-        rule.setDomain(new ArrayList<String>() {{
+        rule.setDomain(new ArrayList<String>() {
+            {
                 add("higress.cn");
-            }});
+            }
+        });
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1269,9 +1276,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
-        rule.setDomain(new ArrayList<String>() {{
+        rule.setDomain(new ArrayList<String>() {
+            {
                 add("higress.cn");
-            }});
+            }
+        });
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1288,9 +1297,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
-        rule.setIngress(new ArrayList<String>() {{
+        rule.setIngress(new ArrayList<String>() {
+            {
                 add("test-route");
-            }});
+            }
+        });
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1307,9 +1318,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         List<MatchRule> matchRules = new ArrayList<>();
         MatchRule rule = new MatchRule();
-        rule.setIngress(new ArrayList<String>() {{
+        rule.setIngress(new ArrayList<String>() {
+            {
                 add("test-route");
-            }});
+            }
+        });
         matchRules.add(rule);
         spec.setMatchRules(matchRules);
         cr.setSpec(spec);
@@ -1457,7 +1470,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, new HashMap<>(), null);
+            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1482,7 +1495,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, new HashMap<>(), null);
+            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1513,7 +1526,7 @@ public class KubernetesModelConverterTest {
         V1McpBridge v1McpBridge = new V1McpBridge();
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, new HashMap<>(), null);
+            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1530,7 +1543,7 @@ public class KubernetesModelConverterTest {
         v1McpBridge.setSpec(spec);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, new HashMap<>(), null);
+            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1687,9 +1700,11 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setName("test-ingress");
         metadata.setResourceVersion("1");
-        metadata.setAnnotations(new HashMap<String, String>() {{
+        metadata.setAnnotations(new HashMap<String, String>() {
+            {
                 put("higress.cn", "annotation-value");
-            }});
+            }
+        });
 
         V1Ingress ingress = new V1Ingress();
         ingress.setMetadata(metadata);

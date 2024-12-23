@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
+import io.kubernetes.client.util.Yaml;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +89,7 @@ public class KubernetesClientService {
 
     private final OkHttpClient okHttpClient = new OkHttpClient();
 
-    private Boolean inCluster;
+    private final Boolean inClusterMode;
 
     private final String kubeConfig;
 
@@ -118,17 +120,17 @@ public class KubernetesClientService {
         this.controllerIngressClassName = config.getIngressClassName();
         this.controllerJwtPolicy = config.getControllerJwtPolicy();
         this.controllerAccessToken = config.getControllerAccessToken();
-        this.inCluster = isInCluster();
+        this.inClusterMode = Strings.isNullOrEmpty(kubeConfig) && isInCluster();
 
-        if (inCluster) {
+        if (inClusterMode) {
             client = ClientBuilder.cluster().build();
-            log.info("init KubernetesClientService InCluster");
+            log.info("init KubernetesClientService with InCluster mode");
         } else {
             String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
             try (FileReader reader = new FileReader(kubeConfigPath)) {
                 client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
             }
-            log.info("init KubernetesClientService LoadKubeConfig");
+            log.info("init KubernetesClientService with KubeConfig: {}", kubeConfigPath);
         }
 
         initializeK8sCapabilities();
@@ -152,6 +154,14 @@ public class KubernetesClientService {
 
     public boolean isNamespaceProtected(String namespace) {
         return KubernetesConstants.KUBE_SYSTEM_NS.equals(namespace) || controllerNamespace.equals(namespace);
+    }
+
+    public <T extends KubernetesObject> T loadFromYaml(String yaml, Class<T> clazz) {
+        return Yaml.getSnakeYaml(clazz).loadAs(yaml, clazz);
+    }
+
+    public <T extends KubernetesObject> T loadFromJson(String json, Class<T> clazz) {
+        return client.getJSON().deserialize(json, clazz);
     }
 
     public List<RegistryzService> gatewayServiceList() throws IOException {
@@ -275,9 +285,15 @@ public class KubernetesClientService {
     }
 
     public List<V1ConfigMap> listConfigMap() throws ApiException {
+        return listConfigMap(null);
+    }
+
+    public List<V1ConfigMap> listConfigMap(Map<String, String> labelSelectors) throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
+        String labelSelectorsStr = KubernetesUtil.joinLabelSelectors(DEFAULT_LABEL_SELECTORS,
+            KubernetesUtil.buildLabelSelectors(labelSelectors));
         V1ConfigMapList list = coreV1Api.listNamespacedConfigMap(controllerNamespace, null, null, null, null,
-            DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
+            labelSelectorsStr, null, null, null, null, null);
         return sortKubernetesObjects(Optional.ofNullable(list.getItems()).orElse(Collections.emptyList()));
     }
 
@@ -492,8 +508,14 @@ public class KubernetesClientService {
 
     public void deleteWasmPlugin(String name) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        customObjectsApi.deleteNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP, V1alpha1WasmPlugin.VERSION,
-            controllerNamespace, V1alpha1WasmPlugin.PLURAL, name, null, null, null, null, null);
+        try {
+            customObjectsApi.deleteNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP, V1alpha1WasmPlugin.VERSION,
+                controllerNamespace, V1alpha1WasmPlugin.PLURAL, name, null, null, null, null, null);
+        } catch (ApiException e) {
+            if (e.getCode() != HttpStatus.NOT_FOUND) {
+                throw e;
+            }
+        }
     }
 
     public V1alpha1WasmPlugin readWasmPlugin(String name) throws ApiException {
@@ -510,16 +532,63 @@ public class KubernetesClientService {
         }
     }
 
+    public V1alpha3EnvoyFilter createEnvoyFilter(V1alpha3EnvoyFilter filter) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        renderDefaultLabels(filter);
+        Object response = customObjectsApi.createNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP,
+            V1alpha3EnvoyFilter.VERSION, controllerNamespace, V1alpha3EnvoyFilter.PLURAL, filter, null, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha3EnvoyFilter.class);
+    }
+
+    public V1alpha3EnvoyFilter replaceEnvoyFilter(V1alpha3EnvoyFilter filter) throws ApiException {
+        V1ObjectMeta metadata = filter.getMetadata();
+        if (metadata == null) {
+            throw new IllegalArgumentException("EnvoyFilter doesn't have a valid metadata.");
+        }
+        renderDefaultLabels(filter);
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        Object response =
+            customObjectsApi.replaceNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP, V1alpha3EnvoyFilter.VERSION,
+                controllerNamespace, V1alpha3EnvoyFilter.PLURAL, metadata.getName(), filter, null, null);
+        return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha3EnvoyFilter.class);
+    }
+
+    public void deleteEnvoyFilter(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            customObjectsApi.deleteNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP, V1alpha3EnvoyFilter.VERSION,
+                controllerNamespace, V1alpha3EnvoyFilter.PLURAL, name, null, null, null, null, null);
+        } catch (ApiException e) {
+            if (e.getCode() != HttpStatus.NOT_FOUND) {
+                throw e;
+            }
+        }
+    }
+
+    public V1alpha3EnvoyFilter readEnvoyFilter(String name) throws ApiException {
+        CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
+        try {
+            Object response = customObjectsApi.getNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP,
+                V1alpha3EnvoyFilter.VERSION, controllerNamespace, V1alpha3EnvoyFilter.PLURAL, name);
+            return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha3EnvoyFilter.class);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
     private void checkResponseStatus(V1Status status) {
         // TODO: Throw exception accordingly.
     }
 
     private Request buildControllerRequest(String path) throws IOException {
-        String serviceHost = inCluster ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
+        String serviceHost = inClusterMode ? controllerServiceName + "." + controllerNamespace : controllerServiceHost;
         String url = "http://" + serviceHost + ":" + controllerServicePort + path;
         Request.Builder builder = new Request.Builder().url(url);
         String token = controllerAccessToken;
-        if (Strings.isNullOrEmpty(token) && inCluster) {
+        if (Strings.isNullOrEmpty(token) && inClusterMode) {
             token = readTokenFromFile();
         }
         if (!Strings.isNullOrEmpty(token)) {
@@ -538,6 +607,9 @@ public class KubernetesClientService {
 
     private void renderDefaultLabels(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
+        if (KubernetesUtil.isInternalResource(object)) {
+            KubernetesUtil.setLabel(object, Label.INTERNAL_KEY, Boolean.toString(true));
+        }
     }
 
     private static <T extends KubernetesObject> List<T> sortKubernetesObjects(List<T> objects) {

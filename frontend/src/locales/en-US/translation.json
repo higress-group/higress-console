@@ -46,6 +46,52 @@
     "passwordPlaceholder": "Password",
     "passwordRequired": "Please input password"
   },
+  "aiRoute": {
+    "columns": {
+      "name": "name",
+      "domains": "domains",
+      "upstreams": "upstreams",
+      "auth": "request auth",
+      "action": "action"
+    },
+    "create": "Create an AI route",
+    "edit": "Edit AI route",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
+    "authNotEnabled": "Authentication not enabled",
+    "authEnabledWithoutConsumer": "No one is authorized to access"
+  },
+  "consumer": {
+    "columns": {
+      "name": "consumer name",
+      "credentialTypes": "authentication method",
+      "action": "action"
+    },
+    "create": "create",
+    "edit": "edit",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
+    "consumerForm": {
+      "name": "name",
+      "namePlaceholder": "Please enter a consumer name",
+      "nameRequired": "Please enter a consumer name",
+      "pleaseEnter":"please enter",
+      "pleaseSelect":"please select"
+    },
+    "selectBEARER": "Authorization: Bearer ${value}",
+    "selectHEADER": "Custom HTTP Header",
+    "selectQUERY": "query parameters",
+    "tokenSource":"Token source",
+    "authenticationToken":"Auth token",
+    "underDevelopment":"Under development, stay tuned.",
+    "randomGeneration":"random generation",
+    "headerName":"Header name",
+    "paramsName":"parameter name",
+    "deleteSuccess": "delete success",
+    "deleteFailed": "delete failed",
+    "creaetSuccess": "creaet success",
+    "creatFailed": "creat failed",
+    "editSuccess": "edit successfully",
+    "editFailed": "edit failed"
+  },
   "domain": {
     "columns": {
       "name": "Domain",
@@ -101,6 +147,83 @@
       "item4": "Input the HTTPS URL of Grafana is highly recommended to ensure the dashboard can be shown with in this page correctly."
     }
   },
+  "llmProvider": {
+    "columns": {
+      "type": "Type",
+      "name": "Name",
+      "tokens": "authentication token",
+      "action": "action"
+    },
+    "providerTypes": {
+      "openai": "OpenAI",
+      "qwen": "Tongyi Qianwen",
+      "moonshot": "Dark Side of the Moon"
+    },
+    "providerForm": {
+      "label": {
+        "type": "LLM vendor",
+        "name": "Name",
+        "serviceName": "Service Name",
+        "domain": "Domain name",
+        "agreement": "Agreement",
+        "modelPredicate": "Whether to enable model-based route matching rules",
+        "extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "modelPredicatePrefix": "model name matching rule",
+        "aiName": "Target AI Service",
+        "aiNameExtra": "Create AI services",
+        "fallbackConfig": "Downgrade service",
+        "fallbackConfigExtra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
+        "fallbackConfigList": "Downgrade service list",
+        "routeStrategy": "Routing downgrade strategy",
+        "routeStrategy1": "Randomly select a service provider in the list to downgrade, only downgrade once (default) ",
+        "routeStrategy2": "Attempt downgrades one by one in the order of the list of service providers until the request succeeds or all providers have tried",
+        "authConfig": "Whether to enable request authentication",
+        "authConfigExtra": "When enabled, only requests containing the specified consumer authentication information can request this route.",
+        "authConfigList": "List of consumer names allowed to request this route",
+        "weight": "weight"
+      },
+      "placeholder": {
+        "type": "Please select LLM vendor",
+        "name": "Please enter a name",
+        "serviceName": "Please enter a service name",
+        "tokens": "Please enter authentication token",
+        "domain": "Please enter domain name",
+        "aiName": "Please select and add target AI service",
+        "weight": "The target AI service request ratio should add up to 100.",
+        "modelPredicatePrefix": "Use Glob syntax to match models, for example: model- *",
+        "fallbackConfigList": "Please select a list of downgrade services",
+        "routeStrategy": "Please select a route degradation strategy",
+        "authConfigList": "Please select a list of consumer names that are allowed to request this route."
+      },
+      "rules": {
+        "modelPredicatePrefix": "Please enter the model name prefix required to match this route",
+        "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
+      },
+      "creatDomain": "Create a domain name",
+      "howtouse": "How to use",
+      "AirouterUse": "How to use AI routing"
+    },
+    "create": "Provide AI service providers",
+    "edit": "Edit AI service provider",
+    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
+    "deleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?",
+    "selectModelName": "Select Model Service",
+    "modelProportion": "Proportionally",
+    "modelName": "By model name",
+    "addTargetAIservice": "Add target AI service",
+    "addTargetServer": "Add",
+    "operation": "Operation",
+    "modelMatchingType": "Model matching type",
+    "pleaseSelect": "Please select",
+    "pleaseEnter": "Please enter",
+    "exactMatch": "exact match",
+    "prefixMatch": "Prefix Match",
+    "modelNames": "Model names",
+    "serviceName": "service name",
+    "requestPercentage": "Request Percentage",
+    "targetModel": "TargetModel",
+    "modelNameTips": "Model parameters in the request body"
+  },
   "plugins": {
     "title": "Strategy Configuration",
     "subTitle": {
@@ -145,7 +268,11 @@
         "set": "Set",
         "remove": "Remove",
         "action": "Action",
-        "addNewRule": "Add New Rule"
+        "addNewRule": "Add New Rule",
+        "headerTypeRequired": "Please select header type",
+        "actionTypeRequired": "Please select action type",
+        "keyRequired": "Please input header key",
+        "valueRequired": "Please input header value"
       },
       "cors": {
         "allowOrigins": "Allow Origins",
@@ -224,6 +351,7 @@
       "name": "Name",
       "domain": "Source Domain",
       "port": "Source Port",
+      "protocol": "Service Protocol",
       "action": "Action"
     },
     "createServiceSource": "Create Service Source",
@@ -238,11 +366,14 @@
       "namePlaceholder": "Please input a valid name.",
       "domain": "Registry Domain",
       "domainTooltip": "It can be either an IP address or a domain name.",
-      "domainRequired": "Please input the registry address.",
+      "domainRequired": "Please select a domain name",
       "domainPlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, dash (-) and asterisk (*). No longer than 256 characters.",
       "port": "Registry Port",
       "portRequired": "Please input the port.",
       "portPlaceholder": "Registry Port",
+      "protocol": "Service Protocol",
+      "sni": "SNI",
+      "sniPlaceholderForDns": "Leave it empty if only one domain is set and to be used as SNI.",
       "zkServicesPath": "Service Registration Root Path",
       "zkServicesPathTooltip": "The root path of service registration are required for Zookeeper service sources. /dubbo and /services are listened by default. The former is the default root path of dubbo services, and the latter is the default root path of Sprin gCloud services",
       "zkServicesPathRequired": "Please input the root path of service registration.",
@@ -497,6 +628,10 @@
     "seconds": "Sec(s)",
     "tbd": "Still in development. To be released soon...",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "switchToYAML": "YAML View",
+    "switchToForm": "Form View",
+    "isRequired": "is required",
+    "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
   }
 }

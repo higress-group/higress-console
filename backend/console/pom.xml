@@ -37,26 +37,8 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-boot-starter</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>swagger-models</artifactId>
-					<groupId>io.swagger.core.v3</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>swagger-annotations</artifactId>
-					<groupId>io.swagger</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>swagger-annotations</artifactId>
-					<groupId>io.swagger.core.v3</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>swagger-models</artifactId>
-					<groupId>io.swagger</groupId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
 		</dependency>
 
 		<dependency>

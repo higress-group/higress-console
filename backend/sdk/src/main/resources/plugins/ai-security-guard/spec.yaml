@@ -22,24 +22,22 @@ spec:
     openAPIV3Schema:
       type: object
       example:
-        serviceSource: dns
-        serviceName: safecheck
+        serviceName: safecheck.dns # 请先创建好相应服务
         servicePort: 443
-        domain: green-cip.cn-shanghai.aliyuncs.com
-        ak: xxxxxxxxxxxxxxxxxxxx
-        sk: xxxxxxxxxxxxxxxxxxxx
+        serviceHost: green-cip.cn-hangzhou.aliyuncs.com
+        accessKey: "XXXXXXXXX"
+        secretKey: "XXXXXXXXXXXXXXX"
         checkRequest: true
         checkResponse: false
   routeConfigSchema:
     openAPIV3Schema:
       type: object
       example:
-        serviceSource: dns
-        serviceName: safecheck
+        serviceName: safecheck.dns # 请先创建好相应服务
         servicePort: 443
-        domain: green-cip.cn-shanghai.aliyuncs.com
-        ak: xxxxxxxxxxxxxxxxxxxx
-        sk: xxxxxxxxxxxxxxxxxxxx
+        serviceHost: green-cip.cn-hangzhou.aliyuncs.com
+        accessKey: "XXXXXXXXX"
+        secretKey: "XXXXXXXXXXXXXXX"
         checkRequest: true
         checkResponse: false
 

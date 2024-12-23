@@ -48,7 +48,10 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true }]}
+              rules={[{
+                required: true,
+                message: t('plugins.builtIns.headerControl.headerTypeRequired') || '',
+              }]}
               name={[field.name, 'headerType']}
               fieldKey={[field.fieldKey, 'headerType']}
             >
@@ -69,7 +72,10 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true }]}
+              rules={[{
+                required: true,
+                message: t('plugins.builtIns.headerControl.actionTypeRequired') || '',
+              }]}
               name={[field.name, 'actionType']}
               fieldKey={[field.fieldKey, 'actionType']}
             >
@@ -90,7 +96,10 @@ const HeaderModify = forwardRef((props, ref) => {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true }]}
+              rules={[{
+                required: true,
+                message: t('plugins.builtIns.headerControl.valueRequired') || '',
+              }]}
               name={[field.name, 'key']}
               fieldKey={[field.fieldKey, 'key']}
             >
@@ -104,11 +113,23 @@ const HeaderModify = forwardRef((props, ref) => {
         title: 'Header Value',
         key: 'value',
         dataIndex: 'value',
-        render(text, field, record) {
+        render(text, field, index) {
           return (
             <Form.Item
               shouldUpdate
-              rules={[{ required: true }]}
+              rules={[{
+                validator(_, value) {
+                  const headerList = form.getFieldValue('headerList');
+                  if (!Array.isArray(headerList) || headerList.length === 0) {
+                    return '';
+                  }
+                  const header = headerList[index];
+                  if (header.actionType !== 'remove' && !value) {
+                    return Promise.reject(new Error(t('plugins.builtIns.headerControl.valueRequired') || ''));
+                  }
+                  return Promise.resolve();
+                },
+              }]}
               name={[field.name, 'value']}
               fieldKey={[field.fieldKey, 'value']}
             >

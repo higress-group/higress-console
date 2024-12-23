@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -57,6 +58,7 @@ import com.alibaba.higress.sdk.model.TlsCertificate;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.ai.AiRoute;
 import com.alibaba.higress.sdk.model.route.CorsConfig;
 import com.alibaba.higress.sdk.model.route.Header;
 import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
@@ -70,12 +72,15 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.TypeUtil;
 import com.google.common.base.Splitter;
+import com.google.gson.Gson;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -105,6 +110,8 @@ public class KubernetesModelConverter {
     private static final Set<String> SUPPORTED_ANNOTATIONS;
     private static final Integer DEFAULT_WEIGHT = 100;
 
+    private static final Gson GSON = new Gson();
+
     private final KubernetesClientService kubernetesClientService;
 
     static {
@@ -128,7 +135,7 @@ public class KubernetesModelConverter {
             try {
                 supportedAnnotations.add((String)field.get(null));
             } catch (IllegalAccessException e) {
-                log.error("Failed to get annotation key from field: " + field.getName(), e);
+                log.error("Failed to get annotation key from field: {}", field.getName(), e);
             }
         }
         SUPPORTED_ANNOTATIONS = Collections.unmodifiableSet(supportedAnnotations);
@@ -240,6 +247,8 @@ public class KubernetesModelConverter {
         domainConfigMap.metadata(metadata);
         metadata.setName(domainName2ConfigMapName(domain.getName()));
         metadata.setResourceVersion(domain.getVersion());
+        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+            KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
 
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
@@ -260,7 +269,7 @@ public class KubernetesModelConverter {
 
         Map<String, String> configMapData = configMap.getData();
         if (Objects.isNull(configMapData)) {
-            throw new IllegalArgumentException("The ConfigMap data is illegal");
+            throw new IllegalArgumentException("No data is found in the ConfigMap.");
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
         domain.setCertIdentifier(configMapData.get(KubernetesConstants.K8S_CERT));
@@ -270,6 +279,47 @@ public class KubernetesModelConverter {
 
     public String domainName2ConfigMapName(String domainName) {
         return CommonKey.DOMAIN_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
+    }
+
+    public V1ConfigMap aiRoute2ConfigMap(AiRoute route) {
+        V1ConfigMap domainConfigMap = new V1ConfigMap();
+
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        domainConfigMap.metadata(metadata);
+        metadata.setName(aiRouteName2ConfigMapName(route.getName()));
+        metadata.setResourceVersion(route.getVersion());
+        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+            KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE));
+
+        domainConfigMap.data(Map.of(KubernetesConstants.DATA_FIELD, GSON.toJson(route)));
+
+        return domainConfigMap;
+    }
+
+    public AiRoute configMap2AiRoute(V1ConfigMap configMap) {
+        Map<String, String> configMapData = configMap.getData();
+        if (Objects.isNull(configMapData)) {
+            throw new IllegalArgumentException("No data is found in the ConfigMap");
+        }
+
+        String jsonData = configMapData.get(KubernetesConstants.DATA_FIELD);
+        if (StringUtils.isEmpty(jsonData)) {
+            throw new IllegalArgumentException(
+                "No \"" + KubernetesConstants.DATA_FIELD + "\" field is found in the ConfigMap");
+        }
+
+        AiRoute route = GSON.fromJson(jsonData, AiRoute.class);
+
+        V1ObjectMeta metadata = configMap.getMetadata();
+        if (metadata != null) {
+            route.setVersion(metadata.getResourceVersion());
+        }
+
+        return route;
+    }
+
+    public String aiRouteName2ConfigMapName(String routeName) {
+        return CommonKey.AI_ROUTE_PREFIX + routeName;
     }
 
     public V1Secret tlsCertificate2Secret(TlsCertificate certificate) {
@@ -354,13 +404,9 @@ public class KubernetesModelConverter {
             plugin.setPriority(spec.getPriority());
             String url = spec.getUrl();
             if (StringUtils.isNotEmpty(url)) {
-                int colonIndex = url.lastIndexOf(Separators.COLON);
-                if (colonIndex != -1) {
-                    plugin.setImageRepository(url.substring(0, colonIndex));
-                    plugin.setImageVersion(url.substring(colonIndex + 1));
-                } else {
-                    plugin.setImageRepository(url);
-                }
+                ImageUrl imageUrl = ImageUrl.parse(url);
+                plugin.setImageRepository(imageUrl.getRepository());
+                plugin.setImageVersion(imageUrl.getTag());
             }
         }
 
@@ -368,12 +414,20 @@ public class KubernetesModelConverter {
     }
 
     public V1alpha1WasmPlugin wasmPluginToCr(WasmPlugin plugin) {
+        return wasmPluginToCr(plugin, false);
+    }
+
+    public V1alpha1WasmPlugin wasmPluginToCr(WasmPlugin plugin, Boolean internal) {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
 
         String name = plugin.getName(), version = plugin.getPluginVersion();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName(name + Separators.DASH + version);
+        if (Boolean.TRUE.equals(internal)) {
+            metadata.setName(name + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+        } else {
+            metadata.setName(name + Separators.DASH + version);
+        }
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY, name);
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY, version);
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY, plugin.getCategory());
@@ -397,6 +451,7 @@ public class KubernetesModelConverter {
         spec.setPhase(plugin.getPhase());
         spec.setPriority(plugin.getPriority());
         spec.setUrl(buildImageUrl(plugin.getImageRepository(), plugin.getImageVersion()));
+        setDefaultValues(spec);
         cr.setSpec(spec);
 
         return cr;
@@ -427,10 +482,93 @@ public class KubernetesModelConverter {
             dstSpec.getMatchRules().addAll(srcSpec.getMatchRules());
         }
         sortWasmPluginMatchRules(dstSpec.getMatchRules());
+        setDefaultValues(dstSpec);
+    }
+
+    public List<WasmPluginInstance> getWasmPluginInstancesFromCr(V1alpha1WasmPlugin plugin) {
+        V1ObjectMeta metadata = plugin.getMetadata();
+        if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
+            return Collections.emptyList();
+        }
+
+        V1alpha1WasmPluginSpec spec = plugin.getSpec();
+        if (spec == null) {
+            return null;
+        }
+
+        String name = metadata.getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY);
+        String version = metadata.getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+        if (StringUtils.isAnyBlank(name, version)) {
+            return null;
+        }
+
+        List<WasmPluginInstance> instances = new ArrayList<>();
+        if (ObjectUtils.anyNotNull(spec.getDefaultConfigDisable(), spec.getDefaultConfig())) {
+            WasmPluginInstance instance =
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null))
+                    .enabled(Boolean.FALSE.equals(spec.getDefaultConfigDisable()))
+                    .configurations(spec.getDefaultConfig()).build();
+            instances.add(instance);
+        }
+        if (CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+            List<MatchRule> matchRules = new ArrayList<>(spec.getMatchRules());
+            // Sort here so we can always get the correct order of instances.
+            sortWasmPluginMatchRules(matchRules);
+            for (MatchRule rule : spec.getMatchRules()) {
+                boolean enabled = Boolean.FALSE.equals(rule.getConfigDisable());
+                List<Map<WasmPluginInstanceScope, String>> targetsList = new ArrayList<>();
+                for (WasmPluginInstanceScope scope : WasmPluginInstanceScope.NON_GLOBAL_SCOPES) {
+                    List<String> targets = getTargetsByScope(rule, scope);
+                    if (CollectionUtils.isEmpty(targets)) {
+                        continue;
+                    }
+                    if (targetsList.isEmpty()) {
+                        for (String target : targets) {
+                            targetsList.add(MapUtil.of(scope, target));
+                        }
+                    } else {
+                        List<Map<WasmPluginInstanceScope, String>> newTargetsList = new ArrayList<>();
+                        for (Map<WasmPluginInstanceScope, String> existedTargets : targetsList) {
+                            for (String target : targets) {
+                                Map<WasmPluginInstanceScope, String> newTargets = new HashMap<>(existedTargets);
+                                newTargets.put(scope, target);
+                                newTargetsList.add(newTargets);
+                            }
+                        }
+                        targetsList = newTargetsList;
+                    }
+                }
+                for (Map<WasmPluginInstanceScope, String> targets : targetsList) {
+                    WasmPluginInstance instance = WasmPluginInstance.builder().targets(targets).enabled(enabled)
+                        .configurations(rule.getConfig()).build();
+                    instances.add(instance);
+                }
+            }
+        }
+        instances.removeIf(i -> MapUtils.isEmpty(i.getConfigurations()));
+        instances.forEach(i -> {
+            i.setPluginName(name);
+            i.setPluginVersion(version);
+            i.setVersion(metadata.getResourceVersion());
+            normalizePluginInstanceConfigurations(i.getConfigurations());
+            i.setRawConfigurations(generateRawConfigurations(i.getConfigurations()));
+            i.setInternal(KubernetesUtil.isInternalResource(plugin));
+            i.syncDeprecatedFields();
+        });
+        return instances;
     }
 
     public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin, WasmPluginInstanceScope scope,
         String target) {
+        return getWasmPluginInstanceFromCr(plugin, MapUtil.of(scope, target));
+    }
+
+    public WasmPluginInstance getWasmPluginInstanceFromCr(V1alpha1WasmPlugin plugin,
+        Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            return null;
+        }
+
         V1ObjectMeta metadata = plugin.getMetadata();
         if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
             return null;
@@ -449,35 +587,38 @@ public class KubernetesModelConverter {
 
         Boolean enabled = null;
         Map<String, Object> configurations = null;
-        switch (scope) {
-            case GLOBAL:
-                if (target == null) {
-                    enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
-                    configurations = Optional.ofNullable(spec.getDefaultConfig()).orElse(Collections.emptyMap());
-                }
-                break;
-            case DOMAIN:
-                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
-                    Optional<MatchRule> rule = spec.getMatchRules().stream()
-                        .filter(r -> r.getDomain() != null && r.getDomain().contains(target)).findFirst();
-                    if (rule.isPresent()) {
-                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
-                        configurations = rule.get().getConfig();
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() != 1) {
+                // We don't support query instances by global and another instance scope.
+                return null;
+            }
+            if (targets.get(WasmPluginInstanceScope.GLOBAL) != null) {
+                return null;
+            }
+            enabled = !Boolean.TRUE.equals(spec.getDefaultConfigDisable());
+            configurations = Optional.ofNullable(spec.getDefaultConfig()).orElseGet(HashMap::new);
+        } else if (CollectionUtils.isNotEmpty(spec.getMatchRules())) {
+            for (MatchRule rule : spec.getMatchRules()) {
+                boolean matched = true;
+                for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                    WasmPluginInstanceScope scope = entry.getKey();
+                    String target = entry.getValue();
+                    if (StringUtils.isEmpty(target)) {
+                        continue;
+                    }
+                    List<String> targetsInMatchRule = getTargetsByScope(rule, scope);
+                    if (targetsInMatchRule == null || targetsInMatchRule.size() != 1
+                        || !target.equals(targetsInMatchRule.get(0))) {
+                        matched = false;
+                        break;
                     }
                 }
-                break;
-            case ROUTE:
-                if (StringUtils.isNotEmpty(target) && CollectionUtils.isNotEmpty(spec.getMatchRules())) {
-                    Optional<MatchRule> rule = spec.getMatchRules().stream()
-                        .filter(r -> r.getIngress() != null && r.getIngress().contains(target)).findFirst();
-                    if (rule.isPresent()) {
-                        enabled = !Boolean.TRUE.equals(rule.get().getConfigDisable());
-                        configurations = rule.get().getConfig();
-                    }
+                if (matched) {
+                    enabled = !Boolean.TRUE.equals(rule.getConfigDisable());
+                    configurations = rule.getConfig();
+                    break;
                 }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+            }
         }
 
         if (enabled == null) {
@@ -491,9 +632,33 @@ public class KubernetesModelConverter {
 
         normalizePluginInstanceConfigurations(configurations);
         String rawConfiguration = generateRawConfigurations(configurations);
-        return WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name)
-            .pluginVersion(version).scope(scope).target(target).enabled(enabled).configurations(configurations)
-            .rawConfigurations(rawConfiguration).build();
+        WasmPluginInstance instance =
+            WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name).pluginVersion(version)
+                .targets(new HashMap<>(targets)).enabled(enabled).configurations(configurations)
+                .rawConfigurations(rawConfiguration).internal(KubernetesUtil.isInternalResource(plugin)).build();
+        instance.syncDeprecatedFields();
+        return instance;
+    }
+
+    private List<String> getTargetsByScope(MatchRule rule, WasmPluginInstanceScope scope) {
+        return switch (scope) {
+            case GLOBAL -> null;
+            case DOMAIN -> rule.getDomain();
+            case ROUTE -> rule.getIngress();
+            case SERVICE -> rule.getService();
+        };
+    }
+
+    @SuppressWarnings("PMD.SwitchStatementRule")
+    private void setTargetByScope(MatchRule rule, WasmPluginInstanceScope scope, String target) {
+        switch (scope) {
+            case GLOBAL -> {
+            }
+            case DOMAIN -> rule.setDomain(List.of(target));
+            case ROUTE -> rule.setIngress(List.of(target));
+            case SERVICE -> rule.setService(List.of(target));
+            default -> throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -508,8 +673,7 @@ public class KubernetesModelConverter {
             }
             if (value instanceof Map) {
                 normalizePluginInstanceConfigurations((Map<String, Object>)value);
-            } else if (value instanceof Double) {
-                Double d = (Double)value;
+            } else if (value instanceof Double d) {
                 if (d == d.intValue()) {
                     entry.setValue(d.intValue());
                 }
@@ -535,6 +699,8 @@ public class KubernetesModelConverter {
     }
 
     public void setWasmPluginInstanceToCr(V1alpha1WasmPlugin cr, WasmPluginInstance instance) {
+        instance.syncDeprecatedFields();
+
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec == null) {
             spec = new V1alpha1WasmPluginSpec();
@@ -544,103 +710,100 @@ public class KubernetesModelConverter {
         List<MatchRule> matchRules = spec.getMatchRules();
         if (matchRules == null) {
             matchRules = new ArrayList<>();
-            spec.setMatchRules(matchRules);
+        } else {
+            matchRules = new ArrayList<>(matchRules);
         }
+        spec.setMatchRules(matchRules);
 
         boolean enabled = instance.getEnabled() == null || instance.getEnabled();
         Map<String, Object> configurations = instance.getConfigurations();
-        WasmPluginInstanceScope scope = instance.getScope();
-        switch (scope) {
-            case GLOBAL:
-                if (instance.getTarget() == null) {
+        Map<WasmPluginInstanceScope, String> targets = instance.getTargets();
+        if (MapUtils.isNotEmpty(targets)) {
+            if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+                if (targets.size() == 1 && targets.get(WasmPluginInstanceScope.GLOBAL) == null) {
                     spec.setDefaultConfigDisable(!enabled);
                     spec.setDefaultConfig(configurations);
                 }
-                break;
-            case DOMAIN:
-                String domain = instance.getTarget();
-                MatchRule domainRule = matchRules.stream()
-                    .filter(r -> r.getDomain() != null && r.getDomain().contains(domain)).findFirst().orElse(null);
-                if (domainRule == null) {
-                    domainRule = MatchRule.forDomain(domain);
-                    matchRules.add(domainRule);
-                    sortWasmPluginMatchRules(matchRules);
+            } else {
+                MatchRule targetMatchRule = new MatchRule();
+                targetMatchRule.setConfigDisable(!enabled);
+                targetMatchRule.setConfig(configurations);
+                for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                    setTargetByScope(targetMatchRule, entry.getKey(), entry.getValue());
                 }
-                domainRule.setConfigDisable(!enabled);
-                domainRule.setConfig(configurations);
-                break;
-            case ROUTE:
-                String route = instance.getTarget();
-                MatchRule routeRule = matchRules.stream()
-                    .filter(r -> r.getIngress() != null && r.getIngress().contains(route)).findFirst().orElse(null);
-                if (routeRule == null) {
-                    routeRule = MatchRule.forIngress(route);
-                    // Route rules shall come first to get a higher priority.
-                    matchRules.add(0, routeRule);
-                    sortWasmPluginMatchRules(matchRules);
+
+                MatchRule existedMatchRule = null;
+                for (MatchRule matchRule : matchRules) {
+                    if (matchRule.keyEquals(targetMatchRule)) {
+                        existedMatchRule = matchRule;
+                        break;
+                    }
                 }
-                routeRule.setConfigDisable(!enabled);
-                routeRule.setConfig(configurations);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+                if (existedMatchRule != null) {
+                    matchRules.remove(existedMatchRule);
+                }
+                matchRules.add(targetMatchRule);
+            }
         }
+        sortWasmPluginMatchRules(matchRules);
+        setDefaultValues(spec);
     }
 
     public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, WasmPluginInstanceScope scope, String target) {
+        return removeWasmPluginInstanceFromCr(cr, MapUtil.of(scope, target));
+    }
+
+    public boolean removeWasmPluginInstanceFromCr(V1alpha1WasmPlugin cr, Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            return false;
+        }
+
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec == null) {
             return false;
         }
 
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() != 1 || targets.get(WasmPluginInstanceScope.GLOBAL) != null) {
+                return false;
+            }
+            spec.setDefaultConfigDisable(true);
+            spec.setDefaultConfig(null);
+            return true;
+        }
+
+        if (CollectionUtils.isEmpty(spec.getMatchRules())) {
+            return false;
+        }
+
         boolean changed = false;
-        switch (scope) {
-            case GLOBAL:
-                if (target == null) {
-                    spec.setDefaultConfig(null);
-                    changed = true;
-                }
-                break;
-            case DOMAIN:
-                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
+        for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
+            MatchRule rule = it.next();
+
+            boolean matches = true;
+
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                List<String> targetsInRule = getTargetsByScope(rule, entry.getKey());
+                if (targetsInRule == null || !targetsInRule.contains(entry.getValue())) {
+                    matches = false;
                     break;
                 }
-                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
-                    MatchRule rule = it.next();
-                    if (CollectionUtils.isEmpty(rule.getDomain())) {
-                        continue;
-                    }
-                    if (!rule.getDomain().contains(target)) {
-                        continue;
-                    }
-                    changed = true;
-                    rule.getDomain().remove(target);
-                    if (CollectionUtils.isEmpty(rule.getDomain()) && CollectionUtils.isEmpty(rule.getIngress())) {
-                        it.remove();
-                    }
-                }
-                break;
-            case ROUTE:
-                if (StringUtils.isEmpty(target) || CollectionUtils.isEmpty(spec.getMatchRules())) {
-                    break;
-                }
-                for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
-                    MatchRule rule = it.next();
-                    if (CollectionUtils.isEmpty(rule.getIngress())) {
-                        continue;
-                    }
-                    if (!rule.getIngress().contains(target)) {
-                        continue;
-                    }
-                    changed = true;
-                    rule.getIngress().remove(target);
-                    if (CollectionUtils.isEmpty(rule.getDomain()) && CollectionUtils.isEmpty(rule.getIngress())) {
-                        it.remove();
-                    }
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported scope: " + scope);
+            }
+
+            if (!matches) {
+                continue;
+            }
+
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                List<String> targetsInRule = Objects.requireNonNull(getTargetsByScope(rule, entry.getKey()));
+                targetsInRule.remove(entry.getValue());
+            }
+
+            if (rule.hasKey()) {
+                it.remove();
+            }
+
+            changed = true;
         }
         return changed;
     }
@@ -657,9 +820,11 @@ public class KubernetesModelConverter {
         boolean hasDomain2 = CollectionUtils.isNotEmpty(r2.getDomain());
         boolean hasIngress1 = CollectionUtils.isNotEmpty(r1.getIngress());
         boolean hasIngress2 = CollectionUtils.isNotEmpty(r2.getIngress());
+        boolean hasService1 = CollectionUtils.isNotEmpty(r1.getService());
+        boolean hasService2 = CollectionUtils.isNotEmpty(r2.getService());
 
-        boolean empty1 = !hasDomain1 && !hasIngress1;
-        boolean empty2 = !hasDomain2 && !hasIngress2;
+        boolean empty1 = !hasDomain1 && !hasIngress1 && !hasService1;
+        boolean empty2 = !hasDomain2 && !hasIngress2 && hasService2;
         if (empty1 && empty2) {
             return 0;
         }
@@ -668,9 +833,20 @@ public class KubernetesModelConverter {
             return empty1 ? 1 : -1;
         }
 
-        // One contains some Ingresses, but the other one doesn't.
-        // The one with Ingresses comes first since we need to match any Ingress rules before all the domain
+        // One contains some services, but the other one doesn't.
+        // The one with service comes first since we need to match all service rules before any Ingress and domain
         // rules.
+        if (hasService1 != hasService2) {
+            return hasService1 ? -1 : 1;
+        }
+
+        if (hasService1) {
+            // Both of them contain services.
+            return compareStringLists(r1.getService(), r2.getService());
+        }
+
+        // None of them contains services, but one contains some Ingresses, and the other one doesn't.
+        // The one with Ingresses comes first since we need to match all Ingress rules before any domain rules.
         if (hasIngress1 != hasIngress2) {
             return hasIngress1 ? -1 : 1;
         }
@@ -680,9 +856,8 @@ public class KubernetesModelConverter {
             return compareStringLists(r1.getDomain(), r2.getDomain());
         }
 
-        // One contains some domains as well, but the other one doesn't.
-        // The one without any domain comes first since we need to match any Ingress rules before all the
-        // domain rules.
+        // One contains some domains, but the other one doesn't.
+        // The one without any domain comes first since we need to match all Ingress rules before any domain rules.
         if (hasDomain1 != hasDomain2) {
             return hasDomain1 ? 1 : -1;
         }
@@ -692,6 +867,14 @@ public class KubernetesModelConverter {
             return 0;
         }
         return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
+    }
+
+    private static void setDefaultValues(V1alpha1WasmPluginSpec spec) {
+        spec.setFailStrategy(FailStrategy.FAIL_OPEN.getName());
+
+        if (spec.getDefaultConfigDisable() == null) {
+            spec.setDefaultConfigDisable(true);
+        }
     }
 
     private static int compareStringLists(List<String> l1, List<String> l2) {
@@ -1208,21 +1391,32 @@ public class KubernetesModelConverter {
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
             setFunctionalAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
             setFunctionalAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).toList(), Separators.NEW_LINE),
+                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                    Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getRemove())) {
-            setFunctionalAnnotation(metadata, removeKey, StringUtils.join(config.getRemove(), Separators.COMMA),
+            setFunctionalAnnotation(metadata, removeKey,
+                StringUtils.join(
+                    config.getRemove().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()),
+                    Separators.COMMA),
                 enabled);
         }
     }
 
     private String getHeaderConfig(Header header) {
+        if (StringUtils.isEmpty(header.getKey())) {
+            return null;
+        }
+        if (StringUtils.isEmpty(header.getValue())) {
+            return header.getKey() + Separators.SPACE;
+        }
         return header.getKey() + Separators.SPACE + header.getValue();
     }
 
@@ -1273,7 +1467,7 @@ public class KubernetesModelConverter {
             }
 
             V1IngressTLS tls = new V1IngressTLS();
-            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)){
+            if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
@@ -1439,6 +1633,8 @@ public class KubernetesModelConverter {
         serviceSource.setType(v1RegistryConfig.getType());
         serviceSource.setPort(v1RegistryConfig.getPort());
         serviceSource.setName(v1RegistryConfig.getName());
+        serviceSource.setProtocol(v1RegistryConfig.getProtocol());
+        serviceSource.setSni(v1RegistryConfig.getSni());
         serviceSource.setProperties(new HashMap<>());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())) {
@@ -1477,6 +1673,8 @@ public class KubernetesModelConverter {
         v1RegistryConfig.setType(serviceSource.getType());
         v1RegistryConfig.setPort(serviceSource.getPort());
         v1RegistryConfig.setName(serviceSource.getName());
+        v1RegistryConfig.setProtocol(serviceSource.getProtocol());
+        v1RegistryConfig.setSni(serviceSource.getSni());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
             v1RegistryConfig.setNacosNamespaceId((String)Optional
@@ -1602,6 +1800,10 @@ public class KubernetesModelConverter {
     }
 
     private void setQueryAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(),
+            keyedRoutePredicate.getMatchValue())) {
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String annotationName = String.format(KubernetesConstants.Annotation.QUERY_MATCH_KEY_FORMAT,
             predicateType.getAnnotationPrefix(), keyedRoutePredicate.getKey());
@@ -1609,6 +1811,10 @@ public class KubernetesModelConverter {
     }
 
     private void setHeaderAnnotation(V1ObjectMeta metadata, KeyedRoutePredicate keyedRoutePredicate) {
+        if (StringUtils.isAnyBlank(keyedRoutePredicate.getMatchType(), keyedRoutePredicate.getKey(),
+            keyedRoutePredicate.getMatchValue())) {
+            return;
+        }
         RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.valueOf(keyedRoutePredicate.getMatchType());
         String key = keyedRoutePredicate.getKey();
         String format = KubernetesConstants.Annotation.HEADER_MATCH_KEY_FORMAT;

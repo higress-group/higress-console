@@ -39,4 +39,6 @@ public class V1alpha1WasmPluginSpec {
     private String url;
 
     private String verificationKey;
+
+    private String failStrategy;
 }

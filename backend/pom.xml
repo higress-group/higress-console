@@ -52,7 +52,6 @@
 	<properties>
 		<java.version>17</java.version>
 
-		<springfox.version>3.0.0</springfox.version>
 		<retrofit.version>2.9.0</retrofit.version>
 		<guava.version>31.1-jre</guava.version>
 		<commons-lang3.version>3.13.0</commons-lang3.version>
@@ -61,7 +60,6 @@
 		<!-- https://github.com/kubernetes-client/java/wiki/2.-Versioning-and-Compatibility -->
 		<k8s-client.version>17.0.0</k8s-client.version>
 		<bouncycastle.version>1.46</bouncycastle.version>
-		<swagger-parser.version>2.1.21</swagger-parser.version>
 
 		<pmd-plugin.version>3.20.0</pmd-plugin.version>
 		<frontend-plugin.version>1.12.1</frontend-plugin.version>
@@ -71,6 +69,8 @@
 		<maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
 		<central-publishing-maven-plugin.version>0.3.0</central-publishing-maven-plugin.version>
 		<lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+		<swagger-core.version>2.2.20</swagger-core.version>
+		<springdoc.version>1.8.0</springdoc.version>
 
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
@@ -83,11 +83,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>io.springfox</groupId>
-				<artifactId>springfox-boot-starter</artifactId>
-				<version>${springfox.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
@@ -129,9 +124,14 @@
 				<version>${retrofit.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.swagger.parser.v3</groupId>
-				<artifactId>swagger-parser</artifactId>
-				<version>${swagger-parser.version}</version>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-ui</artifactId>
+				<version>${springdoc.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.swagger.core.v3</groupId>
+				<artifactId>swagger-core</artifactId>
+				<version>${swagger-core.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -322,7 +322,7 @@
 						</executions>
 						<configuration>
 							<quiet>true</quiet>
-							<header>${basedir}/style/copyright</header>
+							<header>${session.executionRootDirectory}/style/copyright</header>
 							<includes>
 								<include>**/src/main/java/**</include>
 								<include>**/src/main/resources/**</include>
