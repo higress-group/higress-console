@@ -72,7 +72,6 @@ export default {
       {
         name: 'menu.aiServiceManagement',
         icon: <RobotOutlined />,
-        hideFromMenu: true,
         children: [
           {
             name: 'menu.llmProviderManagement',
@@ -100,7 +99,6 @@ export default {
       {
         name: 'menu.consumerManagement',
         path: '/consumer',
-        hideFromMenu: true,
         icon: <UserOutlined />,
       },
       {
