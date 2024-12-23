@@ -654,6 +654,8 @@
     "ingressMode": "Ingress Mode",
     "fetchError": "Failed to fetch Higress Work Mode",
     "updateSuccess": "Successfully updated Higress Work Mode",
-    "updateError": "Failed to update Higress Work Mode"
+    "updateError": "Failed to update Higress Work Mode",
+    "alertTitle": "Gateway API Mode Notes",
+    "alertDescription": "Gateway API Mode is currently in Alpha stage. The following features are still being adapted: CORS (Cross-Origin Resource Sharing), request retry policy, case-insensitive URL paths, and HTTPS forced redirection."
   }
 }

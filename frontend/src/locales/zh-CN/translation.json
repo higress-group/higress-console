@@ -659,6 +659,8 @@
     "ingressMode": "ingress模式",
     "fetchError": "获取 Higress 工作模式失败",
     "updateSuccess": "更新 Higress 工作模式成功",
-    "updateError": "更新 Higress 工作模式失败"
+    "updateError": "更新 Higress 工作模式失败",
+    "alertTitle": "Gateway API 模式功能适配说明",
+    "alertDescription": "Gateway API 模式目前处于 Alpha 阶段，以下功能仍在适配中：CORS（跨域资源共享）、请求重试策略、URL 路径忽略大小写、HTTPS 强制跳转。"
   }
 }

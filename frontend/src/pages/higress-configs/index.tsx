@@ -2,7 +2,7 @@
 // @ts-nocheck
 import React from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Form, Select, Button, message } from 'antd';
+import { Form, Select, Button, message, Alert } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useRequest } from 'ahooks';
 import { getIngressWorkMode, setIngressWorkMode } from '@/services';
@@ -51,6 +51,13 @@ const HigressConfig: React.FC = () => {
           padding: 16,
         }}
       >
+        <Alert
+          message={t('higressConfig.alertTitle')}
+          description={t('higressConfig.alertDescription')}
+          type="info"
+          showIcon
+          style={{ marginBottom: 24 }}
+        />
         <Form
           form={form}
           onFinish={onFinish}
