@@ -16,8 +16,8 @@ info:
     name: johnlanni
   gatewayMinVersion: "2.0.0"    
 spec:
-  phase: AUTHN
-  priority: 10
+  phase: default
+  priority: 800
   configSchema:
     openAPIV3Schema:
       type: object
