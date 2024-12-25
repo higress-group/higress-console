@@ -70,7 +70,9 @@ export default {
             path: '/ai/route',
           },
           {
-            path: '/ai/config',
+            name: 'menu.aiDashboard',
+            path: '/ai/dashboard',
+            visiblePredicate: (configData: any) => configData && configData['dashboard.builtin'],
           },
         ],
       },

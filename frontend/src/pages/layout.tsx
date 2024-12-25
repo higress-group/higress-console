@@ -15,6 +15,8 @@ import defaultProps from './_defaultProps';
 
 export default function Layout() {
   const [userState] = store.useModel('user');
+  const [configModel] = store.useModel('config');
+  const configData = configModel.properties || {};
   const location = useLocation();
   const { t } = useTranslation();
 
@@ -51,13 +53,22 @@ export default function Layout() {
       }}
       menu={{ defaultOpenAll: true }}
       menuDataRender={(items) => {
+        function filterMenuItem(item) {
+          if (item.hideFromMenu) {
+            return false;
+          }
+          if (typeof item.visiblePredicate === 'function') {
+            return item.visiblePredicate(configData);
+          }
+          return true;
+        }
         function translateMenuItem(item) {
           return Object.assign({}, item, {
             name: t(item.name || ''),
-            children: item.children && item.children.map(translateMenuItem) || null,
+            children: item.children && item.children.filter(filterMenuItem).map(translateMenuItem) || null,
           })
         }
-        return items.filter(i => !i.hideFromMenu).map(translateMenuItem);
+        return items.filter(filterMenuItem).map(translateMenuItem);
       }}
       menuItemRender={(item, defaultDom) => {
         if (!item.path) {

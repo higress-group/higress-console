@@ -1,5 +1,6 @@
 import dataSourceUidSampleImage from '@/assets/GrafanaDataSourceUID.png';
 import { Mode } from '@/interfaces/config';
+import { DashboardType } from '@/interfaces/dashboard';
 import { getDashboardConfigData, getDashboardInfo, initDashboard, setDashboardUrl } from '@/services';
 import store from '@/store';
 import { useRequest } from 'ahooks';
@@ -17,7 +18,7 @@ const Dashboard: React.FC = () => {
   const [dataSourceUidSampleVisible, setDataSourceUidSampleVisible] = useState(false);
   const [mode, setMode] = useState<string>(Mode.K8S);
 
-  const { data: dashboardInfo, error, loading } = useRequest(getDashboardInfo);
+  const { data: dashboardInfo, error, loading } = useRequest(() => getDashboardInfo(DashboardType.MAIN));
 
   const [configModel] = store.useModel('config');
   useEffect(() => {
