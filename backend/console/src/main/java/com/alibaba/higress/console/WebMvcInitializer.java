@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,8 +39,8 @@ public class WebMvcInitializer implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/*").addResourceLocations("classpath:/static/")
-            .setCacheControl(CacheControl.noCache().mustRevalidate()).setUseLastModified(true).resourceChain(true)
-            .addResolver(new PathResourceResolver() {
+            .setCacheControl(CacheControl.noCache().maxAge(Duration.ZERO).mustRevalidate()).setUseLastModified(true)
+            .resourceChain(true).addResolver(new PathResourceResolver() {
                 @Override
                 protected Resource resolveResourceInternal(HttpServletRequest request, @NonNull String requestPath,
                     @NonNull List<? extends Resource> locations, @NonNull ResourceResolverChain chain) {
