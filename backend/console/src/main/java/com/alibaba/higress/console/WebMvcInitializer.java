@@ -39,7 +39,7 @@ public class WebMvcInitializer implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/*").addResourceLocations("classpath:/static/")
-            .setCacheControl(CacheControl.noCache().maxAge(Duration.ZERO).mustRevalidate()).setUseLastModified(true)
+            .setCacheControl(CacheControl.maxAge(Duration.ZERO).mustRevalidate()).setUseLastModified(true)
             .resourceChain(true).addResolver(new PathResourceResolver() {
                 @Override
                 protected Resource resolveResourceInternal(HttpServletRequest request, @NonNull String requestPath,
