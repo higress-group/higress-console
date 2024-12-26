@@ -75,9 +75,6 @@
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
 
-		<app.build.version>1.2.1</app.build.version>
-		<app.build.dev>true</app.build.dev>
-
 		<delombok.output>${project.basedir}/target/delombok-sources</delombok.output>
 	</properties>
 
