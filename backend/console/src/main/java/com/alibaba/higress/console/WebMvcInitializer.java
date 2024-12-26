@@ -12,7 +12,6 @@
  */
 package com.alibaba.higress.console;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
