@@ -32,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.constant.UserConfigKey;
-import com.alibaba.higress.console.controller.dto.DashboardInfo;
-import com.alibaba.higress.console.controller.dto.DashboardType;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.SystemInfo;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
@@ -81,9 +79,7 @@ public class SystemController {
     @PostConstruct
     public void syncSystemState() {
         configService.setConfig(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized());
-        DashboardInfo dashboardInfo = dashboardService.getDashboardInfo(DashboardType.MAIN);
-        configService.setConfig(UserConfigKey.DASHBOARD_BUILTIN,
-            dashboardInfo != null && Boolean.TRUE.equals(dashboardInfo.getBuiltIn()));
+        configService.setConfig(UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
     }
 
     @PostMapping("/init")

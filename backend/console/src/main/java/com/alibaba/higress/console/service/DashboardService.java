@@ -25,6 +25,8 @@ import com.alibaba.higress.console.controller.dto.DashboardType;
  */
 public interface DashboardService {
 
+    boolean isBuiltIn();
+
     @Deprecated
     DashboardInfo getDashboardInfo();
 
