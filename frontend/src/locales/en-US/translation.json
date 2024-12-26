@@ -13,8 +13,13 @@
     "serviceSources": "Service Sources",
     "serviceList": "Service List",
     "routeConfig": "Route Config",
+    "aiServiceManagement": "AI Service Config",
+    "aiRouteManagement": "AI Route Config",
+    "aiDashboard": "AI Dashboard",
+    "llmProviderManagement": "LLM Provider Management",
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
+    "consumerManagement": "Consumer Management",
     "pluginManagement": "Plugin Management"
   },
   "index": {
@@ -185,6 +190,7 @@
       "placeholder": {
         "type": "Please select LLM vendor",
         "name": "Please enter a name",
+        "agreement": "Please select a protocol",
         "serviceName": "Please enter a service name",
         "tokens": "Please enter authentication token",
         "domain": "Please enter domain name",
@@ -203,7 +209,7 @@
       "howtouse": "How to use",
       "AirouterUse": "How to use AI routing"
     },
-    "create": "Provide AI service providers",
+    "create": "Create AI service provider",
     "edit": "Edit AI service provider",
     "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
     "deleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?",
