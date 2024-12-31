@@ -67,33 +67,30 @@
   },
   "consumer": {
     "columns": {
-      "name": "consumer name",
-      "credentialTypes": "authentication method",
-      "action": "action"
+      "name": "Consumer Name",
+      "credentialTypes": "Auth Methods",
+      "action": "Action"
     },
-    "create": "create",
-    "edit": "edit",
+    "create": "Create Consumer",
+    "edit": "Edit Consumer",
     "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
     "consumerForm": {
-      "name": "name",
+      "name": "Name",
       "namePlaceholder": "Please enter a consumer name",
-      "nameRequired": "Please enter a consumer name",
-      "pleaseEnter":"please enter",
-      "pleaseSelect":"please select"
+      "nameRequired": "Please enter a consumer name"
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "Custom HTTP Header",
-    "selectQUERY": "query parameters",
-    "tokenSource":"Token source",
-    "authenticationToken":"Auth token",
-    "underDevelopment":"Under development, stay tuned.",
-    "randomGeneration":"random generation",
-    "headerName":"Header name",
-    "paramsName":"parameter name",
+    "selectQUERY": "Query parameter",
+    "tokenSource": "Token Source",
+    "authToken": "Auth Token",
+    "underDevelopment": "Under development, stay tuned.",
+    "randomGeneration": "Randomize",
+    "headerName": "Header name",
+    "paramName": "Parameter name",
     "deleteSuccess": "delete success",
     "deleteFailed": "delete failed",
-    "creaetSuccess": "creaet success",
-    "creatFailed": "creat failed",
+    "createFailed": "creat failed",
     "editSuccess": "edit successfully",
     "editFailed": "edit failed"
   },
@@ -170,7 +167,7 @@
         "name": "Name",
         "serviceName": "Service Name",
         "domain": "Domain name",
-        "agreement": "Agreement",
+        "protocol": "Agreement",
         "modelPredicate": "Whether to enable model-based route matching rules",
         "extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
         "modelPredicatePrefix": "model name matching rule",
@@ -190,7 +187,7 @@
       "placeholder": {
         "type": "Please select LLM vendor",
         "name": "Please enter a name",
-        "agreement": "Please select a protocol",
+        "protocol": "Please select a protocol",
         "serviceName": "Please enter a service name",
         "tokens": "Please enter authentication token",
         "domain": "Please enter domain name",
@@ -205,9 +202,9 @@
         "modelPredicatePrefix": "Please enter the model name prefix required to match this route",
         "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
       },
-      "creatDomain": "Create a domain name",
-      "howtouse": "How to use",
-      "AirouterUse": "How to use AI routing"
+      "createDomain": "Create a domain name",
+      "howToUse": "How to use",
+      "aiRouteUsage": "How to use AI routing"
     },
     "create": "Create AI service provider",
     "edit": "Edit AI service provider",
@@ -220,8 +217,6 @@
     "addTargetServer": "Add",
     "operation": "Operation",
     "modelMatchingType": "Model matching type",
-    "pleaseSelect": "Please select",
-    "pleaseEnter": "Please enter",
     "exactMatch": "exact match",
     "prefixMatch": "Prefix Match",
     "modelNames": "Model names",

@@ -1,9 +1,7 @@
-import { ServiceSourceTypes } from '@/interfaces/service-source';
-import { Form, Input, Select, Tabs, Button, Switch, InputNumber } from 'antd';
-import TextArea from 'antd/lib/input/TextArea';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Form, Input, InputNumber, Select, Switch } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 const providerTypeDisplayName = [
   { key: 'openai', label: 'llmProvider.providerTypes.openai' },
@@ -11,8 +9,8 @@ const providerTypeDisplayName = [
   { key: 'moonshot', label: 'llmProvider.providerTypes.moonshot' },
 ];
 
-const agreementList = [
-  { label: "Openai/v1", value: "openai/v1" },
+const protocolList = [
+  { label: "openai/v1", value: "openai/v1" },
 ];
 
 const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
@@ -91,31 +89,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     },
   }));
 
-
-  const getModelMapping = (text) => {
-    try {
-      const lines = text.split('\n');
-      const result = {};
-
-      lines.forEach(line => {
-        const [key, value] = line.split('=');
-        result[key.trim()] = value.trim();
-      });
-
-      return result;
-    } catch (err) {
-      return {}
-    }
-  };
-
-  // const getModelText = (text) => {
-  //   try {
-  //     return Object.entries(text).map(([key, value]) => `${key}=${value}`).join('\n');
-  //   } catch (err) {
-  //     return JSON.stringify(err)
-  //   }
-  // };
-
   return (
     <Form
       form={form}
@@ -134,6 +107,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         ]}
       >
         <Select
+          disabled={props.value}
           placeholder={t('llmProvider.providerForm.placeholder.type')}
         >
           {
@@ -174,16 +148,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
       {/* 协议 */}
       <Form.Item
-        label={t('llmProvider.providerForm.label.agreement')}
+        label={t('llmProvider.providerForm.label.protocol')}
         required
         name="protocol"
-        initialValue={agreementList[0].value}
+        initialValue={protocolList[0].value}
       >
         <Select
-          allowClear
-          placeholder={t('llmProvider.providerForm.rules.agreement')}
+          placeholder={t('llmProvider.providerForm.rules.protocol')}
         >
-          {agreementList.map(item => (
+          {protocolList.map(item => (
             <Select.Option value={item.value}>
               {item.label}
             </Select.Option>
@@ -208,6 +181,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 label={index === 0 ? t('llmProvider.columns.tokens') : ''}
                 required={false}
                 key={field.key}
+                style={{ marginBottom: '0.5rem' }}
               >
                 <Form.Item
                   {...field}
@@ -216,14 +190,13 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                     {
                       required: true,
                       whitespace: false,
-                      message: "请输入认证令牌",
+                      message: t('llmProvider.providerForm.rules.tokenRequired'),
                     },
                   ]}
                   noStyle
                 >
                   <Input
                     style={{ width: '94%' }}
-                    placeholder={t('llmProvider.providerForm.placeholder.tokens')}
                   />
                 </Form.Item>
                 {/* 删除按钮 */}
