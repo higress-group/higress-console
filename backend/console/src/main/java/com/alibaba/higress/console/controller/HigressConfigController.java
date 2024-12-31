@@ -25,18 +25,18 @@ import javax.annotation.Resource;
 @RestController("HigressController")
 @RequestMapping("/v1/workmode")
 @Validated
-public class HigressController {
+public class HigressConfigController {
     @Resource
     HigressConfigService higressConfigService;
 
     @GetMapping
-    public Boolean get() {
-        return higressConfigService.get();
+    public Boolean getWorkMode() {
+        return higressConfigService.getWorkMode();
     }
 
     @PutMapping
-    public Boolean update(@RequestParam Boolean mode) {
-        return higressConfigService.put(mode);
+    public Boolean updateWorkMode(@RequestParam Boolean mode) {
+        return higressConfigService.putWorkMode(mode);
     }
 
 }

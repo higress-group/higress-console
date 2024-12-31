@@ -140,7 +140,11 @@ class DomainServiceImpl implements DomainService {
         }
     }
 
+    @Override
     public Domain addOrUpdate(Domain domain){
+        if (domain == null) {
+            throw new BusinessException("Domain cannot be null");
+        }
         Domain existingDomain = query(domain.getName());
         if (existingDomain == null) {
             return add(domain);

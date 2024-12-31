@@ -13,6 +13,6 @@
 package com.alibaba.higress.sdk.service;
 
 public interface HigressConfigService {
-    Boolean get();
-    Boolean put(Boolean isIngressMode);
+    Boolean getWorkMode();
+    Boolean putWorkMode(Boolean isIngressMode);
 }

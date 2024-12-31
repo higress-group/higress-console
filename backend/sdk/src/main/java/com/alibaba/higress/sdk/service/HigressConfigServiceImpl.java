@@ -26,12 +26,12 @@ public class HigressConfigServiceImpl implements HigressConfigService{
     }
 
     @Override
-    public Boolean get() {
+    public Boolean getWorkMode() {
         return kubernetesClientService.isIngressWorkMode();
     }
 
     @Override
-    public Boolean put(Boolean isIngressMode) {
+    public Boolean putWorkMode(Boolean isIngressMode) {
         Boolean updatedIsIngressMode = isIngressMode;
         try {
             updatedIsIngressMode = kubernetesClientService.setIngressMode(isIngressMode);

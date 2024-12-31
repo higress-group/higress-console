@@ -446,7 +446,7 @@ public class KubernetesModelConverter {
     }
 
     public String domainName2GatewayName(String domainName) {
-        return KubernetesUtil.normalizeDomainName(domainName).replace('.', '-');
+        return KubernetesUtil.normalizeDomainName(domainName);
     }
 
     public String gatewayName2DomainName(String gatewayName) {
