@@ -2968,7 +2968,7 @@ public class KubernetesModelConverterTest {
 
         V1Gateway expectedGateway = new V1Gateway();
         V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName("example-com");
+        metadata.setName("example.com");
         metadata.setResourceVersion("1");
         expectedGateway.setMetadata(metadata);
 
@@ -2999,7 +2999,7 @@ public class KubernetesModelConverterTest {
 
         V1Gateway expectedGateway = new V1Gateway();
         V1ObjectMeta metadata = new V1ObjectMeta();
-        metadata.setName("secure-example-com");
+        metadata.setName("secure.example.com");
         metadata.setResourceVersion("2");
         expectedGateway.setMetadata(metadata);
 
