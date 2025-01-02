@@ -15,6 +15,7 @@ package com.alibaba.higress.sdk.service.consumer;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_CREDENTIAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
@@ -185,6 +186,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         consumerConfig.put(CONSUMER_CREDENTIAL, credential);
 
         configurations.put(CONSUMERS, consumers);
+        configurations.put(GLOBAL_AUTH, false);
         return true;
     }
 
