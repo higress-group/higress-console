@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -36,7 +38,8 @@ public class WebMvcInitializer implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/*").addResourceLocations("classpath:/static/").setUseLastModified(true)
+        registry.addResourceHandler("/*").addResourceLocations("classpath:/static/")
+            .setCacheControl(CacheControl.maxAge(Duration.ZERO).mustRevalidate()).setUseLastModified(true)
             .resourceChain(true).addResolver(new PathResourceResolver() {
                 @Override
                 protected Resource resolveResourceInternal(HttpServletRequest request, @NonNull String requestPath,

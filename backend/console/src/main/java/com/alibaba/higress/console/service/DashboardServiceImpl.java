@@ -175,6 +175,10 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
+    public boolean isBuiltIn() {
+        return StringUtils.isNoneBlank(apiBaseUrl, promDatasourceUrl, lokiDatasourceUrl);
+    }
+
     @Override
     public DashboardInfo getDashboardInfo() {
         return getDashboardInfo(DashboardType.MAIN);
@@ -375,10 +379,6 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardConfiguration configuration = dashboardConfigurations.get(type);
         String url = configService.getString(configuration.getConfigKey());
         return new DashboardInfo(false, null, url);
-    }
-
-    private boolean isBuiltIn() {
-        return StringUtils.isNoneBlank(apiBaseUrl, promDatasourceUrl, lokiDatasourceUrl);
     }
 
     private String buildConfigData(String dashboardConfiguration, String datasourceUid) {

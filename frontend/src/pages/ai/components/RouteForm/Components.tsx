@@ -1,9 +1,5 @@
-import React, { useState, useImperativeHandle } from "react";
-import { Form, Button, Table, InputNumber } from 'antd';
 import { RedoOutlined } from '@ant-design/icons';
-import { history } from 'ice';
-import { CustomComponentHandles } from '@/interfaces/service-source';
-import { useTranslation } from 'react-i18next';
+import { Button, Form } from 'antd';
 
 // 刷新按钮
 const RedoOutlinedBtn = (props) => {
@@ -27,19 +23,11 @@ const RedoOutlinedBtn = (props) => {
 // 跳转按钮
 const HistoryButton = (props) => {
   const { text = '', path = '' } = props;
-
   return (
-    <Button
-      type="link"
-      style={{ padding: 0 }}
-      onClick={() => history?.push(path)}
-    >
-      {text}
-    </Button>
+    <a href={path} target="_blank">{text}</a>
   )
 };
 
 export {
-  RedoOutlinedBtn,
-  HistoryButton,
+  HistoryButton, RedoOutlinedBtn,
 };

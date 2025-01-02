@@ -63,10 +63,11 @@ const AiRouteList: React.FC = () => {
     },
     {
       title: t('aiRoute.columns.auth'),
-      dataIndex: 'consumers',
-      key: 'consumers',
+      dataIndex: ['authConfig', 'allowedConsumers'],
+      key: 'authConfig.allowedConsumers',
       render: (value, record) => {
-        if (!record.authEnabled) {
+        const { authConfig } = record;
+        if (!authConfig || !authConfig.enabled) {
           return t('aiRoute.authNotEnabled')
         }
         if (!Array.isArray(value) || !value.length) {
@@ -83,7 +84,7 @@ const AiRouteList: React.FC = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onUse(record)}>{t('llmProvider.providerForm.howtouse')}</a>
+          <a onClick={() => onUse(record)}>{t('llmProvider.providerForm.howToUse')}</a>
           <HistoryButton text={t('misc.strategy')} path={`/ai/config?name=${record.name}`} />
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
@@ -122,7 +123,7 @@ const AiRouteList: React.FC = () => {
     setUseDrawer(true);
   };
 
-  const closeUse = () => {
+  const closeUsage = () => {
     setCurrentAiRoute(null);
     setUseDrawer(false);
   }
@@ -139,23 +140,25 @@ const AiRouteList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     setLoading(true);
-    const values = formRef.current ? await formRef.current.handleSubmit() : {};
-    if (!values) {
+    try {
+      const values = formRef.current ? await formRef.current.handleSubmit() : {};
+      if (!values) {
+        return false;
+      }
+
+      if (currentAiRoute) {
+        const params: AiRoute = { version: currentAiRoute.version, ...values };
+        await updateAiRoute(params);
+      } else {
+        await addAiRoute(values as AiRoute);
+      }
+
+      setOpenDrawer(false);
+      formRef.current && formRef.current.reset();
+      refresh();
+    } finally {
       setLoading(false);
-      return false;
     }
-
-    if (currentAiRoute) {
-      const params: AiRoute = { version: currentAiRoute.version, ...values };
-      await updateAiRoute(params);
-    } else {
-      await addAiRoute(values as AiRoute);
-    }
-
-    setLoading(false);
-    setOpenDrawer(false);
-    formRef.current && formRef.current.reset();
-    refresh();
   };
 
   const handleDrawerCancel = () => {
@@ -246,10 +249,15 @@ const AiRouteList: React.FC = () => {
         <RouteForm ref={formRef} value={currentAiRoute} />
       </Drawer>
       <Modal
-        title={t("llmProvider.providerForm.AirouterUse")}
+        title={t("llmProvider.providerForm.aiRouteUsage")}
         open={useDrawer}
-        onOk={closeUse}
-        onCancel={closeUse}
+        onOk={closeUsage}
+        onCancel={closeUsage}
+        footer={[
+          <Button key="submit" type="primary" onClick={closeUsage}>
+            OK
+          </Button>,
+        ]}
       >
         TBD
       </Modal>

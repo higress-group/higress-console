@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +36,12 @@ import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.SystemInfo;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
 import com.alibaba.higress.console.controller.dto.User;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.service.ConfigService;
+import com.alibaba.higress.console.service.DashboardService;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SystemService;
-
-import javax.annotation.PostConstruct;
+import com.alibaba.higress.sdk.exception.ValidationException;
 
 /**
  * @author CH3CHO
@@ -50,9 +51,15 @@ import javax.annotation.PostConstruct;
 @Validated
 public class SystemController {
 
+    private DashboardService dashboardService;
     private SessionService sessionService;
     private ConfigService configService;
     private SystemService systemService;
+
+    @Autowired
+    public void setDashboardService(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     @Autowired
     public void setSessionService(SessionService sessionService) {
@@ -72,6 +79,7 @@ public class SystemController {
     @PostConstruct
     public void syncSystemState() {
         configService.setConfig(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized());
+        configService.setConfig(UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
     }
 
     @PostMapping("/init")

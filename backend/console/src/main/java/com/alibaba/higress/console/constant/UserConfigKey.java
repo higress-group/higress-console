@@ -25,6 +25,7 @@ public class UserConfigKey {
     public static final String LOGIN_PAGE_PROMPT_KEY = "login.prompt";
     public static final String DASHBOARD_URL = "dashboard.url";
     public static final String DASHBOARD_URL_PREFIX = "dashboard.url.";
+    public static final String DASHBOARD_BUILTIN = "dashboard.builtin";
     public static final String CHAT_ENABLED = "chat.enabled";
     public static final String ADMIN_PASSWORD_CHANGE_DISABLED = "admin.password-change.disabled";
 
@@ -35,6 +36,7 @@ public class UserConfigKey {
         CONFIG_VALUE_TYPES.put(DASHBOARD_URL, String.class);
         CONFIG_VALUE_TYPES.put(CHAT_ENABLED, Boolean.class);
         CONFIG_VALUE_TYPES.put(ADMIN_PASSWORD_CHANGE_DISABLED, Boolean.class);
+        CONFIG_VALUE_TYPES.put(DASHBOARD_BUILTIN, Boolean.class);
         CONFIG_VALUE_TYPES.put(SYSTEM_INITIALIZED, Boolean.class);
     }
 
