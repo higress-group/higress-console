@@ -119,21 +119,17 @@ const ConsumerList: React.FC = () => {
   };
 
   const handleDrawerOK = async () => {
-    try {
-      const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
-      if(!values.name && values) {
-        return message.info(values + t("consumer.underDevelopment"));
-      };
+    const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
+    if (!values) {
+      return;
+    };
 
-      try {
-        if (currentConsumer) {
-          await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
-          message.success(t("consumer.editSuccess"));
-        } else {
-          await addConsumer({ ...values, version: 0 } as Consumer);
-          message.success(t("consumer.creaetSuccess"));
-        }
-      } catch(error) {}
+    try {
+      if (currentConsumer) {
+        await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
+      } else {
+        await addConsumer({ ...values, version: 0 } as Consumer);
+      }
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
       refresh();
@@ -158,7 +154,7 @@ const ConsumerList: React.FC = () => {
     try {
       await deleteConsumer(currentConsumer.name);
       message.success(t("consumer.deleteSuccess"));
-    } catch (error) {}
+    } catch (error) { }
     setConfirmLoading(false);
     setOpenModal(false);
     refresh();

@@ -45,8 +45,10 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
 
   const generateUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      let r = Math.random() * 16 | 0;
-      let v = c === 'x' ? r : (r & 0x3 | 0x8);
+      /* jslint bitwise: true */
+      const r = Math.random() * 16 | 0;
+      /* jslint bitwise: true */
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   };
@@ -125,11 +127,11 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                     <Row>
                       <Col span={20}>
                         <Form.Item
-                          label={t("consumer.authenticationToken")} // "认证令牌"
+                          label={t("consumer.authToken")} // "认证令牌"
                           name={[name, 'value']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.pleaseEnter") }]}
+                          rules={[{ required: true, message: t("consumer.consumerForm.authTokenRequired") }]}
                         >
-                          <Input placeholder={t("consumer.consumerForm.pleaseEnter")} />
+                          <Input />
                         </Form.Item>
                       </Col>
                       <Col span={4} style={{ paddingTop: 30, textAlign: "right" }}>
@@ -142,10 +144,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                     <Form.Item
                       label={t("consumer.tokenSource")}
                       name={[name, 'source']}
-                      rules={[{ required: true, message: t("consumer.consumerForm.pleaseSelect") }]}
+                      rules={[{ required: true, message: t("consumer.consumerForm.tokenSourceRequired") }]}
                     >
                       <Select
-                        placeholder={t("consumer.consumerForm.pleaseSelect")}
                         onChange={e => {
                           setCreSource(e);
                           changeCredentials({ key: null });
@@ -168,7 +169,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                           key="HEADER_key"
                           label={t("consumer.headerName")}
                           name={[name, 'key']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.pleaseEnter") }]}
+                          rules={[{ required: true, message: t("consumer.consumerForm.headerNameRequired") }]}
                         >
                           <Input.TextArea rows={1} style={{ width: "100%" }} />
                         </Form.Item>
@@ -180,9 +181,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                       creSource === "QUERY" ?
                         <Form.Item
                           key="QUERY_key"
-                          label={t("consumer.paramsName")}
+                          label={t("consumer.paramName")}
                           name={[name, 'key']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.pleaseEnter") }]}
+                          rules={[{ required: true, message: t("consumer.consumerForm.paramNameRequired") }]}
                         >
                           <Input.TextArea rows={1} style={{ width: "100%" }} />
                         </Form.Item>

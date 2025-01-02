@@ -69,6 +69,12 @@ const LlmProviderList: React.FC = () => {
       dataIndex: 'endpoints',
       key: 'endpoints',
       ellipsis: true,
+      render: (value) => {
+        if (!Array.isArray(value) || !value.length) {
+          return '-';
+        }
+        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+      },
     },
     {
       title: t('llmProvider.columns.tokens'),
@@ -130,9 +136,12 @@ const LlmProviderList: React.FC = () => {
   };
 
   const handleDrawerOK = async () => {
-    try {
-      const values = formRef.current ? await formRef.current.handleSubmit() : {};
+    const values = formRef.current ? await formRef.current.handleSubmit() : {};
+    if (!values) {
+      return;
+    }
 
+    try {
       if (currentLlmProvider) {
         // version 进行创建或强制更新操作时需设置为 0。
         const params: LlmProvider = { version: 0, ...values };
@@ -145,9 +154,7 @@ const LlmProviderList: React.FC = () => {
       formRef.current && formRef.current.reset();
       refresh();
     } catch (errInfo) {
-      setOpenDrawer(false);
-      formRef.current && formRef.current.reset();
-      refresh();
+      console.log('Save failed: ', errInfo);
     }
   };
 
