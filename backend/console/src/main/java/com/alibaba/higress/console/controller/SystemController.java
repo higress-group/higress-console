@@ -91,7 +91,10 @@ public class SystemController {
         if (StringUtils.isAnyEmpty(adminUser.getName(), adminUser.getDisplayName(), adminUser.getPassword())) {
             throw new ValidationException("Incomplete adminUser object.");
         }
-        sessionService.initializeAdmin(adminUser);
+
+        if (!sessionService.isAdminInitialized()) {
+            sessionService.initializeAdmin(adminUser);
+        }
 
         Map<String, Object> configs = new HashMap<>();
         if (MapUtils.isNotEmpty(request.getConfigs())) {
