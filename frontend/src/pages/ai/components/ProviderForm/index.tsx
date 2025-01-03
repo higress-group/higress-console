@@ -16,7 +16,7 @@ const protocolList = [
 const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
-  const [enabled, setEnabled] = useState(false);
+  const [failoverEnabled, setFailoverEnabled] = useState(false);
 
   useEffect(() => {
     form.resetFields();
@@ -26,7 +26,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         type,
         protocol,
         tokens,
-        // modelMapping = {},
         tokenFailoverConfig = {},
       } = props.value;
       const {
@@ -37,14 +36,14 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckModel,
       } = tokenFailoverConfig ?? {};
 
-      setEnabled(tokenFailoverConfig?.enabled || false);
+      const localFailoverEnabled = tokenFailoverConfig?.enabled || false;
+      setFailoverEnabled(localFailoverEnabled);
       form.setFieldsValue({
         name,
         type,
         protocol,
         tokens,
-        // modelMapping: getModelText(modelMapping),
-        enabled,
+        failoverEnabled: localFailoverEnabled,
         failureThreshold,
         successThreshold,
         healthCheckInterval,
@@ -54,7 +53,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     }
 
     return () => {
-      setEnabled(false);
+      setFailoverEnabled(false);
     }
   }, [props.value]);
 
@@ -69,15 +68,14 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         type: values.type,
         name: values.name,
         tokens: values.tokens,
-        version: 0, // 资源版本号。进行创建或强制更新操作时需设置为 0。 /  1 表示强制更新
+        version: 0, // 资源版本号。进行创建或强制更新操作时需设置为 0
         protocol: values.protocol,
-        // modelMapping: getModelMapping(values.modelMapping),
         tokenFailoverConfig: {
-          enabled: values.enabled,
+          enabled: values.failoverEnabled,
         },
       }
 
-      if (values.enabled) {
+      if (values.failoverEnabled) {
         result.tokenFailoverConfig['failureThreshold'] = values.failureThreshold;
         result.tokenFailoverConfig['successThreshold'] = values.successThreshold;
         result.tokenFailoverConfig['healthCheckInterval'] = values.healthCheckInterval;
@@ -224,33 +222,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         )}
       </Form.List>
 
-      {/* 模型映射 */}
-      {/* <Form.Item
-        name="modelMapping"
-        label="模型映射"
-      >
-        <Input.TextArea
-          placeholder={`配置请求模型与目标模型的映射关系，示例如下:
-gpt-3=qwen-turbo
-gpt-*=qwen-max
-*=qwen-long`
-          }
-          rows={4}
-        />
-      </Form.Item> */}
-
       {/* 令牌降级 */}
       <Form.Item
-        name="enabled"
+        name="failoverEnabled"
+        initialValue={false}
         label="令牌降级"
         valuePropName="checked"
         extra="启用后，若某一认证令牌返回异常响应的数量超出网值，Higress 将暂停使用该令牌发起请求，直至后续健康检测请求连续收到一定数量的正常响应。"
       >
-        <Switch onChange={e => setEnabled(e)} />
+        <Switch onChange={e => setFailoverEnabled(e)} />
       </Form.Item>
 
       {
-        enabled ?
+        failoverEnabled ?
           <>
             {/* 令牌不可用时需满足的最小连续请求失败次数 */}
             <Form.Item
@@ -313,7 +297,6 @@ gpt-*=qwen-max
           </>
           : null
       }
-
     </Form>
   );
 });

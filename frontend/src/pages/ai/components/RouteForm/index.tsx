@@ -74,7 +74,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
     if (_fallbackConfig_enabled && value?.fallbackConfig?.upstreams) {
       fallbackInitValues['fallbackConfig_upstreams'] = value?.fallbackConfig?.upstreams?.[0]?.provider;
       try {
-        fallbackInitValues['fallbackConfig_modelNames'] = Object.keys(value?.fallbackConfig?.upstreams?.[0]?.modelMapping)[0];
+        fallbackInitValues['fallbackConfig_modelNames'] = value?.fallbackConfig?.upstreams?.[0]?.modelMapping['*'];
       } catch (err) {
         fallbackInitValues['fallbackConfig_modelNames'] = '';
       }
@@ -102,8 +102,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
           weight: item.weight,
         };
         if (item.modelMapping) {
-          const _modelMapping = Object.keys(item.modelMapping);
-          obj["modelMapping"] = _modelMapping
+          obj["modelMapping"] = item.modelMapping["*"] || null;
         }
         return obj;
       });
@@ -161,7 +160,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         payload["upstreams"] = upstreams.map(({ provider, weight, modelMapping }) => {
           const obj = { provider, weight, modelMapping: {} };
           if (modelMapping) {
-            obj["modelMapping"][modelMapping] = provider;
+            obj["modelMapping"]["*"] = modelMapping;
           }
           return obj;
         });
@@ -309,7 +308,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                                   noStyle
                                   rules={[{ required: true, message: t("llmProvider.matchValueRequired") }]}
                                 >
-                                  <Input.TextArea style={{ width: "200px" }} rows={1} />
+                                  <Input style={{ width: "200px" }} />
                                 </Form.Item>
                               </td>
                               {

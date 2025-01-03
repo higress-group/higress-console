@@ -23,4 +23,5 @@ public class KeyAuthConfig {
     public static final String IN_QUERY = "in_query";
 
     public static final String ALLOW = "allow";
+    public static final String GLOBAL_AUTH = "global_auth";
 }

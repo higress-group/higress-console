@@ -22,7 +22,8 @@
     "react": "^18.2.0",
     "react-chatgpt-modal": "^0.1.8",
     "react-dom": "^18.2.0",
-    "react-i18next": "^12.1.4"
+    "react-i18next": "^12.1.4",
+    "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {
     "@ice/app": "^3.0.0",

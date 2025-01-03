@@ -23,6 +23,8 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTO
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ENABLED;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_FAILURE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,10 +111,13 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         TokenFailoverConfig failoverConfig = provider.getTokenFailoverConfig();
         if (failoverConfig == null) {
             configurations.remove(FAILOVER);
+            configurations.remove(RETRY_ON_FAILURE);
         } else {
             Map<String, Object> failoverMap = new HashMap<>();
             saveTokenFailoverConfig(failoverConfig, failoverMap);
             configurations.put(FAILOVER, failoverMap);
+            Map<String, Object> retryOnFailureMap = Map.of(RETRY_ENABLED, failoverConfig.getEnabled());
+            configurations.put(RETRY_ON_FAILURE, retryOnFailureMap);
         }
     }
 
