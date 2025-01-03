@@ -417,6 +417,7 @@
   "route": {
     "columns": {
       "name": "Route Name",
+      "domains": "Domain",
       "routePredicates": "Route Predicates",
       "services": "Service",
       "action": "Action"

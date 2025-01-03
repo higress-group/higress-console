@@ -47,6 +47,17 @@ const RouteList: React.FC = () => {
       ellipsis: true,
     },
     {
+      title: t('route.columns.domains'),
+      dataIndex: 'domains',
+      key: 'domains',
+      render: (value) => {
+        if (!Array.isArray(value) || !value.length) {
+          return '-';
+        }
+        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+      },
+    },
+    {
       title: t('route.columns.routePredicates'),
       dataIndex: 'path',
       key: 'path',
