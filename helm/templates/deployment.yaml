@@ -44,20 +44,28 @@ spec:
               value: {{ include "higress-console.name" . }}
             - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
               value: {{ include "higress-console.name" . }}
+            - name: HIGRESS_CONSOLE_SERVICE_HOST
+              value: {{ include "higress-console.name" . }}.{{ .Release.Namespace }}.svc.{{ .Values.global.proxy.clusterDomain }}
+            - name: HIGRESS_CONSOLE_SERVICE_PORT
+              value: {{ .Values.service.port | quote }}
             - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
               value: {{ include "higress-console.controller.jwtPolicy" . }}
             {{- if $o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
               value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ $o11y.grafana.port }}{{ include "higress-console-grafana.path" . }}
-            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL # Kept for backward-compatibility. To be removed later.
-              value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ $o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_PROM_URL
               value: http://{{ include "higress-console-prometheus.name" . }}.{{ .Release.Namespace }}:{{ $o11y.prometheus.port }}{{ include "higress-console-prometheus.path" . }}
             - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_LOKI_URL
               value: http://{{ include "higress-console-loki.name" . }}.{{ .Release.Namespace }}:{{ $o11y.loki.ports.http }}
             {{- end }}
+            {{- if .Values.global.ingressClass }}
             - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
               value: {{ .Values.global.ingressClass }}
+            {{- end }}
+            {{- if .Values.global.watchNamespace }}
+            - name: HIGRESS_CONSOLE_CONTROLLER_WATCHED_NAMESPACE
+              value: {{ .Values.global.watchNamespace }}
+            {{- end }}
             - name: SPRINGDOC_API_DOCS_ENABLED
               value: "{{ .Values.swagger.enabled }}"
             - name: SPRINGDOC_SWAGGER_UI_ENABLED

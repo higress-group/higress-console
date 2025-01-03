@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
@@ -35,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class RouteServiceImpl implements RouteService {
 
+    private static final RoutePageQuery DEFAULT_QUERY = new RoutePageQuery();
+
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
     private final WasmPluginInstanceService wasmPluginInstanceService;
@@ -48,18 +51,36 @@ class RouteServiceImpl implements RouteService {
 
     @Override
     public PaginatedResult<Route> list(RoutePageQuery query) {
-        List<V1Ingress> ingresses;
-        if (query != null && StringUtils.isNotEmpty(query.getDomainName())) {
-            ingresses = kubernetesClientService.listIngressByDomain(query.getDomainName());
-        } else {
-            ingresses = kubernetesClientService.listIngress();
-        }
+        List<V1Ingress> ingresses = listIngresses(query);
+
         if (CollectionUtils.isEmpty(ingresses)) {
             return PaginatedResult.createFromFullList(Collections.emptyList(), query);
         }
-        List<V1Ingress> supportedIngresses =
-            ingresses.stream().filter(kubernetesModelConverter::isIngressSupported).toList();
-        return PaginatedResult.createFromFullList(supportedIngresses, query, kubernetesModelConverter::ingress2Route);
+        return PaginatedResult.createFromFullList(ingresses, query, kubernetesModelConverter::ingress2Route);
+    }
+
+    private List<V1Ingress> listIngresses(RoutePageQuery query) {
+        try {
+            if (query == null) {
+                query = DEFAULT_QUERY;
+            }
+
+            if (StringUtils.isNotEmpty(query.getDomainName())) {
+                if (Boolean.TRUE.equals(query.getAll())) {
+                    throw new ValidationException(
+                        "The query parameter 'all' is not supported when querying by domain.");
+                }
+                return kubernetesClientService.listIngressByDomain(query.getDomainName());
+            }
+
+            if (Boolean.TRUE.equals(query.getAll())) {
+                return kubernetesClientService.listAllIngresses();
+            } else {
+                return kubernetesClientService.listIngress();
+            }
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing Ingresses.", e);
+        }
     }
 
     @Override

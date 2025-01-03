@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.console.controller.dto.DashboardInfo;
-import com.alibaba.higress.console.controller.dto.DashboardType;
 import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.model.DashboardInfo;
+import com.alibaba.higress.console.model.DashboardType;
 import com.alibaba.higress.console.service.DashboardService;
 import com.alibaba.higress.sdk.exception.ValidationException;
 

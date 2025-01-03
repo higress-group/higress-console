@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.LoginRequest;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.AuthException;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.SessionService;
+import com.alibaba.higress.sdk.exception.ValidationException;
 
 /**
  * @author CH3CHO

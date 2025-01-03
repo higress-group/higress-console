@@ -14,6 +14,8 @@ package com.alibaba.higress.console.controller.dto;
 
 import java.util.Map;
 
+import com.alibaba.higress.console.model.User;
+
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

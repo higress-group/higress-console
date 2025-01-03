@@ -2,6 +2,13 @@ global:
   local: false # When deploying to a local cluster (e.g.: kind cluster), set this to true.
   kind: false # Deprecated. Please use "global.local" instead. Will be removed later.
   ingressClass: "higress"
+  watchNamespace: ""
+
+  proxy:
+    # -- CAUTION: It is important to ensure that all Istio helm charts specify the same clusterDomain value
+    # cluster domain. Default value is "cluster.local".
+    clusterDomain: "cluster.local"
+
   # Observability (o11y) configurations
   o11y:
     enabled: false
@@ -41,6 +48,7 @@ global:
       pvc:
         storageClassName: ""
       securityContext: {}
+      
   pvc:
     rwxSupported: true
 
