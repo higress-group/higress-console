@@ -1,6 +1,6 @@
 import { logout } from '@/services';
 import store from '@/store';
-import { LockOutlined, LogoutOutlined } from '@ant-design/icons';
+import { LockOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown } from 'antd';
 import { definePageConfig, history } from 'ice';
 import type { MenuInfo } from 'rc-menu/lib/interface';
@@ -36,6 +36,10 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
     history?.push(`/user/changePassword`);
   }, []);
 
+  const onHigressConfigClick = useCallback((event: MenuInfo) => {
+    history?.push(`/higress-configs`);
+  }, []);
+
   const menu = {
     items: [
       {
@@ -50,6 +54,13 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
         label: t('misc.logout'),
         icon: <LogoutOutlined />,
         onClick: onLogoutClick,
+        className: styles.menu,
+      },
+      {
+        key: 'higressConfig',
+        label: t('higressConfig.title'),
+        icon: <SettingOutlined />,
+        onClick: onHigressConfigClick,
         className: styles.menu,
       },
     ],
