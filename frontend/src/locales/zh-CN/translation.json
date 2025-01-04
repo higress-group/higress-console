@@ -431,6 +431,7 @@
   "route": {
     "columns": {
       "name": "路由名称",
+      "domains": "域名",
       "routePredicates": "路由条件",
       "services": "目标服务",
       "action": "操作"
