@@ -10,21 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.console.controller.dto;
+package com.alibaba.higress.console.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class DashboardInfo {
 
-    private String name;
-    private String password;
-    private String displayName;
-    private String avatarUrl;
+    private Boolean builtIn;
+
+    private String uid;
+
+    private String url;
 }

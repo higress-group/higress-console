@@ -17,8 +17,8 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.higress.console.controller.dto.DashboardInfo;
-import com.alibaba.higress.console.controller.dto.DashboardType;
+import com.alibaba.higress.console.model.DashboardInfo;
+import com.alibaba.higress.console.model.DashboardType;
 
 /**
  * @author CH3CHO

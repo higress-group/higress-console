@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.google.common.collect.ImmutableList;
 
@@ -205,6 +206,9 @@ public class ConfigServiceImpl implements ConfigService {
         try {
             return kubernetesClientService.readConfigMap(configMapName);
         } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
             throw new BusinessException("Error occurs when reading ConfigMap " + configMapName, e);
         }
     }
@@ -218,7 +222,7 @@ public class ConfigServiceImpl implements ConfigService {
         try {
             return kubernetesClientService.createConfigMap(configMap);
         } catch (ApiException e) {
-            throw new BusinessException("Error occurs when reading ConfigMap " + configMapName, e);
+            throw new BusinessException("Error occurs when creating ConfigMap " + configMapName, e);
         }
     }
 }

@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,13 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.dto.SystemInfo;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
-import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.console.model.SystemInfo;
+import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.ConfigService;
-import com.alibaba.higress.console.service.DashboardService;
-import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SystemService;
 import com.alibaba.higress.sdk.exception.ValidationException;
 
@@ -51,20 +46,8 @@ import com.alibaba.higress.sdk.exception.ValidationException;
 @Validated
 public class SystemController {
 
-    private DashboardService dashboardService;
-    private SessionService sessionService;
     private ConfigService configService;
     private SystemService systemService;
-
-    @Autowired
-    public void setDashboardService(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
-    }
-
-    @Autowired
-    public void setSessionService(SessionService sessionService) {
-        this.sessionService = sessionService;
-    }
 
     @Autowired
     public void setConfigService(ConfigService configService) {
@@ -74,12 +57,6 @@ public class SystemController {
     @Autowired
     public void setSystemService(SystemService systemService) {
         this.systemService = systemService;
-    }
-
-    @PostConstruct
-    public void syncSystemState() {
-        configService.setConfig(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized());
-        configService.setConfig(UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
     }
 
     @PostMapping("/init")
@@ -92,16 +69,7 @@ public class SystemController {
             throw new ValidationException("Incomplete adminUser object.");
         }
 
-        if (!sessionService.isAdminInitialized()) {
-            sessionService.initializeAdmin(adminUser);
-        }
-
-        Map<String, Object> configs = new HashMap<>();
-        if (MapUtils.isNotEmpty(request.getConfigs())) {
-            configs.putAll(request.getConfigs());
-        }
-        configs.put(UserConfigKey.SYSTEM_INITIALIZED, true);
-        configService.setConfigs(configs);
+        systemService.initSystem(adminUser, request.getConfigs());
 
         return ControllerUtil.buildSuccessResponseEntity();
     }

@@ -27,13 +27,22 @@ import lombok.Data;
 public class HigressServiceConfig {
 
     private final String kubeConfigPath;
-    private final String ingressClassName;
     private final String controllerNamespace;
+    private final String controllerWatchedNamespace;
+    private final String controllerWatchedIngressClassName;
     private final String controllerServiceName;
     private final String controllerServiceHost;
     private final Integer controllerServicePort;
     private final String controllerJwtPolicy;
     private final String controllerAccessToken;
+
+    /**
+     * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
+     */
+    @Deprecated
+    public String getIngressClassName() {
+        return controllerWatchedIngressClassName;
+    }
 
     public static HigressServiceConfig.Builder builder() {
         return new Builder();
@@ -41,7 +50,8 @@ public class HigressServiceConfig {
 
     public static final class Builder {
         private String kubeConfigPath;
-        private String ingressClassName = HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
+        private String controllerWatchedNamespace;
+        private String controllerWatchedIngressClassName = HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
         private String controllerNamespace = HigressConstants.NS_DEFAULT;
         private String controllerServiceName = HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT;
         private String controllerServiceHost = HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT;
@@ -56,13 +66,26 @@ public class HigressServiceConfig {
             return this;
         }
 
-        public Builder withIngressClassName(String ingressClassName) {
-            this.ingressClassName = ingressClassName;
+        public Builder withControllerWatchedIngressClassName(String controllerWatchedIngressClassName) {
+            this.controllerWatchedIngressClassName = controllerWatchedIngressClassName;
             return this;
+        }
+
+        /**
+         * @deprecated use {@link #withControllerWatchedIngressClassName(String)} instead
+         */
+        @Deprecated
+        public Builder withIngressClassName(String ingressClassName) {
+            return withControllerWatchedIngressClassName(ingressClassName);
         }
 
         public Builder withControllerNamespace(String controllerNamespace) {
             this.controllerNamespace = controllerNamespace;
+            return this;
+        }
+
+        public Builder withControllerWatchedNamespace(String controllerWatchedNamespace) {
+            this.controllerWatchedNamespace = controllerWatchedNamespace;
             return this;
         }
 
@@ -93,8 +116,8 @@ public class HigressServiceConfig {
 
         public HigressServiceConfig build() {
             return new HigressServiceConfig(kubeConfigPath,
-                StringUtils.firstNonEmpty(ingressClassName, HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT),
-                StringUtils.firstNonEmpty(controllerNamespace, HigressConstants.NS_DEFAULT),
+                StringUtils.firstNonEmpty(controllerNamespace, HigressConstants.NS_DEFAULT), controllerWatchedNamespace,
+                controllerWatchedIngressClassName,
                 StringUtils.firstNonEmpty(controllerServiceName, HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT),
                 StringUtils.firstNonEmpty(controllerServiceHost, HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT),
                 Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),

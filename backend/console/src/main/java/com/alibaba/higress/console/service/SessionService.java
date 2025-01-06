@@ -12,10 +12,10 @@
  */
 package com.alibaba.higress.console.service;
 
-import com.alibaba.higress.console.controller.dto.User;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.alibaba.higress.console.model.User;
 
 /**
  * @author CH3CHO

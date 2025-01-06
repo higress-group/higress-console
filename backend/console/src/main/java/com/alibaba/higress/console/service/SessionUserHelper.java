@@ -12,7 +12,7 @@
  */
 package com.alibaba.higress.console.service;
 
-import com.alibaba.higress.console.controller.dto.User;
+import com.alibaba.higress.console.model.User;
 
 /**
  * @author CH3CHO

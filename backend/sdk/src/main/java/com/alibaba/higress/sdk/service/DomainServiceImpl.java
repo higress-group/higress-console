@@ -98,7 +98,9 @@ class DomainServiceImpl implements DomainService {
 
     @Override
     public void delete(String domainName) {
-        PaginatedResult<Route> routes = routeService.list(new RoutePageQuery(domainName));
+        RoutePageQuery query = new RoutePageQuery();
+        query.setDomainName(domainName);
+        PaginatedResult<Route> routes = routeService.list(query);
         if (CollectionUtils.isNotEmpty(routes.getData())) {
             throw new IllegalArgumentException("The domain has routes. Please delete them first.");
         }
@@ -133,9 +135,22 @@ class DomainServiceImpl implements DomainService {
             routes = routeQueryResult.getData().stream().filter(r -> CollectionUtils.isEmpty(r.getDomains()))
                 .collect(Collectors.toList());
         } else {
-            PaginatedResult<Route> routeQueryResult = routeService.list(new RoutePageQuery(domain.getName()));
+            RoutePageQuery query = new RoutePageQuery();
+            query.setDomainName(domain.getName());
+            PaginatedResult<Route> routeQueryResult = routeService.list(query);
             routes = routeQueryResult.getData();
         }
+
+        // TODO: Switch to the new logic after 2025/03/31
+        // String domainName = domain.getName();
+        // if (HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
+        // domainName = HigressConstants.DEFAULT_DOMAIN;
+        // }
+        // RoutePageQuery query = new RoutePageQuery();
+        // query.setDomainName(domainName);
+        // PaginatedResult<Route> routeQueryResult = routeService.list(query);
+        // routes = routeQueryResult.getData();
+
         if (CollectionUtils.isNotEmpty(routes)) {
             routes.forEach(routeService::update);
         }
