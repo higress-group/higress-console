@@ -25,13 +25,18 @@ const EllipsisMiddle: React.FC = (params: { token: String }) => {
   const [isHidden, setIsHidden] = useState(true);
 
   const toggledText = () => {
-    if (isHidden) {
-      let frontKeyword = token.slice(0, 3);
-      let backKeyword = token.slice(-3);
-      return `${frontKeyword}******${backKeyword}`;
-    } else {
+    if (!isHidden) {
       return token;
     }
+    const prefixLength = 3;
+    const suffixLength = 3;
+    if (token.length - prefixLength - suffixLength > 6) {
+      return `${token.slice(0, 3)}******${token.slice(-3)}`;
+    }
+    if (token.length > 2) {
+      return `${token.slice(0, 1)}******${token.slice(-1)}`;
+    }
+    return `${token.slice(0, 1)}******`;
   };
 
   return (
@@ -88,7 +93,7 @@ const LlmProviderList: React.FC = () => {
       },
     },
     {
-      title: t('llmProvider.columns.action'),
+      title: t('misc.actions'),
       dataIndex: 'action',
       key: 'action',
       width: 140,

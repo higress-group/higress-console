@@ -36,7 +36,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckModel,
       } = tokenFailoverConfig ?? {};
 
-      const localFailoverEnabled = tokenFailoverConfig?.enabled || false;
+      const localFailoverEnabled = !!tokenFailoverConfig?.enabled;
       setFailoverEnabled(localFailoverEnabled);
       form.setFieldsValue({
         name,
@@ -44,10 +44,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         protocol,
         tokens,
         failoverEnabled: localFailoverEnabled,
-        failureThreshold,
-        successThreshold,
-        healthCheckInterval,
-        healthCheckTimeout,
+        failureThreshold: failureThreshold || 1,
+        successThreshold: successThreshold || 1,
+        healthCheckInterval: healthCheckInterval || 5000,
+        healthCheckTimeout: healthCheckTimeout || 10000,
         healthCheckModel,
       })
     }
@@ -68,20 +68,17 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         type: values.type,
         name: values.name,
         tokens: values.tokens,
-        version: 0, // 资源版本号。进行创建或强制更新操作时需设置为 0
+        version: 0,
         protocol: values.protocol,
         tokenFailoverConfig: {
           enabled: values.failoverEnabled,
+          failureThreshold: values.failureThreshold,
+          successThreshold: values.successThreshold,
+          healthCheckInterval: values.healthCheckInterval,
+          healthCheckTimeout: values.healthCheckTimeout,
+          healthCheckModel: values.healthCheckModel,
         },
-      }
-
-      if (values.failoverEnabled) {
-        result.tokenFailoverConfig['failureThreshold'] = values.failureThreshold;
-        result.tokenFailoverConfig['successThreshold'] = values.successThreshold;
-        result.tokenFailoverConfig['healthCheckInterval'] = values.healthCheckInterval;
-        result.tokenFailoverConfig['healthCheckTimeout'] = values.healthCheckTimeout;
-        result.tokenFailoverConfig['healthCheckModel'] = values.healthCheckModel;
-      }
+      };
 
       return result;
     },
@@ -100,13 +97,12 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         rules={[
           {
             required: true,
-            message: t('llmProvider.providerForm.placeholder.type'),
+            message: t('llmProvider.providerForm.rules.typeRequired'),
           },
         ]}
       >
         <Select
           disabled={props.value}
-          placeholder={t('llmProvider.providerForm.placeholder.type')}
         >
           {
             providerTypeDisplayName.map((item) => {
@@ -131,7 +127,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         rules={[
           {
             required: true,
-            message: t('llmProvider.providerForm.placeholder.serviceName'),
+            message: t('llmProvider.providerForm.rules.serviceNameRequired'),
           },
         ]}
       >
@@ -140,7 +136,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           allowClear
           maxLength={200}
           disabled={props.value}
-          placeholder={t('llmProvider.providerForm.rules.name')}
         />
       </Form.Item>
 
@@ -226,9 +221,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       <Form.Item
         name="failoverEnabled"
         initialValue={false}
-        label="令牌降级"
+        label={t('llmProvider.providerForm.label.failoverEnabled')}
         valuePropName="checked"
-        extra="启用后，若某一认证令牌返回异常响应的数量超出网值，Higress 将暂停使用该令牌发起请求，直至后续健康检测请求连续收到一定数量的正常响应。"
+        extra={t('llmProvider.providerForm.label.failoverEnabledExtra')}
       >
         <Switch onChange={e => setFailoverEnabled(e)} />
       </Form.Item>
@@ -239,9 +234,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             {/* 令牌不可用时需满足的最小连续请求失败次数 */}
             <Form.Item
               name="failureThreshold"
-              label="令牌不可用时需满足的最小连续请求失败次数"
+              label={t('llmProvider.providerForm.label.failureThreshold')}
               rules={[
-                { required: true, message: "请输入" },
+                { required: true, message: t("llmProvider.providerForm.rules.failureThresholdRequired") },
               ]}
               initialValue={1}
             >
@@ -251,9 +246,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             {/* 令牌可用时需满足的最小连续健康检测成功次数 */}
             <Form.Item
               name="successThreshold"
-              label="令牌可用时需满足的最小连续健康检测成功次数"
+              label={t('llmProvider.providerForm.label.successThreshold')}
               rules={[
-                { required: true, message: "请输入" },
+                { required: true, message: t("llmProvider.providerForm.rules.successThresholdRequired") },
               ]}
               initialValue={1}
             >
@@ -263,9 +258,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             {/* 健康检测请求发起间隔 */}
             <Form.Item
               name="healthCheckInterval"
-              label="健康检测请求发起间隔(ms)"
+              label={t('llmProvider.providerForm.label.healthCheckInterval')}
               rules={[
-                { required: true, message: "请输入" },
+                { required: true, message: t("llmProvider.providerForm.rules.healthCheckIntervalRequired") },
               ]}
               initialValue={5000}
             >
@@ -275,9 +270,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             {/* 健康检测请求超时时间 */}
             <Form.Item
               name="healthCheckTimeout"
-              label="健康检测请求超时时间(ms)"
+              label={t('llmProvider.providerForm.label.healthCheckTimeout')}
               rules={[
-                { required: true, message: "请输入" },
+                { required: true, message: t("llmProvider.providerForm.rules.healthCheckTimeoutRequired") },
               ]}
               initialValue={10000}
             >
@@ -287,9 +282,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             {/* 健康检测请求使用的模型名称 */}
             <Form.Item
               name="healthCheckModel"
-              label="健康检测请求使用的模型名称"
+              label={t('llmProvider.providerForm.label.healthCheckModel')}
               rules={[
-                { required: true, message: "请输入" },
+                { required: true, message: t("llmProvider.providerForm.rules.healthCheckModelRequired") },
               ]}
             >
               <Input />

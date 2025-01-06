@@ -43,7 +43,7 @@ const DomainList: React.FC = () => {
       render: (value) => value || '-',
     },
     {
-      title: t('domain.columns.action'),
+      title: t('misc.actions'),
       dataIndex: 'action',
       key: 'action',
       width: 200,

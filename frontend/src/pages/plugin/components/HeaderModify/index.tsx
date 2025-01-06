@@ -98,7 +98,7 @@ const HeaderModify = forwardRef((props, ref) => {
               shouldUpdate
               rules={[{
                 required: true,
-                message: t('plugins.builtIns.headerControl.valueRequired') || '',
+                message: t('plugins.builtIns.headerControl.keyRequired') || '',
               }]}
               name={[field.name, 'key']}
               fieldKey={[field.fieldKey, 'key']}

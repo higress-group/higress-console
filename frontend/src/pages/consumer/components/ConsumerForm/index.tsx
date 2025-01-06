@@ -75,7 +75,6 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
-            pattern: /^(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]$/,
             message: t('consumer.consumerForm.nameRequired'),
           },
         ]}
@@ -85,10 +84,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
           allowClear
           maxLength={63}
           disabled={value}
-          placeholder={t('consumer.consumerForm.namePlaceholder')}
         />
       </Form.Item>
-      <div>{t("consumer.columns.credentialTypes")}</div>
+      <div>{t("consumer.columns.authMethods")}</div>
       <Tabs
         activeKey={activeTabKey}
         onChange={key => setActiveTabKey(key)}
@@ -105,14 +103,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             label: 'OAuth2',
             key: 'oauth2',
             children: (
-              <>{t("consumer.underDevelopment")}</>
+              <>{t("misc.tbd")}</>
             ),
           },
           {
             label: 'JWT',
             key: 'jwt-auth',
             children: (
-              <>{t("consumer.underDevelopment")}</>
+              <>{t("misc.tbd")}</>
             ),
           },
         ]}
