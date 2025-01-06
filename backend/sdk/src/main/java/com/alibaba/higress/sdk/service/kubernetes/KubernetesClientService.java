@@ -63,7 +63,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
-import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
