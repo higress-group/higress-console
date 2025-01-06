@@ -218,7 +218,8 @@
       },
       "createDomain": "创建域名",
       "howToUse": "使用方法",
-      "aiRouteUsage": "AI路由使用方法"
+      "aiRouteUsage": "AI路由使用方法",
+      "aiRouteUsageText": "可使用以下命令发送请求："
     },
     "create": "创建AI服务提供者",
     "edit": "编辑AI服务提供者",

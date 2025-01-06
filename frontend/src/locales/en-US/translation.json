@@ -214,7 +214,8 @@
       },
       "createDomain": "Create a domain name",
       "howToUse": "How to use",
-      "aiRouteUsage": "How to use AI routing"
+      "aiRouteUsage": "How to use AI routing",
+      "aiRouteUsageText": "You can send a test request with the command below:"
     },
     "create": "Create AI service provider",
     "edit": "Edit AI service provider",
