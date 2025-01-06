@@ -20,6 +20,7 @@ header:
     - 'backend/**/pom.xml'
     - 'backend/*.sh'
     - 'backend/**/*.json'
+    - 'backend/**/*.html'
     - 'backend/**/*.md'
     - 'backend/**/*.yaml'
     - 'backend/.mvn/**'
