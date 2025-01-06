@@ -13,7 +13,6 @@
 package com.alibaba.higress.sdk.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
@@ -25,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class RouteServiceImpl implements RouteService {
+
+    private static final RoutePageQuery DEFAULT_QUERY = new RoutePageQuery();
 
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
@@ -51,40 +53,70 @@ class RouteServiceImpl implements RouteService {
 
     @Override
     public PaginatedResult<Route> list(RoutePageQuery query) {
-        // list ingress
-        List<V1Ingress> ingresses;
-        if (query != null && StringUtils.isNotEmpty(query.getDomainName())) {
-            ingresses = kubernetesClientService.listIngressByDomain(query.getDomainName());
-        } else {
-            ingresses = kubernetesClientService.listIngress();
+        if (query == null) {
+            query = DEFAULT_QUERY;
         }
-        List<V1Ingress> supportedIngresses =
-                ingresses.stream().filter(kubernetesModelConverter::isIngressSupported).toList();
-        List<Route> ingressResult = supportedIngresses.stream().map(kubernetesModelConverter::ingress2Route).toList();
-        // list httpRoute
-        List<V1HTTPRoute> httpRoutes;
-        if (query != null && StringUtils.isNotEmpty(query.getDomainName())) {
-            httpRoutes = kubernetesClientService.listHttpRouteByDomain(query.getDomainName());
-        } else {
-            httpRoutes = kubernetesClientService.listHttpRoute();
+
+        List<V1Ingress> ingresses = listIngresses(query);
+        List<Route> ingressListRoutes = ingresses.stream()
+                .map(kubernetesModelConverter::ingress2Route)
+                .toList();
+
+        List<V1HTTPRoute> httpRoutes = listHttpRoutes(query);
+        List<Route> httpListRoutes = httpRoutes.stream()
+                .map(kubernetesModelConverter::httpRoute2Route)
+                .toList();
+
+        List<Route> combinedRoutes = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(ingressListRoutes)) {
+            combinedRoutes.addAll(ingressListRoutes);
         }
-        List<V1HTTPRoute> supportedHttpRoutes =
-                httpRoutes.stream().filter(kubernetesModelConverter::isHttpRouteSupported).toList();
-        List<Route> httpRouteResult = supportedHttpRoutes.stream().map(kubernetesModelConverter::httpRoute2Route).toList();
-        if (CollectionUtils.isEmpty(ingressResult) && CollectionUtils.isEmpty(httpRouteResult)) {
-            return PaginatedResult.createFromFullList(Collections.emptyList(), query);
+        if (!CollectionUtils.isEmpty(httpRoutes)) {
+            combinedRoutes.addAll(httpListRoutes);
         }
-        if(!ingressResult.isEmpty()){
-            if(!httpRouteResult.isEmpty()){
-                ingressResult = new ArrayList<>(ingressResult);
-                ingressResult.addAll(httpRouteResult);
-            }
-        }else{
-            ingressResult = httpRouteResult;
-        }
-        return PaginatedResult.createFromFullList(ingressResult, query);
+
+        return PaginatedResult.createFromFullList(combinedRoutes, query);
     }
 
+    private List<V1Ingress> listIngresses(RoutePageQuery query) {
+        try {
+            if (query == null) {
+                query = DEFAULT_QUERY;
+            }
+
+            if (StringUtils.isNotEmpty(query.getDomainName())) {
+                if (Boolean.TRUE.equals(query.getAll())) {
+                    throw new ValidationException(
+                        "The query parameter 'all' is not supported when querying by domain.");
+                }
+                return kubernetesClientService.listIngressByDomain(query.getDomainName());
+            }
+
+            if (Boolean.TRUE.equals(query.getAll())) {
+                return kubernetesClientService.listAllIngresses();
+            } else {
+                return kubernetesClientService.listIngress();
+            }
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing Ingresses.", e);
+        }
+    }
+
+    private List<V1HTTPRoute> listHttpRoutes(RoutePageQuery query) {
+        if (query == null) {
+            query = DEFAULT_QUERY;
+        }
+
+        if (StringUtils.isNotEmpty(query.getDomainName())) {
+            if (Boolean.TRUE.equals(query.getAll())) {
+                throw new ValidationException(
+                        "The query parameter 'all' is not supported when querying by domain.");
+            }
+            return kubernetesClientService.listHttpRouteByDomain(query.getDomainName());
+        } else {
+            return kubernetesClientService.listHttpRoute();
+        }
+    }
     @Override
     public Route query(String routeName) {
         V1Ingress ingress;

@@ -27,11 +27,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.HealthzController;
+import com.alibaba.higress.console.controller.LandingController;
 import com.alibaba.higress.console.controller.SessionController;
 import com.alibaba.higress.console.controller.SystemController;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.console.controller.dto.User;
 import com.alibaba.higress.console.controller.exception.AuthException;
+import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SessionUserHelper;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -102,6 +103,9 @@ public class ApiStandardizationAspect {
 
     private static boolean isLoginRequired(ProceedingJoinPoint point) {
         if (point.getTarget() instanceof HealthzController) {
+            return false;
+        }
+        if (point.getTarget() instanceof LandingController) {
             return false;
         }
         if (point.getTarget() instanceof SessionController) {

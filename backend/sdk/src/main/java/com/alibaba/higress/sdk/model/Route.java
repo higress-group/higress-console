@@ -78,4 +78,6 @@ public class Route implements VersionedDto {
     private HeaderControlConfig headerControl;
 
     private Map<String, String> customConfigs;
+
+    private Boolean readonly;
 }

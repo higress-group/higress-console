@@ -16,6 +16,7 @@ public class HigressConstants {
     public static final String NS_DEFAULT = "higress-system";
     public static final String CONTROLLER_SERVICE_NAME_DEFAULT = "higress-controller";
     public static final String CONTROLLER_INGRESS_CLASS_NAME_DEFAULT = "higress";
+    public static final String NGINX_INGRESS_CLASS_NAME = "nginx";
     public static final String CONTROLLER_SERVICE_HOST_DEFAULT = "localhost";
     public static final int CONTROLLER_SERVICE_PORT_DEFAULT = 15014;
     public static final String CONTROLLER_JWT_POLICY_DEFAULT = KubernetesConstants.JwtPolicy.THIRD_PARTY_JWT;

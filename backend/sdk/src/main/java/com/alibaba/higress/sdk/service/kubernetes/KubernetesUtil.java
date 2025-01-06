@@ -57,6 +57,15 @@ public class KubernetesUtil {
         return object.getMetadata().getName();
     }
 
+    public static String getLabel(KubernetesObject object, String key) {
+        return getLabel(object.getMetadata(), key);
+    }
+
+    public static String getLabel(V1ObjectMeta metadata, String key) {
+        Map<String, String> labels = metadata.getLabels();
+        return labels == null ? null : labels.get(key);
+    }
+
     public static void setLabel(KubernetesObject object, String key, String value) {
         setLabel(Objects.requireNonNull(object.getMetadata()), key, value);
     }
@@ -71,6 +80,15 @@ public class KubernetesUtil {
             metadata.setLabels(labels);
         }
         labels.put(key, value);
+    }
+
+    public static String getAnnotation(KubernetesObject object, String key) {
+        return getAnnotation(object.getMetadata(), key);
+    }
+
+    public static String getAnnotation(V1ObjectMeta metadata, String key) {
+        Map<String, String> annotations = metadata.getAnnotations();
+        return annotations == null ? null : annotations.get(key);
     }
 
     public static void setAnnotation(KubernetesObject object, String key, String value) {

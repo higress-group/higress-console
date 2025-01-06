@@ -281,6 +281,7 @@ public class KubernetesModelConverter {
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
         fillCustomConfigs(route, ingress.getMetadata());
+        route.setReadonly(!kubernetesClientService.isDefinedByConsole(ingress) || !isIngressSupported(ingress));
         return route;
     }
 
@@ -301,6 +302,7 @@ public class KubernetesModelConverter {
         fillRouteMetadata(route, httpRoute.getMetadata());
         fillRouteInfoFromHttpRoute(route, httpRoute.getSpec(), httpRoute.getMetadata());
         fillCustomConfigs(route, httpRoute.getMetadata());
+        route.setReadonly(!kubernetesClientService.isDefinedByConsole(httpRoute) || !isHttpRouteSupported(httpRoute));
         return route;
     }
 
@@ -1477,8 +1479,12 @@ public class KubernetesModelConverter {
         metadata.setName(route.getName());
         metadata.setResourceVersion(route.getVersion());
 
-        if (CollectionUtils.isNotEmpty(route.getDomains())) {
-            for (String domain : route.getDomains()) {
+        {
+            List<String> domains = route.getDomains();
+            if (CollectionUtils.isEmpty(domains)) {
+                domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
+            }
+            for (String domain : domains) {
                 setDomainLabel(metadata, domain);
             }
         }
@@ -1744,6 +1750,7 @@ public class KubernetesModelConverter {
         metadata.setName(route.getName());
         metadata.setResourceVersion(route.getVersion());
         metadata.setNamespace(kubernetesClientService.httpRouteNameSpace);
+        metadata.setLabels(new HashMap<>());
         List<String> routeDomains = route.getDomains();
         if (CollectionUtils.isNotEmpty(routeDomains)) {
             for (String domainName : routeDomains) {

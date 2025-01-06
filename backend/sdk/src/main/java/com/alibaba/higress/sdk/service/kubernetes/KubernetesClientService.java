@@ -54,9 +54,8 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1Status;
+import java.util.function.Predicate;
 
-import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
-import io.kubernetes.client.util.Yaml;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,11 +63,13 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.http.HttpStatus;
+import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeList;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -83,9 +84,12 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Strings;
+import io.kubernetes.client.util.Yaml;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -114,7 +118,9 @@ public class KubernetesClientService {
 
     private final String controllerNamespace;
 
-    private final String controllerIngressClassName;
+    private final String controllerWatchedIngressClassName;
+
+    private final String controllerWatchedNamespace;
 
     private final String controllerServiceHost;
 
@@ -124,6 +130,11 @@ public class KubernetesClientService {
 
     private final String controllerAccessToken;
 
+    private final Predicate<V1Ingress> isIngressWatched;
+
+    private final String defaultIngressClass;
+
+    @Getter
     private boolean ingressV1Supported;
 
     private String workMode;
@@ -140,12 +151,16 @@ public class KubernetesClientService {
         this.controllerServiceName = config.getControllerServiceName();
         this.controllerServiceHost = config.getControllerServiceHost();
         this.controllerServicePort = config.getControllerServicePort();
-        this.controllerIngressClassName = config.getIngressClassName();
+        this.controllerWatchedIngressClassName = config.getControllerWatchedIngressClassName();
+        this.controllerWatchedNamespace = config.getControllerWatchedNamespace();
         this.controllerJwtPolicy = config.getControllerJwtPolicy();
         this.controllerAccessToken = config.getControllerAccessToken();
         this.inClusterMode = Strings.isNullOrEmpty(kubeConfig) && isInCluster();
         this.httpRouteNameSpace = controllerNamespace;
         this.gatewayNameSpace = controllerNamespace;
+        this.isIngressWatched = buildIsIngressWatchedPredicate(this.controllerWatchedIngressClassName);
+        this.defaultIngressClass = StringUtils.firstNonEmpty(this.controllerWatchedIngressClassName,
+            HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT);
 
         if (inClusterMode) {
             client = ClientBuilder.cluster().build();
@@ -284,6 +299,15 @@ public class KubernetesClientService {
             createReferenceGrant(v1beta1ReferenceGrant);
         }
     }
+    public boolean isDefinedByConsole(KubernetesObject metadata) {
+        return isDefinedByConsole(metadata.getMetadata());
+    }
+
+    public boolean isDefinedByConsole(V1ObjectMeta metadata) {
+        return metadata != null && controllerNamespace.equals(metadata.getNamespace())
+            && Label.RESOURCE_DEFINER_VALUE.equals(KubernetesUtil.getLabel(metadata, Label.RESOURCE_DEFINER_KEY));
+    }
+
     public <T extends KubernetesObject> T loadFromYaml(String yaml, Class<T> clazz) {
         return Yaml.getSnakeYaml(clazz).loadAs(yaml, clazz);
     }
@@ -333,37 +357,49 @@ public class KubernetesClientService {
         return new File(POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH).exists();
     }
 
-    public List<V1Ingress> listIngress() {
+    public List<V1Ingress> listAllIngresses() throws ApiException {
+        List<V1Ingress> ingresses = new ArrayList<>();
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
-        try {
-            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
-                DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
-            if (list == null) {
-                return Collections.emptyList();
+        if (StringUtils.isEmpty(controllerWatchedNamespace)) {
+            V1IngressList list =
+                apiInstance.listIngressForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
+            ingresses.addAll(list.getItems());
+        } else {
+            for (String ns : List.of(controllerNamespace, controllerWatchedNamespace)) {
+                V1IngressList list =
+                    apiInstance.listNamespacedIngress(ns, null, null, null, null, null, null, null, null, null, null);
+                if (list != null) {
+                    ingresses.addAll(list.getItems());
+                }
             }
-            return sortKubernetesObjects(list.getItems());
-        } catch (ApiException e) {
-            log.error("listIngress Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
-                + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
         }
+        retainWatchedIngress(ingresses);
+        return sortKubernetesObjects(ingresses);
     }
 
-    public List<V1Ingress> listIngressByDomain(String domainName) {
+    public List<V1Ingress> listIngress() throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
+            DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
+        if (list == null) {
+            return Collections.emptyList();
+        }
+        List<V1Ingress> ingresses = new ArrayList<>(list.getItems());
+        retainWatchedIngress(ingresses);
+        return sortKubernetesObjects(ingresses);
+    }
+
+    public List<V1Ingress> listIngressByDomain(String domainName) throws ApiException {
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         String labelSelectors = joinLabelSelectors(DEFAULT_LABEL_SELECTORS, buildDomainLabelSelector(domainName));
-        try {
-            V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
-                labelSelectors, null, null, null, null, null);
-            if (list == null) {
-                return Collections.emptyList();
-            }
-            return sortKubernetesObjects(list.getItems());
-        } catch (ApiException e) {
-            log.error("listIngressByDomain Status code: " + e.getCode() + "Reason: " + e.getResponseBody()
-                + "Response headers: " + e.getResponseHeaders(), e);
-            return null;
+        V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
+            labelSelectors, null, null, null, null, null);
+        if (list == null) {
+            return Collections.emptyList();
         }
+        List<V1Ingress> ingresses = new ArrayList<>(list.getItems());
+        retainWatchedIngress(ingresses);
+        return sortKubernetesObjects(ingresses);
     }
 
     public V1Ingress readIngress(String name) throws ApiException {
@@ -379,8 +415,8 @@ public class KubernetesClientService {
     }
 
     public V1Ingress createIngress(V1Ingress ingress) throws ApiException {
-        Objects.requireNonNull(ingress.getSpec()).setIngressClassName(controllerIngressClassName);
         renderDefaultLabels(ingress);
+        fillDefaultIngressClass(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.createNamespacedIngress(controllerNamespace, ingress, null, null, null, null);
     }
@@ -390,8 +426,8 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("Ingress doesn't have a valid metadata.");
         }
-        Objects.requireNonNull(ingress.getSpec()).setIngressClassName(controllerIngressClassName);
         renderDefaultLabels(ingress);
+        fillDefaultIngressClass(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.replaceNamespacedIngress(metadata.getName(), controllerNamespace, ingress, null, null, null,
             null);
@@ -1030,6 +1066,41 @@ public class KubernetesClientService {
         if (KubernetesUtil.isInternalResource(object)) {
             KubernetesUtil.setLabel(object, Label.INTERNAL_KEY, Boolean.toString(true));
         }
+    }
+
+    private void retainWatchedIngress(List<V1Ingress> ingresses) {
+        if (CollectionUtils.isNotEmpty(ingresses)) {
+            ingresses.removeIf(i -> !isIngressWatched.test(i));
+        }
+    }
+
+    private void fillDefaultIngressClass(V1Ingress ingress) {
+        V1IngressSpec spec = Objects.requireNonNull(ingress.getSpec());
+        if (StringUtils.isEmpty(spec.getIngressClassName())) {
+            spec.setIngressClassName(defaultIngressClass);
+        }
+    }
+
+    private static Predicate<V1Ingress> buildIsIngressWatchedPredicate(String controllerWatchedIngressClassName) {
+        if (StringUtils.isEmpty(controllerWatchedIngressClassName)) {
+            return ingress -> true;
+        }
+        if (HigressConstants.NGINX_INGRESS_CLASS_NAME.equals(controllerWatchedIngressClassName)) {
+            return ingress -> {
+                String ingressClass = getIngressClassName(ingress);
+                return StringUtils.isEmpty(ingressClass)
+                    || HigressConstants.NGINX_INGRESS_CLASS_NAME.equals(ingressClass);
+            };
+        }
+        return ingress -> controllerWatchedIngressClassName.equals(getIngressClassName(ingress));
+    }
+
+    private static String getIngressClassName(V1Ingress ingress) {
+        V1IngressSpec spec = ingress.getSpec();
+        if (spec == null) {
+            return null;
+        }
+        return spec.getIngressClassName();
     }
 
     private static <T extends KubernetesObject> List<T> sortKubernetesObjects(List<T> objects) {

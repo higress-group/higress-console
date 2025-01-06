@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
-import com.alibaba.higress.console.controller.dto.User;
+import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.util.AesUtil;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;

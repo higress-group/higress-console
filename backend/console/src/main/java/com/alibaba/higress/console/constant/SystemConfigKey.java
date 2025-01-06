@@ -34,9 +34,19 @@ public class SystemConfigKey {
 
     public static final String CONTROLLER_SERVICE_HOST_KEY = CONFIG_KEY_PREFIX + "controller.service.host";
 
+    public static final String CONTROLLER_WATCHED_NAMESPACE_KEY = CONFIG_KEY_PREFIX + "controller.watched-namespace";
+
     public static final String CONTROLLER_INGRESS_CLASS_NAME_KEY = CONFIG_KEY_PREFIX + "controller.ingress-class-name";
 
     public static final String CONTROLLER_SERVICE_NAME_KEY = CONFIG_KEY_PREFIX + "controller.service.name";
+
+    public static final String CONSOLE_SERVICE_HOST_KEY = CONFIG_KEY_PREFIX + "service.host";
+
+    public static final String DEFAULT_CONSOLE_SERVICE_HOST = "higress-console.higress-system.svc.cluster.local";
+
+    public static final String CONSOLE_SERVICE_PORT_KEY = CONFIG_KEY_PREFIX + "service.port";
+
+    public static final int DEFAULT_CONSOLE_SERVICE_PORT = 8080;
 
     public static final String CONFIG_MAP_NAME_KEY = CONFIG_KEY_PREFIX + "config-map.name";
 
@@ -71,13 +81,15 @@ public class SystemConfigKey {
 
     public static final String DASHBOARD_PASSWORD_DEFAULT = "admin";
 
-    public static final String DASHBOARD_DATASOURCE_PROM_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.prom.name";
+    public static final String DASHBOARD_DATASOURCE_PROM_NAME_KEY =
+        CONFIG_KEY_PREFIX + "dashboard.datasource.prom.name";
 
     public static final String DASHBOARD_DATASOURCE_PROM_NAME_DEFAULT = "Prometheus";
 
     public static final String DASHBOARD_DATASOURCE_PROM_URL_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.prom.url";
 
-    public static final String DASHBOARD_DATASOURCE_LOKI_NAME_KEY = CONFIG_KEY_PREFIX + "dashboard.datasource.loki.name";
+    public static final String DASHBOARD_DATASOURCE_LOKI_NAME_KEY =
+        CONFIG_KEY_PREFIX + "dashboard.datasource.loki.name";
 
     public static final String DASHBOARD_DATASOURCE_LOKI_NAME_DEFAULT = "Loki";
 

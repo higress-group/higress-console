@@ -52,9 +52,11 @@ public class SdkConfig {
     @Value("${" + SystemConfigKey.NS_KEY + ":" + HigressConstants.NS_DEFAULT + "}")
     private String controllerNamespace = HigressConstants.NS_DEFAULT;
 
-    @Value("${" + SystemConfigKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":"
-        + HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT + "}")
-    private String controllerIngressClassName = HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
+    @Value("${" + SystemConfigKey.CONTROLLER_WATCHED_NAMESPACE_KEY + ":}")
+    private String controllerWatchedNamespace;
+
+    @Value("${" + SystemConfigKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":}")
+    private String controllerWatchedIngressClassName;
 
     @Value("${" + SystemConfigKey.CONTROLLER_SERVICE_HOST_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT
         + "}")
@@ -76,7 +78,8 @@ public class SdkConfig {
     @PostConstruct
     public void initialize() throws IOException {
         HigressServiceConfig config = HigressServiceConfig.builder().withKubeConfigPath(kubeConfig)
-            .withIngressClassName(controllerIngressClassName).withControllerNamespace(controllerNamespace)
+            .withControllerNamespace(controllerNamespace).withControllerWatchedNamespace(controllerWatchedNamespace)
+            .withControllerWatchedIngressClassName(controllerWatchedIngressClassName)
             .withControllerServiceName(controllerServiceName).withControllerServiceHost(controllerServiceHost)
             .withControllerServicePort(controllerServicePort).withControllerJwtPolicy(controllerJwtPolicy)
             .withControllerAccessToken(controllerAccessToken).build();
