@@ -26,6 +26,14 @@ public class KubernetesConstants {
     public static final String SECRET_TLS_KEY_FIELD = "tls.key";
     public static final String YAML_SEPARATOR = "---\n";
 
+    public static class WorkMode {
+        public static final String KEY = "workMode";
+        public static final String GATEWAY = "gateway";
+        public static final String INGRESS = "ingress";
+    }
+
+
+
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
         public static final String NGINX_INGRESS_KEY_PREFIX = "nginx.ingress.kubernetes.io/";

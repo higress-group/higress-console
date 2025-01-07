@@ -39,7 +39,7 @@ import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.RouteService;
 
 @RestController("DomainsController")
-@RequestMapping("/v1/domains")
+@RequestMapping("/v2/domains")
 @Validated
 public class DomainsController {
 

@@ -38,6 +38,29 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gatewayclass.V1GatewayClass;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1Gateway;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecListeners;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.gateways.V1GatewaySpecTls;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecBackendRefs;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecFilters;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecHeaders;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecMatches;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecParentRefs;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecPath;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecQueryParams;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecRequestHeaderModifier;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecRequestHeaderModifierAdd;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecResponseHeaderModifier;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecRules;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecUrlRewrite;
+import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRouteSpecUrlRewritePath;
+import io.kubernetes.client.common.KubernetesObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -185,8 +208,76 @@ public class KubernetesModelConverter {
         return true;
     }
 
+    public boolean isGatewaySupported(V1Gateway gateway) {
+        if (gateway.getMetadata() == null) {
+            return false;
+        }
+        V1GatewaySpec spec = gateway.getSpec();
+        if (spec == null) {
+            return false;
+        }
+        if (StringUtils.isEmpty(spec.getGatewayClassName())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(spec.getListeners())) {
+            return false;
+        }
+        // Check each listener
+        for (V1GatewaySpecListeners listener : spec.getListeners()) {
+            if (StringUtils.isEmpty(listener.getName())) {
+                return false;
+            }
+            if (listener.getProtocol() == null ||
+                    !listener.getProtocol().equals("HTTP") && !listener.getProtocol().equals("HTTPS")) {
+                return false;
+            }
+            if (listener.getProtocol().equals("HTTPS")) {
+                V1GatewaySpecTls tls = listener.getTls();
+                if (tls == null || CollectionUtils.isEmpty(tls.getCertificateRefs())) {
+                    return false;
+                }
+            }
+            if (listener.getPort() == null || listener.getPort() <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isHttpRouteSupported(V1HTTPRoute httpRoute) {
+        if (httpRoute.getMetadata() == null) {
+            return false;
+        }
+        V1HTTPRouteSpec spec = httpRoute.getSpec();
+        if (spec == null) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(spec.getParentRefs())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(spec.getRules())) {
+            return false;
+        }
+        if (!CollectionUtils.isEmpty(spec.getHostnames()) && spec.getHostnames().size() > 1) {
+            return false;
+        }
+        for (V1HTTPRouteSpecRules rule : spec.getRules()) {
+            if (CollectionUtils.isEmpty(rule.getBackendRefs())) {
+                return false;
+            }
+            for (V1HTTPRouteSpecBackendRefs backendRef : rule.getBackendRefs()) {
+                if (backendRef.getKind()!=null && !"Service".equals(backendRef.getKind())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
     public Route ingress2Route(V1Ingress ingress) {
         Route route = new Route();
+        route.setIsIngressMode(Boolean.TRUE);
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
         fillCustomConfigs(route, ingress.getMetadata());
@@ -203,6 +294,63 @@ public class KubernetesModelConverter {
         fillIngressCors(ingress, route);
         fillIngressAnnotations(ingress, route);
         return ingress;
+    }
+
+    public Route httpRoute2Route(V1HTTPRoute httpRoute){
+        Route route = new Route();
+        route.setIsIngressMode(Boolean.FALSE);
+        fillRouteMetadata(route, httpRoute.getMetadata());
+        fillRouteInfoFromHttpRoute(route, httpRoute.getSpec(), httpRoute.getMetadata());
+        fillCustomConfigs(route, httpRoute.getMetadata());
+        route.setReadonly(!kubernetesClientService.isDefinedByConsole(httpRoute) || !isHttpRouteSupported(httpRoute));
+        return route;
+    }
+
+    public V1HTTPRoute route2HttpRoute(Route route){
+        V1HTTPRoute httpRoute = new V1HTTPRoute();
+        httpRoute.setMetadata(new V1ObjectMeta());
+        httpRoute.setSpec(new V1HTTPRouteSpec());
+        fillHttpRouteMetadata(httpRoute, route);
+        fillHttpRouteSpec(httpRoute, route);
+        fillIngressCors(httpRoute, route);
+        fillIngressAnnotations(httpRoute, route);
+        return httpRoute;
+    }
+
+    public V1Gateway domain2Gateway(Domain domain){
+        V1Gateway gateway = new V1Gateway();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName(domainName2GatewayName(domain.getName()));
+        metadata.setResourceVersion(domain.getVersion());
+        metadata.setNamespace(kubernetesClientService.gatewayNameSpace);
+        gateway.setMetadata(metadata);
+        // set the gateway address to higress-gateway
+        V1GatewaySpec spec = new V1GatewaySpec().addDefaultAddress();
+        spec.setGatewayClassName(V1GatewayClass.DEFAULT_NAME);
+        List<V1GatewaySpecListeners> listeners = new ArrayList<>();
+        if (domain.getPortAndCertMap().isEmpty()){
+            log.error("Domain must have at least one port!");
+            return null;
+        }
+        domain.getPortAndCertMap().forEach((port, cert) -> {
+            V1GatewaySpecListeners listener = new V1GatewaySpecListeners();
+            listener.setName(KubernetesUtil.normalizeDomainName(domain.getName())+Separators.DASH+port);
+            listener.setPort(port);
+            if (!Separators.ASTERISK.equals(domain.getName()) && !HigressConstants.DEFAULT_DOMAIN.equals(domain.getName())) {
+                listener.setHostname(domain.getName());
+            }
+            listener.setProtocol("HTTP");
+            if (!"".equals(cert)){
+                listener.setProtocol("HTTPS");
+                V1GatewaySpecTls tls = V1GatewaySpecListeners.getDefaultTls(cert);
+                listener.setTls(tls);
+            }
+            listener.setAllowedRoutes(V1GatewaySpecListeners.getDefaultAllowedRoutes());
+            listeners.add(listener);
+        });
+        spec.setListeners(listeners);
+        gateway.setSpec(spec);
+        return gateway;
     }
 
     private static void fillRouteCors(Route route, V1ObjectMeta metadata) {
@@ -253,8 +401,10 @@ public class KubernetesModelConverter {
 
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, domain.getName());
-        configMap.put(KubernetesConstants.K8S_CERT, domain.getCertIdentifier());
+        configMap.put(KubernetesConstants.K8S_CERT, JSON.toJSONString(domain.getPortAndCertMap()));
         configMap.put(KubernetesConstants.K8S_ENABLE_HTTPS, domain.getEnableHttps());
+        configMap.put(KubernetesConstants.WorkMode.KEY,
+                domain.getIsIngressMode()==null || domain.getIsIngressMode() ? KubernetesConstants.WorkMode.INGRESS : KubernetesConstants.WorkMode.GATEWAY);
         domainConfigMap.data(configMap);
 
         return domainConfigMap;
@@ -273,7 +423,22 @@ public class KubernetesModelConverter {
             throw new IllegalArgumentException("No data is found in the ConfigMap.");
         }
         domain.setName(configMapData.get(CommonKey.DOMAIN));
-        domain.setCertIdentifier(configMapData.get(KubernetesConstants.K8S_CERT));
+        String certData = configMapData.get(KubernetesConstants.K8S_CERT);
+        domain.setIsIngressMode(Boolean.TRUE);
+        try {
+            domain.setPortAndCertMap(JSON.parseObject(certData, Map.class));
+            String workMode = configMapData.get(KubernetesConstants.WorkMode.KEY);
+            // if workMode is null -> set to true(ingress)
+            domain.setIsIngressMode(!KubernetesConstants.WorkMode.GATEWAY.equals(workMode));
+        }catch(JSONException e){
+            // ingress-style cert (Only String) -> turn to map[443:certName]
+            Map<Integer, String> portCertMap = new HashMap<>();
+            if (StringUtils.isNotEmpty(certData)) {
+                portCertMap.put(443, certData);
+            }
+            domain.setPortAndCertMap(portCertMap);
+        }
+
         domain.setEnableHttps(configMapData.get(KubernetesConstants.K8S_ENABLE_HTTPS));
         return domain;
     }
@@ -282,6 +447,13 @@ public class KubernetesModelConverter {
         return CommonKey.DOMAIN_PREFIX + KubernetesUtil.normalizeDomainName(domainName);
     }
 
+    public String domainName2GatewayName(String domainName) {
+        return KubernetesUtil.normalizeDomainName(domainName);
+    }
+
+    public String gatewayName2DomainName(String gatewayName) {
+        return gatewayName.replace('-', '.');
+    }
     public V1ConfigMap aiRoute2ConfigMap(AiRoute route) {
         V1ConfigMap domainConfigMap = new V1ConfigMap();
 
@@ -975,13 +1147,12 @@ public class KubernetesModelConverter {
         fillRouteDestinations(route, metadata, path.getBackend());
     }
 
-    private void fillIngressCors(V1Ingress ingress, Route route) {
+    private void fillIngressCors(KubernetesObject object, Route route) {
         CorsConfig cors = route.getCors();
         if (Objects.isNull(cors)) {
             return;
         }
-
-        V1ObjectMeta metadata = Objects.requireNonNull(ingress.getMetadata());
+        V1ObjectMeta metadata = Objects.requireNonNull(object.getMetadata());
         if (!Objects.isNull(cors.getEnabled())) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.CORS_ENABLED_KEY,
                 cors.getEnabled().toString());
@@ -1012,7 +1183,7 @@ public class KubernetesModelConverter {
         }
     }
 
-    private void fillIngressAnnotations(V1Ingress ingress, Route route) {
+    private void fillIngressAnnotations(KubernetesObject object, Route route) {
         if (MapUtils.isEmpty(route.getCustomConfigs())) {
             return;
         }
@@ -1030,7 +1201,7 @@ public class KubernetesModelConverter {
                         + "Please configure it in the corresponding section instead of using custom annotations.");
                 }
             }
-            KubernetesUtil.setAnnotation(ingress, config.getKey(), config.getValue());
+            KubernetesUtil.setAnnotation(object, config.getKey(), config.getValue());
         }
     }
 
@@ -1460,14 +1631,17 @@ public class KubernetesModelConverter {
             if (configMap == null) {
                 continue;
             }
-
             Domain domain = configMap2Domain(configMap);
+            Map<Integer, String> portAndCertMap = domain.getPortAndCertMap();
+            if (portAndCertMap.get(80)==null || StringUtils.isNotEmpty(portAndCertMap.get(80))) {
+                throw new BusinessException("The domain does not have port 80 for HTTP enabled.");
+            }
 
             if (Domain.EnableHttps.OFF.equals(domain.getEnableHttps())) {
                 continue;
             }
 
-            if (StringUtils.isEmpty(domain.getCertIdentifier())) {
+            if (StringUtils.isEmpty(portAndCertMap.get(443))) {
                 continue;
             }
 
@@ -1475,7 +1649,7 @@ public class KubernetesModelConverter {
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
-            tls.setSecretName(domain.getCertIdentifier());
+            tls.setSecretName(portAndCertMap.get(443));
             if (tlses == null) {
                 tlses = new ArrayList<>();
                 spec.setTls(tlses);
@@ -1568,6 +1742,568 @@ public class KubernetesModelConverter {
         if (!valueBuilder.isEmpty()) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
                 valueBuilder.toString());
+        }
+    }
+
+    private void fillHttpRouteMetadata(V1HTTPRoute httpRoute, Route route) {
+        V1ObjectMeta metadata = Objects.requireNonNull(httpRoute.getMetadata());
+        metadata.setName(route.getName());
+        metadata.setResourceVersion(route.getVersion());
+        metadata.setNamespace(kubernetesClientService.httpRouteNameSpace);
+        metadata.setLabels(new HashMap<>());
+        List<String> routeDomains = route.getDomains();
+        if (CollectionUtils.isNotEmpty(routeDomains)) {
+            for (String domainName : routeDomains) {
+                setDomainLabel(metadata, domainName);
+                if (Strings.isNullOrEmpty(domainName)) {
+                    continue;
+                }
+                V1ConfigMap configMap;
+                try {
+                    configMap = kubernetesClientService.readConfigMap(domainName2ConfigMapName(domainName));
+                } catch (ApiException e) {
+                    throw new BusinessException("Error occurs when reading config map associated with domain " + domainName,
+                            e);
+                }
+                if (configMap == null) {
+                    continue;
+                }
+                Domain domain = configMap2Domain(configMap);
+                if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
+                    KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
+                            KubernetesConstants.Annotation.TRUE_VALUE);
+                }
+            }
+        }
+        fillIngressProxyNextUpstreamConfig(metadata, route.getProxyNextUpstream());
+    }
+    private void fillHttpRouteSpec(V1HTTPRoute httpRoute, Route route) {
+        V1HTTPRouteSpec spec = Objects.requireNonNull(httpRoute.getSpec());
+        List<String> domains = route.getDomains();
+        if(domains.size() > 1) {
+            throw new IllegalArgumentException("Only one domain is allowed, domain size: " + domains.size());
+        }
+        V1HTTPRouteSpecParentRefs parentRef = new V1HTTPRouteSpecParentRefs();
+        if (!domains.isEmpty()) {
+            String domainName = domains.get(0);
+            if (!Separators.ASTERISK.equals(domainName)) {
+                spec.addHostnamesItem(domainName);
+            }
+            parentRef.setName(domainName2GatewayName(domainName));
+            parentRef.setNamespace(kubernetesClientService.gatewayNameSpace);
+        }
+        spec.addParentRefsItem(parentRef);
+        V1HTTPRouteSpecRules specRule = new V1HTTPRouteSpecRules();
+        fillHttpRouteMatches(httpRoute.getMetadata(), specRule, route);
+        fillHttpRouteDestination(specRule, route);
+        fillHttpRouteFilters(specRule, route);
+        spec.addRulesItem(specRule);
+    }
+
+    private void fillHttpRouteMatches(V1ObjectMeta metadata, V1HTTPRouteSpecRules specRule, Route route){
+        V1HTTPRouteSpecMatches matchesItem = new V1HTTPRouteSpecMatches();
+        // path
+        V1HTTPRouteSpecPath path = new V1HTTPRouteSpecPath();
+        RoutePredicate pathPredicate = route.getPath();
+        if (pathPredicate != null) {
+            String matchType = pathPredicate.getMatchType();
+            if (StringUtils.isNotEmpty(matchType)) {
+                if (RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+                    path.setType(V1HTTPRouteSpecPath.TypeEnum.EXACT);
+                } else if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+                    path.setType(V1HTTPRouteSpecPath.TypeEnum.PATHPREFIX);
+                } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
+                    path.setType(V1HTTPRouteSpecPath.TypeEnum.REGULAREXPRESSION);
+                } else {
+                    throw new IllegalArgumentException("Unsupported path match type: " + matchType);
+                }
+                path.setValue(pathPredicate.getMatchValue());
+            }
+            if (null != pathPredicate.getCaseSensitive()) {
+                KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY,
+                        String.valueOf(!pathPredicate.getCaseSensitive()));
+            }
+        }
+        matchesItem.setPath(path);
+        // header
+        List<V1HTTPRouteSpecHeaders> specHeaders = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(route.getHeaders())) {
+            for (KeyedRoutePredicate header : route.getHeaders()) {
+                V1HTTPRouteSpecHeaders specHeader = new V1HTTPRouteSpecHeaders();
+                String matchType = header.getMatchType();
+                specHeader.setName(header.getKey());
+                specHeader.setValue(header.getMatchValue());
+                if (RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+                    specHeader.setType(V1HTTPRouteSpecHeaders.TypeEnum.EXACT);
+                    specHeaders.add(specHeader);
+                } else if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+                    specHeader.setType(V1HTTPRouteSpecHeaders.TypeEnum.REGULAREXPRESSION);
+                    specHeader.setValue("^"+Pattern.quote(header.getMatchValue())+".*");
+                    specHeaders.add(specHeader);
+                } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
+                    specHeader.setType(V1HTTPRouteSpecHeaders.TypeEnum.REGULAREXPRESSION);
+                    specHeaders.add(specHeader);
+                } else {
+                    throw new IllegalArgumentException("Unsupported header match type: " + matchType);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(specHeaders)) {
+            matchesItem.setHeaders(specHeaders);
+        }
+        // param
+        List<V1HTTPRouteSpecQueryParams> queryParams = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(route.getUrlParams())) {
+            for (KeyedRoutePredicate param : route.getUrlParams()) {
+                V1HTTPRouteSpecQueryParams queryParam = new V1HTTPRouteSpecQueryParams();
+                String matchType = param.getMatchType();
+                queryParam.setName(param.getKey());
+                queryParam.setValue(param.getMatchValue());
+                if (RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+                    queryParam.setType(V1HTTPRouteSpecQueryParams.TypeEnum.EXACT);
+                    queryParams.add(queryParam);
+                } else if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+                    queryParam.setType(V1HTTPRouteSpecQueryParams.TypeEnum.REGULAREXPRESSION);
+                    queryParam.setValue("^"+Pattern.quote(param.getMatchValue())+".*");
+                    queryParams.add(queryParam);
+                } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType)) {
+                    queryParam.setType(V1HTTPRouteSpecQueryParams.TypeEnum.REGULAREXPRESSION);
+                    queryParams.add(queryParam);
+                } else {
+                    throw new IllegalArgumentException("Unsupported header match type: " + matchType);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(queryParams)) {
+            matchesItem.setQueryParams(queryParams);
+        }
+        // method
+        // one matchesItem only have one method, need to copy
+        if (CollectionUtils.isNotEmpty(route.getMethods())) {
+            for (String method : route.getMethods()) {
+                V1HTTPRouteSpecMatches matchesItemCopy;
+                try{
+                    matchesItemCopy= (V1HTTPRouteSpecMatches) matchesItem.clone();
+                } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException("Error when clone matches", e);
+                }
+                if (V1HTTPRouteSpecMatches.MethodEnum.GET.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.GET);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.POST.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.POST);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.PUT.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.PUT);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.DELETE.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.DELETE);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.PATCH.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.PATCH);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.HEAD.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.HEAD);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.OPTIONS.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.OPTIONS);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.CONNECT.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.CONNECT);
+                } else if (V1HTTPRouteSpecMatches.MethodEnum.TRACE.toString().equals(method)) {
+                    matchesItemCopy.setMethod(V1HTTPRouteSpecMatches.MethodEnum.TRACE);
+                } else {
+                    throw new IllegalArgumentException("Unsupported method type: " + method);
+                }
+                specRule.addMatchesItem(matchesItemCopy);
+            }
+        } else {
+            specRule.addMatchesItem(matchesItem);
+        }
+    }
+
+    private void fillHttpRouteDestination(V1HTTPRouteSpecRules specRule, Route route){
+        List<UpstreamService> services = route.getServices();
+        if (CollectionUtils.isEmpty(services)) {
+            return;
+        }
+        List<V1HTTPRouteSpecBackendRefs> backendRefs = new ArrayList<>();
+        for(UpstreamService service : services){
+            String name = service.getName();
+            V1HTTPRouteSpecBackendRefs backend = new V1HTTPRouteSpecBackendRefs();
+            if (name.contains("cluster.local")){
+                String[] split = name.split("\\.");
+                if (split.length!=5) {
+                    throw new IllegalArgumentException("Illegal svc name: " + name);
+                }
+
+                backend.setName(split[0]);
+
+                if (split[4].split(":").length>1) {
+                    backend.setPort(Integer.parseInt(split[4].split(":")[1]));
+                }
+                String httpRouteNs = HigressConstants.NS_DEFAULT;
+                if (StringUtils.isNotEmpty(kubernetesClientService.httpRouteNameSpace)) {
+                    httpRouteNs = kubernetesClientService.httpRouteNameSpace;
+                }
+                if(!httpRouteNs.equals(split[1])){
+                    // namespaces of httpRoute and service are different, create referenceGrant
+                    String fromNs = kubernetesClientService.httpRouteNameSpace;
+                    String toNs = split[1];
+                    try {
+                        kubernetesClientService.addReferenceGrantForHttpRoute2Service(fromNs, toNs);
+                    } catch (Exception ex) {
+                        log.error("Failed to create ReferenceGrant:\nfrom:" + fromNs + " to:" + toNs, ex);
+                    }
+                    backend.setNamespace(split[1]);
+                }
+            } else {
+                // mcp
+                backend.setName(name);
+                backend.setGroup(V1McpBridge.API_GROUP);
+            }
+            if(service.getWeight()!= null){
+                backend.setWeight(service.getWeight());
+            }
+            backendRefs.add(backend);
+        }
+        if (CollectionUtils.isNotEmpty(backendRefs)) {
+            specRule.setBackendRefs(backendRefs);
+        } else {
+            specRule.setBackendRefs(Collections.singletonList(new V1HTTPRouteSpecBackendRefs()));
+        }
+    }
+
+    private void fillHttpRouteFilters(V1HTTPRouteSpecRules specRule, Route route){
+        List<V1HTTPRouteSpecFilters> filters = new ArrayList<>();
+        // url rewrite
+        RewriteConfig rewrite = route.getRewrite();
+        if (rewrite!=null && rewrite.getEnabled()) {
+            V1HTTPRouteSpecFilters filter = new V1HTTPRouteSpecFilters();
+            V1HTTPRouteSpecUrlRewrite urlRewrite = new V1HTTPRouteSpecUrlRewrite();
+            if (StringUtils.isNotEmpty(rewrite.getHost())) {
+                urlRewrite.setHostname(rewrite.getHost());
+            } else {
+                urlRewrite.setHostname(route.getDomains().get(0));
+            }
+            V1HTTPRouteSpecUrlRewritePath path = new V1HTTPRouteSpecUrlRewritePath();
+            String matchType = route.getPath().getMatchType();
+            if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+                // pre: REPLACEPREFIXMATCH
+                path.setReplacePrefixMatch(rewrite.getPath());
+                path.setType(V1HTTPRouteSpecUrlRewritePath.TypeEnum.REPLACEPREFIXMATCH);
+            } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType) || RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+                // regular or exact: REPLACEFULLPATH
+                path.setReplaceFullPath(rewrite.getPath());
+                path.setType(V1HTTPRouteSpecUrlRewritePath.TypeEnum.REPLACEFULLPATH);
+            }
+            urlRewrite.setPath(path);
+            filter.setUrlRewrite(urlRewrite);
+            filter.setType(V1HTTPRouteSpecFilters.TypeEnum.URLREWRITE);
+            filters.add(filter);
+        }
+        // headerModifier
+        HeaderControlConfig headerControl = route.getHeaderControl();
+        if (headerControl != null && headerControl.getEnabled()) {
+            if (headerControl.getRequest() != null) {
+                V1HTTPRouteSpecFilters filter = new V1HTTPRouteSpecFilters();
+                HeaderControlStageConfig config = headerControl.getRequest();
+                V1HTTPRouteSpecRequestHeaderModifier requestHeaderModifier = new V1HTTPRouteSpecRequestHeaderModifier();
+                fillHeaderModifier(config, requestHeaderModifier, null, true);
+                filter.setRequestHeaderModifier(requestHeaderModifier);
+                filter.setType(V1HTTPRouteSpecFilters.TypeEnum.REQUESTHEADERMODIFIER);
+                filters.add(filter);
+            }
+            if (headerControl.getResponse() != null) {
+                V1HTTPRouteSpecFilters filter = new V1HTTPRouteSpecFilters();
+                V1HTTPRouteSpecResponseHeaderModifier responseHeaderModifier = new V1HTTPRouteSpecResponseHeaderModifier();
+                HeaderControlStageConfig config = headerControl.getResponse();
+                fillHeaderModifier(config, null, responseHeaderModifier, false);
+                filter.setResponseHeaderModifier(responseHeaderModifier);
+                filter.setType(V1HTTPRouteSpecFilters.TypeEnum.RESPONSEHEADERMODIFIER);
+                filters.add(filter);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(filters)) {
+            specRule.setFilters(filters);
+        }
+    }
+
+    private void fillHeaderModifier(HeaderControlStageConfig config, V1HTTPRouteSpecRequestHeaderModifier requestHeader, V1HTTPRouteSpecResponseHeaderModifier responseHeader, Boolean isRequest){
+        if (config == null) {
+            return;
+        }
+        if (CollectionUtils.isNotEmpty(config.getAdd())) {
+            for (Header header : config.getAdd()) {
+                V1HTTPRouteSpecRequestHeaderModifierAdd add = new V1HTTPRouteSpecRequestHeaderModifierAdd();
+                add.setName(header.getKey());
+                add.setValue(header.getValue());
+                if (isRequest) {
+                    requestHeader.addAddItem(add);
+                } else {
+                    responseHeader.addAddItem(add);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(config.getSet())) {
+            for (Header header : config.getSet()) {
+                V1HTTPRouteSpecRequestHeaderModifierAdd set = new V1HTTPRouteSpecRequestHeaderModifierAdd();
+                set.setName(header.getKey());
+                set.setValue(header.getValue());
+                if (isRequest) {
+                    requestHeader.addSetItem(set);
+                } else {
+                    responseHeader.addSetItem(set);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(config.getRemove())) {
+            for (String key : config.getRemove()) {
+                if (isRequest) {
+                    requestHeader.addRemoveItem(key);
+                } else {
+                    responseHeader.addRemoveItem(key);
+                }
+            }
+        }
+    }
+
+    private void fillRouteInfoFromHttpRoute(Route route, V1HTTPRouteSpec spec, V1ObjectMeta metadata) {
+        if (spec == null) {
+            return;
+        }
+        // domains
+        List<V1HTTPRouteSpecParentRefs> parentRefs = spec.getParentRefs();
+        if (CollectionUtils.isNotEmpty(parentRefs)) {
+            String gatewayName = parentRefs.get(0).getName();
+            if (StringUtils.isNotEmpty(gatewayName)) {
+                String host = gatewayName2DomainName(gatewayName);
+                route.setDomains(Collections.singletonList(host));
+            } else {
+                route.setDomains(Collections.emptyList());
+            }
+        } else {
+            route.setDomains(Collections.emptyList());
+        }
+        // paths
+        List<V1HTTPRouteSpecRules> rules = spec.getRules();
+        if (CollectionUtils.isNotEmpty(rules)) {
+            fillPathRouteFromHttpRoute(route, metadata, rules.get(0));
+            List<V1HTTPRouteSpecFilters> filters = rules.get(0).getFilters();
+            if (CollectionUtils.isNotEmpty(filters)) {
+                for (V1HTTPRouteSpecFilters filter : filters) {
+                    if (V1HTTPRouteSpecFilters.TypeEnum.URLREWRITE == filter.getType()) {
+                        fillRewriteConfigFromHttpRoute(route, filter);
+                    } else if (V1HTTPRouteSpecFilters.TypeEnum.REQUESTHEADERMODIFIER == filter.getType() || V1HTTPRouteSpecFilters.TypeEnum.RESPONSEHEADERMODIFIER == filter.getType()) {
+                        fillHeaderConfigFromHttpRoute(route, filter);
+                    }
+                }
+            }
+            fillHeaderAndQueryConfigFromHttpRoute(route, rules.get(0));
+            fillMethodConfigFromHttpRoute(route, rules.get(0));
+        }
+
+        // retry & cors
+        Map<String, String> annotations = metadata.getAnnotations();
+        if (MapUtils.isNotEmpty(annotations)) {
+            fillProxyNextUpstreamConfig(annotations, route);
+            fillHeaderConfigConfig(annotations, route);
+        }
+        fillRouteCors(route, metadata);
+    }
+
+    private void fillPathRouteFromHttpRoute(Route route, V1ObjectMeta metadata, V1HTTPRouteSpecRules rule) {
+        // route.path && services
+        List<V1HTTPRouteSpecMatches> matches = rule.getMatches();
+        RoutePredicate routePredicate = new RoutePredicate();
+        if (CollectionUtils.isNotEmpty(matches)) {
+            V1HTTPRouteSpecPath path = matches.get(0).getPath();
+            if (path != null) {
+                routePredicate.setMatchValue(path.getValue());
+                V1HTTPRouteSpecPath.TypeEnum type = path.getType();
+                if (type == V1HTTPRouteSpecPath.TypeEnum.EXACT) {
+                    routePredicate.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
+                } else if (type == V1HTTPRouteSpecPath.TypeEnum.REGULAREXPRESSION) {
+                    routePredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+                } else if (type == V1HTTPRouteSpecPath.TypeEnum.PATHPREFIX) {
+                    routePredicate.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+                }
+            }
+        }
+        if (metadata != null && metadata.getAnnotations() != null) {
+            String ignorePathCase = metadata.getAnnotations().get(KubernetesConstants.Annotation.IGNORE_PATH_CASE_KEY);
+            if (StringUtils.isNotEmpty(ignorePathCase)) {
+                routePredicate.setCaseSensitive(!Boolean.parseBoolean(ignorePathCase));
+            }
+        }
+        route.setPath(routePredicate);
+        List<V1HTTPRouteSpecBackendRefs> backendRefs = rule.getBackendRefs();
+        if (CollectionUtils.isNotEmpty(backendRefs)) {
+            List<UpstreamService> services = new ArrayList<>();
+            for (V1HTTPRouteSpecBackendRefs backendRef : backendRefs) {
+                UpstreamService service = new UpstreamService();
+                String name = backendRef.getName();
+                if (!V1McpBridge.API_GROUP.equals(backendRef.getGroup())) {
+                    if(StringUtils.isNotEmpty(name)) {
+                        if (backendRef.getNamespace()!=null && !backendRef.getNamespace().isEmpty()) {
+                            name = name + "." + backendRef.getNamespace() + ".svc.cluster.local";
+                        } else {
+                            name = name + ".default.svc.cluster.local";
+                        }
+                        if (backendRef.getPort() != null) {
+                            name = name + ":" + backendRef.getPort();
+                        }
+                    }
+                }
+                service.setName(name);
+                service.setWeight(backendRef.getWeight());
+                services.add(service);
+            }
+            route.setServices(services);
+        }
+    }
+
+    private void fillRewriteConfigFromHttpRoute(Route route, V1HTTPRouteSpecFilters filter) {
+        V1HTTPRouteSpecUrlRewrite urlRewrite = filter.getUrlRewrite();
+        if (urlRewrite == null) {
+            return;
+        }
+        RewriteConfig rewrite = new RewriteConfig();
+        rewrite.setEnabled(Boolean.TRUE);
+        rewrite.setHost(urlRewrite.getHostname());
+        String matchType = route.getPath().getMatchType();
+        if (RoutePredicateTypeEnum.PRE.toString().equals(matchType)) {
+            rewrite.setPath(urlRewrite.getPath().getReplacePrefixMatch());
+        } else if (RoutePredicateTypeEnum.REGULAR.toString().equals(matchType) || RoutePredicateTypeEnum.EQUAL.toString().equals(matchType)) {
+            rewrite.setPath(urlRewrite.getPath().getReplaceFullPath());
+        }
+        route.setRewrite(rewrite);
+    }
+
+    private void fillHeaderConfigFromHttpRoute(Route route, V1HTTPRouteSpecFilters filter) {
+        if (V1HTTPRouteSpecFilters.TypeEnum.REQUESTHEADERMODIFIER == filter.getType()) {
+            HeaderControlConfig headerControl = new HeaderControlConfig();
+            headerControl.setEnabled(Boolean.TRUE);
+            HeaderControlStageConfig config = new HeaderControlStageConfig();
+            headerControl.setRequest(config);
+            V1HTTPRouteSpecRequestHeaderModifier requestHeaderModifier = filter.getRequestHeaderModifier();
+            if (requestHeaderModifier != null) {
+                List<V1HTTPRouteSpecRequestHeaderModifierAdd> adds = requestHeaderModifier.getAdd();
+                if (adds != null) {
+                    for (V1HTTPRouteSpecRequestHeaderModifierAdd add : adds) {
+                        List<Header> configAdd = new ArrayList<>();
+                        config.setAdd(configAdd);
+                        configAdd.add(new Header(add.getName(), add.getValue()));
+                    }
+                }
+                List<V1HTTPRouteSpecRequestHeaderModifierAdd> sets = requestHeaderModifier.getSet();
+                if (sets != null) {
+                    for (V1HTTPRouteSpecRequestHeaderModifierAdd set : sets) {
+                        List<Header> configSet = new ArrayList<>();
+                        config.setSet(configSet);
+                        configSet.add(new Header(set.getName(), set.getValue()));
+                    }
+                }
+                List<String> removes = requestHeaderModifier.getRemove();
+                if (removes != null) {
+                    config.setRemove(new ArrayList<>(removes));
+                }
+            }
+            route.setHeaderControl(headerControl);
+        } else if (V1HTTPRouteSpecFilters.TypeEnum.RESPONSEHEADERMODIFIER == filter.getType()) {
+            HeaderControlConfig headerControl = new HeaderControlConfig();
+            headerControl.setEnabled(Boolean.TRUE);
+            HeaderControlStageConfig config = new HeaderControlStageConfig();
+            headerControl.setResponse(config);
+            V1HTTPRouteSpecResponseHeaderModifier responseHeaderModifier = filter.getResponseHeaderModifier();
+            if (responseHeaderModifier != null) {
+                List<V1HTTPRouteSpecRequestHeaderModifierAdd> adds = responseHeaderModifier.getAdd();
+                if (adds != null) {
+                    for (V1HTTPRouteSpecRequestHeaderModifierAdd add : adds) {
+                        List<Header> configAdd = new ArrayList<>();
+                        config.setAdd(configAdd);
+                        configAdd.add(new Header(add.getName(), add.getValue()));
+                    }
+                }
+                List<V1HTTPRouteSpecRequestHeaderModifierAdd> sets = responseHeaderModifier.getSet();
+                if (sets != null) {
+                    for (V1HTTPRouteSpecRequestHeaderModifierAdd set : sets) {
+                        List<Header> configSet = new ArrayList<>();
+                        config.setSet(configSet);
+                        configSet.add(new Header(set.getName(), set.getValue()));
+                    }
+                }
+                List<String> removes = responseHeaderModifier.getRemove();
+                if (removes != null) {
+                    config.setRemove(new ArrayList<>(removes));
+                }
+            }
+            route.setHeaderControl(headerControl);
+        }
+    }
+
+    private void fillHeaderAndQueryConfigFromHttpRoute(Route route, V1HTTPRouteSpecRules rule) {
+        List<KeyedRoutePredicate> headers = new ArrayList<>();
+        List<KeyedRoutePredicate> urlParams = new ArrayList<>();
+        List<V1HTTPRouteSpecMatches> matches = rule.getMatches();
+        if (CollectionUtils.isEmpty(matches)) {
+            return;
+        }
+        V1HTTPRouteSpecMatches match = matches.get(0);
+        List<V1HTTPRouteSpecHeaders> httpRouteHeaders = match.getHeaders();
+        if (CollectionUtils.isNotEmpty(httpRouteHeaders)){
+            for (V1HTTPRouteSpecHeaders httpRouteHeader: httpRouteHeaders) {
+                KeyedRoutePredicate header = new KeyedRoutePredicate();
+                header.setKey(httpRouteHeader.getName());
+                header.setMatchValue(httpRouteHeader.getValue());
+                if (V1HTTPRouteSpecHeaders.TypeEnum.EXACT == httpRouteHeader.getType()){
+                    header.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
+                } else if (V1HTTPRouteSpecHeaders.TypeEnum.REGULAREXPRESSION == httpRouteHeader.getType()) {
+                    String regex = httpRouteHeader.getValue();
+                    if (regex.startsWith("^\\Q") && regex.endsWith("\\E.*")) {
+                        header.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+                        header.setMatchValue(regex.substring(3, regex.length() - 4));
+                    } else {
+                        header.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+                    }
+                }
+                headers.add(header);
+            }
+        }
+        List<V1HTTPRouteSpecQueryParams> queryParams = match.getQueryParams();
+        if (CollectionUtils.isNotEmpty(queryParams)) {
+            for (V1HTTPRouteSpecQueryParams queryParam : queryParams) {
+                KeyedRoutePredicate param = new KeyedRoutePredicate();
+                param.setKey(queryParam.getName());
+                param.setMatchValue(queryParam.getValue());
+                if (V1HTTPRouteSpecQueryParams.TypeEnum.EXACT == queryParam.getType()) {
+                    param.setMatchType(RoutePredicateTypeEnum.EQUAL.toString());
+                } else if (V1HTTPRouteSpecQueryParams.TypeEnum.REGULAREXPRESSION == queryParam.getType()) {
+                    String regex = queryParam.getValue();
+                    if (regex.startsWith("^\\Q") && regex.endsWith("\\E.*")) {
+                        param.setMatchType(RoutePredicateTypeEnum.PRE.toString());
+                        param.setMatchValue(regex.substring(3, regex.length() - 4));
+                    } else {
+                        param.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
+                    }
+                }
+                urlParams.add(param);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(headers)) {
+            route.setHeaders(headers);
+        }
+        if (CollectionUtils.isNotEmpty(urlParams)) {
+            route.setUrlParams(urlParams);
+        }
+    }
+
+    private void fillMethodConfigFromHttpRoute(Route route, V1HTTPRouteSpecRules rule) {
+        List<V1HTTPRouteSpecMatches> matches = rule.getMatches();
+        if (CollectionUtils.isEmpty(matches)) {
+            return;
+        }
+        List<String> methods = new ArrayList<>();
+        for (V1HTTPRouteSpecMatches match : matches) {
+            if(match.getMethod() != null) {
+                methods.add(match.getMethod().toString());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(methods)) {
+            route.setMethods(methods);
         }
     }
 

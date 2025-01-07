@@ -8,6 +8,7 @@ import {
   UnorderedListOutlined,
   UserOutlined,
   WindowsOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 
 export default {
@@ -34,6 +35,17 @@ export default {
           {
             name: 'user.changePassword.title',
             path: '/user/changePassword',
+          },
+        ],
+      },
+      {
+        name: 'higressConfig.title',
+        path: '/higress-configs',
+        hideFromMenu: true,
+        routes: [
+          {
+            name: 'higressConfig.title',
+            path: '/higress-configs',
           },
         ],
       },

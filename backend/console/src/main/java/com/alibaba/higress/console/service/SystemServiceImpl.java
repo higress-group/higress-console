@@ -210,7 +210,9 @@ public class SystemServiceImpl implements SystemService {
             Domain domain = new Domain();
             domain.setName(HigressConstants.DEFAULT_DOMAIN);
             domain.setEnableHttps(Domain.EnableHttps.ON);
-            domain.setCertIdentifier(DEFAULT_TLS_CERTIFICATE_NAME);
+            Map<Integer, String> portAndCert = new HashMap<>();
+            portAndCert.put(443, DEFAULT_TLS_CERTIFICATE_NAME);
+            domain.setPortAndCertMap(portAndCert);
             domainService.add(domain);
         } catch (ResourceConflictException e) {
             // Ignore it.

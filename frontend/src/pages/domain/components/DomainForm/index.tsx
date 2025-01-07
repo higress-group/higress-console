@@ -7,13 +7,19 @@ import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import DomainGroup from '../DomainGroup';
 
 const { Option } = Select;
 
-const DomainForm: React.FC = forwardRef((props, ref) => {
+interface DomainFormProps {
+  value?: any;
+  isIngressMode?: boolean;
+}
+
+const DomainForm = forwardRef((props: DomainFormProps, ref) => {
   const { t } = useTranslation();
 
-  const { value } = props;
+  const { value, isIngressMode } = props;
   const [form] = Form.useForm();
   const [protocol, setProtocol] = useState<string>(Protocol.http);
   const [certificateOptions, setCertificateOptions] = useState<OptionItem[]>([]);
@@ -32,12 +38,12 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
     setCertificateOptions(_certificateOptions);
 
     if (value) {
-      const { name, enableHttps } = value;
+      const { name, enableHttps, portAndCertMap } = value;
       const protocolValue = enableHttps !== EnableHttpsValue.off ? Protocol.https : Protocol.http;
       setProtocol(protocolValue);
       const values = { name, protocol: protocolValue };
-      if (value.certIdentifier) {
-        Object.assign(values, { certIdentifier: value.certIdentifier });
+      if (portAndCertMap) {
+        Object.assign(values, { portAndCertMap });
       }
       if (enableHttps === EnableHttpsValue.force) {
         Object.assign(values, { mustHttps: [true] });
@@ -90,7 +96,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
           </Form.Item>
         )
       }
-      <Form.Item
+      {/* <Form.Item
         label={t('domain.domainForm.protocol')}
         required
         name="protocol"
@@ -155,8 +161,65 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
             </Form.Item>
           </div>
         ) : null
-      }
-    </Form >
+      } */}
+      <Form.Item
+        label={t('domain.domainForm.portAndCertMap')}
+        name="portAndCertMap"
+        required
+        tooltip={t('domain.domainForm.portAndCertMapTooltip')}
+        rules={[
+          {
+            required: true,
+            validator: (_, portAndCertMapValue) => {
+              if (!portAndCertMapValue || portAndCertMapValue.length === 0) {
+                return Promise.reject(new Error(String(t('domain.domainForm.portAndCertMapRequired'))));
+              }
+
+              // Check for empty ports
+              const hasEmptyPort = portAndCertMapValue.some(item => !item.port);
+              if (hasEmptyPort) {
+                return Promise.reject(new Error(String(t('domain.domainForm.portRequired'))));
+              }
+
+              // Check for duplicate ports
+              const ports = portAndCertMapValue.map(item => item.port);
+              const hasDuplicates = ports.length !== new Set(ports).size;
+              if (hasDuplicates) {
+                return Promise.reject(new Error(String(t('domain.domainForm.portDuplicate'))));
+              }
+
+              // Check if HTTPS protocol has certificate
+              const hasHttpsWithoutCert = portAndCertMapValue.some((item) => {
+                return item.protocol === 'HTTPS' && !item.certificate;
+              });
+              if (hasHttpsWithoutCert) {
+                return Promise.reject(new Error(String(t('domain.domainForm.certificateRequiredWhenHttps'))));
+              }
+
+              // Validate ingress mode constraints
+              if (isIngressMode) {
+                const invalidPorts = portAndCertMapValue.some((item) => {
+                  return (item.port !== 80 && item.port !== 443) ||
+                         (item.port === 80 && item.protocol !== 'HTTP') ||
+                         (item.port === 443 && item.protocol !== 'HTTPS');
+                });
+                if (invalidPorts) {
+                  return Promise.reject(new Error(String(t('domain.domainForm.ingressModeConstraint'))));
+                }
+              }
+
+              return Promise.resolve();
+            },
+          },
+        ]}
+      >
+        <DomainGroup
+          value={value?.portAndCertMap}
+          certificateOptions={certificateOptions}
+          isIngressMode={isIngressMode}
+        />
+      </Form.Item>
+    </Form>
   );
 });
 
