@@ -53,11 +53,11 @@ export const updateRoutePluginInstance = (params: { name: string; pluginName: st
 // 获取指定域名的指定插件配置
 export const getDomainPluginInstance = (params: { name: string; pluginName: string }) => {
   const { name, pluginName } = params;
-  return request.get<any, any>(`/v2/domains/${name}/plugin-instances/${pluginName}`);
+  return request.get<any, any>(`/v1/domains/${name}/plugin-instances/${pluginName}`);
 };
 
 // 修改指定域名的指定插件配置
 export const updateDomainPluginInstance = (params: { name: string; pluginName: string }, payload) => {
   const { name, pluginName } = params;
-  return request.put<any, any>(`/v2/domains/${name}/plugin-instances/${pluginName}`, payload);
+  return request.put<any, any>(`/v1/domains/${name}/plugin-instances/${pluginName}`, payload);
 };

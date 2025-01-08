@@ -6,7 +6,7 @@ import {
   UpstreamService,
   upstreamServiceToString,
 } from '@/interfaces/route';
-import { getIngressWorkMode, addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
 import store from '@/store';
 import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
@@ -27,7 +27,7 @@ interface RouteFormProps {
   methods: string[];
   path: RoutePredicate;
   urlParams: KeyedRoutePredicate[];
-  services: Array<{ service: string; weight: number }>;
+  services: string[];
   customConfigs: {
     [key: string]: string;
   };
@@ -35,6 +35,7 @@ interface RouteFormProps {
 
 const RouteList: React.FC = () => {
   const { t } = useTranslation();
+
   const [systemState] = store.useModel('system');
   const routeManagementSupported = !(systemState && systemState.capabilities && systemState.capabilities.indexOf('config.ingress.v1') === -1);
 
@@ -70,22 +71,18 @@ const RouteList: React.FC = () => {
       key: 'services',
       ellipsis: true,
       render: (value: UpstreamService[]) => {
-        if (!value || value.length === 0) return null;
-
-        // Calculate total weight
-        const totalWeight = value.reduce((sum, service) => sum + (service.weight || 1), 0);
-
-        return value.map((service: UpstreamService, index: number) => {
-          const name = upstreamServiceToString(service);
-          const weight = service.weight || 1;
-          const percentage = Math.round((weight / totalWeight) * 100);
-          return (
-            <span key={service.name}>
-              {index !== 0 && (<br />)}
-              {`${name}：${percentage}%`}
-            </span>
-          );
-        });
+        return (
+          value &&
+          value.map((service: UpstreamService, index: number) => {
+            const name = upstreamServiceToString(service);
+            return (
+              <span key={service.name}>
+                {index !== 0 && (<br />)}
+                {name}
+              </span>
+            );
+          })
+        );
       },
     },
     {
@@ -106,8 +103,6 @@ const RouteList: React.FC = () => {
     },
   ];
 
-  const { data: currentIngressMode } = useRequest(getIngressWorkMode);
-  const [ingressMode, setIngressMode] = useState(currentIngressMode);
   const [dataSource, setDataSource] = useState<Route[]>([]);
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
@@ -142,7 +137,6 @@ const RouteList: React.FC = () => {
 
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
-    setIngressMode(!!route.isIngressMode);
     setOpenDrawer(true);
   };
 
@@ -153,7 +147,6 @@ const RouteList: React.FC = () => {
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentRoute(null);
-    setIngressMode(!!currentIngressMode);
   };
 
   const normalizeRoutePredicate = (predicate: RoutePredicate) => {
@@ -175,31 +168,24 @@ const RouteList: React.FC = () => {
         path,
         urlParams,
         customConfigs,
-        services: services.map(({ service, weight }) => {
+        services: services.map((service) => {
           return {
             name: service,
-            weight,
           };
         }),
       };
       if (currentRoute) {
         route.version = currentRoute.version;
         await updateGatewayRoute({
-          isIngressMode: currentRoute.isIngressMode,
           ...currentRoute,
           ...route,
         });
       } else {
-        await addGatewayRoute({ ...route, isIngressMode: currentIngressMode });
+        await addGatewayRoute(route);
       }
       setOpenDrawer(false);
       refresh();
-      if (currentRoute) {
-        setCurrentRoute(null);
-        setIngressMode(!!currentIngressMode);
-      } else {
-        formRef.current?.reset();
-      }
+      currentRoute ? setCurrentRoute(null) : formRef.current.reset();
     } catch (errInfo) {
       // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
@@ -209,13 +195,11 @@ const RouteList: React.FC = () => {
   const handleDrawerCancel = () => {
     setOpenDrawer(false);
     setCurrentRoute(null);
-    setIngressMode(!!currentIngressMode);
   };
 
   const onShowModal = (route: Route) => {
     setCurrentRoute(route);
     setOpenModal(true);
-    setIngressMode(!!route.isIngressMode);
   };
 
   const handleModalOk = async () => {
@@ -233,7 +217,6 @@ const RouteList: React.FC = () => {
   const handleModalCancel = () => {
     setOpenModal(false);
     setCurrentRoute(null);
-    setIngressMode(!!currentIngressMode);
   };
 
   return (
@@ -313,7 +296,7 @@ const RouteList: React.FC = () => {
           </Space>
         }
       >
-        <RouteForm ref={formRef} value={currentRoute} isIngressMode={ingressMode} />
+        <RouteForm ref={formRef} value={currentRoute} />
       </Drawer>
     </PageContainer>
   );

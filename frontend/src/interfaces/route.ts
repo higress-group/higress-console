@@ -69,7 +69,6 @@ export interface Route {
   version?: string;
   domains: string[];
   path: RoutePredicate;
-  isIngressMode?: boolean;
   methods?: string[];
   headers?: KeyedRoutePredicate[];
   urlParams?: KeyedRoutePredicate[];

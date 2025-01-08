@@ -41,8 +41,6 @@ public class Route implements VersionedDto {
 
     private String name;
 
-    private Boolean isIngressMode;
-
     private String version;
 
     private List<String> domains;

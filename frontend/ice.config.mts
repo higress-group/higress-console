@@ -15,7 +15,7 @@ export default defineConfig(() => ({
   },
   proxy: {
     "/api": {
-      target: "http://localhost:8080/",
+      target: "http://demo.higress.io/",
       changeOrigin: true,
       pathRewrite: { "^/api": "" },
     },

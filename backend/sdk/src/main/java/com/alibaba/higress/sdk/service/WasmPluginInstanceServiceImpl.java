@@ -12,8 +12,6 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
-import com.alibaba.higress.sdk.constant.Separators;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
@@ -36,13 +34,11 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.alibaba.higress.sdk.service.kubernetes.crd.gatewayapi.httproute.V1HTTPRoute;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.util.MapUtil;
 
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1Ingress;
 import io.swagger.v3.core.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +50,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     private final KubernetesModelConverter kubernetesModelConverter;
 
     public WasmPluginInstanceServiceImpl(WasmPluginService wasmPluginService,
-                                         KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
+        KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
         this.wasmPluginService = wasmPluginService;
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
@@ -99,7 +95,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             return Collections.emptyList();
         }
         return plugins.stream().map(p -> kubernetesModelConverter.getWasmPluginInstanceFromCr(p, scope, target))
-                .filter(Objects::nonNull).toList();
+            .filter(Objects::nonNull).toList();
     }
 
     @Override
@@ -159,11 +155,6 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     throw new IllegalArgumentException(
                         "instance.target must not be null or empty when scope is not GLOBAL.");
                 }
-                if (!isTargetIngressWorkMode(entry.getValue())) {
-                    if (!HigressConstants.NS_DEFAULT.equals(kubernetesClientService.httpRouteNameSpace)) {
-                        entry.setValue(kubernetesClientService.httpRouteNameSpace + Separators.SLASH + entry.getValue());
-                    }
-                }
             }
         }
 
@@ -194,7 +185,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 instance.setConfigurations(configurations);
             } catch (IOException e) {
                 throw new ValidationException(
-                        "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
+                    "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
             }
         }
 
@@ -224,31 +215,9 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
-                    "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
+                "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
         }
         return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, targets);
-    }
-
-    public Boolean isTargetIngressWorkMode(String target) {
-        V1Ingress ingress;
-        try {
-            ingress = kubernetesClientService.readIngress(target);
-        } catch (ApiException e) {
-            throw new BusinessException("Error occurs when reading the Ingress with name: " + target, e);
-        }
-        if (ingress != null) {
-            return Boolean.TRUE;
-        }
-        V1HTTPRoute httpRoute;
-        try {
-            httpRoute = kubernetesClientService.readHttpRoute(target);
-        } catch (ApiException e) {
-            throw new BusinessException("Error occurs when reading the HttpRoute with name: " + target, e);
-        }
-        if (httpRoute != null) {
-            return Boolean.FALSE;
-        }
-        return Boolean.TRUE;
     }
 
     @Override
@@ -300,7 +269,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     kubernetesClientService.replaceWasmPlugin(cr);
                 } catch (ApiException e) {
                     throw new BusinessException(
-                            "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);
+                        "Error occurs when trying to updating WasmPlugin with name " + cr.getMetadata().getName(), e);
                 }
             }
         }
