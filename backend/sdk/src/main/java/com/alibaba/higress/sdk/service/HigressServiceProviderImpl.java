@@ -12,17 +12,17 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import java.io.IOException;
+
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.ai.AiRouteService;
 import com.alibaba.higress.sdk.service.ai.AiRouteServiceImpl;
 import com.alibaba.higress.sdk.service.ai.LlmProviderService;
 import com.alibaba.higress.sdk.service.ai.LlmProviderServiceImpl;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerServiceImpl;
-
-import java.io.IOException;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
 /**
  * @author CH3CHO
@@ -38,12 +38,9 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     private final TlsCertificateService tlsCertificateService;
     private final WasmPluginService wasmPluginService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
-    private final OpenAPIService openApiService;
     private final ConsumerService consumerService;
     private final AiRouteService aiRouteService;
     private final LlmProviderService llmProviderService;
-
-    private final HigressConfigService higressConfigService;
 
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
@@ -58,8 +55,6 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService);
         domainService = new DomainServiceImpl(kubernetesClientService, kubernetesModelConverter, routeService,
             wasmPluginInstanceService);
-        openApiService = new OpenAPIServiceImpl(kubernetesClientService, domainService, routeService, wasmPluginInstanceService);
-        higressConfigService = new HigressConfigServiceImpl(kubernetesClientService);
         consumerService = new ConsumerServiceImpl(wasmPluginInstanceService);
         llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService);
         aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
@@ -111,15 +106,6 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
         return wasmPluginInstanceService;
     }
 
-    @Override
-    public OpenAPIService openApiService() {
-        return openApiService;
-    }
-
-    @Override
-    public HigressConfigService higressConfigService() {
-        return higressConfigService;
-    }
     @Override
     public ConsumerService consumerService() {
         return consumerService;

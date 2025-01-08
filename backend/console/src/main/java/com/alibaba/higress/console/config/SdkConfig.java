@@ -16,7 +16,6 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
-import com.alibaba.higress.sdk.service.OpenAPIService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +36,6 @@ import com.alibaba.higress.sdk.service.ai.LlmProviderService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.alibaba.higress.sdk.service.HigressConfigService;
 
 @Configuration
 public class SdkConfig {
@@ -131,15 +129,6 @@ public class SdkConfig {
         return serviceProvider.wasmPluginInstanceService();
     }
 
-    @Bean
-    public OpenAPIService openApiService() {
-        return serviceProvider.openApiService();
-    }
-
-    @Bean
-    public HigressConfigService higressConfigService() {
-        return serviceProvider.higressConfigService();
-    }
     @Bean
     public ConsumerService consumerService() {
         return serviceProvider.consumerService();

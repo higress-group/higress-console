@@ -12,10 +12,10 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.PaginatedResult;
+
 public interface DomainService {
 
     Domain add(Domain domain);
@@ -26,7 +26,5 @@ public interface DomainService {
 
     void delete(String domainName);
 
-    Domain put(Domain domain) throws BusinessException;
-
-    Domain addOrUpdate(Domain domain) throws BusinessException;
+    Domain put(Domain domain);
 }

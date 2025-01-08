@@ -19,9 +19,8 @@
     "llmProviderManagement": "AI服务提供者管理",
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
-    "pluginManagement": "插件配置",
     "consumerManagement": "消费者管理",
-    "config": "Higress 配置"
+    "pluginManagement": "插件配置"
   },
   "index": {
     "title": "Higress Console"
@@ -103,8 +102,7 @@
       "name": "域名",
       "protocol": "协议",
       "certificate": "证书",
-      "action": "操作",
-      "port": "端口"
+      "action": "操作"
     },
     "defaultDomain": "缺省域名",
     "createDomain": "创建域名",
@@ -124,15 +122,7 @@
       "certificatePlaceholder": "请输入证书",
       "mustHttps": "是否强制HTTPS",
       "mustHttpsTooltip": "目前支持阿里云SSL证书服务上的证书",
-      "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）",
-      "portAndCertMap": "端口和证书映射",
-      "portAndCertMapTooltip": "端口和证书映射用于指定每个端口的证书。如果是ingress模式，默认对80端口使用HTTP协议，443端口使用HTTPS协议。",
-      "addPortAndCert": "添加",
-      "portAndCertMapRequired": "请至少添加一个端口和证书映射",
-      "portRequired": "端口号不能为空",
-      "portDuplicate": "不能有重复的端口号",
-      "certificateRequiredWhenHttps": "使用HTTPS协议时必须选择证书",
-      "ingressModeConstraint": "Ingress模式下只能使用80端口(HTTP)或443端口(HTTPS)"
+      "mustHttpsCheckboxTooltip": "只生效 HTTPS（443端口），HTTP（80端口）访问将被重定向至 HTTPS（443端口）"
     }
   },
   "dashboard": {
@@ -498,9 +488,7 @@
       "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
-      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选",
-      "weightTip": "目标服务的权重",
-      "weightMustBeNumber": "权重必须为数字"
+      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
     }
   },
   "chart": {
@@ -652,17 +640,5 @@
     "switchToForm": "表单视图",
     "isRequired": "是必填的",
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
-  },
-  "higressConfig": {
-    "title": "配置工作模式",
-    "higressWorkMode": "Higress 工作模式",
-    "modeRequired": "请选择 HigressWorkMode 工作模式",
-    "gatewayMode": "gateway api模式",
-    "ingressMode": "ingress模式",
-    "fetchError": "获取 Higress 工作模式失败",
-    "updateSuccess": "更新 Higress 工作模式成功",
-    "updateError": "更新 Higress 工作模式失败",
-    "alertTitle": "Gateway API 模式功能适配说明",
-    "alertDescription": "Gateway API 模式目前处于 Alpha 阶段，以下功能仍在适配中：CORS（跨域资源共享）、请求重试策略、URL 路径忽略大小写、HTTPS 强制跳转。"
   }
 }

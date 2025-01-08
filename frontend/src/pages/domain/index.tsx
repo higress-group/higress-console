@@ -1,11 +1,11 @@
 /* eslint-disable */
 // @ts-nocheck
 import { DEFAULT_DOMAIN, Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
-import { getIngressWorkMode, addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
+import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, message } from 'antd';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
@@ -20,7 +20,7 @@ interface DomainFormProps {
 
 const DomainList: React.FC = () => {
   const { t } = useTranslation();
-  const { data: currentIngressMode } = useRequest(getIngressWorkMode);
+
   const columns = [
     {
       title: t('domain.columns.name'),
@@ -38,13 +38,9 @@ const DomainList: React.FC = () => {
     },
     {
       title: t('domain.columns.certificate'),
-      dataIndex: 'portAndCertMap',
-      key: 'portAndCertMap',
-      render: (value) => {
-        if (!value) return '-';
-        const certs = Object.values(value).filter(cert => cert !== '');
-        return certs.length ? certs.join(', ') : '-';
-      },
+      dataIndex: 'certIdentifier',
+      key: 'certIdentifier',
+      render: (value) => value || '-',
     },
     {
       title: t('domain.columns.action'),
@@ -72,7 +68,7 @@ const DomainList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [ingressMode, setIngressMode] = useState(false);
+
   const getDomainList = async (factor): Promise<DomainResponse> => getGatewayDomains(factor);
   const { loading, run, refresh } = useRequest(getDomainList, {
     manual: true,
@@ -123,45 +119,31 @@ const DomainList: React.FC = () => {
 
   const onEditDrawer = (domain: Domain) => {
     setCurrentDomain(domain);
-    setIngressMode(domain.isIngressMode);
     setOpenDrawer(true);
   };
 
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentDomain(null);
-    setIngressMode(currentIngressMode);
   };
 
   const handleDrawerOK = async () => {
     try {
       const values: DomainFormProps = formRef.current && (await formRef.current.handleSubmit());
-      // message.info(JSON.stringify(values));
-      const { name, portAndCertMap } = values;
+      const { name, certIdentifier } = values;
       const data = { name: name || currentDomain?.name };
       let enableHttps = EnableHttpsValue.off;
-      
-      if (portAndCertMap) {
-        // Convert array format to Record<number, string>
-        const portCertRecord: Record<number, string> = {};
-        portAndCertMap.forEach((item: any) => {
-          portCertRecord[item.port] = item.certificate;
-        });
-        Object.assign(data, { portAndCertMap: portCertRecord });
-
-        // Check if any port uses HTTPS
-        const hasHttps = Object.values(portCertRecord).some(cert => cert);
-        if (hasHttps) {
-          enableHttps = values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
+      if (values.protocol === Protocol.https) {
+        if (values.certIdentifier) {
+          Object.assign(data, { certIdentifier });
         }
+        enableHttps = values.mustHttps?.length ? EnableHttpsValue.force : EnableHttpsValue.on;
       }
-      
       Object.assign(data, { enableHttps });
       if (currentDomain?.version) {
-        await updateGatewayDomain({ version: currentDomain.version, isIngressMode: currentDomain.isIngressMode, ...data } as Domain);
+        await updateGatewayDomain({ version: currentDomain.version, ...data } as Domain);
       } else {
-        // set domain isIngressMode
-        await addGatewayDomain({ ...data, isIngressMode: currentIngressMode } as Domain);
+        await addGatewayDomain(data as Domain);
       }
       setOpenDrawer(false);
       refresh();
@@ -173,7 +155,6 @@ const DomainList: React.FC = () => {
   const handleDrawerCancel = () => {
     setOpenDrawer(false);
     setCurrentDomain(null);
-    setIngressMode(currentIngressMode);
   };
 
   const onShowModal = (domain: Domain) => {
@@ -195,7 +176,6 @@ const DomainList: React.FC = () => {
   const handleModalCancel = () => {
     setOpenModal(false);
     setCurrentDomain(null);
-    setIngressMode(currentIngressMode);
   };
 
   return (
@@ -260,7 +240,7 @@ const DomainList: React.FC = () => {
           </Space>
         }
       >
-        <DomainForm ref={formRef} value={currentDomain} isIngressMode={ingressMode} />
+        <DomainForm ref={formRef} value={currentDomain} />
       </Drawer>
     </PageContainer>
   );

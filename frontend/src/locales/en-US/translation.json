@@ -19,7 +19,6 @@
     "llmProviderManagement": "LLM Provider Management",
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
-    "config": "Higress Config",
     "consumerManagement": "Consumer Management",
     "pluginManagement": "Plugin Management"
   },
@@ -100,8 +99,7 @@
       "name": "Domain",
       "protocol": "Protocol",
       "certificate": "Certificate",
-      "action": "Action",
-      "port": "Port"
+      "action": "Action"
     },
     "defaultDomain": "Default Domain",
     "createDomain": "Create Domain",
@@ -121,15 +119,7 @@
       "certificatePlaceholder": "Please input the certificate identifier.",
       "mustHttps": "Force HTTPS",
       "mustHttpsTooltip": "Only certificates provided by SSL Certificates Service of Alibaba Clound are supported now.",
-      "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service",
-      "portAndCertMap": "Port and Certificate Mapping",
-      "portAndCertMapTooltip": "The port and certificate mapping is used to specify the port and certificate for each port. If the port is not specified, the default certificate will be used.",
-      "addPortAndCert": "add",
-      "portAndCertMapRequired": "Please add at least one port and certificate mapping.",
-      "portRequired": "Port cannot be empty",
-      "portDuplicate": "Port cannot be duplicated",
-      "certificateRequiredWhenHttps": "Certificate is required when using HTTPS protocol",
-      "ingressModeConstraint": "Ingress mode only supports port 80 (HTTP) or port 443 (HTTPS)"
+      "mustHttpsCheckboxTooltip": "Only HTTPS (port 443) service is available. Requests sent to HTTP (port 80) service will be redirected to the corresponding HTTPS (port 443) service"
     }
   },
   "dashboard": {
@@ -494,9 +484,7 @@
       "customConfigsTip": "Click this \"?\" to view the configuration guide.",
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
-      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed.",
-      "weightTip": "Weight of the target service",
-      "weightMustBeNumber": "Weight must be a number"
+      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
     }
   },
   "chart": {
@@ -648,17 +636,5 @@
     "switchToForm": "Form View",
     "isRequired": "is required",
     "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
-  },
-  "higressConfig": {
-    "title": "Work Mode Configuration",
-    "higressWorkMode": "Higress Work Mode",
-    "modeRequired": "Please select Higress Work Mode",
-    "gatewayMode": "Gateway API Mode",
-    "ingressMode": "Ingress Mode",
-    "fetchError": "Failed to fetch Higress Work Mode",
-    "updateSuccess": "Successfully updated Higress Work Mode",
-    "updateError": "Failed to update Higress Work Mode",
-    "alertTitle": "Gateway API Mode Notes",
-    "alertDescription": "Gateway API Mode is currently in Alpha stage. The following features are still being adapted: CORS (Cross-Origin Resource Sharing), request retry policy, case-insensitive URL paths, and HTTPS forced redirection."
   }
 }
