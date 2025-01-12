@@ -154,18 +154,12 @@ public class WasmPluginInstancesController {
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
         validateRouteName(routeName);
-        if (routeName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
-            throw new ValidationException("Changing Wasm plugin configuration of an internal route is not allowed.");
-        }
         return addOrUpdateInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName, instance);
     }
 
     @DeleteMapping(value = "/routes/{routeName}/plugin-instances/{name}")
     public void deleteRouteInstance(@PathVariable("routeName") @NotBlank String routeName,
         @PathVariable("name") @NotBlank String pluginName) {
-        if (routeName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
-            throw new ValidationException("Changing Wasm plugin configuration of an internal route is not allowed.");
-        }
         deleteInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName);
     }
 
@@ -188,18 +182,12 @@ public class WasmPluginInstancesController {
         @PathVariable("serviceName") @NotBlank String serviceName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
         validateServiceName(serviceName);
-        if (KubernetesUtil.isInternalService(serviceName)) {
-            throw new ValidationException("Changing Wasm plugin configuration of an internal service is not allowed.");
-        }
         return addOrUpdateInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName, instance);
     }
 
     @DeleteMapping(value = "/services/{serviceName}/plugin-instances/{name}")
     public void deleteServiceInstance(@PathVariable("serviceName") @NotBlank String serviceName,
         @PathVariable("name") @NotBlank String pluginName) {
-        if (serviceName.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
-            throw new ValidationException("Changing Wasm plugin configuration of an internal service is not allowed.");
-        }
         deleteInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName);
     }
 

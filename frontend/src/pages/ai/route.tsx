@@ -4,11 +4,11 @@ import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@an
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import RouteForm from './components/RouteForm';
-import { HistoryButton } from './components/RouteForm/Components';
 
 interface FormRef {
   reset: () => void;
@@ -86,7 +86,7 @@ const AiRouteList: React.FC = () => {
       render: (_, record) => (
         <Space size="small">
           <a onClick={() => onUsageDrawer(record)}>{t('aiRoute.usage')}</a>
-          <HistoryButton text={t('misc.strategy')} path={`/ai/config?name=${record.name}`} />
+          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -151,6 +151,10 @@ const AiRouteList: React.FC = () => {
     setUsageCommand(null);
     setUsageDrawer(false);
   }
+
+  const onEditConfig = (aiRoute: AiRoute) => {
+    history?.push(`/ai/route/config?type=aiRoute&name=${aiRoute.name}`);
+  };
 
   const onEditDrawer = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);

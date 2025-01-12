@@ -91,6 +91,7 @@
       "selectModelService": "Select an AI service"
     },
     "create": "Create AI Route",
+    "edit": "Edit AI Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
     "authNotEnabled": "Not enabled",
     "authEnabledWithoutConsumer": "Nobody authorized",
@@ -104,6 +105,7 @@
       "authMethods": "Auth Methods"
     },
     "create": "Create Consumer",
+    "edit": "Edit Consumer",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentConsumerName}}</1>?",
     "consumerForm": {
       "name": "Name",
@@ -127,11 +129,11 @@
     "columns": {
       "name": "Domain",
       "protocol": "Protocol",
-      "certificate": "Certificate",
-      "action": "Action"
+      "certificate": "Certificate"
     },
     "defaultDomain": "Default Domain",
     "createDomain": "Create Domain",
+    "editDomain": "Edit Domain",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentDomainName}}</1>?",
     "domainForm": {
       "name": "Domain",
@@ -214,15 +216,18 @@
       }
     },
     "create": "Create AI Service Provider",
+    "edit": "Edit AI Service Provider",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentLlmProviderName}}</1>?"
   },
   "plugins": {
     "title": "Strategy Configuration",
     "subTitle": {
       "domain": "Domain Name: ",
-      "route": "Route Name: "
+      "route": "Route Name: ",
+      "aiRoute": "AI Route Name: "
     },
     "addPlugin": "Add Plugin",
+    "editPlugin": "Edit Plugin",
     "addSuccess": "Added successfully.",
     "updateSuccess": "Updated successfully.",
     "deleteConfirmation": "Confirm delete operation?",
@@ -413,6 +418,7 @@
     },
     "unsupported": "Note: Route management feature doesn't support Kubenetes with version < 1.19.0 at the moment.",
     "createRoute": "Create Route",
+    "editRoute": "Edit Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
     "noCustomIngresses": "Note: Only routes created from the console are listed above.",
     "factorGroup": {
@@ -477,6 +483,7 @@
       "action": "Action"
     },
     "createTlsCertificate": "Create Certificate",
+    "editTlsCertificate": "Edit Certificate",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentTlsCertificateName}}</1>?",
     "tlsCertificateForm": {
       "name": "Certificate Name",

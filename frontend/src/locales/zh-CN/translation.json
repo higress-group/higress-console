@@ -90,6 +90,7 @@
       "selectModelService": "选择模型服务"
     },
     "create": "创建AI路由",
+    "edit": "编辑AI路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "authNotEnabled": "未开启认证",
     "authEnabledWithoutConsumer": "未授权任何人访问",
@@ -103,6 +104,7 @@
       "authMethods": "认证方式"
     },
     "create": "创建消费者",
+    "edit": "编辑消费者",
     "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
     "consumerForm": {
       "name": "消费者名称",
@@ -130,6 +132,7 @@
     },
     "defaultDomain": "缺省域名",
     "createDomain": "创建域名",
+    "editDomain": "编辑域名",
     "deleteConfirmation": "确定删除 <1>{{currentDomainName}}</1> 吗？",
     "domainForm": {
       "name": "域名",
@@ -212,15 +215,18 @@
       }
     },
     "create": "创建AI服务提供者",
+    "edit": "编辑AI服务提供者",
     "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？"
   },
   "plugins": {
     "title": "策略配置",
     "subTitle": {
       "domain": "域名名称：",
-      "route": "路由名称："
+      "route": "路由名称：",
+      "aiRoute": "AI路由名称："
     },
     "addPlugin": "添加插件",
+    "editPlugin": "编辑插件",
     "addSuccess": "添加成功",
     "updateSuccess": "修改成功",
     "deleteConfirmation": "是否确认删除？",
@@ -344,6 +350,7 @@
       "action": "操作"
     },
     "createServiceSource": "创建服务来源",
+    "editServiceSource": "编辑服务来源",
     "deleteConfirmation": "确定删除 <1>{{currentServiceSourceName}}</1> 吗？",
     "serviceSourceForm": {
       "type": "类型",
@@ -411,6 +418,7 @@
     },
     "unsupported": "注意：路由配置功能暂不支持版本低于1.19.0的Kubenetes。敬请谅解。",
     "createRoute": "创建路由",
+    "editRoute": "编辑路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "noCustomIngresses": "注：列表中仅包含通过控制台页面创建的路由配置。",
     "factorGroup": {
@@ -475,6 +483,7 @@
       "action": "操作"
     },
     "createTlsCertificate": "创建证书",
+    "editTlsCertificate": "编辑证书",
     "deleteConfirmation": "确定删除 <1>{{currentTlsCertificateName}}</1> 吗？",
     "tlsCertificateForm": {
       "name": "证书名称",
