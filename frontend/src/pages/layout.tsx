@@ -36,7 +36,7 @@ export default function Layout() {
       className={styles.layout}
       logo={<img src={logo} alt="logo" />}
       pure={route && !!route.usePureLayout}
-      title=""
+      title={t('index.title') || ''}
       location={{
         pathname: location.pathname,
       }}
