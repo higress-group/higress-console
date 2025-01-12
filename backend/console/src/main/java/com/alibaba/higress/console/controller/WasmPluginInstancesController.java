@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
-import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Service;
@@ -44,7 +43,6 @@ import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.ServiceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.WasmPluginService;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 
 /**
  * @author CH3CHO
