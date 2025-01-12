@@ -42,10 +42,12 @@ public class FrontEndI18nResourceChecker {
     private static final String I18N_RESOURCE_FILE_NAME = "translation.json";
     private static final List<String> TS_FILE_EXTENSIONS = Arrays.asList(".ts", ".tsx");
 
-    private static final Set<String> IMPLICITLY_USED_RESOURCE_KEYS = Set.of("index.title", "init.title", "login.title");
+    private static final Set<String> IMPLICITLY_USED_RESOURCE_KEYS = Set.of("init.title", "login.title", "aiRoute.edit",
+        "tlsCertificate.editTlsCertificate", "serviceSource.editServiceSource", "llmProvider.edit",
+        "plugins.editPlugin", "route.editRoute", "domain.editDomain", "consumer.edit");
     private static final List<String> IMPLICITLY_USED_RESOURCE_KEY_PREFIXES =
         Arrays.asList("menu.", "request.error.", "serviceSource.types.", "llmProvider.providerTypes.",
-            "route.factorGroup.required.", "route.keyValueGroup.required.");
+            "route.factorGroup.required.", "route.keyValueGroup.required.", "plugins.configForm.", "plugins.subTitle.");
 
     private static final String LANG_CN = "zh-CN";
     private static final String LANG_EN = "en-US";

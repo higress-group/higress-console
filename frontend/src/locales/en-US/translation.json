@@ -351,6 +351,7 @@
       "action": "Action"
     },
     "createServiceSource": "Create Service Source",
+    "editServiceSource": "Edit Service Source",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentServiceSourceName}}</1>?",
     "serviceSourceForm": {
       "type": "Type",
