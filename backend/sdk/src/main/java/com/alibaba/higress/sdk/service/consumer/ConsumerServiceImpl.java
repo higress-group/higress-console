@@ -60,6 +60,7 @@ public class ConsumerServiceImpl implements ConsumerService {
                 instance.setInternal(true);
                 instance.setGlobalTarget();
             }
+            instance.setEnabled(true);
             if (config.saveConsumer(instance, consumer)) {
                 instancesToUpdate.add(instance);
             }

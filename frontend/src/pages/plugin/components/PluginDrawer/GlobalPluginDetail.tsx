@@ -1,17 +1,22 @@
 import CodeEditor from '@/components/CodeEditor';
-import { Alert, Form, Spin, Switch, message, Space, Typography, Input, Select, Divider, Tabs, Card } from 'antd';
+import { Alert, Card, Form, Input, message, Select, Space, Spin, Switch, Tabs, Typography } from 'antd';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import * as servicesApi from '@/services';
 import { useRequest } from 'ahooks';
 import i18next, { t } from 'i18next';
 import { useSearchParams } from 'ice';
-
-import ArrayForm from './ArrayForm';
 import yaml from 'js-yaml';
+import { QueryType } from '../../utils';
+import ArrayForm from './ArrayForm';
 
 const { Text } = Typography;
 const { TabPane } = Tabs;
+
+const QUERY_TYPE_2_MESSAGE_KEY = {};
+QUERY_TYPE_2_MESSAGE_KEY[QueryType.DOMAIN] = 'plugins.configForm.targetDomain';
+QUERY_TYPE_2_MESSAGE_KEY[QueryType.ROUTE] = 'plugins.configForm.targetRoute';
+QUERY_TYPE_2_MESSAGE_KEY[QueryType.AI_ROUTE] = 'plugins.configForm.targetAiRoute';
 
 export interface IPluginData {
   configurations: object;
@@ -43,30 +48,43 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const queryName: string = searchParams.get('name') || '';
   const [currentTabKey, setCurrentTabKey] = useState('form');
 
+  const isGlobalPlugin = useMemo(() => {
+    return !queryType;
+  }, [queryType]);
+
   const isChangeExampleRaw = useMemo(() => {
-    return ['route', 'domain'].includes(queryType) && category === 'auth';
-  }, [queryType, category]);
-
-  const isRoutePlugin = useMemo(() => {
-    return queryType === 'route';
-  }, [queryType]);
-
-  const isDomainPlugin = useMemo(() => {
-    return queryType === 'domain';
-  }, [queryType]);
+    return isGlobalPlugin && category === 'auth';
+  }, [isGlobalPlugin, category]);
 
   const pluginInstancesApi = useMemo(() => {
-    if (queryType === 'route') {
+    if (queryType === QueryType.ROUTE) {
       return {
         get: servicesApi.getRoutePluginInstance.bind(servicesApi),
         update: servicesApi.updateRoutePluginInstance.bind(servicesApi),
       };
     }
 
-    if (queryType === 'domain') {
+    if (queryType === QueryType.DOMAIN) {
       return {
         get: servicesApi.getDomainPluginInstance.bind(servicesApi),
         update: servicesApi.updateDomainPluginInstance.bind(servicesApi),
+      };
+    }
+
+    if (queryType === QueryType.AI_ROUTE) {
+      return {
+        get: (params: { name: string; pluginName: string }) => {
+          return servicesApi.getRoutePluginInstance({
+            name: `ai-route-${params.name}.internal`,
+            pluginName: params.pluginName,
+          });
+        },
+        update: (params: { name: string; pluginName: string }, payload) => {
+          return servicesApi.updateRoutePluginInstance({
+            name: `ai-route-${params.name}.internal`,
+            pluginName: params.pluginName,
+          }, payload);
+        },
       };
     }
 
@@ -454,30 +472,12 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
     delete params.configurations;
 
-    if (isRoutePlugin || isDomainPlugin) {
-      updateData(
-        {
-          name: queryName,
-          pluginName,
-        },
-        params,
-      );
-      return;
-    }
-
-    updateData(pluginName, params);
+    updateData(isGlobalPlugin ? pluginName : { name: queryName, pluginName }, params);
   };
 
   useEffect(() => {
     resetForm();
-    if (isRoutePlugin || isDomainPlugin) {
-      getData({
-        name: queryName,
-        pluginName,
-      });
-      return;
-    }
-    getData(pluginName);
+    getData(isGlobalPlugin ? pluginName : { name: queryName, pluginName });
   }, [pluginName, queryName]);
 
   const resetForm = () => {
@@ -518,10 +518,10 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   const alertStatus = useMemo(() => {
     return {
-      isShow: (isRoutePlugin || isDomainPlugin) && queryName,
-      message: isRoutePlugin ? t('plugins.configForm.targetRoute') + queryName : t('plugins.configForm.targetDomain') + queryName,
+      isShow: !!isGlobalPlugin && queryName,
+      message: t(QUERY_TYPE_2_MESSAGE_KEY[queryType]),
     };
-  }, [isRoutePlugin, isDomainPlugin, queryName]);
+  }, [queryType, queryName]);
 
   const fieldChange = () => {
     if (!getConfigLoading && !getDataLoading && currentTabKey === 'form') {
@@ -572,7 +572,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
               )}
             </TabPane>
           </Tabs>
-          {!getConfigLoading && !getDataLoading && !isRoutePlugin && !isDomainPlugin && (
+          {!getConfigLoading && !getDataLoading && isGlobalPlugin && (
             <Space direction="horizontal" style={{ marginTop: '0.5rem' }}>
               <Text>{t('plugins.configForm.globalConfigWarning')}</Text>
             </Space>

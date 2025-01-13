@@ -1,5 +1,5 @@
 import { WasmPluginData } from '@/interfaces/route';
-import { createWasmPlugin, deleteWasmPlugin, getGatewayRoutesDetail, updateWasmPlugin } from '@/services';
+import { createWasmPlugin, deleteWasmPlugin, getGatewayRouteDetail, updateWasmPlugin } from '@/services';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -11,11 +11,17 @@ import PluginDrawer from './components/PluginDrawer';
 import PluginList, { ListRef } from './components/PluginList';
 import { WasmFormRef, WasmPluginDrawer } from './components/Wasm';
 import styles from './index.module.css';
+import { QueryType } from './utils';
+
+const QUERY_TYPE_2_BACK_PATH = {};
+QUERY_TYPE_2_BACK_PATH[QueryType.ROUTE] = '/route';
+QUERY_TYPE_2_BACK_PATH[QueryType.DOMAIN] = '/domain';
+QUERY_TYPE_2_BACK_PATH[QueryType.AI_ROUTE] = '/ai/route';
 
 export default function RouterConfig() {
   const { t } = useTranslation();
 
-  const [routerDetail, setRouterDetail] = useState({});
+  const [routeDetail, setRouteDetail] = useState({});
   const [searchParams] = useSearchParams();
 
   const wasmFormRef = useRef<WasmFormRef>();
@@ -31,20 +37,21 @@ export default function RouterConfig() {
   };
 
   const handleBack = () => {
-    if (type === 'route') history?.push('/route');
-    if (type === 'domain') history?.push('/domain');
+    const path = QUERY_TYPE_2_BACK_PATH[type];
+    path && history?.push(path);
   };
 
   const pageHeader = useMemo(() => {
-    if (type === 'domain') return { title: t('plugins.title'), subTitle: `${t('plugins.subTitle.domain')}${name}` };
-    if (type === 'route') return { title: t('plugins.title'), subTitle: `${t('plugins.subTitle.route')}${name}` };
+    if (type) {
+      return { title: t('plugins.title'), subTitle: `${t(`plugins.subTitle.${type}`)}${name}` };
+    }
     return { title: '', subTitle: '' };
   }, [type, name]);
 
-  const { loading, run, refresh } = useRequest(getGatewayRoutesDetail, {
+  const { loading, run: loadRouteDetail } = useRequest(getGatewayRouteDetail, {
     manual: true,
     onSuccess: (res) => {
-      setRouterDetail(res || {});
+      setRouteDetail(res || {});
     },
   });
 
@@ -80,7 +87,7 @@ export default function RouterConfig() {
 
   const init = () => {
     if (name && type === 'route') {
-      run(name);
+      loadRouteDetail(name);
     }
   };
 
@@ -133,12 +140,12 @@ export default function RouterConfig() {
           </div>
           <PluginList
             onOpen={handleClickPlugin}
-            data={routerDetail}
+            data={routeDetail}
             ref={listRef}
             onEdit={onEdit}
             onDelete={onDelete}
           />
-          <PluginDrawer pluginDrawerRef={pluginDrawerRef} routerDetail={routerDetail} onSuccess={init} />
+          <PluginDrawer pluginDrawerRef={pluginDrawerRef} routerDetail={routeDetail} onSuccess={init} />
           <WasmPluginDrawer ref={wasmFormRef} onSubmit={onSubmitWasm} />
         </PageContainer>
       </Spin>

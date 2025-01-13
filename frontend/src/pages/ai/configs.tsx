@@ -1,4 +1,4 @@
-export const aiModelproviders = [
+export const aiModelProviders = [
   {
     label: 'OpenAI',
     value: 'openai',
@@ -28,7 +28,7 @@ export const aiModelproviders = [
     ],
   },
   {
-    label: "Awen",
+    label: "Qwen",
     value: 'qwen',
     serviceAddress: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     modelNamePattern: 'qwen-*',

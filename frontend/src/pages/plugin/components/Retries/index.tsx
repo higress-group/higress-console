@@ -56,7 +56,7 @@ const Retries = forwardRef((props, ref) => {
         <Form.Item
           label={t('plugins.builtIns.retries.attempts')}
           name="attempts"
-          rules={[{ required: true, message: t('plugins.builtIn.retries.attemptsRequired') || '' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.retries.attemptsRequired') || '' }]}
           labelCol={{ span: 24 }}
           wrapperCol={{ span: 24 }}
         >
@@ -65,7 +65,7 @@ const Retries = forwardRef((props, ref) => {
         <Form.Item
           label={t('plugins.builtIns.retries.conditions')}
           name="conditions"
-          rules={[{ required: true, message: t('plugins.builtIn.retries.conditionsRequired') || '' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.retries.conditionsRequired') || '' }]}
           labelCol={{ span: 24 }}
           wrapperCol={{ span: 24 }}
         >
@@ -78,7 +78,7 @@ const Retries = forwardRef((props, ref) => {
         <Form.Item
           label={t('plugins.builtIns.retries.timeout')}
           name="timeout"
-          rules={[{ required: true, message: t('plugins.builtIn.retries.timeoutRequired') || '' }]}
+          rules={[{ required: true, message: t('plugins.builtIns.retries.timeoutRequired') || '' }]}
           labelCol={{ span: 24 }}
           wrapperCol={{ span: 24 }}
         >

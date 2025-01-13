@@ -1,5 +1,11 @@
 import i18n from "@/i18n";
 
+export enum QueryType {
+  ROUTE = 'route',
+  DOMAIN = 'domain',
+  AI_ROUTE = 'aiRoute',
+}
+
 export function getI18nValue(obj: object, key: string) {
   if (!obj) {
     return null;
