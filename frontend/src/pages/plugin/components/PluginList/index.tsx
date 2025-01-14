@@ -8,7 +8,7 @@ import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
-import { getI18nValue } from '../../utils';
+import { getI18nValue, QueryType } from '../../utils';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -29,6 +29,11 @@ const PluginList = forwardRef((props: Props, ref) => {
   const { data, onOpen, onEdit, onDelete } = props;
   const [searchParams] = useSearchParams();
 
+  const type = searchParams.get('type') || '';
+
+  const HIDDEN_PLUGINS_BY_QUERY_TYPE = {};
+  HIDDEN_PLUGINS_BY_QUERY_TYPE[QueryType.AI_ROUTE] = ['ai-proxy', 'key-auth', 'model-router', 'model-mapper'];
+
   const handleClickPlugin = (item) => {
     onOpen(item);
   };
@@ -40,11 +45,15 @@ const PluginList = forwardRef((props: Props, ref) => {
   }, {
     manual: true,
     onSuccess: (result = []) => {
-      if (searchParams.get('type') === 'route') {
-        setPluginList(BUILTIN_ROUTE_PLUGIN_LIST.concat(result) as any);
-        return;
+      let plugins = result || [];
+      if (type === QueryType.ROUTE) {
+        plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
       }
-      setPluginList(result);
+      const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
+      if (Array.isArray(hiddenPlugins)) {
+        plugins = plugins.filter(p => p.builtIn && hiddenPlugins.indexOf(p.name) === -1);
+      }
+      setPluginList(plugins);
     },
   });
 
