@@ -39,9 +39,9 @@ public class TlsCertificate implements VersionedDto {
 
     private List<String> domains;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss'Z'")
     private LocalDateTime validityStart;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss'Z'")
     private LocalDateTime validityEnd;
 }

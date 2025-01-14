@@ -16,7 +16,6 @@ export interface ServiceSourceProperties {
   nacosNamespaceId?: string;
   nacosGroups?: string[];
   zkServicesPath?: string[];
-  consulNamespace?: string;
 }
 
 /**
