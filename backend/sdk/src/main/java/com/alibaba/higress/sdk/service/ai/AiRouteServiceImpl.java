@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.alibaba.higress.sdk.constant.plugin.config.AiStatisticsConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -215,6 +216,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         writeAuthConfigResources(routeName, aiRoute.getAuthConfig());
         writeModelRouteResources(aiRoute.getModelPredicates());
         writeModelMappingResources(routeName, aiRoute.getUpstreams());
+        writeAiStatisticsResources(routeName);
     }
 
     private void writeAiRouteFallbackResources(AiRoute aiRoute) {
@@ -273,6 +275,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
         writeAuthConfigResources(fallbackRouteName, aiRoute.getAuthConfig());
         writeModelMappingResources(fallbackRouteName, fallbackUpStreams);
+        writeAiStatisticsResources(fallbackRouteName);
     }
 
     private void writeAuthConfigResources(String routeName, AiRouteAuthConfig authConfig) {
@@ -345,6 +348,32 @@ public class AiRouteServiceImpl implements AiRouteService {
 
             wasmPluginInstanceService.addOrUpdate(instance);
         }
+    }
+
+    private void writeAiStatisticsResources(String routeName) {
+        WasmPluginInstance existedInstance = wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, routeName,
+            BuiltInPluginName.AI_STATISTICS, false);
+        if (existedInstance != null) {
+            return;
+        }
+
+        WasmPluginInstance instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.AI_STATISTICS);
+        instance.setTarget(WasmPluginInstanceScope.ROUTE, routeName);
+        instance.setEnabled(true);
+        instance.setInternal(false);
+
+        Map<String, Object> questionAttribute = AiStatisticsConfig.buildAttribute("question",
+            AiStatisticsConfig.ValueSource.REQUEST_BODY, "messages.@reverse.0.content", null, true, null);
+        Map<String, Object> streamingAnswerAttribute =
+            AiStatisticsConfig.buildAttribute("answer", AiStatisticsConfig.ValueSource.RESPONSE_STREAMING_BODY,
+                "choices.0.delta.content", AiStatisticsConfig.Rule.APPEND, true, null);
+        Map<String, Object> nonStreamingAnswerAttribute = AiStatisticsConfig.buildAttribute("answer",
+            AiStatisticsConfig.ValueSource.RESPONSE_BODY, "choices.0.message.content", null, true, null);
+        List<Map<String, Object>> attributes =
+            List.of(questionAttribute, streamingAnswerAttribute, nonStreamingAnswerAttribute);
+        instance.setConfigurations(Map.of(AiStatisticsConfig.ATTRIBUTES, attributes));
+
+        wasmPluginInstanceService.addOrUpdate(instance);
     }
 
     private Route buildRoute(String routeName, AiRoute aiRoute) {
