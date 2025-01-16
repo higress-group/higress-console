@@ -68,7 +68,7 @@ class ServiceServiceImpl implements ServiceService {
 
                 List<String> endpoints = getServiceEndpoints(serviceEndpoint, namespace, name);
                 if (CollectionUtils.isEmpty(registryzService.getPorts())
-                    || (!SHOW_MCP_SERVICE_PORTS && CommonKey.MCP_NAMESPACE.equals(namespace))) {
+                    || !SHOW_MCP_SERVICE_PORTS && CommonKey.MCP_NAMESPACE.equals(namespace)) {
                     Service service = new Service();
                     service.setName(name);
                     service.setNamespace(namespace);
