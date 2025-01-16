@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class ServiceServiceImpl implements ServiceService {
 
+    private static final boolean SHOW_MCP_SERVICE_PORTS = true;
+
     private final KubernetesClientService kubernetesClientService;
 
     public ServiceServiceImpl(KubernetesClientService kubernetesClientService) {
@@ -65,8 +67,8 @@ class ServiceServiceImpl implements ServiceService {
                 String name = registryzService.getHostname();
 
                 List<String> endpoints = getServiceEndpoints(serviceEndpoint, namespace, name);
-                if (CommonKey.MCP_NAMESPACE.equals(namespace) || CollectionUtils.isEmpty(registryzService.getPorts())) {
-                    // We don't care about the port number of services got from McpBridge.
+                if (CollectionUtils.isEmpty(registryzService.getPorts())
+                    || !SHOW_MCP_SERVICE_PORTS && CommonKey.MCP_NAMESPACE.equals(namespace)) {
                     Service service = new Service();
                     service.setName(name);
                     service.setNamespace(namespace);
