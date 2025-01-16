@@ -8,6 +8,7 @@ import {
 } from '@/interfaces/route';
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
 import store from '@/store';
+import switches from '@/switches';
 import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -121,6 +122,9 @@ const RouteList: React.FC = () => {
         i.key || (i.key = i.id ? `${i.id}` : i.name);
         i.internal = isInternalResource(i.name);
       });
+      if (!switches.SHOW_INTERNAL_ROUTES) {
+        result = result.filter(r => !r.internal);
+      }
       result.sort((i1, i2) => {
         if (i1.internal !== i2.internal) {
           return i1.internal ? 1 : -1
