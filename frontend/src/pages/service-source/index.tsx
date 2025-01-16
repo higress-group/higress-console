@@ -51,9 +51,6 @@ const SourceList: React.FC = () => {
       dataIndex: 'port',
       key: 'port',
       render: (value, record) => {
-        if (record.type === ServiceSourceTypes.static.key) {
-          return '-';
-        }
         return value != null ? value : '-';
       },
     },
