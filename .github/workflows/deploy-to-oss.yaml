@@ -18,7 +18,7 @@ jobs:
           chmod +x aliyun
           ./aliyun version        
       - name: Download Helm Charts Index
-        run: ./aliyun oss cp oss://higress-website-cn-hongkong/helm-charts/index.yaml ./artifact/ -r -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
+        run: ./aliyun oss cp oss://higress-website-cn-hongkong/helm-charts/index.yaml ./artifact/ -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
       - id: calc-version
         name: Calculate Version Number
         run: |
@@ -35,4 +35,4 @@ jobs:
             cp ./artifact/index.yaml ./artifact/cn-index.yaml
             sed -i 's/higress\.io/higress\.cn/g' ./artifact/cn-index.yaml
       - name: Upload to OSS
-        run: ./aliyun oss cp -r ./artifact/ oss://higress-website-cn-hongkong/helm-charts/ -r -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
+        run: ./aliyun oss cp ./artifact/ oss://higress-website-cn-hongkong/helm-charts/ -r -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
