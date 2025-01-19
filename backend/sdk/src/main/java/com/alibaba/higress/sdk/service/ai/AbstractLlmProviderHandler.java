@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
@@ -165,6 +166,21 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     protected abstract int getServicePort(Map<String, Object> providerConfig);
 
     protected abstract String getServiceProtocol(Map<String, Object> providerConfig);
+
+    protected static int getIntConfig(Map<String, Object> providerConfig, String key) {
+        Object serverPortObj = providerConfig.get(key);
+        if (serverPortObj instanceof Integer) {
+            return (Integer)serverPortObj;
+        }
+        if (serverPortObj instanceof String serverPortStr) {
+            try {
+                return Integer.parseInt(serverPortStr);
+            } catch (NumberFormatException e) {
+                throw new ValidationException(key + " must be a number.");
+            }
+        }
+        throw new ValidationException(key + " must be a number.");
+    }
 
     protected static String generateServiceProviderName(String llmProviderName) {
         return CommonKey.LLM_SERVICE_NAME_PREFIX + llmProviderName + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;

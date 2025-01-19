@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.service.ai;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
@@ -34,20 +35,17 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     public void validateConfig(Map<String, Object> configurations) {
-        if (MapUtils.isEmpty(configurations)){
+        if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Azure specific configurations.");
         }
-        Object serviceUrlObj = configurations.get(SERVICE_URL_KEY);
-        if (!(serviceUrlObj instanceof String serviceUrl)){
-            throw new ValidationException(SERVICE_URL_KEY + " must be a string.");
+        URI uri = getServiceUri(configurations);
+        String scheme = uri.getScheme();
+        if (StringUtils.isEmpty(scheme)) {
+            throw new ValidationException("Azure service URL must have a scheme.");
         }
-        if (StringUtils.isEmpty(serviceUrl)) {
-            throw new ValidationException(SERVICE_URL_KEY + " cannot be empty.");
-        }
-        try {
-            new URI(serviceUrl);
-        } catch (URISyntaxException e) {
-            throw new ValidationException(SERVICE_URL_KEY + " is not a valid URL.", e);
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
+            throw new ValidationException("Azure service URL must have a valid scheme.");
         }
     }
 
@@ -58,28 +56,52 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     protected String getServiceDomain(Map<String, Object> providerConfig) {
-        if (MapUtils.isEmpty(providerConfig)){
-            return "";
-        }
-        String serviceUrl = (String)providerConfig.get(SERVICE_URL_KEY);
-        if (StringUtils.isEmpty(serviceUrl)) {
-            return "";
-        }
-        try {
-            URI uri = new URI(serviceUrl);
-            return uri.getHost();
-        } catch (URISyntaxException e) {
-            return null;
-        }
+        URI uri = getServiceUri(providerConfig);
+        return uri.getHost();
     }
 
     @Override
     protected int getServicePort(Map<String, Object> providerConfig) {
-        return 443;
+        URI uri = getServiceUri(providerConfig);
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            return 80;
+        }
+        return switch (scheme.toLowerCase(Locale.ROOT)) {
+            case V1McpBridge.PROTOCOL_HTTP -> 80;
+            case V1McpBridge.PROTOCOL_HTTPS -> 443;
+            default -> 80;
+        };
     }
 
     @Override
     protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        return V1McpBridge.PROTOCOL_HTTPS;
+        URI uri = getServiceUri(providerConfig);
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            return V1McpBridge.PROTOCOL_HTTP;
+        }
+        return switch (scheme.toLowerCase(Locale.ROOT)) {
+            case V1McpBridge.PROTOCOL_HTTP, V1McpBridge.PROTOCOL_HTTPS -> scheme;
+            default -> V1McpBridge.PROTOCOL_HTTP;
+        };
+    }
+
+    private static URI getServiceUri(Map<String, Object> providerConfig) {
+        if (MapUtils.isEmpty(providerConfig)) {
+            throw new ValidationException("Missing Azure specific configurations.");
+        }
+        Object serviceUrlObj = providerConfig.get(SERVICE_URL_KEY);
+        if (!(serviceUrlObj instanceof String serviceUrl)) {
+            throw new ValidationException(SERVICE_URL_KEY + " must be a string.");
+        }
+        if (StringUtils.isEmpty(serviceUrl)) {
+            throw new ValidationException(SERVICE_URL_KEY + " cannot be empty.");
+        }
+        try {
+            return new URI(serviceUrl);
+        } catch (URISyntaxException e) {
+            throw new ValidationException(SERVICE_URL_KEY + " is not a valid URL.", e);
+        }
     }
 }

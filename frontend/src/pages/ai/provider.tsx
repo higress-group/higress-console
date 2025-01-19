@@ -1,42 +1,38 @@
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
-import { ExclamationCircleOutlined, RedoOutlined, EyeTwoTone, EyeInvisibleTwoTone } from '@ant-design/icons';
+import { ExclamationCircleOutlined, EyeInvisibleTwoTone, EyeTwoTone, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
+import { aiModelProviders } from './configs';
 
 const { Text } = Typography;
-const providerTypeDisplayName = {
-  openai: 'llmProvider.providerTypes.openai',
-  qwen: 'llmProvider.providerTypes.qwen',
-  moonshot: 'llmProvider.providerTypes.moonshot',
-};
 
 interface FormRef {
   reset: () => void;
   handleSubmit: () => Promise<FormProps>;
 }
 
-const EllipsisMiddle: React.FC = (params: { token: String }) => {
-  const { token } = params;
+const EllipsisMiddle: React.FC = (params: { value: String }) => {
+  const { value } = params;
   const [isHidden, setIsHidden] = useState(true);
 
   const toggledText = () => {
     if (!isHidden) {
-      return token;
+      return value;
     }
     const prefixLength = 3;
     const suffixLength = 3;
-    if (token.length - prefixLength - suffixLength > 6) {
-      return `${token.slice(0, 3)}******${token.slice(-3)}`;
+    if (value.length - prefixLength - suffixLength > 6) {
+      return `${value.slice(0, 3)}******${value.slice(-3)}`;
     }
-    if (token.length > 2) {
-      return `${token.slice(0, 1)}******${token.slice(-1)}`;
+    if (value.length > 2) {
+      return `${value.slice(0, 1)}******${value.slice(-1)}`;
     }
-    return `${token.slice(0, 1)}******`;
+    return `${value.slice(0, 1)}******`;
   };
 
   return (
@@ -61,7 +57,12 @@ const LlmProviderList: React.FC = () => {
       title: t('llmProvider.columns.type'),
       dataIndex: 'type',
       key: 'type',
-      render: (value) => t(providerTypeDisplayName[value] || value),
+      render: (value) => {
+        const providerConfig = aiModelProviders.find(c => c.value === value);
+        const key = `llmProvider.providerTypes.${value}`;
+        const text = t(key);
+        return text !== key ? text : (providerConfig?.label || value);
+      },
     },
     {
       title: t('llmProvider.columns.name'),
@@ -74,7 +75,11 @@ const LlmProviderList: React.FC = () => {
       dataIndex: 'endpoints',
       key: 'endpoints',
       ellipsis: true,
-      render: (value) => {
+      render: (value, record) => {
+        const providerConfig = aiModelProviders.find(p => p.value === record.type);
+        if (providerConfig && typeof providerConfig.getProviderEndpoints === 'function') {
+          value = providerConfig.getProviderEndpoints(record);
+        }
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
@@ -89,7 +94,7 @@ const LlmProviderList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <EllipsisMiddle token={token} />);
+        return value.map((token) => <EllipsisMiddle value={token} />);
       },
     },
     {
