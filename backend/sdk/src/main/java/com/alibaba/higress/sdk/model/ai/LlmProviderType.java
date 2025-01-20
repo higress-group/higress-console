@@ -66,4 +66,6 @@ public final class LlmProviderType {
     public static final String DOUBAO = "doubao";
 
     public static final String COZE = "coze";
+
+    public static final String TOGETHER_AI = "together-ai";
 }

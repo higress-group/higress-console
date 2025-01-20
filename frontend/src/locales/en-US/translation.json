@@ -188,7 +188,30 @@
     "providerTypes": {
       "openai": "OpenAI",
       "qwen": "Tongyi Qianwen",
-      "moonshot": "Moonshot"
+      "moonshot": "Moonshot",
+      "ai360": "360 Zhinao|",
+      "azure": "Azure OpenAI",
+      "baichuan": "Baichuan AI",
+      "baidu": "ERNIE Bot",
+      "claude": "Anthropic Claude",
+      "cloudflare": "Cloudflare Workers AI",
+      "cohere": "Cohere",
+      "coze": "Coze",
+      "deepl": "DeepL",
+      "deepseek": "DeepSeek",
+      "doubao": "Doubao",
+      "gemini": "Google Gemini",
+      "github": "GitHub Models",
+      "groq": "Groq",
+      "hunyuan": "Tencent Hunyuan",
+      "minimax": "MiniMax",
+      "mistral": "Mistral",
+      "ollama": "Ollama",
+      "together-ai": "Together AI",
+      "stepfun": "Stepfun",
+      "spark": "iFlyTek Spark",
+      "yi": "01.AI",
+      "zhipuai": "Zhipu AI"
     },
     "providerForm": {
       "label": {
@@ -201,7 +224,10 @@
         "healthCheckTimeout": "Health Check Request Timeout",
         "protocol": "Request Procotol",
         "serviceName": "Service Name",
-        "successThreshold": "Min Consecuitive Sucesses to Mark Up a Token"
+        "successThreshold": "Min Consecuitive Sucesses to Mark Up a Token",
+        "azureServiceUrl": "Azure Service URL",
+        "ollamaServerHost": "Ollama Service Host",
+        "ollamaServerPort": "Ollama Service Port"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -212,7 +238,14 @@
         "healthCheckIntervalRequired": "Please input health check request interval",
         "healthCheckModelRequired": "Please input health check request LLM model",
         "protocol": "Please select a request protocol",
-        "successThresholdRequired": "Please input min consecuitive sucesses to mark up a token"
+        "successThresholdRequired": "Please input min consecuitive sucesses to mark up a token",
+        "azureServiceUrlRequired": "Please input Azure service URL",
+        "ollamaServerHostRequired": "Please input Ollama service host",
+        "ollamaServerPortRequired": "Please input Ollama service port"
+      },
+      "placeholder": {
+        "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
+        "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address"
       }
     },
     "create": "Create AI Service Provider",

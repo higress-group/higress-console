@@ -2,12 +2,7 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, InputNumber, Select, Switch } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-const providerTypeDisplayName = [
-  { key: 'openai', label: 'llmProvider.providerTypes.openai' },
-  { key: 'qwen', label: 'llmProvider.providerTypes.qwen' },
-  { key: 'moonshot', label: 'llmProvider.providerTypes.moonshot' },
-];
+import { aiModelProviders } from '../../configs';
 
 const protocolList = [
   { label: "openai/v1", value: "openai/v1" },
@@ -17,6 +12,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [failoverEnabled, setFailoverEnabled] = useState(false);
+  const [providerType, setProviderType] = useState<string | null>();
+  const [providerConfig, setProviderConfig] = useState<object | null>();
 
   useEffect(() => {
     form.resetFields();
@@ -27,6 +24,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         protocol,
         tokens,
         tokenFailoverConfig = {},
+        rawConfigs = {},
       } = props.value;
       const {
         failureThreshold,
@@ -49,11 +47,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckInterval: healthCheckInterval || 5000,
         healthCheckTimeout: healthCheckTimeout || 10000,
         healthCheckModel,
-      })
+        rawConfigs,
+      });
+
+      onProviderTypeChanged(type);
     }
 
     return () => {
       setFailoverEnabled(false);
+      onProviderTypeChanged(null);
     }
   }, [props.value]);
 
@@ -78,11 +80,17 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           healthCheckTimeout: values.healthCheckTimeout,
           healthCheckModel: values.healthCheckModel,
         },
+        rawConfigs: values.rawConfigs,
       };
 
       return result;
     },
   }));
+
+  function onProviderTypeChanged(value: string | null) {
+    setProviderType(value);
+    setProviderConfig(value ? aiModelProviders.find(p => p.value === value) : null);
+  }
 
   return (
     <Form
@@ -103,15 +111,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       >
         <Select
           disabled={props.value}
+          onChange={onProviderTypeChanged}
         >
           {
-            providerTypeDisplayName.map((item) => {
+            aiModelProviders.filter(item => item.enabled !== false).map((item) => {
+              const key = `llmProvider.providerTypes.${item.value}`;
+              let text = t(key);
+              text = text !== key ? text : item.label;
               return (
                 <Select.Option
-                  key={item.key}
-                  value={item.key}
+                  key={item.value}
+                  value={item.value}
                 >
-                  {t(item.label)}
+                  {text}
                 </Select.Option>
               )
             })
@@ -181,7 +193,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   validateTrigger={['onChange', 'onBlur']}
                   rules={[
                     {
-                      required: true,
+                      required: !providerConfig || providerConfig.tokenRequired !== false,
                       whitespace: false,
                       message: t('llmProvider.providerForm.rules.tokenRequired'),
                     },
@@ -227,6 +239,73 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       >
         <Switch onChange={e => setFailoverEnabled(e)} />
       </Form.Item>
+
+      {
+        providerType === 'azure' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.azureServiceUrl')}
+              required
+              name={["rawConfigs", "azureServiceUrl"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.azureServiceUrlRequired'),
+                },
+              ]}
+            >
+              <Input
+                allowClear
+                type="url"
+                placeholder={t('llmProvider.providerForm.placeholder.azureServiceUrlPlaceholder')}
+              />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'ollama' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.ollamaServerHost')}
+              required
+              name={["rawConfigs", "ollamaServerHost"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.ollamaServerHostRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+                placeholder={t('llmProvider.providerForm.placeholder.ollamaServerHostPlaceholder')}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.ollamaServerPort')}
+              required
+              name={["rawConfigs", "ollamaServerPort"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.ollamaServerPortRequired'),
+                },
+              ]}
+            >
+              <Input
+                allowClear
+                type="number"
+                min={1}
+                max={65535}
+              />
+            </Form.Item>
+          </>
+        )
+      }
 
       {
         failoverEnabled ?

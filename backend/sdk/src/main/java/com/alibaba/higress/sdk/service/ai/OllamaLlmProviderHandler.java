@@ -46,10 +46,7 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
         if (StringUtils.isEmpty(serverHost)) {
             throw new ValidationException(SERVER_HOST_KEY + " cannot be empty.");
         }
-        Object serverPortObj = configurations.get(SERVER_PORT_KEY);
-        if (!(serverPortObj instanceof Integer serverPort)) {
-            throw new ValidationException(SERVER_PORT_KEY + " must be a number.");
-        }
+        int serverPort = getIntConfig(configurations, SERVER_PORT_KEY);
         if (!ValidateUtil.checkPort(serverPort)) {
             throw new ValidationException(SERVER_PORT_KEY + " must be a valid port number.");
         }
