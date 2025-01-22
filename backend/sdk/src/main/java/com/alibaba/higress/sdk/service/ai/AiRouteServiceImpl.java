@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.alibaba.higress.sdk.constant.plugin.config.AiStatisticsConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -30,6 +29,7 @@ import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.plugin.config.AiStatisticsConfig;
 import com.alibaba.higress.sdk.constant.plugin.config.ModelMapperConfig;
 import com.alibaba.higress.sdk.constant.plugin.config.ModelRouterConfig;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -71,7 +71,8 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
         Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
-    private static final String MODEL_ROUTING_HEADER = "x-higress-llm-model";
+    private static final RoutePredicate DEFAULT_PATH_PREDICATE =
+        new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
 
     private final KubernetesModelConverter kubernetesModelConverter;
 
@@ -127,7 +128,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         writeAiRouteResources(route);
         writeAiRouteFallbackResources(route);
 
-        return kubernetesModelConverter.configMap2AiRoute(newConfigMap);
+        return configMap2AiRoute(newConfigMap);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing ConfigMap.", e);
         }
-        return PaginatedResult.createFromFullList(configMaps, query, kubernetesModelConverter::configMap2AiRoute);
+        return PaginatedResult.createFromFullList(configMaps, query, this::configMap2AiRoute);
     }
 
     @Override
@@ -150,7 +151,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when reading the ConfigMap with name: " + configMapName, e);
         }
-        return Optional.ofNullable(configMap).map(kubernetesModelConverter::configMap2AiRoute).orElse(null);
+        return Optional.ofNullable(configMap).map(this::configMap2AiRoute).orElse(null);
     }
 
     @Override
@@ -184,10 +185,21 @@ public class AiRouteServiceImpl implements AiRouteService {
         writeAiRouteResources(route);
         writeAiRouteFallbackResources(route);
 
-        return kubernetesModelConverter.configMap2AiRoute(updatedConfigMap);
+        return configMap2AiRoute(updatedConfigMap);
+    }
+
+    private AiRoute configMap2AiRoute(V1ConfigMap configMap){
+        AiRoute route = kubernetesModelConverter.configMap2AiRoute(configMap);
+        if (route != null){
+            fillDefaultValues(route);
+        }
+        return route;
     }
 
     private void fillDefaultValues(AiRoute route) {
+        if (route.getPathPredicate() == null) {
+            route.setPathPredicate(DEFAULT_PATH_PREDICATE);
+        }
         fillDefaultWeights(route.getUpstreams());
         AiRouteFallbackConfig fallbackConfig = route.getFallbackConfig();
         if (fallbackConfig != null && Boolean.TRUE.equals(fallbackConfig.getEnabled())) {
@@ -306,7 +318,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             instance.setConfigurations(configurations);
         }
 
-        configurations.put(ModelRouterConfig.MODEL_TO_HEADER, MODEL_ROUTING_HEADER);
+        configurations.put(ModelRouterConfig.MODEL_TO_HEADER, HigressConstants.MODEL_ROUTING_HEADER);
 
         wasmPluginInstanceService.addOrUpdate(instance);
     }
@@ -379,12 +391,16 @@ public class AiRouteServiceImpl implements AiRouteService {
     private Route buildRoute(String routeName, AiRoute aiRoute) {
         Route route = new Route();
         route.setName(routeName);
-        route.setPath(new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true));
+        route.setPath(Optional.ofNullable(aiRoute.getPathPredicate()).orElse(DEFAULT_PATH_PREDICATE));
         route.setDomains(aiRoute.getDomains());
 
+        List<KeyedRoutePredicate> headerPredicates = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(aiRoute.getHeaderPredicates())) {
+            headerPredicates.addAll(aiRoute.getHeaderPredicates());
+        }
         List<AiModelPredicate> modelPredicates = aiRoute.getModelPredicates();
         if (CollectionUtils.isNotEmpty(modelPredicates)) {
-            KeyedRoutePredicate headerRoutePredicate = new KeyedRoutePredicate(MODEL_ROUTING_HEADER);
+            KeyedRoutePredicate headerRoutePredicate = new KeyedRoutePredicate(HigressConstants.MODEL_ROUTING_HEADER);
             if (modelPredicates.size() == 1) {
                 AiModelPredicate modelPredicate = modelPredicates.get(0);
                 headerRoutePredicate.setMatchType(modelPredicate.getMatchType());
@@ -393,8 +409,11 @@ public class AiRouteServiceImpl implements AiRouteService {
                 headerRoutePredicate.setMatchType(RoutePredicateTypeEnum.REGULAR.toString());
                 headerRoutePredicate.setMatchValue(buildModelRoutingHeaderRegex(modelPredicates));
             }
-            route.setHeaders(List.of(headerRoutePredicate));
+            headerPredicates.add(headerRoutePredicate);
         }
+        route.setHeaders(headerPredicates);
+
+        route.setUrlParams(aiRoute.getUrlParamPredicates());
 
         return route;
     }
