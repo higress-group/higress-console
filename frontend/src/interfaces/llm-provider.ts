@@ -1,4 +1,5 @@
 export interface LlmProvider {
+  key?: string;
   name: string;
   type: string;
   protocol?: string;

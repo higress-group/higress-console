@@ -1,18 +1,22 @@
 import { Consumer } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { LlmProvider } from '@/interfaces/llm-provider';
+import FactorGroup from '@/pages/route/components/FactorGroup';
 import { getGatewayDomains } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { getLlmProviders } from '@/services/llm-provider';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { AutoComplete, Button, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
+import { AutoComplete, Button, Checkbox, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
+import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
 import { HistoryButton, RedoOutlinedBtn } from './Components';
 
-const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
+const { Option } = Select;
+
+const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
@@ -53,7 +57,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
     consumerResult.run();
     domainsResult.run();
     form.resetFields();
-    if (value) initForm();
+    initForm();
     return () => {
       setAuthConfigEnabled(false);
       setFallbackConfigEnabled(false);
@@ -61,7 +65,15 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
   }, []);
 
   const initForm = () => {
-    const { name = "", domains, upstreams = [], modelPredicates } = value;
+    const {
+      name = "",
+      domains,
+      pathPredicate = { matchType: 'PRE', matchValue: '/', caseSensitive: false },
+      headerPredicates = [],
+      urlParamPredicates = [],
+      upstreams = [{}],
+      modelPredicates,
+    } = (value || {});
     const _authConfig_enabled = value?.authConfig?.enabled || false;
     const _fallbackConfig_enabled = value?.fallbackConfig?.enabled || false;
 
@@ -76,9 +88,20 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         fallbackInitValues['fallbackConfig_modelNames'] = '';
       }
     }
+
+    headerPredicates && headerPredicates.map((query) => {
+      return { ...query, uid: uniqueId() };
+    });
+    urlParamPredicates && urlParamPredicates.map((header) => {
+      return { ...header, uid: uniqueId() };
+    });
+
     const initValues = {
       name,
       domains: domains?.length ? domains[0] : [],
+      pathPredicate,
+      headerPredicates,
+      urlParamPredicates,
       upstreams,
       authConfig_enabled: _authConfig_enabled,
       authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || "",
@@ -136,6 +159,9 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const {
         name,
         domains,
+        pathPredicate,
+        headerPredicates,
+        urlParamPredicates,
         fallbackConfig_upstreams = '',
         authConfig_allowedConsumers = '',
         fallbackConfig_modelNames = '',
@@ -146,6 +172,9 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const payload = {
         name,
         domains: domains && !Array.isArray(domains) ? [domains] : domains,
+        pathPredicate,
+        headerPredicates,
+        urlParamPredicates,
         fallbackConfig: {
           enabled: fallbackConfig_enabled,
         },
@@ -246,6 +275,66 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
         </Form.Item>
         <RedoOutlinedBtn getList={domainsResult} />
       </div>
+      <Form.Item label={t('route.routeForm.path')} required>
+        <Input.Group compact>
+          <Form.Item
+            name={['pathPredicate', 'matchType']}
+            noStyle
+            rules={[
+              {
+                required: true,
+                message: t('route.routeForm.pathPredicatesRequired'),
+              },
+            ]}
+          >
+            <Select
+              style={{ width: '20%' }}
+              placeholder={t('route.routeForm.matchType')}
+            >
+              <Option value="PRE">{t('route.matchTypes.PRE')}</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name={['pathPredicate', 'matchValue']}
+            noStyle
+            rules={[
+              {
+                required: true,
+                message: t('route.routeForm.pathMatcherRequired'),
+              },
+            ]}
+          >
+            <Input style={{ width: '60%' }} placeholder={t('route.routeForm.pathMatcherPlacedholder')} />
+          </Form.Item>
+          <Form.Item
+            name={['pathPredicate', 'ignoreCase']}
+            noStyle
+          >
+            <Checkbox.Group
+              options={[
+                {
+                  label: t('route.routeForm.caseInsensitive'), value: 'ignore',
+                },
+              ]}
+              style={{ width: '18%', display: 'inline-flex', marginLeft: 12, marginTop: 4 }}
+            />
+          </Form.Item>
+        </Input.Group>
+      </Form.Item>
+      <Form.Item
+        label={t('route.routeForm.header')}
+        name="headerPredicates"
+        tooltip={t('route.routeForm.headerTooltip')}
+      >
+        <FactorGroup />
+      </Form.Item>
+      <Form.Item
+        label={t('route.routeForm.query')}
+        name="urlParamPredicates"
+        tooltip={t('route.routeForm.queryTooltip')}
+      >
+        <FactorGroup />
+      </Form.Item>
       <Form.Item
         style={{ marginBottom: 10 }}
         label={t("aiRoute.routeForm.selectModelService")} // {/* 选择模型服务 */}
@@ -338,6 +427,7 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 <>
                   {fields.map(({ key, name, ...restField }, index) => (
                     <Form.Item
+                      key={key}
                       label={t("aiRoute.routeForm.label.serviceName")}
                       {...restField}
                       name={[name, 'provider']}
@@ -526,4 +616,4 @@ const ConsumerForm: React.FC = forwardRef((props: { value: any }, ref) => {
   );
 });
 
-export default ConsumerForm;
+export default AiRouteForm;

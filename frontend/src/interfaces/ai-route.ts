@@ -1,4 +1,5 @@
 export interface AiRoute {
+  key?: string;
   name: string;
   version?: string;
   domains: string[];

@@ -109,6 +109,7 @@ const AiRouteList: React.FC = () => {
     manual: true,
     onSuccess: (result) => {
       const aiRoutes = (result || []) as AiRoute[];
+      aiRoutes.forEach(r => { r.key = r.name; });
       aiRoutes.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })

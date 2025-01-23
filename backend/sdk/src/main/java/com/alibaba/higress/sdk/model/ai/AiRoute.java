@@ -17,7 +17,11 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
@@ -35,6 +39,9 @@ public class AiRoute {
     private String name;
     private String version;
     private List<String> domains;
+    private RoutePredicate pathPredicate;
+    private List<KeyedRoutePredicate> headerPredicates;
+    private List<KeyedRoutePredicate> urlParamPredicates;
     private List<AiUpstream> upstreams;
     private List<AiModelPredicate> modelPredicates;
     private AiRouteAuthConfig authConfig;
@@ -46,6 +53,22 @@ public class AiRoute {
         }
         if (CollectionUtils.isEmpty(upstreams)) {
             throw new ValidationException("upstreams cannot be empty.");
+        }
+        if (pathPredicate != null) {
+            pathPredicate.validate();
+            if (pathPredicate.getPredicateType() != RoutePredicateTypeEnum.PRE) {
+                throw new ValidationException("pathPredicate must be of type PRE.");
+            }
+        }
+        if (CollectionUtils.isNotEmpty(headerPredicates)) {
+            headerPredicates.forEach(KeyedRoutePredicate::validate);
+            if (headerPredicates.stream()
+                .anyMatch(p -> HigressConstants.MODEL_ROUTING_HEADER.equalsIgnoreCase(p.getKey()))) {
+                throw new ValidationException("headerPredicates cannot contain the model routing header.");
+            }
+        }
+        if (CollectionUtils.isNotEmpty(urlParamPredicates)) {
+            urlParamPredicates.forEach(KeyedRoutePredicate::validate);
         }
         upstreams.forEach(AiUpstream::validate);
         if (authConfig != null) {

@@ -94,7 +94,7 @@ const LlmProviderList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <EllipsisMiddle value={token} />);
+        return value.map((token) => <EllipsisMiddle key={token} value={token} />);
       },
     },
     {
@@ -124,6 +124,7 @@ const LlmProviderList: React.FC = () => {
     manual: true,
     onSuccess: (result) => {
       const llmProviders = (result || []) as LlmProvider[];
+      llmProviders.forEach(r => { r.key = r.name; });
       llmProviders.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })

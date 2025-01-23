@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import java.beans.Transient;
+
 import com.alibaba.higress.sdk.exception.ValidationException;
 
 import lombok.AllArgsConstructor;
@@ -34,11 +36,16 @@ public class RoutePredicate {
 
     private Boolean caseSensitive;
 
+    @Transient
+    public RoutePredicateTypeEnum getPredicateType() {
+        return RoutePredicateTypeEnum.fromName(this.getMatchType());
+    }
+
     public void validate() {
         if (this.getMatchType() == null) {
             throw new ValidationException("matchType is required");
         }
-        RoutePredicateTypeEnum predicateType = RoutePredicateTypeEnum.fromName(this.getMatchType());
+        RoutePredicateTypeEnum predicateType = getPredicateType();
         if (predicateType == null) {
             throw new ValidationException("Unknown matchType: " + this.getMatchType());
         }
