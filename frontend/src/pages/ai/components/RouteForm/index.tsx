@@ -199,7 +199,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
           provider: fallbackConfig_upstreams,
           modelMapping: {},
         };
-        _upstreams["modelMapping"][fallbackConfig_modelNames] = fallbackConfig_upstreams;
+        _upstreams["modelMapping"]["*"] = fallbackConfig_modelNames;
         payload['fallbackConfig']['upstreams'] = [_upstreams];
         payload['fallbackConfig']['strategy'] = "SEQ";
       }
