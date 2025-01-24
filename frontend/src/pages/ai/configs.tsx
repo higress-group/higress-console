@@ -26,6 +26,12 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      return [record.rawConfigs['openaiCustomUrl']];
+    },
   },
   {
     label: 'Qwen',

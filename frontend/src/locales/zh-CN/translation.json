@@ -226,7 +226,9 @@
         "successThreshold": "令牌可用时需满足的最小连续健康检测成功次数",
         "azureServiceUrl": "Azure 服务 URL",
         "ollamaServerHost": "Ollama 服务主机名",
-        "ollamaServerPort": "Ollama 服务端口"
+        "ollamaServerPort": "Ollama 服务端口",
+        "openaiServerType": "OpenAI 服务类型",
+        "openaiCustomUrl": "自定义 OpenAI 服务 URL"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -240,11 +242,17 @@
         "successThresholdRequired": "请输入最小连续健康检测成功次数",
         "azureServiceUrlRequired": "请输入 Azure 服务 URL",
         "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
-        "ollamaServerPortRequired": "请输入 Ollama 服务端口"
+        "ollamaServerPortRequired": "请输入 Ollama 服务端口",
+        "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 URL"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
-        "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址"
+        "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
+        "openaiCustomUrlPlaceholder": "示例：http://www.example.com/myai/v1/chat/completions"
+      },
+      "openaiServerType": {
+        "official": "OpenAI 官方服务",
+        "custom": "自定义服务"
       }
     },
     "create": "创建AI服务提供者",
