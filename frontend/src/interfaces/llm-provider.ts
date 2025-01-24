@@ -3,13 +3,8 @@ export interface LlmProvider {
   name: string;
   type: string;
   protocol?: string;
-  modelMapping: ModelMapping;
   tokens: string[];
   tokenFailoverConfig?: TokeFailoverConfig;
-}
-
-export interface ModelMapping {
-  [propName: string]: string;
 }
 
 export interface TokeFailoverConfig {
@@ -19,11 +14,6 @@ export interface TokeFailoverConfig {
   healthCheckInterval?: number;
   healthCheckTimeout?: number;
   healthCheckModel?: string;
-}
-
-export enum LlmProviderType {
-  OPENAI = 'openai',
-  QWEN = 'qwen',
 }
 
 export enum LlmProviderProtocol {
