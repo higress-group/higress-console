@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.model.route;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,11 +24,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Header Control Stage Configuration")
 public class HeaderControlStageConfig {
 
+    @Schema(description = "Headers to add")
     private List<Header> add;
 
+    @Schema(description = "Headers to set")
     private List<Header> set;
 
+    @Schema(description = "Headers to remove")
     private List<String> remove;
 }

@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.exception.BusinessException;
 
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,10 +34,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Response<T> implements Serializable {
 
+    @Schema(description = "Whether the request is successful.")
     private boolean success = true;
 
+    @Schema(description = "Error message.")
     private String message;
 
+    @Schema(description = "Response data.")
     private T data;
 
     public static <T> Response<T> success(T data) {

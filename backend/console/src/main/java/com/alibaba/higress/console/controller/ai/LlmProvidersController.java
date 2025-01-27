@@ -36,9 +36,15 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.service.ai.LlmProviderService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController("LlmProvidersController")
 @RequestMapping("/v1/ai/providers")
 @Validated
+@Tag(name = "LLM Provider APIs")
 public class LlmProvidersController {
 
     private LlmProviderService llmProviderService;
@@ -49,24 +55,41 @@ public class LlmProvidersController {
     }
 
     @GetMapping
+    @Operation(summary = "List LLM providers")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Providers listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<LlmProvider>> list(CommonPageQuery query) {
         PaginatedResult<LlmProvider> providers = llmProviderService.list(query);
         return ControllerUtil.buildResponseEntity(providers);
     }
 
     @PostMapping
+    @Operation(summary = "Add a new route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route added successfully"),
+        @ApiResponse(responseCode = "400", description = "Route data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider certificate) {
         LlmProvider newProvider = llmProviderService.addOrUpdate(certificate);
         return ControllerUtil.buildResponseEntity(newProvider);
     }
 
     @GetMapping(value = "/{name}")
+    @Operation(summary = "Get LLM provider by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Provider found"),
+        @ApiResponse(responseCode = "404", description = "Provider not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProvider>> query(@PathVariable("name") @NotBlank String name) {
         LlmProvider provider = llmProviderService.query(name);
         return ControllerUtil.buildResponseEntity(provider);
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed provider")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Provider updated successfully"),
+        @ApiResponse(responseCode = "400",
+            description = "Provider data is not valid or provider name in the URL doesn't match the one in the body."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProvider>> put(@PathVariable("name") @NotBlank String name,
         @RequestBody LlmProvider provider) {
         if (StringUtils.isNotEmpty(provider.getName())) {
@@ -79,6 +102,9 @@ public class LlmProvidersController {
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete an LLM provider")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Provider deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProvider>> delete(@PathVariable("name") @NotBlank String name) {
         llmProviderService.delete(name);
         return ResponseEntity.noContent().build();

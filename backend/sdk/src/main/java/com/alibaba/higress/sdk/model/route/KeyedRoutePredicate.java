@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "Route Predicate with a Key")
 public class KeyedRoutePredicate extends RoutePredicate {
 
     private String key;

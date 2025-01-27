@@ -37,14 +37,23 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController("ServiceSourceController")
 @RequestMapping("/v1/service-sources")
+@Tag(name = "Service Source APIs")
 public class ServiceSourceController {
 
     @Resource
     private ServiceSourceService serviceSourceService;
 
     @GetMapping
+    @Operation(summary = "List service sources")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service sources listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<ServiceSource>>
         list(@RequestParam(required = false) @RequestBody CommonPageQuery query) {
         PaginatedResult<ServiceSource> result = serviceSourceService.list(query);
@@ -54,12 +63,17 @@ public class ServiceSourceController {
         return ControllerUtil.buildResponseEntity(result);
     }
 
-    @PostMapping()
+    @PostMapping
+    @Operation(summary = "Add a new service source")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source added successfully"),
+        @ApiResponse(responseCode = "400", description = "Service source data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Service source already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> add(@RequestBody ServiceSource serviceSource) {
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
-        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Adding an internal service source is not allowed.");
         }
         ServiceSource finalServiceSource = serviceSourceService.add(serviceSource);
@@ -68,13 +82,19 @@ public class ServiceSourceController {
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed service source")
+    @ApiResponses(
+        value = {@ApiResponse(responseCode = "200", description = "Service source updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Service source data is not valid"),
+            @ApiResponse(responseCode = "409", description = "Service source trying to add already existed"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
         @RequestBody ServiceSource serviceSource) {
         serviceSource.setName(name);
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
-        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Updating an internal service source is not allowed.");
         }
         ServiceSource finalServiceSource = serviceSourceService.addOrUpdate(serviceSource);
@@ -83,8 +103,12 @@ public class ServiceSourceController {
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete a service source")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Service source deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "Deleting an internal service source is not allowed."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> delete(@PathVariable("name") @NotBlank String name) {
-        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Deleting an internal service source is not allowed.");
         }
         serviceSourceService.delete(name);
@@ -92,6 +116,10 @@ public class ServiceSourceController {
     }
 
     @GetMapping("/{name}")
+    @Operation(summary = "Get service source by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source found"),
+        @ApiResponse(responseCode = "404", description = "Service source not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> query(@PathVariable("name") @NotBlank String name) {
         ServiceSource source = serviceSourceService.query(name);
         stripSensitiveInfo(source);

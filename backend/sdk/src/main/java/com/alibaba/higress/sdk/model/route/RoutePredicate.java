@@ -16,6 +16,7 @@ import java.beans.Transient;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,15 +26,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Route Predicate")
 public class RoutePredicate {
 
     /**
      * @see RoutePredicateTypeEnum
      */
+    @Schema(description = "Match type", ref = "RoutePredicateTypeEnum")
     private String matchType;
 
+    @Schema(description = "The value to match against")
     private String matchValue;
 
+    @Schema(description = "Whether to match the value case-sensitively")
     private Boolean caseSensitive;
 
     @Transient

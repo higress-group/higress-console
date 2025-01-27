@@ -38,12 +38,18 @@ import com.alibaba.higress.console.service.ConfigService;
 import com.alibaba.higress.console.service.SystemService;
 import com.alibaba.higress.sdk.exception.ValidationException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * @author CH3CHO
  */
 @RestController("SystemController")
 @RequestMapping("/system")
 @Validated
+@Tag(name = "System APIs")
 public class SystemController {
 
     private ConfigService configService;
@@ -60,6 +66,10 @@ public class SystemController {
     }
 
     @PostMapping("/init")
+    @Operation(summary = "Initialize")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System initialized successfully."),
+        @ApiResponse(responseCode = "400", description = "Incomplete initialization data."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<?> initialize(@RequestBody SystemInitRequest request) {
         User adminUser = request.getAdminUser();
         if (adminUser == null) {
@@ -75,12 +85,19 @@ public class SystemController {
     }
 
     @GetMapping("/info")
+    @Operation(summary = "Get system info")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System info retrieved successfully."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<SystemInfo> info() {
         SystemInfo info = systemService.getSystemInfo();
         return ResponseEntity.ok(info);
     }
 
     @GetMapping("/config")
+    @Operation(summary = "Get system configurations")
+    @ApiResponses(
+        value = {@ApiResponse(responseCode = "200", description = "System configurations retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Map<String, Object>>> getConfigs() {
         List<String> keys = configService.getConfigKeys();
         Map<String, Object> configs;

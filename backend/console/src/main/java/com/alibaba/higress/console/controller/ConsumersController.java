@@ -36,9 +36,15 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController("ConsumersController")
 @RequestMapping("/v1/consumers")
 @Validated
+@Tag(name = "Consumer APIs")
 public class ConsumersController {
 
     private ConsumerService consumerService;
@@ -49,12 +55,19 @@ public class ConsumersController {
     }
 
     @GetMapping
+    @Operation(summary = "List consumers")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Consumers listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<Consumer>> list(CommonPageQuery query) {
         PaginatedResult<Consumer> consumers = consumerService.list(query);
         return ControllerUtil.buildResponseEntity(consumers);
     }
 
     @PostMapping
+    @Operation(summary = "Add a consumer")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Consumer added successfully"),
+        @ApiResponse(responseCode = "400", description = "Consumer data is not valid"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> add(@RequestBody Consumer consumer) {
         consumer.validate(false);
         Consumer newConsumer = consumerService.addOrUpdate(consumer);
@@ -62,12 +75,20 @@ public class ConsumersController {
     }
 
     @GetMapping(value = "/{name}")
+    @Operation(summary = "Get consumer by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Consumer found"),
+        @ApiResponse(responseCode = "404", description = "Consumer not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> query(@PathVariable("name") @NotBlank String name) {
         Consumer consumer = consumerService.query(name);
         return ControllerUtil.buildResponseEntity(consumer);
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed consumer")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Consumer updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Consumer data is not valid"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> put(@PathVariable("name") @NotBlank String name,
         @RequestBody Consumer consumer) {
         if (StringUtils.isNotEmpty(consumer.getName())) {
@@ -81,6 +102,9 @@ public class ConsumersController {
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete a consumer")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Consumer deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> delete(@PathVariable("name") @NotBlank String name) {
         consumerService.delete(name);
         return ResponseEntity.noContent().build();

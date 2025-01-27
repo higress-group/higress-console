@@ -12,6 +12,9 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.crd.wasm;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Plugin Execution Phase", allowableValues = {"UNSPECIFIED", "AUTHN", "AUTHZ", "STATS"})
 public enum PluginPhase {
 
     /**

@@ -12,7 +12,7 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,10 +25,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Change Password Request")
+@Schema(description = "Change Password Request")
 public class ChangePasswordRequest {
 
+    @Schema(description = "Old password")
     private String oldPassword;
 
+    @Schema(description = "New password")
     private String newPassword;
 }

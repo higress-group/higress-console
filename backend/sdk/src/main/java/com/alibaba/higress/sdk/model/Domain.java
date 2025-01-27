@@ -12,7 +12,7 @@
  */
 package com.alibaba.higress.sdk.model;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Domain")
+@Schema(description = "Gateway Domain")
 public class Domain implements VersionedDto {
 
     public static class EnableHttps {
@@ -31,11 +31,15 @@ public class Domain implements VersionedDto {
         public static final String FORCE = "force";
     }
 
+    @Schema(description = "Domain name")
     private String name;
 
+    @Schema(description = "Domain version. Required when updating.")
     private String version;
 
+    @Schema(description = "HTTPS configuration", allowableValues = {EnableHttps.OFF, EnableHttps.ON, EnableHttps.FORCE})
     private String enableHttps;
 
+    @Schema(description = "Certificate name")
     private String certIdentifier;
 }

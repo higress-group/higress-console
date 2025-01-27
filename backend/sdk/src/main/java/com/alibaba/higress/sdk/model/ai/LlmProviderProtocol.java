@@ -12,6 +12,9 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "LLM Service Provider Protocols", type = "string", allowableValues = {"openai/v1", "original"})
 public enum LlmProviderProtocol {
 
     /**

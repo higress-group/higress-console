@@ -16,6 +16,9 @@ import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "AI Model Predicate")
 public class AiModelPredicate extends RoutePredicate {
 
     public void validate() {

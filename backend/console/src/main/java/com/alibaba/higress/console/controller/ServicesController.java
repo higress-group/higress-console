@@ -20,21 +20,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.model.CommonPageQuery;
+import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.sdk.service.ServiceService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController("ServicesController")
 @RequestMapping("/v1/services")
 @Validated
+@Tag(name = "Service APIs")
 public class ServicesController {
 
     @Resource
     private ServiceService serviceService;
 
     @GetMapping
+    @Operation(summary = "List services")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Services listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<Service>> list(CommonPageQuery query) {
         return ControllerUtil.buildResponseEntity(serviceService.list(query));
     }

@@ -17,7 +17,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,14 +27,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("LLM Service Provider")
+@Schema(description = "LLM Service Provider")
 public class LlmProvider {
 
+    @Schema(description = "Provider name")
     private String name;
+    @Schema(description = "Provider type", ref = "LlmProviderType")
     private String type;
+    @Schema(description = "Provider protocol", ref = "LlmProviderProtocol")
     private String protocol;
+    @Schema(description = "Tokens used to request the provider")
     private List<String> tokens;
+    @Schema(description = "Token fail-over configuration")
     private TokenFailoverConfig tokenFailoverConfig;
+    @Schema(description = "Raw configuration key-value pairs used by ai-proxy plugin")
     private Map<String, Object> rawConfigs;
 
     public void validate(boolean forUpdate) {
