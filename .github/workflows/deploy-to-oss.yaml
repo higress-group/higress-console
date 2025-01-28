@@ -8,23 +8,33 @@ on:
 jobs:
   deploy-to-oss:
     runs-on: ubuntu-latest
+    env:
+      OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT || 'oss-cn-hongkong.aliyuncs.com' }}
+      OSS_REGION: ${{ vars.OSS_REGION || 'cn-hongkong' }}
+      OSS_BUCKET: ${{ vars.OSS_BUCKET || 'higress-website-cn-hongkong' }}
+      OSS_HELM_CHART_PATH: ${{ vars.OSS_HELM_CHART_PATH || '/helm-charts' }}
+      OSS_API_DOCS_DIR_PATH: ${{ vars.OSS_API_DOCS_DIR_PATH || '/swagger/' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Install Aliyun CLI
         run: |
           curl -O https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
           tar -xzf aliyun-cli-linux-latest-amd64.tgz
           chmod +x aliyun
           ./aliyun version        
+
       - name: Download Helm Charts Index
-        run: ./aliyun oss cp oss://higress-website-cn-hongkong/helm-charts/index.yaml ./artifact/ -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
+        run: ./aliyun oss cp oss://$OSS_BUCKET$OSS_HELM_CHART_PATH/index.yaml ./artifact/ -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION
+
       - id: calc-version
         name: Calculate Version Number
         run: |
           version=$(echo ${{ github.ref_name }} | cut -c2-)
           echo "Version=$version"
           echo "version=$version" >> $GITHUB_OUTPUT
+
       - name: Build Artifact
         uses: stefanprodan/kube-tools@v1
         with:
@@ -34,5 +44,30 @@ jobs:
             helmv3 repo index --url https://higress.io/helm-charts/ --merge ./artifact/index.yaml ./artifact
             cp ./artifact/index.yaml ./artifact/cn-index.yaml
             sed -i 's/higress\.io/higress\.cn/g' ./artifact/cn-index.yaml
-      - name: Upload to OSS
-        run: ./aliyun oss cp ./artifact/ oss://higress-website-cn-hongkong/helm-charts/ -r -f -e oss-cn-hongkong.aliyuncs.com --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region cn-hongkong
+
+      - name: Upload Helm Charts to OSS
+        run: ./aliyun oss cp ./artifact/ oss://$OSS_BUCKET$OSS_HELM_CHART_PATH/ -r -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION
+
+      - name: "Setup Java"
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: "Setup Kind"
+        uses: engineerd/setup-kind@v0.6.2
+        with:
+          name: higress
+          version: "v0.24.0"          
+
+      - name: Build Higress Console API Docs
+        run: |
+          helm repo add higress.io https://higress.cn/helm-charts
+          helm install higress-console -n higress-system higress.io/higress-console \
+            --create-namespace --set global.local=true
+          mvn clean verify -f ./backend/pom.xml -Papi-docs
+
+      - name: Upload API Docs to OSS
+        run: |
+          ./aliyun oss cp ./backend/console/target/openapi.json oss://$OSS_BUCKET$OSS_API_DOCS_DIR_PATH -r -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION
+          ./aliyun oss cp ./backend/console/src/main/html/swagger/ oss://$OSS_BUCKET$OSS_API_DOCS_DIR_PATH -r -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION

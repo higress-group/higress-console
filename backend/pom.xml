@@ -76,6 +76,8 @@
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
 
 		<delombok.output>${project.basedir}/target/delombok-sources</delombok.output>
+
+		<gpg.sign.skip>false</gpg.sign.skip>
 	</properties>
 
 	<dependencyManagement>
@@ -278,6 +280,9 @@
 						<goals>
 							<goal>sign</goal>
 						</goals>
+						<configuration>
+							<skip>${gpg.sign.skip}</skip>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -377,6 +382,19 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>api-docs</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+				<enforcer.skip>true</enforcer.skip>
+				<gpg.sign.skip>true</gpg.sign.skip>
+				<skip.npm>true</skip.npm>
+				<skip.npx>true</skip.npx>
+				<lombok.delombok.skip>true</lombok.delombok.skip>
+				<checkstyle.skip>true</checkstyle.skip>
+				<pmd.skip>true</pmd.skip>
+			</properties>
 		</profile>
 	</profiles>
 </project>

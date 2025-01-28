@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.model;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,9 +23,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "Query criteria for route listing.")
 public class RoutePageQuery extends CommonPageQuery {
 
+    @Parameter(description = "Domain name associated with route.")
     private String domainName;
 
+    @Parameter(description = "true to list routes in all K8s namespaces, "
+        + "false to list only routes in the higress namespace.")
     private Boolean all;
 }

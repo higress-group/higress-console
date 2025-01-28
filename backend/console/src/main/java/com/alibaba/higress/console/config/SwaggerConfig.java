@@ -26,8 +26,7 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi openApi() {
         Info apiInfo = new Info().title("Higress Console")
-            .contact(new Contact().name("CH3CHO").url("https://github.com/higress-group/higress-console")
-                .email("ch3cho@qq.com"))
+            .contact(new Contact().name("Higress Authors").url("https://github.com/higress-group/higress-console"))
             .description(
                 "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices.")
             .license(new License().name("Apache 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
