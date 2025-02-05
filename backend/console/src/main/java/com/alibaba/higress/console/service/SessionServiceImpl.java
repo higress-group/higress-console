@@ -14,6 +14,7 @@ package com.alibaba.higress.console.service;
 
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +28,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
@@ -59,7 +61,7 @@ public class SessionServiceImpl implements SessionService {
     private static final int ENCRYPT_KEY_LENGTH = 32;
     private static final String ENCRYPT_IV_KEY = "iv";
     private static final int ENCRYPT_IV_LENGTH = 16;
-    private static final String TOKEN_PART_SEPARATOR= "\1";
+    private static final String TOKEN_PART_SEPARATOR = "\1";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -169,6 +171,14 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public User validateSession(HttpServletRequest request) {
+        User user = tryExtractUserFromCookie(request);
+        if (user != null) {
+            return user;
+        }
+        return tryExtractUserFromAuthHeader(request);
+    }
+
+    private User tryExtractUserFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null || cookies.length == 0) {
             return null;
@@ -196,7 +206,32 @@ public class SessionServiceImpl implements SessionService {
         if (segments.length < 3) {
             return null;
         }
-        if (!config.getUsername().equals(segments[0]) || !config.getPassword().equals(segments[1])) {
+        return validateCredential(segments[0], segments[1]);
+    }
+
+    private User tryExtractUserFromAuthHeader(HttpServletRequest request) {
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.isBlank(header)) {
+            return null;
+        }
+        String[] parts = header.split(" ");
+        if (parts.length != 2 || !"Basic".equals(parts[0])) {
+            return null;
+        }
+        String decoded = new String(Base64.getDecoder().decode(parts[1]));
+        String[] credentials = decoded.split(":");
+        if (credentials.length != 2) {
+            return null;
+        }
+        return validateCredential(credentials[0], credentials[1]);
+    }
+
+    private User validateCredential(String username, String password) {
+        AdminConfig config = tryGetAdminConfig();
+        if (config == null) {
+            return null;
+        }
+        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
             return null;
         }
         return config.toUser();
