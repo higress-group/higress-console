@@ -13,6 +13,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [form] = Form.useForm();
   const [failoverEnabled, setFailoverEnabled] = useState(false);
   const [providerType, setProviderType] = useState<string | null>();
+  const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
 
   useEffect(() => {
@@ -50,12 +51,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         rawConfigs,
       });
 
+      if (type === 'openai') {
+        const openaiServerTypeValue = rawConfigs && rawConfigs.openaiCustomUrl ? 'custom' : 'official';
+        form.setFieldValue('openaiServerType', openaiServerTypeValue);
+        onOpenaiServerTypeChanged(openaiServerTypeValue)
+      }
+
       onProviderTypeChanged(type);
     }
 
     return () => {
       setFailoverEnabled(false);
       onProviderTypeChanged(null);
+      onOpenaiServerTypeChanged(null)
     }
   }, [props.value]);
 
@@ -86,6 +94,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       return result;
     },
   }));
+
+  function onOpenaiServerTypeChanged(value: string | null) {
+    setOpenaiServerType(value);
+  }
 
   function onProviderTypeChanged(value: string | null) {
     setProviderType(value);
@@ -162,7 +174,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           placeholder={t('llmProvider.providerForm.rules.protocol')}
         >
           {protocolList.map(item => (
-            <Select.Option value={item.value}>
+            <Select.Option key={item.value} value={item.value}>
               {item.label}
             </Select.Option>
           ))}
@@ -239,6 +251,48 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       >
         <Switch onChange={e => setFailoverEnabled(e)} />
       </Form.Item>
+
+      {
+        providerType === 'openai' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.openaiServerType')}
+              required
+              name="openaiServerType"
+              initialValue="official"
+            >
+              <Select
+                onChange={onOpenaiServerTypeChanged}
+              >
+                <Select.Option value="official">{t("llmProvider.providerForm.openaiServerType.official")}</Select.Option>
+                <Select.Option value="custom">{t("llmProvider.providerForm.openaiServerType.custom")}</Select.Option>
+              </Select>
+            </Form.Item>
+            {
+              openaiServerType === "custom" && (
+                <Form.Item
+                  label={t('llmProvider.providerForm.label.openaiCustomUrl')}
+                  required
+                  name={["rawConfigs", "openaiCustomUrl"]}
+                  rules={[
+                    {
+                      required: true,
+                      pattern: /http(s)?:\/\/.+\/v1\/chat\/completions/,
+                      message: t('llmProvider.providerForm.rules.openaiCustomUrlRequired'),
+                    },
+                  ]}
+                >
+                  <Input
+                    allowClear
+                    type="url"
+                    placeholder={t('llmProvider.providerForm.placeholder.openaiCustomUrlPlaceholder')}
+                  />
+                </Form.Item>
+              )
+            }
+          </>
+        )
+      }
 
       {
         providerType === 'azure' && (
