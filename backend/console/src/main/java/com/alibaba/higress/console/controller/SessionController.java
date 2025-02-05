@@ -31,11 +31,17 @@ import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.sdk.exception.ValidationException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * @author CH3CHO
  */
 @RestController("SessionController")
 @RequestMapping("/session")
+@Tag(name = "Session APIs")
 public class SessionController {
 
     private SessionService sessionService;
@@ -46,6 +52,10 @@ public class SessionController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
+        @ApiResponse(responseCode = "400", description = "Missing user name or password."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         if (StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())) {
             throw new ValidationException("Missing user name or password.");
@@ -60,6 +70,9 @@ public class SessionController {
     }
 
     @GetMapping("/logout")
+    @Operation(summary = "Logout")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged out successfully."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<?> logout(HttpServletResponse response) {
         sessionService.clearSession(response);
         return ControllerUtil.buildSuccessResponseEntity();

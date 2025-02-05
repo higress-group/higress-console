@@ -36,9 +36,15 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
 import com.alibaba.higress.sdk.service.ai.AiRouteService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController("AiRoutesController")
 @RequestMapping("/v1/ai/routes")
 @Validated
+@Tag(name = "AI Route APIs")
 public class AiRoutesController {
 
     private AiRouteService aiRouteService;
@@ -49,12 +55,20 @@ public class AiRoutesController {
     }
 
     @GetMapping
+    @Operation(summary = "List AI routes")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Routes listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<AiRoute>> list(CommonPageQuery query) {
         PaginatedResult<AiRoute> routes = aiRouteService.list(query);
         return ControllerUtil.buildResponseEntity(routes);
     }
 
     @PostMapping
+    @Operation(summary = "Add a new AI route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route added successfully"),
+        @ApiResponse(responseCode = "400", description = "Route data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<AiRoute>> add(@RequestBody AiRoute route) {
         route.validate();
         AiRoute newRoute = aiRouteService.add(route);
@@ -62,12 +76,22 @@ public class AiRoutesController {
     }
 
     @GetMapping(value = "/{name}")
+    @Operation(summary = "Get AI route by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route found"),
+        @ApiResponse(responseCode = "404", description = "Route not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<AiRoute>> query(@PathVariable("name") @NotBlank String name) {
         AiRoute route = aiRouteService.query(name);
         return ControllerUtil.buildResponseEntity(route);
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed AI route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route updated successfully"),
+        @ApiResponse(responseCode = "400",
+            description = "Route data is not valid or route name in the URL doesn't match the one in the body."),
+        @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<AiRoute>> put(@PathVariable("name") @NotBlank String name,
         @RequestBody AiRoute route) {
         if (StringUtils.isNotEmpty(route.getName())) {
@@ -81,6 +105,10 @@ public class AiRoutesController {
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete an AI route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Route deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "Deleting an internal route is not allowed."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<AiRoute>> delete(@PathVariable("name") @NotBlank String name) {
         aiRouteService.delete(name);
         return ResponseEntity.noContent().build();

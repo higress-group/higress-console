@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,5 +24,6 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class WasmPluginPageQuery extends CommonPageQuery {
 
+    @Schema(description = "Plugin data language", allowableValues = {"zh-CN", "en-US"})
     private String lang;
 }

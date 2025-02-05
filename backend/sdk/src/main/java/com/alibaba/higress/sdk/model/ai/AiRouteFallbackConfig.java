@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.model.ai;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -28,10 +29,14 @@ import org.apache.commons.lang3.StringUtils;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "AI Route fallback configuration")
 public class AiRouteFallbackConfig {
 
+    @Schema(description = "Whether fallback is enabled")
     private Boolean enabled;
+    @Schema(description = "Fallback upstreams. Only one upstream is allowed when fallbackStrategy is SEQ.")
     private List<AiUpstream> upstreams;
+    @Schema(description = "Fallback strategy", ref = "AiRouteFallbackStrategy")
     private String fallbackStrategy;
 
     public void validate() {

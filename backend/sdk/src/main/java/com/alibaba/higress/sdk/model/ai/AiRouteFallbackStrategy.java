@@ -12,10 +12,12 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "AI Route fallback strategy", type = "string", allowableValues = {"RAND", "SEQ"})
 public final class AiRouteFallbackStrategy {
 
-    private AiRouteFallbackStrategy() {
-    }
+    private AiRouteFallbackStrategy() {}
 
     public static final String RANDOM = "RAND";
 

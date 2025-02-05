@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,11 +22,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Header Control Configuration")
 public class HeaderControlConfig {
 
+    @Schema(description = "Whether to enable the header control feature.")
     private Boolean enabled;
 
+    @Schema(description = "Request header control configuration")
     private HeaderControlStageConfig request;
 
+    @Schema(description = "Response header control configuration")
     private HeaderControlStageConfig response;
 }

@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,36 +37,60 @@ import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
 import com.alibaba.higress.sdk.service.RouteService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController("RoutesController")
 @RequestMapping("/v1/routes")
 @Validated
+@Tag(name = "Route APIs")
 public class RoutesController {
 
     @Resource
     private RouteService routeService;
 
     @GetMapping
-    public ResponseEntity<PaginatedResponse<Route>> list(RoutePageQuery query) {
+    @Operation(summary = "List routes")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Routes listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<PaginatedResponse<Route>> list(@ParameterObject RoutePageQuery query) {
         return ControllerUtil.buildResponseEntity(routeService.list(query));
     }
 
     @GetMapping("/{name}")
+    @Operation(summary = "Get route by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route found"),
+        @ApiResponse(responseCode = "404", description = "Route not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Route>> query(@PathVariable("name") @NotBlank String routeName) {
         return ControllerUtil.buildResponseEntity(routeService.query(routeName));
     }
 
     @PostMapping
+    @Operation(summary = "Add a new route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route added successfully"),
+        @ApiResponse(responseCode = "400", description = "Route data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Route>> add(@RequestBody Route route) {
-        if (StringUtils.isEmpty(route.getName())){
+        if (StringUtils.isEmpty(route.getName())) {
             throw new ValidationException("Route name is required.");
         }
-        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Adding an internal route is not allowed.");
         }
         return ControllerUtil.buildResponseEntity(routeService.add(route));
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route updated successfully"),
+        @ApiResponse(responseCode = "400",
+            description = "Route data is not valid or route name in the URL doesn't match the one in the body."),
+        @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Route>> update(@PathVariable("name") @NotBlank String routeName,
         @RequestBody Route route) {
         if (StringUtils.isEmpty(route.getName())) {
@@ -73,15 +98,19 @@ public class RoutesController {
         } else if (!StringUtils.equals(routeName, route.getName())) {
             throw new ValidationException("Route name in the URL doesn't match the one in the body.");
         }
-        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Updating an internal route is not allowed.");
         }
         return ControllerUtil.buildResponseEntity(routeService.update(route));
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete a route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Route deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "Deleting an internal route is not allowed."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Route>> delete(@PathVariable("name") @NotBlank String name) {
-        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)){
+        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Deleting an internal route is not allowed.");
         }
         routeService.delete(name);

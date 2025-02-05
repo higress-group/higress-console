@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import com.alibaba.higress.sdk.model.PaginatedResult;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,12 +27,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "Response with paginated data.")
 public class PaginatedResponse<T> extends Response<List<T>> {
 
+    @Schema(description = "Total number of data.")
     private Integer total;
 
+    @Schema(description = "Page number starting from 0.")
     private Integer pageNum;
 
+    @Schema(description = "Number of data per page.")
     private Integer pageSize;
 
     public static <T> PaginatedResponse<T> success(PaginatedResult<T> result) {

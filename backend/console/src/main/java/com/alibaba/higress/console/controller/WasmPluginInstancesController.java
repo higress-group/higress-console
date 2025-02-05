@@ -44,12 +44,18 @@ import com.alibaba.higress.sdk.service.ServiceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.WasmPluginService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * @author CH3CHO
  */
 @RestController("WasmPluginInstancesController ")
 @RequestMapping("/v1")
 @Validated
+@Tag(name = "Wasm Plugin Instance APIs")
 public class WasmPluginInstancesController {
 
     private WasmPluginService wasmPluginService;
@@ -84,28 +90,43 @@ public class WasmPluginInstancesController {
     }
 
     @GetMapping(value = "/global/plugin-instances")
+    @Operation(summary = "List global plugin instances")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>> listGlobalInstances() {
         return listInstances(WasmPluginInstanceScope.GLOBAL, null);
     }
 
     @GetMapping(value = "/global/plugin-instances/{name}")
+    @Operation(summary = "Get a specific global plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>>
         queryGlobalInstance(@PathVariable("name") @NotBlank String pluginName) {
         return queryInstance(WasmPluginInstanceScope.GLOBAL, null, pluginName);
     }
 
     @PutMapping(value = "/global/plugin-instances/{name}")
+    @Operation(summary = "Add or update a specific global plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateGlobalInstance(
         @PathVariable("name") @NotBlank String pluginName, @RequestBody WasmPluginInstance instance) {
         return addOrUpdateInstance(WasmPluginInstanceScope.GLOBAL, null, pluginName, instance);
     }
 
     @DeleteMapping(value = "/global/plugin-instances/{name}")
+    @Operation(summary = "Delete a global plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Instance deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public void deleteGlobalInstance(@PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.GLOBAL, null, pluginName);
     }
 
     @GetMapping(value = "/domains/{domainName}/plugin-instances")
+    @Operation(summary = "List plugin instances bound to a domain")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
         listDomainInstances(@PathVariable("domainName") @NotBlank String domainName) {
         validateDomainName(domainName);
@@ -113,6 +134,9 @@ public class WasmPluginInstancesController {
     }
 
     @GetMapping(value = "/domains/{domainName}/plugin-instances/{name}")
+    @Operation(summary = "Get a specific domain-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> queryDomainInstance(
         @PathVariable("domainName") @NotBlank String domainName, @PathVariable("name") @NotBlank String pluginName) {
         validateDomainName(domainName);
@@ -120,6 +144,9 @@ public class WasmPluginInstancesController {
     }
 
     @PutMapping(value = "/domains/{domainName}/plugin-instances/{name}")
+    @Operation(summary = "Add or update a specific domain-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateDomainInstance(
         @PathVariable("domainName") @NotBlank String domainName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
@@ -128,12 +155,18 @@ public class WasmPluginInstancesController {
     }
 
     @DeleteMapping(value = "/domains/{domainName}/plugin-instances/{name}")
+    @Operation(summary = "Delete a domain-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Instance deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public void deleteDomainInstance(@PathVariable("domainName") @NotBlank String domainName,
         @PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.DOMAIN, domainName, pluginName);
     }
 
     @GetMapping(value = "/routes/{routeName}/plugin-instances")
+    @Operation(summary = "List plugin instances bound to a route")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
         listRouteInstances(@PathVariable("routeName") @NotBlank String routeName) {
         validateRouteName(routeName);
@@ -141,6 +174,9 @@ public class WasmPluginInstancesController {
     }
 
     @GetMapping(value = "/routes/{routeName}/plugin-instances/{name}")
+    @Operation(summary = "Get a specific route-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> queryRouteInstance(
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName) {
         validateRouteName(routeName);
@@ -148,6 +184,9 @@ public class WasmPluginInstancesController {
     }
 
     @PutMapping(value = "/routes/{routeName}/plugin-instances/{name}")
+    @Operation(summary = "Add or update a specific route-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateRouteInstance(
         @PathVariable("routeName") @NotBlank String routeName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
@@ -156,12 +195,18 @@ public class WasmPluginInstancesController {
     }
 
     @DeleteMapping(value = "/routes/{routeName}/plugin-instances/{name}")
+    @Operation(summary = "Delete a route-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Instance deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public void deleteRouteInstance(@PathVariable("routeName") @NotBlank String routeName,
         @PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.ROUTE, routeName, pluginName);
     }
 
     @GetMapping(value = "/services/{serviceName}/plugin-instances")
+    @Operation(summary = "List plugin instances bound to a service")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<WasmPluginInstance>>
         listServiceInstances(@PathVariable("serviceName") @NotBlank String serviceName) {
         validateServiceName(serviceName);
@@ -169,6 +214,9 @@ public class WasmPluginInstancesController {
     }
 
     @GetMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    @Operation(summary = "Get a specific service-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> queryServiceInstance(
         @PathVariable("serviceName") @NotBlank String serviceName, @PathVariable("name") @NotBlank String pluginName) {
         validateServiceName(serviceName);
@@ -176,6 +224,9 @@ public class WasmPluginInstancesController {
     }
 
     @PutMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    @Operation(summary = "Add or update a specific service-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<WasmPluginInstance>> addOrUpdateServiceInstance(
         @PathVariable("serviceName") @NotBlank String serviceName, @PathVariable("name") @NotBlank String pluginName,
         @RequestBody WasmPluginInstance instance) {
@@ -184,6 +235,9 @@ public class WasmPluginInstancesController {
     }
 
     @DeleteMapping(value = "/services/{serviceName}/plugin-instances/{name}")
+    @Operation(summary = "Delete a service-bound plugin instance")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Instance deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public void deleteServiceInstance(@PathVariable("serviceName") @NotBlank String serviceName,
         @PathVariable("name") @NotBlank String pluginName) {
         deleteInstance(WasmPluginInstanceScope.SERVICE, serviceName, pluginName);

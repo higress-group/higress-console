@@ -16,7 +16,7 @@ import java.util.Map;
 
 import com.alibaba.higress.console.model.User;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,10 +29,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("System Init Request")
+@Schema(description = "System Init Request")
 public class SystemInitRequest {
 
+    @Schema(description = "The new admin user")
     private User adminUser;
 
+    @Schema(description = "System configuration key-value pairs")
     private Map<String, Object> configs;
 }

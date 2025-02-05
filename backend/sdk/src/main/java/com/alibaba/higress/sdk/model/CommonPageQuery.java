@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,13 +20,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Query criteria for generic entity listing with pagination support.")
 public class CommonPageQuery {
 
     /**
      * Starting from 1
      */
+    @Schema(description = "Page number, starting from 1.")
     private Integer pageNum;
 
+    @Schema(description = "Number of items per page. Default is " + PaginatedResult.DEFAULT_PAGE_SIZE + ".")
     private Integer pageSize;
 
     public boolean paginationEnabled() {

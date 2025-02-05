@@ -23,7 +23,7 @@ import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,18 +33,28 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("AI Route")
+@Schema(description = "AI Route")
 public class AiRoute {
 
+    @Schema(description = "Route name")
     private String name;
+    @Schema(description = "Route version. Required when updating.")
     private String version;
+    @Schema(description = "Domains that the route applies to. If empty, the route applies to all domains.")
     private List<String> domains;
+    @Schema(description = "Path predicate")
     private RoutePredicate pathPredicate;
+    @Schema(description = "Header predicates")
     private List<KeyedRoutePredicate> headerPredicates;
+    @Schema(description = "URL parameter predicates")
     private List<KeyedRoutePredicate> urlParamPredicates;
+    @Schema(description = "Route upstreams")
     private List<AiUpstream> upstreams;
+    @Schema(description = "Model predicates")
     private List<AiModelPredicate> modelPredicates;
+    @Schema(description = "Route auth configuration")
     private AiRouteAuthConfig authConfig;
+    @Schema(description = "Route fallback configuration")
     private AiRouteFallbackConfig fallbackConfig;
 
     public void validate() {

@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Service Source Authentication Config")
+@Schema(description = "Gateway Service Source Authentication Config")
 public class ServiceSourceAuthN {
 
     private static final Map<String, AuthNValidator> VALIDATORS = new HashMap<>();
@@ -41,8 +41,12 @@ public class ServiceSourceAuthN {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_CONSUL, new ConsulAuthValidator());
     }
 
+    @Schema(description = "Enable authentication when accessing the service source")
     private Boolean enabled;
 
+    @Schema(description = "Authentication properties, depending on the type.\n"
+        + "For nacos/nacos2: nacosUsername, nacosPassword\n"
+        + "For consul: consulToken\n")
     private Map<String, String> properties;
 
     public boolean validate(String registryType) {

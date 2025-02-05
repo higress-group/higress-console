@@ -12,6 +12,13 @@
  */
 package com.alibaba.higress.console.constant;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+@Schema(description = "System Capability Keys", type = "string", allowableValues = {"CONFIG_INGRESS_V1"})
 public class CapabilityKey {
 
     public static final String CONFIG_INGRESS_V1 = "config.ingress.v1";

@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,11 +22,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Request Rewrite Config")
 public class RewriteConfig {
 
+    @Schema(description = "Enable or disable the rewrite")
     private Boolean enabled;
 
+    @Schema(description = "Rewritten path")
     private String path;
 
+    @Schema(description = "Rewritten host")
     private String host;
 }
