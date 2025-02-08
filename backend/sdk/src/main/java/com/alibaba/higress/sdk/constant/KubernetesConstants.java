@@ -69,6 +69,8 @@ public class KubernetesConstants {
         public static final String WASM_PLUGIN_TITLE_KEY = "higress.io/wasm-plugin-title";
         public static final String WASM_PLUGIN_DESCRIPTION_KEY = "higress.io/wasm-plugin-description";
         public static final String WASM_PLUGIN_ICON_KEY = "higress.io/wasm-plugin-icon";
+
+        public static final String COMMENT_KEY = "higress.io/comment";
     }
 
     public static class Label {

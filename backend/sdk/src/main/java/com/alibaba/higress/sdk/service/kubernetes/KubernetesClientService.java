@@ -39,6 +39,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.constant.KubernetesConstants.Annotation;
 import com.alibaba.higress.sdk.constant.KubernetesConstants.Label;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -283,7 +284,7 @@ public class KubernetesClientService {
     }
 
     public V1Ingress createIngress(V1Ingress ingress) throws ApiException {
-        renderDefaultLabels(ingress);
+        renderDefaultMetadata(ingress);
         fillDefaultIngressClass(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.createNamespacedIngress(controllerNamespace, ingress, null, null, null, null);
@@ -294,7 +295,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("Ingress doesn't have a valid metadata.");
         }
-        renderDefaultLabels(ingress);
+        renderDefaultMetadata(ingress);
         fillDefaultIngressClass(ingress);
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         return apiInstance.replaceNamespacedIngress(metadata.getName(), controllerNamespace, ingress, null, null, null,
@@ -330,7 +331,7 @@ public class KubernetesClientService {
     }
 
     public V1ConfigMap createConfigMap(V1ConfigMap configMap) throws ApiException {
-        renderDefaultLabels(configMap);
+        renderDefaultMetadata(configMap);
         CoreV1Api coreV1Api = new CoreV1Api(client);
         return coreV1Api.createNamespacedConfigMap(controllerNamespace, configMap, null, null, null, null);
     }
@@ -367,7 +368,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("ConfigMap doesn't have a valid metadata.");
         }
-        renderDefaultLabels(configMap);
+        renderDefaultMetadata(configMap);
         CoreV1Api coreV1Api = new CoreV1Api(client);
         return coreV1Api.replaceNamespacedConfigMap(metadata.getName(), controllerNamespace, configMap, null, null,
             null, null);
@@ -397,7 +398,7 @@ public class KubernetesClientService {
     }
 
     public V1Secret createSecret(V1Secret secret) throws ApiException {
-        renderDefaultLabels(secret);
+        renderDefaultMetadata(secret);
         CoreV1Api coreV1Api = new CoreV1Api(client);
         return coreV1Api.createNamespacedSecret(controllerNamespace, secret, null, null, null, null);
     }
@@ -407,7 +408,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("Secret doesn't have a valid metadata.");
         }
-        renderDefaultLabels(secret);
+        renderDefaultMetadata(secret);
         CoreV1Api coreV1Api = new CoreV1Api(client);
         return coreV1Api.replaceNamespacedSecret(metadata.getName(), controllerNamespace, secret, null, null, null,
             null);
@@ -519,7 +520,7 @@ public class KubernetesClientService {
 
     public V1alpha1WasmPlugin createWasmPlugin(V1alpha1WasmPlugin plugin) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        renderDefaultLabels(plugin);
+        renderDefaultMetadata(plugin);
         Object response = customObjectsApi.createNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP,
             V1alpha1WasmPlugin.VERSION, controllerNamespace, V1alpha1WasmPlugin.PLURAL, plugin, null, null, null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha1WasmPlugin.class);
@@ -530,7 +531,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("WasmPlugin doesn't have a valid metadata.");
         }
-        renderDefaultLabels(plugin);
+        renderDefaultMetadata(plugin);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response =
             customObjectsApi.replaceNamespacedCustomObject(V1alpha1WasmPlugin.API_GROUP, V1alpha1WasmPlugin.VERSION,
@@ -566,7 +567,7 @@ public class KubernetesClientService {
 
     public V1alpha3EnvoyFilter createEnvoyFilter(V1alpha3EnvoyFilter filter) throws ApiException {
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
-        renderDefaultLabels(filter);
+        renderDefaultMetadata(filter);
         Object response = customObjectsApi.createNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP,
             V1alpha3EnvoyFilter.VERSION, controllerNamespace, V1alpha3EnvoyFilter.PLURAL, filter, null, null, null);
         return client.getJSON().deserialize(client.getJSON().serialize(response), V1alpha3EnvoyFilter.class);
@@ -577,7 +578,7 @@ public class KubernetesClientService {
         if (metadata == null) {
             throw new IllegalArgumentException("EnvoyFilter doesn't have a valid metadata.");
         }
-        renderDefaultLabels(filter);
+        renderDefaultMetadata(filter);
         CustomObjectsApi customObjectsApi = new CustomObjectsApi(client);
         Object response =
             customObjectsApi.replaceNamespacedCustomObject(V1alpha3EnvoyFilter.API_GROUP, V1alpha3EnvoyFilter.VERSION,
@@ -637,10 +638,11 @@ public class KubernetesClientService {
         return FileUtils.readFileToString(new File(fileName), Charset.defaultCharset());
     }
 
-    private void renderDefaultLabels(KubernetesObject object) {
+    private void renderDefaultMetadata(KubernetesObject object) {
         KubernetesUtil.setLabel(object, Label.RESOURCE_DEFINER_KEY, Label.RESOURCE_DEFINER_VALUE);
         if (KubernetesUtil.isInternalResource(object)) {
             KubernetesUtil.setLabel(object, Label.INTERNAL_KEY, Boolean.toString(true));
+            KubernetesUtil.setAnnotation(object, Annotation.COMMENT_KEY, HigressConstants.INTERNAL_RESOURCE_COMMENT);
         }
     }
 
