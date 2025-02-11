@@ -48,6 +48,8 @@ spec:
               value: {{ include "higress-console.name" . }}.{{ .Release.Namespace }}.svc.{{ .Values.global.proxy.clusterDomain }}
             - name: HIGRESS_CONSOLE_SERVICE_PORT
               value: {{ .Values.service.port | quote }}
+            - name: HIGRESS_CONSOLE_CONTROLLER_SERVICE_NAME
+              value: {{ .Values.controller.serviceName }}
             - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
               value: {{ include "higress-console.controller.jwtPolicy" . }}
             {{- if $o11y.enabled }}
