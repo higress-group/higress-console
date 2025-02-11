@@ -465,6 +465,7 @@
     "editRoute": "编辑路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "noCustomIngresses": "注：列表中仅包含通过控制台页面创建的路由配置。",
+    "routeSearchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由",
     "factorGroup": {
       "columns": {
         "key": "Key",
