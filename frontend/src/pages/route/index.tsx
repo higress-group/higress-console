@@ -10,10 +10,10 @@ import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRou
 import store from '@/store';
 import switches from '@/switches';
 import { isInternalResource } from '@/utils';
-import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Input, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -110,6 +110,7 @@ const RouteList: React.FC = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef(null);
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
@@ -223,6 +224,25 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   };
 
+  const onSearch = () => {
+    const { searchVal } = form.getFieldsValue();
+    setIsLoading(true);
+    const filteredData = dataSource.filter((item) => {
+      const nameMatch = item.name?.includes(searchVal);
+      const domainsMatch = item.domains?.some(domain => domain.includes(searchVal));
+      const pathMatch = item.path?.matchValue?.includes(searchVal);
+      const servicesMatch = item.services?.some(service => service.name?.includes(searchVal));
+      return nameMatch || domainsMatch || pathMatch || servicesMatch;
+    });
+    setDataSource(filteredData);
+    setIsLoading(false);
+  };
+
+  const onReset = () => {
+    form.resetFields()
+    refresh()
+  };
+
   return (
     <PageContainer>
       {
@@ -249,12 +269,30 @@ const RouteList: React.FC = () => {
         }}
       >
         <Row gutter={24}>
-          <Col span={4}>
+          <Col span={14}>
+            <Form.Item name="searchVal">
+              <Input
+                allowClear
+                placeholder={t('route.routeSearchPlaceholder') || ''}
+                prefix={<SearchOutlined />}
+                onPressEnter={onSearch}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={10} style={{ textAlign: 'right' }}>
             <Button type="primary" onClick={onShowDrawer} disabled={!routeManagementSupported}>
               {t('route.createRoute')}
             </Button>
-          </Col>
-          <Col span={20} style={{ textAlign: 'right' }}>
+            <Button
+              style={{ margin: '0 0 0 8px' }}
+              type="primary"
+              onClick={onSearch}
+            >
+              {t('misc.search')}
+            </Button>
+            <Button style={{ margin: '0 8px' }} onClick={onReset}>
+              {t('misc.reset')}
+            </Button>
             <Button icon={<RedoOutlined />} onClick={refresh} />
           </Col>
         </Row>
