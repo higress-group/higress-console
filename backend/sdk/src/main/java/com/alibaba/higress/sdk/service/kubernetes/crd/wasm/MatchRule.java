@@ -56,7 +56,7 @@ public class MatchRule {
             && equalsUnordered(service, rule.service);
     }
 
-    public boolean hasKey() {
+    public boolean isEmpty() {
         return CollectionUtils.isEmpty(domain) && CollectionUtils.isEmpty(ingress) && CollectionUtils.isEmpty(service);
     }
 }
