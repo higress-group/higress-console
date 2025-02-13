@@ -188,9 +188,9 @@ public class AiRouteServiceImpl implements AiRouteService {
         return configMap2AiRoute(updatedConfigMap);
     }
 
-    private AiRoute configMap2AiRoute(V1ConfigMap configMap){
+    private AiRoute configMap2AiRoute(V1ConfigMap configMap) {
         AiRoute route = kubernetesModelConverter.configMap2AiRoute(configMap);
-        if (route != null){
+        if (route != null) {
             fillDefaultValues(route);
         }
         return route;
@@ -235,6 +235,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         AiRouteFallbackConfig fallbackConfig = aiRoute.getFallbackConfig();
         if (fallbackConfig == null || !Boolean.TRUE.equals(fallbackConfig.getEnabled())
             || CollectionUtils.isEmpty(fallbackConfig.getUpstreams())) {
+            deleteFallbackRouteResources(aiRoute.getName());
             return;
         }
 
@@ -471,6 +472,20 @@ public class AiRouteServiceImpl implements AiRouteService {
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND) {
                 throw new BusinessException("Error occurs when deleting the EnvoyFilter with name: " + resourceName, e);
+            }
+        }
+
+        deleteFallbackRouteResources(aiRouteName);
+    }
+
+    private void deleteFallbackRouteResources(String aiRouteName) {
+        final String originalResourceName = buildRouteResourceName(aiRouteName);
+        try {
+            kubernetesClientService.deleteEnvoyFilter(originalResourceName);
+        } catch (ApiException e) {
+            if (e.getCode() != HttpStatus.NOT_FOUND) {
+                throw new BusinessException(
+                    "Error occurs when deleting the fallback EnvoyFilter: " + originalResourceName, e);
             }
         }
 
