@@ -174,6 +174,9 @@
       "item3": "推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 UID 获取可供导入的 JSON 配置文件。（<1>如何获取数据源 UID？</1>）",
       "item3_dataSourceId": "Prometheus 数据源 UID",
       "item3_dataSourceId_required": "请填写 Prometheus 数据源 UID",
+      "item3_templateType": "配置模板",
+      "item3_templateType_MAIN": "通用网关监控模板",
+      "item3_templateType_AI": "AI 网关监控模板",
       "item3_download": "下载配置文件",
       "item4": "强烈建议填写 Grafana 的 HTTPS URL 以确保监控面板可以在本页面内正常显示。"
     }
