@@ -277,7 +277,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   rules={[
                     {
                       required: true,
-                      pattern: /http(s)?:\/\/.+\/v1\/chat\/completions/,
+                      pattern: /http(s)?:\/\/.+/,
                       message: t('llmProvider.providerForm.rules.openaiCustomUrlRequired'),
                     },
                   ]}
