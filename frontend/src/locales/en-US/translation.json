@@ -175,6 +175,9 @@
       "item3": "We recommend you using the built-in dashboard configuration of Higress. You can input the UID of the Prometheus data source in Grafana and download the JSON configuration file for import. (<1>How to obtain the UID of a data source?</1>)",
       "item3_dataSourceId": "Prometheus Data Source UID",
       "item3_dataSourceId_required": "Please input Prometheus Data Source UID.",
+      "item3_templateType": "Template",
+      "item3_templateType_MAIN": "Generic Gateway Dashboard Template",
+      "item3_templateType_AI": "AI Gateway Dashboard Template",
       "item3_download": "Download Config File",
       "item4": "Input the HTTPS URL of Grafana is highly recommended to ensure the dashboard can be shown with in this page correctly."
     }
