@@ -466,6 +466,7 @@
     "editRoute": "Edit Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
     "noCustomIngresses": "Note: Only routes created from the console are listed above.",
+    "routeSearchPlaceholder": "Search routes by route name, domain, routing conditions and target service.",
     "factorGroup": {
       "columns": {
         "key": "Key",
