@@ -15,6 +15,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Alert, Button, Col, Drawer, Form, Input, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
+import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
@@ -105,6 +106,7 @@ const RouteList: React.FC = () => {
   ];
 
   const [dataSource, setDataSource] = useState<Route[]>([]);
+  const [originalDataSource, setOriginalDataSource] = useState<Route[]>([]);
   const [form] = Form.useForm();
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -112,6 +114,7 @@ const RouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef(null);
+  const [searchValue, setSearchValue] = useState('');
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
 
@@ -133,6 +136,7 @@ const RouteList: React.FC = () => {
         return i1.name.localeCompare(i2.name);
       })
       setDataSource(result || []);
+      setOriginalDataSource(result || []);
     },
   });
 
@@ -224,23 +228,27 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   };
 
-  const onSearch = () => {
-    const { searchVal } = form.getFieldsValue();
+  const handleSearch = debounce((value: string) => {
+    if (!value) {
+      setDataSource(originalDataSource);
+      return;
+    }
     setIsLoading(true);
-    const filteredData = dataSource.filter((item) => {
-      const nameMatch = item.name?.includes(searchVal);
-      const domainsMatch = item.domains?.some(domain => domain.includes(searchVal));
-      const pathMatch = item.path?.matchValue?.includes(searchVal);
-      const servicesMatch = item.services?.some(service => service.name?.includes(searchVal));
+    const filteredData = originalDataSource.filter((item) => {
+      const nameMatch = item.name?.includes(value);
+      const domainsMatch = item.domains?.some(domain => domain.includes(value));
+      const pathMatch = item.path?.matchValue?.includes(value);
+      const servicesMatch = item.services?.some(service => service.name?.includes(value));
       return nameMatch || domainsMatch || pathMatch || servicesMatch;
     });
     setDataSource(filteredData);
     setIsLoading(false);
-  };
+  }, 300);
 
-  const onReset = () => {
-    form.resetFields()
-    refresh()
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setSearchValue(value);
+    handleSearch(value);
   };
 
   return (
@@ -275,23 +283,18 @@ const RouteList: React.FC = () => {
                 allowClear
                 placeholder={t('route.routeSearchPlaceholder') || ''}
                 prefix={<SearchOutlined />}
-                onPressEnter={onSearch}
+                onChange={onSearchChange}
               />
             </Form.Item>
           </Col>
           <Col span={10} style={{ textAlign: 'right' }}>
-            <Button type="primary" onClick={onShowDrawer} disabled={!routeManagementSupported}>
-              {t('route.createRoute')}
-            </Button>
             <Button
-              style={{ margin: '0 0 0 8px' }}
+              style={{ margin: '0 8px' }}
               type="primary"
-              onClick={onSearch}
+              onClick={onShowDrawer}
+              disabled={!routeManagementSupported}
             >
-              {t('misc.search')}
-            </Button>
-            <Button style={{ margin: '0 8px' }} onClick={onReset}>
-              {t('misc.reset')}
+              {t('route.createRoute')}
             </Button>
             <Button icon={<RedoOutlined />} onClick={refresh} />
           </Col>
