@@ -113,12 +113,12 @@ spec:
                   - consumer1
               credential:
                 type: string
-                title: 访问凭证
+                title: 访问凭证（示例：username:password）
                 x-title-i18n:
-                  en-US: Credential
-                description: 该调用方的访问凭证
+                  en-US: Credential (e.g., username:password)
+                description: 该调用方的访问凭证（示例：username:password）
                 x-description-i18n:
-                  en-US: The credential of the consumer
+                  en-US: The credential of the consumer (e.g., username:password)
                 example:
                   - admin:123456
             required:
