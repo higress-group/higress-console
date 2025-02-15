@@ -141,8 +141,27 @@ const Dashboard: React.FC = () => {
                     {t('dashboard.configNotes.item1_k8s')}
                     <pre className={`${styles.mb0}`}>
                       - regex: &apos;__meta_kubernetes_pod_label_(.+)&apos;<br />
-                      &nbsp;&nbsp;replacement: &apos;$1&apos;<br />
-                      &nbsp;&nbsp;action: labelmap
+                      &nbsp;&nbsp;action: labelmap<br />
+                      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]<br />
+                      &nbsp;&nbsp;action: keep<br />
+                      &nbsp;&nbsp;regex: true<br />
+                      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]<br />
+                      &nbsp;&nbsp;action: replace<br />
+                      &nbsp;&nbsp;target_label: __metrics_path__<br />
+                      &nbsp;&nbsp;regex: (.+)<br />
+                      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]<br />
+                      &nbsp;&nbsp;action: replace<br />
+                      &nbsp;&nbsp;regex: ([^:]+)(?::\d+)?;(\d+)<br />
+                      &nbsp;&nbsp;replacement: $1:$2<br />
+                      &nbsp;&nbsp;target_label: __address__<br />
+                      - action: labelmap<br />
+                      &nbsp;&nbsp;regex: __meta_kubernetes_pod_label_(.+)<br />
+                      - source_labels: [__meta_kubernetes_namespace]
+                      &nbsp;&nbsp;action: replace<br />
+                      &nbsp;&nbsp;target_label: kubernetes_namespace<br />
+                      - source_labels: [__meta_kubernetes_pod_name]<br />
+                      &nbsp;&nbsp;action: replace<br />
+                      &nbsp;&nbsp;target_label: kubernetes_pod_name<br />
                     </pre>
                   </li>
                 ) || (
