@@ -205,8 +205,9 @@ public class WasmPluginInstancesController {
 
     private ResponseEntity<PaginatedResponse<WasmPluginInstance>> listInstances(WasmPluginInstanceScope scope,
         String target) {
-        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(scope, target);
-        instances.removeIf(WasmPluginInstance::isInternal);
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(scope, target).
+                stream().filter(instance -> !instance.isInternal()).toList();
+        // instances.removeIf(WasmPluginInstance::isInternal);
         return ControllerUtil.buildResponseEntity(PaginatedResult.createFromFullList(instances, null));
     }
 

@@ -1,18 +1,26 @@
 import {
+  fetchPluginsByRoute,
   KeyedRoutePredicate,
   Route,
   RoutePredicate,
   RouteResponse,
   UpstreamService,
   upstreamServiceToString,
+  WasmPluginData,
 } from '@/interfaces/route';
-import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
+import {
+  addGatewayRoute,
+  deleteGatewayRoute,
+  getGatewayRoutes,
+  getRoutePluginInstances,
+  updateGatewayRoute,
+} from '@/services';
 import store from '@/store';
 import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, message, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -110,6 +118,9 @@ const RouteList: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
+
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
 
@@ -219,6 +230,27 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   };
 
+  const onShowStrategyList = async (record: Route, expanded: boolean) => {
+    if (expanded) {
+      if (!pluginData[record.name]) {
+        try {
+          const plugins = await fetchPluginsByRoute(record);
+          setPluginsData((prev) => ({
+            ...prev,
+            [record.name]: plugins,
+          }));
+        } catch (error) {
+          message.error('Failed to fetch strategies, error:', error);
+        }
+      }
+      setExpandedKeys((prev) => [...prev, record.name]);
+    } else {
+      setExpandedKeys((prev) =>
+        prev.filter((key) => key !== record.name));
+    }
+  };
+
+
   return (
     <PageContainer>
       {
@@ -255,7 +287,30 @@ const RouteList: React.FC = () => {
           </Col>
         </Row>
       </Form>
-      <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
+      <Table
+        loading={loading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={false}
+        expandable={{
+          expandedRowKeys: expandedKeys,
+          onExpand: (expanded, record) => onShowStrategyList(record, expanded),
+          expandedRowRender: (record) => {
+            const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
+            return (
+              <Table
+                dataSource={plugins}
+                columns={[
+                  { title: t('strategy.name'), dataIndex: 'name', key: 'name' },
+                  { title: t('strategy.description'), dataIndex: 'description', key: 'type' },
+                ]}
+                pagination={false}
+                rowKey="name"
+              />
+            );
+          },
+        }}
+      />
       {!loading && (
         <Space direction="horizontal" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
           <Text>{t('route.noCustomIngresses')}</Text>
