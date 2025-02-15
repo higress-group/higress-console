@@ -24,4 +24,6 @@ public class HigressConstants {
     public static final String INTERNAL_RESOURCE_NAME_SUFFIX = ".internal";
     public static final String FALLBACK_ROUTE_NAME_SUFFIX = ".fallback";
     public static final String FALLBACK_FROM_HEADER = "x-higress-fallback-from";
+    public static final String MODEL_ROUTING_HEADER = "x-higress-llm-model";
+    public static final String INTERNAL_RESOURCE_COMMENT = "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
 }

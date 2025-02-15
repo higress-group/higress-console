@@ -19,7 +19,7 @@ import org.apache.commons.collections4.MapUtils;
 
 import com.alibaba.higress.sdk.util.MapUtil;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,29 +29,39 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Wasm Plugin Instance")
+@Schema(description = "Wasm Plugin Instance")
 public class WasmPluginInstance implements VersionedDto {
 
+    @Schema(description = "Plugin instance version. Required when updating.")
     private String version;
 
     @Deprecated
+    @Schema(deprecated = true)
     private WasmPluginInstanceScope scope;
 
     @Deprecated
+    @Schema(deprecated = true)
     private String target;
 
+    @Schema(description = "Plugin instance targets")
     private Map<WasmPluginInstanceScope, String> targets;
 
+    @Schema(description = "Plugin name")
     private String pluginName;
 
+    @Schema(description = "Plugin version. Fixed to 1.0.0")
     private String pluginVersion;
 
+    @Schema(description = "Whether this is an internal plugin instance managed by the console itself")
     private Boolean internal;
 
+    @Schema(description = "Whether this plugin instance is enabled")
     private Boolean enabled;
 
+    @Schema(description = "Raw configurations in YAML format")
     private String rawConfigurations;
 
+    @Schema(description = "Configurations")
     private Map<String, Object> configurations;
 
     public boolean isInternal() {

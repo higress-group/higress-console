@@ -26,7 +26,7 @@ import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,46 +36,64 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Route")
+@Schema(description = "Gateway Route")
 public class Route implements VersionedDto {
 
+    @Schema(description = "Route name")
     private String name;
 
+    @Schema(description = "Route version. Required when updating.")
     private String version;
 
+    @Schema(description = "Domains that the route applies to. If empty, the route applies to all domains.")
     private List<String> domains;
 
+    @Schema(description = "Path predicate")
     private RoutePredicate path;
 
+    @Schema(description = "Methods that the route applies to. If empty, the route applies to all methods.")
     private List<String> methods;
 
+    @Schema(description = "Header predicates")
     private List<KeyedRoutePredicate> headers;
 
+    @Schema(description = "URL parameter predicates")
     private List<KeyedRoutePredicate> urlParams;
 
+    @Schema(description = "Route upstream services")
     private List<UpstreamService> services;
 
     // TODO: Not supported yet.
+    @Schema(hidden = true)
     private MockConfig mock;
 
     // TODO: Not supported yet.
+    @Schema(hidden = true)
     private RedirectConfig redirect;
 
     // TODO: Not supported yet.
+    @Schema(hidden = true)
     private RateLimitConfig rateLimit;
 
+    @Schema(description = "Request rewrite configuration")
     private RewriteConfig rewrite;
 
     // TODO: Not supported yet.
+    @Schema(hidden = true)
     private String timeout;
 
+    @Schema(description = "Proxy next upstream configuration")
     private ProxyNextUpstreamConfig proxyNextUpstream;
 
+    @Schema(description = "CORS configuration")
     private CorsConfig cors;
 
+    @Schema(description = "Header control configuration")
     private HeaderControlConfig headerControl;
 
+    @Schema(description = "Custom configurations, e.g., custom annotations")
     private Map<String, String> customConfigs;
 
+    @Schema(hidden = true)
     private Boolean readonly;
 }

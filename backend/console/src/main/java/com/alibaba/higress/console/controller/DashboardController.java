@@ -31,12 +31,19 @@ import com.alibaba.higress.console.model.DashboardType;
 import com.alibaba.higress.console.service.DashboardService;
 import com.alibaba.higress.sdk.exception.ValidationException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * @author CH3CHO
  */
 @RestController("DashboardController")
 @RequestMapping("/dashboard")
 @Validated
+@Tag(name = "Dashboard APIs")
 public class DashboardController {
 
     private DashboardService dashboardService;
@@ -47,19 +54,35 @@ public class DashboardController {
     }
 
     @GetMapping("/init")
-    public ResponseEntity<Response<DashboardInfo>> init(@RequestParam(required = false) Boolean force) {
+    @Operation(summary = "Initialize dashboards", description = "Initialize dashboards with default settings. ")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Dashboard initialized successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<DashboardInfo>>
+        init(@RequestParam(required = false) @Parameter(description = "If true, the dashboard will be re-initialized "
+            + "even if it has been initialized before.") Boolean force) {
         dashboardService.initializeDashboard(Boolean.TRUE.equals(force));
         return info(null);
     }
 
     @GetMapping("/info")
-    public ResponseEntity<Response<DashboardInfo>> info(@RequestParam(required = false) String type) {
+    @Operation(summary = "Get dashboard info")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Dashboard info retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<DashboardInfo>> info(@RequestParam(required = false) @Parameter(
+        description = "Available types: MAIN/AI/LOG Default: MAIN") String type) {
         DashboardType dashboardType = toDashboardType(type);
         return ResponseEntity.ok(Response.success(dashboardService.getDashboardInfo(dashboardType)));
     }
 
     @PutMapping("/info")
-    public ResponseEntity<Response<DashboardInfo>> setUrl(@RequestParam(required = false) String type,
+    @Operation(summary = "Set custom dashboard URL",
+        description = "Set the URL of dashboard. Only works when the built-in dashboard is not installed.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Dashboard info updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<DashboardInfo>> setUrl(
+        @RequestParam(required = false) @Parameter(
+            description = "Available types: MAIN/AI/LOG Default: MAIN") String type,
         @RequestBody DashboardInfo dashboardInfo) {
         DashboardType dashboardType = toDashboardType(type);
         if (StringUtils.isEmpty(dashboardInfo.getUrl())) {
@@ -70,8 +93,16 @@ public class DashboardController {
     }
 
     @GetMapping("/configData")
-    public ResponseEntity<Response<String>> getConfigData(@RequestParam(required = false) String type,
-        @RequestParam @NotBlank String dataSourceUid) {
+    @Operation(summary = "Get Grafana dashboard configuration",
+        description = "Get the configuration data for Grafana dashboard. "
+            + "The data source UID is required to generate the configuration.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Dashboard info updated successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<String>> getConfigData(
+        @RequestParam(required = false) @Parameter(
+            description = "Available types: MAIN/AI/LOG Default: MAIN") String type,
+        @RequestParam @NotBlank @Parameter(
+            description = "The UID of data source set in Grafana for the dashboard") String dataSourceUid) {
         DashboardType dashboardType = toDashboardType(type);
         return ResponseEntity.ok(Response.success(dashboardService.buildConfigData(dashboardType, dataSourceUid)));
     }

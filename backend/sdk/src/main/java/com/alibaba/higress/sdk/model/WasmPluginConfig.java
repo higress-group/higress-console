@@ -14,9 +14,7 @@ package com.alibaba.higress.sdk.model;
 
 import java.util.Map;
 
-import io.swagger.v3.oas.models.media.Schema;
-
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,10 +24,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Wasm Plugin Config")
+@Schema(description = "Wasm Plugin Config")
 public class WasmPluginConfig {
 
-    private Schema schema;
+    @Schema(description = "Wasm plugin configuration schema")
+    private io.swagger.v3.oas.models.media.Schema<?> schema;
 
     public Map<String, Object> validateAndCleanUp(Map<String, Object> configurations) {
         // TODO: Implement validation and clean-up logic.

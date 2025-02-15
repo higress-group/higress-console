@@ -28,18 +28,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
-import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.console.controller.dto.Response;
-import com.alibaba.higress.sdk.model.TlsCertificate;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.CommonPageQuery;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.TlsCertificate;
 import com.alibaba.higress.sdk.service.TlsCertificateService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController("TlsCertificatesController")
 @RequestMapping("/v1/tls-certificates")
 @Validated
+@Tag(name = "TLS Certificate APIs")
 public class TlsCertificatesController {
 
     private TlsCertificateService tlsCertificateService;
@@ -50,6 +56,9 @@ public class TlsCertificatesController {
     }
 
     @GetMapping
+    @Operation(summary = "List TLS certificates")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "TLS certificates listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<TlsCertificate>> list(CommonPageQuery query) {
         PaginatedResult<TlsCertificate> certificates = tlsCertificateService.list(query);
         if (CollectionUtils.isNotEmpty(certificates.getData())) {
@@ -59,6 +68,11 @@ public class TlsCertificatesController {
     }
 
     @PostMapping
+    @Operation(summary = "Add a new TLS certificate")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "TLS certificate added successfully"),
+        @ApiResponse(responseCode = "400", description = "TLS certificate data is not valid"),
+        @ApiResponse(responseCode = "409", description = "TLS certificate already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<TlsCertificate>> add(@RequestBody TlsCertificate certificate) {
         TlsCertificate newCertificate = tlsCertificateService.add(certificate);
         stripSensitiveInfo(newCertificate);
@@ -66,6 +80,10 @@ public class TlsCertificatesController {
     }
 
     @GetMapping(value = "/{name}")
+    @Operation(summary = "Get TLS certificate by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "TLS certificate found"),
+        @ApiResponse(responseCode = "404", description = "TLS certificate not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<TlsCertificate>> query(@PathVariable("name") @NotBlank String name) {
         TlsCertificate certificate = tlsCertificateService.query(name);
         stripSensitiveInfo(certificate);
@@ -73,6 +91,12 @@ public class TlsCertificatesController {
     }
 
     @PutMapping("/{name}")
+    @Operation(summary = "Update an existed TLS certificate")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "TLS certificate updated successfully"),
+        @ApiResponse(responseCode = "400",
+            description = "TLS certificate data is not valid or TLS certificate name in the URL doesn't match the one in the body."),
+        @ApiResponse(responseCode = "409", description = "TLS certificate already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<TlsCertificate>> put(@PathVariable("name") @NotBlank String certificateName,
         @RequestBody TlsCertificate certificate) {
         if (StringUtils.isNotEmpty(certificate.getName())) {
@@ -86,6 +110,9 @@ public class TlsCertificatesController {
     }
 
     @DeleteMapping("/{name}")
+    @Operation(summary = "Delete a TLS certificate")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "TLS certificate deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<TlsCertificate>> delete(@PathVariable("name") @NotBlank String name) {
         tlsCertificateService.delete(name);
         return ResponseEntity.noContent().build();

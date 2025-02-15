@@ -48,7 +48,7 @@ global:
       pvc:
         storageClassName: ""
       securityContext: {}
-      
+
   pvc:
     rwxSupported: true
 
@@ -109,6 +109,9 @@ admin:
 chat:
   enabled: false
   endpoint: ""
+
+controller:
+  serviceName: higress-controller
 
 certmanager:
   enabled: false

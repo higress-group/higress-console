@@ -52,7 +52,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     static {
         PROVIDER_HANDLERS = Stream.of(
-            new DefaultLlmProviderHandler(LlmProviderType.OPENAI, "api.openai.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new OpenaiLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.QWEN, "dashscope.aliyuncs.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
@@ -68,8 +68,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new OllamaLlmProviderHandler(),
-            new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.minimax.chat", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "aip.baidubce.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.STEPFUN, "api.stepfun.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.MINIMAX, "api.minimax.chat", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GEMINI, "generativelanguage.googleapis.com", 443,

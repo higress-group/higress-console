@@ -23,46 +23,68 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.util.ValidateUtil;
 
-public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
+public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
 
-    private static final String SERVICE_URL_KEY = "azureServiceUrl";
+    private static final String CUSTOM_URL_KEY = "openaiCustomUrl";
+
+    private static final String DEFAULT_REGISTRY_TYPE = V1McpBridge.REGISTRY_TYPE_DNS;
+    private static final String DEFAULT_SERVICE_DOMAIN = "api.openai.com";
+    private static final int DEFAULT_SERVICE_PORT = 443;
+    private static final String DEFAULT_SERVICE_PROTOCOL = V1McpBridge.PROTOCOL_HTTPS;
 
     @Override
     public String getType() {
-        return LlmProviderType.AZURE;
+        return LlmProviderType.OPENAI;
     }
 
     @Override
     public void validateConfig(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
-            throw new ValidationException("Missing Azure specific configurations.");
+            return;
         }
-        URI uri = getServiceUri(configurations);
-        String scheme = uri.getScheme();
-        if (StringUtils.isEmpty(scheme)) {
-            throw new ValidationException("Azure service URL must have a scheme.");
-        }
-        scheme = scheme.toLowerCase(Locale.ROOT);
-        if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
-            throw new ValidationException("Azure service URL must have a valid scheme.");
+        URI uri = getCustomUri(configurations);
+        if (uri != null) {
+            String scheme = uri.getScheme();
+            if (StringUtils.isEmpty(scheme)) {
+                throw new ValidationException("Custom service URL must have a scheme.");
+            }
+            scheme = scheme.toLowerCase(Locale.ROOT);
+            if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
+                throw new ValidationException("Custom service URL must have a valid scheme.");
+            }
         }
     }
 
     @Override
     protected String getServiceRegistryType(Map<String, Object> providerConfig) {
+        URI uri = getCustomUri(providerConfig);
+        if (uri == null) {
+            return DEFAULT_REGISTRY_TYPE;
+        }
+        if (ValidateUtil.checkIpAddress(uri.getHost())) {
+            return V1McpBridge.REGISTRY_TYPE_STATIC;
+        }
         return V1McpBridge.REGISTRY_TYPE_DNS;
     }
 
     @Override
     protected String getServiceDomain(Map<String, Object> providerConfig) {
-        URI uri = getServiceUri(providerConfig);
-        return uri.getHost();
+        URI uri = getCustomUri(providerConfig);
+        return uri != null ? uri.getHost() : DEFAULT_SERVICE_DOMAIN;
     }
 
     @Override
     protected int getServicePort(Map<String, Object> providerConfig) {
-        URI uri = getServiceUri(providerConfig);
+        URI uri = getCustomUri(providerConfig);
+        if (uri == null){
+            return DEFAULT_SERVICE_PORT;
+        }
+        int port = uri.getPort();
+        if (port != -1){
+            return port;
+        }
         String scheme = uri.getScheme();
         if (scheme == null) {
             return 80;
@@ -76,7 +98,10 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        URI uri = getServiceUri(providerConfig);
+        URI uri = getCustomUri(providerConfig);
+        if (uri == null){
+            return DEFAULT_SERVICE_PROTOCOL;
+        }
         String scheme = uri.getScheme();
         if (scheme == null) {
             return V1McpBridge.PROTOCOL_HTTP;
@@ -87,21 +112,21 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         };
     }
 
-    private static URI getServiceUri(Map<String, Object> providerConfig) {
+    private static URI getCustomUri(Map<String, Object> providerConfig) {
         if (MapUtils.isEmpty(providerConfig)) {
-            throw new ValidationException("Missing Azure specific configurations.");
+            return null;
         }
-        Object serviceUrlObj = providerConfig.get(SERVICE_URL_KEY);
-        if (!(serviceUrlObj instanceof String serviceUrl)) {
-            throw new ValidationException(SERVICE_URL_KEY + " must be a string.");
+        Object customUrlObject = providerConfig.get(CUSTOM_URL_KEY);
+        if (!(customUrlObject instanceof String customUrl)) {
+            throw new ValidationException(CUSTOM_URL_KEY + " must be a string.");
         }
-        if (StringUtils.isEmpty(serviceUrl)) {
-            throw new ValidationException(SERVICE_URL_KEY + " cannot be empty.");
+        if (StringUtils.isEmpty(customUrl)) {
+            throw new ValidationException(CUSTOM_URL_KEY + " cannot be empty.");
         }
         try {
-            return new URI(serviceUrl);
+            return new URI(customUrl);
         } catch (URISyntaxException e) {
-            throw new ValidationException(SERVICE_URL_KEY + " is not a valid URL.", e);
+            throw new ValidationException(CUSTOM_URL_KEY + " is not a valid URL.", e);
         }
     }
 }

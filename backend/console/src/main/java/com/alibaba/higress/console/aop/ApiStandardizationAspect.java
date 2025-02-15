@@ -87,7 +87,9 @@ public class ApiStandardizationAspect {
             String objectName = signature.getDeclaringTypeName();
             String methodName = signature.getName();
             String msg = t.getClass().getSimpleName() + " occurs when calling " + objectName + "." + methodName;
-            if (t instanceof AuthException || t instanceof ValidationException || t instanceof NotFoundException
+            if (t instanceof AuthException) {
+                // No logging for AuthException
+            } else if (t instanceof ValidationException || t instanceof NotFoundException
                 || t instanceof ResourceConflictException) {
                 log.warn(msg, t);
             } else {

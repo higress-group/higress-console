@@ -43,7 +43,6 @@
     "buttonText": "登录",
     "loginSuccess": "登录成功！",
     "loginFailed": "登录失败，请重试！",
-    "incorrectCredentials": "账户或密码错误",
     "autoLogin": "自动登录",
     "forgotPassword": "忘记密码",
     "usernamePlaceholder": "用户名",
@@ -56,27 +55,59 @@
       "name": "名称",
       "domains": "域名",
       "upstreams": "服务",
-      "auth": "请求授权",
-      "action": "操作"
+      "auth": "请求授权"
+    },
+    "routeForm": {
+      "label": {
+        "authConfig": "是否启用请求认证",
+        "authConfigExtra": "启用后，只有包含指定消费者认证信息的请求可以请求本路由。",
+        "authConfigList": "允许请求本路由的消费者名称列表",
+        "domain": "域名",
+        "targetModel": "目标模型",
+        "fallbackConfig": "降级配置",
+        "fallbackConfigExtra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
+        "fallbackUpstream": "降级服务",
+        "name": "名称",
+        "serviceName": "服务名称",
+        "serviceWeight": "请求比例",
+        "services": "目标AI服务"
+      },
+      "rule": {
+        "matchTypeRequired": "请选择匹配方式",
+        "matchValueRequired": "请输入匹配规则",
+        "modelNameRequired": "请输入模型名称",
+        "serviceWeightRequired": "请输入请求比例",
+        "fallbackUpstreamRequired": "请选择降级服务",
+        "nameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
+        "targetServiceRequired": "请选择目标服务"
+      },
+      "modelMatchType": "匹配方式",
+      "modelMatchValue": "匹配条件",
+      "byModelName": "按模型名称",
+      "byWeight": "按比例",
+      "addTargetService": "添加目标AI服务",
+      "addModelPredicate": "添加模型匹配规则",
+      "selectModelService": "选择模型服务"
     },
     "create": "创建AI路由",
     "edit": "编辑AI路由",
-    "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
+    "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "authNotEnabled": "未开启认证",
-    "authEnabledWithoutConsumer": "未授权任何人访问"
+    "authEnabledWithoutConsumer": "未授权任何人访问",
+    "usage": "使用方法",
+    "aiRouteUsage": "AI路由使用方法",
+    "aiRouteUsageContent": "可使用以下命令发送请求："
   },
   "consumer": {
     "columns": {
       "name": "消费者名称",
-      "credentialTypes": "认证方式",
-      "action": "操作"
+      "authMethods": "认证方式"
     },
     "create": "创建消费者",
     "edit": "编辑消费者",
     "deleteConfirmation": "确定删除 <1>{{currentConsumerName}}</1> 吗？",
     "consumerForm": {
       "name": "消费者名称",
-      "namePlaceholder": "请输入消费者名称",
       "nameRequired": "请输入消费者名称",
       "tokenSourceRequired": "请选择令牌来源",
       "authTokenRequired": "请输入认证令牌",
@@ -88,21 +119,16 @@
     "selectQUERY": "查询参数",
     "tokenSource": "令牌来源",
     "authToken": "认证令牌",
-    "underDevelopment": "开发中，敬请期待",
     "randomGeneration": "随机生成",
     "headerName": "Header 名称",
     "paramName": "参数名称",
-    "deleteSuccess": "删除成功",
-    "deleteFailed": "删除失败",
-    "createFailed": "创建失败",
-    "editFailed": "编辑失败"
+    "deleteSuccess": "删除成功"
   },
   "domain": {
     "columns": {
       "name": "域名",
       "protocol": "协议",
-      "certificate": "证书",
-      "action": "操作"
+      "certificate": "证书"
     },
     "defaultDomain": "缺省域名",
     "createDomain": "创建域名",
@@ -148,6 +174,9 @@
       "item3": "推荐各位使用 Higress 官方提供的 Grafana 看板配置。您可填写 Grafana 中的 Prometheus 数据源 UID 获取可供导入的 JSON 配置文件。（<1>如何获取数据源 UID？</1>）",
       "item3_dataSourceId": "Prometheus 数据源 UID",
       "item3_dataSourceId_required": "请填写 Prometheus 数据源 UID",
+      "item3_templateType": "配置模板",
+      "item3_templateType_MAIN": "通用网关监控模板",
+      "item3_templateType_AI": "AI 网关监控模板",
       "item3_download": "下载配置文件",
       "item4": "强烈建议填写 Grafana 的 HTTPS URL 以确保监控面板可以在本页面内正常显示。"
     }
@@ -156,88 +185,93 @@
     "columns": {
       "type": "类型",
       "name": "名称",
-      "tokens": "凭证",
-      "action": "操作"
+      "tokens": "凭证"
     },
     "providerTypes": {
       "openai": "OpenAI",
       "qwen": "通义千问",
-      "moonshot": "月之暗面"
+      "moonshot": "月之暗面",
+      "ai360": "360智脑",
+      "azure": "Azure OpenAI",
+      "baichuan": "百川智能",
+      "baidu": "文心一言",
+      "claude": "Anthropic Claude",
+      "cloudflare": "Cloudflare Workers AI",
+      "cohere": "Cohere",
+      "coze": "扣子",
+      "deepl": "DeepL",
+      "deepseek": "DeepSeek",
+      "doubao": "豆包",
+      "gemini": "Google Gemini",
+      "github": "GitHub模型",
+      "groq": "Groq",
+      "hunyuan": "混元",
+      "minimax": "MiniMax",
+      "mistral": "Mistral",
+      "ollama": "Ollama",
+      "together-ai": "Together AI",
+      "stepfun": "阶跃星辰",
+      "spark": "星火",
+      "yi": "零一万物",
+      "zhipuai": "智谱AI"
     },
     "providerForm": {
       "label": {
         "type": "大模型供应商",
-        "name": "名称",
-        "serviceName": "服务名称",
-        "domain": "域名",
+        "failoverEnabled": "令牌降级",
+        "failoverEnabledExtra": "启用后，若某一认证令牌返回异常响应的数量超出网值，Higress 将暂停使用该令牌发起请求，直至后续健康检测请求连续收到一定数量的正常响应。",
+        "failureThreshold": "令牌不可用时需满足的最小连续请求失败次数",
+        "healthCheckInterval": "健康检测请求发起间隔（毫秒）",
+        "healthCheckModel": "健康检测请求使用的模型名称",
+        "healthCheckTimeout": "健康检测请求超时时间（毫秒）",
         "protocol": "协议",
-        "modelPredicate": "是否启用基于模型的路由匹配规则",
-        "extra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
-        "modelPredicatePrefix": "模型名称匹配规则",
-        "aiName": "目标AI服务",
-        "aiNameExtra": "创建AI服务",
-        "fallbackConfig": "降级服务",
-        "fallbackConfigExtra": "启用后，若请求目标服务失败，网关会改为请求降级服务。",
-        "fallbackConfigList": "降级服务列表",
-        "routeStrategy": "路由降级策略",
-        "routeStrategy1": "随机选择列表中的一个服务提供商进行降级，只降级一次（默认）",
-        "routeStrategy2": "按服务提供商列表顺序逐个尝试降级，直至请求成功或所有提供商均尝试过为止",
-        "authConfig": "是否启用请求认证",
-        "authConfigExtra": "启用后，只有包含指定消费者认证信息的请求可以请求本路由。",
-        "authConfigList": "允许请求本路由的消费者名称列表",
-        "weight": "请求比例"
-      },
-      "placeholder": {
-        "type": "请选择大模型供应商",
-        "name": "请输入名称",
-        "protocol": "请选择协议",
-        "serviceName": "请输入服务名称",
-        "tokens": "请输入凭证",
-        "domain": "请输入域名",
-        "aiName": "请选择并添加目标AI服务",
-        "weight": "目标AI服务请求比例相加应等于 100",
-        "modelPredicatePrefix": "使用 Glob 语法匹配模型,例如：model-*",
-        "fallbackConfigList": "请选择降级服务列表",
-        "routeStrategy": "请选择路由降级策略",
-        "authConfigList": "请选择允许请求本路由的消费者名称列表"
+        "serviceName": "服务名称",
+        "successThreshold": "令牌可用时需满足的最小连续健康检测成功次数",
+        "azureServiceUrl": "Azure 服务 URL",
+        "ollamaServerHost": "Ollama 服务主机名",
+        "ollamaServerPort": "Ollama 服务端口",
+        "openaiServerType": "OpenAI 服务类型",
+        "openaiCustomUrl": "自定义 OpenAI 服务 URL"
       },
       "rules": {
-        "modelPredicatePrefix": "请输入匹配本路由所需的模型名称前缀",
-        "name": "支持大小写字母、数字和短划线，并以字母或数字开头，且不以短划线（-）结尾。长度不超过63个字符。",
-        "tokenRequired": "请输入凭证"
+        "tokenRequired": "请输入凭证",
+        "typeRequired": "请选择大模型供应商",
+        "serviceNameRequired": "请输入服务名称",
+        "failureThresholdRequired": "请输入最小连续请求失败次数",
+        "healthCheckTimeoutRequired": "请输入健康检测请求超时时间（毫秒）",
+        "healthCheckIntervalRequired": "请输入健康检测请求发起间隔（毫秒）",
+        "healthCheckModelRequired": "请输入健康检测请求使用的模型名称",
+        "protocol": "请选择请求协议",
+        "successThresholdRequired": "请输入最小连续健康检测成功次数",
+        "azureServiceUrlRequired": "请输入 Azure 服务 URL",
+        "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
+        "ollamaServerPortRequired": "请输入 Ollama 服务端口",
+        "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 URL"
       },
-      "createDomain": "创建域名",
-      "howToUse": "使用方法",
-      "aiRouteUsage": "AI路由使用方法",
-      "aiRouteUsageText": "可使用以下命令发送请求："
+      "placeholder": {
+        "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
+        "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
+        "openaiCustomUrlPlaceholder": "示例：http://www.example.com/myai/v1/chat/completions"
+      },
+      "openaiServerType": {
+        "official": "OpenAI 官方服务",
+        "custom": "自定义服务"
+      }
     },
     "create": "创建AI服务提供者",
     "edit": "编辑AI服务提供者",
-    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？",
-    "deleteRoute": "确定删除 <1>{{currentRouteName}}</1> 吗？",
-    "selectModelName": "选择模型服务",
-    "modelProportion": "按比例",
-    "modelName": "按模型名称",
-    "addTargetAIservice": "添加目标AI服务",
-    "addTargetServer": "添加",
-    "operation": "操作",
-    "modelMatchingType": "模型匹配方式",
-    "exactMatch": "精确匹配",
-    "prefixMatch": "前缀匹配",
-    "modelNames": "模型名称",
-    "serviceName": "服务名称",
-    "requestPercentage": "请求比例",
-    "targetModel": "目标模型",
-    "modelNameTips": "请求 body 中的 model 参数"
+    "deleteConfirmation": "确定删除 <1>{{currentLlmProviderName}}</1> 吗？"
   },
   "plugins": {
     "title": "策略配置",
     "subTitle": {
       "domain": "域名名称：",
-      "route": "路由名称："
+      "route": "路由名称：",
+      "aiRoute": "AI路由名称："
     },
     "enabled": "已启用",
     "addPlugin": "添加插件",
+    "editPlugin": "编辑插件",
     "addSuccess": "添加成功",
     "updateSuccess": "修改成功",
     "deleteConfirmation": "是否确认删除？",
@@ -247,7 +281,6 @@
       "targetDomain": "作用域名：",
       "targetRoute": "作用路由：",
       "enableStatus": "开启状态",
-      "dataEditor": "数据编辑器 - YAML",
       "globalConfigWarning": "注意：以上配置将会在所有域名和路由上生效。请谨慎配置。"
     },
     "builtIns": {
@@ -383,7 +416,6 @@
       "sniPlaceholderForDns": "若服务来源只关联了一个域名且使用与该域名相同的SNI，此处可留空。",
       "zkServicesPath": "服务注册根路径",
       "zkServicesPathTooltip": "Zookeeper类型的服务来源需要填写服务注册的根路径。默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
-      "zkServicesPathRequired": "请输入服务注册根路径",
       "zkServicesPathPlaceholder": "默认监听/dubbo和/services。前者为dubbo服务默认根路径，后者为Spring Cloud服务默认根路径。",
       "nacosNamespaceId": "Nacos命名空间ID",
       "nacosNamespaceIdPlaceholder": "留空表示仅监听public命名空间",
@@ -392,10 +424,6 @@
       "nacosGroupsRequired": "请输入Nacos服务分组列表",
       "nacosGroupsPlaceholder": "Nacos服务分组列表",
       "naco2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
-      "consulNamespace": "Consul命名空间",
-      "consulNamespaceTooltip": "Consul类型的服务来源需要填写命名空间",
-      "consulNamespaceRequired": "请输入Concul命名空间",
-      "consulNamespacePlaceholder": "Consul命名空间",
       "serviceStaticAddresses": "服务地址",
       "serviceStaticAddressesRequired": "请输入服务地址",
       "serviceStaticAddressesPlaceholder": "IP:Port（多个地址请以换行分隔）",
@@ -438,6 +466,7 @@
     "editRoute": "编辑路由",
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "noCustomIngresses": "注：列表中仅包含通过控制台页面创建的路由配置。",
+    "routeSearchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由",
     "factorGroup": {
       "columns": {
         "key": "Key",
@@ -470,7 +499,6 @@
       "routeNameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
       "routeNamePlaceholder": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
       "domain": "域名",
-      "domainRequired": "请选择域名",
       "domainSearchPlaceholder": "根据域名名称搜索域名。若留空，则表示路由可匹配任意域名",
       "matchType": "匹配规则",
       "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
@@ -490,70 +518,6 @@
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
-    }
-  },
-  "chart": {
-    "area": {
-      "defaultData": {
-        "subTitle": "访问量",
-        "des": "周同比："
-      }
-    },
-    "bar": {
-      "defaultData": {
-        "subTitle": "总销售额",
-        "des": "周同比："
-      }
-    },
-    "groupBar": {
-      "defaultData": {
-        "title": "消费数据",
-        "category_1": "品类一",
-        "category_2": "品类二",
-        "category_3": "品类三",
-        "category_4": "品类四",
-        "category_5": "品类五",
-        "shop_1": "门店一",
-        "shop_2": "门店二",
-        "shop_3": "门店三"
-      }
-    },
-    "line": {
-      "defaultData": {
-        "subTitle": "门店活动效果",
-        "des": "周同比："
-      }
-    },
-    "pie": {
-      "defaultData": {
-        "title": "销售额类别占比",
-        "sample_1": "事例一",
-        "sample_2": "事例二",
-        "sample_3": "事例三",
-        "sample_4": "事例四",
-        "sample_5": "事例五"
-      },
-      "category_1": "类目一",
-      "category_2": "类目二",
-      "category_3": "类目三"
-    },
-    "rank": {
-      "defaultData": {
-        "title": "区域销售",
-        "asia": "亚洲",
-        "europe": "欧洲",
-        "africa": "非洲",
-        "america": "美洲",
-        "category_1": "商品类目1",
-        "category_2": "商品类目2",
-        "des": "周同比"
-      }
-    },
-    "typebar": {
-      "defaultData": {
-        "subTitle": "商品销售",
-        "des": "周同比："
-      }
     }
   },
   "tlsCertificate": {
@@ -617,7 +581,6 @@
     }
   },
   "misc": {
-    "language": "语言",
     "logout": "退出登录",
     "confirm": "确定",
     "submit": "提交",
@@ -635,8 +598,10 @@
     "description": "描述",
     "configure": "配置",
     "information": "信息",
+    "action": "操作",
+    "actions": "操作",
     "seconds": "秒",
-    "tbd": "页面开发中，即将推出...",
+    "tbd": "功能开发中，即将推出...",
     "yes": "是",
     "no": "否",
     "switchToYAML": "YAML视图",

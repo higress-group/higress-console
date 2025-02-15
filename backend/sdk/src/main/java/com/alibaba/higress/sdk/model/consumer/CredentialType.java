@@ -12,10 +12,12 @@
  */
 package com.alibaba.higress.sdk.model.consumer;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Credential Type", type = "string", allowableValues = {"key-auth"})
 public final class CredentialType {
 
-    private CredentialType() {
-    }
+    private CredentialType() {}
 
     public static final String KEY_AUTH = "key-auth";
 }

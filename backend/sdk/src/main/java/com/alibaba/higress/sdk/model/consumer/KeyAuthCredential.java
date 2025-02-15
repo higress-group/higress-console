@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,14 +28,17 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("KeyAuth Credential")
+@Schema(description = "KeyAuth Credential")
 public class KeyAuthCredential extends Credential {
 
     private static final Set<String> VALID_SOURCES = Set.of(KeyAuthCredentialSource.BEARER.name(),
         KeyAuthCredentialSource.HEADER.name(), KeyAuthCredentialSource.QUERY.name());
 
+    @Schema(description = "Credential source", ref = "KeyAuthCredentialSource")
     private String source;
+    @Schema(description = "Credential Key. Required when source is HEADER or QUERY")
     private String key;
+    @Schema(description = "Credential Value")
     private String value;
 
     public KeyAuthCredential(String type, String source, String key, String value) {

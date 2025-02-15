@@ -43,7 +43,6 @@
     "buttonText": "Login",
     "loginSuccess": "Login successful!",
     "loginFailed": "Login failed. Please try again.",
-    "incorrectCredentials": "Incorrect username or password.",
     "autoLogin": "Auto login",
     "forgotPassword": "Forgot password",
     "usernamePlaceholder": "Username",
@@ -53,57 +52,88 @@
   },
   "aiRoute": {
     "columns": {
-      "name": "name",
-      "domains": "domains",
-      "upstreams": "upstreams",
-      "auth": "request auth",
-      "action": "action"
+      "name": "Name",
+      "domains": "Domains",
+      "upstreams": "AI Services",
+      "auth": "Request Auth"
     },
-    "create": "Create an AI route",
-    "edit": "Edit AI route",
-    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
-    "authNotEnabled": "Authentication not enabled",
-    "authEnabledWithoutConsumer": "No one is authorized to access"
+    "routeForm": {
+      "label": {
+        "authConfig": "Request Authentication",
+        "authConfigExtra": "If enabled, only requests containing the auth info of a selected consumer are allowed to use this route.",
+        "authConfigList": "Allowed Consumers",
+        "domain": "Domain",
+        "targetModel": "Target Model",
+        "fallbackConfig": "Token Fallback",
+        "fallbackConfigExtra": "If enabled, gateway will forward the request to the fallback service if error occurs when requesting the target service.",
+        "fallbackUpstream": "Fallback Service",
+        "name": "Name",
+        "serviceName": "Service Name",
+        "serviceWeight": "Weight",
+        "services": "Target Services"
+
+      },
+      "rule": {
+        "matchTypeRequired": "Please select a match type",
+        "matchValueRequired": "Please input the match value",
+        "modelNameRequired": "Please input the model name",
+        "serviceWeightRequired": "Please input the weight value",
+        "fallbackUpstreamRequired": "Please select the fallback service",
+        "nameRequired": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
+        "targetServiceRequired": "Please select a target service"
+      },
+      "modelMatchType": "Model Match Type",
+      "modelMatchValue": "Match Value",
+      "byModelName": "By model name",
+      "byWeight": "By weight",
+      "addTargetService": "Add target AI service",
+      "addModelPredicate": "Add model match rule",
+      "selectModelService": "Select an AI service"
+    },
+    "create": "Create AI Route",
+    "edit": "Edit AI Route",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
+    "authNotEnabled": "Not enabled",
+    "authEnabledWithoutConsumer": "Nobody authorized",
+    "usage": "Usage",
+    "aiRouteUsage": "AI Route Usage",
+    "aiRouteUsageContent": "You can send a test request using the command below:"
   },
   "consumer": {
     "columns": {
-      "name": "Consumer Name",
-      "credentialTypes": "Auth Methods",
-      "action": "Action"
+      "name": "Name",
+      "authMethods": "Auth Methods"
     },
     "create": "Create Consumer",
     "edit": "Edit Consumer",
-    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentConsumerName}} </1 >?",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentConsumerName}}</1>?",
     "consumerForm": {
       "name": "Name",
-      "namePlaceholder": "Please enter a consumer name",
-      "nameRequired": "Please enter a consumer name"
+      "nameRequired": "Please input consumer name",
+      "tokenSourceRequired": "Please choose a token source",
+      "authTokenRequired": "Please input auth token",
+      "headerNameRequired": "Please input header name",
+      "paramNameRequired": "Please input parameter key"
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "Custom HTTP Header",
-    "selectQUERY": "Query parameter",
+    "selectQUERY": "Query Parameter",
     "tokenSource": "Token Source",
     "authToken": "Auth Token",
-    "underDevelopment": "Under development, stay tuned.",
-    "randomGeneration": "Randomize",
-    "headerName": "Header name",
-    "paramName": "Parameter name",
-    "deleteSuccess": "delete success",
-    "deleteFailed": "delete failed",
-    "createFailed": "creat failed",
-    "editSuccess": "edit successfully",
-    "editFailed": "edit failed"
+    "randomGeneration": "Generate",
+    "headerName": "Header Name",
+    "paramName": "Param Name",
+    "deleteSuccess": "Deleted successfully."
   },
   "domain": {
     "columns": {
       "name": "Domain",
       "protocol": "Protocol",
-      "certificate": "Certificate",
-      "action": "Action"
+      "certificate": "Certificate"
     },
     "defaultDomain": "Default Domain",
     "createDomain": "Create Domain",
-    "EditDomain": "Edit Domain",
+    "editDomain": "Edit Domain",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentDomainName}}</1>?",
     "domainForm": {
       "name": "Domain",
@@ -145,6 +175,9 @@
       "item3": "We recommend you using the built-in dashboard configuration of Higress. You can input the UID of the Prometheus data source in Grafana and download the JSON configuration file for import. (<1>How to obtain the UID of a data source?</1>)",
       "item3_dataSourceId": "Prometheus Data Source UID",
       "item3_dataSourceId_required": "Please input Prometheus Data Source UID.",
+      "item3_templateType": "Template",
+      "item3_templateType_MAIN": "Generic Gateway Dashboard Template",
+      "item3_templateType_AI": "AI Gateway Dashboard Template",
       "item3_download": "Download Config File",
       "item4": "Input the HTTPS URL of Grafana is highly recommended to ensure the dashboard can be shown with in this page correctly."
     }
@@ -153,86 +186,92 @@
     "columns": {
       "type": "Type",
       "name": "Name",
-      "tokens": "authentication token",
-      "action": "action"
+      "tokens": "Tokens"
     },
     "providerTypes": {
       "openai": "OpenAI",
       "qwen": "Tongyi Qianwen",
-      "moonshot": "Dark Side of the Moon"
+      "moonshot": "Moonshot",
+      "ai360": "360 Zhinao|",
+      "azure": "Azure OpenAI",
+      "baichuan": "Baichuan AI",
+      "baidu": "ERNIE Bot",
+      "claude": "Anthropic Claude",
+      "cloudflare": "Cloudflare Workers AI",
+      "cohere": "Cohere",
+      "coze": "Coze",
+      "deepl": "DeepL",
+      "deepseek": "DeepSeek",
+      "doubao": "Doubao",
+      "gemini": "Google Gemini",
+      "github": "GitHub Models",
+      "groq": "Groq",
+      "hunyuan": "Tencent Hunyuan",
+      "minimax": "MiniMax",
+      "mistral": "Mistral",
+      "ollama": "Ollama",
+      "together-ai": "Together AI",
+      "stepfun": "Stepfun",
+      "spark": "iFlyTek Spark",
+      "yi": "01.AI",
+      "zhipuai": "Zhipu AI"
     },
     "providerForm": {
       "label": {
-        "type": "LLM vendor",
-        "name": "Name",
+        "type": "LLM Provider",
+        "failoverEnabled": "Token Failover",
+        "failoverEnabledExtra": "If enabled, when the count of failed requests with a certain auth token exceeds the threshold, Higress will no long send requests with it, until following health check requests get a certain number of successes.",
+        "failureThreshold": "Min Consecuitive Failures to Mark Down a Token",
+        "healthCheckInterval": "Health Check Request Interval (ms)",
+        "healthCheckModel": "Health Check Request LLM Model",
+        "healthCheckTimeout": "Health Check Request Timeout (ms)",
+        "protocol": "Request Procotol",
         "serviceName": "Service Name",
-        "domain": "Domain name",
-        "protocol": "Agreement",
-        "modelPredicate": "Whether to enable model-based route matching rules",
-        "extra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
-        "modelPredicatePrefix": "model name matching rule",
-        "aiName": "Target AI Service",
-        "aiNameExtra": "Create AI services",
-        "fallbackConfig": "Downgrade service",
-        "fallbackConfigExtra": "When enabled, if the request to the target service fails, the gateway will instead request a downgraded service.",
-        "fallbackConfigList": "Downgrade service list",
-        "routeStrategy": "Routing downgrade strategy",
-        "routeStrategy1": "Randomly select a service provider in the list to downgrade, only downgrade once (default) ",
-        "routeStrategy2": "Attempt downgrades one by one in the order of the list of service providers until the request succeeds or all providers have tried",
-        "authConfig": "Whether to enable request authentication",
-        "authConfigExtra": "When enabled, only requests containing the specified consumer authentication information can request this route.",
-        "authConfigList": "List of consumer names allowed to request this route",
-        "weight": "weight"
-      },
-      "placeholder": {
-        "type": "Please select LLM vendor",
-        "name": "Please enter a name",
-        "protocol": "Please select a protocol",
-        "serviceName": "Please enter a service name",
-        "tokens": "Please enter authentication token",
-        "domain": "Please enter domain name",
-        "aiName": "Please select and add target AI service",
-        "weight": "The target AI service request ratio should add up to 100.",
-        "modelPredicatePrefix": "Use Glob syntax to match models, for example: model- *",
-        "fallbackConfigList": "Please select a list of downgrade services",
-        "routeStrategy": "Please select a route degradation strategy",
-        "authConfigList": "Please select a list of consumer names that are allowed to request this route."
+        "successThreshold": "Min Consecuitive Sucesses to Mark Up a Token",
+        "azureServiceUrl": "Azure Service URL",
+        "ollamaServerHost": "Ollama Service Host",
+        "ollamaServerPort": "Ollama Service Port",
+        "openaiServerType": "OpenAI Service Type",
+        "openaiCustomUrl": "Custom OpenAI Service URL"
       },
       "rules": {
-        "modelPredicatePrefix": "Please enter the model name prefix required to match this route",
-        "Name": "Supports uppercase and lowercase letters, numbers, and dashes, and starts with a letter or number and does not end with a dash (-). Length should not exceed 63 characters."
+        "tokenRequired": "Please input auth token",
+        "typeRequired": "Please select a LLM provider",
+        "serviceNameRequired": "Please input service name",
+        "failureThresholdRequired": "Please input min consecuitive failures to mark down a token",
+        "healthCheckTimeoutRequired": "Please input health check request timeout (ms)",
+        "healthCheckIntervalRequired": "Please input health check request interval (ms)",
+        "healthCheckModelRequired": "Please input health check request LLM model",
+        "protocol": "Please select a request protocol",
+        "successThresholdRequired": "Please input min consecuitive sucesses to mark up a token",
+        "azureServiceUrlRequired": "Please input Azure service URL",
+        "ollamaServerHostRequired": "Please input Ollama service host",
+        "ollamaServerPortRequired": "Please input Ollama service port",
+        "openaiCustomUrlRequired": "Please input a valid custom OpenAI service URL"
       },
-      "createDomain": "Create a domain name",
-      "howToUse": "How to use",
-      "aiRouteUsage": "How to use AI routing",
-      "aiRouteUsageText": "You can send a test request with the command below:"
+      "placeholder": {
+        "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
+        "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address",
+        "openaiCustomUrlPlaceholder": "Sample: http://www.example.com/myai/v1/chat/completions"
+      },
+      "openaiServerType": {
+        "official": "OpenAI Official Service",
+        "custom": "Custom Service"
+      }
     },
-    "create": "Create AI service provider",
-    "edit": "Edit AI service provider",
-    "deleteConfirmation": "Are you sure you want to delete < 1 > {{currentLlmProviderName}} </1 >?",
-    "deleteRoute": "Are you sure you want to delete < 1 > {{currentRouteName}} </1 >?",
-    "selectModelName": "Select Model Service",
-    "modelProportion": "Proportionally",
-    "modelName": "By model name",
-    "addTargetAIservice": "Add target AI service",
-    "addTargetServer": "Add",
-    "operation": "Operation",
-    "modelMatchingType": "Model matching type",
-    "exactMatch": "exact match",
-    "prefixMatch": "Prefix Match",
-    "modelNames": "Model names",
-    "serviceName": "service name",
-    "requestPercentage": "Request Percentage",
-    "targetModel": "TargetModel",
-    "modelNameTips": "Model parameters in the request body"
+    "create": "Create AI Service Provider",
+    "edit": "Edit AI Service Provider",
+    "deleteConfirmation": "Are you sure you want to delete <1>{{currentLlmProviderName}}</1>?"
   },
   "plugins": {
     "title": "Strategy Configuration",
     "subTitle": {
       "domain": "Domain Name: ",
-      "route": "Route Name: "
+      "route": "Route Name: ",
+      "aiRoute": "AI Route Name: "
     },
     "addPlugin": "Add Plugin",
+    "editPlugin": "Edit Plugin",
     "addSuccess": "Added successfully.",
     "updateSuccess": "Updated successfully.",
     "deleteConfirmation": "Confirm delete operation?",
@@ -242,7 +281,6 @@
       "targetDomain": "Target Domain: ",
       "targetRoute": "Target Route: ",
       "enableStatus": "Enabled",
-      "dataEditor": "Configuration Editor - YAML",
       "globalConfigWarning": "Note: Configurations above will be applied to all domains the routes. Please edit with caution."
     },
     "builtIns": {
@@ -378,7 +416,6 @@
       "sniPlaceholderForDns": "Leave it empty if only one domain is set and to be used as SNI.",
       "zkServicesPath": "Service Registration Root Path",
       "zkServicesPathTooltip": "The root path of service registration are required for Zookeeper service sources. /dubbo and /services are listened by default. The former is the default root path of dubbo services, and the latter is the default root path of Sprin gCloud services",
-      "zkServicesPathRequired": "Please input the root path of service registration.",
       "zkServicesPathPlaceholder": "/dubbo and /services are listened by default. The former is the default root path of dubbo service, and the latter is the default root path of Spring Cloud services.",
       "nacosNamespaceId": "ID of the Nacos Namespace",
       "nacosNamespaceIdPlaceholder": "Leave it empty to watch the public namespace only.",
@@ -387,10 +424,6 @@
       "nacosGroupsRequired": "Please input Nacos service groups.",
       "nacosGroupsPlaceholder": "Nacos Service Groups",
       "naco2PortNote": "The port calculated by \"PortAbove+1000\" shall be kept accessiable as well. Otherwise, the service source won't function properly.",
-      "consulNamespace": "Consul Namespace",
-      "consulNamespaceTooltip": "Namespace info is required for Concul service sources.",
-      "consulNamespaceRequired": "Please input Consul namespace.",
-      "consulNamespacePlaceholder": "Consul Namespace",
       "serviceStaticAddresses": "Service Addresses",
       "serviceStaticAddressesRequired": "Please input service addresses.",
       "serviceStaticAddressesPlaceholder": "IP:Port (One address per line)",
@@ -425,7 +458,7 @@
     },
     "matchTypes": {
       "PRE": "Prefix",
-      "EQUAL": "Equal",
+      "EQUAL": "Exact",
       "REGULAR": "Regex"
     },
     "unsupported": "Note: Route management feature doesn't support Kubenetes with version < 1.19.0 at the moment.",
@@ -433,6 +466,7 @@
     "editRoute": "Edit Route",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
     "noCustomIngresses": "Note: Only routes created from the console are listed above.",
+    "routeSearchPlaceholder": "Search routes by route name, domain, routing conditions and target service.",
     "factorGroup": {
       "columns": {
         "key": "Key",
@@ -465,7 +499,6 @@
       "routeNameRequired": "Only following characters are allowed: lower-case letters, numbers and special characters (- .). And the name can not begin or end with a special character.",
       "routeNamePlaceholder": "Only following characters are allowed: lower-case letters, numbers and special characters (- .). And the name can not begin or end with a special character.",
       "domain": "Domain",
-      "domainRequired": "Please select a domain.",
       "domainSearchPlaceholder": "Search domain by name. If left empty, it will match any domain.",
       "matchType": "Match Type",
       "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
@@ -485,70 +518,6 @@
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
       "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
-    }
-  },
-  "chart": {
-    "area": {
-      "defaultData": {
-        "subTitle": "Request Count",
-        "des": "Week on Week: "
-      }
-    },
-    "bar": {
-      "defaultData": {
-        "subTitle": "Total Sales",
-        "des": "Week on Week: "
-      }
-    },
-    "groupBar": {
-      "defaultData": {
-        "title": "Consumer Data",
-        "category_1": "Category 1",
-        "category_2": "Category 2",
-        "category_3": "Category 3",
-        "category_4": "Category 4",
-        "category_5": "Category 5",
-        "shop_1": "Shop 1",
-        "shop_2": "Shop 2",
-        "shop_3": "Shop 3"
-      }
-    },
-    "line": {
-      "defaultData": {
-        "subTitle": "Stop Activity Results",
-        "des": "Week on Week: "
-      }
-    },
-    "pie": {
-      "defaultData": {
-        "title": "Sales Percentage by Category",
-        "sample_1": "Sample 1",
-        "sample_2": "Sample 2",
-        "sample_3": "Sample 3",
-        "sample_4": "Sample 4",
-        "sample_5": "Sample 5"
-      },
-      "category_1": "Category 1",
-      "category_2": "Category 2",
-      "category_3": "Category 3"
-    },
-    "rank": {
-      "defaultData": {
-        "title": "Area Sales",
-        "asia": "Asia",
-        "europe": "Europe",
-        "africa": "Africa",
-        "america": "America",
-        "category_1": "Category 1",
-        "category_2": "Category 2",
-        "des": "Week on Week"
-      }
-    },
-    "typebar": {
-      "defaultData": {
-        "subTitle": "Merchant Sales",
-        "des": "Week on Week: "
-      }
     }
   },
   "tlsCertificate": {
@@ -612,7 +581,6 @@
     }
   },
   "misc": {
-    "language": "Language",
     "logout": "Logout",
     "confirm": "Confirm",
     "submit": "Submit",
@@ -628,6 +596,8 @@
     "strategy": "Strategy",
     "configure": "Configure",
     "information": "Information",
+    "action": "Action",
+    "actions": "Actions",
     "seconds": "Sec(s)",
     "tbd": "Still in development. To be released soon...",
     "yes": "Yes",

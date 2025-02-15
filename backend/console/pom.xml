@@ -15,8 +15,9 @@
 
 	<properties>
 		<nodejs.version>16.19.0</nodejs.version>
+		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 
-		<app.build.version>2.0.0</app.build.version>
+		<app.build.version>2.1.0</app.build.version>
 		<app.build.dev>true</app.build.dev>
 	</properties>
 
@@ -198,4 +199,42 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>api-docs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>start</goal>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.springdoc</groupId>
+						<artifactId>springdoc-openapi-maven-plugin</artifactId>
+						<version>${springdoc-openapi-maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>generate</goal>
+								</goals>
+								<configuration>
+									<apiDocsUrl>http://localhost:8080/v3/api-docs/Higress</apiDocsUrl>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

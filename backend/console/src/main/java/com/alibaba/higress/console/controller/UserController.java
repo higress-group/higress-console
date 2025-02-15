@@ -15,6 +15,10 @@ package com.alibaba.higress.console.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +40,7 @@ import com.alibaba.higress.console.service.SessionUserHelper;
  */
 @RestController("UserController")
 @RequestMapping("/user")
+@Tag(name = "User APIs")
 public class UserController {
 
     private SessionService sessionService;
@@ -46,12 +51,19 @@ public class UserController {
     }
 
     @GetMapping("/info")
+    @Operation(summary = "Get user info")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "User info retrieved successfully."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<User>> getUserInfo() {
         User user = SessionUserHelper.getCurrentUser();
         return ControllerUtil.buildResponseEntity(user);
     }
 
     @PostMapping("/changePassword")
+    @Operation(summary = "Change password")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Password changed successfully."),
+        @ApiResponse(responseCode = "404", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<?> logout(@RequestBody ChangePasswordRequest request, HttpServletResponse response) {
         if (StringUtils.isEmpty(request.getOldPassword())) {
             throw new ValidationException("Missing old password.");

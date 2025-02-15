@@ -3,12 +3,12 @@ import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/service
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import RouteForm from './components/RouteForm';
-import { HistoryButton } from './components/RouteForm/Components';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import RouteForm from './components/RouteForm';
 
 interface FormRef {
   reset: () => void;
@@ -78,15 +78,15 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('aiRoute.columns.action'),
+      title: t('misc.actions'),
       dataIndex: 'action',
       key: 'action',
       width: 240,
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <a onClick={() => onUsageDrawer(record)}>{t('llmProvider.providerForm.howToUse')}</a>
-          <HistoryButton text={t('misc.strategy')} path={`/ai/config?name=${record.name}`} />
+          <a onClick={() => onUsageDrawer(record)}>{t('aiRoute.usage')}</a>
+          <a onClick={() => onEditConfig(record)}>{t('misc.strategy')}</a>
           <a onClick={() => onEditDrawer(record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
@@ -109,6 +109,7 @@ const AiRouteList: React.FC = () => {
     manual: true,
     onSuccess: (result) => {
       const aiRoutes = (result || []) as AiRoute[];
+      aiRoutes.forEach(r => { r.key = r.name; });
       aiRoutes.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
@@ -151,6 +152,10 @@ const AiRouteList: React.FC = () => {
     setUsageCommand(null);
     setUsageDrawer(false);
   }
+
+  const onEditConfig = (aiRoute: AiRoute) => {
+    history?.push(`/ai/route/config?type=aiRoute&name=${aiRoute.name}`);
+  };
 
   const onEditDrawer = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);
@@ -273,7 +278,7 @@ const AiRouteList: React.FC = () => {
         <RouteForm ref={formRef} value={currentAiRoute} />
       </Drawer>
       <Modal
-        title={t("llmProvider.providerForm.aiRouteUsage")}
+        title={t("aiRoute.aiRouteUsage")}
         open={usageDrawer}
         onOk={closeUsage}
         onCancel={closeUsage}
@@ -283,7 +288,7 @@ const AiRouteList: React.FC = () => {
           </Button>,
         ]}
       >
-        {t("llmProvider.providerForm.aiRouteUsageText")}
+        {t("aiRoute.aiRouteUsageContent")}
         <SyntaxHighlighter language="shell">
           {usageCommand}
         </SyntaxHighlighter>
@@ -298,7 +303,7 @@ const AiRouteList: React.FC = () => {
         okText={t('misc.confirm')}
       >
         <p>
-          <Trans t={t} i18nKey="llmProvider.deleteRoute">
+          <Trans t={t} i18nKey="aiRoute.deleteConfirmation">
             确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>

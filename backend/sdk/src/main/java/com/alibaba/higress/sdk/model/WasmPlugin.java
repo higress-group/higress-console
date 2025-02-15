@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,31 +27,43 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Wasm Plugin")
+@Schema(description = "Wasm Plugin")
 public class WasmPlugin implements VersionedDto {
 
+    @Schema(description = "Plugin name")
     private String name;
 
+    @Schema(description = "Plugin version. Fixed to 1.0.0")
     private String pluginVersion;
 
+    @Schema(description = "Plugin resource version. Required when updating.")
     private String version;
 
+    @Schema(description = "Plugin category")
     private String category;
 
+    @Schema(description = "Plugin title for display")
     private String title;
 
+    @Schema(description = "Plugin description for display")
     private String description;
 
+    @Schema(description = "Whether the plugin is built-in")
     private Boolean builtIn;
 
+    @Schema(description = "Plugin icon URL")
     private String icon;
 
+    @Schema(description = "Plugin image repository")
     private String imageRepository;
 
+    @Schema(description = "Plugin image tag")
     private String imageVersion;
 
+    @Schema(description = "Plugin execution phase", ref = "PluginPhase")
     private String phase;
 
+    @Schema(description = "Plugin execution priority in the given phase", minimum = "0", maximum = "1000")
     private Integer priority;
 
     public void validate() {

@@ -1,4 +1,4 @@
-export const aiModelproviders = [
+export const aiModelProviders = [
   {
     label: 'OpenAI',
     value: 'openai',
@@ -26,9 +26,15 @@ export const aiModelproviders = [
         value: 'gpt-4o-mini',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      return [record.rawConfigs['openaiCustomUrl']];
+    },
   },
   {
-    label: "Awen",
+    label: 'Qwen',
     value: 'qwen',
     serviceAddress: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     modelNamePattern: 'qwen-*',
@@ -48,6 +54,26 @@ export const aiModelproviders = [
       {
         label: 'qwen-long',
         value: 'qwen-long',
+      },
+    ],
+  },
+  {
+    label: 'Moonshot',
+    value: 'moonshot',
+    serviceAddress: 'https://api.moonshot.cn/v1',
+    modelNamePattern: 'moonshot-*',
+    targetModelList: [
+      {
+        label: 'moonshot-v1-8k',
+        value: 'moonshot-v1-8k',
+      },
+      {
+        label: 'moonshot-v1-32k',
+        value: 'moonshot-v1-32k',
+      },
+      {
+        label: 'moonshot-v1-128k',
+        value: 'moonshot-v1-128k',
       },
     ],
   },
@@ -78,6 +104,12 @@ export const aiModelproviders = [
         value: 'gpt-4o-mini',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      return [record.rawConfigs['azureServiceUrl']];
+    },
   },
   {
     label: 'Claude',
@@ -96,26 +128,6 @@ export const aiModelproviders = [
       {
         label: 'claude-3-opus-latest',
         value: 'claude-3-opus-latest',
-      },
-    ],
-  },
-  {
-    label: "Moonshot",
-    value: 'moonshot',
-    serviceAddress: 'https://api.moonshot.cn/v1',
-    modelNamePattern: 'moonshot-*',
-    targetModelList: [
-      {
-        label: 'moonshot-v1-8k',
-        value: 'moonshot-v1-8k',
-      },
-      {
-        label: 'moonshot-v1-32k',
-        value: 'moonshot-v1-32k',
-      },
-      {
-        label: 'moonshot-v1-128k',
-        value: 'moonshot-v1-128k',
       },
     ],
   },
@@ -235,42 +247,43 @@ export const aiModelproviders = [
       },
     ],
   },
-  // {
-  //   label: '360智脑',
-  //   value: 'ai360',
-  //   serviceAddress: 'https://api.360.cn',
-  //   targetModelList: [],
-  // },
-  // {
-  //   label: '文心一言',
-  //   value: 'baidu',
-  //   serviceAddress: 'https://aip.baidubce.com',
-  //   targetModelList: [
-  //     {
-  //       label: 'ERNIE-4.0-8K',
-  //       value: 'ERNIE-4.0-8K',
-  //     },
-  //     {
-  //       label: 'ERNIE-4.0-8K-Latest',
-  //       value: 'ERNIE-4.0-8K-Latest',
-  //     },
-  //     {
-  //       label: 'ERNIE-4.0-Turbo-8K',
-  //       value: 'ERNIE-4.0-Turbo-8K',
-  //     },
-  //     {
-  //       label: 'ERNIE-3.5-8K',
-  //       value: 'ERNIE-3.5-8K',
-  //     },
-  //     {
-  //       label: 'ERNIE-3.5-128K',
-  //       value: 'ERNIE-3.5-128K',
-  //     }
-  //   ]
-  // },
+  {
+    label: '360智脑',
+    value: 'ai360',
+    serviceAddress: 'https://api.360.cn',
+    targetModelList: [],
+  },
+  {
+    label: '文心一言',
+    value: 'baidu',
+    serviceAddress: 'https://aip.baidubce.com',
+    targetModelList: [
+      {
+        label: 'ERNIE-4.0-8K',
+        value: 'ERNIE-4.0-8K',
+      },
+      {
+        label: 'ERNIE-4.0-8K-Latest',
+        value: 'ERNIE-4.0-8K-Latest',
+      },
+      {
+        label: 'ERNIE-4.0-Turbo-8K',
+        value: 'ERNIE-4.0-Turbo-8K',
+      },
+      {
+        label: 'ERNIE-3.5-8K',
+        value: 'ERNIE-3.5-8K',
+      },
+      {
+        label: 'ERNIE-3.5-128K',
+        value: 'ERNIE-3.5-128K',
+      },
+    ],
+  },
   {
     label: 'Hunyuan',
     value: 'hunyuan',
+    enabled: false,
     serviceAddress: 'https://hunyuan.tencentcloudapi.com',
     modelNamePattern: 'hunyuan-*',
     targetModelList: [
@@ -339,6 +352,7 @@ export const aiModelproviders = [
   {
     label: 'Spark',
     value: 'spark',
+    enabled: false,
     serviceAddress: 'https://spark-api-open.xf-yun.com',
     targetModelList: [
       {
@@ -426,5 +440,76 @@ export const aiModelproviders = [
         value: 'gemini-1.5-pro',
       },
     ],
+  },
+  {
+    label: 'Cohere',
+    value: 'cohere',
+    serviceAddress: 'https://api.cohere.com',
+    targetModelList: [],
+  },
+  {
+    label: 'Coze',
+    value: 'coze',
+    serviceAddress: 'https://api.coze.cn',
+    targetModelList: [],
+  },
+  {
+    label: 'DeepSeek',
+    value: 'deepseek',
+    serviceAddress: 'https://api.deepseek.com',
+    targetModelList: [],
+  },
+  {
+    label: 'GitHub Models',
+    value: 'github',
+    serviceAddress: 'https://models.inference.ai.azure.com',
+    targetModelList: [],
+  },
+  {
+    label: 'Groq',
+    value: 'groq',
+    serviceAddress: 'https://api.groq.com',
+    targetModelList: [],
+  },
+  {
+    label: 'Ollama',
+    value: 'ollama',
+    tokenRequired: false,
+    targetModelList: [],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const host = record.rawConfigs['ollamaServerHost'];
+      const port = record.rawConfigs['ollamaServerPort'];
+      return host && port ? [`http://${host}:${port}`] : null;
+    },
+  },
+  {
+    label: 'Mistral',
+    value: 'mistral',
+    serviceAddress: 'https://api.mistral.ai',
+    targetModelList: [],
+  },
+  {
+    label: 'Cloudflare',
+    value: 'cloudflare',
+    enabled: false,
+    serviceAddress: 'https://api.cloudflare.com',
+    targetModelList: [],
+  },
+  {
+    label: 'DeepL',
+    value: 'deepl',
+    enabled: false,
+    serviceAddress: 'https://api.deepl.com',
+    targetModelList: [],
+  },
+  {
+    label: 'Together AI',
+    value: 'together-ai',
+    enabled: false,
+    serviceAddress: 'https://api.together.xyz',
+    targetModelList: [],
   },
 ];

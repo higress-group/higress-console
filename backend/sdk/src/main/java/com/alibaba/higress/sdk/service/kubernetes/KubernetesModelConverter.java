@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -795,12 +796,16 @@ public class KubernetesModelConverter {
                 continue;
             }
 
+            boolean removeRule = false;
+
             for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
                 List<String> targetsInRule = Objects.requireNonNull(getTargetsByScope(rule, entry.getKey()));
-                targetsInRule.remove(entry.getValue());
+                if (targetsInRule.remove(entry.getValue()) && targetsInRule.isEmpty()) {
+                    removeRule = true;
+                }
             }
 
-            if (rule.hasKey()) {
+            if (removeRule) {
                 it.remove();
             }
 
@@ -1735,7 +1740,7 @@ public class KubernetesModelConverter {
     }
 
     private static List<String> getCertBoundDomains(X509Certificate certificate) {
-        List<String> domains = new ArrayList<>();
+        Set<String> domains = new LinkedHashSet<>();
 
         String subjectDomain = getPrincipleValue(certificate.getSubjectX500Principal(), "CN");
         if (StringUtils.isNotEmpty(subjectDomain)) {
@@ -1764,7 +1769,7 @@ public class KubernetesModelConverter {
             }
         }
 
-        return domains;
+        return new ArrayList<>(domains);
     }
 
     private static String getPrincipleValue(X500Principal principal, String type) {

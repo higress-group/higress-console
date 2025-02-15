@@ -40,7 +40,7 @@ const ConsumerList: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: t('consumer.columns.credentialTypes'),
+      title: t('consumer.columns.authMethods'),
       dataIndex: 'credentials',
       key: 'credentials',
       render: (value) => {
@@ -70,7 +70,7 @@ const ConsumerList: React.FC = () => {
       },
     },
     {
-      title: t('consumer.columns.action'),
+      title: t('misc.actions'),
       dataIndex: 'action',
       key: 'action',
       width: 140,

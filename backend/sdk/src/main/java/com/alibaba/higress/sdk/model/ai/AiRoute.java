@@ -17,9 +17,13 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,15 +33,28 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("AI Route")
+@Schema(description = "AI Route")
 public class AiRoute {
 
+    @Schema(description = "Route name")
     private String name;
+    @Schema(description = "Route version. Required when updating.")
     private String version;
+    @Schema(description = "Domains that the route applies to. If empty, the route applies to all domains.")
     private List<String> domains;
+    @Schema(description = "Path predicate")
+    private RoutePredicate pathPredicate;
+    @Schema(description = "Header predicates")
+    private List<KeyedRoutePredicate> headerPredicates;
+    @Schema(description = "URL parameter predicates")
+    private List<KeyedRoutePredicate> urlParamPredicates;
+    @Schema(description = "Route upstreams")
     private List<AiUpstream> upstreams;
+    @Schema(description = "Model predicates")
     private List<AiModelPredicate> modelPredicates;
+    @Schema(description = "Route auth configuration")
     private AiRouteAuthConfig authConfig;
+    @Schema(description = "Route fallback configuration")
     private AiRouteFallbackConfig fallbackConfig;
 
     public void validate() {
@@ -46,6 +63,22 @@ public class AiRoute {
         }
         if (CollectionUtils.isEmpty(upstreams)) {
             throw new ValidationException("upstreams cannot be empty.");
+        }
+        if (pathPredicate != null) {
+            pathPredicate.validate();
+            if (pathPredicate.getPredicateType() != RoutePredicateTypeEnum.PRE) {
+                throw new ValidationException("pathPredicate must be of type PRE.");
+            }
+        }
+        if (CollectionUtils.isNotEmpty(headerPredicates)) {
+            headerPredicates.forEach(KeyedRoutePredicate::validate);
+            if (headerPredicates.stream()
+                .anyMatch(p -> HigressConstants.MODEL_ROUTING_HEADER.equalsIgnoreCase(p.getKey()))) {
+                throw new ValidationException("headerPredicates cannot contain the model routing header.");
+            }
+        }
+        if (CollectionUtils.isNotEmpty(urlParamPredicates)) {
+            urlParamPredicates.forEach(KeyedRoutePredicate::validate);
         }
         upstreams.forEach(AiUpstream::validate);
         if (authConfig != null) {

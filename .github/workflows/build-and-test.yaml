@@ -13,7 +13,7 @@ jobs:
       - name: "Setup Java"
         uses: actions/setup-java@v3
         with:
-          java-version: 17 
+          java-version: 21
           distribution: 'temurin'
 
       - name: "checkout ${{ github.ref }}"
@@ -25,7 +25,7 @@ jobs:
         run: mvn clean package -f ./backend/pom.xml -Dpmd.language=en
 
       - name: Upload Higress Console Package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: higress-console
           path: backend/target/*.jar

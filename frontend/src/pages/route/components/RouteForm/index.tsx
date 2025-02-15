@@ -3,7 +3,7 @@ import { OptionItem } from '@/interfaces/common';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
-import { InfoCircleOutlined, QuestionCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
 import { uniqueId } from "lodash";

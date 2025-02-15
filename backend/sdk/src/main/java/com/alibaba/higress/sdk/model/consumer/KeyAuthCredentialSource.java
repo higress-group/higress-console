@@ -14,9 +14,11 @@ package com.alibaba.higress.sdk.model.consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
+@Schema(description = "KeyAuth Credential Source", type = "string", allowableValues = {"BEARER", "HEADER", "QUERY"})
 public enum KeyAuthCredentialSource {
 
     /**

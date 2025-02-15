@@ -25,7 +25,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 import com.google.common.base.Splitter;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Gateway Service Source")
+@Schema(description = "Gateway Service Source")
 public class ServiceSource implements VersionedDto {
 
     private static final Map<String, ServiceSourceValidator> VALIDATORS = new HashMap<>();
@@ -48,25 +48,41 @@ public class ServiceSource implements VersionedDto {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
     }
 
+    @Schema(description = "Service source name")
     private String name;
 
+    @Schema(description = "Service source version. Required when updating.")
     private String version;
 
     /**
      * nacos,nacos2,zookeeper,consul,eureka,static,dns
      */
+    @Schema(description = "Service source type",
+        allowableValues = {V1McpBridge.REGISTRY_TYPE_NACOS, V1McpBridge.REGISTRY_TYPE_NACOS2,
+            V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL, V1McpBridge.REGISTRY_TYPE_EUREKA,
+            V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS})
     private String type;
 
+    @Schema(
+        description = "Service source domain(s). For static type, use ip:port format. For dns type, use domain list.")
     private String domain;
 
+    @Schema(description = "Service source port. Always use 80 for static type.")
     private Integer port;
 
+    @Schema(description = "Service source protocol. Used in static and dns types.", allowableValues = {
+        V1McpBridge.PROTOCOL_HTTP, V1McpBridge.PROTOCOL_HTTPS, V1McpBridge.PROTOCOL_GRPC, V1McpBridge.PROTOCOL_GRPCS})
     private String protocol;
 
+    @Schema(description = "Service source SNI. Used in static and dns types when TLS is enabled.")
     private String sni;
 
+    @Schema(description = "Service source extra properties, depending on the type.\n"
+        + "For nacos/nacos2: nacosGroups, nacosNamespaceId\n"
+        + "For consul: consulDatacenter, consulServiceTag, consulRefreshInterval\n" + "For zookeeper: zkServicesPath")
     private Map<String, Object> properties;
 
+    @Schema(description = "Service source authentication config")
     private ServiceSourceAuthN authN;
 
     public boolean isValid() {

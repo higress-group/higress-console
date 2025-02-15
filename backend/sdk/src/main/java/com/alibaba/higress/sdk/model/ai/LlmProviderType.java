@@ -12,10 +12,15 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "LLM Service Provider Types", type = "string",
+    allowableValues = {"qwen", "openai", "moonshot", "azure", "ai360", "github", "groq", "baichuan", "yi", "deepseek",
+        "zhipuai", "ollama", "claude", "baidu", "hunyuan", "stepfun", "minimax", "cloudflare", "spark", "gemini",
+        "deepl", "mistral", "cohere", "doubao", "coze", "together-ai"})
 public final class LlmProviderType {
 
-    private LlmProviderType() {
-    }
+    private LlmProviderType() {}
 
     public static final String QWEN = "qwen";
 
@@ -66,4 +71,6 @@ public final class LlmProviderType {
     public static final String DOUBAO = "doubao";
 
     public static final String COZE = "coze";
+
+    public static final String TOGETHER_AI = "together-ai";
 }

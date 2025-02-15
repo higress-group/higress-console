@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,10 +29,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Service Consumer")
+@Schema(description = "Service Consumer")
 public class Consumer {
 
+    @Schema(description = "Consumer name")
     private String name;
+    @Schema(description = "Consumer credentials")
     private List<Credential> credentials;
 
     public void validate(boolean forUpdate) {

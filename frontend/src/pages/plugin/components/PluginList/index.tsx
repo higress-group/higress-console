@@ -8,7 +8,7 @@ import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
-import { getI18nValue } from '../../utils';
+import { getI18nValue, QueryType } from '../../utils';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -29,6 +29,11 @@ const PluginList = forwardRef((props: Props, ref) => {
   const { data, onOpen, onEdit, onDelete } = props;
   const [searchParams] = useSearchParams();
 
+  const type = searchParams.get('type') || '';
+
+  const HIDDEN_PLUGINS_BY_QUERY_TYPE = {};
+  HIDDEN_PLUGINS_BY_QUERY_TYPE[QueryType.AI_ROUTE] = ['ai-proxy', 'key-auth', 'model-router', 'model-mapper'];
+
   const handleClickPlugin = (item) => {
     onOpen(item);
   };
@@ -40,53 +45,44 @@ const PluginList = forwardRef((props: Props, ref) => {
   }, {
     manual: true,
     onSuccess: async (result = []) => {
-      try {
-        if (searchParams.get('type') === 'route') {
-          const routeName = searchParams.get('name');
-          if (routeName) {
-            // 获取当前 route 的插件信息
-            const currentRoute = await getGatewayRoutesDetail(routeName);
-            if (!currentRoute) {
-              message.error('No route found with the given name');
-              setPluginList(BUILTIN_ROUTE_PLUGIN_LIST.concat(result) as any); // 设置默认插件列表
-              return;
-            }
-
-            const plugins = await fetchPluginsByRoute(currentRoute);
-            const builtInPlugins: WasmPluginData[] = BUILTIN_ROUTE_PLUGIN_LIST.map((plugin) => {
-              const foundPlugin = plugins.find((p) => p.name === plugin.key);
-              return {
-                ...plugin,
-                name: plugin.key,
-                description: plugin.description,
-                builtIn: true,
-                enabled: foundPlugin ? foundPlugin.enabled : false,
-              };
-            });
-
-            const updatedPlugins = result.map((plugin: { name: string; enabled: any }) => {
-              const foundPlugin = plugins.find((p) => p.name === plugin.name);
-              return {
-                ...plugin,
-                enabled: foundPlugin ? foundPlugin.enabled : plugin.enabled,
-              };
-            });
-
-            setPluginList(builtInPlugins.concat(updatedPlugins) as any); // 更新插件列表
-            return;
-          } else {
-            // 如果没有 routeName，设置默认插件列表
-            setPluginList(BUILTIN_ROUTE_PLUGIN_LIST.concat(result) as any);
-            return;
-          }
-        }
-
-        // 默认情况下，直接设置插件列表
-        setPluginList(result);
-      } catch (error) {
-        message.error('Failed to load plugins');
-        setPluginList([]); // 出错时设置为空列表或默认值
+      let plugins = result || [];
+      const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
+      if (Array.isArray(hiddenPlugins)) {
+        plugins = plugins.filter(p => p.builtIn && hiddenPlugins.indexOf(p.name) === -1);
       }
+      if (type === QueryType.ROUTE) {
+        const routeName = searchParams.get('name');
+        if (routeName) {
+          const currentRoute = await getGatewayRoutesDetail(routeName);
+          if (!currentRoute) {
+            plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
+            setPluginList(plugins);
+            return
+          }
+
+          const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
+          const builtInPlugins: WasmPluginData[] = BUILTIN_ROUTE_PLUGIN_LIST.map((plugin) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key);
+            return {
+              ...plugin,
+              name: plugin.key,
+              description: plugin.description,
+              builtIn: true,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+
+          const updatedPlugins = result.map((plugin: { name: string; enabled: any }) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : plugin.enabled,
+            };
+          });
+          plugins = builtInPlugins.concat(updatedPlugins)
+        }
+      }
+      setPluginList(plugins);
     },
   });
 
@@ -153,7 +149,7 @@ const PluginList = forwardRef((props: Props, ref) => {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         const key = item.key || `${item.name}:${item.imageVersion}`;
-        const showTag = searchParams.get('type') === 'route';
+        const showTag = type === QueryType.ROUTE;
         return (
           <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
