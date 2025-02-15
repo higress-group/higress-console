@@ -796,12 +796,16 @@ public class KubernetesModelConverter {
                 continue;
             }
 
+            boolean removeRule = false;
+
             for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
                 List<String> targetsInRule = Objects.requireNonNull(getTargetsByScope(rule, entry.getKey()));
-                targetsInRule.remove(entry.getValue());
+                if (targetsInRule.remove(entry.getValue()) && targetsInRule.isEmpty()) {
+                    removeRule = true;
+                }
             }
 
-            if (rule.hasKey()) {
+            if (removeRule) {
                 it.remove();
             }
 
