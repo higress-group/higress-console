@@ -153,7 +153,7 @@ export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {
     });
   }
 
-  if (route.proxyNextUpstream) {
+  if (route.proxyNextUpstream && route.proxyNextUpstream.enabled) {
     plugins.push({
       name: 'retries',
       description: '配置网关向后端服务请求当前路由的响应失败时的重试机制',
@@ -166,7 +166,7 @@ export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {
   if (route.cors && route.cors.enabled) {
     plugins.push({
       name: 'CORS',
-      description: 'Enable Cross-Origin Resource Sharing',
+      description: '通过配置标示除了当前站点以外的其他源（域名、协议或端口），使得浏览器允许这些源访问加载该路由的响应',
       builtIn: true,
       enabled: true,
     });
@@ -178,9 +178,7 @@ export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {
 export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData[]> => {
   const data: Record<string, WasmPluginData[]> = {};
   try {
-    // 调用接口获取 WASM 插件
     const response = await getRoutePluginInstances(record.name);
-
     // 将 response 中的数据转换为 WasmPluginData 类型
     const plugins = response.map((plugin: { pluginName: any; description: any; enabled: any }) => {
       return {
@@ -191,7 +189,6 @@ export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData
         builtIn: false,
       };
     });
-    // 将策略列表存储到 data 中
     data[record.name] = plugins || [];
   } catch (error) {
     message.error(`Failed to fetch strategies: ${error.message || error}`);
