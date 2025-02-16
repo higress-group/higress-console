@@ -40,6 +40,7 @@ import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+import { getI18nValue } from "@/pages/plugin/utils";
 
 const { Text } = Typography;
 
@@ -361,7 +362,12 @@ const RouteList: React.FC = () => {
                 dataSource={plugins}
                 columns={[
                   { title: t('plugins.title'), dataIndex: 'name', key: 'name' },
-                  { title: t('plugins.description'), dataIndex: 'description', key: 'type' },
+                  {
+                    title: t('plugins.description'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'description');
+                    },
+                    key: 'description' },
                 ]}
                 pagination={false}
                 rowKey="name"

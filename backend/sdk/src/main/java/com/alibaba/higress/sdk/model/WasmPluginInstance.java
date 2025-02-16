@@ -52,6 +52,9 @@ public class WasmPluginInstance implements VersionedDto {
     @Schema(description = "Plugin version. Fixed to 1.0.0")
     private String pluginVersion;
 
+    @Schema(description = "Plugin description for display")
+    private String description;
+
     @Schema(description = "Whether this is an internal plugin instance managed by the console itself")
     private Boolean internal;
 

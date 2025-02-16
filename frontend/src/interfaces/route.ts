@@ -179,14 +179,12 @@ export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData
   const data: Record<string, WasmPluginData[]> = {};
   try {
     const response = await getRoutePluginInstances(record.name);
-    // 将 response 中的数据转换为 WasmPluginData 类型
     const plugins = response.map((plugin: { pluginName: any; description: any; enabled: any }) => {
       return {
         ...plugin,
         name: plugin.pluginName,
-        description: plugin.pluginName,
+        description: plugin.description,
         enabled: plugin.enabled,
-        builtIn: false,
       };
     });
     data[record.name] = plugins || [];
@@ -194,10 +192,7 @@ export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData
     message.error(`Failed to fetch strategies: ${error.message || error}`);
   }
 
-  // 获取 BuiltIn 插件
   const builtInPlugins = getRouteBuiltInPlugins(record);
   data[record.name] = data[record.name] ? data[record.name].concat(builtInPlugins) : builtInPlugins;
-
-  // 根据 routeName 返回对应的策略列表
   return data[record.name] || [];
 };
