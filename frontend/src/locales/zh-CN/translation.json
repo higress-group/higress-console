@@ -264,12 +264,14 @@
   },
   "plugins": {
     "title": "策略配置",
+    "description": "策略描述",
     "subTitle": {
       "domain": "域名名称：",
       "route": "路由名称：",
       "aiRoute": "AI路由名称："
     },
     "enabled": "已启用",
+    "emptyPlugins": "未启用策略",
     "addPlugin": "添加插件",
     "editPlugin": "编辑插件",
     "addSuccess": "添加成功",
@@ -608,9 +610,5 @@
     "switchToForm": "表单视图",
     "isRequired": "是必填的",
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
-  },
-  "strategy": {
-    "name": "策略名称",
-    "description": "策略描述"
   }
 }

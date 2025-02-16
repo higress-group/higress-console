@@ -12,7 +12,6 @@ import {
   addGatewayRoute,
   deleteGatewayRoute,
   getGatewayRoutes,
-  getRoutePluginInstances,
   updateGatewayRoute,
 } from '@/services';
 import store from '@/store';
@@ -21,7 +20,21 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography } from 'antd';
+import {
+  Alert,
+  Button,
+  Col,
+  Drawer,
+  Form,
+  message,
+  Input,
+  Modal,
+  Row,
+  Space,
+  Table,
+  Typography,
+  Empty,
+} from 'antd';
 import { history } from 'ice';
 import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -120,12 +133,10 @@ const RouteList: React.FC = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
-
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
 
@@ -241,18 +252,21 @@ const RouteList: React.FC = () => {
 
   const onShowStrategyList = async (record: Route, expanded: boolean) => {
     if (expanded) {
-      if (!pluginData[record.name]) {
-        try {
-          const plugins = await fetchPluginsByRoute(record);
-          setPluginsData((prev) => ({
-            ...prev,
-            [record.name]: plugins,
-          }));
-        } catch (error) {
-          message.error('Failed to fetch strategies, error:', error);
+      try {
+        const plugins = await fetchPluginsByRoute(record);
+        setPluginsData((prev) => ({
+          ...prev,
+          [record.name]: plugins,
+        }));
+        if (plugins.some(plugin => plugin.enabled)) {
+          setExpandedKeys((prev) => [...prev, record.name]);
+        } else {
+          message.info(t('plugins.emptyPlugins'));
         }
+      } catch (error) {
+        message.error('Failed to fetch strategies, error:', error);
+        setExpandedKeys((prev) => prev.filter((key) => key !== record.name));
       }
-      setExpandedKeys((prev) => [...prev, record.name]);
     } else {
       setExpandedKeys((prev) =>
         prev.filter((key) => key !== record.name));
@@ -342,16 +356,18 @@ const RouteList: React.FC = () => {
           onExpand: (expanded, record) => onShowStrategyList(record, expanded),
           expandedRowRender: (record) => {
             const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
-            return (
+            return plugins.length > 0 ? (
               <Table
                 dataSource={plugins}
                 columns={[
-                  { title: t('strategy.name'), dataIndex: 'name', key: 'name' },
-                  { title: t('strategy.description'), dataIndex: 'description', key: 'type' },
+                  { title: t('plugins.title'), dataIndex: 'name', key: 'name' },
+                  { title: t('plugins.description'), dataIndex: 'description', key: 'type' },
                 ]}
                 pagination={false}
                 rowKey="name"
               />
+            ) : (
+              <Empty description="No enabled plugins" />
             );
           },
         }}
