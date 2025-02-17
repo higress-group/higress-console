@@ -265,11 +265,14 @@
   },
   "plugins": {
     "title": "Strategy Configuration",
+    "description": "Strategy Description",
     "subTitle": {
       "domain": "Domain Name: ",
       "route": "Route Name: ",
       "aiRoute": "AI Route Name: "
     },
+    "enabled": "Enabled",
+    "emptyPlugins": "No plugins configured.",
     "addPlugin": "Add Plugin",
     "editPlugin": "Edit Plugin",
     "addSuccess": "Added successfully.",
