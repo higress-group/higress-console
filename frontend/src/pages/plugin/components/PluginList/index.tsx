@@ -66,8 +66,6 @@ const PluginList = forwardRef((props: Props, ref) => {
             return {
               ...plugin,
               name: plugin.key,
-              description: plugin.description,
-              builtIn: true,
               enabled: foundPlugin ? foundPlugin.enabled : false,
             };
           });

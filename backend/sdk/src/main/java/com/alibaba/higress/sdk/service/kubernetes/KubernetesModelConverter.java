@@ -637,8 +637,7 @@ public class KubernetesModelConverter {
         WasmPluginInstance instance =
             WasmPluginInstance.builder().version(metadata.getResourceVersion()).pluginName(name).pluginVersion(version)
                 .targets(new HashMap<>(targets)).enabled(enabled).configurations(configurations)
-                .rawConfigurations(rawConfiguration).internal(KubernetesUtil.isInternalResource(plugin))
-                .description(MapUtils.getString(metadata.getAnnotations(), KubernetesConstants.Annotation.WASM_PLUGIN_DESCRIPTION_KEY)).build();
+                .rawConfigurations(rawConfiguration).internal(KubernetesUtil.isInternalResource(plugin)).build();
         instance.syncDeprecatedFields();
         return instance;
     }

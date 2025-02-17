@@ -11,7 +11,7 @@ import {
 import {
   addGatewayRoute,
   deleteGatewayRoute,
-  getGatewayRoutes,
+  getGatewayRoutes, getWasmPlugins,
   updateGatewayRoute,
 } from '@/services';
 import store from '@/store';
@@ -41,6 +41,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
 import { getI18nValue } from "@/pages/plugin/utils";
+import i18n from "@/i18n";
 
 const { Text } = Typography;
 
@@ -140,6 +141,16 @@ const RouteList: React.FC = () => {
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
+  const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+  const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
+    return getWasmPlugins(i18n.language)
+  }, {
+    manual: true,
+    onSuccess: (result = []) => {
+      let plugins = result || [];
+      setPluginInfoList(plugins);
+    },
+  });
 
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
@@ -165,7 +176,10 @@ const RouteList: React.FC = () => {
 
   useEffect(() => {
     run({});
+    loadWasmPlugins();
   }, []);
+
+  i18n.on('languageChanged', () => loadWasmPlugins());
 
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
@@ -255,9 +269,20 @@ const RouteList: React.FC = () => {
     if (expanded) {
       try {
         const plugins = await fetchPluginsByRoute(record);
+
+        const mergedPlugins = plugins.map((plugin) => {
+          const pluginInfo = pluginInfoList.find(
+            info => info.name === plugin.name,
+          );
+          return {
+            ...plugin,
+            description: pluginInfo?.description || plugin.description || '',
+          };
+        })
+
         setPluginsData((prev) => ({
           ...prev,
-          [record.name]: plugins,
+          [record.name]: mergedPlugins,
         }));
         if (plugins.some(plugin => plugin.enabled)) {
           setExpandedKeys((prev) => [...prev, record.name]);

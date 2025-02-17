@@ -183,7 +183,6 @@ export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData
       return {
         ...plugin,
         name: plugin.pluginName,
-        description: plugin.description,
         enabled: plugin.enabled,
       };
     });
