@@ -370,10 +370,12 @@
   },
   "service": {
     "columns": {
-      "name": "Service Name",
+      "name": "Service Name (FQDN)",
+      "port": "Port",
       "namespace": "Namespace",
-      "endpoints": "Service Endpoints"
+      "endpoints": "Endpoints"
     },
+    "name": "Service Name",
     "namePlaceholder": "Please input the service name.",
     "namespacePlaceholder": "Please input the namespace."
   },

@@ -18,8 +18,17 @@ const ServiceList: React.FC = () => {
       key: 'name',
       width: 350,
       ellipsis: true,
-      render: (_, record) => {
-        return serviceToString(record);
+      render: (value) => {
+        return value || '-';
+      },
+    },
+    {
+      title: t('service.columns.port'),
+      dataIndex: 'port',
+      key: 'port',
+      width: 100,
+      render: (value) => {
+        return value || '-';
       },
     },
     {
@@ -116,7 +125,7 @@ const ServiceList: React.FC = () => {
         <Row gutter={24}>
           <Col span={6}>
             <Form.Item
-              label={t('service.columns.name')}
+              label={t('service.name')}
               name="name"
             >
               <Input

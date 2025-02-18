@@ -369,10 +369,12 @@
   },
   "service": {
     "columns": {
-      "name": "服务名称",
+      "name": "服务名称（FQDN）",
+      "port": "服务端口",
       "namespace": "命名空间",
       "endpoints": "服务地址"
     },
+    "name": "服务名称",
     "namePlaceholder": "请输入服务名称",
     "namespacePlaceholder": "请输入命名空间"
   },
