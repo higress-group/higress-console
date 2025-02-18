@@ -6,7 +6,7 @@ export const getGatewayRoutes = (): Promise<RouteResponse> => {
 };
 
 // 获取指定路由
-export const getGatewayRoutesDetail = (routeName): Promise<Route> => {
+export const getGatewayRouteDetail = (routeName): Promise<Route> => {
   return request.get<any, Route>(`/v1/routes/${routeName}`);
 };
 
