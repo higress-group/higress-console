@@ -30,7 +30,11 @@ interface LlmProviderHandler {
 
     void saveConfig(LlmProvider provider, Map<String, Object> configurations);
 
-    void validateConfig(Map<String, Object> configurations);
+    /**
+     * Validate the provider configurations and normalize configuration values based on the provider type.
+     * @param configurations provider configurations
+     */
+    void normalizeConfigs(Map<String, Object> configurations);
 
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
 
