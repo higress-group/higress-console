@@ -12,12 +12,18 @@
  */
 package com.alibaba.higress.console.aop;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+
 import javax.annotation.Resource;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.MDC;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +46,7 @@ import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 
+import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -59,13 +66,15 @@ public class ApiStandardizationAspect {
 
     @Around("execution(* com.alibaba.higress.console.controller..*Controller.*(..))")
     public Object intercept(ProceedingJoinPoint point) {
-        ServletRequestAttributes requestAttributes =
-            (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if (requestAttributes != null) {
-            HttpContext.init(requestAttributes.getRequest(), requestAttributes.getResponse());
-        }
-
         try {
+            MDC.put("traceId", UUID.randomUUID().toString());
+
+            ServletRequestAttributes requestAttributes =
+                (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+            if (requestAttributes != null) {
+                HttpContext.init(requestAttributes.getRequest(), requestAttributes.getResponse());
+            }
+
             if (isLoginRequired(point)) {
                 if (requestAttributes == null) {
                     throw new BusinessException("No valid request context is found.");
@@ -91,15 +100,31 @@ public class ApiStandardizationAspect {
                 // No logging for AuthException
             } else if (t instanceof ValidationException || t instanceof NotFoundException
                 || t instanceof ResourceConflictException) {
-                log.warn(msg, t);
+                logException(log::warn, msg, t);
             } else {
-                log.error(msg, t);
+                logException(log::error, msg, t);
             }
             Response<Object> response = Response.failure(t);
             return ResponseEntity.status(getHttpStatus(t)).body(response);
         } finally {
             SessionUserHelper.clearCurrentUser();
             HttpContext.release();
+            MDC.clear();
+        }
+    }
+
+    private static void logException(BiConsumer<String, Object> logFunction, String msg, Throwable t) {
+        logFunction.accept(msg, t);
+        Set<Throwable> loggedThrowables = new HashSet<>();
+        for (Throwable t1 = t; t1!= null; t1 = t1.getCause()) {
+            if (!loggedThrowables.add(t1)) {
+                break;
+            }
+            if (!(t1 instanceof ApiException apiException)){
+                continue;
+            }
+            String message = String.format("Related K8s API response: Code=%s Body=%s", apiException.getCode(), apiException.getResponseBody());
+            logFunction.accept(message, null);
         }
     }
 
