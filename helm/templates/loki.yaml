@@ -114,7 +114,11 @@ spec:
         app: {{ $appName }}
     spec:
       securityContext:
+      {{- if $config.securityContext }}
         {{- toYaml $config.securityContext | nindent 8 }}
+      {{- else }}
+        runAsUser: 0
+      {{- end }}
       containers:
       - name: loki
         args:
