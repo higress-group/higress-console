@@ -69,7 +69,7 @@ public class PaginatedResult<T> implements Serializable {
         if (query != null && query.paginationEnabled()) {
             int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 0;
             int pageSize =
-                query.getPageNum() != null && query.getPageNum() > 0 ? query.getPageNum() : DEFAULT_PAGE_SIZE;
+                query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
             int startIndex = pageNum * pageSize;
             data = data.subList(startIndex, startIndex + pageSize);
             result.pageNum = pageNum;
