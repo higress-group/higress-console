@@ -241,17 +241,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         )}
       </Form.List>
 
-      {/* 令牌降级 */}
-      <Form.Item
-        name="failoverEnabled"
-        initialValue={false}
-        label={t('llmProvider.providerForm.label.failoverEnabled')}
-        valuePropName="checked"
-        extra={t('llmProvider.providerForm.label.failoverEnabledExtra')}
-      >
-        <Switch onChange={e => setFailoverEnabled(e)} />
-      </Form.Item>
-
       {
         providerType === 'openai' && (
           <>
@@ -360,6 +349,17 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           </>
         )
       }
+
+      {/* 令牌降级 */}
+      <Form.Item
+        name="failoverEnabled"
+        initialValue={false}
+        label={t('llmProvider.providerForm.label.failoverEnabled')}
+        valuePropName="checked"
+        extra={t('llmProvider.providerForm.label.failoverEnabledExtra')}
+      >
+        <Switch onChange={e => setFailoverEnabled(e)} />
+      </Form.Item>
 
       {
         failoverEnabled ?
