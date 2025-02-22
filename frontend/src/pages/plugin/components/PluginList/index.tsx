@@ -1,9 +1,9 @@
 import i18n from '@/i18n';
-import { WasmPluginData } from '@/interfaces/route';
-import { getWasmPlugins } from '@/services';
+import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
+import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
 import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,17 +41,43 @@ const PluginList = forwardRef((props: Props, ref) => {
   const [pluginList, setPluginList] = useState<WasmPluginData[]>([]);
 
   const { loading, run: loadWasmPlugins } = useRequest(() => {
-    return getWasmPlugins(i18n.language)
+    return getWasmPlugins(i18n.language);
   }, {
     manual: true,
-    onSuccess: (result = []) => {
+    onSuccess: async (result = []) => {
       let plugins = result || [];
-      if (type === QueryType.ROUTE) {
-        plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
-      }
       const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
       if (Array.isArray(hiddenPlugins)) {
         plugins = plugins.filter(p => p.builtIn && hiddenPlugins.indexOf(p.name) === -1);
+      }
+      if (type === QueryType.ROUTE) {
+        const routeName = searchParams.get('name');
+        if (routeName) {
+          const currentRoute = await getGatewayRouteDetail(routeName);
+          if (!currentRoute) {
+            plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
+            setPluginList(plugins);
+            return
+          }
+
+          const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
+          const builtInPlugins: WasmPluginData[] = BUILTIN_ROUTE_PLUGIN_LIST.map((plugin) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
+            return {
+              ...plugin,
+              name: plugin.key,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+          const updatedPlugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+          plugins = builtInPlugins.concat(updatedPlugins)
+        }
       }
       setPluginList(plugins);
     },
@@ -120,6 +146,7 @@ const PluginList = forwardRef((props: Props, ref) => {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         const key = item.key || `${item.name}:${item.imageVersion}`;
+        const showTag = type === QueryType.ROUTE;
         return (
           <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
@@ -149,6 +176,13 @@ const PluginList = forwardRef((props: Props, ref) => {
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {getI18nValue(item, 'title')}
                     </div>
+                    {showTag && item.enabled && (
+                      <Tag
+                        color="green"
+                        style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
+                      >{t('plugins.enabled')}
+                      </Tag>
+                    )}
                     {
                       createPluginDropdown(item)
                     }
