@@ -112,7 +112,7 @@ export function upstreamServiceToString(service: UpstreamService): string {
 
 export interface WasmPluginData {
   id?: string;
-  name?: string;
+  name: string;
   version?: string;
   category?: string;
   title?: string;
