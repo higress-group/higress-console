@@ -8,33 +8,14 @@ import {
   upstreamServiceToString,
   WasmPluginData,
 } from '@/interfaces/route';
-import {
-  addGatewayRoute,
-  deleteGatewayRoute,
-  getGatewayRoutes, getWasmPlugins,
-  updateGatewayRoute,
-} from '@/services';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, getWasmPlugins, updateGatewayRoute } from '@/services';
 import store from '@/store';
 import switches from '@/switches';
 import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import {
-  Alert,
-  Button,
-  Col,
-  Drawer,
-  Form,
-  message,
-  Input,
-  Modal,
-  Row,
-  Space,
-  Table,
-  Typography,
-  Empty,
-} from 'antd';
+import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography, Empty } from 'antd';
 import { history } from 'ice';
 import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -269,17 +250,16 @@ const RouteList: React.FC = () => {
     if (expanded) {
       try {
         const plugins = await fetchPluginsByRoute(record);
-
         const mergedPlugins = plugins.map((plugin) => {
           const pluginInfo = pluginInfoList.find(
-            info => info.name === plugin.name,
+            info => info.name === plugin.name && !plugin.internal,
           );
           return {
             ...plugin,
+            title: pluginInfo?.title || plugin.title || '',
             description: pluginInfo?.description || plugin.description || '',
           };
         })
-
         setPluginsData((prev) => ({
           ...prev,
           [record.name]: mergedPlugins,
@@ -298,7 +278,6 @@ const RouteList: React.FC = () => {
         prev.filter((key) => key !== record.name));
     }
   };
-
 
   const handleSearch = debounce((value: string) => {
     if (!value) {
@@ -386,7 +365,12 @@ const RouteList: React.FC = () => {
               <Table
                 dataSource={plugins}
                 columns={[
-                  { title: t('plugins.title'), dataIndex: 'name', key: 'name' },
+                  {
+                    title: t('plugins.title'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'title');
+                    },
+                    key: 'title' },
                   {
                     title: t('plugins.description'),
                     render: (_, plugin) => {
@@ -395,10 +379,10 @@ const RouteList: React.FC = () => {
                     key: 'description' },
                 ]}
                 pagination={false}
-                rowKey="name"
+                rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
               />
             ) : (
-              <Empty description="No enabled plugins" />
+              <Empty>{t('plugins.emptyPlugins')}</Empty>
             );
           },
         }}

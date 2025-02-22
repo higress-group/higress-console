@@ -1,4 +1,5 @@
 import { getRoutePluginInstances } from "@/services";
+import { BUILTIN_ROUTE_PLUGIN_LIST } from "@/pages/plugin/components/PluginList/constant";
 import { message } from "antd";
 
 export interface CorsConfig {
@@ -111,7 +112,7 @@ export function upstreamServiceToString(service: UpstreamService): string {
 
 export interface WasmPluginData {
   id?: string;
-  name: string;
+  name?: string;
   version?: string;
   category?: string;
   title?: string;
@@ -126,64 +127,40 @@ export interface WasmPluginData {
     [key: string]: string;
   };
   enabled?: boolean;
+  internal?: boolean;
   resKey?: string;
   key?: string;
 }
 
 export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {
-  const plugins: WasmPluginData[] = [];
+  const PLUGIN_KEY_TO_PROPERTY: Record<string, string> = {
+    retries: 'proxyNextUpstream',
+    headerModify: 'headerControl',
+  };
 
-  // 处理 rewrite 插件
-  if (route.rewrite && route.rewrite.enabled) {
-    plugins.push({
-      name: 'rewrite',
-      description: '修改请求的域名（Host）以及请求路径（Path），通常用于后端服务的域名/路由与网关侧域名/路由不一致时的配置',
-      builtIn: true,
-      enabled: true,
-    });
-  }
-
-  // 处理 headerModify 插件
-  if (route.headerModify && route.headerModify.enabled) {
-    plugins.push({
-      name: 'headerModify',
-      description: '支持增加/删除/修改 HTTP 请求头以及 HTTP 应答头',
-      builtIn: true,
-      enabled: true,
-    });
-  }
-
-  if (route.proxyNextUpstream && route.proxyNextUpstream.enabled) {
-    plugins.push({
-      name: 'retries',
-      description: '配置网关向后端服务请求当前路由的响应失败时的重试机制',
-      builtIn: true,
-      enabled: true,
-    });
-  }
-
-  // 处理 cors 插件
-  if (route.cors && route.cors.enabled) {
-    plugins.push({
-      name: 'CORS',
-      description: '通过配置标示除了当前站点以外的其他源（域名、协议或端口），使得浏览器允许这些源访问加载该路由的响应',
-      builtIn: true,
-      enabled: true,
-    });
-  }
-
-  return plugins;
+  return BUILTIN_ROUTE_PLUGIN_LIST.filter(pluginConfig => {
+    const routeProperty = PLUGIN_KEY_TO_PROPERTY[pluginConfig.key] || pluginConfig.key;
+    return route[routeProperty]?.enabled;
+  }).map(pluginConfig => ({
+    name: pluginConfig.key,
+    title: pluginConfig.title,
+    description: pluginConfig.description,
+    internal: true,
+    builtIn: true,
+    enabled: true,
+  }));
 }
 
 export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData[]> => {
   const data: Record<string, WasmPluginData[]> = {};
   try {
     const response = await getRoutePluginInstances(record.name);
-    const plugins = response.map((plugin: { pluginName: any; description: any; enabled: any }) => {
+    const plugins = response.map((plugin: { pluginName: any; description: any; enabled: any; internal: any }) => {
       return {
         ...plugin,
         name: plugin.pluginName,
         enabled: plugin.enabled,
+        internal: plugin.internal,
       };
     });
     data[record.name] = plugins || [];

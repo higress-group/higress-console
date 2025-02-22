@@ -1,9 +1,9 @@
 import i18n from '@/i18n';
-import { fetchPluginsByRoute, getRouteBuiltInPlugins, Route, WasmPluginData } from '@/interfaces/route';
-import { getGatewayRoutesDetail, getRoutePluginInstances, getWasmPlugins } from '@/services';
+import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
+import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag, message } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
 import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +53,7 @@ const PluginList = forwardRef((props: Props, ref) => {
       if (type === QueryType.ROUTE) {
         const routeName = searchParams.get('name');
         if (routeName) {
-          const currentRoute = await getGatewayRoutesDetail(routeName);
+          const currentRoute = await getGatewayRouteDetail(routeName);
           if (!currentRoute) {
             plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
             setPluginList(plugins);
@@ -62,19 +62,18 @@ const PluginList = forwardRef((props: Props, ref) => {
 
           const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
           const builtInPlugins: WasmPluginData[] = BUILTIN_ROUTE_PLUGIN_LIST.map((plugin) => {
-            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key);
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
             return {
               ...plugin,
               name: plugin.key,
               enabled: foundPlugin ? foundPlugin.enabled : false,
             };
           });
-
-          const updatedPlugins = result.map((plugin: { name: string; enabled: any }) => {
+          const updatedPlugins = result.map((plugin: { name: string }) => {
             const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
             return {
               ...plugin,
-              enabled: foundPlugin ? foundPlugin.enabled : plugin.enabled,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
             };
           });
           plugins = builtInPlugins.concat(updatedPlugins)
