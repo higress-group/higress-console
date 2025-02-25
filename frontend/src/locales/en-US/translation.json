@@ -232,7 +232,7 @@
         "ollamaServerHost": "Ollama Service Host",
         "ollamaServerPort": "Ollama Service Port",
         "openaiServerType": "OpenAI Service Type",
-        "openaiCustomUrl": "Custom OpenAI Service URL"
+        "openaiCustomUrl": "Custom OpenAI Service Base URL"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -247,12 +247,12 @@
         "azureServiceUrlRequired": "Please input Azure service URL",
         "ollamaServerHostRequired": "Please input Ollama service host",
         "ollamaServerPortRequired": "Please input Ollama service port",
-        "openaiCustomUrlRequired": "Please input a valid custom OpenAI service URL"
+        "openaiCustomUrlRequired": "Please input a valid custom OpenAI service base URL"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
         "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address",
-        "openaiCustomUrlPlaceholder": "Sample: http://www.example.com/myai/v1/chat/completions"
+        "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
