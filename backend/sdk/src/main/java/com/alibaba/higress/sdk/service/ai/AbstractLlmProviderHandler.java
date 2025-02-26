@@ -123,7 +123,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     }
 
     @Override
-    public void validateConfig(Map<String, Object> configurations) {}
+    public void normalizeConfigs(Map<String, Object> configurations) {}
 
     @Override
     public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {

@@ -35,7 +35,7 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    public void validateConfig(Map<String, Object> configurations) {
+    public void normalizeConfigs(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Azure specific configurations.");
         }
@@ -50,6 +50,7 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
         if (!ValidateUtil.checkPort(serverPort)) {
             throw new ValidationException(SERVER_PORT_KEY + " must be a valid port number.");
         }
+        configurations.put(SERVER_PORT_KEY, serverPort);
     }
 
     @Override
@@ -77,11 +78,12 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
         if (MapUtils.isEmpty(providerConfig)) {
             return DEFAULT_PORT;
         }
-        Object serverPortObj = providerConfig.get(SERVER_PORT_KEY);
-        if (!(serverPortObj instanceof Integer serverPort) || !ValidateUtil.checkPort(serverPort)) {
+        try {
+            int serverPort = getIntConfig(providerConfig, SERVER_PORT_KEY);
+            return ValidateUtil.checkPort(serverPort) ? serverPort : DEFAULT_PORT;
+        } catch (ValidationException ve) {
             return DEFAULT_PORT;
         }
-        return serverPort;
     }
 
     @Override

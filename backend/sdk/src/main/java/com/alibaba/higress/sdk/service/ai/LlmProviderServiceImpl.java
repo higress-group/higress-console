@@ -98,7 +98,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
         }
 
-        handler.validateConfig(provider.getRawConfigs());
+        handler.normalizeConfigs(provider.getRawConfigs());
 
         fillDefaultValues(provider);
 

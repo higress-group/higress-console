@@ -12,8 +12,11 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.Separators;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +32,7 @@ public class ImageUrl {
     private String tag;
 
     public String toUrlString() {
-        return tag != null ? repository + ":" + tag : repository;
+        return StringUtils.isNotBlank(tag) ? repository + ":" + tag : repository;
     }
 
     public static ImageUrl parse(String url) {
@@ -38,6 +41,10 @@ public class ImageUrl {
             return new ImageUrl(url, null);
         }
         int protocolIndex = url.indexOf(CommonKey.PROTOCOL_KEYWORD);
+        if (protocolIndex != -1 && !url.startsWith(CommonKey.OCI_PROTOCOL)) {
+            // Not an OCI image URL, maybe an http:// or file:// URL
+            return new ImageUrl(url, null);
+        }
         if (colonIndex <= protocolIndex) {
             return new ImageUrl(url, null);
         }

@@ -34,7 +34,7 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    public void validateConfig(Map<String, Object> configurations) {
+    public void normalizeConfigs(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Azure specific configurations.");
         }

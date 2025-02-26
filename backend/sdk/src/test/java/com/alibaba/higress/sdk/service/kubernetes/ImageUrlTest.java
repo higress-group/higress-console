@@ -34,7 +34,7 @@ public class ImageUrlTest {
         Assertions.assertEquals("oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block",
             urlObj.getRepository());
         Assertions.assertEquals("", urlObj.getTag());
-        Assertions.assertEquals(url, urlObj.toUrlString());
+        Assertions.assertEquals(url.substring(0, url.length() - 1), urlObj.toUrlString());
     }
 
     @Test
@@ -53,6 +53,56 @@ public class ImageUrlTest {
         ImageUrl urlObj = ImageUrl.parse(url);
         Assertions.assertEquals("higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block",
             urlObj.getRepository());
+        Assertions.assertNull(urlObj.getTag());
+        Assertions.assertEquals(url, urlObj.toUrlString());
+    }
+
+    @Test
+    public void parseImageUrlHttpsProtocolNoPort() {
+        String url = "https://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block.wasm";
+        ImageUrl urlObj = ImageUrl.parse(url);
+        Assertions.assertEquals("https://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block.wasm",
+                urlObj.getRepository());
+        Assertions.assertNull(urlObj.getTag());
+        Assertions.assertEquals(url, urlObj.toUrlString());
+    }
+
+    @Test
+    public void parseImageUrlHttpsProtocolWithPort() {
+        String url = "https://higress-registry.cn-hangzhou.cr.aliyuncs.com:443/plugins/request-block.wasm";
+        ImageUrl urlObj = ImageUrl.parse(url);
+        Assertions.assertEquals("https://higress-registry.cn-hangzhou.cr.aliyuncs.com:443/plugins/request-block.wasm",
+                urlObj.getRepository());
+        Assertions.assertNull(urlObj.getTag());
+        Assertions.assertEquals(url, urlObj.toUrlString());
+    }
+
+    @Test
+    public void parseImageUrlHttpProtocolNoPort() {
+        String url = "http://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block.wasm";
+        ImageUrl urlObj = ImageUrl.parse(url);
+        Assertions.assertEquals("http://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-block.wasm",
+                urlObj.getRepository());
+        Assertions.assertNull(urlObj.getTag());
+        Assertions.assertEquals(url, urlObj.toUrlString());
+    }
+
+    @Test
+    public void parseImageUrlHttpProtocolWithPort() {
+        String url = "http://higress-registry.cn-hangzhou.cr.aliyuncs.com:80/plugins/request-block.wasm";
+        ImageUrl urlObj = ImageUrl.parse(url);
+        Assertions.assertEquals("http://higress-registry.cn-hangzhou.cr.aliyuncs.com:80/plugins/request-block.wasm",
+                urlObj.getRepository());
+        Assertions.assertNull(urlObj.getTag());
+        Assertions.assertEquals(url, urlObj.toUrlString());
+    }
+
+    @Test
+    public void parseImageUrlFileProtocol() {
+        String url = "files://opt/plugins/request-block.wasm";
+        ImageUrl urlObj = ImageUrl.parse(url);
+        Assertions.assertEquals("files://opt/plugins/request-block.wasm",
+                urlObj.getRepository());
         Assertions.assertNull(urlObj.getTag());
         Assertions.assertEquals(url, urlObj.toUrlString());
     }
