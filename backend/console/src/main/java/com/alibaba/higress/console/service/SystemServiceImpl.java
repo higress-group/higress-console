@@ -222,7 +222,7 @@ public class SystemServiceImpl implements SystemService {
             Route route = new Route();
             route.setName(DEFAULT_ROUTE_NAME);
             RoutePredicate routePredicate =
-                RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.name()).matchValue("/").build();
+                RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
             route.setServices(List.of(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
