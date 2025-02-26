@@ -264,11 +264,14 @@
   },
   "plugins": {
     "title": "策略配置",
+    "description": "策略描述",
     "subTitle": {
       "domain": "域名名称：",
       "route": "路由名称：",
       "aiRoute": "AI路由名称："
     },
+    "enabled": "已启用",
+    "emptyPlugins": "未启用策略",
     "addPlugin": "添加插件",
     "editPlugin": "编辑插件",
     "addSuccess": "添加成功",
@@ -595,6 +598,8 @@
     "close": "关闭",
     "save": "保存",
     "strategy": "策略",
+    "strategyList": "策略列表",
+    "description": "描述",
     "configure": "配置",
     "information": "信息",
     "action": "操作",

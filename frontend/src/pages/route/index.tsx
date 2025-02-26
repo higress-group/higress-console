@@ -1,24 +1,28 @@
 import {
+  fetchPluginsByRoute,
   KeyedRoutePredicate,
   Route,
   RoutePredicate,
   RouteResponse,
   UpstreamService,
   upstreamServiceToString,
+  WasmPluginData,
 } from '@/interfaces/route';
-import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, updateGatewayRoute } from '@/services';
+import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, getWasmPlugins, updateGatewayRoute } from '@/services';
 import store from '@/store';
 import switches from '@/switches';
 import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Input, Modal, Row, Space, Table, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography, Empty } from 'antd';
 import { history } from 'ice';
 import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
+import { getI18nValue } from "@/pages/plugin/utils";
+import i18n from "@/i18n";
 
 const { Text } = Typography;
 
@@ -112,11 +116,22 @@ const RouteList: React.FC = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const formRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
+  const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+  const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
+    return getWasmPlugins(i18n.language)
+  }, {
+    manual: true,
+    onSuccess: (result = []) => {
+      let plugins = result || [];
+      setPluginInfoList(plugins);
+    },
+  });
 
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
@@ -142,7 +157,10 @@ const RouteList: React.FC = () => {
 
   useEffect(() => {
     run({});
+    loadWasmPlugins();
   }, []);
+
+  i18n.on('languageChanged', () => loadWasmPlugins());
 
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
@@ -228,6 +246,39 @@ const RouteList: React.FC = () => {
     setCurrentRoute(null);
   };
 
+  const onShowStrategyList = async (record: Route, expanded: boolean) => {
+    if (expanded) {
+      try {
+        const plugins = await fetchPluginsByRoute(record);
+        const mergedPlugins = plugins.map((plugin) => {
+          const pluginInfo = pluginInfoList.find(
+            info => info.name === plugin.name && !plugin.internal,
+          );
+          return {
+            ...plugin,
+            title: pluginInfo?.title || plugin.title || '',
+            description: pluginInfo?.description || plugin.description || '',
+          };
+        })
+        setPluginsData((prev) => ({
+          ...prev,
+          [record.name]: mergedPlugins,
+        }));
+        if (plugins.some(plugin => plugin.enabled)) {
+          setExpandedKeys((prev) => [...prev, record.name]);
+        } else {
+          message.info(t('plugins.emptyPlugins'));
+        }
+      } catch (error) {
+        message.error('Failed to fetch strategies, error:', error);
+        setExpandedKeys((prev) => prev.filter((key) => key !== record.name));
+      }
+    } else {
+      setExpandedKeys((prev) =>
+        prev.filter((key) => key !== record.name));
+    }
+  };
+
   const handleSearch = debounce((value: string) => {
     if (!value) {
       setDataSource(originalDataSource);
@@ -300,7 +351,42 @@ const RouteList: React.FC = () => {
           </Col>
         </Row>
       </Form>
-      <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
+      <Table
+        loading={loading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={false}
+        expandable={{
+          expandedRowKeys: expandedKeys,
+          onExpand: (expanded, record) => onShowStrategyList(record, expanded),
+          expandedRowRender: (record) => {
+            const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
+            return plugins.length > 0 ? (
+              <Table
+                dataSource={plugins}
+                columns={[
+                  {
+                    title: t('plugins.title'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'title');
+                    },
+                    key: 'title' },
+                  {
+                    title: t('plugins.description'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'description');
+                    },
+                    key: 'description' },
+                ]}
+                pagination={false}
+                rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
+              />
+            ) : (
+              <Empty>{t('plugins.emptyPlugins')}</Empty>
+            );
+          },
+        }}
+      />
       {!loading && (
         <Space direction="horizontal" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
           <Text>{t('route.noCustomIngresses')}</Text>
