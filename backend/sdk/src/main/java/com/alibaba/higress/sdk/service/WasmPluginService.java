@@ -30,7 +30,7 @@ public interface WasmPluginService {
 
     String queryReadme(String name, String language);
 
-    WasmPlugin updateBuiltIn(String name, String imageVersion);
+    WasmPlugin updateBuiltIn(WasmPlugin plugin);
 
     WasmPlugin addCustom(WasmPlugin plugin);
 

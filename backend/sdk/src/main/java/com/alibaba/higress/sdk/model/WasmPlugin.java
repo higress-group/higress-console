@@ -86,9 +86,5 @@ public class WasmPlugin implements VersionedDto {
         if (StringUtils.isBlank(imageRepository)) {
             throw new ValidationException("imageRepository cannot be blank.");
         }
-
-        if (StringUtils.isBlank(imageVersion)) {
-            throw new ValidationException("imageVersion cannot be blank.");
-        }
     }
 }
