@@ -39,7 +39,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
@@ -61,7 +60,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Preconditions;
+import com.google.common.annotations.VisibleForTesting;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.swagger.v3.core.util.Json;
@@ -98,6 +97,12 @@ class WasmPluginServiceImpl implements WasmPluginService {
     private static final String OPEN_API_V3_SCHEMA_PROPERTY_KEY = "openAPIV3Schema:";
     private static final String YAML_EXAMPLE_PROPERTY_KEY = "example:";
 
+    private static final String NAME_PLACEHOLDER = "${name}";
+    private static final String VERSION_PLACEHOLDER = "${version}";
+
+    private static final String CUSTOM_IMAGE_URL_PATTERN_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN";
+    private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
+
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
     private final KubernetesClientService kubernetesClientService;
@@ -121,14 +126,16 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
         final List<PluginCacheItem> plugins = new ArrayList<>(properties.size());
 
+        final String customImageUrlPattern = loadCustomImageUrlPattern();
+
         for (Object key : properties.keySet()) {
             String pluginName = (String)key;
-            String imageRepository = properties.getProperty(pluginName);
-            if (StringUtils.isEmpty(imageRepository)) {
+            String imageUrl = properties.getProperty(pluginName);
+            if (StringUtils.isEmpty(imageUrl)) {
                 continue;
             }
 
-            PluginCacheItem cacheItem = new PluginCacheItem(pluginName, imageRepository);
+            PluginCacheItem cacheItem = new PluginCacheItem(pluginName);
 
             final String pluginFolder = PLUGINS_RESOURCE_FOLDER + pluginName + "/";
             try (InputStream stream = getResourceAsStream(pluginFolder + SPEC_FILE)) {
@@ -144,6 +151,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 throw new IllegalStateException("Error occurs when loading spec file of plugin " + pluginName + ".",
                     ex);
             }
+
+            cacheItem.imageUrl = StringUtils.isBlank(customImageUrlPattern) ? imageUrl
+                : formatImageUrl(customImageUrlPattern, cacheItem.plugin.getInfo());
 
             cacheItem.setDefaultReadme(loadPluginReadme(pluginName, README_FILE));
             cacheItem.setReadme(Language.ZH_CN.getCode(), loadPluginReadme(pluginName, README_CN_FILE));
@@ -163,6 +173,24 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
         plugins.sort(Comparator.comparing(PluginCacheItem::getName));
         this.builtInPlugins = plugins;
+    }
+
+    @VisibleForTesting
+    static String loadCustomImageUrlPattern() {
+        String value = System.getProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY);
+        if (StringUtils.isEmpty(value)) {
+            value = System.getenv(CUSTOM_IMAGE_URL_PATTERN_ENV);
+        }
+        return value;
+    }
+
+    @VisibleForTesting
+    static String formatImageUrl(String pattern, PluginInfo pluginInfo) {
+        if (StringUtils.isEmpty(pattern)) {
+            return pattern;
+        }
+        return pattern.replace(NAME_PLACEHOLDER, pluginInfo.getName()).replace(VERSION_PLACEHOLDER,
+            pluginInfo.getVersion());
     }
 
     private void fillPluginConfigExample(Plugin plugin, String content) {
@@ -386,19 +414,18 @@ class WasmPluginServiceImpl implements WasmPluginService {
     }
 
     @Override
-    public WasmPlugin updateBuiltIn(String name, String imageVersion) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(name), "name cannot be blank.");
-        Preconditions.checkArgument(StringUtils.isNotEmpty(imageVersion), "imageVersion cannot be blank.");
+    public WasmPlugin updateBuiltIn(WasmPlugin plugin) {
+        final String name = plugin.getName();
 
-        PluginCacheItem builtInPlugin =
+        PluginCacheItem cachedBuiltInPlugin =
             builtInPlugins.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
-        if (builtInPlugin == null) {
+        if (cachedBuiltInPlugin == null) {
             throw new ResourceConflictException("No built-in plugin is found with the given name: " + name);
         }
 
         List<V1alpha1WasmPlugin> existedCrs;
         try {
-            final String pluginVersion = builtInPlugin.getPlugin().getInfo().getVersion();
+            final String pluginVersion = cachedBuiltInPlugin.getPlugin().getInfo().getVersion();
             existedCrs = kubernetesClientService.listWasmPlugin(name, pluginVersion, true);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
@@ -407,9 +434,10 @@ class WasmPluginServiceImpl implements WasmPluginService {
         V1alpha1WasmPlugin updatedCr = null;
 
         if (existedCrs.stream().allMatch(KubernetesUtil::isInternalResource)) {
-            WasmPlugin plugin = builtInPlugin.buildWasmPlugin();
-            plugin.setImageVersion(imageVersion);
-            V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin);
+            WasmPlugin builtInPlugin = cachedBuiltInPlugin.buildWasmPlugin();
+            builtInPlugin.setImageRepository(plugin.getImageRepository());
+            builtInPlugin.setImageVersion(plugin.getImageVersion());
+            V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(builtInPlugin);
             // Make sure it is disabled by default.
             cr.getSpec().setDefaultConfigDisable(true);
             try {
@@ -428,14 +456,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
             if (spec == null) {
                 continue;
             }
-            String url = spec.getUrl();
-            if (StringUtils.isEmpty(url)) {
-                continue;
-            }
-            ImageUrl imageUrl = ImageUrl.parse(url);
-            imageUrl.setTag(imageVersion);
+            ImageUrl imageUrl = new ImageUrl(plugin.getImageRepository(), plugin.getImageVersion());
             spec.setUrl(imageUrl.toUrlString());
-
             try {
                 updatedCr = kubernetesClientService.replaceWasmPlugin(existedCr);
             } catch (ApiException e) {
@@ -604,7 +626,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
         private static final String DEFAULT_README_KEY = "_default_";
 
         private final String name;
-        private final String imageUrl;
+        private String imageUrl;
         private Plugin plugin;
         private String iconData;
 
@@ -612,9 +634,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
         @Setter(AccessLevel.NONE)
         private final Map<String, String> readmes = new HashMap<>(4);
 
-        public PluginCacheItem(String name, String imageUrl) {
+        public PluginCacheItem(String name) {
             this.name = name;
-            this.imageUrl = imageUrl;
         }
 
         public String getDefaultReadme() {
@@ -642,13 +663,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
         public WasmPlugin buildWasmPlugin(String language) {
             WasmPlugin wasmPlugin = new WasmPlugin();
             wasmPlugin.setName(name);
-            int colonIndex = imageUrl.lastIndexOf(Separators.COLON);
-            if (colonIndex != -1) {
-                wasmPlugin.setImageRepository(imageUrl.substring(0, colonIndex));
-                wasmPlugin.setImageVersion(imageUrl.substring(colonIndex + 1));
-            } else {
-                wasmPlugin.setImageRepository(imageUrl);
-            }
+            ImageUrl imageUrlObj = ImageUrl.parse(imageUrl);
+            wasmPlugin.setImageRepository(imageUrlObj.getRepository());
+            wasmPlugin.setImageVersion(imageUrlObj.getTag());
             wasmPlugin.setBuiltIn(true);
 
             PluginInfo info = plugin.getInfo();
@@ -670,7 +687,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
             PluginSpec spec = plugin.getSpec();
             if (spec != null) {
-                wasmPlugin.setPhase("default".equals(spec.getPhase()) ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
+                wasmPlugin
+                    .setPhase("default".equals(spec.getPhase()) ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
                 wasmPlugin.setPriority(spec.getPriority());
             }
 

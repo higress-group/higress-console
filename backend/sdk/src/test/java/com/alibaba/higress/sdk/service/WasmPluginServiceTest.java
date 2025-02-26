@@ -58,6 +58,8 @@ public class WasmPluginServiceTest {
     private static final String TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME =
         TEST_BUILT_IN_PLUGIN_NAME + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
 
+    private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
+
     private KubernetesClientService kubernetesClientService;
     private KubernetesModelConverter kubernetesModelConverter;
     private WasmPluginServiceImpl service;
@@ -67,11 +69,12 @@ public class WasmPluginServiceTest {
         kubernetesClientService = mock(KubernetesClientService.class);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
         service = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
-        service.initialize();
     }
 
     @AfterEach
     public void tearDown() {
+        System.clearProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY);
+
         service = null;
         kubernetesModelConverter = null;
         kubernetesClientService = null;
@@ -79,13 +82,14 @@ public class WasmPluginServiceTest {
 
     @Test
     public void listPluginsTest() throws Exception {
+        service.initialize();
+
         PaginatedResult<WasmPlugin> plugins = service.list(null);
         when(kubernetesClientService.listWasmPlugin()).thenReturn(Collections.emptyList());
         System.out.println(plugins.getTotal());
 
         Properties properties = new Properties();
-        try (InputStream stream =
-            getClass().getClassLoader().getResourceAsStream("plugins/plugins.properties")) {
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("plugins/plugins.properties")) {
             properties.load(stream);
         }
         Assertions.assertEquals(properties.size(), plugins.getTotal());
@@ -96,26 +100,83 @@ public class WasmPluginServiceTest {
     }
 
     @Test
+    public void listPluginsTestWithCustomImageUrlNameAndVersion() throws Exception {
+        System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "http://foo.bar.com/plugins/${name}/${version}.wasm");
+        service.initialize();
+
+        listPluginsTest();
+
+        PaginatedResult<WasmPlugin> plugins = service.list(null);
+        for (WasmPlugin plugin : plugins.getData()) {
+            String expectedUrl =
+                "http://foo.bar.com/plugins/" + plugin.getName() + "/" + plugin.getPluginVersion() + ".wasm";
+            Assertions.assertEquals(expectedUrl, plugin.getImageRepository());
+            Assertions.assertNull(null, plugin.getImageVersion());
+        }
+    }
+
+    @Test
+    public void listPluginsTestWithCustomImageUrlNameOnly() throws Exception {
+        System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "https://foo.bar.com/plugins/${name}.wasm");
+        service.initialize();
+
+        listPluginsTest();
+
+        PaginatedResult<WasmPlugin> plugins = service.list(null);
+        for (WasmPlugin plugin : plugins.getData()) {
+            String expectedUrl = "https://foo.bar.com/plugins/" + plugin.getName() + ".wasm";
+            Assertions.assertEquals(expectedUrl, plugin.getImageRepository());
+            Assertions.assertNull(null, plugin.getImageVersion());
+        }
+    }
+
+    @Test
+    public void listPluginsTestWithCustomImageUrlFixed() throws Exception {
+        System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "file:///opt/plugins/main.wasm");
+        service.initialize();
+
+        listPluginsTest();
+
+        PaginatedResult<WasmPlugin> plugins = service.list(null);
+        for (WasmPlugin plugin : plugins.getData()) {
+            String expectedUrl = "file:///opt/plugins/main.wasm";
+            Assertions.assertEquals(expectedUrl, plugin.getImageRepository());
+            Assertions.assertNull(null, plugin.getImageVersion());
+        }
+    }
+
+    @Test
     public void updateBuiltInTestNotConfigured() throws Exception {
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
+        service.initialize();
+
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
+            .thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
+        final String newRepo = "oci://docker.io/plugins/" + TEST_BUILT_IN_PLUGIN_NAME;
         final String newVersion = "1.0.1";
-        WasmPlugin updatedPlugin = service.updateBuiltIn(TEST_BUILT_IN_PLUGIN_NAME,newVersion);
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
+        Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
         Assertions.assertEquals(newVersion, updatedPlugin.getImageVersion());
 
         ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
         verify(kubernetesClientService, times(1)).createWasmPlugin(crCaptor.capture());
         V1alpha1WasmPlugin cr = crCaptor.getValue();
-        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME,cr.getMetadata().getName());
-        Assertions.assertTrue(cr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, cr.getMetadata().getName());
+        Assertions.assertEquals(newRepo + ":" + newVersion, cr.getSpec().getUrl());
         verify(kubernetesClientService, never()).replaceWasmPlugin(any());
     }
 
     @Test
     public void updateBuiltInTestUserConfigured() throws Exception {
+        service.initialize();
+
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
             .scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("k", "v")).build());
@@ -129,17 +190,23 @@ public class WasmPluginServiceTest {
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        final String newVersion = "1.0.1";
-        WasmPlugin updatedPlugin = service.updateBuiltIn(TEST_BUILT_IN_PLUGIN_NAME, newVersion);
+        final String newRepo = "http://192.168.0.1:8080/plugins/" + TEST_BUILT_IN_PLUGIN_NAME + ".wasm";
+        final String newVersion = "";
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
-        Assertions.assertEquals(newVersion, updatedPlugin.getImageVersion());
+        Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
+        Assertions.assertNull(updatedPlugin.getImageVersion());
 
         verify(kubernetesClientService, never()).createWasmPlugin(any());
         ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
         verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
         V1alpha1WasmPlugin cr = crCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, cr.getMetadata().getName());
-        Assertions.assertTrue(cr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(newRepo, cr.getSpec().getUrl());
         Assertions.assertEquals(cr.getSpec().getDefaultConfig(), existedCr.getSpec().getDefaultConfig());
         Assertions.assertEquals(cr.getSpec().getDefaultConfigDisable(), existedCr.getSpec().getDefaultConfigDisable());
         Assertions.assertEquals(cr.getSpec().getMatchRules(), existedCr.getSpec().getMatchRules());
@@ -147,6 +214,8 @@ public class WasmPluginServiceTest {
 
     @Test
     public void updateBuiltInTestInternalConfigured() throws Exception {
+        service.initialize();
+
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
             .scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("k", "v")).build());
@@ -160,16 +229,22 @@ public class WasmPluginServiceTest {
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        final String newVersion = "1.0.1";
-        WasmPlugin updatedPlugin = service.updateBuiltIn(TEST_BUILT_IN_PLUGIN_NAME, newVersion);
+        final String newRepo = "files:///opt/plugins/" + TEST_BUILT_IN_PLUGIN_NAME + ".wasm";
+        final String newVersion = "";
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
-        Assertions.assertEquals(newVersion, updatedPlugin.getImageVersion());
+        Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
+        Assertions.assertNull(updatedPlugin.getImageVersion());
 
         ArgumentCaptor<V1alpha1WasmPlugin> newCrCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
         verify(kubernetesClientService, times(1)).createWasmPlugin(newCrCaptor.capture());
         V1alpha1WasmPlugin newCr = newCrCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, newCr.getMetadata().getName());
-        Assertions.assertTrue(newCr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(newRepo, newCr.getSpec().getUrl());
         Assertions.assertTrue(newCr.getSpec().getDefaultConfigDisable());
         Assertions.assertTrue(MapUtils.isEmpty(newCr.getSpec().getDefaultConfig()));
         Assertions.assertTrue(CollectionUtils.isEmpty(newCr.getSpec().getMatchRules()));
@@ -178,7 +253,7 @@ public class WasmPluginServiceTest {
         verify(kubernetesClientService, times(1)).replaceWasmPlugin(updatedCrCaptor.capture());
         V1alpha1WasmPlugin updatedCr = updatedCrCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME, updatedCr.getMetadata().getName());
-        Assertions.assertTrue(updatedCr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(newRepo, updatedCr.getSpec().getUrl());
         Assertions.assertEquals(updatedCr.getSpec().getDefaultConfig(), existedCr.getSpec().getDefaultConfig());
         Assertions.assertEquals(updatedCr.getSpec().getDefaultConfigDisable(),
             existedCr.getSpec().getDefaultConfigDisable());
@@ -187,6 +262,8 @@ public class WasmPluginServiceTest {
 
     @Test
     public void updateBuiltInTestUserAndInternalConfigured() throws Exception {
+        service.initialize();
+
         V1alpha1WasmPlugin userCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
         kubernetesModelConverter.setWasmPluginInstanceToCr(userCr, WasmPluginInstance.builder()
             .scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("kf", "vf")).build());
@@ -211,9 +288,15 @@ public class WasmPluginServiceTest {
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        final String newVersion = "1.0.1";
-        WasmPlugin updatedPlugin = service.updateBuiltIn(TEST_BUILT_IN_PLUGIN_NAME, newVersion);
+        final String newRepo = "https://foo.bar.com/plugins/" + TEST_BUILT_IN_PLUGIN_NAME + ".wasm";
+        final String newVersion = null;
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
+        Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
         Assertions.assertEquals(newVersion, updatedPlugin.getImageVersion());
 
         verify(kubernetesClientService, never()).createWasmPlugin(any());
@@ -225,7 +308,7 @@ public class WasmPluginServiceTest {
             .filter(cr -> TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME.equals(cr.getMetadata().getName())).findFirst()
             .orElse(null);
         Assertions.assertNotNull(updatedInternalCr);
-        Assertions.assertTrue(updatedInternalCr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(newRepo, updatedInternalCr.getSpec().getUrl());
         Assertions.assertEquals(updatedInternalCr.getSpec().getDefaultConfig(),
             internalCr.getSpec().getDefaultConfig());
         Assertions.assertEquals(updatedInternalCr.getSpec().getDefaultConfigDisable(),
@@ -236,7 +319,7 @@ public class WasmPluginServiceTest {
             .filter(cr -> TEST_BUILT_IN_PLUGIN_USER_CR_NAME.equals(cr.getMetadata().getName())).findFirst()
             .orElse(null);
         Assertions.assertNotNull(updatedUserCr);
-        Assertions.assertTrue(updatedUserCr.getSpec().getUrl().endsWith(":" + newVersion));
+        Assertions.assertEquals(newRepo, updatedUserCr.getSpec().getUrl());
         Assertions.assertEquals(updatedUserCr.getSpec().getDefaultConfig(), userCr.getSpec().getDefaultConfig());
         Assertions.assertEquals(updatedUserCr.getSpec().getDefaultConfigDisable(),
             userCr.getSpec().getDefaultConfigDisable());
