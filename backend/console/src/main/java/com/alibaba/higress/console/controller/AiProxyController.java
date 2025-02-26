@@ -126,9 +126,11 @@ public class AiProxyController {
     private void reloadServiceInfoFromK8s() {
         try {
             V1Secret secret = kubernetesClientService.readSecret(secretName);
+            if (secret == null) {
+                return;
+            }
             Map<String, byte[]> data = secret.getData();
             if (MapUtils.isEmpty(data)) {
-                log.warn("Secret {} is empty.", secretName);
                 return;
             }
             byte[] serviceUrlData = data.get(SERVICE_URL_KEY);
