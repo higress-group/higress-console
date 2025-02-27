@@ -113,8 +113,6 @@ spec:
       labels:
         app: {{ $appName }}
     spec:
-      securityContext:
-        {{- toYaml $config.securityContext | nindent 8 }}
       containers:
       - name: loki
         args:
@@ -142,12 +140,6 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /tmp
           name: tmp
@@ -158,6 +150,17 @@ spec:
         - mountPath: /var/loki
           name: storage
       restartPolicy: Always
+      securityContext:
+      {{- if $config.securityContext }}
+        {{- toYaml $config.securityContext | nindent 8 }}
+      {{- else }}
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsUser: 0
+      {{- end }}
       volumes:
       - name: storage
         persistentVolumeClaim:
