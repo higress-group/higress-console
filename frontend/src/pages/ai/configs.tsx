@@ -26,11 +26,17 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
-    getProviderEndpoints: (record) => {
-      if (!record.rawConfigs) {
-        return null;
+    isTokenRequired: record => {
+      if (record.openaiServerType) {
+        // For form validation
+        return record.openaiServerType === 'official';
       }
-      return [record.rawConfigs['openaiCustomUrl']];
+      // For generic logic
+      return !record.rawConfigs || !record.rawConfigs.openaiCustomUrl;
+    },
+    getProviderEndpoints: (record) => {
+      const customUrl = record.rawConfigs && record.rawConfigs.openaiCustomUrl;
+      return customUrl && [customUrl] || null;
     },
   },
   {

@@ -41,7 +41,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         name,
         type,
         protocol,
-        tokens,
+        tokens: tokens && tokens.length && tokens || [""],
         failoverEnabled: localFailoverEnabled,
         failureThreshold: failureThreshold || 1,
         successThreshold: successThreshold || 1,
@@ -77,7 +77,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const result = {
         type: values.type,
         name: values.name,
-        tokens: values.tokens,
+        tokens: values.tokens.filter(v => v),
         version: 0,
         protocol: values.protocol,
         tokenFailoverConfig: {
@@ -205,9 +205,20 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   validateTrigger={['onChange', 'onBlur']}
                   rules={[
                     {
-                      required: !providerConfig || providerConfig.tokenRequired !== false,
-                      whitespace: false,
-                      message: t('llmProvider.providerForm.rules.tokenRequired'),
+                      validator(rule, value) {
+                        if (value) {
+                          return Promise.resolve();
+                        }
+                        if (providerConfig) {
+                          if (providerConfig.tokenRequired === false) {
+                            return Promise.resolve();
+                          }
+                          if (typeof providerConfig.isTokenRequired === 'function' && !providerConfig.isTokenRequired(form.getFieldsValue())) {
+                            return Promise.resolve();
+                          }
+                        }
+                        return Promise.reject(t('llmProvider.providerForm.rules.tokenRequired'));
+                      },
                     },
                   ]}
                   noStyle
