@@ -390,6 +390,9 @@
         "name": "DNS域名"
       }
     },
+    "protocols": {
+      "unspecified": "未指定"
+    },
     "columns": {
       "type": "类型",
       "name": "名称",

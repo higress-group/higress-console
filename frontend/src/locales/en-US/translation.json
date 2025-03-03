@@ -391,6 +391,9 @@
         "name": "Domains"
       }
     },
+    "protocols": {
+      "unspecified": "Unspecified"
+    },
     "columns": {
       "type": "Type",
       "name": "Name",
