@@ -51,8 +51,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     private static final Map<String, LlmProviderHandler> PROVIDER_HANDLERS;
 
     static {
-        PROVIDER_HANDLERS = Stream.of(
-            new OpenaiLlmProviderHandler(),
+        PROVIDER_HANDLERS = Stream.of(new OpenaiLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.QWEN, "dashscope.aliyuncs.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
@@ -69,7 +68,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new OllamaLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.STEPFUN, "api.stepfun.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.MINIMAX, "api.minimax.chat", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GEMINI, "generativelanguage.googleapis.com", 443,
@@ -125,26 +125,27 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             configurations.put(PROVIDERS, providersObj);
         }
 
+        Map<String, Object> providerConfig =
+            provider.getRawConfigs() != null ? new HashMap<>(provider.getRawConfigs()) : new HashMap<>();
+        handler.saveConfig(provider, providerConfig);
+
+        boolean found = false;
         List<Object> providers = (List<Object>)providersObj;
-        Map<String, Object> providerConfig = null;
-        for (Object providerObj : providers) {
+        for (int i = 0; i < providers.size(); i++) {
+            Object providerObj = providers.get(i);
             if (!(providerObj instanceof Map<?, ?>)) {
                 continue;
             }
             Map<String, Object> providerMap = (Map<String, Object>)providerObj;
             if (provider.getName().equals(providerMap.get(PROVIDER_ID))) {
-                providerConfig = providerMap;
+                providers.set(i, providerConfig);
+                found = true;
                 break;
             }
         }
-        if (providerConfig == null) {
-            providerConfig = new HashMap<>();
+        if (!found) {
             providers.add(providerConfig);
         }
-        if (MapUtils.isNotEmpty(provider.getRawConfigs())) {
-            providerConfig.putAll(provider.getRawConfigs());
-        }
-        handler.saveConfig(provider, providerConfig);
         wasmPluginInstanceService.addOrUpdate(instance);
 
         ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);

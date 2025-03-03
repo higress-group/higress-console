@@ -118,7 +118,7 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
         }
         Object customUrlObject = providerConfig.get(CUSTOM_URL_KEY);
         if (!(customUrlObject instanceof String customUrl)) {
-            throw new ValidationException(CUSTOM_URL_KEY + " must be a string.");
+            return null;
         }
         if (StringUtils.isEmpty(customUrl)) {
             throw new ValidationException(CUSTOM_URL_KEY + " cannot be empty.");

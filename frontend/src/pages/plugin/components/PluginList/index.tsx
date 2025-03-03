@@ -48,7 +48,7 @@ const PluginList = forwardRef((props: Props, ref) => {
       let plugins = result || [];
       const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
       if (Array.isArray(hiddenPlugins)) {
-        plugins = plugins.filter(p => p.builtIn && hiddenPlugins.indexOf(p.name) === -1);
+        plugins = plugins.filter(p => !p.builtIn || hiddenPlugins.indexOf(p.name) === -1);
       }
       if (type === QueryType.ROUTE) {
         const routeName = searchParams.get('name');
