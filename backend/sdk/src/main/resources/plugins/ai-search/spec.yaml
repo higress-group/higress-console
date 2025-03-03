@@ -1,0 +1,76 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: enterprise
+  category: ai
+  image: platform_wasm/ai-search
+  name: ai-search
+  title: AI Search
+  x-title-i18n:
+    zh-CN: AI 搜索增强
+  description: Higress supports enhancing the accuracy and timeliness of responses from models like DeepSeek-R1 by integrating real-time results from search engines (Google/Bing/Arxiv/Elasticsearch etc.)
+  x-description-i18n:
+    zh-CN: higress 支持通过集成搜索引擎（夸克/Google/Bing/Arxiv/Elasticsearch等）的实时结果，增强DeepSeek-R1等模型等回答准确性和时效性
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+spec:
+  phase: default
+  priority: 440
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        needReference: true # Set to true to include web page reference information in results
+        searchFrom: # Below is a list of configured search engine options; only configure the ones you need
+        - type: quark
+          apiKey: "your-quark-api-key" # 👈 Replace with your key
+          serviceName: "quark.dns"
+          servicePort: 443
+        - type: google
+          apiKey: "your-google-api-key" # 👈 Replace with your key
+          cx: "your-search-engine-id" # 👈 Replace with your engine id
+          serviceName: "google.dns"
+          servicePort: 443
+        - type: bing
+          apiKey: "bing-key" # 👈 Replace with your key
+          serviceName: "bing.dns"
+          servicePort: 443
+        - type: arxiv
+          serviceName: "arxiv.dns"
+          servicePort: 443
+        searchRewrite:
+          llmApiKey: "your-deepseek-api-key" # 👈 Replace with your key
+          llmModelName: "deepseek-chat"
+          llmServiceName: "llm-deepseek.internal.dns"
+          llmServicePort: 443
+          llmUrl: "https://api.deepseek.com/chat/completions"
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        needReference: true # Set to true to include web page reference information in results
+        searchFrom: # Below is a list of configured search engine options; only configure the ones you need
+        - type: quark
+          apiKey: "your-quark-api-key" # 👈 Replace with your key
+          serviceName: "quark.dns"
+          servicePort: 443
+        - type: google
+          apiKey: "your-google-api-key" # 👈 Replace with your key
+          cx: "your-search-engine-id" # 👈 Replace with your engine id
+          serviceName: "google.dns"
+          servicePort: 443
+        - type: bing
+          apiKey: "bing-key" # 👈 Replace with your key
+          serviceName: "bing.dns"
+          servicePort: 443
+        - type: arxiv
+          serviceName: "arxiv.dns"
+          servicePort: 443
+        searchRewrite:
+          llmApiKey: "your-deepseek-api-key" # 👈 Replace with your key
+          llmModelName: "deepseek-chat"
+          llmServiceName: "llm-deepseek.internal.dns"
+          llmServicePort: 443
+          llmUrl: "https://api.deepseek.com/chat/completions"
