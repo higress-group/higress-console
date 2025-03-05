@@ -137,7 +137,16 @@ spec:
       restartPolicy: Always
       serviceAccountName: {{ $appName }}
       securityContext:
-        {{- toYaml $config.securityContext | nindent 8 }}
+        {{- if $config.securityContext }}
+          {{- toYaml $config.securityContext | nindent 10 }}
+        {{- else }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsUser: 0
+        {{- end }}
       volumes:
       - name: data
         persistentVolumeClaim:
