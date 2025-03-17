@@ -52,11 +52,11 @@ const AiRouteList: React.FC = () => {
         return (
           <div>
             {
-              value.map((v, i) => {
+              value && value.length ? value.map((v, i) => {
                 return (
                   <>{!!i && <br />}{`${t(`route.matchTypes.${v.matchType}`)} ｜ ${v.matchValue}`}</>
                 )
-              })
+              }) : '-'
             }
           </div>
         );
