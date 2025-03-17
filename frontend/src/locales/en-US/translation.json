@@ -55,7 +55,9 @@
       "name": "Name",
       "domains": "Domains",
       "upstreams": "AI Services",
-      "auth": "Request Auth"
+      "auth": "Request Auth",
+      "pathPredicate": "Path Match Rule",
+      "modelPredicates": "Model Match Rule"
     },
     "routeForm": {
       "label": {
@@ -510,7 +512,7 @@
       "matchType": "Match Type",
       "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
       "path": "Path",
-      "pathPredicatesRequired": "Please select a path matching predicate.",
+      "pathPredicateRequired": "Please select a path matching predicate.",
       "pathMatcherRequired": "Please input the path match target.",
       "pathMatcherPlacedholder": "Path match target. e.g.: /user",
       "caseInsensitive": "Case Insensitive",

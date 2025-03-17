@@ -1,4 +1,5 @@
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
+import { RoutePredicate } from '@/interfaces/route';
 import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -33,6 +34,32 @@ const AiRouteList: React.FC = () => {
           return '-';
         }
         return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+      },
+    },
+    {
+      title: t('aiRoute.columns.pathPredicate'),
+      dataIndex: 'pathPredicate',
+      key: 'pathPredicate',
+      render: (value: RoutePredicate, record: AiRoute) => {
+        return <div>{`${t(`route.matchTypes.${value.matchType}`)} ｜ ${value.matchValue}`}</div>;
+      },
+    },
+    {
+      title: t('aiRoute.columns.modelPredicates'),
+      dataIndex: 'modelPredicates',
+      key: 'modelPredicates',
+      render: (value: RoutePredicate[], record: AiRoute) => {
+        return (
+          <div>
+            {
+              value.map((v, i) => {
+                return (
+                  <>{!!i && <br />}{`${t(`route.matchTypes.${v.matchType}`)} ｜ ${v.matchValue}`}</>
+                )
+              })
+            }
+          </div>
+        );
       },
     },
     {
