@@ -81,6 +81,10 @@ public class AiRoute {
             urlParamPredicates.forEach(KeyedRoutePredicate::validate);
         }
         upstreams.forEach(AiUpstream::validate);
+        int weightSum = upstreams.stream().mapToInt(AiUpstream::getWeight).sum();
+        if (weightSum != 100) {
+            throw new ValidationException("The sum of upstream weights must be 100.");
+        }
         if (authConfig != null) {
             authConfig.validate();
         }

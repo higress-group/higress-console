@@ -70,7 +70,8 @@
         "name": "名称",
         "serviceName": "服务名称",
         "serviceWeight": "请求比例",
-        "services": "目标AI服务"
+        "services": "目标AI服务",
+        "modelPredicates": "模型匹配规则"
       },
       "rule": {
         "matchTypeRequired": "请选择匹配方式",
@@ -79,7 +80,9 @@
         "serviceWeightRequired": "请输入请求比例",
         "fallbackUpstreamRequired": "请选择降级服务",
         "nameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
-        "targetServiceRequired": "请选择目标服务"
+        "targetServiceRequired": "请选择目标服务",
+        "badWeightSum": "所有服务的权重总和必须为100",
+        "noUpstreams": "至少要配置一个目标AI服务"
       },
       "modelMatchType": "匹配方式",
       "modelMatchValue": "匹配条件",

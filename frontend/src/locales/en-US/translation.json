@@ -70,8 +70,8 @@
         "name": "Name",
         "serviceName": "Service Name",
         "serviceWeight": "Weight",
-        "services": "Target Services"
-
+        "services": "Target Services",
+        "modelPredicates": "Model Match Rule"
       },
       "rule": {
         "matchTypeRequired": "Please select a match type",
@@ -80,7 +80,9 @@
         "serviceWeightRequired": "Please input the weight value",
         "fallbackUpstreamRequired": "Please select the fallback service",
         "nameRequired": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
-        "targetServiceRequired": "Please select a target service"
+        "targetServiceRequired": "Please select a target service",
+        "badWeightSum": "The sum of all service weights must be 100.",
+        "noUpstreams": "At least one target service is required."
       },
       "modelMatchType": "Model Match Type",
       "modelMatchValue": "Match Value",
@@ -599,6 +601,8 @@
     "close": "Close",
     "save": "Save",
     "strategy": "Strategy",
+    "strategyList": "Strategy List",
+    "description": "Description",
     "configure": "Configure",
     "information": "Information",
     "action": "Action",
