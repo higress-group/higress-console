@@ -13,6 +13,7 @@
   {{- end }}
 {{- end }}
 {{- $pvc := merge (dict) .Values.pvc .Values.global.pvc}}
+{{- $existedDeployment := (lookup "apps/v1" "Deployment" .Release.Namespace $appName) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -137,7 +138,13 @@ spec:
       restartPolicy: Always
       serviceAccountName: {{ $appName }}
       securityContext:
+      {{- if $config.securityContext }}
         {{- toYaml $config.securityContext | nindent 8 }}
+      {{- else if and ($existedDeployment) ($existedDeployment.spec.template.spec.securityContext) }}
+        {{- toYaml $existedDeployment.spec.template.spec.securityContext | nindent 8 }}
+      {{- else }}
+        runAsUser: 0
+      {{- end }}
       volumes:
       - name: data
         persistentVolumeClaim:
