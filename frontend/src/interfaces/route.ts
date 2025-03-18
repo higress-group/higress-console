@@ -95,6 +95,11 @@ export interface Route {
   [propName: string]: any;
 }
 
+export interface AuthConfig {
+  enabled: boolean;
+  allowedConsumers?: string[];
+}
+
 export interface RouteResponse {
   data: Route[];
   pageNum: number;

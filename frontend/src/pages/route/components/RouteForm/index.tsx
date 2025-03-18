@@ -160,7 +160,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 {
                   required: true,
-                  message: t('route.routeForm.pathPredicatesRequired'),
+                  message: t('route.routeForm.pathPredicateRequired'),
                 },
               ]}
             >
