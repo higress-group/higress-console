@@ -81,6 +81,7 @@ public class RoutesController {
         if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Adding an internal route is not allowed.");
         }
+        route.validate();
         return ControllerUtil.buildResponseEntity(routeService.add(route));
     }
 
@@ -101,6 +102,7 @@ public class RoutesController {
         if (route.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Updating an internal route is not allowed.");
         }
+        route.validate();
         return ControllerUtil.buildResponseEntity(routeService.update(route));
     }
 

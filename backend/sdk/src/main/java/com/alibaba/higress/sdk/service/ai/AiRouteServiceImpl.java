@@ -42,7 +42,6 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.AiModelPredicate;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
-import com.alibaba.higress.sdk.model.ai.AiRouteAuthConfig;
 import com.alibaba.higress.sdk.model.ai.AiRouteFallbackConfig;
 import com.alibaba.higress.sdk.model.ai.AiRouteFallbackStrategy;
 import com.alibaba.higress.sdk.model.ai.AiUpstream;
@@ -52,7 +51,6 @@ import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
@@ -82,21 +80,17 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final LlmProviderService llmProviderService;
 
-    private final ConsumerService consumerService;
-
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
     private final String routeFallbackEnvoyFilterConfig;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
-        LlmProviderService llmProviderService, ConsumerService consumerService,
-        WasmPluginInstanceService wasmPluginInstanceService) {
+        LlmProviderService llmProviderService, WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.kubernetesClientService = kubernetesClientService;
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
-        this.consumerService = consumerService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
 
         try {
@@ -225,7 +219,6 @@ public class AiRouteServiceImpl implements AiRouteService {
         Route route = buildRoute(routeName, aiRoute);
         setUpstreams(route, aiRoute.getUpstreams());
         saveRoute(route);
-        writeAuthConfigResources(routeName, aiRoute.getAuthConfig());
         writeModelRouteResources(aiRoute.getModelPredicates());
         writeModelMappingResources(routeName, aiRoute.getUpstreams());
         writeAiStatisticsResources(routeName);
@@ -286,15 +279,8 @@ public class AiRouteServiceImpl implements AiRouteService {
                 "Error occurs when writing the fallback EnvoyFilter for AI route: " + aiRoute.getName(), e);
         }
 
-        writeAuthConfigResources(fallbackRouteName, aiRoute.getAuthConfig());
         writeModelMappingResources(fallbackRouteName, fallbackUpStreams);
         writeAiStatisticsResources(fallbackRouteName);
-    }
-
-    private void writeAuthConfigResources(String routeName, AiRouteAuthConfig authConfig) {
-        List<String> allowedConsumers = authConfig != null && Boolean.TRUE.equals(authConfig.getEnabled())
-            ? authConfig.getAllowedConsumers() : List.of();
-        consumerService.updateAllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
     }
 
     private void writeModelRouteResources(List<AiModelPredicate> modelPredicates) {
@@ -413,8 +399,9 @@ public class AiRouteServiceImpl implements AiRouteService {
             headerPredicates.add(headerRoutePredicate);
         }
         route.setHeaders(headerPredicates);
-
         route.setUrlParams(aiRoute.getUrlParamPredicates());
+
+        route.setAuthConfig(aiRoute.getAuthConfig());
 
         return route;
     }

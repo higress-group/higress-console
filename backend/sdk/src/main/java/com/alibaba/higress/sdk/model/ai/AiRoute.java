@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
@@ -53,7 +54,7 @@ public class AiRoute {
     @Schema(description = "Model predicates")
     private List<AiModelPredicate> modelPredicates;
     @Schema(description = "Route auth configuration")
-    private AiRouteAuthConfig authConfig;
+    private RouteAuthConfig authConfig;
     @Schema(description = "Route fallback configuration")
     private AiRouteFallbackConfig fallbackConfig;
 

@@ -587,7 +587,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        style={authConfig_enabled ? { marginBottom: 0 } : null}
+        style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
@@ -602,7 +602,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
             required
             name="authConfig_allowedConsumers"
             label={t('aiRoute.routeForm.label.authConfigList')}
-            rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') }]}
+            rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
             extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
           >
             <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>

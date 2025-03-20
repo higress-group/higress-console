@@ -31,5 +31,7 @@ interface CredentialHandler {
 
     boolean deleteConsumer(WasmPluginInstance globalInstance, String consumerName);
 
+    List<String> getAllowList(WasmPluginInstance instance);
+
     void updateAllowList(WasmPluginInstance instance, List<String> consumerNames);
 }

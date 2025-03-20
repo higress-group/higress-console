@@ -15,6 +15,10 @@ package com.alibaba.higress.sdk.model;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.route.CorsConfig;
 import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
@@ -91,9 +95,34 @@ public class Route implements VersionedDto {
     @Schema(description = "Header control configuration")
     private HeaderControlConfig headerControl;
 
+    @Schema(description = "Route auth configuration")
+    private RouteAuthConfig authConfig;
+
     @Schema(description = "Custom configurations, e.g., custom annotations")
     private Map<String, String> customConfigs;
 
     @Schema(hidden = true)
     private Boolean readonly;
+
+    public void validate() {
+        if (StringUtils.isBlank(name)) {
+            throw new ValidationException("name cannot be blank.");
+        }
+        if (CollectionUtils.isEmpty(services)) {
+            throw new ValidationException("services cannot be empty.");
+        }
+        if (path != null) {
+            path.validate();
+        }
+        if (CollectionUtils.isNotEmpty(headers)) {
+            headers.forEach(KeyedRoutePredicate::validate);
+        }
+        if (CollectionUtils.isNotEmpty(urlParams)) {
+            urlParams.forEach(KeyedRoutePredicate::validate);
+        }
+        services.forEach(UpstreamService::validate);
+        if (authConfig != null) {
+            authConfig.validate();
+        }
+    }
 }
