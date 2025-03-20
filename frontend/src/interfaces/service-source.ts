@@ -50,6 +50,7 @@ export const ServiceSourceTypes = {
 };
 
 export const ServiceProtocols = {
+  unspecified: { key: '', name: 'serviceSource.protocols.unspecified', i18n: true, tlsEnabled: false },
   http: { key: 'http', name: 'HTTP', tlsEnabled: false },
   https: { key: 'https', name: 'HTTPS', tlsEnabled: true },
   grpc: { key: 'grpc', name: 'gRPC', tlsEnabled: false },
