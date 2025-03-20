@@ -34,10 +34,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: JAVA_HOME
-              value: /usr/local/openjdk-18
-            - name: LANG
-              value: C.UTF-8
             - name: HIGRESS_CONSOLE_NS
               value: {{ .Release.Namespace }}
             - name: HIGRESS_CONSOLE_SECRET_NAME
