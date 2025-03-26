@@ -183,7 +183,7 @@ const RouteList: React.FC = () => {
   const handleDrawerOK = async () => {
     try {
       const values: RouteFormProps = formRef.current && (await formRef.current.handleSubmit());
-      const { name, domains, headers, methods, urlParams, path, services, customConfigs } = values;
+      const { name, domains, headers, methods, urlParams, path, services, customConfigs, authConfig } = values;
       path && normalizeRoutePredicate(path);
       headers && headers.forEach((h) => normalizeRoutePredicate(h));
       urlParams && urlParams.forEach((h) => normalizeRoutePredicate(h));
@@ -195,6 +195,7 @@ const RouteList: React.FC = () => {
         path,
         urlParams,
         customConfigs,
+        authConfig,
         services: services.map((service) => {
           return {
             name: service,

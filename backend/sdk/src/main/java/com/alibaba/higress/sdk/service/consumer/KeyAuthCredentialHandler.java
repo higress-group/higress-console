@@ -15,11 +15,11 @@ package com.alibaba.higress.sdk.service.consumer;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_CREDENTIAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_NAME;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_NAME;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -215,6 +215,20 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
         }
         return deleted;
+    }
+
+    @Override
+    public List<String> getAllowList(WasmPluginInstance instance) {
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            return List.of();
+        }
+
+        Object allowObj = configurations.get(ALLOW);
+        if (!(allowObj instanceof List<?> allowList)) {
+            return List.of();
+        }
+        return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).toList();
     }
 
     @Override

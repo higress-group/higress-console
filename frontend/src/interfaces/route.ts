@@ -92,7 +92,13 @@ export interface Route {
   retries?: RetryConfig;
   cors?: CorsConfig;
   headerModify?: HeaderModifyConfig;
+  authConfig?: AuthConfig;
   [propName: string]: any;
+}
+
+export interface AuthConfig {
+  enabled: boolean;
+  allowedConsumers?: string[];
 }
 
 export interface RouteResponse {
