@@ -1,9 +1,9 @@
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
 import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
-import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import { Button, Col, Drawer, Form, FormProps, Input, Modal, Row, Space, Table } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -96,11 +96,13 @@ const AiRouteList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef<FormRef>(null);
+  const routesRef = useRef<AiRoute[] | null>(null);
   const [dataSource, setDataSource] = useState<AiRoute[]>([]);
-  const [currentAiRoute, setCurrentAiRoute] = useState<AiRoute>();
+  const [currentAiRoute, setCurrentAiRoute] = useState<AiRoute | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const [loadingapi, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [usageDrawer, setUsageDrawer] = useState(false)
   const [usageCommand, setUsageCommand] = useState('')
@@ -113,7 +115,8 @@ const AiRouteList: React.FC = () => {
       aiRoutes.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
-      setDataSource(aiRoutes);
+      routesRef.current = aiRoutes;
+      onSearch();
     },
   });
 
@@ -165,6 +168,23 @@ const AiRouteList: React.FC = () => {
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentAiRoute(null);
+  };
+
+  const onSearch = () => {
+    setIsLoading(true);
+    let _dataSource: AiRoute[] = routesRef.current as AiRoute[];
+    const { searchVal } = form.getFieldsValue();
+    if (searchVal) {
+      _dataSource = _dataSource.filter((item) => {
+        const nameMatch = item.name?.includes(searchVal);
+        const domainsMatch = item.domains?.some(domain => domain.includes(searchVal));
+        const pathMatch = item.pathPredicate?.matchValue?.includes(searchVal);
+        const upstreamsMatch = item.upstreams?.some(upstream => upstream.provider?.includes(searchVal));
+        return nameMatch || domainsMatch || pathMatch || upstreamsMatch;
+      });
+    }
+    setDataSource(_dataSource);
+    setIsLoading(false);
   };
 
   const handleDrawerOK = async () => {
@@ -237,24 +257,29 @@ const AiRouteList: React.FC = () => {
         }}
       >
         <Row gutter={24}>
-          <Col span={4}>
+          <Col span={14}>
+            <Form.Item name="searchVal">
+              <Input
+                allowClear
+                placeholder={t('aiRoute.searchPlaceholder') || ''}
+                prefix={<SearchOutlined />}
+                onChange={onSearch}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={10} style={{ textAlign: 'right' }}>
             <Button
               type="primary"
               onClick={onShowDrawer}
             >
               {t('aiRoute.create')}
             </Button>
-          </Col>
-          <Col span={20} style={{ textAlign: 'right' }}>
-            <Button
-              icon={<RedoOutlined />}
-              onClick={refresh}
-            />
+            <Button icon={<RedoOutlined />} onClick={refresh} />
           </Col>
         </Row>
       </Form>
       <Table
-        loading={loading}
+        loading={loading || isLoading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}

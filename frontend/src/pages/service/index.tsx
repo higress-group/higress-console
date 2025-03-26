@@ -73,8 +73,8 @@ const ServiceList: React.FC = () => {
         }
       });
       servicesRef.current = result || [];
-      setDataSource(result);
       setNamespaces(_namespaces);
+      onSearch();
     },
   });
 
