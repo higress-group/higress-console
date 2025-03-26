@@ -35,6 +35,7 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
+import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -226,7 +227,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             for (Consumer consumer : extractedConsumers) {
                 Consumer existedConsumer = consumers.putIfAbsent(consumer.getName(), consumer);
                 if (existedConsumer != null) {
-                    existedConsumer.getCredentials().addAll(consumer.getCredentials());
+                    List<Credential> credentials = new ArrayList<>(existedConsumer.getCredentials());
+                    credentials.addAll(consumer.getCredentials());
+                    existedConsumer.setCredentials(credentials);
                 }
             }
         }
