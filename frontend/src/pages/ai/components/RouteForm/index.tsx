@@ -267,7 +267,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
             rules={[
               {
                 required: true,
-                message: t('route.routeForm.pathPredicatesRequired'),
+                message: t('route.routeForm.pathPredicateRequired'),
               },
             ]}
           >
