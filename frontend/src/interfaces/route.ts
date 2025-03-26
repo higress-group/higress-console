@@ -92,6 +92,7 @@ export interface Route {
   retries?: RetryConfig;
   cors?: CorsConfig;
   headerModify?: HeaderModifyConfig;
+  authConfig?: AuthConfig;
   [propName: string]: any;
 }
 

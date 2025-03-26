@@ -3,6 +3,8 @@ global:
   kind: false # Deprecated. Please use "global.local" instead. Will be removed later.
   ingressClass: "higress"
   watchNamespace: ""
+  # Customized Pod environment variables
+  env: []
 
   proxy:
     # -- CAUTION: It is important to ensure that all Istio helm charts specify the same clusterDomain value

@@ -70,9 +70,14 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public List<WasmPluginInstance> list(String pluginName) {
+        return list(pluginName, null);
+    }
+
+    @Override
+    public List<WasmPluginInstance> list(String pluginName, Boolean internal) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(pluginName);
+            plugins = kubernetesClientService.listWasmPlugin(pluginName, null, internal);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing WasmPlugin.", e);
         }

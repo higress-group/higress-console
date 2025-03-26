@@ -542,7 +542,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        style={authConfig_enabled ? { marginBottom: 0 } : null}
+        style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
