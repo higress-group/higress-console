@@ -60,6 +60,12 @@ public class WasmPlugin implements VersionedDto {
     @Schema(description = "Plugin image tag")
     private String imageVersion;
 
+    @Schema(description = "Plugin image pull policy")
+    private String imagePullPolicy;
+
+    @Schema(description = "Plugin image pull secret")
+    private String imagePullSecret;
+
     @Schema(description = "Plugin execution phase", ref = "PluginPhase")
     private String phase;
 

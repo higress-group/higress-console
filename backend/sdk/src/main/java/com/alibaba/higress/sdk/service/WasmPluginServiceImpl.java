@@ -102,6 +102,10 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
     private static final String CUSTOM_IMAGE_URL_PATTERN_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN";
     private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
+    private static final String CUSTOM_IMAGE_PULL_SECRET_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_SECRET";
+    private static final String CUSTOM_IMAGE_PULL_POLICY_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_POLICY";
+    private static final String CUSTOM_IMAGE_PULL_SECRET_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-sercret";
+    private static final String CUSTOM_IMAGE_PULL_POLICY_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-policy";
 
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
@@ -126,7 +130,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
         final List<PluginCacheItem> plugins = new ArrayList<>(properties.size());
 
-        final String customImageUrlPattern = loadCustomImageUrlPattern();
+        final String customImageUrlPattern = loadCustomConf(CUSTOM_IMAGE_URL_PATTERN_PROPERTY,CUSTOM_IMAGE_URL_PATTERN_ENV);
 
         for (Object key : properties.keySet()) {
             String pluginName = (String)key;
@@ -155,6 +159,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
             cacheItem.imageUrl = StringUtils.isBlank(customImageUrlPattern) ? imageUrl
                 : formatImageUrl(customImageUrlPattern, cacheItem.plugin.getInfo());
 
+            cacheItem.imagePullSecret = loadCustomConf(CUSTOM_IMAGE_PULL_SECRET_PROPERTY,CUSTOM_IMAGE_PULL_SECRET_ENV);
+            cacheItem.imagePullPolicy = loadCustomConf(CUSTOM_IMAGE_PULL_POLICY_PROPERTY,CUSTOM_IMAGE_PULL_POLICY_ENV);
+
             cacheItem.setDefaultReadme(loadPluginReadme(pluginName, README_FILE));
             cacheItem.setReadme(Language.ZH_CN.getCode(), loadPluginReadme(pluginName, README_CN_FILE));
             cacheItem.setReadme(Language.EN_US.getCode(), loadPluginReadme(pluginName, README_EN_FILE));
@@ -174,12 +181,11 @@ class WasmPluginServiceImpl implements WasmPluginService {
         plugins.sort(Comparator.comparing(PluginCacheItem::getName));
         this.builtInPlugins = plugins;
     }
-
-    @VisibleForTesting
-    static String loadCustomImageUrlPattern() {
-        String value = System.getProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY);
+    
+    static String loadCustomConf(String propertyConf, String env) {
+        String value = System.getProperty(propertyConf);
         if (StringUtils.isEmpty(value)) {
-            value = System.getenv(CUSTOM_IMAGE_URL_PATTERN_ENV);
+            value = System.getenv(env);
         }
         return value;
     }
@@ -309,6 +315,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
                     if (builtInPlugin != null) {
                         builtInPlugin.setImageRepository(plugin.getImageRepository());
                         builtInPlugin.setImageVersion(plugin.getImageVersion());
+                        builtInPlugin.setImagePullPolicy(plugin.getImagePullPolicy());
+                        builtInPlugin.setImagePullSecret(plugin.getImagePullSecret());
                         continue;
                     }
                 }
@@ -627,6 +635,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
         private final String name;
         private String imageUrl;
+        private String imagePullPolicy;
+        private String imagePullSecret;
         private Plugin plugin;
         private String iconData;
 
@@ -666,6 +676,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
             ImageUrl imageUrlObj = ImageUrl.parse(imageUrl);
             wasmPlugin.setImageRepository(imageUrlObj.getRepository());
             wasmPlugin.setImageVersion(imageUrlObj.getTag());
+            wasmPlugin.setImagePullSecret(imagePullSecret);
+            wasmPlugin.setImagePullPolicy(imagePullPolicy);
             wasmPlugin.setBuiltIn(true);
 
             PluginInfo info = plugin.getInfo();
