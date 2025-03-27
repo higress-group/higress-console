@@ -16,6 +16,8 @@ public class KeyAuthConfig {
 
     public static final String CONSUMERS = "consumers";
     public static final String CONSUMER_NAME = "name";
+    public static final String CONSUMER_CREDENTIALS = "credentials";
+    @Deprecated
     public static final String CONSUMER_CREDENTIAL = "credential";
 
     public static final String KEYS = "keys";

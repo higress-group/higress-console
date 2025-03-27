@@ -1,4 +1,6 @@
-import { Form, Input, Select, Tabs, Button, Row, Col } from 'antd';
+import { CredentialType } from '@/interfaces/consumer';
+import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Space, Tabs } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,25 +9,27 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const { value } = props;
   const [form] = Form.useForm();
   const [activeTabKey, setActiveTabKey] = useState('');
-  const [creSource, setCreSource] = useState('BEARER');
+  const [keyAuthCredentialSource, setKeyAuthCredentialSource] = useState();
+
+  const credentialEnabledCheckers = {};
+  credentialEnabledCheckers[CredentialType.KEY_AUTH] = c => true;
 
   useEffect(() => {
+    let formValues: object | null = null
+    let activeTabKey_ = '';
     if (value) {
-      const { name = "", credentials = [] } = value;
-      if (name && credentials.length) {
-        setActiveTabKey(credentials[0].type);
-        setCreSource(credentials[0].source);
-        form.setFieldsValue({ name, credentials });
-      } else {
-        form.resetFields();
-        setActiveTabKey('key-auth');
+      const credentials = {};
+      if (value.credentials) {
+        for (const credential of value.credentials) {
+          credentials[credential.type] = credential;
+          activeTabKey_ = activeTabKey_ || credential.type;
+        }
       }
-    } else {
-      form.resetFields();
-      setActiveTabKey('');
-      setCreSource('BEARER');
-      setActiveTabKey('key-auth');
+      formValues = Object.assign({}, value, { credentials });
     }
+    formValues ? form.setFieldsValue(formValues) : form.resetFields();
+    setActiveTabKey(activeTabKey_ || 'key-auth');
+    setKeyAuthCredentialSource(form.getFieldValue(['credentials', CredentialType.KEY_AUTH, 'source']) || 'BEARER');
   }, [value]);
 
   useImperativeHandle(ref, () => ({
@@ -34,12 +38,21 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
-      if (activeTabKey === "key-auth") {
-        values["credentials"][0]["type"] = activeTabKey;
-        return values;
+      const credentials: any[] = [];
+      for (const key in CredentialType) {
+        const type = CredentialType[key];
+        const credential = values.credentials[type];
+        if (!credential) {
+          continue;
+        }
+        credential.type = type;
+        const checker = credentialEnabledCheckers[type];
+        if (!checker || checker(credential)) {
+          credentials.push(credential);
+        }
       }
-
-      return activeTabKey
+      values.credentials = credentials;
+      return values;
     },
   }));
 
@@ -53,14 +66,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
     });
   };
 
-  const setAuthValue = () => {
+  const randomizeKeyAuthToken = (i) => {
     const uuid = generateUUID();
-    changeCredentials({ value: uuid });
-  }
-
-  const changeCredentials = (params) => {
-    const oldData = form.getFieldValue("credentials");
-    form.setFieldsValue({ credentials: [{ ...oldData[0], ...params }] });
+    form.setFieldValue(['credentials', CredentialType.KEY_AUTH, 'values', i], uuid);
   }
 
   return (
@@ -75,7 +83,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         rules={[
           {
             required: true,
-            message: t('consumer.consumerForm.nameRequired'),
+            message: t('consumer.consumerForm.nameRequired') || '',
           },
         ]}
       >
@@ -96,7 +104,105 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             label: 'Key Auth',
             key: 'key-auth',
             children: (
-              <></>
+              <>
+                <Form.List
+                  label={t("consumer.authToken") || ''} // "认证令牌"
+                  name={['credentials', CredentialType.KEY_AUTH, 'values']}
+                  initialValue={[null]}
+                >
+                  {(fields, { add, remove }, { errors }) => (
+                    <>
+                      {fields.map((field, index) => (
+                        <Form.Item
+                          required={false}
+                          key={index}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          <Form.Item
+                            {...field}
+                            validateTrigger={['onChange', 'onBlur']}
+                            rules={[{ required: true, message: t("consumer.consumerForm.authTokenRequired") || '' }]}
+                            noStyle
+                          >
+                            <Input style={{ width: '85%' }} />
+                          </Form.Item>
+                          <div style={{ display: "inline-block", width: '15%', textAlign: 'right' }}>
+                            <Button
+                              onClick={() => randomizeKeyAuthToken(index)}
+                              title={t("consumer.randomGeneration") || ''}
+                              icon={<ReloadOutlined />}
+                              style={{ marginRight: '0.5rem' }}
+                            />
+                            <Button
+                              type="dashed"
+                              disabled={!(fields.length > 1)}
+                              onClick={() => remove(field.name)}
+                              icon={<MinusCircleOutlined />}
+                            />
+                          </div>
+                        </Form.Item>
+                      ))}
+
+                      {/* 添加按钮 */}
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          icon={<PlusOutlined />}
+                        />
+                        <Form.ErrorList errors={errors} />
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
+
+                {/* 令牌来源 */}
+                <Form.Item
+                  label={t("consumer.tokenSource")}
+                  name={['credentials', CredentialType.KEY_AUTH, 'source']}
+                  rules={[{ required: true, message: t("consumer.consumerForm.tokenSourceRequired") || '' }]}
+                >
+                  <Select
+                    onChange={e => { setKeyAuthCredentialSource(e); }}
+                  >
+                    {
+                      [
+                        { name: "BEARER", label: t("consumer.selectBEARER") }, // 对应 HTTP Header “Authorization: Bearer ${value}” 的传递方式
+                        { name: "HEADER", label: t("consumer.selectHEADER") }, // HEADER：使用自定义 HTTP Header 来传递。Header 名称使用 key 来配置
+                        { name: "QUERY", label: t("consumer.selectQUERY") }, // 使用查询参数来传递。参数名称使用 key 来配置
+                      ].map((item) => (<Select.Option key={item.name} value={item.name}>{item.label} </Select.Option>))
+                    }
+                  </Select>
+                </Form.Item>
+
+                {
+                  keyAuthCredentialSource === "HEADER" ?
+                    // Header 名称
+                    <Form.Item
+                      key="HEADER_key"
+                      label={t("consumer.headerName")}
+                      name={['credentials', CredentialType.KEY_AUTH, 'key']}
+                      rules={[{ required: true, message: t("consumer.consumerForm.headerNameRequired") || '' }]}
+                    >
+                      <Input.TextArea rows={1} style={{ width: "100%" }} />
+                    </Form.Item>
+                    : null
+                }
+
+                {
+                  // 参数名称
+                  keyAuthCredentialSource === "QUERY" ?
+                    <Form.Item
+                      key="QUERY_key"
+                      label={t("consumer.paramName")}
+                      name={['credentials', CredentialType.KEY_AUTH, 'key']}
+                      rules={[{ required: true, message: t("consumer.consumerForm.paramNameRequired") || '' }]}
+                    >
+                      <Input.TextArea rows={1} style={{ width: "100%" }} />
+                    </Form.Item>
+                    : null
+                }
+              </>
             ),
           },
           {
@@ -115,85 +221,6 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
           },
         ]}
       />
-      {
-        activeTabKey === "key-auth" ?
-          <Form.List name="credentials" initialValue={[{ source: "BEARER" }]}>
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <>
-                    <Row>
-                      <Col span={20}>
-                        <Form.Item
-                          label={t("consumer.authToken")} // "认证令牌"
-                          name={[name, 'value']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.authTokenRequired") }]}
-                        >
-                          <Input />
-                        </Form.Item>
-                      </Col>
-                      <Col span={4} style={{ paddingTop: 30, textAlign: "right" }}>
-                        {/* 随机生成 */}
-                        <Form.Item><Button onClick={setAuthValue}>{t("consumer.randomGeneration")}</Button></Form.Item>
-                      </Col>
-                    </Row>
-
-                    {/* 令牌来源 */}
-                    <Form.Item
-                      label={t("consumer.tokenSource")}
-                      name={[name, 'source']}
-                      rules={[{ required: true, message: t("consumer.consumerForm.tokenSourceRequired") }]}
-                    >
-                      <Select
-                        onChange={e => {
-                          setCreSource(e);
-                          changeCredentials({ key: null });
-                        }}
-                      >
-                        {
-                          [
-                            { name: "BEARER", label: t("consumer.selectBEARER") }, // 对应 HTTP Header “Authorization: Bearer ${value}” 的传递方式
-                            { name: "HEADER", label: t("consumer.selectHEADER") }, // HEADER：使用自定义 HTTP Header 来传递。Header 名称使用 key 来配置
-                            { name: "QUERY", label: t("consumer.selectQUERY") }, // 使用查询参数来传递。参数名称使用 key 来配置
-                          ].map((item) => (<Select.Option key={item.name} value={item.name}>{item.label} </Select.Option>))
-                        }
-                      </Select>
-                    </Form.Item>
-
-                    {
-                      creSource === "HEADER" ?
-                        // Header 名称
-                        <Form.Item
-                          key="HEADER_key"
-                          label={t("consumer.headerName")}
-                          name={[name, 'key']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.headerNameRequired") }]}
-                        >
-                          <Input.TextArea rows={1} style={{ width: "100%" }} />
-                        </Form.Item>
-                        : null
-                    }
-
-                    {
-                      // 参数名称
-                      creSource === "QUERY" ?
-                        <Form.Item
-                          key="QUERY_key"
-                          label={t("consumer.paramName")}
-                          name={[name, 'key']}
-                          rules={[{ required: true, message: t("consumer.consumerForm.paramNameRequired") }]}
-                        >
-                          <Input.TextArea rows={1} style={{ width: "100%" }} />
-                        </Form.Item>
-                        : null
-                    }
-                  </>
-                ))}
-              </>)
-            }
-          </Form.List>
-          : null
-      }
     </Form>
   );
 });
