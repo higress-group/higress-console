@@ -26,10 +26,10 @@ public class CommonPageQuery {
     /**
      * Starting from 1
      */
-    @Schema(description = "Page number, starting from 1.")
+    @Schema(description = "Page number, starting from 1. If omitted, all items will be returned.")
     private Integer pageNum;
 
-    @Schema(description = "Number of items per page. Default is " + PaginatedResult.DEFAULT_PAGE_SIZE + ".")
+    @Schema(description = "Number of items per page. If omitted, all items will be returned.")
     private Integer pageSize;
 
     public boolean paginationEnabled() {

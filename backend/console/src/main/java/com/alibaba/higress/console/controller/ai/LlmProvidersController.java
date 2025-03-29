@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
@@ -58,7 +59,7 @@ public class LlmProvidersController {
     @Operation(summary = "List LLM providers")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Providers listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<LlmProvider>> list(CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<LlmProvider>> list(@RequestParam(required = false) CommonPageQuery query) {
         PaginatedResult<LlmProvider> providers = llmProviderService.list(query);
         return ControllerUtil.buildResponseEntity(providers);
     }

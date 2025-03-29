@@ -50,7 +50,14 @@ public class PaginatedResult<T> implements Serializable {
             int pageSize =
                 query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
             int startIndex = (pageNum - 1) * pageSize;
-            data = data.subList(startIndex, Math.min(result.total, startIndex + pageSize));
+            int endIndex = startIndex + pageSize;
+            if (startIndex >= list.size()) {
+                data = Collections.emptyList();
+            } else if (endIndex > list.size()) {
+                data = list.subList(startIndex, list.size());
+            } else {
+                data = list.subList(startIndex, endIndex);
+            }
             result.pageNum = pageNum;
             result.pageSize = pageSize;
         }
@@ -67,11 +74,18 @@ public class PaginatedResult<T> implements Serializable {
         result.total = list.size();
         List<T> data = list;
         if (query != null && query.paginationEnabled()) {
-            int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 0;
+            int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 1;
             int pageSize =
                 query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
-            int startIndex = pageNum * pageSize;
-            data = data.subList(startIndex, startIndex + pageSize);
+            int startIndex = (pageNum - 1) * pageSize;
+            int endIndex = startIndex + pageSize;
+            if (startIndex >= list.size()) {
+                data = Collections.emptyList();
+            } else if (endIndex > list.size()) {
+                data = list.subList(startIndex, list.size());
+            } else {
+                data = list.subList(startIndex, endIndex);
+            }
             result.pageNum = pageNum;
             result.pageSize = pageSize;
         }

@@ -14,6 +14,7 @@ package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
 
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,7 +45,7 @@ public class ServicesController {
     @Operation(summary = "List services")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Services listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<Service>> list(CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<Service>> list(@ParameterObject CommonPageQuery query) {
         return ControllerUtil.buildResponseEntity(serviceService.list(query));
     }
 }

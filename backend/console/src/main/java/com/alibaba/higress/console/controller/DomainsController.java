@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,7 +60,7 @@ public class DomainsController {
     @Operation(summary = "List domains")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Domains listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<Domain>> list(CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<Domain>> list(@ParameterObject CommonPageQuery query) {
         return ControllerUtil.buildResponseEntity(domainService.list(query));
     }
 

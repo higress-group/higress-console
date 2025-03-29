@@ -17,6 +17,7 @@ import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,7 +59,7 @@ public class AiRoutesController {
     @Operation(summary = "List AI routes")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Routes listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<AiRoute>> list(CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<AiRoute>> list(@ParameterObject CommonPageQuery query) {
         PaginatedResult<AiRoute> routes = aiRouteService.list(query);
         return ControllerUtil.buildResponseEntity(routes);
     }

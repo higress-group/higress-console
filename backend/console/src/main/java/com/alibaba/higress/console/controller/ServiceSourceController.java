@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
@@ -54,8 +54,7 @@ public class ServiceSourceController {
     @Operation(summary = "List service sources")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service sources listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<ServiceSource>>
-        list(@RequestParam(required = false) @RequestBody CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<ServiceSource>> list(@ParameterObject CommonPageQuery query) {
         PaginatedResult<ServiceSource> result = serviceSourceService.list(query);
         if (CollectionUtils.isNotEmpty(result.getData())) {
             result.getData().forEach(this::stripSensitiveInfo);
@@ -83,11 +82,10 @@ public class ServiceSourceController {
 
     @PutMapping("/{name}")
     @Operation(summary = "Update an existed service source")
-    @ApiResponses(
-        value = {@ApiResponse(responseCode = "200", description = "Service source updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Service source data is not valid"),
-            @ApiResponse(responseCode = "409", description = "Service source trying to add already existed"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Service source data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Service source trying to add already existed"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
         @RequestBody ServiceSource serviceSource) {
         serviceSource.setName(name);
