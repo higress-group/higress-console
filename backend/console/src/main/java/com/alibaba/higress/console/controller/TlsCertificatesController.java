@@ -17,6 +17,7 @@ import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,7 +60,7 @@ public class TlsCertificatesController {
     @Operation(summary = "List TLS certificates")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "TLS certificates listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<TlsCertificate>> list(CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<TlsCertificate>> list(@ParameterObject CommonPageQuery query) {
         PaginatedResult<TlsCertificate> certificates = tlsCertificateService.list(query);
         if (CollectionUtils.isNotEmpty(certificates.getData())) {
             certificates.getData().forEach(TlsCertificatesController::stripSensitiveInfo);
