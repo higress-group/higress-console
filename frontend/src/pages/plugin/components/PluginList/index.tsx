@@ -9,6 +9,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'r
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 import { getI18nValue, QueryType } from '../../utils';
+import { fetchPluginsByDomain } from '@/interfaces/domain';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -78,6 +79,19 @@ const PluginList = forwardRef((props: Props, ref) => {
           });
           plugins = builtInPlugins.concat(updatedPlugins)
         }
+      } else if (type === QueryType.DOMAIN) {
+        const domainName = searchParams.get('name');
+        if (domainName) {
+          const pluginsByDomain = await fetchPluginsByDomain({ name: domainName });
+          const updatedPlugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginsByDomain.find((p) => p.name === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+          plugins = updatedPlugins;
+        }
       }
       setPluginList(plugins);
     },
@@ -146,7 +160,7 @@ const PluginList = forwardRef((props: Props, ref) => {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         const key = item.key || `${item.name}:${item.imageVersion}`;
-        const showTag = type === QueryType.ROUTE;
+        const showTag = type === QueryType.ROUTE || type === QueryType.DOMAIN;
         return (
           <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
