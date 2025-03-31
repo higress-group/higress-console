@@ -101,7 +101,8 @@
     "authEnabledWithoutConsumer": "Nobody authorized",
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
-    "aiRouteUsageContent": "You can send a test request using the command below:"
+    "aiRouteUsageContent": "You can send a test request using the command below:",
+    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers."
   },
   "consumer": {
     "columns": {

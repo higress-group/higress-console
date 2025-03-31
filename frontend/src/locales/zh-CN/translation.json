@@ -101,7 +101,8 @@
     "authEnabledWithoutConsumer": "未授权任何人访问",
     "usage": "使用方法",
     "aiRouteUsage": "AI路由使用方法",
-    "aiRouteUsageContent": "可使用以下命令发送请求："
+    "aiRouteUsageContent": "可使用以下命令发送请求：",
+    "searchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由"
   },
   "consumer": {
     "columns": {

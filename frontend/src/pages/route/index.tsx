@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import {
   fetchPluginsByRoute,
   KeyedRoutePredicate,
@@ -8,6 +9,7 @@ import {
   upstreamServiceToString,
   WasmPluginData,
 } from '@/interfaces/route';
+import { getI18nValue } from "@/pages/plugin/utils";
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, getWasmPlugins, updateGatewayRoute } from '@/services';
 import store from '@/store';
 import switches from '@/switches';
@@ -15,14 +17,11 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography, Empty } from 'antd';
+import { Alert, Button, Col, Drawer, Empty, Form, Input, message, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
-import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
-import { getI18nValue } from "@/pages/plugin/utils";
-import i18n from "@/i18n";
 
 const { Text } = Typography;
 
@@ -117,6 +116,7 @@ const RouteList: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<Route | null>();
   const [openDrawer, setOpenDrawer] = useState(false);
   const formRef = useRef(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
@@ -150,8 +150,8 @@ const RouteList: React.FC = () => {
         }
         return i1.name.localeCompare(i2.name);
       })
-      setDataSource(result || []);
-      setOriginalDataSource(result || []);
+      setOriginalDataSource(result);
+      handleSearch(searchValue, result);
     },
   });
 
@@ -280,13 +280,15 @@ const RouteList: React.FC = () => {
     }
   };
 
-  const handleSearch = debounce((value: string) => {
+  const handleSearch = (value: string | null, result: Route[] | null) => {
+    value = value != null ? value : searchValue;
+    result = result != null ? result : originalDataSource;
     if (!value) {
-      setDataSource(originalDataSource);
+      setDataSource(result);
       return;
     }
     setIsLoading(true);
-    const filteredData = originalDataSource.filter((item) => {
+    const filteredData = result.filter((item) => {
       const nameMatch = item.name?.includes(value);
       const domainsMatch = item.domains?.some(domain => domain.includes(value));
       const pathMatch = item.path?.matchValue?.includes(value);
@@ -295,12 +297,12 @@ const RouteList: React.FC = () => {
     });
     setDataSource(filteredData);
     setIsLoading(false);
-  }, 300);
+  };
 
   const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setSearchValue(value);
-    handleSearch(value);
+    handleSearch(value, originalDataSource);
   };
 
   return (
@@ -353,7 +355,7 @@ const RouteList: React.FC = () => {
         </Row>
       </Form>
       <Table
-        loading={loading}
+        loading={loading || isLoading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}
@@ -371,13 +373,15 @@ const RouteList: React.FC = () => {
                     render: (_, plugin) => {
                       return getI18nValue(plugin, 'title');
                     },
-                    key: 'title' },
+                    key: 'title',
+                  },
                   {
                     title: t('plugins.description'),
                     render: (_, plugin) => {
                       return getI18nValue(plugin, 'description');
                     },
-                    key: 'description' },
+                    key: 'description',
+                  },
                 ]}
                 pagination={false}
                 rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
