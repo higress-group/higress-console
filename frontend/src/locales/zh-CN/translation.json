@@ -55,7 +55,9 @@
       "name": "名称",
       "domains": "域名",
       "upstreams": "服务",
-      "auth": "请求授权"
+      "auth": "请求授权",
+      "pathPredicate": "路径匹配规则",
+      "modelPredicates": "模型匹配规则"
     },
     "routeForm": {
       "label": {
@@ -513,7 +515,7 @@
       "matchType": "匹配规则",
       "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
       "path": "路径（Path）",
-      "pathPredicatesRequired": "请选择路径匹配规则",
+      "pathPredicateRequired": "请选择路径匹配规则",
       "pathMatcherRequired": "请输入路径匹配值",
       "pathMatcherPlacedholder": "路径匹配值，如：/user",
       "caseInsensitive": "忽略大小写",
