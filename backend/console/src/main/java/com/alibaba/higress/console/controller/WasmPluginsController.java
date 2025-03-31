@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,7 +65,7 @@ public class WasmPluginsController {
     @Operation(summary = "List Wasm plugins")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Plugins listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<WasmPlugin>> list(WasmPluginPageQuery query) {
+    public ResponseEntity<PaginatedResponse<WasmPlugin>> list(@ParameterObject WasmPluginPageQuery query) {
         PaginatedResult<WasmPlugin> plugins = wasmPluginService.list(query);
         return ControllerUtil.buildResponseEntity(plugins);
     }
