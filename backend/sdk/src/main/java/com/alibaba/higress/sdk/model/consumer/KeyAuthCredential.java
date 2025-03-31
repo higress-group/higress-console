@@ -12,8 +12,11 @@
  */
 package com.alibaba.higress.sdk.model.consumer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -38,14 +41,14 @@ public class KeyAuthCredential extends Credential {
     private String source;
     @Schema(description = "Credential Key. Required when source is HEADER or QUERY")
     private String key;
-    @Schema(description = "Credential Value")
-    private String value;
+    @Schema(description = "Credential Values")
+    private List<String> values;
 
-    public KeyAuthCredential(String type, String source, String key, String value) {
+    public KeyAuthCredential(String type, String source, String key, List<String> values) {
         super(type);
         this.source = source;
         this.key = key;
-        this.value = value;
+        this.values = values != null ? new ArrayList<>(values) : null;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class KeyAuthCredential extends Credential {
             throw new ValidationException("key cannot be blank.");
         }
 
-        if (!forUpdate && StringUtils.isBlank(value)) {
+        if (!forUpdate && CollectionUtils.isEmpty(values)) {
             throw new ValidationException("value cannot be blank.");
         }
     }

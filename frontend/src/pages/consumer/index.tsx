@@ -62,7 +62,7 @@ const ConsumerList: React.FC = () => {
             {
               supportedCredentialTypes.map(function (type) {
                 const setting = credentialTypeDisplaySettings[type] || { name: type, color: '' };
-                return (<Tag color={setting.color}>{setting.name}</Tag>);
+                return (<Tag color={setting.color} key={type}>{setting.name}</Tag>);
               })
             }
           </>
@@ -100,6 +100,7 @@ const ConsumerList: React.FC = () => {
       consumers.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
+      consumers.forEach(c => c.key = c.key || c.name);
       setDataSource(consumers);
     },
   });
