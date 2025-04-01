@@ -8,6 +8,7 @@ export interface AiRoute {
   pathPredicate: RoutePredicate;
   headerPredicates?: KeyedRoutePredicate[];
   urlParamPredicates?: KeyedRoutePredicate[];
+  modelPredicates?: RoutePredicate[];
   upstreams: AiUpstream[];
   authConfig?: AuthConfig;
   fallbackConfig: AiRouteFallbackConfig;
