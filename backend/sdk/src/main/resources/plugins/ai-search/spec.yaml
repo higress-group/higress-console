@@ -25,23 +25,23 @@ spec:
         needReference: true # Set to true to include web page reference information in results
         searchFrom: # Below is a list of configured search engine options; only configure the ones you need
         - type: quark
-          apiKey: "your-quark-api-key" # 👈 Replace with your key
+          apiKey: "your-quark-api-key" # Replace with your key
           serviceName: "quark.dns"
           servicePort: 443
         - type: google
-          apiKey: "your-google-api-key" # 👈 Replace with your key
-          cx: "your-search-engine-id" # 👈 Replace with your engine id
+          apiKey: "your-google-api-key" # Replace with your key
+          cx: "your-search-engine-id" # Replace with your engine id
           serviceName: "google.dns"
           servicePort: 443
         - type: bing
-          apiKey: "bing-key" # 👈 Replace with your key
+          apiKey: "bing-key" # Replace with your key
           serviceName: "bing.dns"
           servicePort: 443
         - type: arxiv
           serviceName: "arxiv.dns"
           servicePort: 443
         searchRewrite:
-          llmApiKey: "your-deepseek-api-key" # 👈 Replace with your key
+          llmApiKey: "your-deepseek-api-key" # Replace with your key
           llmModelName: "deepseek-chat"
           llmServiceName: "llm-deepseek.internal.dns"
           llmServicePort: 443
@@ -53,23 +53,23 @@ spec:
         needReference: true # Set to true to include web page reference information in results
         searchFrom: # Below is a list of configured search engine options; only configure the ones you need
         - type: quark
-          apiKey: "your-quark-api-key" # 👈 Replace with your key
+          apiKey: "your-quark-api-key" # Replace with your key
           serviceName: "quark.dns"
           servicePort: 443
         - type: google
-          apiKey: "your-google-api-key" # 👈 Replace with your key
-          cx: "your-search-engine-id" # 👈 Replace with your engine id
+          apiKey: "your-google-api-key" # Replace with your key
+          cx: "your-search-engine-id" # Replace with your engine id
           serviceName: "google.dns"
           servicePort: 443
         - type: bing
-          apiKey: "bing-key" # 👈 Replace with your key
+          apiKey: "bing-key" # Replace with your key
           serviceName: "bing.dns"
           servicePort: 443
         - type: arxiv
           serviceName: "arxiv.dns"
           servicePort: 443
         searchRewrite:
-          llmApiKey: "your-deepseek-api-key" # 👈 Replace with your key
+          llmApiKey: "your-deepseek-api-key" # Replace with your key
           llmModelName: "deepseek-chat"
           llmServiceName: "llm-deepseek.internal.dns"
           llmServicePort: 443
