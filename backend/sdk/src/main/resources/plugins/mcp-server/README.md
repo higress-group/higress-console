@@ -46,17 +46,106 @@ description: MCP 服务器插件配置参考
 | `tools[].args`                | array of object | 必填     | []     | 工具参数定义                   |
 | `tools[].args[].name`         | string          | 必填     | -      | 参数名称                       |
 | `tools[].args[].description`  | string          | 必填     | -      | 参数描述                       |
+| `tools[].args[].type`         | string          | 选填     | string | 参数类型（string, number, integer, boolean, array, object） |
 | `tools[].args[].required`     | boolean         | 选填     | false  | 参数是否必需                   |
 | `tools[].args[].default`      | any             | 选填     | -      | 参数默认值                     |
+| `tools[].args[].enum`         | array           | 选填     | -      | 参数允许的值列表               |
+| `tools[].args[].items`        | object          | 选填     | -      | 数组项的模式（当type为array时）  |
+| `tools[].args[].properties`   | object          | 选填     | -      | 对象属性的模式（当type为object时）|
 | `tools[].requestTemplate`     | object          | 必填     | -      | HTTP 请求模板                  |
 | `tools[].requestTemplate.url` | string          | 必填     | -      | 请求 URL 模板                  |
 | `tools[].requestTemplate.method` | string       | 必填     | -      | HTTP 方法(GET/POST等)          |
 | `tools[].requestTemplate.headers` | array of object | 选填 | [] | 请求头模板                     |
 | `tools[].requestTemplate.headers[].key` | string | 必填   | -      | 请求头名称                     |
 | `tools[].requestTemplate.headers[].value` | string | 必填 | -      | 请求头值模板                   |
-| `tools[].requestTemplate.body` | string         | 选填     | -      | 请求体模板                     |
+| `tools[].requestTemplate.body` | string         | 选填     | -      | 请求体模板（与argsToJsonBody、argsToUrlParam、argsToFormBody互斥） |
+| `tools[].requestTemplate.argsToJsonBody` | boolean | 选填  | false  | 当为true时，参数将直接用作JSON请求体（与body、argsToUrlParam、argsToFormBody互斥） |
+| `tools[].requestTemplate.argsToUrlParam` | boolean | 选填  | false  | 当为true时，参数将作为查询参数添加到URL中（与body、argsToJsonBody、argsToFormBody互斥） |
+| `tools[].requestTemplate.argsToFormBody` | boolean | 选填  | false  | 当为true时，参数将以application/x-www-form-urlencoded格式编码在请求体中（与body、argsToJsonBody、argsToUrlParam互斥） |
 | `tools[].responseTemplate`    | object          | 必填     | -      | HTTP 响应转换模板              |
 | `tools[].responseTemplate.body` | string        | 必填     | -      | 响应体转换模板                 |
+
+## 参数类型支持
+
+REST-to-MCP 工具支持多种参数类型，使您可以更精确地定义工具参数：
+
+- **string**: 字符串类型（默认）
+- **number**: 数字类型（浮点数）
+- **integer**: 整数类型
+- **boolean**: 布尔类型（true/false）
+- **array**: 数组类型，使用 `items` 字段定义数组元素的模式
+- **object**: 对象类型，使用 `properties` 字段定义对象属性的模式
+
+示例：
+
+```yaml
+args:
+- name: query
+  description: "搜索关键词"
+  type: string
+  required: true
+- name: limit
+  description: "返回结果数量"
+  type: integer
+  default: 10
+- name: filters
+  description: "过滤条件"
+  type: object
+  properties:
+    category:
+      type: string
+      enum: ["food", "hotel", "attraction"]
+    price:
+      type: integer
+      minimum: 0
+- name: coordinates
+  description: "坐标点列表"
+  type: array
+  items:
+    type: object
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+```
+
+## 请求参数传递方式
+
+REST-to-MCP 工具支持四种不同的请求参数传递方式，这些选项是**互斥的**，只能选择其中一种：
+
+1. **body**: 使用模板手动构建请求体。这是最灵活的方式，允许您完全控制请求体的格式。
+   ```yaml
+   requestTemplate:
+     body: |
+       {
+         "query": "{{.args.query}}",
+         "filters": {{toJson .args.filters}},
+         "options": {
+           "limit": {{.args.limit}}
+         }
+       }
+   ```
+
+2. **argsToJsonBody**: 当设置为 `true` 时，工具参数将直接作为 JSON 对象发送到请求体中，并自动添加 `Content-Type: application/json; charset=utf-8` 头。
+   ```yaml
+   requestTemplate:
+     argsToJsonBody: true
+   ```
+
+3. **argsToUrlParam**: 当设置为 `true` 时，工具参数将作为查询参数添加到 URL 中。
+   ```yaml
+   requestTemplate:
+     argsToUrlParam: true
+   ```
+
+4. **argsToFormBody**: 当设置为 `true` 时，工具参数将以 `application/x-www-form-urlencoded` 格式编码在请求体中，并自动添加相应的 Content-Type 头。
+   ```yaml
+   requestTemplate:
+     argsToFormBody: true
+   ```
+
+这些选项简化了常见 API 调用模式的配置，无需手动构建请求体或 URL 参数。请注意，这四个选项是互斥的，在一个工具配置中只能使用其中一种。如果同时配置了多个选项，系统会报错并拒绝加载该工具配置。
 
 ## 模板语法
 
@@ -150,13 +239,21 @@ tools:
   args:
   - name: address
     description: "待解析的结构化地址信息"
+    type: string
     required: true
   - name: city
     description: "指定查询的城市"
+    type: string
     required: false
+  - name: output
+    description: "输出格式"
+    type: string
+    enum: ["json", "xml"]
+    default: "json"
   requestTemplate:
-    url: "https://restapi.amap.com/v3/geocode/geo?key={{.config.apiKey}}&address={{.args.address}}&city={{.args.city}}&source=higress_mcp"
+    url: "https://restapi.amap.com/v3/geocode/geo"
     method: GET
+    argsToUrlParam: true
     headers:
     - key: x-api-key
       value: "{{.config.apiKey}}"
@@ -199,14 +296,24 @@ tools:
   args:
   - name: city
     description: "城市名称"
+    type: string
     required: true
   - name: days
     description: "天数(1-7)"
+    type: integer
     required: false
-    default: "3"
+    default: 3
+  - name: include_hourly
+    description: "是否包含每小时预报"
+    type: boolean
+    default: true
   requestTemplate:
-    url: "https://api.weatherapi.com/v1/forecast.json?key={{.config.apiKey}}&q={{.args.city}}&days={{.args.days}}&aqi=no&alerts=no"
+    url: "https://api.weatherapi.com/v1/forecast.json"
     method: GET
+    argsToUrlParam: true
+    headers:
+    - key: x-api-key
+      value: "{{.config.apiKey}}"
   responseTemplate:
     body: |
       # {{.location.name}}, {{.location.country}} 天气预报
@@ -248,7 +355,11 @@ tools:
 在与 AI 助手一起生成 REST-to-MCP 配置的模板时，您可以使用以下提示词：
 
 ```
-请帮我创建一个 Higress 的 REST-to-MCP 配置，将 REST API 转换为 MCP 工具。配置应遵循以下格式：
+请帮我创建一个 Higress 的 REST-to-MCP 配置，将 REST API 转换为 MCP 工具。
+
+## 配置格式
+
+配置应遵循以下格式：
 
 ```yaml
 server:
@@ -261,24 +372,45 @@ tools:
   args:
   - name: arg1
     description: "参数1的描述"
+    type: string  # 可选类型: string, number, integer, boolean, array, object
     required: true
   - name: arg2
     description: "参数2的描述"
+    type: integer
     required: false
-    default: "默认值"
+    default: 10
+  - name: arg3
+    description: "参数3的描述"
+    type: array
+    items:
+      type: string
+  - name: arg4
+    description: "参数4的描述"
+    type: object
+    properties:
+      subfield1:
+        type: string
+      subfield2:
+        type: number
   requestTemplate:
-    url: "https://api.example.com/endpoint?key={{.config.apiKey}}&param={{.args.arg1}}"
-    method: GET
+    url: "https://api.example.com/endpoint"
+    method: POST
+    # 以下四个选项互斥，只能选择其中一种
+    argsToUrlParam: true  # 将参数添加到URL查询参数
+    # 或者
+    # argsToJsonBody: true  # 将参数作为JSON对象发送到请求体
+    # 或者
+    # argsToFormBody: true  # 将参数以表单编码发送到请求体
+    # 或者
+    # body: |  # 手动构建请求体
+    #   {
+    #     "param1": "{{.args.arg1}}",
+    #     "param2": {{.args.arg2}},
+    #     "complex": {{toJson .args.arg4}}
+    #   }
     headers:
     - key: x-api-key
       value: "{{.config.apiKey}}"
-    - key: Content-Type
-      value: application/json
-    body: |
-      {
-        "param1": "{{.args.arg1}}",
-        "param2": "{{.args.arg2}}"
-      }
   responseTemplate:
     body: |
       # 结果
@@ -289,13 +421,7 @@ tools:
       {{- end }}
 ```
 
-我想转换的 REST API 是 [在此描述您的 API，包括端点、参数和响应格式]。
-
-请生成一个完整的配置，包括：
-1. 具有描述性名称和适当的服务器配置
-2. 定义所有必要的参数，并提供清晰的描述和适当的必填/默认值
-3. 创建正确格式化 API 请求的 requestTemplate，包括带有模板值的头部
-4. 创建将 API 响应转换为适合 AI 消费的可读格式的 responseTemplate
+## 模板语法
 
 模板使用 GJSON Template 语法 (https://github.com/higress-group/gjson_template)，该语法结合了 Go 模板和 GJSON 路径语法进行 JSON 处理。模板引擎支持：
 
@@ -306,3 +432,16 @@ tools:
 5. 变量赋值：{{$var := .value}}
 
 对于复杂的 JSON 响应，请考虑使用 GJSON 强大的过滤和查询能力来提取和格式化最相关的信息。
+
+## 我的 API 信息
+
+我想转换的 REST API 是：
+
+[在此描述您的 API，包括端点、参数和响应格式，或者粘贴 Swagger/OpenAPI 规范]
+```
+
+请根据以上信息生成一个完整的配置，包括：
+1. 具有描述性名称和适当的服务器配置
+2. 定义所有必要的参数，并提供清晰的描述和适当的类型、必填/默认值
+3. 选择合适的参数传递方式（argsToUrlParam、argsToJsonBody、argsToFormBody 或自定义 body）
+4. 创建将 API 响应转换为适合 AI 消费的可读格式的 responseTemplate
