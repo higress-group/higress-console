@@ -46,17 +46,106 @@ Plugin execution priority: `30`
 | `tools[].args`                | array of object | Yes     | []     | Tool parameter definitions                   |
 | `tools[].args[].name`         | string          | Yes     | -      | Parameter name                       |
 | `tools[].args[].description`  | string          | Yes     | -      | Parameter description                       |
+| `tools[].args[].type`         | string          | No     | string | Parameter type (string, number, integer, boolean, array, object) |
 | `tools[].args[].required`     | boolean         | No     | false  | Whether the parameter is required                   |
 | `tools[].args[].default`      | any             | No     | -      | Parameter default value                     |
+| `tools[].args[].enum`         | array           | No     | -      | List of allowed values for the parameter               |
+| `tools[].args[].items`        | object          | No     | -      | Schema for array items (when type is array)  |
+| `tools[].args[].properties`   | object          | No     | -      | Schema for object properties (when type is object)|
 | `tools[].requestTemplate`     | object          | Yes     | -      | HTTP request template                  |
 | `tools[].requestTemplate.url` | string          | Yes     | -      | Request URL template                  |
 | `tools[].requestTemplate.method` | string       | Yes     | -      | HTTP method (GET/POST, etc.)          |
 | `tools[].requestTemplate.headers` | array of object | No | [] | Request header templates                     |
 | `tools[].requestTemplate.headers[].key` | string | Yes   | -      | Request header name                     |
 | `tools[].requestTemplate.headers[].value` | string | Yes | -      | Request header value template                   |
-| `tools[].requestTemplate.body` | string         | No     | -      | Request body template                     |
+| `tools[].requestTemplate.body` | string         | No     | -      | Request body template (mutually exclusive with argsToJsonBody, argsToUrlParam, argsToFormBody) |
+| `tools[].requestTemplate.argsToJsonBody` | boolean | No  | false  | When true, arguments will be used directly as the JSON request body (mutually exclusive with body, argsToUrlParam, argsToFormBody) |
+| `tools[].requestTemplate.argsToUrlParam` | boolean | No  | false  | When true, arguments will be added to the URL as query parameters (mutually exclusive with body, argsToJsonBody, argsToFormBody) |
+| `tools[].requestTemplate.argsToFormBody` | boolean | No  | false  | When true, arguments will be encoded as application/x-www-form-urlencoded in the request body (mutually exclusive with body, argsToJsonBody, argsToUrlParam) |
 | `tools[].responseTemplate`    | object          | Yes     | -      | HTTP response transformation template              |
 | `tools[].responseTemplate.body` | string        | Yes     | -      | Response body transformation template                 |
+
+## Parameter Type Support
+
+REST-to-MCP tools support various parameter types, allowing you to define tool parameters more precisely:
+
+- **string**: String type (default)
+- **number**: Number type (floating point)
+- **integer**: Integer type
+- **boolean**: Boolean type (true/false)
+- **array**: Array type, using the `items` field to define the schema for array elements
+- **object**: Object type, using the `properties` field to define the schema for object properties
+
+Example:
+
+```yaml
+args:
+- name: query
+  description: "Search keyword"
+  type: string
+  required: true
+- name: limit
+  description: "Number of results to return"
+  type: integer
+  default: 10
+- name: filters
+  description: "Filter conditions"
+  type: object
+  properties:
+    category:
+      type: string
+      enum: ["food", "hotel", "attraction"]
+    price:
+      type: integer
+      minimum: 0
+- name: coordinates
+  description: "List of coordinate points"
+  type: array
+  items:
+    type: object
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+```
+
+## Request Parameter Passing Methods
+
+REST-to-MCP tools support four different request parameter passing methods, which are **mutually exclusive** - only one can be used:
+
+1. **body**: Manually construct the request body using a template. This is the most flexible approach, allowing you complete control over the request body format.
+   ```yaml
+   requestTemplate:
+     body: |
+       {
+         "query": "{{.args.query}}",
+         "filters": {{toJson .args.filters}},
+         "options": {
+           "limit": {{.args.limit}}
+         }
+       }
+   ```
+
+2. **argsToJsonBody**: When set to `true`, tool parameters will be sent directly as a JSON object in the request body, and the `Content-Type: application/json; charset=utf-8` header will be automatically added.
+   ```yaml
+   requestTemplate:
+     argsToJsonBody: true
+   ```
+
+3. **argsToUrlParam**: When set to `true`, tool parameters will be added to the URL as query parameters.
+   ```yaml
+   requestTemplate:
+     argsToUrlParam: true
+   ```
+
+4. **argsToFormBody**: When set to `true`, tool parameters will be encoded as `application/x-www-form-urlencoded` in the request body, and the appropriate Content-Type header will be automatically added.
+   ```yaml
+   requestTemplate:
+     argsToFormBody: true
+   ```
+
+These options simplify the configuration of common API call patterns without having to manually construct request bodies or URL parameters. Note that these four options are mutually exclusive, and only one can be used in a tool configuration. If multiple options are configured simultaneously, the system will return an error and refuse to load the tool configuration.
 
 ## Template Syntax
 
@@ -150,13 +239,21 @@ tools:
   args:
   - name: address
     description: "The structured address to parse"
+    type: string
     required: true
   - name: city
     description: "The city to search in"
+    type: string
     required: false
+  - name: output
+    description: "Output format"
+    type: string
+    enum: ["json", "xml"]
+    default: "json"
   requestTemplate:
-    url: "https://restapi.amap.com/v3/geocode/geo?key={{.config.apiKey}}&address={{.args.address}}&city={{.args.city}}&source=higress_mcp"
+    url: "https://restapi.amap.com/v3/geocode/geo"
     method: GET
+    argsToUrlParam: true
     headers:
     - key: x-api-key
       value: "{{.config.apiKey}}"
@@ -199,14 +296,24 @@ tools:
   args:
   - name: city
     description: "City name"
+    type: string
     required: true
   - name: days
     description: "Number of days (1-7)"
+    type: integer
     required: false
-    default: "3"
+    default: 3
+  - name: include_hourly
+    description: "Whether to include hourly forecasts"
+    type: boolean
+    default: true
   requestTemplate:
-    url: "https://api.weatherapi.com/v1/forecast.json?key={{.config.apiKey}}&q={{.args.city}}&days={{.args.days}}&aqi=no&alerts=no"
+    url: "https://api.weatherapi.com/v1/forecast.json"
     method: GET
+    argsToUrlParam: true
+    headers:
+    - key: x-api-key
+      value: "{{.config.apiKey}}"
   responseTemplate:
     body: |
       # {{.location.name}}, {{.location.country}} Weather Forecast
@@ -248,7 +355,11 @@ This example demonstrates:
 When working with AI assistants to generate templates for REST-to-MCP configuration, you can use the following prompt:
 
 ```
-Please help me create a REST-to-MCP configuration for Higress that converts a REST API to an MCP tool. The configuration should follow this format:
+Please help me create a REST-to-MCP configuration for Higress that converts a REST API to an MCP tool.
+
+## Configuration Format
+
+The configuration should follow this format:
 
 ```yaml
 server:
@@ -261,24 +372,45 @@ tools:
   args:
   - name: arg1
     description: "Description of argument 1"
+    type: string  # Optional types: string, number, integer, boolean, array, object
     required: true
   - name: arg2
     description: "Description of argument 2"
+    type: integer
     required: false
-    default: "default value"
+    default: 10
+  - name: arg3
+    description: "Description of argument 3"
+    type: array
+    items:
+      type: string
+  - name: arg4
+    description: "Description of argument 4"
+    type: object
+    properties:
+      subfield1:
+        type: string
+      subfield2:
+        type: number
   requestTemplate:
-    url: "https://api.example.com/endpoint?key={{.config.apiKey}}&param={{.args.arg1}}"
-    method: GET
+    url: "https://api.example.com/endpoint"
+    method: POST
+    # The following four options are mutually exclusive, only one can be used
+    argsToUrlParam: true  # Add arguments to URL query parameters
+    # OR
+    # argsToJsonBody: true  # Send arguments as a JSON object in the request body
+    # OR
+    # argsToFormBody: true  # Send arguments as form-encoded in the request body
+    # OR
+    # body: |  # Manually construct the request body
+    #   {
+    #     "param1": "{{.args.arg1}}",
+    #     "param2": {{.args.arg2}},
+    #     "complex": {{toJson .args.arg4}}
+    #   }
     headers:
     - key: x-api-key
       value: "{{.config.apiKey}}"
-    - key: Content-Type
-      value: application/json
-    body: |
-      {
-        "param1": "{{.args.arg1}}",
-        "param2": "{{.args.arg2}}"
-      }
   responseTemplate:
     body: |
       # Result
@@ -289,13 +421,7 @@ tools:
       {{- end }}
 ```
 
-The REST API I want to convert is [describe your API here, including endpoints, parameters, and response format].
-
-Please generate a complete configuration that:
-1. Has a descriptive name and appropriate server configuration
-2. Defines all necessary arguments with clear descriptions and appropriate required/default values
-3. Creates a requestTemplate that correctly formats the API request, including headers with template values
-4. Creates a responseTemplate that transforms the API response into a readable format for AI consumption
+## Template Syntax
 
 The templates use GJSON Template syntax (https://github.com/higress-group/gjson_template), which combines Go templates with GJSON path syntax for JSON processing. The template engine supports:
 
@@ -306,3 +432,10 @@ The templates use GJSON Template syntax (https://github.com/higress-group/gjson_
 5. Variable assignment: {{$var := .value}}
 
 For complex JSON responses, consider using GJSON's powerful filtering and querying capabilities to extract and format the most relevant information.
+
+## My API Information
+
+The REST API I want to convert is:
+
+[Describe your API here, including endpoints, parameters, and response format, or paste a Swagger/OpenAPI specification]
+```
