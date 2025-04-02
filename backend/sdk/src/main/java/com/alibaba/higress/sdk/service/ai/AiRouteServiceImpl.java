@@ -12,7 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
@@ -60,6 +59,13 @@ import com.google.common.annotations.VisibleForTesting;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+
+import static com.alibaba.higress.sdk.constant.HigressConstants.VALID_FALLBACK_RESPONSE_CODES;
 
 @Slf4j
 public class AiRouteServiceImpl implements AiRouteService {
@@ -82,7 +88,9 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
-    private final String routeFallbackEnvoyFilterConfig;
+    private final VelocityEngine velocityEngine;
+
+    private final Template routeFallbackEnvoyFilterConfigTemplate;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
@@ -92,14 +100,20 @@ public class AiRouteServiceImpl implements AiRouteService {
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
+        this.velocityEngine = new VelocityEngine();
+        velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+        velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        velocityEngine.init();
 
         try {
-            this.routeFallbackEnvoyFilterConfig =
-                IOUtils.resourceToString(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8);
+            this.routeFallbackEnvoyFilterConfigTemplate =
+                velocityEngine.getTemplate(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8.name());
+            String routeFallbackEnvoyFilterConfig = getRouteFallbackEnvoyFilterConfig(new ArrayList<>(
+                    VALID_FALLBACK_RESPONSE_CODES));
             V1alpha3EnvoyFilter filter =
                 kubernetesClientService.loadFromYaml(routeFallbackEnvoyFilterConfig, V1alpha3EnvoyFilter.class);
             assert filter != null;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new IllegalStateException("Error occurs when loading route fallback envoy filter  from resource.", e);
         }
     }
@@ -259,7 +273,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         setUpstreams(route, fallbackUpStreams);
         saveRoute(route);
 
-        StringBuilder envoyFilterBuilder = new StringBuilder(routeFallbackEnvoyFilterConfig);
+        String fallbackEnvoyFilterConfig = getRouteFallbackEnvoyFilterConfig(fallbackConfig.getResponseCodes());
+        StringBuilder envoyFilterBuilder = new StringBuilder(fallbackEnvoyFilterConfig);
         StringUtil.replace(envoyFilterBuilder, "${name}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${routeName}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${fallbackHeader}", HigressConstants.FALLBACK_FROM_HEADER);
@@ -432,6 +447,14 @@ public class AiRouteServiceImpl implements AiRouteService {
     @VisibleForTesting
     String escapeForRegexMatch(String value) {
         return value.replaceAll("[\\[\\]{}()^$|*+?.\\\\]", "\\\\$0");
+    }
+
+    private String getRouteFallbackEnvoyFilterConfig(List<String> responseCodes) {
+        VelocityContext context = new VelocityContext();
+        context.put("responseCodes", responseCodes);
+        StringWriter writer = new StringWriter();
+        routeFallbackEnvoyFilterConfigTemplate.merge(context, writer);
+        return writer.toString();
     }
 
     private void setUpstreams(Route route, List<AiUpstream> upstreams) {
