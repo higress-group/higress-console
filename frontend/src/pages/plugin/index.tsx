@@ -7,6 +7,7 @@ import { Button, Col, PageHeader, Row, Spin, message } from 'antd';
 import { history, useSearchParams } from 'ice';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import CategoryFilter from './components/CategoryFilter';
 import PluginDrawer from './components/PluginDrawer';
 import PluginList, { ListRef } from './components/PluginList';
 import { WasmFormRef, WasmPluginDrawer } from './components/Wasm';
@@ -23,6 +24,7 @@ export default function RouterConfig() {
 
   const [routeDetail, setRouteDetail] = useState({});
   const [searchParams] = useSearchParams();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const wasmFormRef = useRef<WasmFormRef>();
   const listRef = useRef<ListRef>();
@@ -121,17 +123,27 @@ export default function RouterConfig() {
             }}
           >
             <Row gutter={24}>
-              <Col span={4}>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    wasmFormRef?.current?.open();
-                  }}
-                >
-                  {t('plugins.addPlugin')}
-                </Button>
+              <Col span={20}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      wasmFormRef?.current?.open();
+                    }}
+                    style={{ marginRight: '12px' }}
+                  >
+                    {t('plugins.addPlugin')}
+                  </Button>
+                  <div style={{ display: 'inline-block' }}>
+                    <CategoryFilter
+                      onChange={(categories) => {
+                        setSelectedCategories(categories);
+                      }}
+                    />
+                  </div>
+                </div>
               </Col>
-              <Col span={20} style={{ textAlign: 'right' }}>
+              <Col span={4} style={{ textAlign: 'right' }}>
                 <Button
                   icon={<RedoOutlined />}
                   onClick={() => {
@@ -147,6 +159,7 @@ export default function RouterConfig() {
             ref={listRef}
             onEdit={onEdit}
             onDelete={onDelete}
+            selectedCategories={selectedCategories}
           />
           <PluginDrawer pluginDrawerRef={pluginDrawerRef} routerDetail={routeDetail} onSuccess={init} />
           <WasmPluginDrawer ref={wasmFormRef} onSubmit={onSubmitWasm} />

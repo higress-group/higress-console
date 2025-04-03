@@ -285,6 +285,16 @@
     "deleteConfirmation": "Confirm delete operation?",
     "deleteSuccess": "Deleted successfully.",
     "saveSuccess": "Saved successfully.",
+    "allPlugins": "All plugins",
+    "noPluginsFound": "No plugins found for the selected categories",
+    "categories": {
+      "auth": "Authentication",
+      "security": "Security",
+      "traffic": "Traffic",
+      "transform": "Transformation",
+      "o11y": "Observability",
+      "custom": "Custom"
+    },
     "configForm": {
       "targetDomain": "Target Domain: ",
       "targetRoute": "Target Route: ",

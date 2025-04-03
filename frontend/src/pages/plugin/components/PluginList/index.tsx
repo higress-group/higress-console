@@ -3,7 +3,7 @@ import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
 import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag, Empty } from 'antd';
 import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ interface Props {
   onOpen: (v: Object) => void;
   onEdit?: (v: WasmPluginData) => void;
   onDelete?: (v: string) => void;
+  selectedCategories?: string[];
 }
 
 export interface ListRef {
@@ -26,8 +27,9 @@ export interface ListRef {
 
 const PluginList = forwardRef((props: Props, ref) => {
   const { t } = useTranslation();
-  const { data, onOpen, onEdit, onDelete } = props;
+  const { data, onOpen, onEdit, onDelete, selectedCategories = [] } = props;
   const [searchParams] = useSearchParams();
+  const [filteredPluginList, setFilteredPluginList] = useState<WasmPluginData[]>([]);
 
   const type = searchParams.get('type') || '';
 
@@ -80,8 +82,27 @@ const PluginList = forwardRef((props: Props, ref) => {
         }
       }
       setPluginList(plugins);
+      filterPlugins(plugins, selectedCategories);
     },
   });
+
+  // Filter plugins based on selected categories
+  const filterPlugins = (plugins: WasmPluginData[], categories: string[]) => {
+    if (!categories || categories.length === 0) {
+      setFilteredPluginList(plugins);
+      return;
+    }
+
+    const filtered = plugins.filter(plugin => {
+      // If no category is specified, show it in all filters
+      if (!plugin.category) {
+        return true;
+      }
+      return categories.includes(plugin.category || 'custom');
+    });
+
+    setFilteredPluginList(filtered);
+  };
 
   useImperativeHandle(ref, () => {
     return {
@@ -94,6 +115,11 @@ const PluginList = forwardRef((props: Props, ref) => {
   useEffect(() => {
     loadWasmPlugins();
   }, []);
+
+  // Update filtered plugins when selected categories change
+  useEffect(() => {
+    filterPlugins(pluginList, selectedCategories);
+  }, [selectedCategories, pluginList]);
 
   i18n.on('languageChanged', () => loadWasmPlugins());
 
@@ -144,7 +170,7 @@ const PluginList = forwardRef((props: Props, ref) => {
 
   return (
     <Row gutter={[16, 16]}>
-      {pluginList.map((item) => {
+      {filteredPluginList.length > 0 ? filteredPluginList.map((item) => {
         const key = item.key || `${item.name}:${item.imageVersion}`;
         const showTag = type === QueryType.ROUTE;
         return (
@@ -197,7 +223,11 @@ const PluginList = forwardRef((props: Props, ref) => {
             </Card>
           </Col>
         );
-      })}
+      }) : (
+        <Col span={24}>
+          <Empty description={t('plugins.noPluginsFound')} />
+        </Col>
+      )}
     </Row>
   );
 });
