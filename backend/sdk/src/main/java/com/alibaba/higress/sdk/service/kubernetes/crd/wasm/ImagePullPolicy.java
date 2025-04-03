@@ -12,6 +12,17 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.crd.wasm;
 
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Strings;
+
+import lombok.Getter;
+
+@Getter
 public enum ImagePullPolicy {
 
     /**
@@ -30,6 +41,14 @@ public enum ImagePullPolicy {
      */
     ALWAYS("Always", 2);
 
+    private static final Map<String, ImagePullPolicy> LOWERED_NAME_MAP = Arrays.stream(ImagePullPolicy.values())
+        .collect(Collectors.toMap(p -> p.getName().toLowerCase(Locale.ROOT), Function.identity()));
+
+    static {
+        LOWERED_NAME_MAP.put("unspecified", UNSPECIFIED);
+        LOWERED_NAME_MAP.put("default", UNSPECIFIED);
+    }
+
     private final String name;
     private final int value;
 
@@ -38,11 +57,10 @@ public enum ImagePullPolicy {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public int getValue() {
-        return value;
+    public static ImagePullPolicy fromName(String name) {
+        if (Strings.isNullOrEmpty(name)) {
+            return UNSPECIFIED;
+        }
+        return LOWERED_NAME_MAP.get(name.toLowerCase(Locale.ROOT));
     }
 }
