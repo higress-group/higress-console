@@ -296,6 +296,7 @@ const AiRouteList: React.FC = () => {
           </Col>
           <Col span={10} style={{ textAlign: 'right' }}>
             <Button
+              style={{ margin: '0 8px' }}
               type="primary"
               onClick={onShowDrawer}
             >
