@@ -1,7 +1,14 @@
 /* eslint-disable */
 // @ts-nocheck
-import { DEFAULT_DOMAIN, Domain, DomainResponse, EnableHttpsValue, fetchPluginsByDomain, Protocol } from '@/interfaces/domain';
-import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain, getWasmPlugins } from '@/services';
+import { DEFAULT_DOMAIN, Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
+import {
+  addGatewayDomain,
+  deleteGatewayDomain,
+  getGatewayDomains,
+  updateGatewayDomain,
+  getWasmPlugins,
+  getDomainPluginInstances
+} from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -150,25 +157,24 @@ const DomainList: React.FC = () => {
   const onShowStrategyList = async (record: Domain, expanded: boolean) => {
     if (expanded) {
       try {
-        const plugins = await fetchPluginsByDomain(record);
-        const mergedPlugins = plugins.map((plugin) => {
-          const pluginInfo = pluginInfoList.find(
-            info => info.name === plugin.name && !plugin.internal,
-          );
+        const plugins = await getDomainPluginInstances(record.name);
+        const pluginInfos = plugins.map((plugin: { pluginName: string; description: string; }) => {
+          const isMatchingInfo = (info: WasmPluginData) => info.name === plugin.pluginName;
+          const pluginInfo = pluginInfoList.find(isMatchingInfo);
+          const title = pluginInfo?.title?? plugin.pluginName?? '';
+          const description = pluginInfo?.description?? plugin.description?? '';
           return {
             ...plugin,
-            title: pluginInfo?.title || plugin.title || '',
-            description: pluginInfo?.description || plugin.description || '',
+            title,
+            description,
           };
         })
         setPluginsData((prev) => ({
           ...prev,
-          [record.name]: mergedPlugins,
+          [record.name]: pluginInfos,
         }));
-        if (plugins.some(plugin => plugin.enabled)) {
+        if (plugins.some((plugin: { enabled: boolean; }) => plugin.enabled)) {
           setExpandedKeys((prev) => [...prev, record.name]);
-        } else {
-          message.info(t('plugins.emptyPlugins'));
         }
       } catch (error) {
         message.error('Failed to fetch strategies, error:', error);
@@ -255,17 +261,27 @@ const DomainList: React.FC = () => {
           </Col>
         </Row>
       </Form>
-      <Table 
-        loading={loading} 
-        dataSource={dataSource} 
-        columns={columns} 
-        pagination={false} 
+      <Table
+        loading={loading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={false}
         expandable={{
           expandedRowKeys: expandedKeys,
-          onExpand: (expanded, record) => onShowStrategyList(record, expanded),
+          onExpand: async (expanded, record) => {
+            if (expanded) {
+              setExpandedKeys([...expandedKeys, record.name]);
+            } else {
+              setExpandedKeys(expandedKeys.filter(key => key!== record.name));
+            }
+            await onShowStrategyList(record, expanded);
+          },
+          rowExpandable: (record) => {
+            return record.name!== DEFAULT_DOMAIN;
+          },
           expandedRowRender: (record) => {
             const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
-            return plugins.length > 0 ? (
+            return  (
               <Table
                 dataSource={plugins}
                 columns={[
@@ -285,11 +301,9 @@ const DomainList: React.FC = () => {
                 pagination={false}
                 rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
               />
-            ) : (
-              <Empty>{t('plugins.emptyPlugins')}</Empty>
             );
           },
-        }}  
+        }}
       />
       <Modal
         title={

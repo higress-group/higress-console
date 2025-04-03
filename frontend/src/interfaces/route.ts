@@ -1,6 +1,7 @@
 import { getRoutePluginInstances } from "@/services";
 import { BUILTIN_ROUTE_PLUGIN_LIST } from "@/pages/plugin/components/PluginList/constant";
 import { message } from "antd";
+import { WasmPluginData } from "@/interfaces/wasm-plugin";
 
 export interface CorsConfig {
   allowOrigins: string[];
@@ -108,28 +109,6 @@ export function upstreamServiceToString(service: UpstreamService): string {
   }
   const name = service.name || '-';
   return service.port != null ? `${name}:${service.port}` : name;
-}
-
-export interface WasmPluginData {
-  id?: string;
-  name: string;
-  version?: string;
-  category?: string;
-  title?: string;
-  description?: string;
-  icon?: string;
-  builtIn?: boolean;
-  imageRepository?: string;
-  imageVersion?: string;
-  phase?: string;
-  priority?: number;
-  customConfigs?: {
-    [key: string]: string;
-  };
-  enabled?: boolean;
-  internal?: boolean;
-  resKey?: string;
-  key?: string;
 }
 
 export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {

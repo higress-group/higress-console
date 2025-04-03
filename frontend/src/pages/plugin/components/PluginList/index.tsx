@@ -1,6 +1,7 @@
 import i18n from '@/i18n';
-import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
-import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
+import { fetchPluginsByRoute } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
+import { getDomainPluginInstances, getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
@@ -9,7 +10,6 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'r
 import { useTranslation } from 'react-i18next';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 import { getI18nValue, QueryType } from '../../utils';
-import { fetchPluginsByDomain } from '@/interfaces/domain';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -82,15 +82,14 @@ const PluginList = forwardRef((props: Props, ref) => {
       } else if (type === QueryType.DOMAIN) {
         const domainName = searchParams.get('name');
         if (domainName) {
-          const pluginsByDomain = await fetchPluginsByDomain({ name: domainName });
-          const updatedPlugins = result.map((plugin: { name: string }) => {
-            const foundPlugin = pluginsByDomain.find((p) => p.name === plugin.name);
+          const pluginsByDomain = await getDomainPluginInstances(domainName);
+          plugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginsByDomain.find((p: { pluginName: string }) => p.pluginName === plugin.name);
             return {
               ...plugin,
               enabled: foundPlugin ? foundPlugin.enabled : false,
             };
           });
-          plugins = updatedPlugins;
         }
       }
       setPluginList(plugins);

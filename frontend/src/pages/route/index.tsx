@@ -15,7 +15,7 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography, Empty } from 'antd';
+import { Alert, Button, Col, Drawer, Form, message, Input, Modal, Row, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
 import { debounce } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -266,8 +266,6 @@ const RouteList: React.FC = () => {
         }));
         if (plugins.some(plugin => plugin.enabled)) {
           setExpandedKeys((prev) => [...prev, record.name]);
-        } else {
-          message.info(t('plugins.emptyPlugins'));
         }
       } catch (error) {
         message.error('Failed to fetch strategies, error:', error);
@@ -358,10 +356,17 @@ const RouteList: React.FC = () => {
         pagination={false}
         expandable={{
           expandedRowKeys: expandedKeys,
-          onExpand: (expanded, record) => onShowStrategyList(record, expanded),
+          onExpand: async (expanded, record) => {
+            if (expanded) {
+              setExpandedKeys([...expandedKeys, record.name]);
+            } else {
+              setExpandedKeys(expandedKeys.filter(key => key !== record.name));
+            }
+            await onShowStrategyList(record, expanded);
+          },
           expandedRowRender: (record) => {
             const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
-            return plugins.length > 0 ? (
+            return (
               <Table
                 dataSource={plugins}
                 columns={[
@@ -381,8 +386,6 @@ const RouteList: React.FC = () => {
                 pagination={false}
                 rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
               />
-            ) : (
-              <Empty>{t('plugins.emptyPlugins')}</Empty>
             );
           },
         }}
