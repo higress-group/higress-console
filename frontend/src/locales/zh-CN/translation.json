@@ -285,6 +285,16 @@
     "deleteConfirmation": "是否确认删除？",
     "deleteSuccess": "删除成功",
     "saveSuccess": "保存成功",
+    "allPlugins": "所有插件",
+    "noPluginsFound": "未找到所选类别的插件",
+    "categories": {
+      "auth": "认证",
+      "security": "安全",
+      "traffic": "流量",
+      "transform": "转换",
+      "o11y": "可观测性",
+      "custom": "自定义"
+    },
     "configForm": {
       "targetDomain": "作用域名：",
       "targetRoute": "作用路由：",
