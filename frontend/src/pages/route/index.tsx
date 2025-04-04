@@ -7,8 +7,8 @@ import {
   RouteResponse,
   UpstreamService,
   upstreamServiceToString,
-  WasmPluginData,
 } from '@/interfaces/route';
+import { WasmPluginData } from "@/interfaces/wasm-plugin";
 import { getI18nValue } from "@/pages/plugin/utils";
 import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, getWasmPlugins, updateGatewayRoute } from '@/services';
 import store from '@/store';

@@ -1,4 +1,4 @@
-import { WasmPluginData } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { createWasmPlugin, deleteWasmPlugin, getGatewayRouteDetail, updateWasmPlugin } from '@/services';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';

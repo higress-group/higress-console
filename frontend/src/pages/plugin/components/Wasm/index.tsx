@@ -1,9 +1,7 @@
-import { WasmPluginData } from '@/interfaces/route';
+import { ImagePullPolicy, PluginPhase, WasmPluginData } from '@/interfaces/wasm-plugin';
 import { Button, Drawer, Form, Input, InputNumber, Select, Space } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-const { Option } = Select;
 
 export interface WasmFormRef {
   open: (v?: WasmPluginData) => void;
@@ -76,10 +74,16 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
   const { t } = useTranslation();
 
   const phaseOptions = [
-    { value: 'UNSPECIFIED_PHASE', label: t('plugins.phases.unspecified') },
-    { value: 'AUTHN', label: t('plugins.phases.authn') },
-    { value: 'AUTHZ', label: t('plugins.phases.authz') },
-    { value: 'STATS', label: t('plugins.phases.stats') },
+    { value: PluginPhase.UNSPECIFIED, label: t('plugins.phases.unspecified') },
+    { value: PluginPhase.AUTHN, label: t('plugins.phases.authn') },
+    { value: PluginPhase.AUTHZ, label: t('plugins.phases.authz') },
+    { value: PluginPhase.STATS, label: t('plugins.phases.stats') },
+  ];
+
+  const imagePullPolicyOptions = [
+    { value: ImagePullPolicy.UNSPECIFIED, label: t('plugins.imagePullPolicy.unspecified') },
+    { value: ImagePullPolicy.IF_NOT_PRESENT, label: t('plugins.imagePullPolicy.ifNotPresent') },
+    { value: ImagePullPolicy.ALWAYS, label: t('plugins.imagePullPolicy.always') },
   ];
 
   const { editData } = props;
@@ -88,6 +92,8 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
 
   if (editData) {
     editData.imageUrl = editData.imageVersion ? `${editData.imageRepository}:${editData.imageVersion}` : editData.imageRepository;
+    editData.phase = editData.phase || PluginPhase.UNSPECIFIED;
+    editData.imagePullPolicy = editData.imagePullPolicy || ImagePullPolicy.UNSPECIFIED;
   }
 
   const builtIn = !!(editData && editData.builtIn);
@@ -152,10 +158,16 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
           />
         </Form.Item>
         <Form.Item label={t('plugins.custom.phase')} name="phase" rules={[{ required: true }]}>
-          <Select disabled={builtIn} options={phaseOptions} placeholder={t('plugins.custom.phasePlaceholder')} />
+          <Select options={phaseOptions} placeholder={t('plugins.custom.phasePlaceholder')} />
         </Form.Item>
         <Form.Item label={t('plugins.custom.priority')} name="priority" rules={[{ required: true }]}>
-          <InputNumber disabled={builtIn} max={1000} min={1} style={{ width: '100%' }} placeholder={t('plugins.custom.priorityPlaceholder') || ''} />
+          <InputNumber max={1000} min={1} style={{ width: '100%' }} placeholder={t('plugins.custom.priorityPlaceholder') || ''} />
+        </Form.Item>
+        <Form.Item label={t('plugins.custom.imagePullPolicy')} name="imagePullPolicy" rules={[{ required: true }]}>
+          <Select options={imagePullPolicyOptions} />
+        </Form.Item>
+        <Form.Item label={t('plugins.custom.imagePullSecret')} name="imagePullSecret">
+          <Input placeholder={t('plugins.custom.imagePullSecretPlaceholder') || ''} />
         </Form.Item>
       </Form>
     </div>

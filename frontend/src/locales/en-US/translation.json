@@ -367,13 +367,21 @@
       "phase": "Plugin Execution Phase",
       "phasePlaceholder": "The sequence of phases: AuthN > AuthZ > Stats > Default",
       "priority": "Plugin Execution Priority",
-      "priorityPlaceholder": "Range from 1 to 1000. Plugins with a larger priority will execute first."
+      "priorityPlaceholder": "Range from 1 to 1000. Plugins with a larger priority will execute first.",
+      "imagePullPolicy": "Plugin Pull Policy",
+      "imagePullSecret": "Plugin Pull Secret",
+      "imagePullSecretPlaceholder": ""
     },
     "phases": {
       "unspecified": "Default",
       "authn": "AuthN",
       "authz": "AuthZ",
       "stats": "Stats"
+    },
+    "imagePullPolicy": {
+      "unspecified": "Default",
+      "ifNotPresent": "IfNotPresent",
+      "always": "Always"
     }
   },
   "service": {

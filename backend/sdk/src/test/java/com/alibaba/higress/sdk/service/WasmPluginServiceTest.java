@@ -46,6 +46,7 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 
@@ -160,6 +161,10 @@ public class WasmPluginServiceTest {
         plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
         plugin.setImageRepository(newRepo);
         plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.getName());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
         WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
         Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
@@ -170,6 +175,14 @@ public class WasmPluginServiceTest {
         V1alpha1WasmPlugin cr = crCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, cr.getMetadata().getName());
         Assertions.assertEquals(newRepo + ":" + newVersion, cr.getSpec().getUrl());
+        Assertions.assertTrue(cr.getSpec().getDefaultConfigDisable());
+        Assertions.assertTrue(MapUtils.isEmpty(cr.getSpec().getDefaultConfig()));
+        Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));
+        Assertions.assertEquals(plugin.getPhase(), cr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), cr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), cr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), cr.getSpec().getImagePullSecret());
+
         verify(kubernetesClientService, never()).replaceWasmPlugin(any());
     }
 
@@ -196,6 +209,10 @@ public class WasmPluginServiceTest {
         plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
         plugin.setImageRepository(newRepo);
         plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.name());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
         WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
         Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
@@ -207,9 +224,13 @@ public class WasmPluginServiceTest {
         V1alpha1WasmPlugin cr = crCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, cr.getMetadata().getName());
         Assertions.assertEquals(newRepo, cr.getSpec().getUrl());
-        Assertions.assertEquals(cr.getSpec().getDefaultConfig(), existedCr.getSpec().getDefaultConfig());
-        Assertions.assertEquals(cr.getSpec().getDefaultConfigDisable(), existedCr.getSpec().getDefaultConfigDisable());
-        Assertions.assertEquals(cr.getSpec().getMatchRules(), existedCr.getSpec().getMatchRules());
+        Assertions.assertEquals(existedCr.getSpec().getDefaultConfig(), cr.getSpec().getDefaultConfig());
+        Assertions.assertEquals(existedCr.getSpec().getDefaultConfigDisable(), cr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(existedCr.getSpec().getMatchRules(), cr.getSpec().getMatchRules());
+        Assertions.assertEquals(plugin.getPhase(), cr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), cr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), cr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), cr.getSpec().getImagePullSecret());
     }
 
     @Test
@@ -235,6 +256,10 @@ public class WasmPluginServiceTest {
         plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
         plugin.setImageRepository(newRepo);
         plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.getName());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
         WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
         Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
@@ -248,16 +273,24 @@ public class WasmPluginServiceTest {
         Assertions.assertTrue(newCr.getSpec().getDefaultConfigDisable());
         Assertions.assertTrue(MapUtils.isEmpty(newCr.getSpec().getDefaultConfig()));
         Assertions.assertTrue(CollectionUtils.isEmpty(newCr.getSpec().getMatchRules()));
+        Assertions.assertEquals(plugin.getPhase(), newCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), newCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), newCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), newCr.getSpec().getImagePullSecret());
 
         ArgumentCaptor<V1alpha1WasmPlugin> updatedCrCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
         verify(kubernetesClientService, times(1)).replaceWasmPlugin(updatedCrCaptor.capture());
         V1alpha1WasmPlugin updatedCr = updatedCrCaptor.getValue();
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME, updatedCr.getMetadata().getName());
         Assertions.assertEquals(newRepo, updatedCr.getSpec().getUrl());
-        Assertions.assertEquals(updatedCr.getSpec().getDefaultConfig(), existedCr.getSpec().getDefaultConfig());
-        Assertions.assertEquals(updatedCr.getSpec().getDefaultConfigDisable(),
-            existedCr.getSpec().getDefaultConfigDisable());
-        Assertions.assertEquals(updatedCr.getSpec().getMatchRules(), existedCr.getSpec().getMatchRules());
+        Assertions.assertEquals(existedCr.getSpec().getDefaultConfig(), updatedCr.getSpec().getDefaultConfig());
+        Assertions.assertEquals(existedCr.getSpec().getDefaultConfigDisable(),
+            updatedCr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(existedCr.getSpec().getMatchRules(), updatedCr.getSpec().getMatchRules());
+        Assertions.assertEquals(plugin.getPhase(), updatedCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), updatedCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), updatedCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), updatedCr.getSpec().getImagePullSecret());
     }
 
     @Test
@@ -294,6 +327,10 @@ public class WasmPluginServiceTest {
         plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
         plugin.setImageRepository(newRepo);
         plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.name());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
         WasmPlugin updatedPlugin = service.updateBuiltIn(plugin);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedPlugin.getName());
         Assertions.assertEquals(newRepo, updatedPlugin.getImageRepository());
@@ -309,22 +346,29 @@ public class WasmPluginServiceTest {
             .orElse(null);
         Assertions.assertNotNull(updatedInternalCr);
         Assertions.assertEquals(newRepo, updatedInternalCr.getSpec().getUrl());
-        Assertions.assertEquals(updatedInternalCr.getSpec().getDefaultConfig(),
-            internalCr.getSpec().getDefaultConfig());
-        Assertions.assertEquals(updatedInternalCr.getSpec().getDefaultConfigDisable(),
-            internalCr.getSpec().getDefaultConfigDisable());
-        Assertions.assertEquals(updatedInternalCr.getSpec().getMatchRules(), internalCr.getSpec().getMatchRules());
+        Assertions.assertEquals(internalCr.getSpec().getDefaultConfig(),
+            updatedInternalCr.getSpec().getDefaultConfig());
+        Assertions.assertEquals(internalCr.getSpec().getDefaultConfigDisable(),
+            updatedInternalCr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(internalCr.getSpec().getMatchRules(), updatedInternalCr.getSpec().getMatchRules());
+        Assertions.assertEquals(plugin.getPhase(), internalCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), internalCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), internalCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), internalCr.getSpec().getImagePullSecret());
 
         V1alpha1WasmPlugin updatedUserCr = crCaptor.getAllValues().stream()
             .filter(cr -> TEST_BUILT_IN_PLUGIN_USER_CR_NAME.equals(cr.getMetadata().getName())).findFirst()
             .orElse(null);
         Assertions.assertNotNull(updatedUserCr);
         Assertions.assertEquals(newRepo, updatedUserCr.getSpec().getUrl());
-        Assertions.assertEquals(updatedUserCr.getSpec().getDefaultConfig(), userCr.getSpec().getDefaultConfig());
-        Assertions.assertEquals(updatedUserCr.getSpec().getDefaultConfigDisable(),
-            userCr.getSpec().getDefaultConfigDisable());
-        Assertions.assertEquals(updatedUserCr.getSpec().getMatchRules(), userCr.getSpec().getMatchRules());
-
+        Assertions.assertEquals(userCr.getSpec().getDefaultConfig(), updatedUserCr.getSpec().getDefaultConfig());
+        Assertions.assertEquals(userCr.getSpec().getDefaultConfigDisable(),
+            updatedUserCr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(userCr.getSpec().getMatchRules(), updatedUserCr.getSpec().getMatchRules());
+        Assertions.assertEquals(plugin.getPhase(), userCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), userCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), userCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), userCr.getSpec().getImagePullSecret());
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {

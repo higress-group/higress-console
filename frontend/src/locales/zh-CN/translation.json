@@ -367,13 +367,21 @@
       "phase": "插件执行阶段",
       "phasePlaceholder": "执行阶段先后顺序：认证>鉴权>统计>默认",
       "priority": "插件执行优先级",
-      "priorityPlaceholder": "范围1～1000，值越大越优先"
+      "priorityPlaceholder": "范围1～1000，值越大越优先",
+      "imagePullPolicy": "插件拉取策略",
+      "imagePullSecret": "插件拉取密钥",
+      "imagePullSecretPlaceholder": ""
     },
     "phases": {
       "unspecified": "默认阶段",
       "authn": "认证阶段",
       "authz": "鉴权阶段",
       "stats": "统计阶段"
+    },
+    "imagePullPolicy": {
+      "unspecified": "默认策略",
+      "ifNotPresent": "仅本地不存在时拉取",
+      "always": "总是拉取"
     }
   },
   "service": {

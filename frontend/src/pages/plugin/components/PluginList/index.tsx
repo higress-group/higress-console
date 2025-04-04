@@ -1,14 +1,15 @@
 import i18n from '@/i18n';
-import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
+import { fetchPluginsByRoute } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Tag, Typography } from 'antd';
 import { useSearchParams } from 'ice';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 import { getI18nValue, QueryType } from '../../utils';
+import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
