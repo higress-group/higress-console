@@ -50,6 +50,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       setDomainList(domains.filter(d => d.name !== DEFAULT_DOMAIN));
     },
   });
+  const default_fallback_responseCodes = ['4xx', '5xx'];
 
   useEffect(() => {
     llmResult.run();
@@ -80,6 +81,11 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
     setFallbackConfigEnabled(_fallbackConfig_enabled);
     const fallbackInitValues = { fallbackConfig_enabled: _fallbackConfig_enabled };
     if (_fallbackConfig_enabled && value?.fallbackConfig?.upstreams) {
+      if (!value.fallbackConfig.responseCodes || value.fallbackConfig.responseCodes.length === 0) {
+        fallbackInitValues['fallbackConfig_responseCodes'] = default_fallback_responseCodes;
+      } else {
+        fallbackInitValues['fallbackConfig_responseCodes'] = value.fallbackConfig.responseCodes;
+      }
       fallbackInitValues['fallbackConfig_upstreams'] = value?.fallbackConfig?.upstreams?.[0]?.provider;
       try {
         fallbackInitValues['fallbackConfig_modelNames'] = value?.fallbackConfig?.upstreams?.[0]?.modelMapping['*'];
@@ -158,6 +164,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         fallbackConfig_upstreams = '',
         authConfig_allowedConsumers = '',
         fallbackConfig_modelNames = '',
+        fallbackConfig_responseCodes = [],
         modelPredicates = [],
       } = values;
 
@@ -190,6 +197,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         _upstreams["modelMapping"]["*"] = fallbackConfig_modelNames;
         payload['fallbackConfig']['upstreams'] = [_upstreams];
         payload['fallbackConfig']['strategy'] = "SEQ";
+        payload['fallbackConfig']['responseCodes'] = fallbackConfig_responseCodes;
       }
       if (authConfig_enabled) {
         payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers && !Array.isArray(authConfig_allowedConsumers)
@@ -509,6 +517,18 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
               <Form.Item
                 style={{ flex: 1, marginRight: '8px' }}
                 required
+                name="fallbackConfig_responseCodes"
+                label={t('aiRoute.routeForm.label.fallbackResponseCodes')} // {/* 响应码列表 */}
+                rules={[{ required: true, message: t('aiRoute.routeForm.rule.fallbackResponseCodesRequired') }]}
+              >
+                <Select mode="multiple">
+                  {default_fallback_responseCodes.map((item) =>
+                    (<Select.Option key={item} value={item}>{item}</Select.Option>))}
+                </Select>
+              </Form.Item>
+              <Form.Item
+                style={{ flex: 1, marginRight: '8px' }}
+                required
                 name="fallbackConfig_upstreams"
                 label={t('aiRoute.routeForm.label.fallbackUpstream')} // {/* 降级服务列表 */}
                 rules={[{ required: true, message: t('aiRoute.routeForm.rule.fallbackUpstreamRequired') }]}
@@ -531,7 +551,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   allowClear
                 />
               </Form.Item>
-            </div >
+            </div>
           </>
           : null
       }

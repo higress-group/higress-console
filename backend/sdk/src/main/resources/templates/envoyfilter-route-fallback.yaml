@@ -37,22 +37,31 @@ spec:
                   matcher_list:
                     matchers:
                       - predicate:
+                          #if( !$responseCodes || $responseCodes.size() == 0 )
+                          #set( $responseCodes = ["4xx", "5xx"] )
+                          #end
+                          #if( $responseCodes.size() == 1 )
+                          single_predicate:
+                            input:
+                              name: "${responseCodes[0]}_response"
+                              # 匹配状态码所属的类别，例如4xx，5xx。只匹配精确的状态码，需要使用 HttpResponseStatusCodeMatchInput
+                              typed_config:
+                                "@type": type.googleapis.com/envoy.type.matcher.v3.HttpResponseStatusCodeClassMatchInput
+                            value_match:
+                              exact: "${responseCodes[0]}"
+                          #else
                           or_matcher:
                             predicate:
+                              #foreach( $responseCode in $responseCodes )
                               - single_predicate:
                                   input:
-                                    name: "4xx_response"
+                                    name: "${responseCode}_response"
                                     typed_config:
                                       "@type": type.googleapis.com/envoy.type.matcher.v3.HttpResponseStatusCodeClassMatchInput
                                   value_match:
-                                    exact: "4xx"
-                              - single_predicate:
-                                  input:
-                                    name: "5xx_response"
-                                    typed_config:
-                                      "@type": type.googleapis.com/envoy.type.matcher.v3.HttpResponseStatusCodeClassMatchInput
-                                  value_match:
-                                    exact: "5xx"
+                                    exact: "${responseCode}"
+                              #end
+                          #end
                         on_match:
                           action:
                             name: action
