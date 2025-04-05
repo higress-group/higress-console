@@ -12,13 +12,14 @@ import {
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import {Button, Col, Drawer, Form, message, Modal, Row, Space, Table} from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
 import { history } from 'ice';
 import { getI18nValue } from "@/pages/plugin/utils";
 import i18n from '@/i18n';
+import {WasmPluginData} from "@/interfaces/wasm-plugin";
 
 
 interface DomainFormProps {
@@ -299,7 +300,7 @@ const DomainList: React.FC = () => {
                     key: 'description' },
                 ]}
                 pagination={false}
-                rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
+                rowKey={(plugin) => `${plugin.name}`}
               />
             );
           },
