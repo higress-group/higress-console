@@ -14,21 +14,28 @@ package com.alibaba.higress.sdk.service.consumer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
+import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -78,11 +85,17 @@ public class ConsumerServiceImpl implements ConsumerService {
 
     @Override
     public Consumer query(String consumerName) {
+        if (StringUtils.isEmpty(consumerName)) {
+            throw new IllegalArgumentException("consumerName cannot be empty.");
+        }
         return getConsumers().get(consumerName);
     }
 
     @Override
     public void delete(String consumerName) {
+        if (StringUtils.isEmpty(consumerName)) {
+            throw new IllegalArgumentException("consumerName cannot be empty.");
+        }
         Map<String, List<WasmPluginInstance>> instancesCache = new HashMap<>(CREDENTIAL_HANDLERS.size());
         for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
             List<WasmPluginInstance> instances = wasmPluginInstanceService.list(config.getPluginName());
@@ -105,12 +118,89 @@ public class ConsumerServiceImpl implements ConsumerService {
     }
 
     @Override
-    public void updateAllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
+    public List<AllowList> listAllowLists() {
+        List<AllowList> allowLists = new ArrayList<>();
+        for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
+            List<WasmPluginInstance> instances = wasmPluginInstanceService.list(handler.getPluginName(), true);
+            if (CollectionUtils.isEmpty(instances)) {
+                continue;
+            }
+
+            for (WasmPluginInstance instance : instances) {
+                if (instance.getTargets().containsKey(WasmPluginInstanceScope.GLOBAL)) {
+                    continue;
+                }
+                AllowList allowList = allowLists.stream()
+                    .filter(a -> Objects.equals(instance.getTargets(), a.getTargets())).findFirst().orElseGet(() -> {
+                        AllowList newAllowList = new AllowList(instance.getTargets(), new ArrayList<>());
+                        allowLists.add(newAllowList);
+                        return newAllowList;
+                    });
+                List<String> consumerNames = handler.getAllowList(instance);
+                if (CollectionUtils.isEmpty(consumerNames)) {
+                    continue;
+                }
+                for (String consumerName : consumerNames) {
+                    if (!allowList.getConsumerNames().contains(consumerName)) {
+                        allowList.getConsumerNames().add(consumerName);
+                    }
+                }
+            }
+        }
+        return allowLists;
+    }
+
+    @Override
+    public AllowList getAllowList(Map<WasmPluginInstanceScope, String> targets) {
+        if (MapUtils.isEmpty(targets)) {
+            throw new IllegalArgumentException("targets cannot be null or empty.");
+        }
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            throw new IllegalArgumentException("targets cannot contain GLOBAL scope.");
+        }
+
+        Set<String> allConsumerNames = null;
+        for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
+            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, handler.getPluginName(), true);
+            if (instance == null) {
+                continue;
+            }
+            List<String> consumerNames = handler.getAllowList(instance);
+            if (CollectionUtils.isEmpty(consumerNames)) {
+                continue;
+            }
+            if (allConsumerNames == null) {
+                allConsumerNames = new LinkedHashSet<>();
+            }
+            allConsumerNames.addAll(consumerNames);
+        }
+        if (allConsumerNames == null) {
+            return null;
+        }
+        return new AllowList(targets, new ArrayList<>(allConsumerNames));
+    }
+
+    @Override
+    public void updateAllowList(AllowList allowList) {
+        if (allowList == null) {
+            throw new IllegalArgumentException("allowList cannot be null.");
+        }
+
+        Map<WasmPluginInstanceScope, String> targets = allowList.getTargets();
+        List<String> consumerNames = allowList.getConsumerNames();
+
+        if (MapUtils.isEmpty(targets)) {
+            throw new IllegalArgumentException("targets cannot be null or empty.");
+        }
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            throw new IllegalArgumentException("targets cannot contain GLOBAL scope.");
+        }
+
         for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
-            WasmPluginInstance instance = wasmPluginInstanceService.query(scope, target, config.getPluginName(), true);
+            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, config.getPluginName(), true);
             if (CollectionUtils.isEmpty(consumerNames)) {
                 if (instance != null) {
-                    wasmPluginInstanceService.delete(scope, target, config.getPluginName());
+                    wasmPluginInstanceService.delete(targets, config.getPluginName());
                 }
                 continue;
             }
@@ -118,7 +208,7 @@ public class ConsumerServiceImpl implements ConsumerService {
             if (instance == null) {
                 instance = wasmPluginInstanceService.createEmptyInstance(config.getPluginName());
                 instance.setInternal(true);
-                instance.setTarget(scope, target);
+                instance.setTargets(targets);
             }
             config.updateAllowList(instance, consumerNames);
             wasmPluginInstanceService.addOrUpdate(instance);
@@ -137,7 +227,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             for (Consumer consumer : extractedConsumers) {
                 Consumer existedConsumer = consumers.putIfAbsent(consumer.getName(), consumer);
                 if (existedConsumer != null) {
-                    existedConsumer.getCredentials().addAll(consumer.getCredentials());
+                    List<Credential> credentials = new ArrayList<>(existedConsumer.getCredentials());
+                    credentials.addAll(consumer.getCredentials());
+                    existedConsumer.setCredentials(credentials);
                 }
             }
         }

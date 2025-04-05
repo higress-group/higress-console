@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,29 +10,32 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.model;
+package com.alibaba.higress.sdk.model.consumer;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import java.util.Map;
+
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Query criteria for generic entity listing with pagination support.")
-public class CommonPageQuery {
+public class AllowList {
 
-    /**
-     * Starting from 1
-     */
-    @Schema(description = "Page number, starting from 1. If omitted, all items will be returned.")
-    private Integer pageNum;
+    private Map<WasmPluginInstanceScope, String> targets;
+    private List<String> consumerNames;
 
-    @Schema(description = "Number of items per page. If omitted, all items will be returned.")
-    private Integer pageSize;
+    public AllowList(WasmPluginInstanceScope scope, String target) {
+        this(scope, target, null);
+    }
 
-    public boolean paginationEnabled() {
-        return pageNum != null || pageSize != null;
+    public AllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
+        this(Map.of(scope, target), consumerNames);
     }
 }

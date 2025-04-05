@@ -15,11 +15,12 @@ package com.alibaba.higress.sdk.service.consumer;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_CREDENTIAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_CREDENTIALS;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_NAME;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMER_NAME;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,7 +164,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             throw new IllegalArgumentException("Invalid key auth credential source: " + keyAuthCredential.getSource());
         }
         String key = keyAuthCredential.getKey();
-        String credential = keyAuthCredential.getValue();
+        List<String> credentials = keyAuthCredential.getValues();
         switch (sourceEnum) {
             case BEARER:
             case HEADER:
@@ -171,7 +172,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 consumerConfig.put(IN_QUERY, false);
                 if (sourceEnum == KeyAuthCredentialSource.BEARER) {
                     key = HttpHeaders.AUTHORIZATION;
-                    credential = BEARER_TOKEN_PREFIX + keyAuthCredential.getValue();
+                    credentials = credentials.stream().map(c -> BEARER_TOKEN_PREFIX + c).toList();
                 }
                 break;
             case QUERY:
@@ -183,7 +184,8 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                     "Unsupported key auth credential source: " + keyAuthCredential.getSource());
         }
         consumerConfig.put(KEYS, List.of(key));
-        consumerConfig.put(CONSUMER_CREDENTIAL, credential);
+        consumerConfig.put(CONSUMER_CREDENTIALS, credentials);
+        consumerConfig.remove(CONSUMER_CREDENTIAL);
 
         configurations.put(CONSUMERS, consumers);
         configurations.put(GLOBAL_AUTH, false);
@@ -218,6 +220,20 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     @Override
+    public List<String> getAllowList(WasmPluginInstance instance) {
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            return List.of();
+        }
+
+        Object allowObj = configurations.get(ALLOW);
+        if (!(allowObj instanceof List<?> allowList)) {
+            return List.of();
+        }
+        return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).toList();
+    }
+
+    @Override
     public void updateAllowList(WasmPluginInstance instance, List<String> consumerNames) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
@@ -242,14 +258,11 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         return new KeyAuthCredential(
             StringUtils.firstNonBlank(keyAuthCredential.getSource(), existedCredential.getSource()),
             StringUtils.firstNonBlank(keyAuthCredential.getKey(), existedCredential.getKey()),
-            StringUtils.firstNonBlank(keyAuthCredential.getValue(), existedCredential.getValue()));
+            CollectionUtils.isNotEmpty(keyAuthCredential.getValues()) ? keyAuthCredential.getValues()
+                : existedCredential.getValues());
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {
-        String credential = MapUtils.getString(consumerMap, CONSUMER_CREDENTIAL);
-        if (StringUtils.isBlank(credential)) {
-            return null;
-        }
 
         Object keyObj = MapUtils.getObject(consumerMap, KEYS);
         if (!(keyObj instanceof List<?> keyList) || keyList.isEmpty()) {
@@ -272,12 +285,30 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         Boolean inHeader = MapUtils.getBoolean(consumerMap, IN_HEADER);
         Boolean inQuery = MapUtils.getBoolean(consumerMap, IN_QUERY);
 
+        List<String> credentials = new ArrayList<>();
+        Object credentialsObj = consumerMap.get(CONSUMER_CREDENTIALS);
+        if (credentialsObj instanceof List<?> credentialsList) {
+            for (Object credentialObj : credentialsList) {
+                if (credentialObj instanceof String credential) {
+                    credentials.add(credential);
+                }
+            }
+        }
+        {
+            // TODO: To be removed later.
+            String credential = MapUtils.getString(consumerMap, CONSUMER_CREDENTIAL);
+            if (StringUtils.isNotBlank(credential) && !credentials.contains(credential)) {
+                credentials.add(credential);
+            }
+        }
+
         KeyAuthCredentialSource source;
         if (Boolean.TRUE.equals(inHeader)) {
-            if (HttpHeaders.AUTHORIZATION.equals(key) && credential.startsWith(BEARER_TOKEN_PREFIX)) {
+            if (HttpHeaders.AUTHORIZATION.equals(key)
+                && credentials.stream().allMatch(c -> c.startsWith(BEARER_TOKEN_PREFIX))) {
                 source = KeyAuthCredentialSource.BEARER;
                 key = null;
-                credential = credential.substring(BEARER_TOKEN_PREFIX.length()).trim();
+                credentials.replaceAll(s -> s.substring(BEARER_TOKEN_PREFIX.length()).trim());
             } else {
                 source = KeyAuthCredentialSource.HEADER;
             }
@@ -286,6 +317,6 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         } else {
             return null;
         }
-        return new KeyAuthCredential(source.name(), key, credential);
+        return new KeyAuthCredential(source.name(), key, credentials);
     }
 }

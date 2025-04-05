@@ -404,6 +404,8 @@ public class KubernetesModelConverter {
         if (spec != null) {
             plugin.setPhase(ObjectUtils.firstNonNull(spec.getPhase(), PluginPhase.UNSPECIFIED.getName()));
             plugin.setPriority(spec.getPriority());
+            plugin.setImagePullPolicy(spec.getImagePullPolicy());
+            plugin.setImagePullSecret(spec.getImagePullSecret());
             String url = spec.getUrl();
             if (StringUtils.isNotEmpty(url)) {
                 ImageUrl imageUrl = ImageUrl.parse(url);
@@ -453,6 +455,8 @@ public class KubernetesModelConverter {
         spec.setPhase(plugin.getPhase());
         spec.setPriority(plugin.getPriority());
         spec.setUrl(buildImageUrl(plugin.getImageRepository(), plugin.getImageVersion()));
+        spec.setImagePullPolicy(plugin.getImagePullPolicy());
+        spec.setImagePullSecret(plugin.getImagePullSecret());
         setDefaultValues(spec);
         cr.setSpec(spec);
 
@@ -1683,7 +1687,7 @@ public class KubernetesModelConverter {
         v1RegistryConfig.setType(serviceSource.getType());
         v1RegistryConfig.setPort(serviceSource.getPort());
         v1RegistryConfig.setName(serviceSource.getName());
-        v1RegistryConfig.setProtocol(serviceSource.getProtocol());
+        v1RegistryConfig.setProtocol(StringUtils.firstNonBlank(serviceSource.getProtocol()));
         v1RegistryConfig.setSni(serviceSource.getSni());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {

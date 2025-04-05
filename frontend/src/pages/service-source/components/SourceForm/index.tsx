@@ -29,7 +29,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
     if (!valueToSet.protocol) {
-      valueToSet.protocol = ServiceProtocols.http.key;
+      valueToSet.protocol = ServiceProtocols.unspecified.key;
     }
     updateUsingTlsProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
@@ -80,7 +80,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     }
     let protocol: string | null = null;
     if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(type) !== -1) {
-      protocol = form.getFieldValue("protocol") || ServiceProtocols.http.key;
+      protocol = form.getFieldValue("protocol") || ServiceProtocols.unspecified.key;
     }
     form.setFieldValue("protocol", protocol);
     updateUsingTlsProtocol(protocol);
@@ -446,7 +446,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         (sourceType === ServiceSourceTypes.static.key || sourceType === ServiceSourceTypes.dns.key) && (
           <Form.Item
             label={t('serviceSource.serviceSourceForm.protocol')}
-            required
             name="protocol"
           >
             <Select
@@ -455,7 +454,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               {
                 // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
                 Object.entries(ServiceProtocols).map(([k, v]) =>
-                  (<Option key={k} value={k}>{v.i18n ? t(v.name) : v.name}</Option>))
+                  (<Option key={k} value={v.key}>{v.i18n ? t(v.name) : v.name}</Option>))
               }
             </Select>
           </Form.Item>
@@ -471,7 +470,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               allowClear
               maxLength={256}
               placeholder={form.getFieldValue('type') === ServiceSourceTypes.dns.key
-                             && t('serviceSource.serviceSourceForm.sniPlaceholderForDns') || ''}
+                && t('serviceSource.serviceSourceForm.sniPlaceholderForDns') || ''}
             />
           </Form.Item>
         )

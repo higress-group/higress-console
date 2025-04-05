@@ -55,7 +55,9 @@
       "name": "Name",
       "domains": "Domains",
       "upstreams": "AI Services",
-      "auth": "Request Auth"
+      "auth": "Request Auth",
+      "pathPredicate": "Path Match Rule",
+      "modelPredicates": "Model Match Rule"
     },
     "routeForm": {
       "label": {
@@ -70,8 +72,8 @@
         "name": "Name",
         "serviceName": "Service Name",
         "serviceWeight": "Weight",
-        "services": "Target Services"
-
+        "services": "Target Services",
+        "modelPredicates": "Model Match Rule"
       },
       "rule": {
         "matchTypeRequired": "Please select a match type",
@@ -80,7 +82,9 @@
         "serviceWeightRequired": "Please input the weight value",
         "fallbackUpstreamRequired": "Please select the fallback service",
         "nameRequired": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
-        "targetServiceRequired": "Please select a target service"
+        "targetServiceRequired": "Please select a target service",
+        "badWeightSum": "The sum of all service weights must be 100.",
+        "noUpstreams": "At least one target service is required."
       },
       "modelMatchType": "Model Match Type",
       "modelMatchValue": "Match Value",
@@ -97,7 +101,8 @@
     "authEnabledWithoutConsumer": "Nobody authorized",
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
-    "aiRouteUsageContent": "You can send a test request using the command below:"
+    "aiRouteUsageContent": "You can send a test request using the command below:",
+    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers."
   },
   "consumer": {
     "columns": {
@@ -391,6 +396,9 @@
         "name": "Domains"
       }
     },
+    "protocols": {
+      "unspecified": "Unspecified"
+    },
     "columns": {
       "type": "Type",
       "name": "Name",
@@ -508,7 +516,7 @@
       "matchType": "Match Type",
       "matchTypeTooltip": "The relation among different arguments is \"and\", which means the more rules are configured, the smaller the range to match is",
       "path": "Path",
-      "pathPredicatesRequired": "Please select a path matching predicate.",
+      "pathPredicateRequired": "Please select a path matching predicate.",
       "pathMatcherRequired": "Please input the path match target.",
       "pathMatcherPlacedholder": "Path match target. e.g.: /user",
       "caseInsensitive": "Case Insensitive",
@@ -599,6 +607,8 @@
     "close": "Close",
     "save": "Save",
     "strategy": "Strategy",
+    "strategyList": "Strategy List",
+    "description": "Description",
     "configure": "Configure",
     "information": "Information",
     "action": "Action",

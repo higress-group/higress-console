@@ -55,7 +55,9 @@
       "name": "名称",
       "domains": "域名",
       "upstreams": "服务",
-      "auth": "请求授权"
+      "auth": "请求授权",
+      "pathPredicate": "路径匹配规则",
+      "modelPredicates": "模型匹配规则"
     },
     "routeForm": {
       "label": {
@@ -70,7 +72,8 @@
         "name": "名称",
         "serviceName": "服务名称",
         "serviceWeight": "请求比例",
-        "services": "目标AI服务"
+        "services": "目标AI服务",
+        "modelPredicates": "模型匹配规则"
       },
       "rule": {
         "matchTypeRequired": "请选择匹配方式",
@@ -79,7 +82,9 @@
         "serviceWeightRequired": "请输入请求比例",
         "fallbackUpstreamRequired": "请选择降级服务",
         "nameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
-        "targetServiceRequired": "请选择目标服务"
+        "targetServiceRequired": "请选择目标服务",
+        "badWeightSum": "所有服务的权重总和必须为100",
+        "noUpstreams": "至少要配置一个目标AI服务"
       },
       "modelMatchType": "匹配方式",
       "modelMatchValue": "匹配条件",
@@ -96,7 +101,8 @@
     "authEnabledWithoutConsumer": "未授权任何人访问",
     "usage": "使用方法",
     "aiRouteUsage": "AI路由使用方法",
-    "aiRouteUsageContent": "可使用以下命令发送请求："
+    "aiRouteUsageContent": "可使用以下命令发送请求：",
+    "searchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由"
   },
   "consumer": {
     "columns": {
@@ -390,6 +396,9 @@
         "name": "DNS域名"
       }
     },
+    "protocols": {
+      "unspecified": "未指定"
+    },
     "columns": {
       "type": "类型",
       "name": "名称",
@@ -507,7 +516,7 @@
       "matchType": "匹配规则",
       "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
       "path": "路径（Path）",
-      "pathPredicatesRequired": "请选择路径匹配规则",
+      "pathPredicateRequired": "请选择路径匹配规则",
       "pathMatcherRequired": "请输入路径匹配值",
       "pathMatcherPlacedholder": "路径匹配值，如：/user",
       "caseInsensitive": "忽略大小写",

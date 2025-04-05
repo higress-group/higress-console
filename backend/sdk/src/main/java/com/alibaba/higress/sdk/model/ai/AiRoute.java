@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
@@ -53,7 +54,7 @@ public class AiRoute {
     @Schema(description = "Model predicates")
     private List<AiModelPredicate> modelPredicates;
     @Schema(description = "Route auth configuration")
-    private AiRouteAuthConfig authConfig;
+    private RouteAuthConfig authConfig;
     @Schema(description = "Route fallback configuration")
     private AiRouteFallbackConfig fallbackConfig;
 
@@ -81,6 +82,10 @@ public class AiRoute {
             urlParamPredicates.forEach(KeyedRoutePredicate::validate);
         }
         upstreams.forEach(AiUpstream::validate);
+        int weightSum = upstreams.stream().mapToInt(AiUpstream::getWeight).sum();
+        if (weightSum != 100) {
+            throw new ValidationException("The sum of upstream weights must be 100.");
+        }
         if (authConfig != null) {
             authConfig.validate();
         }

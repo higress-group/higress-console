@@ -13,14 +13,16 @@
 package com.alibaba.higress.sdk.service.consumer;
 
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 
 public interface ConsumerService {
-    
+
     Consumer addOrUpdate(Consumer consumer);
 
     PaginatedResult<Consumer> list(CommonPageQuery query);
@@ -29,5 +31,9 @@ public interface ConsumerService {
 
     void delete(String consumerName);
 
-    void updateAllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames);
+    List<AllowList> listAllowLists();
+
+    AllowList getAllowList(Map<WasmPluginInstanceScope, String> targets);
+
+    void updateAllowList(AllowList allowList);
 }

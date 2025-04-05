@@ -16,7 +16,7 @@ info:
   contact:
     name: heimanba
 spec:
-  phase: AUTHN
+  phase: default
   priority: 450
   configSchema:
     openAPIV3Schema:

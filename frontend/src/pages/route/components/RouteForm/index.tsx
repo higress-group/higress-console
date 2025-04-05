@@ -1,16 +1,19 @@
 import i18n, { lngs } from '@/i18n';
 import { OptionItem } from '@/interfaces/common';
+import { Consumer } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
+import { getConsumers } from '@/services/consumer';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Tooltip } from 'antd';
+import { Checkbox, Form, Input, Select, Switch, Tooltip } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 import KeyValueGroup from '../KeyValueGroup';
+import { HistoryButton, RedoOutlinedBtn } from '@/pages/ai/components/RouteForm/Components';
 
 const { Option } = Select;
 
@@ -33,9 +36,18 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [form] = Form.useForm();
   const [serviceOptions, setServiceOptions] = useState<OptionItem[]>([]);
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
+  const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
   const servicesRef = useRef(new Map());
   const { data: _services = [] } = useRequest(getGatewayServices);
   const { data: _domains = [] } = useRequest(getGatewayDomains);
+
+  const [consumerList, setConsumerList] = useState<Consumer[]>([]);
+  const consumerResult = useRequest(getConsumers, {
+    onSuccess: (result) => {
+      const consumers = (result || []) as Consumer[];
+      setConsumerList(consumers);
+    },
+  });
 
   useEffect(() => {
     form.resetFields();
@@ -62,7 +74,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
     if (value) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      const { name, domains, path, headers, methods, urlParams, services, customConfigs } = value;
+      const { name, domains, path, headers, methods, urlParams, services, customConfigs, authConfig } = value;
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
@@ -72,6 +84,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const customConfigArray = customConfigs ? Object.keys(customConfigs).map((key) => {
         return { uid: uniqueId(), key, value: customConfigs[key] };
       }) : [];
+      const _authConfig_enabled = !!authConfig?.enabled;
+      const _authConfig_allowedConsumers = authConfig?.allowedConsumers || [];
       form.setFieldsValue({
         name,
         domains: domains || [],
@@ -80,8 +94,15 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         headers: headers || [],
         urlParams: urlParams || [],
         services: services ? services.map(upstreamServiceToString) : null,
+        authConfig_enabled: _authConfig_enabled,
+        authConfig_allowedConsumers: _authConfig_allowedConsumers,
         customConfigs: customConfigArray,
       });
+      setAuthConfigEnabled(_authConfig_enabled);
+    }
+
+    return () => {
+      setAuthConfigEnabled(false);
     }
   }, [_services, _domains, value]);
 
@@ -101,6 +122,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         }
         values.customConfigs = customConfigsObj;
       }
+      const authConfig = { enabled: authConfig_enabled, allowedConsumers: null };
+      if (authConfig.enabled) {
+        const allowdConsumers = values.authConfig_allowedConsumers;
+        authConfig.allowedConsumers = allowdConsumers && !Array.isArray(allowdConsumers) ? [allowdConsumers] : allowdConsumers;
+      }
+      values.authConfig = authConfig;
       return values;
     },
   }));
@@ -160,7 +187,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[
                 {
                   required: true,
-                  message: t('route.routeForm.pathPredicatesRequired'),
+                  message: t('route.routeForm.pathPredicateRequired'),
                 },
               ]}
             >
@@ -227,6 +254,38 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           <FactorGroup />
         </Form.Item>
         <Form.Item
+          name="authConfig_enabled"
+          label={t('aiRoute.routeForm.label.authConfig')} // {/* 请求认证设置 */}
+          valuePropName="checked"
+          initialValue={false}
+          extra={t('aiRoute.routeForm.label.authConfigExtra')}
+          style={authConfig_enabled ? { marginBottom: 0 } : {}}
+        >
+          <Switch onChange={e => {
+            setAuthConfigEnabled(e)
+            form.resetFields(["authConfig_allowedConsumers"])
+          }}
+          />
+        </Form.Item>
+        {
+          authConfig_enabled && // 允许请求本路由的消费者名称列表
+          <div style={{ display: 'flex' }}>
+            <Form.Item
+              style={{ flex: 1, marginRight: '8px' }}
+              required
+              name="authConfig_allowedConsumers"
+              label={t('aiRoute.routeForm.label.authConfigList')}
+              rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
+              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+            >
+              <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>
+                {consumerList.map((item) => (<Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>))}
+              </Select>
+            </Form.Item>
+            <RedoOutlinedBtn getList={consumerResult} />
+          </div>
+        }
+        <Form.Item
           label={
             <>
               {t('route.routeForm.customConfigs')}
@@ -248,7 +307,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           rules={[
             {
               required: true,
-              message: t('route.routeForm.targetServiceRequired'),
+              message: t('route.routeForm.targetServiceRequired') || '',
             },
           ]}
         >

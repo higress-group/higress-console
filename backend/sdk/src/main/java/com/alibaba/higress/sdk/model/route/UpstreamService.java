@@ -30,4 +30,8 @@ public class UpstreamService {
     private String version;
 
     private Integer weight;
+
+    public void validate() {
+        // TODO: Implement validation logic
+    }
 }
