@@ -1,5 +1,5 @@
 import request from './request';
-import { RouteResponse, Route, WasmPluginData } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
 
 // 获取全局的插件配置列表
 export const getWasmPlugins = (lang: string): Promise<any> => {
@@ -53,6 +53,11 @@ export const getRoutePluginInstance = (params: { name: string; pluginName: strin
 export const updateRoutePluginInstance = (params: { name: string; pluginName: string }, payload) => {
   const { name, pluginName } = params;
   return request.put<any, any>(`/v1/routes/${name}/plugin-instances/${pluginName}`, payload);
+};
+
+// 获取指定域名的插件配置列表
+export const getDomainPluginInstances = (name: string) => {
+  return request.get<any, any>(`/v1/domains/${name}/plugin-instances`);
 };
 
 // 获取指定域名的指定插件配置

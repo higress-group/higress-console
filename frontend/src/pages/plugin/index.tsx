@@ -1,4 +1,4 @@
-import { WasmPluginData } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { createWasmPlugin, deleteWasmPlugin, getGatewayRouteDetail, updateWasmPlugin } from '@/services';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -76,22 +76,20 @@ export default function RouterConfig() {
       updateWasmPlugin(val.name, val).then(() => {
         message.success(t('plugins.updateSuccess'));
         formOperatorBack();
-        listRef.current?.refresh();
       });
     } else {
       createWasmPlugin(val).then(() => {
         message.success(t('plugins.addSuccess'));
         formOperatorBack();
-        listRef.current?.refresh();
       });
     }
   };
 
   const init = () => {
-    if (name && type === 'route') {
-      loadRouteDetail(name)
-      listRef.current?.refresh();
+    if (name && type === QueryType.ROUTE) {
+      loadRouteDetail(name);
     }
+    listRef.current?.refresh();
   };
 
   useEffect(() => {

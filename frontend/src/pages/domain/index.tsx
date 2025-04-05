@@ -1,15 +1,26 @@
 /* eslint-disable */
 // @ts-nocheck
 import { DEFAULT_DOMAIN, Domain, DomainResponse, EnableHttpsValue, Protocol } from '@/interfaces/domain';
-import { addGatewayDomain, deleteGatewayDomain, getGatewayDomains, updateGatewayDomain } from '@/services';
+import {
+  addGatewayDomain,
+  deleteGatewayDomain,
+  getGatewayDomains,
+  updateGatewayDomain,
+  getWasmPlugins,
+  getDomainPluginInstances
+} from '@/services';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
+import {Button, Col, Drawer, Form, message, Modal, Row, Space, Table} from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
 import { history } from 'ice';
+import { getI18nValue } from "@/pages/plugin/utils";
+import i18n from '@/i18n';
+import {WasmPluginData} from "@/interfaces/wasm-plugin";
+
 
 interface DomainFormProps {
   name: string;
@@ -68,6 +79,18 @@ const DomainList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+  const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
+    return getWasmPlugins(i18n.language)
+  }, {
+    manual: true,
+    onSuccess: (result = []) => {
+      let plugins = result || [];
+      setPluginInfoList(plugins);
+    },
+  });
 
   const getDomainList = async (factor): Promise<DomainResponse> => getGatewayDomains(factor);
   const { loading, run, refresh } = useRequest(getDomainList, {
@@ -111,7 +134,12 @@ const DomainList: React.FC = () => {
 
   useEffect(() => {
     run({});
+    loadWasmPlugins();
   }, []);
+
+  i18n.on('languageChanged', () => {
+    loadWasmPlugins();
+  });
 
   const onEditConfig = (domain) => {
     history?.push(`/domain/config?name=${domain.name}&type=domain`);
@@ -125,6 +153,38 @@ const DomainList: React.FC = () => {
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentDomain(null);
+  };
+
+  const onShowStrategyList = async (record: Domain, expanded: boolean) => {
+    if (expanded) {
+      try {
+        const plugins = await getDomainPluginInstances(record.name);
+        const pluginInfos = plugins.map((plugin: { pluginName: string; description: string; }) => {
+          const isMatchingInfo = (info: WasmPluginData) => info.name === plugin.pluginName;
+          const pluginInfo = pluginInfoList.find(isMatchingInfo);
+          const title = pluginInfo?.title?? plugin.pluginName?? '';
+          const description = pluginInfo?.description?? plugin.description?? '';
+          return {
+            ...plugin,
+            title,
+            description,
+          };
+        })
+        setPluginsData((prev) => ({
+          ...prev,
+          [record.name]: pluginInfos,
+        }));
+        if (plugins.some((plugin: { enabled: boolean; }) => plugin.enabled)) {
+          setExpandedKeys((prev) => [...prev, record.name]);
+        }
+      } catch (error) {
+        message.error('Failed to fetch strategies, error:', error);
+        setExpandedKeys((prev) => prev.filter((key) => key !== record.name));
+      }
+    } else {
+      setExpandedKeys((prev) =>
+        prev.filter((key) => key !== record.name));
+    }
   };
 
   const handleDrawerOK = async () => {
@@ -202,7 +262,50 @@ const DomainList: React.FC = () => {
           </Col>
         </Row>
       </Form>
-      <Table loading={loading} dataSource={dataSource} columns={columns} pagination={false} />
+      <Table
+        loading={loading}
+        dataSource={dataSource}
+        columns={columns}
+        pagination={false}
+        expandable={{
+          expandedRowKeys: expandedKeys,
+          onExpand: async (expanded, record) => {
+            if (expanded) {
+              setExpandedKeys([...expandedKeys, record.name]);
+            } else {
+              setExpandedKeys(expandedKeys.filter(key => key!== record.name));
+            }
+            await onShowStrategyList(record, expanded);
+          },
+          rowExpandable: (record) => {
+            return record.name!== DEFAULT_DOMAIN;
+          },
+          expandedRowRender: (record) => {
+            const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
+            return  (
+              <Table
+                dataSource={plugins}
+                columns={[
+                  {
+                    title: t('plugins.title'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'title');
+                    },
+                    key: 'title' },
+                  {
+                    title: t('plugins.description'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'description');
+                    },
+                    key: 'description' },
+                ]}
+                pagination={false}
+                rowKey={(plugin) => `${plugin.name}`}
+              />
+            );
+          },
+        }}
+      />
       <Modal
         title={
           <div>
