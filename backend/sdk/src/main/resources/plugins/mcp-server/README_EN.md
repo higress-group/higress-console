@@ -63,7 +63,9 @@ Plugin execution priority: `30`
 | `tools[].requestTemplate.argsToUrlParam` | boolean | No  | false  | When true, arguments will be added to the URL as query parameters (mutually exclusive with body, argsToJsonBody, argsToFormBody) |
 | `tools[].requestTemplate.argsToFormBody` | boolean | No  | false  | When true, arguments will be encoded as application/x-www-form-urlencoded in the request body (mutually exclusive with body, argsToJsonBody, argsToUrlParam) |
 | `tools[].responseTemplate`    | object          | Yes     | -      | HTTP response transformation template              |
-| `tools[].responseTemplate.body` | string        | Yes     | -      | Response body transformation template                 |
+| `tools[].responseTemplate.body` | string        | No      | -      | Response body transformation template (mutually exclusive with prependBody and appendBody) |
+| `tools[].responseTemplate.prependBody` | string | No      | -      | Text to insert before the response body (mutually exclusive with body) |
+| `tools[].responseTemplate.appendBody` | string  | No      | -      | Text to insert after the response body (mutually exclusive with body) |
 
 ## Parameter Type Support
 
@@ -349,6 +351,59 @@ This example demonstrates:
 - Using array slicing (`slice`) to select specific weather times
 - Nested loops to iterate through multiple days and time periods of weather data
 
+### Using PrependBody and AppendBody: OpenAPI Conversion
+
+When you want to preserve the original API response but add additional context information, the `prependBody` and `appendBody` fields are very useful. This is particularly valuable when converting OpenAPI/Swagger specifications to MCP tools, as you can keep the original JSON response while providing explanations of field meanings for the AI assistant.
+
+```yaml
+server:
+  name: product-api-server
+  config:
+    apiKey: your-api-key-here
+tools:
+- name: get-product
+  description: "Get detailed product information"
+  args:
+  - name: product_id
+    description: "Product ID"
+    type: string
+    required: true
+  requestTemplate:
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+    headers:
+    - key: Authorization
+      value: "Bearer {{.config.apiKey}}"
+  responseTemplate:
+    prependBody: |
+      # Product Information
+      
+      Below is the detailed product information returned in JSON format. Field descriptions:
+      
+      - **id**: Unique product identifier
+      - **name**: Product name
+      - **description**: Product description
+      - **price**: Product price (USD)
+      - **category**: Product category
+      - **inventory**: Inventory information
+        - **quantity**: Current stock quantity
+        - **warehouse**: Warehouse location
+      - **ratings**: List of user ratings
+        - **score**: Rating (1-5)
+        - **comment**: Review content
+      
+      Original JSON response:
+      
+    appendBody: |
+      
+      You can use this information to understand the product's details, pricing, inventory status, and user reviews.
+```
+
+This example demonstrates:
+- Using `prependBody` to add field descriptions before the original JSON response
+- Using `appendBody` to add usage suggestions at the end of the response
+- Preserving the original JSON response, allowing the AI assistant to directly access all data
+
 
 ## AI Prompt for Template Generation
 
@@ -412,6 +467,7 @@ tools:
     - key: x-api-key
       value: "{{.config.apiKey}}"
   responseTemplate:
+    # The following three options are mutually exclusive, only one can be used
     body: |
       # Result
       {{- range $index, $item := .items }}
@@ -419,6 +475,17 @@ tools:
       - **Name**: {{ $item.name }}
       - **Value**: {{ $item.value }}
       {{- end }}
+    # OR
+    # prependBody: |
+    #   # API Response Description
+    #   
+    #   Below is the original JSON response, with field meanings:
+    #   - field1: Meaning of field 1
+    #   - field2: Meaning of field 2
+    #   
+    # appendBody: |
+    #   
+    #   You can use this data to...
 ```
 
 ## Template Syntax

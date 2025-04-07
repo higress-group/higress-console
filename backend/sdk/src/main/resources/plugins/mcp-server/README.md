@@ -63,7 +63,9 @@ description: MCP 服务器插件配置参考
 | `tools[].requestTemplate.argsToUrlParam` | boolean | 选填  | false  | 当为true时，参数将作为查询参数添加到URL中（与body、argsToJsonBody、argsToFormBody互斥） |
 | `tools[].requestTemplate.argsToFormBody` | boolean | 选填  | false  | 当为true时，参数将以application/x-www-form-urlencoded格式编码在请求体中（与body、argsToJsonBody、argsToUrlParam互斥） |
 | `tools[].responseTemplate`    | object          | 必填     | -      | HTTP 响应转换模板              |
-| `tools[].responseTemplate.body` | string        | 必填     | -      | 响应体转换模板                 |
+| `tools[].responseTemplate.body` | string        | 选填     | -      | 响应体转换模板（与prependBody和appendBody互斥） |
+| `tools[].responseTemplate.prependBody` | string | 选填     | -      | 在响应体前插入的文本（与body互斥） |
+| `tools[].responseTemplate.appendBody` | string  | 选填     | -      | 在响应体后插入的文本（与body互斥） |
 
 ## 参数类型支持
 
@@ -349,6 +351,59 @@ tools:
 - 使用数组切片 (`slice`) 选择特定时间的天气
 - 嵌套循环遍历多天和多时段的天气数据
 
+### 使用 PrependBody 和 AppendBody 的示例：OpenAPI 转换
+
+当您想保留原始 API 响应但添加额外的上下文信息时，`prependBody` 和 `appendBody` 字段非常有用。这在将 OpenAPI/Swagger 规范转换为 MCP 工具时特别有价值，因为您可以保留原始 JSON 响应，同时为 AI 助手提供字段含义的说明。
+
+```yaml
+server:
+  name: product-api-server
+  config:
+    apiKey: your-api-key-here
+tools:
+- name: get-product
+  description: "获取产品详细信息"
+  args:
+  - name: product_id
+    description: "产品ID"
+    type: string
+    required: true
+  requestTemplate:
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+    headers:
+    - key: Authorization
+      value: "Bearer {{.config.apiKey}}"
+  responseTemplate:
+    prependBody: |
+      # 产品信息
+      
+      以下是产品的详细信息，以JSON格式返回。字段说明：
+      
+      - **id**: 产品唯一标识符
+      - **name**: 产品名称
+      - **description**: 产品描述
+      - **price**: 产品价格（美元）
+      - **category**: 产品类别
+      - **inventory**: 库存信息
+        - **quantity**: 当前库存数量
+        - **warehouse**: 仓库位置
+      - **ratings**: 用户评分列表
+        - **score**: 评分（1-5）
+        - **comment**: 评论内容
+      
+      原始JSON响应：
+      
+    appendBody: |
+      
+      您可以使用这些信息来了解产品的详细信息、价格、库存状态和用户评价。
+```
+
+此示例展示了：
+- 使用 `prependBody` 在原始 JSON 响应前添加字段说明
+- 使用 `appendBody` 在响应末尾添加使用建议
+- 保留原始 JSON 响应，使 AI 助手可以直接访问所有数据
+
 
 ## AI 提示词生成模板
 
@@ -412,6 +467,7 @@ tools:
     - key: x-api-key
       value: "{{.config.apiKey}}"
   responseTemplate:
+    # 以下三个选项互斥，只能选择其中一种
     body: |
       # 结果
       {{- range $index, $item := .items }}
@@ -419,6 +475,17 @@ tools:
       - **名称**: {{ $item.name }}
       - **值**: {{ $item.value }}
       {{- end }}
+    # 或者
+    # prependBody: |
+    #   # API响应说明
+    #   
+    #   以下是原始JSON响应，字段含义如下：
+    #   - field1: 字段1的含义
+    #   - field2: 字段2的含义
+    #   
+    # appendBody: |
+    #   
+    #   您可以使用这些数据来...
 ```
 
 ## 模板语法
