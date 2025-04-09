@@ -52,6 +52,7 @@ description: MCP 服务器插件配置参考
 | `tools[].args[].enum`         | array           | 选填     | -      | 参数允许的值列表               |
 | `tools[].args[].items`        | object          | 选填     | -      | 数组项的模式（当type为array时）  |
 | `tools[].args[].properties`   | object          | 选填     | -      | 对象属性的模式（当type为object时）|
+| `tools[].args[].position`     | string          | 选填     | -      | 参数在请求中的位置（query, path, header, cookie, body） |
 | `tools[].requestTemplate`     | object          | 必填     | -      | HTTP 请求模板                  |
 | `tools[].requestTemplate.url` | string          | 必填     | -      | 请求 URL 模板                  |
 | `tools[].requestTemplate.method` | string       | 必填     | -      | HTTP 方法(GET/POST等)          |
@@ -112,9 +113,71 @@ args:
         type: number
 ```
 
+## 参数位置控制
+
+REST-to-MCP 工具支持通过 `position` 字段精确控制每个参数在请求中的位置。这使您可以更灵活地构建 API 请求，例如同时使用路径参数、查询参数和请求体参数。
+
+### 支持的位置类型
+
+- **query**: 参数将作为查询参数添加到 URL 中
+- **path**: 参数将替换 URL 中的路径占位符，例如 `/pet/{petId}` 中的 `{petId}`
+- **header**: 参数将作为 HTTP 头添加到请求中
+- **cookie**: 参数将作为 Cookie 添加到请求中
+- **body**: 参数将添加到请求体中（根据内容类型自动格式化为 JSON 或表单）
+
+### 使用示例
+
+```yaml
+args:
+- name: petId
+  description: "宠物ID"
+  type: string
+  required: true
+  position: path
+- name: token
+  description: "认证令牌"
+  type: string
+  required: true
+  position: header
+- name: sessionId
+  description: "会话ID"
+  type: string
+  position: cookie
+- name: limit
+  description: "返回结果数量"
+  type: integer
+  default: 10
+  position: query
+- name: tags
+  description: "标签列表"
+  type: array
+  position: body
+```
+
+在上面的示例中：
+- `petId` 将替换 URL 中的 `{petId}` 占位符
+- `token` 将作为 HTTP 头添加到请求中
+- `sessionId` 将作为 Cookie 添加到请求中
+- `limit` 将作为查询参数添加到 URL 中
+- `tags` 将添加到请求体中
+
+### 与批量参数处理选项的关系
+
+当使用 `position` 指定参数位置时，这些参数将按照指定的位置处理，而不会受到批量参数处理选项（`argsToJsonBody`、`argsToUrlParam`、`argsToFormBody`）的影响。只有未指定 `position` 的参数才会受到这些批量选项的影响。
+
+例如，如果您同时使用了 `position` 和 `argsToJsonBody`：
+- 指定了 `position: query` 的参数会添加到 URL 查询字符串中
+- 指定了 `position: header` 的参数会添加到 HTTP 头中
+- 指定了 `position: path` 的参数会替换 URL 中的占位符
+- 指定了 `position: cookie` 的参数会添加到 Cookie 中
+- 指定了 `position: body` 的参数会添加到 JSON 请求体中
+- 未指定 `position` 的参数会通过 `argsToJsonBody` 添加到 JSON 请求体中
+
+此外，如果在 `requestTemplate` 中明确指定了 `body`，则所有 `position: body` 的参数都将被忽略，以避免冲突。
+
 ## 请求参数传递方式
 
-REST-to-MCP 工具支持四种不同的请求参数传递方式，这些选项是**互斥的**，只能选择其中一种：
+除了使用 `position` 精确控制每个参数的位置外，REST-to-MCP 工具还支持四种批量参数处理方式，这些选项是**互斥的**，只能选择其中一种：
 
 1. **body**: 使用模板手动构建请求体。这是最灵活的方式，允许您完全控制请求体的格式。
    ```yaml
@@ -129,19 +192,19 @@ REST-to-MCP 工具支持四种不同的请求参数传递方式，这些选项�
        }
    ```
 
-2. **argsToJsonBody**: 当设置为 `true` 时，工具参数将直接作为 JSON 对象发送到请求体中，并自动添加 `Content-Type: application/json; charset=utf-8` 头。
+2. **argsToJsonBody**: 当设置为 `true` 时，未指定 `position` 的参数将直接作为 JSON 对象发送到请求体中，并自动添加 `Content-Type: application/json; charset=utf-8` 头。
    ```yaml
    requestTemplate:
      argsToJsonBody: true
    ```
 
-3. **argsToUrlParam**: 当设置为 `true` 时，工具参数将作为查询参数添加到 URL 中。
+3. **argsToUrlParam**: 当设置为 `true` 时，未指定 `position` 的参数将作为查询参数添加到 URL 中。
    ```yaml
    requestTemplate:
      argsToUrlParam: true
    ```
 
-4. **argsToFormBody**: 当设置为 `true` 时，工具参数将以 `application/x-www-form-urlencoded` 格式编码在请求体中，并自动添加相应的 Content-Type 头。
+4. **argsToFormBody**: 当设置为 `true` 时，未指定 `position` 的参数将以 `application/x-www-form-urlencoded` 格式编码在请求体中，并自动添加相应的 Content-Type 头。
    ```yaml
    requestTemplate:
      argsToFormBody: true
@@ -429,16 +492,19 @@ tools:
     description: "参数1的描述"
     type: string  # 可选类型: string, number, integer, boolean, array, object
     required: true
+    position: path  # 可选位置: query, path, header, cookie, body
   - name: arg2
     description: "参数2的描述"
     type: integer
     required: false
     default: 10
+    position: query
   - name: arg3
     description: "参数3的描述"
     type: array
     items:
       type: string
+    position: body
   - name: arg4
     description: "参数4的描述"
     type: object
@@ -447,6 +513,7 @@ tools:
         type: string
       subfield2:
         type: number
+    # 未指定position，将根据argsToJsonBody/argsToUrlParam/argsToFormBody处理
   requestTemplate:
     url: "https://api.example.com/endpoint"
     method: POST

@@ -52,6 +52,7 @@ Plugin execution priority: `30`
 | `tools[].args[].enum`         | array           | No     | -      | List of allowed values for the parameter               |
 | `tools[].args[].items`        | object          | No     | -      | Schema for array items (when type is array)  |
 | `tools[].args[].properties`   | object          | No     | -      | Schema for object properties (when type is object)|
+| `tools[].args[].position`     | string          | No     | -      | Position of the parameter in the request (query, path, header, cookie, body) |
 | `tools[].requestTemplate`     | object          | Yes     | -      | HTTP request template                  |
 | `tools[].requestTemplate.url` | string          | Yes     | -      | Request URL template                  |
 | `tools[].requestTemplate.method` | string       | Yes     | -      | HTTP method (GET/POST, etc.)          |
@@ -112,9 +113,71 @@ args:
         type: number
 ```
 
+## Parameter Position Control
+
+REST-to-MCP tools support precise control of each parameter's position in the request through the `position` field. This allows you to build API requests more flexibly, for example, using path parameters, query parameters, and request body parameters simultaneously.
+
+### Supported Position Types
+
+- **query**: Parameter will be added to the URL as a query parameter
+- **path**: Parameter will replace a path placeholder in the URL, such as `{petId}` in `/pet/{petId}`
+- **header**: Parameter will be added to the request as an HTTP header
+- **cookie**: Parameter will be added to the request as a Cookie
+- **body**: Parameter will be added to the request body (automatically formatted as JSON or form based on content type)
+
+### Usage Example
+
+```yaml
+args:
+- name: petId
+  description: "Pet ID"
+  type: string
+  required: true
+  position: path
+- name: token
+  description: "Authentication token"
+  type: string
+  required: true
+  position: header
+- name: sessionId
+  description: "Session ID"
+  type: string
+  position: cookie
+- name: limit
+  description: "Number of results to return"
+  type: integer
+  default: 10
+  position: query
+- name: tags
+  description: "List of tags"
+  type: array
+  position: body
+```
+
+In the example above:
+- `petId` will replace the `{petId}` placeholder in the URL
+- `token` will be added as an HTTP header to the request
+- `sessionId` will be added as a Cookie to the request
+- `limit` will be added as a query parameter to the URL
+- `tags` will be added to the request body
+
+### Relationship with Bulk Parameter Processing Options
+
+When using `position` to specify parameter locations, these parameters will be processed according to their specified positions and will not be affected by bulk parameter processing options (`argsToJsonBody`, `argsToUrlParam`, `argsToFormBody`). Only parameters without a specified `position` will be affected by these bulk options.
+
+For example, if you use both `position` and `argsToJsonBody`:
+- Parameters with `position: query` will be added to the URL query string
+- Parameters with `position: header` will be added as HTTP headers
+- Parameters with `position: path` will replace placeholders in the URL
+- Parameters with `position: cookie` will be added as Cookies
+- Parameters with `position: body` will be added to the JSON request body
+- Parameters without a specified `position` will be added to the JSON request body via `argsToJsonBody`
+
+Additionally, if a `body` is explicitly specified in the `requestTemplate`, all parameters with `position: body` will be ignored to avoid conflicts.
+
 ## Request Parameter Passing Methods
 
-REST-to-MCP tools support four different request parameter passing methods, which are **mutually exclusive** - only one can be used:
+In addition to precisely controlling each parameter's position using `position`, REST-to-MCP tools also support four bulk parameter processing methods, which are **mutually exclusive** - only one can be used:
 
 1. **body**: Manually construct the request body using a template. This is the most flexible approach, allowing you complete control over the request body format.
    ```yaml
@@ -129,19 +192,19 @@ REST-to-MCP tools support four different request parameter passing methods, whic
        }
    ```
 
-2. **argsToJsonBody**: When set to `true`, tool parameters will be sent directly as a JSON object in the request body, and the `Content-Type: application/json; charset=utf-8` header will be automatically added.
+2. **argsToJsonBody**: When set to `true`, parameters without a specified `position` will be sent directly as a JSON object in the request body, and the `Content-Type: application/json; charset=utf-8` header will be automatically added.
    ```yaml
    requestTemplate:
      argsToJsonBody: true
    ```
 
-3. **argsToUrlParam**: When set to `true`, tool parameters will be added to the URL as query parameters.
+3. **argsToUrlParam**: When set to `true`, parameters without a specified `position` will be added to the URL as query parameters.
    ```yaml
    requestTemplate:
      argsToUrlParam: true
    ```
 
-4. **argsToFormBody**: When set to `true`, tool parameters will be encoded as `application/x-www-form-urlencoded` in the request body, and the appropriate Content-Type header will be automatically added.
+4. **argsToFormBody**: When set to `true`, parameters without a specified `position` will be encoded as `application/x-www-form-urlencoded` in the request body, and the appropriate Content-Type header will be automatically added.
    ```yaml
    requestTemplate:
      argsToFormBody: true
@@ -429,16 +492,19 @@ tools:
     description: "Description of argument 1"
     type: string  # Optional types: string, number, integer, boolean, array, object
     required: true
+    position: path  # Optional positions: query, path, header, cookie, body
   - name: arg2
     description: "Description of argument 2"
     type: integer
     required: false
     default: 10
+    position: query
   - name: arg3
     description: "Description of argument 3"
     type: array
     items:
       type: string
+    position: body
   - name: arg4
     description: "Description of argument 4"
     type: object
@@ -447,6 +513,7 @@ tools:
         type: string
       subfield2:
         type: number
+    # No position specified, will be handled by argsToJsonBody/argsToUrlParam/argsToFormBody
   requestTemplate:
     url: "https://api.example.com/endpoint"
     method: POST
