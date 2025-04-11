@@ -125,6 +125,10 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
             return;
         }
         V1RegistryConfig registry = kubernetesModelConverter.removeV1McpBridgeRegistry(mcpBridge, name);
+        if (registry == null) {
+            // There is nothing to delete.
+            return;
+        }
         if (StringUtils.isNotEmpty(registry.getAuthSecretName())) {
             try {
                 kubernetesClientService.deleteSecret(registry.getAuthSecretName());
