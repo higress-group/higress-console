@@ -1,4 +1,4 @@
-import { WasmPluginData } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { Button, Drawer, Form, Input, InputNumber, Select, Space } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -1,6 +1,7 @@
 import i18n from '@/i18n';
-import { fetchPluginsByRoute, WasmPluginData } from '@/interfaces/route';
-import { getGatewayRouteDetail, getWasmPlugins } from '@/services';
+import { fetchPluginsByRoute } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
+import { getDomainPluginInstances, getGatewayRouteDetail, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Row, Typography, Tag } from 'antd';
@@ -78,6 +79,18 @@ const PluginList = forwardRef((props: Props, ref) => {
           });
           plugins = builtInPlugins.concat(updatedPlugins)
         }
+      } else if (type === QueryType.DOMAIN) {
+        const domainName = searchParams.get('name');
+        if (domainName) {
+          const pluginsByDomain = await getDomainPluginInstances(domainName);
+          plugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginsByDomain.find((p: { pluginName: string }) => p.pluginName === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+        }
       }
       setPluginList(plugins);
     },
@@ -146,7 +159,7 @@ const PluginList = forwardRef((props: Props, ref) => {
     <Row gutter={[16, 16]}>
       {pluginList.map((item) => {
         const key = item.key || `${item.name}:${item.imageVersion}`;
-        const showTag = type === QueryType.ROUTE;
+        const showTag = type === QueryType.ROUTE || type === QueryType.DOMAIN;
         return (
           <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
             <Card
