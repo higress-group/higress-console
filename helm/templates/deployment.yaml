@@ -68,9 +68,11 @@ spec:
               value: "{{ .Values.swagger.enabled }}"
             - name: SPRINGDOC_SWAGGER_UI_ENABLED
               value: "{{ .Values.swagger.enabled }}"
-            {{- range $key, $val := .Values.global.env }}
+            {{- if .Values.podEnvs }}
+            {{- range $key, $val := .Values.podEnvs }}
             - name: {{ $key }}
               value: {{ $val | quote }}
+            {{- end }}
             {{- end }}
           ports:
             - name: http
