@@ -1,0 +1,69 @@
+.categoryContainer {
+  margin-bottom: 24px;
+}
+
+/* Styling for the panel header */
+.categoryPanel {
+  margin-bottom: 16px;
+  border: none !important;
+}
+
+.categoryPanel :global(.ant-collapse-header) {
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 12px 12px 8px !important;
+  background-color: #f5f7fa;
+  border-radius: 4px !important;
+  transition: all 0.3s ease;
+}
+
+.categoryPanel :global(.ant-collapse-header):hover {
+  background-color: #e6f7ff;
+}
+
+.categoryPanel :global(.ant-collapse-content) {
+  border-top: none !important;
+}
+
+.categoryPanel :global(.ant-collapse-content-box) {
+  padding: 16px 8px 0 8px !important;
+  background-color: transparent;
+}
+
+.categoryPanel :global(.ant-collapse-arrow) {
+  font-size: 12px;
+  color: #1890ff;
+}
+
+.categoryContent {
+  margin-bottom: 16px;
+}
+
+/* Add styling for cards within category */
+.categoryContent :global(.ant-card) {
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.3s;
+  border: 1px solid #f0f0f0;
+}
+
+.categoryContent :global(.ant-card:hover) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.categoryContent :global(.ant-card-meta-title) {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.categoryContent :global(.ant-card-actions) {
+  background-color: #fafafa;
+}
+
+.emptyCategory {
+  text-align: center;
+  padding: 24px;
+  color: rgba(0, 0, 0, 0.45);
+}
