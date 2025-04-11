@@ -12,6 +12,14 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.crd.wasm;
 
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Strings;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Plugin Execution Phase", allowableValues = {"UNSPECIFIED", "AUTHN", "AUTHZ", "STATS"})
@@ -38,6 +46,14 @@ public enum PluginPhase {
      */
     STATS("STATS", 3);
 
+    private static final Map<String, PluginPhase> LOWERED_NAME_MAP = Arrays.stream(PluginPhase.values())
+            .collect(Collectors.toMap(p -> p.getName().toLowerCase(Locale.ROOT), Function.identity()));
+
+    static {
+        LOWERED_NAME_MAP.put("unspecified", UNSPECIFIED);
+        LOWERED_NAME_MAP.put("default", UNSPECIFIED);
+    }
+
     private final String name;
     private final int value;
 
@@ -52,5 +68,12 @@ public enum PluginPhase {
 
     public int getValue() {
         return value;
+    }
+
+    public static PluginPhase fromName(String name) {
+        if (Strings.isNullOrEmpty(name)) {
+            return UNSPECIFIED;
+        }
+        return LOWERED_NAME_MAP.get(name.toLowerCase(Locale.ROOT));
     }
 }

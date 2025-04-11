@@ -51,6 +51,7 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -954,7 +955,8 @@ public class KubernetesModelConverterTest {
     void wasmPluginToCrTestValidInput_ShouldConvertCorrectly() {
         WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
             .category("test-category").title("Test Plugin").description("A test plugin").icon("test-icon").builtIn(true)
-            .imageRepository("test-repository").imageVersion("test-version").phase("test-phase").priority(10).build();
+            .imageRepository("test-repository").imageVersion("test-version").phase(PluginPhase.AUTHN.getName())
+            .priority(10).imagePullPolicy(ImagePullPolicy.ALWAYS.getName()).imagePullSecret("test-secret").build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -980,9 +982,11 @@ public class KubernetesModelConverterTest {
             cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_ICON_KEY));
 
         Assertions.assertNotNull(cr.getSpec());
-        Assertions.assertEquals("test-phase", cr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPhase(), cr.getSpec().getPhase());
         Assertions.assertEquals(10, cr.getSpec().getPriority().intValue());
         Assertions.assertEquals("oci://test-repository:test-version", cr.getSpec().getUrl());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), cr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), cr.getSpec().getImagePullSecret());
     }
 
     @Test
@@ -1786,7 +1790,7 @@ public class KubernetesModelConverterTest {
         metadata.setNamespace("test-ns");
         metadata.setResourceVersion("1");
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
 
         Route route = converter.ingress2Route(ingress);
 
@@ -1802,8 +1806,7 @@ public class KubernetesModelConverterTest {
         metadata.setName("test-ingress");
         metadata.setNamespace(DEFAULT_NAMESPACE);
         metadata.setResourceVersion("1");
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-                "bad-definer");
+        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY, "bad-definer");
 
         Route route = converter.ingress2Route(ingress);
 

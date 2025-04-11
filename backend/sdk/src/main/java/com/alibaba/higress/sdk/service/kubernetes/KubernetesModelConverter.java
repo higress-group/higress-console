@@ -39,6 +39,7 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -402,9 +403,11 @@ public class KubernetesModelConverter {
 
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         if (spec != null) {
-            plugin.setPhase(ObjectUtils.firstNonNull(spec.getPhase(), PluginPhase.UNSPECIFIED.getName()));
+            PluginPhase phase = PluginPhase.fromName(spec.getPhase());
+            plugin.setPhase(ObjectUtils.firstNonNull(phase, PluginPhase.UNSPECIFIED).getName());
             plugin.setPriority(spec.getPriority());
-            plugin.setImagePullPolicy(spec.getImagePullPolicy());
+            ImagePullPolicy imagePullPolicy = ImagePullPolicy.fromName(spec.getImagePullPolicy());
+            plugin.setImagePullPolicy(ObjectUtils.firstNonNull(imagePullPolicy, ImagePullPolicy.UNSPECIFIED).getName());
             plugin.setImagePullSecret(spec.getImagePullSecret());
             String url = spec.getUrl();
             if (StringUtils.isNotEmpty(url)) {
@@ -452,10 +455,12 @@ public class KubernetesModelConverter {
         cr.setMetadata(metadata);
 
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
-        spec.setPhase(plugin.getPhase());
+        PluginPhase phase = PluginPhase.fromName(plugin.getPhase());
+        spec.setPhase(ObjectUtils.firstNonNull(phase, PluginPhase.UNSPECIFIED).getName());
         spec.setPriority(plugin.getPriority());
         spec.setUrl(buildImageUrl(plugin.getImageRepository(), plugin.getImageVersion()));
-        spec.setImagePullPolicy(plugin.getImagePullPolicy());
+        ImagePullPolicy imagePullPolicy = ImagePullPolicy.fromName(plugin.getImagePullPolicy());
+        spec.setImagePullPolicy(ObjectUtils.firstNonNull(imagePullPolicy, ImagePullPolicy.UNSPECIFIED).getName());
         spec.setImagePullSecret(plugin.getImagePullSecret());
         setDefaultValues(spec);
         cr.setSpec(spec);

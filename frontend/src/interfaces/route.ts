@@ -1,5 +1,5 @@
-import { getRoutePluginInstances } from "@/services";
 import { BUILTIN_ROUTE_PLUGIN_LIST } from "@/pages/plugin/components/PluginList/constant";
+import { getRoutePluginInstances } from "@/services";
 import { message } from "antd";
 import { WasmPluginData } from "@/interfaces/wasm-plugin";
 
