@@ -52,6 +52,7 @@ description: MCP 服务器插件配置参考
 | `tools[].args[].enum`         | array           | 选填     | -      | 参数允许的值列表               |
 | `tools[].args[].items`        | object          | 选填     | -      | 数组项的模式（当type为array时）  |
 | `tools[].args[].properties`   | object          | 选填     | -      | 对象属性的模式（当type为object时）|
+| `tools[].args[].position`     | string          | 选填     | -      | 参数在请求中的位置（query, path, header, cookie, body） |
 | `tools[].requestTemplate`     | object          | 必填     | -      | HTTP 请求模板                  |
 | `tools[].requestTemplate.url` | string          | 必填     | -      | 请求 URL 模板                  |
 | `tools[].requestTemplate.method` | string       | 必填     | -      | HTTP 方法(GET/POST等)          |
@@ -63,7 +64,9 @@ description: MCP 服务器插件配置参考
 | `tools[].requestTemplate.argsToUrlParam` | boolean | 选填  | false  | 当为true时，参数将作为查询参数添加到URL中（与body、argsToJsonBody、argsToFormBody互斥） |
 | `tools[].requestTemplate.argsToFormBody` | boolean | 选填  | false  | 当为true时，参数将以application/x-www-form-urlencoded格式编码在请求体中（与body、argsToJsonBody、argsToUrlParam互斥） |
 | `tools[].responseTemplate`    | object          | 必填     | -      | HTTP 响应转换模板              |
-| `tools[].responseTemplate.body` | string        | 必填     | -      | 响应体转换模板                 |
+| `tools[].responseTemplate.body` | string        | 选填     | -      | 响应体转换模板（与prependBody和appendBody互斥） |
+| `tools[].responseTemplate.prependBody` | string | 选填     | -      | 在响应体前插入的文本（与body互斥） |
+| `tools[].responseTemplate.appendBody` | string  | 选填     | -      | 在响应体后插入的文本（与body互斥） |
 
 ## 参数类型支持
 
@@ -110,9 +113,71 @@ args:
         type: number
 ```
 
+## 参数位置控制
+
+REST-to-MCP 工具支持通过 `position` 字段精确控制每个参数在请求中的位置。这使您可以更灵活地构建 API 请求，例如同时使用路径参数、查询参数和请求体参数。
+
+### 支持的位置类型
+
+- **query**: 参数将作为查询参数添加到 URL 中
+- **path**: 参数将替换 URL 中的路径占位符，例如 `/pet/{petId}` 中的 `{petId}`
+- **header**: 参数将作为 HTTP 头添加到请求中
+- **cookie**: 参数将作为 Cookie 添加到请求中
+- **body**: 参数将添加到请求体中（根据内容类型自动格式化为 JSON 或表单）
+
+### 使用示例
+
+```yaml
+args:
+- name: petId
+  description: "宠物ID"
+  type: string
+  required: true
+  position: path
+- name: token
+  description: "认证令牌"
+  type: string
+  required: true
+  position: header
+- name: sessionId
+  description: "会话ID"
+  type: string
+  position: cookie
+- name: limit
+  description: "返回结果数量"
+  type: integer
+  default: 10
+  position: query
+- name: tags
+  description: "标签列表"
+  type: array
+  position: body
+```
+
+在上面的示例中：
+- `petId` 将替换 URL 中的 `{petId}` 占位符
+- `token` 将作为 HTTP 头添加到请求中
+- `sessionId` 将作为 Cookie 添加到请求中
+- `limit` 将作为查询参数添加到 URL 中
+- `tags` 将添加到请求体中
+
+### 与批量参数处理选项的关系
+
+当使用 `position` 指定参数位置时，这些参数将按照指定的位置处理，而不会受到批量参数处理选项（`argsToJsonBody`、`argsToUrlParam`、`argsToFormBody`）的影响。只有未指定 `position` 的参数才会受到这些批量选项的影响。
+
+例如，如果您同时使用了 `position` 和 `argsToJsonBody`：
+- 指定了 `position: query` 的参数会添加到 URL 查询字符串中
+- 指定了 `position: header` 的参数会添加到 HTTP 头中
+- 指定了 `position: path` 的参数会替换 URL 中的占位符
+- 指定了 `position: cookie` 的参数会添加到 Cookie 中
+- 指定了 `position: body` 的参数会添加到 JSON 请求体中
+- 未指定 `position` 的参数会通过 `argsToJsonBody` 添加到 JSON 请求体中
+
+此外，如果在 `requestTemplate` 中明确指定了 `body`，则所有 `position: body` 的参数都将被忽略，以避免冲突。
+
 ## 请求参数传递方式
 
-REST-to-MCP 工具支持四种不同的请求参数传递方式，这些选项是**互斥的**，只能选择其中一种：
+除了使用 `position` 精确控制每个参数的位置外，REST-to-MCP 工具还支持四种批量参数处理方式，这些选项是**互斥的**，只能选择其中一种：
 
 1. **body**: 使用模板手动构建请求体。这是最灵活的方式，允许您完全控制请求体的格式。
    ```yaml
@@ -127,19 +192,19 @@ REST-to-MCP 工具支持四种不同的请求参数传递方式，这些选项�
        }
    ```
 
-2. **argsToJsonBody**: 当设置为 `true` 时，工具参数将直接作为 JSON 对象发送到请求体中，并自动添加 `Content-Type: application/json; charset=utf-8` 头。
+2. **argsToJsonBody**: 当设置为 `true` 时，未指定 `position` 的参数将直接作为 JSON 对象发送到请求体中，并自动添加 `Content-Type: application/json; charset=utf-8` 头。
    ```yaml
    requestTemplate:
      argsToJsonBody: true
    ```
 
-3. **argsToUrlParam**: 当设置为 `true` 时，工具参数将作为查询参数添加到 URL 中。
+3. **argsToUrlParam**: 当设置为 `true` 时，未指定 `position` 的参数将作为查询参数添加到 URL 中。
    ```yaml
    requestTemplate:
      argsToUrlParam: true
    ```
 
-4. **argsToFormBody**: 当设置为 `true` 时，工具参数将以 `application/x-www-form-urlencoded` 格式编码在请求体中，并自动添加相应的 Content-Type 头。
+4. **argsToFormBody**: 当设置为 `true` 时，未指定 `position` 的参数将以 `application/x-www-form-urlencoded` 格式编码在请求体中，并自动添加相应的 Content-Type 头。
    ```yaml
    requestTemplate:
      argsToFormBody: true
@@ -349,6 +414,59 @@ tools:
 - 使用数组切片 (`slice`) 选择特定时间的天气
 - 嵌套循环遍历多天和多时段的天气数据
 
+### 使用 PrependBody 和 AppendBody 的示例：OpenAPI 转换
+
+当您想保留原始 API 响应但添加额外的上下文信息时，`prependBody` 和 `appendBody` 字段非常有用。这在将 OpenAPI/Swagger 规范转换为 MCP 工具时特别有价值，因为您可以保留原始 JSON 响应，同时为 AI 助手提供字段含义的说明。
+
+```yaml
+server:
+  name: product-api-server
+  config:
+    apiKey: your-api-key-here
+tools:
+- name: get-product
+  description: "获取产品详细信息"
+  args:
+  - name: product_id
+    description: "产品ID"
+    type: string
+    required: true
+  requestTemplate:
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+    headers:
+    - key: Authorization
+      value: "Bearer {{.config.apiKey}}"
+  responseTemplate:
+    prependBody: |
+      # 产品信息
+      
+      以下是产品的详细信息，以JSON格式返回。字段说明：
+      
+      - **id**: 产品唯一标识符
+      - **name**: 产品名称
+      - **description**: 产品描述
+      - **price**: 产品价格（美元）
+      - **category**: 产品类别
+      - **inventory**: 库存信息
+        - **quantity**: 当前库存数量
+        - **warehouse**: 仓库位置
+      - **ratings**: 用户评分列表
+        - **score**: 评分（1-5）
+        - **comment**: 评论内容
+      
+      原始JSON响应：
+      
+    appendBody: |
+      
+      您可以使用这些信息来了解产品的详细信息、价格、库存状态和用户评价。
+```
+
+此示例展示了：
+- 使用 `prependBody` 在原始 JSON 响应前添加字段说明
+- 使用 `appendBody` 在响应末尾添加使用建议
+- 保留原始 JSON 响应，使 AI 助手可以直接访问所有数据
+
 
 ## AI 提示词生成模板
 
@@ -374,16 +492,19 @@ tools:
     description: "参数1的描述"
     type: string  # 可选类型: string, number, integer, boolean, array, object
     required: true
+    position: path  # 可选位置: query, path, header, cookie, body
   - name: arg2
     description: "参数2的描述"
     type: integer
     required: false
     default: 10
+    position: query
   - name: arg3
     description: "参数3的描述"
     type: array
     items:
       type: string
+    position: body
   - name: arg4
     description: "参数4的描述"
     type: object
@@ -392,6 +513,7 @@ tools:
         type: string
       subfield2:
         type: number
+    # 未指定position，将根据argsToJsonBody/argsToUrlParam/argsToFormBody处理
   requestTemplate:
     url: "https://api.example.com/endpoint"
     method: POST
@@ -412,6 +534,7 @@ tools:
     - key: x-api-key
       value: "{{.config.apiKey}}"
   responseTemplate:
+    # 以下三个选项互斥，只能选择其中一种
     body: |
       # 结果
       {{- range $index, $item := .items }}
@@ -419,6 +542,17 @@ tools:
       - **名称**: {{ $item.name }}
       - **值**: {{ $item.value }}
       {{- end }}
+    # 或者
+    # prependBody: |
+    #   # API响应说明
+    #   
+    #   以下是原始JSON响应，字段含义如下：
+    #   - field1: 字段1的含义
+    #   - field2: 字段2的含义
+    #   
+    # appendBody: |
+    #   
+    #   您可以使用这些数据来...
 ```
 
 ## 模板语法

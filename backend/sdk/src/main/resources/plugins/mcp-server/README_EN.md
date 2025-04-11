@@ -52,6 +52,7 @@ Plugin execution priority: `30`
 | `tools[].args[].enum`         | array           | No     | -      | List of allowed values for the parameter               |
 | `tools[].args[].items`        | object          | No     | -      | Schema for array items (when type is array)  |
 | `tools[].args[].properties`   | object          | No     | -      | Schema for object properties (when type is object)|
+| `tools[].args[].position`     | string          | No     | -      | Position of the parameter in the request (query, path, header, cookie, body) |
 | `tools[].requestTemplate`     | object          | Yes     | -      | HTTP request template                  |
 | `tools[].requestTemplate.url` | string          | Yes     | -      | Request URL template                  |
 | `tools[].requestTemplate.method` | string       | Yes     | -      | HTTP method (GET/POST, etc.)          |
@@ -63,7 +64,9 @@ Plugin execution priority: `30`
 | `tools[].requestTemplate.argsToUrlParam` | boolean | No  | false  | When true, arguments will be added to the URL as query parameters (mutually exclusive with body, argsToJsonBody, argsToFormBody) |
 | `tools[].requestTemplate.argsToFormBody` | boolean | No  | false  | When true, arguments will be encoded as application/x-www-form-urlencoded in the request body (mutually exclusive with body, argsToJsonBody, argsToUrlParam) |
 | `tools[].responseTemplate`    | object          | Yes     | -      | HTTP response transformation template              |
-| `tools[].responseTemplate.body` | string        | Yes     | -      | Response body transformation template                 |
+| `tools[].responseTemplate.body` | string        | No      | -      | Response body transformation template (mutually exclusive with prependBody and appendBody) |
+| `tools[].responseTemplate.prependBody` | string | No      | -      | Text to insert before the response body (mutually exclusive with body) |
+| `tools[].responseTemplate.appendBody` | string  | No      | -      | Text to insert after the response body (mutually exclusive with body) |
 
 ## Parameter Type Support
 
@@ -110,9 +113,71 @@ args:
         type: number
 ```
 
+## Parameter Position Control
+
+REST-to-MCP tools support precise control of each parameter's position in the request through the `position` field. This allows you to build API requests more flexibly, for example, using path parameters, query parameters, and request body parameters simultaneously.
+
+### Supported Position Types
+
+- **query**: Parameter will be added to the URL as a query parameter
+- **path**: Parameter will replace a path placeholder in the URL, such as `{petId}` in `/pet/{petId}`
+- **header**: Parameter will be added to the request as an HTTP header
+- **cookie**: Parameter will be added to the request as a Cookie
+- **body**: Parameter will be added to the request body (automatically formatted as JSON or form based on content type)
+
+### Usage Example
+
+```yaml
+args:
+- name: petId
+  description: "Pet ID"
+  type: string
+  required: true
+  position: path
+- name: token
+  description: "Authentication token"
+  type: string
+  required: true
+  position: header
+- name: sessionId
+  description: "Session ID"
+  type: string
+  position: cookie
+- name: limit
+  description: "Number of results to return"
+  type: integer
+  default: 10
+  position: query
+- name: tags
+  description: "List of tags"
+  type: array
+  position: body
+```
+
+In the example above:
+- `petId` will replace the `{petId}` placeholder in the URL
+- `token` will be added as an HTTP header to the request
+- `sessionId` will be added as a Cookie to the request
+- `limit` will be added as a query parameter to the URL
+- `tags` will be added to the request body
+
+### Relationship with Bulk Parameter Processing Options
+
+When using `position` to specify parameter locations, these parameters will be processed according to their specified positions and will not be affected by bulk parameter processing options (`argsToJsonBody`, `argsToUrlParam`, `argsToFormBody`). Only parameters without a specified `position` will be affected by these bulk options.
+
+For example, if you use both `position` and `argsToJsonBody`:
+- Parameters with `position: query` will be added to the URL query string
+- Parameters with `position: header` will be added as HTTP headers
+- Parameters with `position: path` will replace placeholders in the URL
+- Parameters with `position: cookie` will be added as Cookies
+- Parameters with `position: body` will be added to the JSON request body
+- Parameters without a specified `position` will be added to the JSON request body via `argsToJsonBody`
+
+Additionally, if a `body` is explicitly specified in the `requestTemplate`, all parameters with `position: body` will be ignored to avoid conflicts.
+
 ## Request Parameter Passing Methods
 
-REST-to-MCP tools support four different request parameter passing methods, which are **mutually exclusive** - only one can be used:
+In addition to precisely controlling each parameter's position using `position`, REST-to-MCP tools also support four bulk parameter processing methods, which are **mutually exclusive** - only one can be used:
 
 1. **body**: Manually construct the request body using a template. This is the most flexible approach, allowing you complete control over the request body format.
    ```yaml
@@ -127,19 +192,19 @@ REST-to-MCP tools support four different request parameter passing methods, whic
        }
    ```
 
-2. **argsToJsonBody**: When set to `true`, tool parameters will be sent directly as a JSON object in the request body, and the `Content-Type: application/json; charset=utf-8` header will be automatically added.
+2. **argsToJsonBody**: When set to `true`, parameters without a specified `position` will be sent directly as a JSON object in the request body, and the `Content-Type: application/json; charset=utf-8` header will be automatically added.
    ```yaml
    requestTemplate:
      argsToJsonBody: true
    ```
 
-3. **argsToUrlParam**: When set to `true`, tool parameters will be added to the URL as query parameters.
+3. **argsToUrlParam**: When set to `true`, parameters without a specified `position` will be added to the URL as query parameters.
    ```yaml
    requestTemplate:
      argsToUrlParam: true
    ```
 
-4. **argsToFormBody**: When set to `true`, tool parameters will be encoded as `application/x-www-form-urlencoded` in the request body, and the appropriate Content-Type header will be automatically added.
+4. **argsToFormBody**: When set to `true`, parameters without a specified `position` will be encoded as `application/x-www-form-urlencoded` in the request body, and the appropriate Content-Type header will be automatically added.
    ```yaml
    requestTemplate:
      argsToFormBody: true
@@ -349,6 +414,59 @@ This example demonstrates:
 - Using array slicing (`slice`) to select specific weather times
 - Nested loops to iterate through multiple days and time periods of weather data
 
+### Using PrependBody and AppendBody: OpenAPI Conversion
+
+When you want to preserve the original API response but add additional context information, the `prependBody` and `appendBody` fields are very useful. This is particularly valuable when converting OpenAPI/Swagger specifications to MCP tools, as you can keep the original JSON response while providing explanations of field meanings for the AI assistant.
+
+```yaml
+server:
+  name: product-api-server
+  config:
+    apiKey: your-api-key-here
+tools:
+- name: get-product
+  description: "Get detailed product information"
+  args:
+  - name: product_id
+    description: "Product ID"
+    type: string
+    required: true
+  requestTemplate:
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+    headers:
+    - key: Authorization
+      value: "Bearer {{.config.apiKey}}"
+  responseTemplate:
+    prependBody: |
+      # Product Information
+      
+      Below is the detailed product information returned in JSON format. Field descriptions:
+      
+      - **id**: Unique product identifier
+      - **name**: Product name
+      - **description**: Product description
+      - **price**: Product price (USD)
+      - **category**: Product category
+      - **inventory**: Inventory information
+        - **quantity**: Current stock quantity
+        - **warehouse**: Warehouse location
+      - **ratings**: List of user ratings
+        - **score**: Rating (1-5)
+        - **comment**: Review content
+      
+      Original JSON response:
+      
+    appendBody: |
+      
+      You can use this information to understand the product's details, pricing, inventory status, and user reviews.
+```
+
+This example demonstrates:
+- Using `prependBody` to add field descriptions before the original JSON response
+- Using `appendBody` to add usage suggestions at the end of the response
+- Preserving the original JSON response, allowing the AI assistant to directly access all data
+
 
 ## AI Prompt for Template Generation
 
@@ -374,16 +492,19 @@ tools:
     description: "Description of argument 1"
     type: string  # Optional types: string, number, integer, boolean, array, object
     required: true
+    position: path  # Optional positions: query, path, header, cookie, body
   - name: arg2
     description: "Description of argument 2"
     type: integer
     required: false
     default: 10
+    position: query
   - name: arg3
     description: "Description of argument 3"
     type: array
     items:
       type: string
+    position: body
   - name: arg4
     description: "Description of argument 4"
     type: object
@@ -392,6 +513,7 @@ tools:
         type: string
       subfield2:
         type: number
+    # No position specified, will be handled by argsToJsonBody/argsToUrlParam/argsToFormBody
   requestTemplate:
     url: "https://api.example.com/endpoint"
     method: POST
@@ -412,6 +534,7 @@ tools:
     - key: x-api-key
       value: "{{.config.apiKey}}"
   responseTemplate:
+    # The following three options are mutually exclusive, only one can be used
     body: |
       # Result
       {{- range $index, $item := .items }}
@@ -419,6 +542,17 @@ tools:
       - **Name**: {{ $item.name }}
       - **Value**: {{ $item.value }}
       {{- end }}
+    # OR
+    # prependBody: |
+    #   # API Response Description
+    #   
+    #   Below is the original JSON response, with field meanings:
+    #   - field1: Meaning of field 1
+    #   - field2: Meaning of field 2
+    #   
+    # appendBody: |
+    #   
+    #   You can use this data to...
 ```
 
 ## Template Syntax

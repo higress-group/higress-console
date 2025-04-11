@@ -1,7 +1,7 @@
 import { BUILTIN_ROUTE_PLUGIN_LIST } from "@/pages/plugin/components/PluginList/constant";
 import { getRoutePluginInstances } from "@/services";
 import { message } from "antd";
-import { WasmPluginData } from "./wasm-plugin";
+import { WasmPluginData } from "@/interfaces/wasm-plugin";
 
 export interface CorsConfig {
   allowOrigins: string[];

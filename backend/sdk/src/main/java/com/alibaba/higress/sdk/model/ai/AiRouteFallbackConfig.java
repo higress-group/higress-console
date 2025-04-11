@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.model.ai;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,6 +25,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.alibaba.higress.sdk.constant.HigressConstants.VALID_FALLBACK_RESPONSE_CODES;
 
 @Data
 @Builder
@@ -38,6 +41,8 @@ public class AiRouteFallbackConfig {
     private List<AiUpstream> upstreams;
     @Schema(description = "Fallback strategy", ref = "AiRouteFallbackStrategy")
     private String fallbackStrategy;
+    @Schema(description = "response codes that need fallback")
+    private List<String> responseCodes;
 
     public void validate() {
         if (!Boolean.TRUE.equals(enabled)) {
@@ -54,6 +59,18 @@ public class AiRouteFallbackConfig {
         }
         if (CollectionUtils.isEmpty(upstreams)) {
             throw new ValidationException("upstreams cannot be empty when fallback is enabled.");
+        }
+        if (CollectionUtils.isEmpty(responseCodes)) {
+            throw new ValidationException("response codes cannot be empty when fallback is enabled.");
+        } else {
+            // HttpResponseStatusCodeClassMatchInput is used to match the status code category, such as 4xx and 5xx.
+            // to match exact status codes, change HttpResponseStatusCodeClassMatchInput in the template to HttpResponseStatusCodeMatchInput.
+            responseCodes = responseCodes.stream().distinct().collect(Collectors.toList());
+            for (String code : responseCodes) {
+                if (!VALID_FALLBACK_RESPONSE_CODES.contains(code)) {
+                    throw new ValidationException("invalid response code:" + code);
+                }
+            }
         }
         upstreams.forEach(AiUpstream::validate);
     }

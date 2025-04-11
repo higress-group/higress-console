@@ -168,6 +168,15 @@ spec:
                       description: Schema for object properties (when type is object)
                       x-description-i18n:
                         zh-CN: 对象属性的模式（当类型为对象时）
+                    position:
+                      type: string
+                      title: Parameter Position
+                      x-title-i18n:
+                        zh-CN: 参数位置
+                      description: Position of the parameter in the request (query, path, header, cookie, body)
+                      x-description-i18n:
+                        zh-CN: 参数在请求中的位置（query, path, header, cookie, body）
+                      enum: [query, path, header, cookie, body]
               requestTemplate:
                 type: object
                 title: Request Template
@@ -267,9 +276,25 @@ spec:
                     title: Response Body Template
                     x-title-i18n:
                       zh-CN: 响应体模板
-                    description: Template for transforming the response body
+                    description: Template for transforming the response body (mutually exclusive with prependBody and appendBody)
                     x-description-i18n:
-                      zh-CN: 转换响应体的模板
+                      zh-CN: 转换响应体的模板（与prependBody和appendBody互斥）
+                  prependBody:
+                    type: string
+                    title: Prepend Text
+                    x-title-i18n:
+                      zh-CN: 前置文本
+                    description: Text to insert before the response body (mutually exclusive with body)
+                    x-description-i18n:
+                      zh-CN: 在响应体前插入的文本（与body互斥）
+                  appendBody:
+                    type: string
+                    title: Append Text
+                    x-title-i18n:
+                      zh-CN: 后置文本
+                    description: Text to insert after the response body (mutually exclusive with body)
+                    x-description-i18n:
+                      zh-CN: 在响应体后插入的文本（与body互斥）
       example:
         server:
           name: rest-amap-server
@@ -285,17 +310,20 @@ spec:
                 description: "The structured address to parse"
                 type: string
                 required: true
+                position: query
               - name: city
                 description: "The city to search in"
                 type: string
                 required: false
+                position: query
               - name: output
                 description: "Output format"
                 type: string
                 enum: ["json", "xml"]
                 default: "json"
+                position: query
             requestTemplate:
-              url: "https://restapi.amap.com/v3/geocode/geo?key={{.config.apiKey}}&address={{.args.address}}&city={{.args.city}}&source=higress_mcp"
+              url: "https://restapi.amap.com/v3/geocode/geo"
               method: GET
               headers:
                 - key: x-api-key
