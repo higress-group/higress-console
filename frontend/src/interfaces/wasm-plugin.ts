@@ -1,4 +1,3 @@
-
 export interface WasmPluginData {
   id?: string;
   name: string;
@@ -12,6 +11,8 @@ export interface WasmPluginData {
   imageVersion?: string;
   phase?: string;
   priority?: number;
+  imagePullPolicy?: string;
+  imagePullSecret?: string;
   customConfigs?: {
     [key: string]: string;
   };
@@ -19,4 +20,18 @@ export interface WasmPluginData {
   internal?: boolean;
   resKey?: string;
   key?: string;
+  [key: string]: any;
+}
+
+export enum ImagePullPolicy {
+  UNSPECIFIED = "UNSPECIFIED_POLICY",
+  IF_NOT_PRESENT = "IfNotPresent",
+  ALWAYS = "Always",
+}
+
+export enum PluginPhase {
+  UNSPECIFIED = "UNSPECIFIED_PHASE",
+  AUTHN = "AUTHN",
+  AUTHZ = "AUTHZ",
+  STATS = "STATS",
 }

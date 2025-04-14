@@ -1,5 +1,5 @@
-import request from './request';
 import { WasmPluginData } from '@/interfaces/wasm-plugin';
+import request from './request';
 
 // 获取全局的插件配置列表
 export const getWasmPlugins = (lang: string): Promise<any> => {

@@ -15,6 +15,8 @@ package com.alibaba.higress.sdk.model;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -91,6 +93,16 @@ public class WasmPlugin implements VersionedDto {
 
         if (StringUtils.isBlank(imageRepository)) {
             throw new ValidationException("imageRepository cannot be blank.");
+        }
+
+        ImagePullPolicy pullPolicy = ImagePullPolicy.fromName(imagePullPolicy);
+        if (pullPolicy == null) {
+            throw new ValidationException("Invalid imagePullPolicy: " + imagePullPolicy);
+        }
+
+        PluginPhase pluginPhase = PluginPhase.fromName(phase);
+        if (pluginPhase == null) {
+            throw new ValidationException("Invalid phase: " + phase);
         }
     }
 }
