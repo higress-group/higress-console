@@ -278,6 +278,16 @@
       "route": "Route Name: ",
       "aiRoute": "AI Route Name: "
     },
+    "categories": {
+      "route": "Route",
+      "ai": "AI",
+      "auth": "Authentication",
+      "security": "Security",
+      "traffic": "Traffic",
+      "transform": "Transformation",
+      "o11y": "Observability",
+      "custom": "Custom"
+    },
     "enabled": "Enabled",
     "emptyPlugins": "No plugins configured.",
     "addPlugin": "Add Plugin",
