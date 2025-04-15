@@ -278,6 +278,15 @@
       "route": "路由名称：",
       "aiRoute": "AI路由名称："
     },
+    "categories": {
+      "ai": "AI",
+      "auth": "认证",
+      "security": "安全",
+      "traffic": "流量",
+      "transform": "转换",
+      "o11y": "可观测性",
+      "custom": "自定义"
+    },
     "enabled": "已启用",
     "emptyPlugins": "未启用策略",
     "addPlugin": "添加插件",
