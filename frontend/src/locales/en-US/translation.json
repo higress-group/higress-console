@@ -279,6 +279,7 @@
       "aiRoute": "AI Route Name: "
     },
     "categories": {
+      "route": "Route",
       "ai": "AI",
       "auth": "Authentication",
       "security": "Security",

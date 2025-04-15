@@ -24,21 +24,13 @@ const PluginCategory = (props: Props) => {
 
   // Group plugins by category
   const groupedPlugins = useMemo(() => {
-    const grouped: Record<string, WasmPluginData[]> = categoryList.reduce((acc, category) => {
-      acc[category.key] = [];
-      return acc;
-    }, {});
-
-    // Group plugins by their categories
+    const grouped: Record<string, WasmPluginData[]> = {};
     pluginList.forEach(plugin => {
       const category = plugin.category || 'custom';
-      if (grouped[category]) {
-        grouped[category].push(plugin);
-      } else {
-        // If category doesn't exist in our map, add to custom
-        grouped['custom'] = grouped['custom'] || [];
-        grouped['custom'].push(plugin);
+      if (!grouped[category]) {
+        grouped[category] = [];
       }
+      grouped[category].push(plugin);
     });
 
     return grouped;
@@ -59,29 +51,34 @@ const PluginCategory = (props: Props) => {
             />
           )}
         >
-          {categoryList.map(category => (
-            <Panel
-              key={category.key}
-              header={
-                <span
-                  style={{
-                    fontWeight: 500,
-                    fontSize: '15px',
-                    color: 'rgba(0, 0, 0, 0.85)',
-                  }}
+          {categoryList.map(category => {
+            if (groupedPlugins[category.key] && groupedPlugins[category.key].length > 0) {
+              return (
+                <Panel
+                  key={category.key}
+                  header={
+                    <span
+                      style={{
+                        fontWeight: 500,
+                        fontSize: '15px',
+                        color: 'rgba(0, 0, 0, 0.85)',
+                      }}
+                    >
+                      {category.label}
+                    </span>
+                  }
+                  className={styles.categoryPanel}
                 >
-                  {category.label}
-                </span>
-              }
-              className={styles.categoryPanel}
-            >
-              <div className={styles.categoryContent}>
-                <Row gutter={[20, 20]}>
-                  {groupedPlugins[category.key].map(item => renderPluginItem(item))}
-                </Row>
-              </div>
-            </Panel>
-          ))}
+                  <div className={styles.categoryContent}>
+                    <Row gutter={[20, 20]}>
+                      {groupedPlugins[category.key].map(item => renderPluginItem(item))}
+                    </Row>
+                  </div>
+                </Panel>
+              );
+            }
+            return null;
+          })}
         </Collapse>
       ) : (
         <div className={styles.emptyCategory}>

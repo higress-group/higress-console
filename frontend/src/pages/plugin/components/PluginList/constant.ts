@@ -4,6 +4,7 @@ export const DEFAULT_PLUGIN_IMG = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA
 export const BUILTIN_ROUTE_PLUGIN_LIST = [
   {
     key: 'rewrite',
+    category: 'route',
     title: '重写',
     'x-title-i18n': {
       'en-US': 'Rewrite',
@@ -18,6 +19,7 @@ export const BUILTIN_ROUTE_PLUGIN_LIST = [
   },
   {
     key: 'headerModify',
+    category: 'route',
     title: 'Header设置',
     'x-title-i18n': {
       'en-US': 'Header Control',
@@ -31,6 +33,7 @@ export const BUILTIN_ROUTE_PLUGIN_LIST = [
   },
   {
     key: 'cors',
+    category: 'route',
     title: '跨域',
     'x-title-i18n': {
       'en-US': 'CORS',
@@ -45,6 +48,7 @@ export const BUILTIN_ROUTE_PLUGIN_LIST = [
   },
   {
     key: 'retries',
+    category: 'route',
     title: '重试',
     'x-title-i18n': {
       'en-US': 'Retries',

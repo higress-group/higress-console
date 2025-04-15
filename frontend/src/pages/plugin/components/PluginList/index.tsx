@@ -214,6 +214,7 @@ const PluginList = forwardRef((props: Props, ref) => {
 
   // Get categories from translations
   const categoryKeys = [
+    'route',
     'ai',
     'auth',
     'security',

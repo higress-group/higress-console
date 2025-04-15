@@ -279,6 +279,7 @@
       "aiRoute": "AI路由名称："
     },
     "categories": {
+      "route": "路由",
       "ai": "AI",
       "auth": "认证",
       "security": "安全",
