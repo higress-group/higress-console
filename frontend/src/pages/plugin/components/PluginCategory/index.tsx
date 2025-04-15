@@ -7,24 +7,25 @@ import styles from './index.module.css';
 
 const { Panel } = Collapse;
 
-interface CategoryMap {
-  [key: string]: string;
+interface CategoryItem {
+  key: string;
+  label: string;
 }
 
 interface Props {
   pluginList: WasmPluginData[];
   renderPluginItem: (item: WasmPluginData) => React.ReactNode;
-  categories?: CategoryMap;
+  categoryList: CategoryItem[];
 }
 
 const PluginCategory = (props: Props) => {
   const { t } = useTranslation();
-  const { pluginList, renderPluginItem, categories = {} } = props;
+  const { pluginList, renderPluginItem, categoryList = [] } = props;
 
   // Group plugins by category
   const groupedPlugins = useMemo(() => {
-    const grouped: Record<string, WasmPluginData[]> = Object.keys(categories).reduce((acc, key) => {
-      acc[key] = [];
+    const grouped: Record<string, WasmPluginData[]> = categoryList.reduce((acc, category) => {
+      acc[category.key] = [];
       return acc;
     }, {});
 
@@ -41,18 +42,13 @@ const PluginCategory = (props: Props) => {
     });
 
     return grouped;
-  }, [pluginList, categories]);
-
-  // Get categories in the defined order
-  const sortedCategories = useMemo(() => {
-    return Object.keys(categories);
-  }, [categories]);
+  }, [pluginList, categoryList]);
 
   return (
     <div className={styles.categoryContainer}>
-      {sortedCategories.length > 0 ? (
+      {categoryList.length > 0 ? (
         <Collapse
-          defaultActiveKey={sortedCategories}
+          defaultActiveKey={categoryList.map(item => item.key)}
           ghost
           expandIconPosition="start"
           bordered={false}
@@ -63,9 +59,9 @@ const PluginCategory = (props: Props) => {
             />
           )}
         >
-          {sortedCategories.map(category => (
+          {categoryList.map(category => (
             <Panel
-              key={category}
+              key={category.key}
               header={
                 <span
                   style={{
@@ -74,14 +70,14 @@ const PluginCategory = (props: Props) => {
                     color: 'rgba(0, 0, 0, 0.85)',
                   }}
                 >
-                  {categories[category] || category}
+                  {category.label}
                 </span>
               }
               className={styles.categoryPanel}
             >
               <div className={styles.categoryContent}>
                 <Row gutter={[20, 20]}>
-                  {groupedPlugins[category].map(item => renderPluginItem(item))}
+                  {groupedPlugins[category.key].map(item => renderPluginItem(item))}
                 </Row>
               </div>
             </Panel>

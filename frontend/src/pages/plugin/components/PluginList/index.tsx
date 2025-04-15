@@ -213,30 +213,28 @@ const PluginList = forwardRef((props: Props, ref) => {
   };
 
   // Get categories from translations
-  const categories = useMemo(() => {
-    const categoryKeys = [
-      'ai',
-      'auth',
-      'security',
-      'traffic',
-      'transform',
-      'o11y',
-      'custom',
-    ];
+  const categoryKeys = [
+    'ai',
+    'auth',
+    'security',
+    'traffic',
+    'transform',
+    'o11y',
+    'custom',
+  ];
 
-    const categoryMap: Record<string, string> = {};
-    categoryKeys.forEach(key => {
-      categoryMap[key] = t(`plugins.categories.${key}`);
-    });
-
-    return categoryMap;
-  }, [t]);
+  const categoryList = useMemo(() => {
+    return categoryKeys.map(key => ({
+      key,
+      label: t(`plugins.categories.${key}`),
+    }));
+  }, [categoryKeys, t]);
 
   return (
     <PluginCategory
       pluginList={pluginList}
       renderPluginItem={renderPluginItem}
-      categories={categories}
+      categoryList={categoryList}
     />
   );
 });
