@@ -15,7 +15,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: "${name}"
-  namespace: higress-system
 spec:
   configPatches:
     - applyTo: HTTP_ROUTE
