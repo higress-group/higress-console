@@ -1,5 +1,5 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, InputNumber, Select, Switch } from 'antd';
+import { AutoComplete, Button, Form, Input, InputNumber, Select, Switch } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
@@ -77,7 +77,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const result = {
         type: values.type,
         name: values.name,
-        tokens: values.tokens.filter(v => v),
+        tokens: values.tokens ? values.tokens.filter(v => v) : null,
         version: 0,
         protocol: values.protocol,
         tokenFailoverConfig: {
@@ -182,75 +182,78 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       </Form.Item>
 
       {/* 凭证 */}
-      <Form.List name="tokens" initialValue={[null]}>
-        {(fields, { add, remove }, { errors }) => (
-          <>
-            {!fields.length ?
-              <div
-                style={{ marginBottom: '8px' }}
-              >
-                {t('llmProvider.columns.tokens')}
-              </div> : null
-            }
-
-            {fields.map((field, index) => (
-              <Form.Item
-                label={index === 0 ? t('llmProvider.columns.tokens') : ''}
-                required={false}
-                key={field.key}
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <Form.Item
-                  {...field}
-                  validateTrigger={['onChange', 'onBlur']}
-                  rules={[
-                    {
-                      validator(rule, value) {
-                        if (value) {
-                          return Promise.resolve();
-                        }
-                        if (providerConfig) {
-                          if (providerConfig.tokenRequired === false) {
-                            return Promise.resolve();
-                          }
-                          if (typeof providerConfig.isTokenRequired === 'function' && !providerConfig.isTokenRequired(form.getFieldsValue())) {
-                            return Promise.resolve();
-                          }
-                        }
-                        return Promise.reject(t('llmProvider.providerForm.rules.tokenRequired'));
-                      },
-                    },
-                  ]}
-                  noStyle
+      {
+        providerConfig && !providerConfig.useCustomCredentials &&
+        <Form.List name="tokens" initialValue={[null]}>
+          {(fields, { add, remove }, { errors }) => (
+            <>
+              {!fields.length ?
+                <div
+                  style={{ marginBottom: '8px' }}
                 >
-                  <Input
-                    style={{ width: '94%' }}
-                  />
-                </Form.Item>
-                {/* 删除按钮 */}
-                <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
-                  <Button
-                    type="dashed"
-                    disabled={!(fields.length > 1)}
-                    onClick={() => remove(field.name)}
-                    icon={<MinusCircleOutlined />}
-                  />
-                </div>
-              </Form.Item>
-            ))}
+                  {t('llmProvider.columns.tokens')}
+                </div> : null
+              }
 
-            {/* 添加按钮 */}
-            <Form.Item>
-              <Button
-                type="dashed"
-                onClick={() => add()}
-                icon={<PlusOutlined />}
-              />
-              <Form.ErrorList errors={errors} />
-            </Form.Item>
-          </>
-        )}
-      </Form.List>
+              {fields.map((field, index) => (
+                <Form.Item
+                  label={index === 0 ? t('llmProvider.columns.tokens') : ''}
+                  required={false}
+                  key={field.key}
+                  style={{ marginBottom: '0.5rem' }}
+                >
+                  <Form.Item
+                    {...field}
+                    validateTrigger={['onChange', 'onBlur']}
+                    rules={[
+                      {
+                        validator(rule, value) {
+                          if (value) {
+                            return Promise.resolve();
+                          }
+                          if (providerConfig) {
+                            if (providerConfig.tokenRequired === false) {
+                              return Promise.resolve();
+                            }
+                            if (typeof providerConfig.isTokenRequired === 'function' && !providerConfig.isTokenRequired(form.getFieldsValue())) {
+                              return Promise.resolve();
+                            }
+                          }
+                          return Promise.reject(t('llmProvider.providerForm.rules.tokenRequired'));
+                        },
+                      },
+                    ]}
+                    noStyle
+                  >
+                    <Input
+                      style={{ width: '94%' }}
+                    />
+                  </Form.Item>
+                  {/* 删除按钮 */}
+                  <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                    <Button
+                      type="dashed"
+                      disabled={!(fields.length > 1)}
+                      onClick={() => remove(field.name)}
+                      icon={<MinusCircleOutlined />}
+                    />
+                  </div>
+                </Form.Item>
+              ))}
+
+              {/* 添加按钮 */}
+              <Form.Item>
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  icon={<PlusOutlined />}
+                />
+                <Form.ErrorList errors={errors} />
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
+      }
 
       {
         providerType === 'openai' && (
@@ -357,6 +360,67 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 max={65535}
               />
             </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'bedrock' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.awsRegion')}
+              required
+              name={["rawConfigs", "awsRegion"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.awsRegionRequired'),
+                },
+              ]}
+            >
+              <AutoComplete
+                options={providerConfig.availableRegions.map(r => ({ label: r, value: r }))}
+                filterOption={(inputValue, option: any) => {
+                  return option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                }}
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.awsAccessKey')}
+              required
+              name={["rawConfigs", "awsAccessKey"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.awsAccessKeyRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.awsSecretKey')}
+              required
+              name={["rawConfigs", "awsSecretKey"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.awsSecretKeyRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+              />
+            </Form.Item>
+
           </>
         )
       }

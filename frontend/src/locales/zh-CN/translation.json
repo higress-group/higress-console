@@ -239,7 +239,10 @@
         "ollamaServerHost": "Ollama 服务主机名",
         "ollamaServerPort": "Ollama 服务端口",
         "openaiServerType": "OpenAI 服务类型",
-        "openaiCustomUrl": "自定义 OpenAI 服务 BaseURL"
+        "openaiCustomUrl": "自定义 OpenAI 服务 BaseURL",
+        "awsRegion": "AWS Region",
+        "awsAccessKey": "AWS Access Key ID",
+        "awsSecretKey": "AWS Secret Access Key"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -254,7 +257,10 @@
         "azureServiceUrlRequired": "请输入 Azure 服务 URL",
         "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
         "ollamaServerPortRequired": "请输入 Ollama 服务端口",
-        "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 BaseURL"
+        "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 BaseURL",
+        "awsRegionRequired": "请输入 AWS Region",
+        "awsAccessKeyRequired": "请输入 AWS Access Key ID",
+        "awsSecretKeyRequired": "请输入 AWS Secret Access Key"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
