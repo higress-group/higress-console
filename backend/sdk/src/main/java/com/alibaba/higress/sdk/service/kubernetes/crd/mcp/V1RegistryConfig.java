@@ -71,9 +71,22 @@ public class V1RegistryConfig {
     @SerializedName(SERIALIZED_NAME_CONSUL_SERVICE_TAG)
     private String consulServiceTag;
 
-    public static final String SERIALIZED_NAME_CONSUL_REFRESH_INTERVAL = V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL;
+    public static final String SERIALIZED_NAME_CONSUL_REFRESH_INTERVAL =
+        V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL;
     @SerializedName(SERIALIZED_NAME_CONSUL_REFRESH_INTERVAL)
     private Integer consulRefreshInterval;
+
+    public static final String SERIALIZED_NAME_ENABLE_MCP_SERVER_NAME = "enableMCPServer";
+    @SerializedName(SERIALIZED_NAME_ENABLE_MCP_SERVER_NAME)
+    private Boolean enableMcpServer;
+
+    public static final String SERIALIZED_NAME_MCP_SERVER_BASE_URL_NAME = "mcpServerBaseUrl";
+    @SerializedName(SERIALIZED_NAME_MCP_SERVER_BASE_URL_NAME)
+    private String mcpServerBaseUrl;
+
+    public static final String SERIALIZED_NAME_MCP_SERVER_EXPORT_DOMAINS_NAME = "mcpServerExportDomains";
+    @SerializedName(SERIALIZED_NAME_MCP_SERVER_EXPORT_DOMAINS_NAME)
+    private List<String> mcpServerExportDomains;
 
     public static final String SERIALIZED_NAME_AUTH_SECRET_NAME = "authSecretName";
     @SerializedName(SERIALIZED_NAME_AUTH_SECRET_NAME)

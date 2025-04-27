@@ -1,6 +1,11 @@
-import { ServiceProtocols, ServiceSourceTypes } from '@/interfaces/service-source';
+import { OptionItem } from '@/interfaces/common';
+import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
+import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
+import { HistoryButton, RedoOutlinedBtn } from '@/pages/ai/components/RouteForm/Components';
+import { getGatewayDomains } from '@/services';
 import { Form, Input, Select } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
+import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,36 +15,61 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
   const [form] = Form.useForm();
-  const [sourceType, setSourceType] = useState<string>();
+  const [sourceType, setSourceType] = useState<string | null>();
+  const [sourceTypeConfig, setSourceTypeConfig] = useState<ServiceSourceTypeConfig | null>();
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
+  const [mcpEnabled, setMcpEnabled] = useState<boolean>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
+
+  const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
+  const domainsResult = useRequest(getGatewayDomains, {
+    manual: true,
+    onSuccess: (domains: Domain[]) => {
+      const _domainOptions: OptionItem[] = [];
+      domains && domains.forEach(domain => {
+        const { name } = domain;
+        name !== DEFAULT_DOMAIN && _domainOptions.push({ label: name, value: name });
+      });
+      setDomainOptions(_domainOptions);
+    },
+  });
 
   useEffect(() => {
     form.resetFields();
     if (value) {
       setSourceType(value.type);
+      setSourceTypeConfig(getServiceSourceTypeConfig(value.type));
       if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(value.type) !== -1) {
         value.domainForEdit = value.domain ? value.domain.replaceAll(',', '\n') : '';
       }
       const authEnabledLocal = value.authN && value.authN.enabled;
       setInitAuthEnabled(authEnabledLocal);
       setAuthEnabled(authEnabledLocal);
+      setMcpEnabled(!!value.properties.enableMCPServer);
     }
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
-    if (!valueToSet.protocol) {
-      valueToSet.protocol = ServiceProtocols.unspecified.key;
-    }
+    valueToSet.authN.enabled = valueToSet.authN.enabled || false;
+    valueToSet.properties = Object.assign({ enableMCPServer: false }, valueToSet.properties);
+    valueToSet.properties.enableMCPServer = valueToSet.properties.enableMCPServer || false;
+    valueToSet.properties.mcpServerBaseUrl = valueToSet.properties.mcpServerBaseUrl || '/mcp';
+    valueToSet.protocol = valueToSet.protocol || ServiceProtocols.unspecified.key;
     updateUsingTlsProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
+
+    if (domainOptions == null) {
+      domainsResult.run();
+    }
   }, [value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => {
       setSourceType(null);
+      setSourceTypeConfig(null)
       setInitAuthEnabled(false);
       setAuthEnabled(false);
+      setMcpEnabled(false);
       form.resetFields();
     },
     handleSubmit: async () => {
@@ -67,7 +97,8 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
 
   function selectServiceSourceType(type) {
     setSourceType(type)
-    if (type === ServiceSourceTypes.nacos.key || type === ServiceSourceTypes.nacos2.key) {
+    setSourceTypeConfig(getServiceSourceTypeConfig(type));
+    if (isNacosType(type)) {
       const groups = form.getFieldValue(["properties", "nacosGroups"]);
       if (!groups || !groups.length) {
         form.setFieldValue(["properties", "nacosGroups"], ["DEFAULT_GROUP"]);
@@ -179,9 +210,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 />
               </Form.Item>
               {
-                sourceType === ServiceSourceTypes.nacos2.key &&
+                [ServiceSourceTypes.nacos2.key, ServiceSourceTypes.nacos3.key].indexOf(sourceType) !== -1 &&
                 (
-                  <div>{t('serviceSource.serviceSourceForm.naco2PortNote')}</div>
+                  <div>{t('serviceSource.serviceSourceForm.nacos2PortNote')}</div>
                 )
               }
             </Form.Item>
@@ -206,7 +237,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         )
       }
       {
-        (sourceType === ServiceSourceTypes.nacos.key || sourceType === ServiceSourceTypes.nacos2.key) && (
+        isNacosType(sourceType || '') && (
           <>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
@@ -474,6 +505,66 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
             />
           </Form.Item>
         )
+      }
+      {
+        sourceTypeConfig && sourceTypeConfig.mcpSupported &&
+        <>
+          <Form.Item
+            label={t('serviceSource.serviceSourceForm.mcpServerEnabled')}
+            name={['properties', 'enableMCPServer']}
+          >
+            <Select
+              onChange={(v) => setMcpEnabled(v)}
+            >
+              {/* eslint-disable-next-line react/jsx-boolean-value */}
+              <Option key={0} value={false}>{t('misc.no')}</Option>
+              {/* eslint-disable-next-line react/jsx-boolean-value */}
+              <Option key={1} value={true}>{t('misc.yes')}</Option>
+            </Select>
+          </Form.Item>
+          {
+            mcpEnabled && (
+              <>
+                <Form.Item
+                  label={t('serviceSource.serviceSourceForm.mcpServerBaseUrl')}
+                  name={['properties', 'mcpServerBaseUrl']}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('serviceSource.serviceSourceForm.mcpServerBaseUrlRequired'),
+                    },
+                    {
+                      pattern: /^\/[^?]*$/,
+                      message: t('serviceSource.serviceSourceForm.mcpServerBaseUrlBadFormat'),
+                    },
+                  ]}
+                >
+                  <Input
+                    allowClear
+                    maxLength={256}
+                  />
+                </Form.Item>
+                <div style={{ display: 'flex' }}>
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.mcpServerExportDomains')}
+                    name={['properties', 'mcpServerExportDomains']}
+                    style={{ flex: 1, marginRight: '8px' }}
+                    extra={(<HistoryButton text={t("domain.createDomain")} path={"/domain"} />)}
+                  >
+                    <Select
+                      showSearch
+                      allowClear
+                      mode="multiple"
+                      placeholder={t('serviceSource.serviceSourceForm.mcpServerExportDomainsPlaceholder')}
+                      options={domainOptions || []}
+                    />
+                  </Form.Item>
+                  <RedoOutlinedBtn getList={domainsResult} />
+                </div>
+              </>
+            )
+          }
+        </>
       }
     </Form >
   );

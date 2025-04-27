@@ -53,4 +53,8 @@ public class ValidateUtil {
     public static boolean checkIpAddress(String ipAddress) {
         return StringUtils.isNotEmpty(ipAddress) && IPV4_ADDRESS_PATTERN.matcher(ipAddress).matches();
     }
+
+    public static boolean checkUrlPath(String path) {
+        return StringUtils.isNotEmpty(path) && path.charAt(0) == '/' && !path.contains("?");
+    }
 }

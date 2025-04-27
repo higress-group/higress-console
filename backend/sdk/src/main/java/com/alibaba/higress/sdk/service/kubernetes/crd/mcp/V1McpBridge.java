@@ -18,6 +18,8 @@ import com.google.gson.annotations.SerializedName;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.Data;
 
+import java.util.Set;
+
 @Data
 public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject {
 
@@ -34,6 +36,8 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
     public static final String REGISTRY_TYPE_NACOS = "nacos";
 
     public static final String REGISTRY_TYPE_NACOS2 = "nacos2";
+
+    public static final String REGISTRY_TYPE_NACOS3 = "nacos3";
 
     public static final String REGISTRY_TYPE_NACOS_GROUPS = "nacosGroups";
 
@@ -61,11 +65,19 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final int REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MAX = 600;
 
+    public static final String MCP_SERVER_EXPORT_DOMAINS = "mcpServerExportDomains";
+
+    public static final String MCP_SERVER_BASE_URL = "mcpServerBaseUrl";
+
+    public static final String ENABLE_MCP_SERVER = "enableMCPServer";
+
     public static final String REGISTRY_TYPE_EUREKA = "eureka";
 
     public static final String REGISTRY_TYPE_STATIC = "static";
 
     public static final String REGISTRY_TYPE_DNS = "dns";
+
+    public static final Set<String> MCP_SUPPORTED_REGISTRY_TYPES = Set.of(V1McpBridge.REGISTRY_TYPE_NACOS3);
 
     public static final String REGISTRY_TYPE_STATIC_DNS_SEPARATOR = Separators.COMMA;
 

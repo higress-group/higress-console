@@ -43,6 +43,7 @@ public class ServiceSource implements VersionedDto {
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS3, new NacosServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_CONSUL, new ConsulServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_STATIC, new StaticServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_DNS, new DnsServiceSourceValidator());
@@ -55,12 +56,12 @@ public class ServiceSource implements VersionedDto {
     private String version;
 
     /**
-     * nacos,nacos2,zookeeper,consul,eureka,static,dns
+     * nacos,nacos2,nacos3,zookeeper,consul,eureka,static,dns
      */
     @Schema(description = "Service source type",
         allowableValues = {V1McpBridge.REGISTRY_TYPE_NACOS, V1McpBridge.REGISTRY_TYPE_NACOS2,
-            V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL, V1McpBridge.REGISTRY_TYPE_EUREKA,
-            V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS})
+            V1McpBridge.REGISTRY_TYPE_NACOS3, V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL,
+            V1McpBridge.REGISTRY_TYPE_EUREKA, V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS})
     private String type;
 
     @Schema(
@@ -78,7 +79,8 @@ public class ServiceSource implements VersionedDto {
     private String sni;
 
     @Schema(description = "Service source extra properties, depending on the type.\n"
-        + "For nacos/nacos2: nacosGroups, nacosNamespaceId\n"
+        + "For nacos/nacos2/nacos3: nacosGroups, nacosNamespaceId\n"
+        + "For MCP supported types (e.g. nacos3): enableMCPServer, mcpServerBaseUrl, mcpServerExportDomains\n"
         + "For consul: consulDatacenter, consulServiceTag, consulRefreshInterval\n" + "For zookeeper: zkServicesPath")
     private Map<String, Object> properties;
 
@@ -98,8 +100,59 @@ public class ServiceSource implements VersionedDto {
             return false;
         }
 
+        if (!validateMcpConfigs()) {
+            return false;
+        }
+
         ServiceSourceValidator validator = VALIDATORS.get(this.getType());
         if (validator != null && !validator.validate(this)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateMcpConfigs() {
+        if (!V1McpBridge.MCP_SUPPORTED_REGISTRY_TYPES.contains(this.getType())) {
+            return true;
+        }
+        if (MapUtils.isEmpty(properties)) {
+            return true;
+        }
+
+        Object enabled = properties.get(V1McpBridge.ENABLE_MCP_SERVER);
+        if (enabled == null) {
+            // Not configured. We don't need to validate.
+            return true;
+        }
+        if (!(enabled instanceof Boolean)) {
+            return false;
+        }
+        if (!Boolean.TRUE.equals(enabled)) {
+            // Not enabled. We don't need to validate.
+            return true;
+        }
+
+        Object rawExportDomains = properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS);
+        if (rawExportDomains != null) {
+            if (!(rawExportDomains instanceof List<?> exportDomains)) {
+                return false;
+            }
+            for (Object rawExportDomain : exportDomains) {
+                if (!(rawExportDomain instanceof String exportDomain)) {
+                    return false;
+                }
+                if (!ValidateUtil.checkDomain(exportDomain)) {
+                    return false;
+                }
+            }
+        }
+
+        Object rawServerBaseUrl = properties.get(V1McpBridge.MCP_SERVER_BASE_URL);
+        if (!(rawServerBaseUrl instanceof String serverBaseUrl)) {
+            return false;
+        }
+        if (!ValidateUtil.checkUrlPath(serverBaseUrl)) {
             return false;
         }
 

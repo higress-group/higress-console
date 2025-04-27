@@ -456,7 +456,7 @@
       "nacosGroups": "Nacos服务分组列表",
       "nacosGroupsRequired": "请输入Nacos服务分组列表",
       "nacosGroupsPlaceholder": "Nacos服务分组列表",
-      "naco2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
+      "nacos2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
       "serviceStaticAddresses": "服务地址",
       "serviceStaticAddressesRequired": "请输入服务地址",
       "serviceStaticAddressesPlaceholder": "IP:Port（多个地址请以换行分隔）",
@@ -478,7 +478,13 @@
       "consulServiceTagTooltip": "Consul类型的服务来源支持通过标签来过滤服务列表",
       "consulServiceTagPlaceholder": "示例：foo=bar",
       "consulToken": "Consul Token",
-      "consulTokenRequired": "请输入Consul Token"
+      "consulTokenRequired": "请输入Consul Token",
+      "mcpServerEnabled": "是否启用MCP Server功能",
+      "mcpServerBaseUrl": "MCP Server路由路径前缀",
+      "mcpServerBaseUrlRequired": "请输入MCP Server路由路径前缀",
+      "mcpServerBaseUrlBadFormat": "MCP Server路由路径前缀格式不正确。请使用“/”开头。",
+      "mcpServerExportDomains": "关联MCP Server的域名",
+      "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名"
     }
   },
   "route": {

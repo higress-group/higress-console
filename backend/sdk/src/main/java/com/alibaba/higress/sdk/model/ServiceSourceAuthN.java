@@ -38,6 +38,7 @@ public class ServiceSourceAuthN {
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosAuthNValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosAuthNValidator());
+        VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS3, new NacosAuthNValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_CONSUL, new ConsulAuthValidator());
     }
 
