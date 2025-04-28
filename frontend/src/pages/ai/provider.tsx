@@ -81,7 +81,10 @@ const LlmProviderList: React.FC = () => {
           value = providerConfig.getProviderEndpoints(record);
         }
         if (!Array.isArray(value) || !value.length) {
-          return '-';
+          if (!providerConfig?.serviceAddress) {
+            return '-';
+          }
+          value = [providerConfig.serviceAddress];
         }
         return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
       },
@@ -90,7 +93,11 @@ const LlmProviderList: React.FC = () => {
       title: t('llmProvider.columns.tokens'),
       dataIndex: 'tokens',
       key: 'tokens',
-      render: (value) => {
+      render: (value, record) => {
+        const providerConfig = aiModelProviders.find(p => p.value === record.type);
+        if (providerConfig && providerConfig.useCustomCredentials) {
+          value = providerConfig.getCredentialsForDisplay(record);
+        }
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
