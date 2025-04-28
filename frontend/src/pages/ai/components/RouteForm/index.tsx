@@ -211,7 +211,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
     try { // 通过 【服务名称】 来筛查满足 【目标模型 预定义】 的下拉选项
       const _list = aiModelProviders.filter(item => item.value.toUpperCase().indexOf(providerName.toUpperCase()) !== -1);
       if (_list.length) {
-        const _filterList = _list.map(item => item.targetModelList);
+        const _filterList = _list.map(item => item.targetModelList || []);
         return _filterList.flatMap(item => item)
       }
       return [];

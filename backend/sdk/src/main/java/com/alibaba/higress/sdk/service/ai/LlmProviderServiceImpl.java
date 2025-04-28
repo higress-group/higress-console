@@ -78,8 +78,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.COHERE, "api.cohere.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.DOUBAO, "ark.cn-beijing.volces.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS))
-            .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
+            new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new BedrockLlmProviderHandler()).collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
     }
 
     private final ServiceSourceService serviceSourceService;

@@ -239,7 +239,10 @@
         "ollamaServerHost": "Ollama Service Host",
         "ollamaServerPort": "Ollama Service Port",
         "openaiServerType": "OpenAI Service Type",
-        "openaiCustomUrl": "Custom OpenAI Service Base URL"
+        "openaiCustomUrl": "Custom OpenAI Service Base URL",
+        "awsRegion": "AWS Region",
+        "awsAccessKey": "AWS Access Key ID",
+        "awsSecretKey": "AWS Secret Access Key"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -254,7 +257,10 @@
         "azureServiceUrlRequired": "Please input Azure service URL",
         "ollamaServerHostRequired": "Please input Ollama service host",
         "ollamaServerPortRequired": "Please input Ollama service port",
-        "openaiCustomUrlRequired": "Please input a valid custom OpenAI service base URL"
+        "openaiCustomUrlRequired": "Please input a valid custom OpenAI service base URL",
+        "awsRegionRequired": "Please input AWS Region",
+        "awsAccessKeyRequired": "Please input AWS Access Key ID",
+        "awsSecretKeyRequired": "Please input AWS Secret Access Key"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
