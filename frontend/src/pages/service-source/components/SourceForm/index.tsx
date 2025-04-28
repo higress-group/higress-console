@@ -40,6 +40,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setSourceType(null);
       setInitAuthEnabled(false);
       setAuthEnabled(false);
+      setUsingTlsProtocol(false);
       form.resetFields();
     },
     handleSubmit: async () => {
