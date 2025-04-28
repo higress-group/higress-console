@@ -462,7 +462,7 @@
       "nacosGroups": "Nacos Service Groups",
       "nacosGroupsRequired": "Please input Nacos service groups.",
       "nacosGroupsPlaceholder": "Nacos Service Groups",
-      "naco2PortNote": "The port calculated by \"PortAbove+1000\" shall be kept accessiable as well. Otherwise, the service source won't function properly.",
+      "nacos2PortNote": "The port calculated by \"PortAbove+1000\" shall be kept accessiable as well. Otherwise, the service source won't function properly.",
       "serviceStaticAddresses": "Service Addresses",
       "serviceStaticAddressesRequired": "Please input service addresses.",
       "serviceStaticAddressesPlaceholder": "IP:Port (One address per line)",
@@ -484,7 +484,13 @@
       "consulServiceTagTooltip": "You can filter services by a tag in Consul service sources.",
       "consulServiceTagPlaceholder": "e.g.: foo=bar",
       "consulToken": "Consul Token",
-      "consulTokenRequired": "Please input Consul token"
+      "consulTokenRequired": "Please input Consul token",
+      "mcpServerEnabled": "Enable MCP Server",
+      "mcpServerBaseUrl": "MCP Server Route Path Prefix",
+      "mcpServerBaseUrlRequired": "Please input MCP server route path prefix",
+      "mcpServerBaseUrlBadFormat": "Invalid MCP server route path prefix, which must begin with a \"/\".",
+      "mcpServerExportDomains": "MCP Server Domains",
+      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain."
     }
   },
   "route": {

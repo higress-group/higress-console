@@ -1656,7 +1656,8 @@ public class KubernetesModelConverter {
         serviceSource.setSni(v1RegistryConfig.getSni());
         serviceSource.setProperties(new HashMap<>());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())) {
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS3.equals(v1RegistryConfig.getType())) {
             serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID,
                 v1RegistryConfig.getNacosNamespaceId());
             serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS,
@@ -1671,6 +1672,14 @@ public class KubernetesModelConverter {
                 v1RegistryConfig.getConsulServiceTag());
             serviceSource.getProperties().put(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL,
                 v1RegistryConfig.getConsulRefreshInterval());
+        }
+
+        if (V1McpBridge.MCP_SUPPORTED_REGISTRY_TYPES.contains(v1RegistryConfig.getType())) {
+            serviceSource.getProperties().put(V1McpBridge.ENABLE_MCP_SERVER,
+                Optional.ofNullable(v1RegistryConfig.getEnableMcpServer()).orElse(Boolean.FALSE));
+            serviceSource.getProperties().put(V1McpBridge.MCP_SERVER_BASE_URL, v1RegistryConfig.getMcpServerBaseUrl());
+            serviceSource.getProperties().put(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS,
+                Optional.ofNullable(v1RegistryConfig.getMcpServerExportDomains()).orElse(new ArrayList<>()));
         }
     }
 
@@ -1694,27 +1703,34 @@ public class KubernetesModelConverter {
         v1RegistryConfig.setName(serviceSource.getName());
         v1RegistryConfig.setProtocol(StringUtils.firstNonBlank(serviceSource.getProtocol()));
         v1RegistryConfig.setSni(serviceSource.getSni());
-        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(serviceSource.getType())
-            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(serviceSource.getType())) {
-            v1RegistryConfig.setNacosNamespaceId((String)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID))
-                .orElse(""));
+        Map<String, Object> properties =
+            Optional.ofNullable(serviceSource.getProperties()).orElse(Collections.emptyMap());
+        if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())
+            || V1McpBridge.REGISTRY_TYPE_NACOS3.equals(v1RegistryConfig.getType())) {
+            v1RegistryConfig.setNacosNamespaceId(
+                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID)).orElse(""));
             v1RegistryConfig.setNacosGroups((List<String>)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS))
-                .orElse(new ArrayList<>()));
+                .ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS)).orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
             v1RegistryConfig.setZkServicesPath((List<String>)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH))
-                .orElse(new ArrayList<>()));
+                .ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH)).orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_CONSUL.equals(v1RegistryConfig.getType())) {
-            v1RegistryConfig.setConsulDataCenter((String)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER))
-                .orElse(""));
-            v1RegistryConfig.setConsulServiceTag((String)Optional
-                .ofNullable(serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG))
-                .orElse(""));
-            v1RegistryConfig.setConsulRefreshInterval(
-                (Integer)serviceSource.getProperties().get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL));
+            v1RegistryConfig.setConsulDataCenter(
+                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER)).orElse(""));
+            v1RegistryConfig.setConsulServiceTag(
+                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG)).orElse(""));
+            v1RegistryConfig
+                .setConsulRefreshInterval((Integer)properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL));
+        }
+
+        if (V1McpBridge.MCP_SUPPORTED_REGISTRY_TYPES.contains(v1RegistryConfig.getType())) {
+            v1RegistryConfig.setEnableMcpServer(
+                (Boolean)Optional.ofNullable(properties.get(V1McpBridge.ENABLE_MCP_SERVER)).orElse(Boolean.FALSE));
+            v1RegistryConfig.setMcpServerBaseUrl(
+                (String)Optional.ofNullable(properties.get(V1McpBridge.MCP_SERVER_BASE_URL)).orElse(""));
+            v1RegistryConfig.setMcpServerExportDomains((List<String>)Optional
+                .ofNullable(properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS)).orElse(new ArrayList<>()));
         }
     }
 
