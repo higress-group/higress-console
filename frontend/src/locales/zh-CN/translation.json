@@ -464,7 +464,7 @@
       "nacosGroupsPlaceholder": "Nacos服务分组列表",
       "nacos2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
       "nacos3Mode": "服务发现类型",
-      "nacos3ModeRegistry": "一般服务",
+      "nacos3ModeRegistry": "常规服务",
       "nacos3ModeMcp": "MCP服务",
       "serviceStaticAddresses": "服务地址",
       "serviceStaticAddressesRequired": "请输入服务地址",
