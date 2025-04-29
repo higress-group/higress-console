@@ -91,6 +91,21 @@ const RouteList: React.FC = () => {
       },
     },
     {
+      title: t('aiRoute.columns.auth'),
+      dataIndex: ['authConfig', 'allowedConsumers'],
+      key: 'authConfig.allowedConsumers',
+      render: (value, record) => {
+        const { authConfig } = record;
+        if (!authConfig || !authConfig.enabled) {
+          return t('aiRoute.authNotEnabled')
+        }
+        if (!Array.isArray(value) || !value.length) {
+          return t('aiRoute.authEnabledWithoutConsumer')
+        }
+        return value.map((consumer) => <span>{consumer}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+      },
+    },
+    {
       title: t('route.columns.action'),
       dataIndex: 'action',
       key: 'action',
