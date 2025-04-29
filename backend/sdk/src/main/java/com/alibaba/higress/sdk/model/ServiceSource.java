@@ -175,9 +175,13 @@ public class ServiceSource implements VersionedDto {
             if (MapUtils.isEmpty(properties)) {
                 return false;
             }
-            Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS);
-            if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
-                return false;
+            if (!V1McpBridge.REGISTRY_TYPE_NACOS3.equals(source.getType())
+                || !Boolean.TRUE.equals(properties.get(V1McpBridge.ENABLE_MCP_SERVER))) {
+                // No group configuration is needed for nacos3 when MCP is enabled.
+                Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS);
+                if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
+                    return false;
+                }
             }
             return true;
         }
