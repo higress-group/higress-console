@@ -11,6 +11,11 @@ import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
+enum Nacos3Mode {
+  REGISTRY = "registry",
+  MCP = "mcp",
+}
+
 const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
@@ -20,6 +25,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
   const [mcpEnabled, setMcpEnabled] = useState<boolean>();
+  const [nacos3Mode, setNacos3Mode] = useState<Nacos3Mode | null>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
@@ -46,7 +52,12 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       const authEnabledLocal = value.authN && value.authN.enabled;
       setInitAuthEnabled(authEnabledLocal);
       setAuthEnabled(authEnabledLocal);
-      setMcpEnabled(!!value.properties.enableMCPServer);
+      const mcpEnabledLocal = !!value.properties.enableMCPServer;
+      setMcpEnabled(mcpEnabledLocal);
+      if (value.type === ServiceSourceTypes.nacos3.key) {
+        value.nacos3Mode = mcpEnabledLocal ? Nacos3Mode.MCP : Nacos3Mode.REGISTRY;
+        setNacos3Mode(value.nacos3Mode);
+      }
     }
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
@@ -71,6 +82,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setAuthEnabled(false);
       setUsingTlsProtocol(false);
       setMcpEnabled(false);
+      setNacos3Mode(null);
       form.resetFields();
     },
     handleSubmit: async () => {
@@ -87,6 +99,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         }
       } else {
         values.protocol = null;
+      }
+      if (values.type === ServiceSourceTypes.nacos3.key) {
+        values.properties.enableMCPServer = values.nacos3Mode === Nacos3Mode.MCP;
       }
       updateUsingTlsProtocol(values.protocol);
       if (!usingTlsProtocol) {
@@ -241,39 +256,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         isNacosType(sourceType || '') && (
           <>
             <Form.Item
-              label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
-              name={['properties', 'nacosNamespaceId']}
-              rules={[
-                {
-                  message: t('serviceSource.serviceSourceForm.nacosNamespaceIdRequired'),
-                },
-              ]}
-            >
-              <Input
-                showCount
-                allowClear
-                maxLength={256}
-                placeholder={t('serviceSource.serviceSourceForm.nacosNamespaceIdPlaceholder')}
-              />
-            </Form.Item>
-            <Form.Item
-              label={t('serviceSource.serviceSourceForm.nacosGroups')}
-              name={['properties', 'nacosGroups']}
-              rules={[
-                {
-                  required: true,
-                  message: t('serviceSource.serviceSourceForm.nacosGroupsRequired'),
-                },
-              ]}
-            >
-              <Select
-                mode="tags"
-                allowClear
-                placeholder={t('serviceSource.serviceSourceForm.nacosGroupsPlaceholder')}
-                options={[{ value: "DEFAULT_GROUP" }]}
-              />
-            </Form.Item>
-            <Form.Item
               label={t('serviceSource.serviceSourceForm.authEnabled')}
               name={['authN', 'enabled']}
             >
@@ -329,6 +311,69 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                   </Form.Item>
                 </>
               )
+            }
+            {
+              sourceType === ServiceSourceTypes.nacos3.key && (
+                <>
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.nacos3Mode')}
+                    name={'nacos3Mode'}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('serviceSource.serviceSourceForm.nacos3ModeRequired'),
+                      },
+                    ]}
+                  >
+                    <Select
+                      onChange={(v) => { setMcpEnabled(v === Nacos3Mode.MCP); setNacos3Mode(v); }}
+                    >
+                      {/* eslint-disable-next-line react/jsx-boolean-value */}
+                      <Option key={Nacos3Mode.REGISTRY} value={Nacos3Mode.REGISTRY}>{t('serviceSource.serviceSourceForm.nacos3ModeRegistry')}</Option>
+                      {/* eslint-disable-next-line react/jsx-boolean-value */}
+                      <Option key={Nacos3Mode.MCP} value={Nacos3Mode.MCP}>{t('serviceSource.serviceSourceForm.nacos3ModeMcp')}</Option>
+                    </Select>
+                  </Form.Item>
+                </>
+              )
+            }
+            {
+              (sourceType !== ServiceSourceTypes.nacos3.key || nacos3Mode === Nacos3Mode.REGISTRY) &&
+              <>
+                <Form.Item
+                  label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
+                  name={['properties', 'nacosNamespaceId']}
+                  rules={[
+                    {
+                      message: t('serviceSource.serviceSourceForm.nacosNamespaceIdRequired'),
+                    },
+                  ]}
+                >
+                  <Input
+                    showCount
+                    allowClear
+                    maxLength={256}
+                    placeholder={t('serviceSource.serviceSourceForm.nacosNamespaceIdPlaceholder')}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label={t('serviceSource.serviceSourceForm.nacosGroups')}
+                  name={['properties', 'nacosGroups']}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('serviceSource.serviceSourceForm.nacosGroupsRequired'),
+                    },
+                  ]}
+                >
+                  <Select
+                    mode="tags"
+                    allowClear
+                    placeholder={t('serviceSource.serviceSourceForm.nacosGroupsPlaceholder')}
+                    options={[{ value: "DEFAULT_GROUP" }]}
+                  />
+                </Form.Item>
+              </>
             }
           </>)
       }
@@ -510,19 +555,22 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       {
         sourceTypeConfig && sourceTypeConfig.mcpSupported &&
         <>
-          <Form.Item
-            label={t('serviceSource.serviceSourceForm.mcpServerEnabled')}
-            name={['properties', 'enableMCPServer']}
-          >
-            <Select
-              onChange={(v) => setMcpEnabled(v)}
+          {
+            sourceType !== ServiceSourceTypes.nacos3.key &&
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.mcpServerEnabled')}
+              name={['properties', 'enableMCPServer']}
             >
-              {/* eslint-disable-next-line react/jsx-boolean-value */}
-              <Option key={0} value={false}>{t('misc.no')}</Option>
-              {/* eslint-disable-next-line react/jsx-boolean-value */}
-              <Option key={1} value={true}>{t('misc.yes')}</Option>
-            </Select>
-          </Form.Item>
+              <Select
+                onChange={(v) => setMcpEnabled(v)}
+              >
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={0} value={false}>{t('misc.no')}</Option>
+                {/* eslint-disable-next-line react/jsx-boolean-value */}
+                <Option key={1} value={true}>{t('misc.yes')}</Option>
+              </Select>
+            </Form.Item>
+          }
           {
             mcpEnabled && (
               <>
