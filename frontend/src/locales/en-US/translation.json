@@ -20,7 +20,8 @@
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
     "consumerManagement": "Consumer Management",
-    "pluginManagement": "Plugin Management"
+    "pluginManagement": "Plugin Management",
+    "systemSettings": "System Settings"
   },
   "index": {
     "title": "Higress Console"
@@ -566,6 +567,11 @@
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
       "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
+    }
+  },
+  "system": {
+    "higress-config": {
+      "title": "Edit Global Configuration: higress-config"
     }
   },
   "tlsCertificate": {
