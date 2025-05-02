@@ -114,7 +114,7 @@ public class AiRouteServiceImpl implements AiRouteService {
                 kubernetesClientService.loadFromYaml(routeFallbackEnvoyFilterConfig, V1alpha3EnvoyFilter.class);
             assert filter != null;
         } catch (Exception e) {
-            throw new IllegalStateException("Error occurs when loading route fallback envoy filter  from resource.", e);
+            throw new IllegalStateException("Error occurs when loading route fallback envoy filter from resource.", e);
         }
     }
 
