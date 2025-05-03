@@ -1,9 +1,11 @@
 import CodeEditor from '@/components/CodeEditor';
+import { Mode } from '@/interfaces/config';
 import { getHigressConfig, updateHigressConfig } from '@/services/system';
+import store from '@/store';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Form } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const SystemSettings: React.FC = () => {
@@ -12,7 +14,14 @@ const SystemSettings: React.FC = () => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [configYaml, setConfigYaml] = useState<string>("");
   const [configYamlVersion, setConfigYamlVersion] = useState<number>(0);
+  const [mode, setMode] = useState<string>(Mode.K8S);
   const [form] = Form.useForm();
+
+  const [configModel] = store.useModel('config');
+  useEffect(() => {
+    const properties = configModel ? configModel.properties : {};
+    setMode(properties.mode || Mode.K8S);
+  }, [configModel]);
 
   useRequest(getHigressConfig, {
     onSuccess: (result, params) => {
@@ -42,7 +51,9 @@ const SystemSettings: React.FC = () => {
         }}
       >
         <h2>{t('system.higress-config.title')}</h2>
-        <Form.Item>
+        <Form.Item
+          extra={t(mode === Mode.K8S ? 'system.higress-config.note_k8s' : 'system.higress-config.note_standalone')}
+        >
           <CodeEditor
             defaultValue={configYaml}
             key={configYamlVersion}

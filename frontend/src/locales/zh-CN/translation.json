@@ -571,7 +571,9 @@
   },
   "system": {
     "higress-config": {
-      "title": "编辑全局配置：higress-config"
+      "title": "编辑全局配置：higress-config",
+      "note_k8s": "注意：对“mesh”和“meshNetworks”的修改需要重启 Higress Gateway 才能生效。",
+      "note_standalone": "注意：对“mesh”和“meshNetworks”的修改将需要整体重启 Higress 才能生效。"
     }
   },
   "tlsCertificate": {
