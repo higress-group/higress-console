@@ -1,8 +1,10 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Form, Input, InputNumber, Select, Switch } from 'antd';
+import { AutoComplete, Button, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
+
+const { Text, Link } = Typography;
 
 const protocolList = [
   { label: "openai/v1", value: "openai/v1" },
@@ -12,6 +14,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [failoverEnabled, setFailoverEnabled] = useState(false);
+  const [secretRefModalVisible, setSecretRefModalVisible] = useState(false);
   const [providerType, setProviderType] = useState<string | null>();
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
@@ -102,6 +105,14 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   function onProviderTypeChanged(value: string | null) {
     setProviderType(value);
     setProviderConfig(value ? aiModelProviders.find(p => p.value === value) : null);
+  }
+
+  function opensecretRefModal() {
+    setSecretRefModalVisible(true);
+  }
+
+  function closesecretRefModal() {
+    setSecretRefModalVisible(false);
   }
 
   return (
@@ -249,6 +260,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   icon={<PlusOutlined />}
                 />
                 <Form.ErrorList errors={errors} />
+                <div style={{ marginTop: '1rem' }}>
+                  <Link onClick={opensecretRefModal}>{t("llmProvider.providerForm.secretRefModal.entry")}</Link>
+                </div>
               </Form.Item>
             </>
           )}
@@ -500,6 +514,39 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           </>
           : null
       }
+
+      <Modal
+        title={t("llmProvider.providerForm.secretRefModal.title")}
+        open={secretRefModalVisible}
+        onOk={closesecretRefModal}
+        onCancel={closesecretRefModal}
+        footer={[
+          <Button key="submit" type="primary" onClick={closesecretRefModal}>
+            OK
+          </Button>,
+        ]}
+      >
+        {t("llmProvider.providerForm.secretRefModal.content_brief")}
+        <ul style={{ margin: '1rem 0' }}>
+          <li>
+            {t("llmProvider.providerForm.secretRefModal.content_sameNs")}
+            <br />
+            <Text code>{'${secret.secret-name.field-name}'}</Text>
+            <br />
+            {t("llmProvider.providerForm.secretRefModal.example")}
+            <Text code>{'${secret.my-token-secret.openai-token}'}</Text>
+          </li>
+          <li>
+            {t("llmProvider.providerForm.secretRefModal.content_diffNs")}
+            <br />
+            <Text code>{'${secret.ns-name/secret-name.field-name}'}</Text>
+            <br />
+            {t("llmProvider.providerForm.secretRefModal.example")}
+            <Text code>{'${secret.ai-ns/my-token-secret.openai-token}'}</Text>
+          </li>
+        </ul>
+        {t("llmProvider.providerForm.secretRefModal.roleConfig")}
+      </Modal>
     </Form>
   );
 });
