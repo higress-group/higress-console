@@ -107,11 +107,11 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     setProviderConfig(value ? aiModelProviders.find(p => p.value === value) : null);
   }
 
-  function opensecretRefModal() {
+  function openSecretRefModal() {
     setSecretRefModalVisible(true);
   }
 
-  function closesecretRefModal() {
+  function closeSecretRefModal() {
     setSecretRefModalVisible(false);
   }
 
@@ -261,7 +261,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 />
                 <Form.ErrorList errors={errors} />
                 <div style={{ marginTop: '1rem' }}>
-                  <Link onClick={opensecretRefModal}>{t("llmProvider.providerForm.secretRefModal.entry")}</Link>
+                  <Link onClick={openSecretRefModal}>{t("llmProvider.providerForm.secretRefModal.entry")}</Link>
                 </div>
               </Form.Item>
             </>
@@ -518,10 +518,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       <Modal
         title={t("llmProvider.providerForm.secretRefModal.title")}
         open={secretRefModalVisible}
-        onOk={closesecretRefModal}
-        onCancel={closesecretRefModal}
+        onOk={closeSecretRefModal}
+        onCancel={closeSecretRefModal}
         footer={[
-          <Button key="submit" type="primary" onClick={closesecretRefModal}>
+          <Button key="submit" type="primary" onClick={closeSecretRefModal}>
             OK
           </Button>,
         ]}
