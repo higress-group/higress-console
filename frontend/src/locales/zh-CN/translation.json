@@ -493,7 +493,8 @@
       "mcpServerBaseUrlRequired": "请输入MCP Server路由路径前缀",
       "mcpServerBaseUrlBadFormat": "MCP Server路由路径前缀格式不正确。请使用“/”开头。",
       "mcpServerExportDomains": "关联MCP Server的域名",
-      "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名"
+      "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名",
+      "mcpServerExportDomainsOnlyDomainsWithRoute": "仅支持关联已经配置了路由的域名。"
     }
   },
   "route": {

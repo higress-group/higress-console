@@ -493,7 +493,8 @@
       "mcpServerBaseUrlRequired": "Please input MCP server route path prefix",
       "mcpServerBaseUrlBadFormat": "Invalid MCP server route path prefix, which must begin with a \"/\".",
       "mcpServerExportDomains": "MCP Server Domains",
-      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain."
+      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain.",
+      "mcpServerExportDomainsOnlyDomainsWithRoute": "Only domains with at least one route are listed."
     }
   },
   "route": {
