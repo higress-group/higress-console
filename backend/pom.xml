@@ -50,7 +50,10 @@
 	</developers>
 
 	<properties>
-		<java.version>17</java.version>
+		<!--Declare the minimum JDK version for dependency.-->
+		<java.version>8</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
 
 		<retrofit.version>2.9.0</retrofit.version>
 		<guava.version>31.1-jre</guava.version>

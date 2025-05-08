@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,7 +217,7 @@ public class KubernetesClientService {
             }
             String responseString = new String(response.body().bytes());
             if (StringUtils.isNotEmpty(responseString)) {
-                return JSON.parseObject(responseString, new TypeReference<>() {});
+                return JSON.parseObject(responseString, new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
             }
         }
         return null;
@@ -234,7 +235,7 @@ public class KubernetesClientService {
                 apiInstance.listIngressForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
             ingresses.addAll(list.getItems());
         } else {
-            for (String ns : List.of(controllerNamespace, controllerWatchedNamespace)) {
+            for (String ns : Lists.newArrayList(controllerNamespace, controllerWatchedNamespace)) {
                 V1IngressList list =
                     apiInstance.listNamespacedIngress(ns, null, null, null, null, null, null, null, null, null, null);
                 if (list != null) {

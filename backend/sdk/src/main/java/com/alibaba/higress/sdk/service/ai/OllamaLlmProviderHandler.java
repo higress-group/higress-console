@@ -40,9 +40,10 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
             throw new ValidationException("Missing Azure specific configurations.");
         }
         Object serverHostObj = configurations.get(SERVER_HOST_KEY);
-        if (!(serverHostObj instanceof String serverHost)) {
+        if (!(serverHostObj instanceof String)) {
             throw new ValidationException(SERVER_HOST_KEY + " must be a string.");
         }
+        String serverHost= (String)serverHostObj;
         if (StringUtils.isEmpty(serverHost)) {
             throw new ValidationException(SERVER_HOST_KEY + " cannot be empty.");
         }

@@ -23,6 +23,8 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -150,7 +152,7 @@ public class SystemServiceImpl implements SystemService {
         }
         this.capabilities = capabilities;
 
-        Map<String, Object> configs = Map.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
+        Map<String, Object> configs = MapUtil.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
             UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
         configService.setConfigs(configs);
 
@@ -200,7 +202,7 @@ public class SystemServiceImpl implements SystemService {
 
             TlsCertificate defaultCertificate = new TlsCertificate();
             defaultCertificate.setName(DEFAULT_TLS_CERTIFICATE_NAME);
-            defaultCertificate.setDomains(List.of(DEFAULT_TLS_CERTIFICATE_HOST));
+            defaultCertificate.setDomains(Lists.newArrayList(DEFAULT_TLS_CERTIFICATE_HOST));
             defaultCertificate.setKey(
                 CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
             defaultCertificate
@@ -224,7 +226,7 @@ public class SystemServiceImpl implements SystemService {
             RoutePredicate routePredicate =
                 RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
-            route.setServices(List.of(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
+            route.setServices(Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
             routeService.add(route);
 

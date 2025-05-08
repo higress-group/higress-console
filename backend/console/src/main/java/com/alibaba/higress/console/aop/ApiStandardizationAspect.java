@@ -120,9 +120,10 @@ public class ApiStandardizationAspect {
             if (!loggedThrowables.add(t1)) {
                 break;
             }
-            if (!(t1 instanceof ApiException apiException)){
+            if (!(t1 instanceof ApiException)){
                 continue;
             }
+            ApiException apiException= (ApiException)t1;
             String message = String.format("Related K8s API response: Code=%s Body=%s", apiException.getCode(), apiException.getResponseBody());
             logFunction.accept(message, null);
         }
