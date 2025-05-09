@@ -271,6 +271,15 @@
       "openaiServerType": {
         "official": "OpenAI 官方服务",
         "custom": "自定义服务"
+      },
+      "secretRefModal": {
+        "entry": "我想引用保存在 Secret 中的凭证信息",
+        "title": "如何引用保存在 Secret 中的凭证信息？",
+        "content_brief": "Higress 支持在配置凭证信息时直接引用 Secret 中的字段。具体方式如下：",
+        "content_sameNs": "若 Secret 与 Higress 在相同的命名空间：",
+        "content_diffNs": "若 Secret 与 Higress 在不同的命名空间：",
+        "example": "例如：",
+        "roleConfig": "默认配置下，Higress 可以读取任意命名空间下的 Secret 信息。如果你调整过这部分配置，请确保 Higress Controller 的 ServiceAccount 可以读取配置中所引用的 Secret 数据。"
       }
     },
     "create": "创建AI服务提供者",
