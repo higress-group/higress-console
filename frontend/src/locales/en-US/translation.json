@@ -497,7 +497,7 @@
       "mcpServerNacos3NoteUrl": "MCP Server retrieved from Nacos can be accessed using the URL pattern below:",
       "mcpServerNacos3McpServerName": "MCP Server Name in Nacos",
       "mcpServerNacos3McpServerPath": "MCP Server Access Path in Nacos",
-      "mcpServerNacos3NoteSse": "When accessing using SSE transport，a /sse suffix needs to be appended to the pattern above.",
+      "mcpServerNacos3NoteSse": "When accessing using SSE transport, a /sse suffix needs to be appended to the pattern above.",
       "mcpServerNacos3NoteRoute": "Note: These MCP server routes won't be listed in the Route Management page."
     }
   },
