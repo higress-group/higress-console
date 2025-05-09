@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -85,7 +86,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             return Collections.emptyList();
         }
         return plugins.stream().map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
-            .flatMap(Collection::stream).toList();
+            .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
     @Override
@@ -100,7 +101,7 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             return Collections.emptyList();
         }
         return plugins.stream().map(p -> kubernetesModelConverter.getWasmPluginInstanceFromCr(p, scope, target))
-            .filter(Objects::nonNull).toList();
+            .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override

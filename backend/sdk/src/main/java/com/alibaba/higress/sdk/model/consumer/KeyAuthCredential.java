@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "KeyAuth Credential")
 public class KeyAuthCredential extends Credential {
 
-    private static final Set<String> VALID_SOURCES = Set.of(KeyAuthCredentialSource.BEARER.name(),
+    private static final Set<String> VALID_SOURCES = Sets.newHashSet(KeyAuthCredentialSource.BEARER.name(),
         KeyAuthCredentialSource.HEADER.name(), KeyAuthCredentialSource.QUERY.name());
 
     @Schema(description = "Credential source", ref = "KeyAuthCredentialSource")

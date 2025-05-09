@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.service.kubernetes.crd.mcp;
 
 import com.alibaba.higress.sdk.constant.Separators;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -77,7 +78,7 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final String REGISTRY_TYPE_DNS = "dns";
 
-    public static final Set<String> MCP_SUPPORTED_REGISTRY_TYPES = Set.of(V1McpBridge.REGISTRY_TYPE_NACOS3);
+    public static final Set<String> MCP_SUPPORTED_REGISTRY_TYPES = Sets.newHashSet(V1McpBridge.REGISTRY_TYPE_NACOS3);
 
     public static final String REGISTRY_TYPE_STATIC_DNS_SEPARATOR = Separators.COMMA;
 

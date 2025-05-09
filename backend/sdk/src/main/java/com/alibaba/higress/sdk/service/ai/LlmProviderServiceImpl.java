@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.alibaba.higress.sdk.util.MapUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -158,7 +159,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         serviceInstance.setTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName());
         serviceInstance.setEnabled(true);
         serviceInstance.setInternal(true);
-        serviceInstance.setConfigurations(Map.of(ACTIVE_PROVIDER_ID, provider.getName()));
+        serviceInstance.setConfigurations(MapUtil.of(ACTIVE_PROVIDER_ID, provider.getName()));
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
 
         return query(provider.getName());
@@ -262,9 +263,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             return new TreeMap<>();
         }
         Object providersObj = instance.getConfigurations().get(PROVIDERS);
-        if (!(providersObj instanceof List<?> providerList)) {
+        if (!(providersObj instanceof List<?>)) {
             return new TreeMap<>();
         }
+        List<?> providerList= (List<?>)providersObj;
         SortedMap<String, LlmProvider> providers = new TreeMap<>();
         for (Object providerObj : providerList) {
             if (!(providerObj instanceof Map<?, ?>)) {

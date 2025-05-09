@@ -40,6 +40,7 @@ import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -250,7 +251,7 @@ public class KubernetesModelConverter {
         domainConfigMap.metadata(metadata);
         metadata.setName(domainName2ConfigMapName(domain.getName()));
         metadata.setResourceVersion(domain.getVersion());
-        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+        metadata.setLabels(MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
             KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
 
         Map<String, String> configMap = new HashMap<>();
@@ -291,10 +292,10 @@ public class KubernetesModelConverter {
         domainConfigMap.metadata(metadata);
         metadata.setName(aiRouteName2ConfigMapName(route.getName()));
         metadata.setResourceVersion(route.getVersion());
-        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+        metadata.setLabels(MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
             KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE));
 
-        domainConfigMap.data(Map.of(KubernetesConstants.DATA_FIELD, GSON.toJson(route)));
+        domainConfigMap.data(MapUtil.of(KubernetesConstants.DATA_FIELD, GSON.toJson(route)));
 
         return domainConfigMap;
     }
@@ -652,23 +653,37 @@ public class KubernetesModelConverter {
     }
 
     private List<String> getTargetsByScope(MatchRule rule, WasmPluginInstanceScope scope) {
-        return switch (scope) {
-            case GLOBAL -> null;
-            case DOMAIN -> rule.getDomain();
-            case ROUTE -> rule.getIngress();
-            case SERVICE -> rule.getService();
-        };
+        switch (scope) {
+            case GLOBAL:
+                return null;
+            case DOMAIN:
+                return rule.getDomain();
+            case ROUTE:
+                return rule.getIngress();
+            case SERVICE:
+                return rule.getService();
+            default:
+                throw new IllegalArgumentException("Unsupported scope: " + scope);
+        }
     }
+
 
     @SuppressWarnings("PMD.SwitchStatementRule")
     private void setTargetByScope(MatchRule rule, WasmPluginInstanceScope scope, String target) {
         switch (scope) {
-            case GLOBAL -> {
-            }
-            case DOMAIN -> rule.setDomain(List.of(target));
-            case ROUTE -> rule.setIngress(List.of(target));
-            case SERVICE -> rule.setService(List.of(target));
-            default -> throw new IllegalArgumentException("Unsupported scope: " + scope);
+            case GLOBAL:
+                break;
+            case DOMAIN:
+                rule.setDomain(Lists.newArrayList(target));
+                break;
+            case ROUTE:
+                rule.setIngress(Lists.newArrayList(target));
+                break;
+            case SERVICE:
+                rule.setService(Lists.newArrayList(target));
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported scope: " + scope);
         }
     }
 
@@ -684,7 +699,8 @@ public class KubernetesModelConverter {
             }
             if (value instanceof Map) {
                 normalizePluginInstanceConfigurations((Map<String, Object>)value);
-            } else if (value instanceof Double d) {
+            } else if (value instanceof Double) {
+                Double d= (Double) value;
                 if (d == d.intValue()) {
                     entry.setValue(d.intValue());
                 }
@@ -1410,13 +1426,13 @@ public class KubernetesModelConverter {
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
             setFunctionalAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()),
                     Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
             setFunctionalAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).toList(),
+                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()),
                     Separators.NEW_LINE),
                 enabled);
         }
@@ -1566,7 +1582,7 @@ public class KubernetesModelConverter {
             }
         } else {
             for (UpstreamService service : services) {
-                if (!valueBuilder.isEmpty()) {
+                if (valueBuilder.length() > 0) {
                     valueBuilder.append("\n");
                 }
                 valueBuilder.append(service.getWeight() == null ? DEFAULT_WEIGHT : service.getWeight()).append("% ");
@@ -1579,7 +1595,7 @@ public class KubernetesModelConverter {
                 }
             }
         }
-        if (!valueBuilder.isEmpty()) {
+        if (valueBuilder.length() > 0) {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
                 valueBuilder.toString());
         }

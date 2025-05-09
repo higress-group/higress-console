@@ -135,13 +135,15 @@ public class ServiceSource implements VersionedDto {
 
         Object rawExportDomains = properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS);
         if (rawExportDomains != null) {
-            if (!(rawExportDomains instanceof List<?> exportDomains)) {
+            if (!(rawExportDomains instanceof List)) {
                 return false;
             }
+            List<?> exportDomains = (List<?>) rawExportDomains;
             for (Object rawExportDomain : exportDomains) {
-                if (!(rawExportDomain instanceof String exportDomain)) {
+                if (!(rawExportDomain instanceof String)) {
                     return false;
                 }
+                String exportDomain = (String) rawExportDomain;
                 if (!ValidateUtil.checkDomain(exportDomain)) {
                     return false;
                 }
@@ -149,9 +151,10 @@ public class ServiceSource implements VersionedDto {
         }
 
         Object rawServerBaseUrl = properties.get(V1McpBridge.MCP_SERVER_BASE_URL);
-        if (!(rawServerBaseUrl instanceof String serverBaseUrl)) {
+        if (!(rawServerBaseUrl instanceof String)) {
             return false;
         }
+        String serverBaseUrl= (String) rawServerBaseUrl;
         if (!ValidateUtil.checkUrlPath(serverBaseUrl)) {
             return false;
         }

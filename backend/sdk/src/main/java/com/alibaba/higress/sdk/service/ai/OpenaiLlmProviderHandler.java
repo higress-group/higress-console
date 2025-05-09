@@ -89,11 +89,15 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
         if (scheme == null) {
             return 80;
         }
-        return switch (scheme.toLowerCase(Locale.ROOT)) {
-            case V1McpBridge.PROTOCOL_HTTP -> 80;
-            case V1McpBridge.PROTOCOL_HTTPS -> 443;
-            default -> 80;
-        };
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        switch (scheme) {
+            case V1McpBridge.PROTOCOL_HTTP:
+                return 80;
+            case V1McpBridge.PROTOCOL_HTTPS:
+                return 443;
+            default:
+                return 80;
+        }
     }
 
     @Override
@@ -106,10 +110,14 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
         if (scheme == null) {
             return V1McpBridge.PROTOCOL_HTTP;
         }
-        return switch (scheme.toLowerCase(Locale.ROOT)) {
-            case V1McpBridge.PROTOCOL_HTTP, V1McpBridge.PROTOCOL_HTTPS -> scheme;
-            default -> V1McpBridge.PROTOCOL_HTTP;
-        };
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        switch (scheme) {
+            case V1McpBridge.PROTOCOL_HTTP:
+            case V1McpBridge.PROTOCOL_HTTPS:
+                return scheme;
+            default:
+                return V1McpBridge.PROTOCOL_HTTP;
+        }
     }
 
     private static URI getCustomUri(Map<String, Object> providerConfig) {
@@ -117,9 +125,10 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
             return null;
         }
         Object customUrlObject = providerConfig.get(CUSTOM_URL_KEY);
-        if (!(customUrlObject instanceof String customUrl)) {
+        if (!(customUrlObject instanceof String)) {
             return null;
         }
+        String customUrl= (String)customUrlObject;
         if (StringUtils.isEmpty(customUrl)) {
             throw new ValidationException(CUSTOM_URL_KEY + " cannot be empty.");
         }

@@ -14,6 +14,8 @@ package com.alibaba.higress.sdk.util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+
 public final class StringUtil {
 
     private static final char DEFAULT_MASK_CHAR = '*';
@@ -57,9 +59,13 @@ public final class StringUtil {
             }
             return mask(str, maskChar, startOffset, endOffset);
         }
+        int maskLength = Math.max(0, length - endOffset - startOffset);
+        char[] maskChars = new char[maskLength];
+        Arrays.fill(maskChars, maskChar);
+
         StringBuilder sb = new StringBuilder(length);
         sb.append(str, 0, startOffset);
-        sb.append(String.valueOf(maskChar).repeat(Math.max(0, length - endOffset - startOffset)));
+        sb.append(maskChars);
         sb.append(str, length - endOffset, length);
         return sb.toString();
     }

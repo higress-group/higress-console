@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -89,7 +90,7 @@ public class PaginatedResult<T> implements Serializable {
             result.pageNum = pageNum;
             result.pageSize = pageSize;
         }
-        result.data = data.stream().map(converter).toList();
+        result.data = data.stream().map(converter).collect(Collectors.toList());
         return result;
     }
 }
