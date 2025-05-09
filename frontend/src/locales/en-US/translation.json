@@ -20,7 +20,8 @@
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
     "consumerManagement": "Consumer Management",
-    "pluginManagement": "Plugin Management"
+    "pluginManagement": "Plugin Management",
+    "systemSettings": "System Settings"
   },
   "index": {
     "title": "Higress Console"
@@ -566,6 +567,13 @@
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
       "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
+    }
+  },
+  "system": {
+    "higress-config": {
+      "title": "Edit Global Configuration: higress-config",
+      "note_k8s": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress Gateway is restarted.",
+      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted."
     }
   },
   "tlsCertificate": {

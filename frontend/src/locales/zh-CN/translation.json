@@ -20,7 +20,8 @@
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
     "consumerManagement": "消费者管理",
-    "pluginManagement": "插件配置"
+    "pluginManagement": "插件配置",
+    "systemSettings": "系统设置"
   },
   "index": {
     "title": "Higress Console"
@@ -566,6 +567,13 @@
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
+    }
+  },
+  "system": {
+    "higress-config": {
+      "title": "编辑全局配置：higress-config",
+      "note_k8s": "注意：对“mesh”和“meshNetworks”的修改需要重启 Higress Gateway 才能生效。",
+      "note_standalone": "注意：对“mesh”和“meshNetworks”的修改将需要整体重启 Higress 才能生效。"
     }
   },
   "tlsCertificate": {
