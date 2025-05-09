@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
+import com.alibaba.higress.console.controller.dto.UpdateHigressConfigRequest;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
 import com.alibaba.higress.console.model.SystemInfo;
 import com.alibaba.higress.console.model.User;
@@ -124,5 +125,28 @@ public class SystemController {
             }
         }
         return ResponseEntity.ok(Response.success(configs));
+    }
+
+    @GetMapping("/higress-config")
+    @Operation(summary = "Get the content of higress-config ConfigMap")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "higress-config retrieved successfully."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<String>> getHigressConfig() {
+        return ResponseEntity.ok(Response.success(systemService.getHigressConfig()));
+    }
+
+    @PostMapping("/higress-config")
+    @Operation(summary = "Update the content of higress-config ConfigMap")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "higress-config updated successfully."),
+        @ApiResponse(responseCode = "400", description = "Config data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Config data has been updated by someone else."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<String>> updateHigressConfig(@RequestBody UpdateHigressConfigRequest request) {
+        String config = request.getConfig();
+        if (StringUtils.isEmpty(config)) {
+            throw new ValidationException("Missing required parameter: config");
+        }
+        String updatedConfig = systemService.setHigressConfig(config);
+        return ResponseEntity.ok(Response.success(updatedConfig));
     }
 }

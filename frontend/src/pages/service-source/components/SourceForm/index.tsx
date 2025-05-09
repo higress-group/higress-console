@@ -1,8 +1,8 @@
 import { OptionItem } from '@/interfaces/common';
-import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
+import { DEFAULT_DOMAIN } from '@/interfaces/domain';
+import { Route } from '@/interfaces/route';
 import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
-import { HistoryButton, RedoOutlinedBtn } from '@/pages/ai/components/RouteForm/Components';
-import { getGatewayDomains } from '@/services';
+import { getGatewayRoutes } from '@/services';
 import { Form, Input, Select } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { useRequest } from 'ice';
@@ -29,15 +29,15 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
-  const domainsResult = useRequest(getGatewayDomains, {
+  const domainsResult = useRequest(getGatewayRoutes, {
     manual: true,
-    onSuccess: (domains: Domain[]) => {
-      const _domainOptions: OptionItem[] = [];
-      domains && domains.forEach(domain => {
-        const { name } = domain;
-        name !== DEFAULT_DOMAIN && _domainOptions.push({ label: name, value: name });
+    onSuccess: (routes: Route[]) => {
+      const domainsWithRoute = new Set<string>();
+      routes && routes.forEach(route => {
+        const { domains } = route;
+        domains && domains.forEach(domain => domainsWithRoute.add(domain));
       });
-      setDomainOptions(_domainOptions);
+      setDomainOptions([...domainsWithRoute.values()].map(domain => ({ label: domain, value: domain })));
     },
   });
 
@@ -598,7 +598,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                     label={t('serviceSource.serviceSourceForm.mcpServerExportDomains')}
                     name={['properties', 'mcpServerExportDomains']}
                     style={{ flex: 1, marginRight: '8px' }}
-                    extra={(<HistoryButton text={t("domain.createDomain")} path={"/domain"} />)}
+                    extra={t("serviceSource.serviceSourceForm.mcpServerExportDomainsOnlyDomainsWithRoute")}
                   >
                     <Select
                       showSearch
@@ -608,7 +608,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                       options={domainOptions || []}
                     />
                   </Form.Item>
-                  <RedoOutlinedBtn getList={domainsResult} />
                 </div>
               </>
             )

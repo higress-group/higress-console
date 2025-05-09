@@ -185,6 +185,14 @@ public class KubernetesClientService {
         return client.getJSON().deserialize(json, clazz);
     }
 
+    public String saveToYaml(KubernetesObject obj) {
+        return Yaml.getSnakeYaml(obj.getClass()).dumpAsMap(obj);
+    }
+
+    public String saveToJson(KubernetesObject obj) {
+        return client.getJSON().serialize(obj);
+    }
+
     public List<RegistryzService> gatewayServiceList() throws IOException {
         Request request = buildControllerRequest("/debug/registryz");
         log.info("gatewayServiceList url {}", request.url());
