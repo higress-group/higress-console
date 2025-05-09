@@ -58,12 +58,12 @@ jobs:
         uses: engineerd/setup-kind@v0.6.2
         with:
           name: higress
-          version: "v0.24.0"          
+          version: "v0.24.0"
 
       - name: Build Higress Console API Docs
         run: |
           helm repo add higress.io https://higress.cn/helm-charts
-          helm install higress-console -n higress-system higress.io/higress-console \
+          helm install higress -n higress-system higress.io/higress \
             --create-namespace --set global.local=true
           mvn clean verify -f ./backend/pom.xml -Papi-docs
 
