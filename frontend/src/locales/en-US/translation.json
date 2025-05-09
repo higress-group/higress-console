@@ -502,9 +502,15 @@
       "mcpServerBaseUrl": "MCP Server Route Path Prefix",
       "mcpServerBaseUrlRequired": "Please input MCP server route path prefix",
       "mcpServerBaseUrlBadFormat": "Invalid MCP server route path prefix, which must begin with a \"/\".",
-      "mcpServerExportDomains": "MCP Server Domains",
+      "mcpServerExportDomains": "MCP Server Domain",
       "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain.",
-      "mcpServerExportDomainsOnlyDomainsWithRoute": "Only domains with at least one route are listed."
+      "mcpServerExportDomainsOnlyDomainsWithRoute": "Only domains with at least one route are listed.",
+      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain.",
+      "mcpServerNacos3NoteUrl": "MCP Server retrieved from Nacos can be accessed using the URL pattern below:",
+      "mcpServerNacos3McpServerName": "MCP Server Name in Nacos",
+      "mcpServerNacos3McpServerPath": "MCP Server Access Path in Nacos",
+      "mcpServerNacos3NoteSse": "When accessing using SSE transport, a /sse suffix needs to be appended to the pattern above.",
+      "mcpServerNacos3NoteRoute": "Note: These MCP server routes won't be listed in the Route Management page."
     }
   },
   "route": {
