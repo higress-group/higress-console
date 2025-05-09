@@ -613,6 +613,24 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               </>
             )
           }
+          {
+            mcpEnabled && sourceType === ServiceSourceTypes.nacos3.key &&
+            <div>
+              {t('serviceSource.serviceSourceForm.mcpServerNacos3NoteUrl')}
+              <ul>
+                <li>
+                  {
+                    `http://{${t('serviceSource.serviceSourceForm.mcpServerExportDomains')}}`
+                    + `/{${t('serviceSource.serviceSourceForm.mcpServerBaseUrl')}}`
+                    + `/${t('serviceSource.serviceSourceForm.mcpServerNacos3McpServerName')}` +
+                    `/${t('serviceSource.serviceSourceForm.mcpServerNacos3McpServerPath')}`
+                  }
+                </li>
+                <li>{t('serviceSource.serviceSourceForm.mcpServerNacos3McpServerName')}</li>
+              </ul>
+              {t('serviceSource.serviceSourceForm.mcpServerNacos3NoteRoute')}
+            </div>
+          }
         </>
       }
     </Form >
