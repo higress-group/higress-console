@@ -625,7 +625,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                     `/${t('serviceSource.serviceSourceForm.mcpServerNacos3McpServerPath')}`
                   }
                 </li>
-                <li>{t('serviceSource.serviceSourceForm.mcpServerNacos3McpServerName')}</li>
+                <li>{t('serviceSource.serviceSourceForm.mcpServerNacos3NoteSse')}</li>
               </ul>
               {t('serviceSource.serviceSourceForm.mcpServerNacos3NoteRoute')}
             </div>
