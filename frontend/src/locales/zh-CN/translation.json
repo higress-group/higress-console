@@ -20,7 +20,8 @@
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
     "consumerManagement": "消费者管理",
-    "pluginManagement": "插件配置"
+    "pluginManagement": "插件配置",
+    "systemSettings": "系统设置"
   },
   "index": {
     "title": "Higress Console"
@@ -270,6 +271,15 @@
       "openaiServerType": {
         "official": "OpenAI 官方服务",
         "custom": "自定义服务"
+      },
+      "secretRefModal": {
+        "entry": "我想引用保存在 Secret 中的凭证信息",
+        "title": "如何引用保存在 Secret 中的凭证信息？",
+        "content_brief": "Higress 支持在配置凭证信息时直接引用 Secret 中的字段。具体方式如下：",
+        "content_sameNs": "若 Secret 与 Higress 在相同的命名空间：",
+        "content_diffNs": "若 Secret 与 Higress 在不同的命名空间：",
+        "example": "例如：",
+        "roleConfig": "默认配置下，Higress 可以读取任意命名空间下的 Secret 信息。如果你调整过这部分配置，请确保 Higress Controller 的 ServiceAccount 可以读取配置中所引用的 Secret 数据。"
       }
     },
     "create": "创建AI服务提供者",
@@ -493,7 +503,13 @@
       "mcpServerBaseUrlRequired": "请输入MCP Server路由路径前缀",
       "mcpServerBaseUrlBadFormat": "MCP Server路由路径前缀格式不正确。请使用“/”开头。",
       "mcpServerExportDomains": "关联MCP Server的域名",
-      "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名"
+      "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名",
+      "mcpServerExportDomainsOnlyDomainsWithRoute": "仅支持关联已经配置了路由的域名。",
+      "mcpServerNacos3NoteUrl": "从 Nacos 中获取到的 MCP Server 可以直接使用以下方式构造 URL 来进行访问：",
+      "mcpServerNacos3McpServerName": "Nacos中MCP Server的名称",
+      "mcpServerNacos3McpServerPath": "Nacos中MCP Server的访问路径",
+      "mcpServerNacos3NoteSse": "如需使用 SSE 协议，则需要在后面额外添加 /sse 后缀",
+      "mcpServerNacos3NoteRoute": "注意：相关路由信息并不会显示在路由配置列表中。"
     }
   },
   "route": {
@@ -566,6 +582,13 @@
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
+    }
+  },
+  "system": {
+    "higress-config": {
+      "title": "编辑全局配置：higress-config",
+      "note_k8s": "注意：对“mesh”和“meshNetworks”的修改需要重启 Higress Gateway 才能生效。",
+      "note_standalone": "注意：对“mesh”和“meshNetworks”的修改将需要整体重启 Higress 才能生效。"
     }
   },
   "tlsCertificate": {

@@ -20,7 +20,8 @@
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
     "consumerManagement": "Consumer Management",
-    "pluginManagement": "Plugin Management"
+    "pluginManagement": "Plugin Management",
+    "systemSettings": "System Settings"
   },
   "index": {
     "title": "Higress Console"
@@ -270,6 +271,15 @@
       "openaiServerType": {
         "official": "OpenAI Official Service",
         "custom": "Custom Service"
+      },
+      "secretRefModal": {
+        "entry": "I'd like to use token info stored in a Secret resource.",
+        "title": "How to refer to token info stored in a Secret resource?",
+        "content_brief": "Higress supports referring to a field in a Secret resource when configuring tokens. Details are as following:",
+        "content_sameNs": "If the Secret and Higress share the same namespace:",
+        "content_diffNs": "If the Secret and Higress belong to different namespaces:",
+        "example": "e.g. ",
+        "roleConfig": "Higress can read Secret data in any namespace by default. But if the role configuration is modified, please make sure the ServiceAccount bound to Higress Controller is allowed to read the configured Secret resource."
       }
     },
     "create": "Create AI Service Provider",
@@ -492,8 +502,15 @@
       "mcpServerBaseUrl": "MCP Server Route Path Prefix",
       "mcpServerBaseUrlRequired": "Please input MCP server route path prefix",
       "mcpServerBaseUrlBadFormat": "Invalid MCP server route path prefix, which must begin with a \"/\".",
-      "mcpServerExportDomains": "MCP Server Domains",
-      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain."
+      "mcpServerExportDomains": "MCP Server Domain",
+      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain.",
+      "mcpServerExportDomainsOnlyDomainsWithRoute": "Only domains with at least one route are listed.",
+      "mcpServerExportDomainsPlaceholder": "If left empty, MCP server will be activated on any domain.",
+      "mcpServerNacos3NoteUrl": "MCP Server retrieved from Nacos can be accessed using the URL pattern below:",
+      "mcpServerNacos3McpServerName": "MCP Server Name in Nacos",
+      "mcpServerNacos3McpServerPath": "MCP Server Access Path in Nacos",
+      "mcpServerNacos3NoteSse": "When accessing using SSE transport, a /sse suffix needs to be appended to the pattern above.",
+      "mcpServerNacos3NoteRoute": "Note: These MCP server routes won't be listed in the Route Management page."
     }
   },
   "route": {
@@ -566,6 +583,13 @@
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
       "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
+    }
+  },
+  "system": {
+    "higress-config": {
+      "title": "Edit Global Configuration: higress-config",
+      "note_k8s": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress Gateway is restarted.",
+      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted."
     }
   },
   "tlsCertificate": {

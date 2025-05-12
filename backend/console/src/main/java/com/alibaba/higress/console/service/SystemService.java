@@ -22,4 +22,8 @@ public interface SystemService {
     void initSystem(User adminUser, Map<String, Object> configs);
 
     SystemInfo getSystemInfo();
+
+    String getHigressConfig();
+
+    String setHigressConfig(String config);
 }
