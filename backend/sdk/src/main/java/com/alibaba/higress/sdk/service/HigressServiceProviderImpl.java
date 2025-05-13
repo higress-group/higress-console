@@ -23,6 +23,7 @@ import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerServiceImpl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import org.apache.commons.lang3.BooleanUtils;
 
 /**
  * @author CH3CHO
@@ -45,7 +46,11 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
-        serviceService = new ServiceServiceImpl(kubernetesClientService);
+        if (BooleanUtils.isTrue(config.getDependControllerApi())) {
+            serviceService = new ServiceServiceImpl(kubernetesClientService);
+        } else {
+            serviceService = new ServiceServiceByApiServerImpl(kubernetesClientService, kubernetesModelConverter);
+        }
         serviceSourceService = new ServiceSourceServiceImpl(kubernetesClientService, kubernetesModelConverter);
         tlsCertificateService = new TlsCertificateServiceImpl(kubernetesClientService, kubernetesModelConverter);
         wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
