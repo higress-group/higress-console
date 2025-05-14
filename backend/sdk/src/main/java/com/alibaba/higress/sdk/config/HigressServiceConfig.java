@@ -12,13 +12,11 @@
  */
 package com.alibaba.higress.sdk.config;
 
-import java.util.Optional;
-
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
-
-import lombok.Data;
+import java.util.Optional;
 
 /**
  * @author CH3CHO
@@ -35,6 +33,13 @@ public class HigressServiceConfig {
     private final Integer controllerServicePort;
     private final String controllerJwtPolicy;
     private final String controllerAccessToken;
+    /**
+     * Regarding the service list interface, does it depend on the controller.
+     * true: ServiceServiceImpl
+     * false: ServiceServiceByApiServerImpl
+     */
+    private final Boolean dependControllerApi;
+
 
     /**
      * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
@@ -58,8 +63,15 @@ public class HigressServiceConfig {
         private Integer controllerServicePort = HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT;
         private String controllerJwtPolicy = HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT;
         private String controllerAccessToken;
+        private Boolean dependControllerApi;
 
-        private Builder() {}
+        private Builder() {
+        }
+
+        public Builder withDependControllerApi(Boolean dependControllerApi) {
+            this.dependControllerApi = dependControllerApi;
+            return this;
+        }
 
         public Builder withKubeConfigPath(String kubeConfigPath) {
             this.kubeConfigPath = kubeConfigPath;
@@ -122,7 +134,8 @@ public class HigressServiceConfig {
                 StringUtils.firstNonEmpty(controllerServiceHost, HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT),
                 Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),
                 StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
-                controllerAccessToken);
+                controllerAccessToken,
+                Optional.ofNullable(dependControllerApi).orElse(HigressConstants.DEPEND_CONTROLLER_API));
         }
     }
 }

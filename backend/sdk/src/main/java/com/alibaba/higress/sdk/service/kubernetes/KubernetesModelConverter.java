@@ -12,6 +12,69 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.Domain;
+import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.Service;
+import com.alibaba.higress.sdk.model.ServiceSource;
+import com.alibaba.higress.sdk.model.TlsCertificate;
+import com.alibaba.higress.sdk.model.WasmPlugin;
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.ai.AiRoute;
+import com.alibaba.higress.sdk.model.route.CorsConfig;
+import com.alibaba.higress.sdk.model.route.Header;
+import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
+import com.alibaba.higress.sdk.model.route.HeaderControlStageConfig;
+import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
+import com.alibaba.higress.sdk.model.route.ProxyNextUpstreamConfig;
+import com.alibaba.higress.sdk.model.route.RewriteConfig;
+import com.alibaba.higress.sdk.model.route.RoutePredicate;
+import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
+import com.alibaba.higress.sdk.model.route.UpstreamService;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.alibaba.higress.sdk.util.TypeUtil;
+import com.google.common.base.Splitter;
+import com.google.gson.Gson;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
+import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressSpec;
+import io.kubernetes.client.openapi.models.V1IngressTLS;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
+import io.kubernetes.client.util.Strings;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.x509.GeneralName;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -35,70 +98,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.security.auth.x500.X500Principal;
-
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.asn1.x509.GeneralName;
-
-import com.alibaba.higress.sdk.constant.CommonKey;
-import com.alibaba.higress.sdk.constant.HigressConstants;
-import com.alibaba.higress.sdk.constant.KubernetesConstants;
-import com.alibaba.higress.sdk.constant.Separators;
-import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.sdk.model.Domain;
-import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.ServiceSource;
-import com.alibaba.higress.sdk.model.TlsCertificate;
-import com.alibaba.higress.sdk.model.WasmPlugin;
-import com.alibaba.higress.sdk.model.WasmPluginInstance;
-import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
-import com.alibaba.higress.sdk.model.ai.AiRoute;
-import com.alibaba.higress.sdk.model.route.CorsConfig;
-import com.alibaba.higress.sdk.model.route.Header;
-import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
-import com.alibaba.higress.sdk.model.route.HeaderControlStageConfig;
-import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
-import com.alibaba.higress.sdk.model.route.ProxyNextUpstreamConfig;
-import com.alibaba.higress.sdk.model.route.RewriteConfig;
-import com.alibaba.higress.sdk.model.route.RoutePredicate;
-import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
-import com.alibaba.higress.sdk.model.route.UpstreamService;
-import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
-import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.alibaba.higress.sdk.util.TypeUtil;
-import com.google.common.base.Splitter;
-import com.google.gson.Gson;
-
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
-import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressBackend;
-import io.kubernetes.client.openapi.models.V1IngressRule;
-import io.kubernetes.client.openapi.models.V1IngressSpec;
-import io.kubernetes.client.openapi.models.V1IngressTLS;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
-import io.kubernetes.client.util.Strings;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author CH3CHO
  */
@@ -113,6 +112,7 @@ public class KubernetesModelConverter {
     private static final Integer DEFAULT_WEIGHT = 100;
 
     private static final Gson GSON = new Gson();
+    public static final String K8S_SVC_FQDN_SUFFIX = ".svc.cluster.local";
 
     private final KubernetesClientService kubernetesClientService;
 
@@ -135,7 +135,7 @@ public class KubernetesModelConverter {
                 continue;
             }
             try {
-                supportedAnnotations.add((String)field.get(null));
+                supportedAnnotations.add((String) field.get(null));
             } catch (IllegalAccessException e) {
                 log.error("Failed to get annotation key from field: {}", field.getName(), e);
             }
@@ -683,15 +683,15 @@ public class KubernetesModelConverter {
                 continue;
             }
             if (value instanceof Map) {
-                normalizePluginInstanceConfigurations((Map<String, Object>)value);
+                normalizePluginInstanceConfigurations((Map<String, Object>) value);
             } else if (value instanceof Double d) {
                 if (d == d.intValue()) {
                     entry.setValue(d.intValue());
                 }
             } else if (value instanceof List) {
-                ((List<?>)value).forEach(v -> {
+                ((List<?>) value).forEach(v -> {
                     if (v instanceof Map) {
-                        normalizePluginInstanceConfigurations((Map<String, Object>)v);
+                        normalizePluginInstanceConfigurations((Map<String, Object>) v);
                     }
                 });
             }
@@ -788,7 +788,7 @@ public class KubernetesModelConverter {
         }
 
         boolean changed = false;
-        for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext();) {
+        for (Iterator<MatchRule> it = spec.getMatchRules().listIterator(); it.hasNext(); ) {
             MatchRule rule = it.next();
 
             boolean matches = true;
@@ -1585,6 +1585,22 @@ public class KubernetesModelConverter {
         }
     }
 
+    public Service v1Service2Service(V1Service v1Service) {
+        Service result = new Service();
+        String fqdn = StringUtils.join(v1Service.getMetadata().getName(), Separators.DOT, v1Service.getMetadata().getNamespace(),
+            K8S_SVC_FQDN_SUFFIX);
+        result.setName(fqdn);
+        result.setNamespace(v1Service.getMetadata().getNamespace());
+        result.setPort(v1Service.getSpec().getPorts().get(0).getPort());
+        if (StringUtils.isNotBlank(v1Service.getMetadata().getResourceVersion())) {
+            result.setVersion(Integer.valueOf(v1Service.getMetadata().getResourceVersion()));
+        }
+        result.setEndpoints(v1Service.getSpec().getClusterIPs());
+        result.setType("Kubernetes");
+
+        return result;
+    }
+
     public ServiceSource v1RegistryConfig2ServiceSource(V1RegistryConfig v1RegistryConfig) {
         ServiceSource serviceSource = new ServiceSource();
         fillServiceSourceInfo(serviceSource, v1RegistryConfig);
@@ -1633,7 +1649,7 @@ public class KubernetesModelConverter {
             return null;
         }
         V1RegistryConfig target = null;
-        for (Iterator<V1RegistryConfig> it = spec.getRegistries().iterator(); it.hasNext();) {
+        for (Iterator<V1RegistryConfig> it = spec.getRegistries().iterator(); it.hasNext(); ) {
             V1RegistryConfig registryConfig = it.next();
             if (registryConfig.getName().equals(name)) {
                 it.remove();
@@ -1709,27 +1725,27 @@ public class KubernetesModelConverter {
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS3.equals(v1RegistryConfig.getType())) {
             v1RegistryConfig.setNacosNamespaceId(
-                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID)).orElse(""));
-            v1RegistryConfig.setNacosGroups((List<String>)Optional
+                (String) Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID)).orElse(""));
+            v1RegistryConfig.setNacosGroups((List<String>) Optional
                 .ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS)).orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_ZK.equals(v1RegistryConfig.getType())) {
-            v1RegistryConfig.setZkServicesPath((List<String>)Optional
+            v1RegistryConfig.setZkServicesPath((List<String>) Optional
                 .ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH)).orElse(new ArrayList<>()));
         } else if (V1McpBridge.REGISTRY_TYPE_CONSUL.equals(v1RegistryConfig.getType())) {
             v1RegistryConfig.setConsulDataCenter(
-                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER)).orElse(""));
+                (String) Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER)).orElse(""));
             v1RegistryConfig.setConsulServiceTag(
-                (String)Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG)).orElse(""));
+                (String) Optional.ofNullable(properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_SERVICE_TAG)).orElse(""));
             v1RegistryConfig
-                .setConsulRefreshInterval((Integer)properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL));
+                .setConsulRefreshInterval((Integer) properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL));
         }
 
         if (V1McpBridge.MCP_SUPPORTED_REGISTRY_TYPES.contains(v1RegistryConfig.getType())) {
             v1RegistryConfig.setEnableMcpServer(
-                (Boolean)Optional.ofNullable(properties.get(V1McpBridge.ENABLE_MCP_SERVER)).orElse(Boolean.FALSE));
+                (Boolean) Optional.ofNullable(properties.get(V1McpBridge.ENABLE_MCP_SERVER)).orElse(Boolean.FALSE));
             v1RegistryConfig.setMcpServerBaseUrl(
-                (String)Optional.ofNullable(properties.get(V1McpBridge.MCP_SERVER_BASE_URL)).orElse(""));
-            v1RegistryConfig.setMcpServerExportDomains((List<String>)Optional
+                (String) Optional.ofNullable(properties.get(V1McpBridge.MCP_SERVER_BASE_URL)).orElse(""));
+            v1RegistryConfig.setMcpServerExportDomains((List<String>) Optional
                 .ofNullable(properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS)).orElse(new ArrayList<>()));
         }
     }
@@ -1752,7 +1768,7 @@ public class KubernetesModelConverter {
     private static X509Certificate parseCertificateData(String certData) {
         try {
             CertificateFactory cf = CertificateFactory.getInstance("X509");
-            return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certData.getBytes()));
+            return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certData.getBytes()));
         } catch (Exception ex) {
             log.error("Failed to parse certificate data:\n" + certData, ex);
             return null;
@@ -1789,7 +1805,7 @@ public class KubernetesModelConverter {
                 }
                 Object name = nameEntry.get(1);
                 if (name instanceof String) {
-                    domains.add((String)name);
+                    domains.add((String) name);
                 }
             }
         }

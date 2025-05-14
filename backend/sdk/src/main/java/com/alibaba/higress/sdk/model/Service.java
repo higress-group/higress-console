@@ -12,12 +12,12 @@
  */
 package com.alibaba.higress.sdk.model;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -34,4 +34,8 @@ public class Service {
     private Integer version;
 
     private List<String> endpoints;
+
+    private String type;
+
+    private String protocol;
 }
