@@ -197,7 +197,7 @@
       "tokens": "Tokens"
     },
     "providerTypes": {
-      "openai": "OpenAI",
+      "openai": "OpenAI/OpenAI Compatible",
       "qwen": "Tongyi Qianwen",
       "moonshot": "Moonshot",
       "ai360": "360 Zhinao|",
