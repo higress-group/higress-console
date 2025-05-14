@@ -267,7 +267,7 @@ public class SystemServiceImpl implements SystemService {
         } catch (ApiException e) {
             throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
         }
-        cleanUpConfigMao(configMap);
+        cleanUpConfigMap(configMap);
         return kubernetesClientService.saveToYaml(configMap);
     }
 
@@ -298,7 +298,7 @@ public class SystemServiceImpl implements SystemService {
             throw new BusinessException("Error occurs when replacing the " + HIGRESS_CONFIG + " ConfigMap.", e);
         }
 
-        cleanUpConfigMao(updatedConfigMap);
+        cleanUpConfigMap(updatedConfigMap);
         return kubernetesClientService.saveToYaml(updatedConfigMap);
     }
 
@@ -330,7 +330,7 @@ public class SystemServiceImpl implements SystemService {
         }
     }
 
-    private static void cleanUpConfigMao(V1ConfigMap configMap) {
+    private static void cleanUpConfigMap(V1ConfigMap configMap) {
         V1ObjectMeta metadata = Objects.requireNonNull(configMap.getMetadata());
         metadata.setLabels(null);
         metadata.setAnnotations(null);

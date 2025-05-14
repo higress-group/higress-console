@@ -4,7 +4,7 @@ import { getHigressConfig, updateHigressConfig } from '@/services/system';
 import store from '@/store';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Form } from 'antd';
+import { Button, Form, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +36,7 @@ const SystemSettings: React.FC = () => {
       const updatedConfigYaml = await updateHigressConfig(configYaml);
       setConfigYaml(updatedConfigYaml);
       setConfigYamlVersion(configYamlVersion + 1);
+      message.success(t('plugins.saveSuccess'));
     } catch (errInfo) {
       console.log('Update higress-config failed.', errInfo);
     }

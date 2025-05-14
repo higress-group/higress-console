@@ -18,5 +18,5 @@ export async function getHigressConfig(): Promise<any> {
 }
 
 export async function updateHigressConfig(config: string): Promise<any> {
-  return request.post<any, any>('/system/higress-config', { config });
+  return request.put<any, any>('/system/higress-config', { config });
 }
