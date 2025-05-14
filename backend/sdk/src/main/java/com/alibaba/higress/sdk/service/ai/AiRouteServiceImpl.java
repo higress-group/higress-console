@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +75,8 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
-        Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
+        MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+                KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
     private static final RoutePredicate DEFAULT_PATH_PREDICATE =
         new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
@@ -266,7 +269,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             fallbackUpStreams = fallbackConfig.getUpstreams();
             fallbackUpStreams.forEach(upstream -> upstream.setWeight(1));
         } else if (AiRouteFallbackStrategy.SEQUENCE.equals(fallbackStrategy)) {
-            fallbackUpStreams = List.of(fallbackConfig.getUpstreams().get(0));
+            fallbackUpStreams = Lists.newArrayList(fallbackConfig.getUpstreams().get(0));
         } else {
             throw new BusinessException("Unknown fallback strategy: " + fallbackStrategy);
         }
@@ -335,7 +338,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         for (AiUpstream upstream : upstreams) {
             UpstreamService upstreamService = llmProviderService.buildUpstreamService(upstream.getProvider());
 
-            Map<WasmPluginInstanceScope, String> targets = Map.of(WasmPluginInstanceScope.ROUTE, routeName,
+            Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName,
                 WasmPluginInstanceScope.SERVICE, upstreamService.getName());
 
             if (MapUtils.isEmpty(upstream.getModelMapping())) {
@@ -384,8 +387,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         Map<String, Object> nonStreamingAnswerAttribute = AiStatisticsConfig.buildAttribute("answer",
             AiStatisticsConfig.ValueSource.RESPONSE_BODY, "choices.0.message.content", null, true, null);
         List<Map<String, Object>> attributes =
-            List.of(questionAttribute, streamingAnswerAttribute, nonStreamingAnswerAttribute);
-        instance.setConfigurations(Map.of(AiStatisticsConfig.ATTRIBUTES, attributes));
+            Lists.newArrayList(questionAttribute, streamingAnswerAttribute, nonStreamingAnswerAttribute);
+        instance.setConfigurations(MapUtil.of(AiStatisticsConfig.ATTRIBUTES, attributes));
 
         wasmPluginInstanceService.addOrUpdate(instance);
     }
@@ -459,7 +462,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private void setUpstreams(Route route, List<AiUpstream> upstreams) {
         if (CollectionUtils.isEmpty(upstreams)) {
-            route.setServices(List.of());
+            route.setServices(Lists.newArrayList());
             return;
         }
 

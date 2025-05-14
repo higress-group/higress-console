@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -731,7 +733,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setName(converter.domainName2ConfigMapName("domain-name"));
         metadata.setResourceVersion("0.0.1");
-        metadata.setLabels(Map.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
+        metadata.setLabels(MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
             KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, "domain-name");
@@ -1199,14 +1201,14 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestGlobalScopeShouldSetDefaultConfig() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setGlobalTarget();
 
         converter.setWasmPluginInstanceToCr(cr, instance);
 
         V1alpha1WasmPluginSpec spec = cr.getSpec();
         Assertions.assertNotNull(spec);
-        Assertions.assertEquals(Map.of("key", "value"), spec.getDefaultConfig());
+        Assertions.assertEquals(MapUtil.of("key", "value"), spec.getDefaultConfig());
         Assertions.assertFalse(spec.getDefaultConfigDisable());
     }
 
@@ -1214,7 +1216,7 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestDomainScopeShouldAddOrUpdateDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1226,7 +1228,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(1, matchRules.size());
         MatchRule domainRule = matchRules.get(0);
         Assertions.assertTrue(domainRule.getDomain().contains("higress.cn"));
-        Assertions.assertEquals(Map.of("key", "value"), domainRule.getConfig());
+        Assertions.assertEquals(MapUtil.of("key", "value"), domainRule.getConfig());
         Assertions.assertFalse(domainRule.getConfigDisable());
     }
 
@@ -1235,11 +1237,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         spec.setMatchRules(
-            List.of(new MatchRule(false, Map.of("key", "original"), List.of("higress.cn"), List.of(), List.of())));
+            Lists.newArrayList(new MatchRule(false, MapUtil.of("key", "original"), Lists.newArrayList("higress.cn"), Lists.newArrayList(), Lists.newArrayList())));
         cr.setSpec(spec);
 
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "updated")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "updated")).build();
         instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1249,7 +1251,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(1, matchRules.size());
         MatchRule domainRule = matchRules.get(0);
         Assertions.assertTrue(domainRule.getDomain().contains("higress.cn"));
-        Assertions.assertEquals(Map.of("key", "updated"), domainRule.getConfig());
+        Assertions.assertEquals(MapUtil.of("key", "updated"), domainRule.getConfig());
         Assertions.assertFalse(domainRule.getConfigDisable());
     }
 
@@ -1257,7 +1259,7 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestRouteScopeShouldAddOrUpdateRouteRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(Map.of("key", "value")).build();
+            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setTarget(WasmPluginInstanceScope.ROUTE, "route-1");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1269,7 +1271,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(1, matchRules.size());
         MatchRule routeRule = matchRules.get(0);
         Assertions.assertTrue(routeRule.getIngress().contains("route-1"));
-        Assertions.assertEquals(Map.of("key", "value"), routeRule.getConfig());
+        Assertions.assertEquals(MapUtil.of("key", "value"), routeRule.getConfig());
         Assertions.assertFalse(routeRule.getConfigDisable());
     }
 
@@ -1379,7 +1381,7 @@ public class KubernetesModelConverterTest {
         v1RegistryConfig.setPort(80);
         v1RegistryConfig.setName("testName");
         v1RegistryConfig.setNacosNamespaceId("testNamespaceId");
-        v1RegistryConfig.setNacosGroups(List.of("testGroup1", "testGroup2"));
+        v1RegistryConfig.setNacosGroups(Lists.newArrayList("testGroup1", "testGroup2"));
 
         ServiceSource serviceSource = converter.v1RegistryConfig2ServiceSource(v1RegistryConfig);
 
@@ -1391,7 +1393,7 @@ public class KubernetesModelConverterTest {
         Map<String, Object> properties = serviceSource.getProperties();
         Assertions.assertNotNull(properties);
         Assertions.assertEquals("testNamespaceId", properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID));
-        Assertions.assertEquals(List.of("testGroup1", "testGroup2"),
+        Assertions.assertEquals(Lists.newArrayList("testGroup1", "testGroup2"),
             properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS));
     }
 
@@ -1402,7 +1404,7 @@ public class KubernetesModelConverterTest {
         v1RegistryConfig.setDomain("testDomain");
         v1RegistryConfig.setPort(80);
         v1RegistryConfig.setName("testName");
-        v1RegistryConfig.setZkServicesPath(List.of("testPath1", "testPath2"));
+        v1RegistryConfig.setZkServicesPath(Lists.newArrayList("testPath1", "testPath2"));
 
         ServiceSource serviceSource = converter.v1RegistryConfig2ServiceSource(v1RegistryConfig);
 
@@ -1413,7 +1415,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals("testName", serviceSource.getName());
         Map<String, Object> properties = serviceSource.getProperties();
         Assertions.assertNotNull(properties);
-        Assertions.assertEquals(List.of("testPath1", "testPath2"),
+        Assertions.assertEquals(Lists.newArrayList("testPath1", "testPath2"),
             properties.get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH));
     }
 

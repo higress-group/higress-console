@@ -44,11 +44,15 @@ public enum KeyAuthCredentialSource {
         if (StringUtils.isEmpty(str)) {
             return null;
         }
-        return switch (str) {
-            case "BEARER" -> BEARER;
-            case "HEADER" -> HEADER;
-            case "QUERY" -> QUERY;
-            default -> null;
-        };
+        switch (str) {
+            case "BEARER":
+                return BEARER;
+            case "HEADER":
+                return HEADER;
+            case "QUERY":
+                return QUERY;
+            default:
+                return null;
+        }
     }
 }

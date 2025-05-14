@@ -278,7 +278,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 if (exampleInnerIndentation == null) {
                     exampleInnerIndentation = indentation;
                 }
-                if (!builder.isEmpty()) {
+                if (builder.length() > 0) {
                     builder.append("\n");
                 }
                 builder.append(line.substring(exampleInnerIndentation.length()));

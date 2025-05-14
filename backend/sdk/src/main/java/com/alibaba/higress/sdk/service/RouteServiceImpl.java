@@ -12,14 +12,6 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -33,10 +25,17 @@ import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 class RouteServiceImpl implements RouteService {
@@ -112,7 +111,7 @@ class RouteServiceImpl implements RouteService {
         if (ingress == null) {
             return null;
         }
-        AllowList allowList = consumerService.getAllowList(Map.of(WasmPluginInstanceScope.ROUTE, routeName));
+        AllowList allowList = consumerService.getAllowList(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName));
         return this.ingress2Route(ingress, allowList);
     }
 
@@ -164,7 +163,7 @@ class RouteServiceImpl implements RouteService {
 
     private void writeAuthConfigResources(String routeName, RouteAuthConfig authConfig) {
         List<String> allowedConsumers = authConfig != null && Boolean.TRUE.equals(authConfig.getEnabled())
-            ? authConfig.getAllowedConsumers() : List.of();
+            ? authConfig.getAllowedConsumers() : Lists.newArrayList();
         AllowList allowList = new AllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
         consumerService.updateAllowList(allowList);
     }

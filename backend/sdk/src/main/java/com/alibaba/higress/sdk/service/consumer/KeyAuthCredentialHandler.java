@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,8 +66,11 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 return false;
             }
             Object allowObj = configurations.get(ALLOW);
-            if (allowObj instanceof List<?> allowList && allowList.contains(consumerName)) {
-                return true;
+            if (allowObj instanceof List<?>) {
+                List<?> allowList = (List<?>) allowObj;
+                if (allowList.contains(consumerName)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -75,12 +80,13 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     @SuppressWarnings("unchecked")
     public List<Consumer> extractConsumers(WasmPluginInstance instance) {
         if (MapUtils.isEmpty(instance.getConfigurations())) {
-            return List.of();
+            return Lists.newArrayList();
         }
         Object consumersObj = instance.getConfigurations().get(CONSUMERS);
-        if (!(consumersObj instanceof List<?> consumerList)) {
-            return List.of();
+        if (!(consumersObj instanceof List<?>)) {
+            return Lists.newArrayList();
         }
+        List<?> consumerList= (List<?>) consumersObj;
         List<Consumer> consumers = new ArrayList<>(consumerList.size());
         for (Object consumerObj : consumerList) {
             if (!(consumerObj instanceof Map<?, ?>)) {
@@ -101,7 +107,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
             Consumer consumer = new Consumer();
             consumer.setName(name);
-            consumer.setCredentials(List.of(credential));
+            consumer.setCredentials(Lists.newArrayList(credential));
             consumers.add(consumer);
         }
         return consumers;
@@ -128,7 +134,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         // TODO: Remove this after plugin upgrade.
         // Add a dummy key to the global keys list because the plugin requires at least one global key.
-        configurations.put(KEYS, List.of("x-higress-dummy-key"));
+        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
 
         Object consumersObj = configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
         List<Object> consumers;
@@ -172,7 +178,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 consumerConfig.put(IN_QUERY, false);
                 if (sourceEnum == KeyAuthCredentialSource.BEARER) {
                     key = HttpHeaders.AUTHORIZATION;
-                    credentials = credentials.stream().map(c -> BEARER_TOKEN_PREFIX + c).toList();
+                    credentials = credentials.stream().map(c -> BEARER_TOKEN_PREFIX + c).collect(Collectors.toList());
                 }
                 break;
             case QUERY:
@@ -183,7 +189,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 throw new IllegalArgumentException(
                     "Unsupported key auth credential source: " + keyAuthCredential.getSource());
         }
-        consumerConfig.put(KEYS, List.of(key));
+        consumerConfig.put(KEYS, Lists.newArrayList(key));
         consumerConfig.put(CONSUMER_CREDENTIALS, credentials);
         consumerConfig.remove(CONSUMER_CREDENTIAL);
 
@@ -223,14 +229,15 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     public List<String> getAllowList(WasmPluginInstance instance) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
-            return List.of();
+            return Lists.newArrayList();
         }
 
         Object allowObj = configurations.get(ALLOW);
-        if (!(allowObj instanceof List<?> allowList)) {
-            return List.of();
+        if (!(allowObj instanceof List<?>)) {
+            return Lists.newArrayList();
         }
-        return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).toList();
+        List<?> allowList= (List<?>)allowObj;
+        return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).collect(Collectors.toList());
     }
 
     @Override
@@ -265,15 +272,21 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {
 
         Object keyObj = MapUtils.getObject(consumerMap, KEYS);
-        if (!(keyObj instanceof List<?> keyList) || keyList.isEmpty()) {
+        if (!(keyObj instanceof List<?>)) {
+            return null;
+        }
+
+        List<?> keyList = (List<?>) keyObj;
+        if (keyList.isEmpty()) {
             return null;
         }
 
         String key = null;
         for (Object keyItemObj : keyList) {
-            if (!(keyItemObj instanceof String keyItem)) {
+            if (!(keyItemObj instanceof String)) {
                 continue;
             }
+            String keyItem = (String) keyItemObj;
             if (StringUtils.isNotBlank(keyItem)) {
                 key = keyItem;
             }
@@ -287,10 +300,11 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         List<String> credentials = new ArrayList<>();
         Object credentialsObj = consumerMap.get(CONSUMER_CREDENTIALS);
-        if (credentialsObj instanceof List<?> credentialsList) {
+        if (credentialsObj instanceof List<?>) {
+            List<?> credentialsList = (List<?>) credentialsObj;
             for (Object credentialObj : credentialsList) {
-                if (credentialObj instanceof String credential) {
-                    credentials.add(credential);
+                if (credentialObj instanceof String) {
+                    credentials.add((String) credentialObj);
                 }
             }
         }
