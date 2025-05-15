@@ -12,6 +12,43 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.WasmPlugin;
+import com.alibaba.higress.sdk.model.WasmPluginConfig;
+import com.alibaba.higress.sdk.model.WasmPluginPageQuery;
+import com.alibaba.higress.sdk.model.wasmplugin.Language;
+import com.alibaba.higress.sdk.model.wasmplugin.Plugin;
+import com.alibaba.higress.sdk.model.wasmplugin.PluginCategory;
+import com.alibaba.higress.sdk.model.wasmplugin.PluginInfo;
+import com.alibaba.higress.sdk.model.wasmplugin.PluginSpec;
+import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
+import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.kubernetes.client.openapi.ApiException;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.oas.models.media.Schema;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,45 +68,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.NotFoundException;
-import com.alibaba.higress.sdk.exception.ResourceConflictException;
-import com.alibaba.higress.sdk.http.HttpStatus;
-import com.alibaba.higress.sdk.model.PaginatedResult;
-import com.alibaba.higress.sdk.model.WasmPlugin;
-import com.alibaba.higress.sdk.model.WasmPluginConfig;
-import com.alibaba.higress.sdk.model.WasmPluginPageQuery;
-import com.alibaba.higress.sdk.model.wasmplugin.Language;
-import com.alibaba.higress.sdk.model.wasmplugin.Plugin;
-import com.alibaba.higress.sdk.model.wasmplugin.PluginCategory;
-import com.alibaba.higress.sdk.model.wasmplugin.PluginInfo;
-import com.alibaba.higress.sdk.model.wasmplugin.PluginSpec;
-import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import io.kubernetes.client.openapi.ApiException;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.oas.models.media.Schema;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author CH3CHO
@@ -99,24 +97,20 @@ class WasmPluginServiceImpl implements WasmPluginService {
     private static final String NAME_PLACEHOLDER = "${name}";
     private static final String VERSION_PLACEHOLDER = "${version}";
 
-    private static final String CUSTOM_IMAGE_URL_PATTERN_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN";
-    private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
-    private static final String CUSTOM_IMAGE_PULL_SECRET_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_SECRET";
-    private static final String CUSTOM_IMAGE_PULL_POLICY_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_POLICY";
-    private static final String CUSTOM_IMAGE_PULL_SECRET_PROPERTY =
-        "higress-admin.wasmplugin.custom-image-pull-sercret";
-    private static final String CUSTOM_IMAGE_PULL_POLICY_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-policy";
-
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
     private final KubernetesClientService kubernetesClientService;
 
     private final KubernetesModelConverter kubernetesModelConverter;
 
+    private final WasmPluginServiceConfig wasmPluginServiceConfig;
+
     public WasmPluginServiceImpl(KubernetesClientService kubernetesClientService,
-        KubernetesModelConverter kubernetesModelConverter) {
+        KubernetesModelConverter kubernetesModelConverter, WasmPluginServiceConfig wasmPluginServiceConfig) {
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
+        this.wasmPluginServiceConfig = wasmPluginServiceConfig;
+        initialize();
     }
 
     @PostConstruct
@@ -130,10 +124,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
         final List<PluginCacheItem> plugins = new ArrayList<>(properties.size());
 
-        final String customImageUrlPattern =
-            loadCustomConf(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, CUSTOM_IMAGE_URL_PATTERN_ENV);
-        final String imagePullSecret = loadCustomConf(CUSTOM_IMAGE_PULL_SECRET_PROPERTY, CUSTOM_IMAGE_PULL_SECRET_ENV);
-        final String imagePullPolicy = loadCustomConf(CUSTOM_IMAGE_PULL_POLICY_PROPERTY, CUSTOM_IMAGE_PULL_POLICY_ENV);
+        final String customImageUrlPattern = wasmPluginServiceConfig.getCustomImageUrlPattern();
+        final String imagePullSecret = wasmPluginServiceConfig.getImagePullSecret();
+        final String imagePullPolicy = wasmPluginServiceConfig.getImagePullPolicy();
 
         for (Object key : properties.keySet()) {
             String pluginName = (String)key;
@@ -184,20 +177,12 @@ class WasmPluginServiceImpl implements WasmPluginService {
         this.builtInPlugins = plugins;
     }
 
-    private String loadCustomConf(String propertyConf, String env) {
-        String value = System.getProperty(propertyConf);
-        if (StringUtils.isEmpty(value)) {
-            value = System.getenv(env);
-        }
-        return value;
-    }
-
     private static String formatImageUrl(String pattern, PluginInfo pluginInfo) {
         if (StringUtils.isEmpty(pattern)) {
             return pattern;
         }
-        return pattern.replace(NAME_PLACEHOLDER, pluginInfo.getName()).replace(VERSION_PLACEHOLDER,
-            pluginInfo.getVersion());
+        return pattern.replace(NAME_PLACEHOLDER, pluginInfo.getName())
+            .replace(VERSION_PLACEHOLDER, pluginInfo.getVersion());
     }
 
     private void fillPluginConfigExample(Plugin plugin, String content) {
@@ -211,8 +196,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
         if (StringUtils.isEmpty(content)) {
             return;
         }
-        if (plugin.getSpec() == null || plugin.getSpec().getConfigSchema() == null
-            || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
+        if (plugin.getSpec() == null || plugin.getSpec().getConfigSchema() == null || plugin.getSpec().getConfigSchema()
+            .getOpenApiV3Schema() == null) {
             return;
         }
         Schema<?> schema = plugin.getSpec().getConfigSchema().getOpenApiV3Schema();
@@ -262,8 +247,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
                     if (exampleOuterIndentation == null) {
                         exampleOuterIndentation = indentation;
                     }
-                    if (indentation.equals(exampleOuterIndentation)
-                        && unindentedContent.startsWith(YAML_EXAMPLE_PROPERTY_KEY)) {
+                    if (indentation.equals(exampleOuterIndentation) && unindentedContent.startsWith(
+                        YAML_EXAMPLE_PROPERTY_KEY)) {
                         foundExample = true;
                     }
                     continue;
@@ -278,7 +263,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 if (exampleInnerIndentation == null) {
                     exampleInnerIndentation = indentation;
                 }
-                if (!builder.isEmpty()) {
+                if (builder.length() > 0) {
                     builder.append("\n");
                 }
                 builder.append(line.substring(exampleInnerIndentation.length()));
@@ -352,8 +337,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
         }
 
         if (CollectionUtils.isNotEmpty(crs)) {
-            V1alpha1WasmPlugin topPriorityCr = crs.stream()
-                .max(Comparator.comparing(
+            V1alpha1WasmPlugin topPriorityCr = crs.stream().max(Comparator.comparing(
                     cr -> cr.getSpec() != null && cr.getSpec().getPriority() != null ? cr.getSpec().getPriority() : 0))
                 .orElse(null);
             assert topPriorityCr != null;
@@ -710,8 +694,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
             PluginSpec spec = plugin.getSpec();
             if (spec != null) {
-                wasmPlugin
-                    .setPhase("default".equals(spec.getPhase()) ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
+                wasmPlugin.setPhase(
+                    "default".equals(spec.getPhase()) ? PluginPhase.UNSPECIFIED.getName() : spec.getPhase());
                 wasmPlugin.setPriority(spec.getPriority());
             }
 
@@ -723,8 +707,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
         }
 
         public WasmPluginConfig buildWasmPluginConfig(String language) {
-            if (plugin.getSpec() == null || plugin.getSpec().getConfigSchema() == null
-                || plugin.getSpec().getConfigSchema().getOpenApiV3Schema() == null) {
+            if (plugin.getSpec() == null || plugin.getSpec().getConfigSchema() == null || plugin.getSpec()
+                .getConfigSchema().getOpenApiV3Schema() == null) {
                 return new WasmPluginConfig();
             }
             Schema<?> schema;
@@ -753,7 +737,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             if (MapUtils.isEmpty(extensions)) {
                 return;
             }
-            for (Iterator<Map.Entry<String, Object>> it = extensions.entrySet().iterator(); it.hasNext();) {
+            for (Iterator<Map.Entry<String, Object>> it = extensions.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<String, Object> entry = it.next();
                 Matcher i18nKeyMatcher = I18N_EXTENSION_KEY_PATTERN.matcher(entry.getKey());
                 if (!i18nKeyMatcher.matches()) {
@@ -780,8 +764,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 } catch (Exception ex) {
                     log.warn(
                         String.format("Error occurs when applying i18n resource. ObjectClass=%s FieldName=%s Value=%s",
-                            obj.getClass().getName(), fieldName, value),
-                        ex);
+                            obj.getClass().getName(), fieldName, value), ex);
                 }
             }
         }
