@@ -17,7 +17,6 @@ import lombok.Data;
 
 /**
  * @author lvshui
- * @date 2025/5/9 15:28
  */
 @Data
 public class WasmPluginServiceConfig {

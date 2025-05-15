@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author lvshui
- * @date 2025/5/15 16:07
  */
 public class EnvReadUtil {
     public static String loadCustomConfFromEnv(String propertyConf, String env) {
