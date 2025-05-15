@@ -1,6 +1,6 @@
 apiVersion: 1.0.0
 info:
-  gatewayMinVersion: "2.1.0"  # 最低需要Higress 2.1.0版本
+  gatewayMinVersion: "2.1.3"
   type: enterprise
   category: ai
   name: mcp-server
@@ -22,6 +22,324 @@ spec:
   priority: 30            # 优先级
   configSchema:
     openAPIV3Schema:      # 全局配置结构
+      type: object
+      properties:
+        server:
+          type: object
+          x-scope: GLOBAL
+          title: MCP Server Configuration
+          x-title-i18n:
+            zh-CN: MCP服务器配置
+          description: Configuration for the MCP server
+          x-description-i18n:
+            zh-CN: MCP服务器的配置
+          properties:
+            name:
+              type: string
+              title: Server Name
+              x-title-i18n:
+                zh-CN: 服务器名称
+              description: Name of the MCP server
+              x-description-i18n:
+                zh-CN: MCP服务器的名称
+            config:
+              type: object
+              title: Server Config
+              x-title-i18n:
+                zh-CN: 服务器配置
+              description: Configuration options for the MCP server
+              x-description-i18n:
+                zh-CN: MCP服务器的配置选项
+              additionalProperties: true  # 允许任意配置项
+            allowTools:
+              type: array
+              title: Allowed Tools
+              x-title-i18n:
+                zh-CN: 允许的工具
+              description: List of tools allowed to be called. If not specified, all tools are allowed.
+              x-description-i18n:
+                zh-CN: 允许调用的工具列表。如不指定，则允许所有工具。
+              items:
+                type: string
+        tools:
+          type: array
+          x-scope: GLOBAL
+          title: REST-to-MCP Tools
+          x-title-i18n:
+            zh-CN: REST到MCP工具配置
+          description: Configuration for REST-to-MCP tools
+          x-description-i18n:
+            zh-CN: REST转MCP工具的配置
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: Tool Name
+                x-title-i18n:
+                  zh-CN: 工具名称
+                description: Name of the tool
+                x-description-i18n:
+                  zh-CN: 工具的名称
+              description:
+                type: string
+                title: Tool Description
+                x-title-i18n:
+                  zh-CN: 工具描述
+                description: Description of the tool's functionality
+                x-description-i18n:
+                  zh-CN: 工具功能的描述
+              args:
+                type: array
+                title: Tool Arguments
+                x-title-i18n:
+                  zh-CN: 工具参数
+                description: Arguments for the tool
+                x-description-i18n:
+                  zh-CN: 工具的参数
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: Argument Name
+                      x-title-i18n:
+                        zh-CN: 参数名称
+                      description: Name of the argument
+                      x-description-i18n:
+                        zh-CN: 参数的名称
+                    description:
+                      type: string
+                      title: Argument Description
+                      x-title-i18n:
+                        zh-CN: 参数描述
+                      description: Description of the argument
+                      x-description-i18n:
+                        zh-CN: 参数的描述
+                    type:
+                      type: string
+                      title: Argument Type
+                      x-title-i18n:
+                        zh-CN: 参数类型
+                      description: Type of the argument (string, number, integer, boolean, array, object)
+                      x-description-i18n:
+                        zh-CN: 参数的类型（字符串、数字、整数、布尔值、数组、对象）
+                      enum: [string, number, integer, boolean, array, object]
+                      default: string
+                    required:
+                      type: boolean
+                      title: Required
+                      x-title-i18n:
+                        zh-CN: 是否必需
+                      description: Whether the argument is required
+                      x-description-i18n:
+                        zh-CN: 参数是否必需
+                    default:
+                      type: object
+                      title: Default Value
+                      x-title-i18n:
+                        zh-CN: 默认值
+                      description: Default value for the argument
+                      x-description-i18n:
+                        zh-CN: 参数的默认值
+                    enum:
+                      type: array
+                      title: Enumeration Values
+                      x-title-i18n:
+                        zh-CN: 枚举值
+                      description: List of allowed values for the argument
+                      x-description-i18n:
+                        zh-CN: 参数允许的值列表
+                      items:
+                        type: object
+                    items:
+                      type: object
+                      title: Array Items
+                      x-title-i18n:
+                        zh-CN: 数组项
+                      description: Schema for array items (when type is array)
+                      x-description-i18n:
+                        zh-CN: 数组项的模式（当类型为数组时）
+                    properties:
+                      type: object
+                      title: Object Properties
+                      x-title-i18n:
+                        zh-CN: 对象属性
+                      description: Schema for object properties (when type is object)
+                      x-description-i18n:
+                        zh-CN: 对象属性的模式（当类型为对象时）
+                    position:
+                      type: string
+                      title: Parameter Position
+                      x-title-i18n:
+                        zh-CN: 参数位置
+                      description: Position of the parameter in the request (query, path, header, cookie, body)
+                      x-description-i18n:
+                        zh-CN: 参数在请求中的位置（query, path, header, cookie, body）
+                      enum: [query, path, header, cookie, body]
+              requestTemplate:
+                type: object
+                title: Request Template
+                x-title-i18n:
+                  zh-CN: 请求模板
+                description: Template for constructing the HTTP request
+                x-description-i18n:
+                  zh-CN: 构造HTTP请求的模板
+                properties:
+                  url:
+                    type: string
+                    title: URL Template
+                    x-title-i18n:
+                      zh-CN: URL模板
+                    description: Template for the request URL
+                    x-description-i18n:
+                      zh-CN: 请求URL的模板
+                  method:
+                    type: string
+                    title: HTTP Method
+                    x-title-i18n:
+                      zh-CN: HTTP方法
+                    description: HTTP method for the request
+                    x-description-i18n:
+                      zh-CN: 请求的HTTP方法
+                    enum: [GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS]
+                  headers:
+                    type: array
+                    title: Request Headers
+                    x-title-i18n:
+                      zh-CN: 请求头
+                    description: Headers for the request
+                    x-description-i18n:
+                      zh-CN: 请求的HTTP头
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                          title: Header Name
+                          x-title-i18n:
+                            zh-CN: 请求头名称
+                          description: Name of the header
+                          x-description-i18n:
+                            zh-CN: 请求头的名称
+                        value:
+                          type: string
+                          title: Header Value
+                          x-title-i18n:
+                            zh-CN: 请求头值
+                          description: Value of the header
+                          x-description-i18n:
+                            zh-CN: 请求头的值
+                  body:
+                    type: string
+                    title: Request Body Template
+                    x-title-i18n:
+                      zh-CN: 请求体模板
+                    description: Template for the request body
+                    x-description-i18n:
+                      zh-CN: 请求体的模板
+                  argsToJsonBody:
+                    type: boolean
+                    title: Use Args as JSON Body
+                    x-title-i18n:
+                      zh-CN: 使用参数作为JSON请求体
+                    description: When true, the arguments will be used directly as the JSON request body
+                    x-description-i18n:
+                      zh-CN: 当为true时，参数将直接用作JSON请求体
+                  argsToUrlParam:
+                    type: boolean
+                    title: Use Args as URL Parameters
+                    x-title-i18n:
+                      zh-CN: 使用参数作为URL参数
+                    description: When true, the arguments will be added to the URL as query parameters
+                    x-description-i18n:
+                      zh-CN: 当为true时，参数将作为查询参数添加到URL中
+                  argsToFormBody:
+                    type: boolean
+                    title: Use Args as Form Body
+                    x-title-i18n:
+                      zh-CN: 使用参数作为表单请求体
+                    description: When true, the arguments will be encoded as application/x-www-form-urlencoded in the request body
+                    x-description-i18n:
+                      zh-CN: 当为true时，参数将以application/x-www-form-urlencoded格式编码在请求体中
+              responseTemplate:
+                type: object
+                title: Response Template
+                x-title-i18n:
+                  zh-CN: 响应模板
+                description: Template for transforming the HTTP response
+                x-description-i18n:
+                  zh-CN: 转换HTTP响应的模板
+                properties:
+                  body:
+                    type: string
+                    title: Response Body Template
+                    x-title-i18n:
+                      zh-CN: 响应体模板
+                    description: Template for transforming the response body (mutually exclusive with prependBody and appendBody)
+                    x-description-i18n:
+                      zh-CN: 转换响应体的模板（与prependBody和appendBody互斥）
+                  prependBody:
+                    type: string
+                    title: Prepend Text
+                    x-title-i18n:
+                      zh-CN: 前置文本
+                    description: Text to insert before the response body (mutually exclusive with body)
+                    x-description-i18n:
+                      zh-CN: 在响应体前插入的文本（与body互斥）
+                  appendBody:
+                    type: string
+                    title: Append Text
+                    x-title-i18n:
+                      zh-CN: 后置文本
+                    description: Text to insert after the response body (mutually exclusive with body)
+                    x-description-i18n:
+                      zh-CN: 在响应体后插入的文本（与body互斥）
+      example:
+        server:
+          name: rest-amap-server
+          config:
+            apiKey: your-api-key-here
+          allowTools:
+            - maps-geo
+        tools:
+          - name: maps-geo
+            description: "Convert structured address information to latitude and longitude coordinates."
+            args:
+              - name: address
+                description: "The structured address to parse"
+                type: string
+                required: true
+                position: query
+              - name: city
+                description: "The city to search in"
+                type: string
+                required: false
+                position: query
+              - name: output
+                description: "Output format"
+                type: string
+                enum: ["json", "xml"]
+                default: "json"
+                position: query
+            requestTemplate:
+              url: "https://restapi.amap.com/v3/geocode/geo"
+              method: GET
+              headers:
+                - key: x-api-key
+                  value: "{{.config.apiKey}}"
+            responseTemplate:
+              body: |
+                # Geocoding Information
+                {{- range $index, $geo := .geocodes }}
+                ## Location {{add $index 1}}
+                - **Country**: {{ $geo.country }}
+                - **Province**: {{ $geo.province }}
+                - **City**: {{ $geo.city }}
+                - **Coordinates**: {{ $geo.location }}
+                {{- end }}
+  routeConfigSchema:
+    openAPIV3Schema:
       type: object
       properties:
         server:

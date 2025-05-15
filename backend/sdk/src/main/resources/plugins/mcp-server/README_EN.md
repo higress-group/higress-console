@@ -35,6 +35,7 @@ Plugin execution priority: `30`
 | `server.name` | string     | Yes     | -      | Name of the MCP server. If using a pre-integrated MCP server (like quark-search), you only need to configure this field with the corresponding name and don't need to configure the tools field. For REST-to-MCP scenarios, this field can be any arbitrary value. |
 | `server.config` | object     | No     | {}     | Server configuration, such as API keys      |
 | `server.allowTools` | array of string | No | - | List of tools allowed to be called. If not specified, all tools are allowed |
+| `server.securitySchemes` | array of object | No | - | Defines reusable security schemes that can be referenced by tools. See the Authentication and Security section for details. |
 
 ### REST-to-MCP Tool Configuration
 
@@ -67,6 +68,152 @@ Plugin execution priority: `30`
 | `tools[].responseTemplate.body` | string        | No      | -      | Response body transformation template (mutually exclusive with prependBody and appendBody) |
 | `tools[].responseTemplate.prependBody` | string | No      | -      | Text to insert before the response body (mutually exclusive with body) |
 | `tools[].responseTemplate.appendBody` | string  | No      | -      | Text to insert after the response body (mutually exclusive with body) |
+| `tools[].security`                    | object  | No     | -      | Tool-level security configuration, defining authentication between MCP Client and MCP Server, with support for credential passthrough. |
+| `tools[].security.id`                 | string  | Required when `tools[].security` is configured | -      | References a security scheme ID defined in `server.securitySchemes`. |
+| `tools[].security.passthrough`        | boolean | No     | false  | Enables transparent authentication. If `true`, credentials extracted from the MCP Client request will be used for the authentication scheme defined in `requestTemplate.security`. |
+| `tools[].requestTemplate.security`    | object  | No     | -      | Security configuration for the HTTP request template, defining authentication between MCP Server and REST API. |
+| `tools[].requestTemplate.security.id` | string  | Required when `tools[].requestTemplate.security` is configured | - | References a security scheme ID defined in `server.securitySchemes`. |
+| `tools[].requestTemplate.security.credential` | string | No | - | Overrides the default credential defined in `server.securitySchemes`. If `tools[].security.passthrough` is enabled, this field will be ignored, and the passthrough credential will be used instead. |
+
+## Authentication and Security
+
+The MCP Server plugin supports flexible authentication configurations to ensure secure communication with backend REST APIs.
+
+### Defining Security Schemes (`server.securitySchemes`)
+
+You can define a set of reusable security schemes at the server level. These schemes can later be referenced by tools to configure how the MCP Server authenticates requests to backend REST APIs.
+
+**Configuration Fields (`server.securitySchemes[]`)**:
+
+| Name                | Data Type | Required | Description                                                                 |
+| ------------------- | -------- | -------- | -------------------------------------------------------------------- |
+| `id`                | string   | Yes     | Unique identifier for the security scheme, to be referenced in tool configurations. |
+| `type`              | string   | Yes     | Authentication type, supporting `http` (for Basic and Bearer auth) and `apiKey`. |
+| `scheme`            | string   | No     | When `type` is `http`, specifies the specific scheme, such as `basic` or `bearer`. |
+| `in`                | string   | No     | When `type` is `apiKey`, specifies the location of the API key, such as `header` or `query`. |
+| `name`              | string   | No     | When `type` is `apiKey`, specifies the header name or query parameter name. |
+| `defaultCredential` | string   | No     | Default credential for this scheme. For Basic Auth, this can be "user:password"; for Bearer Token, the token itself; for API Key, the key itself. |
+
+**Example (`server.securitySchemes`)**:
+
+```yaml
+server:
+  name: my-api-server
+  securitySchemes:
+  - id: MyBasicAuth
+    type: http
+    scheme: basic
+    defaultCredential: "admin:secretpassword" # Default username and password
+  - id: MyBearerToken
+    type: http
+    scheme: bearer
+    defaultCredential: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." # Default Bearer Token
+  - id: MyApiKeyInHeader
+    type: apiKey
+    in: header
+    name: X-Custom-API-Key # API Key in a header named X-Custom-API-Key
+    defaultCredential: "abcdef123456" # Default API Key
+  - id: MyApiKeyInQuery
+    type: apiKey
+    in: query
+    name: "api_token" # API Key in a query parameter named api_token
+    defaultCredential: "uvwxyz789012"
+```
+
+### Applying Security Schemes in Tools
+
+After defining `server.securitySchemes`, you can reference these schemes in each tool's `requestTemplate.security` by their `id` to specify the authentication method used by the MCP Server when calling the backend REST API.
+
+- **`tools[].requestTemplate.security.id`**: References the `id` of a security scheme defined in `server.securitySchemes`.
+- **`tools[].requestTemplate.security.credential`**: Optional. If provided, it will override the `defaultCredential` in the referenced scheme. This allows you to use different credentials for specific tools, even if they share the same authentication mechanism.
+
+**Example**:
+
+```yaml
+tools:
+- name: get-user-details
+  # ... other tool configuration ...
+  requestTemplate:
+    url: "https://api.example.com/users/{{.args.userId}}"
+    method: GET
+    security:
+      id: MyBearerToken # Use the MyBearerToken scheme defined above
+      # credential: "override_token_for_this_tool" # Optional: Override the default token for this tool
+# ...
+- name: update-inventory
+  # ... other tool configuration ...
+  requestTemplate:
+    url: "https://api.example.com/inventory/{{.args.itemId}}"
+    method: POST
+    security:
+      id: MyApiKeyInHeader # Use the MyApiKeyInHeader scheme
+      # This tool will use the defaultCredential defined in MyApiKeyInHeader
+```
+
+### Passthrough Authentication
+
+The passthrough authentication feature allows credentials provided by the MCP Client (e.g., an AI assistant) when calling the MCP Server to be passed through to the authentication process when the MCP Server calls the backend REST API.
+
+**Configuration**:
+
+1.  **Ensure relevant security schemes are defined in `server.securitySchemes`**. This includes schemes for both client-to-MCP Server and MCP Server-to-backend REST API authentication.
+2.  **Configure tool-level authentication (`tools[].security`)**:
+    In tools where credential passthrough is needed, configure the `security` field:
+    - `id`: References a security scheme defined in `server.securitySchemes` that is used for **MCP Client to MCP Server** authentication. The plugin will extract credentials from the client request based on this scheme and clean the original credential from the request.
+    - `passthrough: true`: Enables passthrough authentication.
+
+3.  **Configure request template authentication (`tools[].requestTemplate.security`)**:
+    In the tool's `requestTemplate`, configure the `security` field:
+    - `id`: References a security scheme defined in `server.securitySchemes` that is used for **MCP Server to backend REST API** authentication.
+    - When `tools[].security.passthrough` is `true`, the credential extracted from the client will be applied to the backend REST API call according to this `requestTemplate.security` scheme.
+
+**Example**:
+
+Suppose the MCP Client uses a Bearer Token to call the MCP Server, and the MCP Server needs to use an API Key to call the backend REST API.
+
+```yaml
+server:
+  name: product-api-server
+  securitySchemes:
+  - id: ClientSideBearer # Client uses Bearer Token
+    type: http
+    scheme: bearer
+  - id: BackendApiKey    # Backend API uses X-API-Key
+    type: apiKey
+    in: header
+    name: X-API-Key
+    # defaultCredential: "optional_default_backend_key"
+
+tools:
+- name: get-product-securely
+  description: "Get product information (secure passthrough)"
+  security: # Client -> MCP Server authentication configuration
+    id: ClientSideBearer # MCP Server expects clients to use this scheme and will extract this type of credential
+    passthrough: true   # Enable passthrough
+  args:
+  - name: product_id
+    description: "Product ID"
+    type: string
+    required: true
+  requestTemplate:
+    security: # MCP Server -> backend REST API authentication configuration
+      id: BackendApiKey # Backend API requires this scheme. The passthrough credential will be applied according to this scheme.
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+```
+
+**Workflow**:
+
+1.  The MCP Client sends a request to the MCP Server's `get-product-securely` tool, with an `Authorization` header containing `Bearer <client_token>`.
+2.  The MCP Server identifies that the client is using a Bearer Token based on `tools[].security` (id: `ClientSideBearer`). It extracts `<client_token>` from the request and removes the original `Authorization` header.
+3.  Because `passthrough: true` is set, the extracted `<client_token>` is marked for passthrough.
+4.  The MCP Server prepares to call the backend REST API. It looks at `requestTemplate.security` (id: `BackendApiKey`).
+5.  Since passthrough is enabled, the MCP Server uses the previously extracted `<client_token>` as the credential value, applying it according to the `BackendApiKey` scheme (i.e., as an HTTP header named `X-API-Key`).
+6.  The backend REST API receives the request with the `X-API-Key` header containing the value `<client_token>`.
+
+**Notes**:
+- When `tools[].security.passthrough` is `true`, the `requestTemplate.security.credential` field is ignored, and the passthrough credential takes precedence.
+- The passthrough credential value is applied directly to the authentication scheme specified by `requestTemplate.security`. Ensure that the credential format is compatible with the target authentication scheme. The `extractAndRemoveIncomingCredential` function attempts to extract the core credential part (e.g., the Bearer token value, the base64-encoded part of Basic auth).
 
 ## Parameter Type Support
 
@@ -393,8 +540,8 @@ tools:
       {{range $index, $day := .forecast.forecastday}}
       ### {{$day.date}} ({{dateFormat "Monday" $day.date_epoch | title}})
       
-      {{if gt $day.day.maxtemp_c 30}}🔥 **High Temperature Alert!**{{end}}
-      {{if lt $day.day.mintemp_c 0}}❄️ **Low Temperature Alert!**{{end}}
+      {{if gt $day.day.maxtemp_c 30}}**High Temperature Alert!**{{end}}
+      {{if lt $day.day.mintemp_c 0}}**Low Temperature Alert!**{{end}}
       
       - **Max Temperature**: {{$day.day.maxtemp_c}}°C
       - **Min Temperature**: {{$day.day.mintemp_c}}°C

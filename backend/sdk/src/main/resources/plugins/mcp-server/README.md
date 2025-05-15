@@ -35,6 +35,7 @@ description: MCP 服务器插件配置参考
 | `server.name` | string     | 必填     | -      | MCP 服务器的名称。如果使用插件内置的 MCP 服务器（如 quark-search），只需配置此字段为对应的名称，无需配置 tools 字段。如果是 REST-to-MCP 场景，此字段可以填写任意值。 |
 | `server.config` | object     | 选填     | {}     | 服务器配置，如 API 密钥等      |
 | `server.allowTools` | array of string | 选填 | - | 允许调用的工具列表。如不指定，则允许所有工具 |
+| `server.securitySchemes` | array of object | 选填 | - | 定义可重用的认证方案，供工具引用。详见“认证与安全”章节。 |
 
 ### REST-to-MCP 工具配置
 
@@ -67,6 +68,152 @@ description: MCP 服务器插件配置参考
 | `tools[].responseTemplate.body` | string        | 选填     | -      | 响应体转换模板（与prependBody和appendBody互斥） |
 | `tools[].responseTemplate.prependBody` | string | 选填     | -      | 在响应体前插入的文本（与body互斥） |
 | `tools[].responseTemplate.appendBody` | string  | 选填     | -      | 在响应体后插入的文本（与body互斥） |
+| `tools[].security`                    | object  | 选填     | -      | 工具级别安全配置，用于定义 MCP Client 和 MCP Server 之间的认证方式，并支持凭证透传。 |
+| `tools[].security.id`                 | string  | 当 `tools[].security` 配置时必填 | -      | 引用在 `server.securitySchemes` 中定义的认证方案 ID。 |
+| `tools[].security.passthrough`        | boolean | 选填     | false  | 是否启用透明认证。如果为 `true`，则从 MCP Client 请求中提取的凭证将用于 `requestTemplate.security` 定义的认证方案。 |
+| `tools[].requestTemplate.security`    | object  | 选填     | -      | HTTP 请求模板的安全配置，用于定义 MCP Server 和 REST API 之间的认证方式。 |
+| `tools[].requestTemplate.security.id` | string  | 当 `tools[].requestTemplate.security` 配置时必填 | - | 引用在 `server.securitySchemes` 中定义的认证方案 ID。 |
+| `tools[].requestTemplate.security.credential` | string | 选填 | - | 覆盖 `server.securitySchemes` 中定义的默认凭证。如果同时启用了 `tools[].security.passthrough`，则此字段将被忽略，优先使用透传的凭证。 |
+
+## 认证与安全
+
+MCP Server 插件支持灵活的认证配置，以确保与后端 REST API 通信的安全性。
+
+### 定义认证方案 (`server.securitySchemes`)
+
+您可以在服务器级别定义一组可重用的认证方案。这些方案之后可以被各个工具引用，用于配置 MCP Server 向后端 REST API 发起请求时的认证方式。
+
+**配置字段 (`server.securitySchemes[]`)**:
+
+| 名称                | 数据类型 | 填写要求 | 描述                                                                 |
+| ------------------- | -------- | -------- | -------------------------------------------------------------------- |
+| `id`                | string   | 必填     | 认证方案的唯一标识符，供工具配置引用。                                 |
+| `type`              | string   | 必填     | 认证类型，支持 `http` (用于 Basic 和 Bearer认证) 和 `apiKey`。         |
+| `scheme`            | string   | 选填     | 当 `type` 为 `http` 时指定具体的方案，如 `basic` 或 `bearer`。           |
+| `in`                | string   | 选填     | 当 `type` 为 `apiKey` 时指定 API 密钥的位置，如 `header` 或 `query`。    |
+| `name`              | string   | 选填     | 当 `type` 为 `apiKey` 时指定 Header 名称或查询参数名称。                 |
+| `defaultCredential` | string   | 选填     | 此方案的默认凭证。例如，对于 Basic Auth，可以是 "user:password"；对于 Bearer Token，是 Token 本身；对于 API Key，是 Key 本身。 |
+
+**示例 (`server.securitySchemes`)**:
+
+```yaml
+server:
+  name: my-api-server
+  securitySchemes:
+  - id: MyBasicAuth
+    type: http
+    scheme: basic
+    defaultCredential: "admin:secretpassword" # 默认的用户名和密码
+  - id: MyBearerToken
+    type: http
+    scheme: bearer
+    defaultCredential: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." # 默认的Bearer Token
+  - id: MyApiKeyInHeader
+    type: apiKey
+    in: header
+    name: X-Custom-API-Key # API Key 在名为 X-Custom-API-Key 的 Header 中
+    defaultCredential: "abcdef123456" # 默认的 API Key
+  - id: MyApiKeyInQuery
+    type: apiKey
+    in: query
+    name: "api_token" # API Key 在名为 api_token 的查询参数中
+    defaultCredential: "uvwxyz789012"
+```
+
+### 在工具中应用认证方案
+
+定义了 `server.securitySchemes` 后，您可以在每个工具的 `requestTemplate.security` 中通过 `id` 引用这些方案，以指定 MCP Server 调用后端 REST API 时使用的认证方式。
+
+- **`tools[].requestTemplate.security.id`**: 引用 `server.securitySchemes` 中定义的认证方案的 `id`。
+- **`tools[].requestTemplate.security.credential`**: 可选。如果提供，它将覆盖所引用方案中的 `defaultCredential`。这允许您为特定工具使用不同的凭证，即使它们共享相同的认证机制。
+
+**示例**:
+
+```yaml
+tools:
+- name: get-user-details
+  # ... 其他工具配置 ...
+  requestTemplate:
+    url: "https://api.example.com/users/{{.args.userId}}"
+    method: GET
+    security:
+      id: MyBearerToken # 使用上面定义的 MyBearerToken 方案
+      # credential: "override_token_for_this_tool" # 可选：为此工具覆盖默认Token
+# ...
+- name: update-inventory
+  # ... 其他工具配置 ...
+  requestTemplate:
+    url: "https://api.example.com/inventory/{{.args.itemId}}"
+    method: POST
+    security:
+      id: MyApiKeyInHeader # 使用 MyApiKeyInHeader 方案
+      # 此工具将使用 MyApiKeyInHeader 中定义的 defaultCredential
+```
+
+### 透明认证 (Passthrough Authentication)
+
+透明认证功能允许将 MCP Client (例如 AI 助手) 调用 MCP Server 时提供的凭证，透传给 MCP Server 调用后端 REST API 时的认证过程。
+
+**配置方式**:
+
+1.  **确保相关认证方案已在 `server.securitySchemes` 中定义**。这包括客户端用于连接到 MCP Server 的方案，以及 MCP Server 用于连接到后端 REST API 的方案。
+2.  **配置工具级别认证 (`tools[].security`)**:
+    在需要透传凭证的工具中，配置 `security` 字段：
+    - `id`: 引用 `server.securitySchemes` 中定义的、用于 **MCP Client 与 MCP Server 之间**的认证方案。插件将根据此方案从客户端请求中提取凭证，并清理原始请求中的该凭证。
+    - `passthrough: true`: 启用透明认证。
+
+3.  **配置请求模板认证 (`tools[].requestTemplate.security`)**:
+    在工具的 `requestTemplate` 中，配置 `security` 字段：
+    - `id`: 引用 `server.securitySchemes` 中定义的、用于 **MCP Server 与后端 REST API 之间**的认证方案。
+    - 当 `tools[].security.passthrough` 为 `true` 时，从客户端提取的凭证将根据此 `requestTemplate.security` 方案应用于对后端 REST API 的调用。
+
+**示例**:
+
+假设 MCP Client 使用 Bearer Token 调用 MCP Server，而 MCP Server 需要使用 API Key 调用后端的 REST API。
+
+```yaml
+server:
+  name: product-api-server
+  securitySchemes:
+  - id: ClientSideBearer # 客户端使用Bearer Token
+    type: http
+    scheme: bearer
+  - id: BackendApiKey    # 后端API使用X-API-Key
+    type: apiKey
+    in: header
+    name: X-API-Key
+    # defaultCredential: "optional_default_backend_key"
+
+tools:
+- name: get-product-securely
+  description: "获取产品信息（安全透传）"
+  security: # 客户端 -> MCP Server 认证配置
+    id: ClientSideBearer # MCP Server期望客户端使用此方案，并会尝试提取此类型的凭证
+    passthrough: true   # 启用透传
+  args:
+  - name: product_id
+    description: "产品ID"
+    type: string
+    required: true
+  requestTemplate:
+    security: # MCP Server -> 后端 REST API 认证配置
+      id: BackendApiKey # 后端API需要此方案。透传的凭证将按此方案应用。
+    url: "https://api.example.com/products/{{.args.product_id}}"
+    method: GET
+```
+
+**工作流程**:
+
+1.  MCP Client 发起请求到 MCP Server 的 `get-product-securely` 工具，并在 `Authorization` 头中携带 `Bearer <client_token>`。
+2.  MCP Server 根据 `tools[].security` (id: `ClientSideBearer`) 识别出客户端使用的是 Bearer Token。它会从请求中提取 `<client_token>` 并移除原始的 `Authorization` 头。
+3.  因为 `passthrough: true`，提取出的 `<client_token>` 被标记为透传凭证。
+4.  MCP Server 准备调用后端 REST API。它查看 `requestTemplate.security` (id: `BackendApiKey`)。
+5.  由于启用了透传，MCP Server 将之前提取的 `<client_token>` 作为凭证值，按照 `BackendApiKey` 方案（即作为名为 `X-API-Key` 的 HTTP Header）添加到对 `https://api.example.com/products/...` 的请求中。
+6.  后端 REST API 收到请求，其中 `X-API-Key` Header 的值为 `<client_token>`。
+
+**注意事项**:
+- 当 `tools[].security.passthrough` 为 `true` 时，`requestTemplate.security.credential` 字段会被忽略，优先使用透传的凭证。
+- 透传的凭证值会直接用于 `requestTemplate.security` 指定的认证方案。请确保凭证的格式与目标认证方案兼容。`extractAndRemoveIncomingCredential` 函数会尝试提取核心凭证部分（例如，Bearer token 值，Basic auth 的 base64 编码部分）。
 
 ## 参数类型支持
 
@@ -393,8 +540,8 @@ tools:
       {{range $index, $day := .forecast.forecastday}}
       ### {{$day.date}} ({{dateFormat "Monday" $day.date_epoch | title}})
       
-      {{if gt $day.day.maxtemp_c 30}}🔥 **高温预警!**{{end}}
-      {{if lt $day.day.mintemp_c 0}}❄️ **低温预警!**{{end}}
+      {{if gt $day.day.maxtemp_c 30}}**高温预警!**{{end}}
+      {{if lt $day.day.mintemp_c 0}}**低温预警!**{{end}}
       
       - **最高温度**: {{$day.day.maxtemp_c}}°C
       - **最低温度**: {{$day.day.mintemp_c}}°C
