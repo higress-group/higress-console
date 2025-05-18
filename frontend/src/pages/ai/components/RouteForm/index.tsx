@@ -104,7 +104,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
     const initValues = {
       name,
       domains: domains?.length ? domains[0] : [],
-      pathPredicate,
+      pathPredicate: Object.assign({ ...pathPredicate }, { ignoreCase: pathPredicate.caseSensitive === false ? ['ignore'] : [] }),
       headerPredicates,
       urlParamPredicates,
       upstreams,
