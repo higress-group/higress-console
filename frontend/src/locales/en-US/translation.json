@@ -608,6 +608,7 @@
       "nameTooltip": "Globally unique",
       "nameRequired": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
       "namePlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, underscore (_), dash (-) and asterisk (*). No longer than 256 characters.",
+      "infoSecNote": "Note: For data security reasons, the current certificate and private key data will not be displayed. Please enter the new data directly into the input boxes below and submit.",
       "cert": "Certificate Data",
       "certRequired": "Please enter certificate data",
       "certPlaceholder": "Please enter certificate data",

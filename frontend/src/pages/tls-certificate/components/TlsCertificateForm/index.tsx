@@ -46,6 +46,12 @@ const TlsCertificateForm: React.FC = forwardRef((props, ref) => {
           placeholder={t('tlsCertificate.tlsCertificateForm.namePlaceholder')}
         />
       </Form.Item>
+      {
+        value &&
+        <Form.Item>
+          {t('tlsCertificate.tlsCertificateForm.infoSecNote')}
+        </Form.Item>
+      }
       <Form.Item
         label={t('tlsCertificate.tlsCertificateForm.cert')}
         required
