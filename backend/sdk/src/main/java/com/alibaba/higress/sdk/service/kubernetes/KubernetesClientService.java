@@ -82,6 +82,8 @@ import okhttp3.Response;
 @Slf4j
 public class KubernetesClientService {
 
+    private static final int CAPABILITY_CHECK_ATTEMPTS = 5;
+    private static final long CAPABILITY_CHECK_INTERVAL = 1000;
     private static final String KUBE_CONFIG_DEFAULT_PATH =
         Paths.get(System.getProperty("user.home"), "/.kube/config").toString();
     private static final String POD_SERVICE_ACCOUNT_TOKEN_FILE_PATH =
@@ -153,15 +155,28 @@ public class KubernetesClientService {
     }
 
     private void initializeK8sCapabilities() {
-        try {
-            NetworkingV1Api networkingV1Api = new NetworkingV1Api(client);
-            List<V1APIResource> networkingV1ApiResources = networkingV1Api.getAPIResources().getResources();
-            ingressV1Supported = CollectionUtils.isNotEmpty(networkingV1ApiResources)
-                && networkingV1ApiResources.stream().anyMatch(r -> "Ingress".equals(r.getKind()));
-        } catch (ApiException e) {
-            log.error("Failed to load NetworkingV1 API resources from K8s", e);
-            ingressV1Supported = false;
+        Exception lastException = null;
+        for (int i = 0; i < CAPABILITY_CHECK_ATTEMPTS; i++) {
+            try {
+                NetworkingV1Api networkingV1Api = new NetworkingV1Api(client);
+                List<V1APIResource> networkingV1ApiResources = networkingV1Api.getAPIResources().getResources();
+                ingressV1Supported = CollectionUtils.isNotEmpty(networkingV1ApiResources)
+                    && networkingV1ApiResources.stream().anyMatch(r -> "Ingress".equals(r.getKind()));
+                return;
+            } catch (Exception e) {
+                lastException = e;
+                try {
+                    Thread.sleep(CAPABILITY_CHECK_INTERVAL);
+                } catch (InterruptedException ex) {
+                    // Ignore
+                }
+            }
         }
+        log.error("Failed to load NetworkingV1 API resources from K8s.", lastException);
+        // Ingress v1 API is supported since Kubernetes v1.19 released on 26 August 2020.
+        // If we cannot know whether it is supported for sure, we can just assume
+        // that it is supported.
+        ingressV1Supported = true;
     }
 
     public boolean isNamespaceProtected(String namespace) {
