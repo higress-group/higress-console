@@ -34,8 +34,13 @@ Plugin execution priority: `30`
 | ------------ | ---------- | -------- | ------ | ------------------------------ |
 | `server.name` | string     | Yes     | -      | Name of the MCP server. If using a pre-integrated MCP server (like quark-search), you only need to configure this field with the corresponding name and don't need to configure the tools field. For REST-to-MCP scenarios, this field can be any arbitrary value. |
 | `server.config` | object     | No     | {}     | Server configuration, such as API keys      |
-| `server.allowTools` | array of string | No | - | List of tools allowed to be called. If not specified, all tools are allowed |
 | `server.securitySchemes` | array of object | No | - | Defines reusable security schemes that can be referenced by tools. See the Authentication and Security section for details. |
+
+### Allowed Tools Configuration
+
+| Name         | Data Type        | Required | Default | Description                                   |
+| ------------ | --------------- | -------- | ------ | --------------------------------------------- |
+| `allowTools` | array of string | No       | -      | List of tools allowed to be called. If not specified, all tools are allowed |
 
 ### REST-to-MCP Tool Configuration
 
@@ -719,4 +724,3 @@ For complex JSON responses, consider using GJSON's powerful filtering and queryi
 The REST API I want to convert is:
 
 [Describe your API here, including endpoints, parameters, and response format, or paste a Swagger/OpenAPI specification]
-```

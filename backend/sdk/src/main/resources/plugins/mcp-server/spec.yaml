@@ -51,16 +51,17 @@ spec:
               x-description-i18n:
                 zh-CN: MCP服务器的配置选项
               additionalProperties: true  # 允许任意配置项
-            allowTools:
-              type: array
-              title: Allowed Tools
-              x-title-i18n:
-                zh-CN: 允许的工具
-              description: List of tools allowed to be called. If not specified, all tools are allowed.
-              x-description-i18n:
-                zh-CN: 允许调用的工具列表。如不指定，则允许所有工具。
-              items:
-                type: string
+        allowTools:
+          type: array
+          x-scope: GLOBAL # Added x-scope based on `tools` field
+          title: Allowed Tools
+          x-title-i18n:
+            zh-CN: 允许的工具
+          description: List of tools allowed to be called. If not specified, all tools are allowed.
+          x-description-i18n:
+            zh-CN: 允许调用的工具列表。如不指定，则允许所有工具。
+          items:
+            type: string
         tools:
           type: array
           x-scope: GLOBAL
@@ -369,16 +370,17 @@ spec:
               x-description-i18n:
                 zh-CN: MCP服务器的配置选项
               additionalProperties: true  # 允许任意配置项
-            allowTools:
-              type: array
-              title: Allowed Tools
-              x-title-i18n:
-                zh-CN: 允许的工具
-              description: List of tools allowed to be called. If not specified, all tools are allowed.
-              x-description-i18n:
-                zh-CN: 允许调用的工具列表。如不指定，则允许所有工具。
-              items:
-                type: string
+        allowTools:
+          type: array
+          x-scope: GLOBAL # Added x-scope based on `tools` field
+          title: Allowed Tools
+          x-title-i18n:
+            zh-CN: 允许的工具
+          description: List of tools allowed to be called. If not specified, all tools are allowed.
+          x-description-i18n:
+            zh-CN: 允许调用的工具列表。如不指定，则允许所有工具。
+          items:
+            type: string
         tools:
           type: array
           x-scope: GLOBAL
