@@ -21,7 +21,10 @@
     "certManagement": "Certificate Management",
     "consumerManagement": "Consumer Management",
     "pluginManagement": "Plugin Management",
-    "systemSettings": "System Settings"
+    "systemSettings": "System Settings",
+    "mcpManagement": "MCP Management",
+    "mcpConfigurations": "MCP Configurations",
+    "mcpStatus": "MCP Status"
   },
   "index": {
     "title": "Higress Console"

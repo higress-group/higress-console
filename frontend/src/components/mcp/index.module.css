@@ -1,0 +1,52 @@
+.mcp-layout {
+  display: flex;
+  height: 100%;
+}
+
+.mcp-sidebar {
+  width: 200px;
+  padding: 24px 16px;
+  border-right: 1px solid #e8e8e8;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.mcp-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mcp-menu-subtitle {
+  font-weight: bold;
+  margin-top: 16px;
+  color: #666;
+}
+
+.mcp-menu-item {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mcp-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.mcp-menu-item.active {
+  background-color: #e6f7ff;
+  font-weight: bold;
+}
+
+.mcp-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  height: calc(100vh - 56px);
+}
+
+@media (max-width: 768px) {
+  .mcp-sidebar {
+    display: none;
+  }
+}

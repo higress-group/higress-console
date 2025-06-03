@@ -21,7 +21,10 @@
     "certManagement": "证书管理",
     "consumerManagement": "消费者管理",
     "pluginManagement": "插件配置",
-    "systemSettings": "系统设置"
+    "systemSettings": "系统设置",
+    "mcpManagement": "MCP管理",
+    "mcpConfigurations": "MCP配置",
+    "mcpStatus": "MCP状态"
   },
   "index": {
     "title": "Higress Console"
