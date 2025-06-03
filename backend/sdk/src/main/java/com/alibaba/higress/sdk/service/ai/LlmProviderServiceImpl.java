@@ -147,10 +147,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         if (!found) {
             providers.add(providerConfig);
         }
-        wasmPluginInstanceService.addOrUpdate(instance);
 
         ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
-        serviceSourceService.addOrUpdate(serviceSource);
 
         UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
         WasmPluginInstance serviceInstance = new WasmPluginInstance();
@@ -160,6 +158,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         serviceInstance.setEnabled(true);
         serviceInstance.setInternal(true);
         serviceInstance.setConfigurations(MapUtil.of(ACTIVE_PROVIDER_ID, provider.getName()));
+
+        // Perform all the updates here just to avoid possible errors in resource building.
+        wasmPluginInstanceService.addOrUpdate(instance);
+        serviceSourceService.addOrUpdate(serviceSource);
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
 
         return query(provider.getName());
