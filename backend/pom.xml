@@ -51,7 +51,7 @@
 
 	<properties>
 		<!--Declare the minimum JDK version for dependency.-->
-		<java.version>8</java.version>
+		<java.version>1.8</java.version>
 
 		<retrofit.version>2.9.0</retrofit.version>
 		<guava.version>31.1-jre</guava.version>
@@ -173,7 +173,8 @@
 				<configuration>
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>
-					<compilerVersion>${maven.compiler.source}</compilerVersion>
+					<compilerVersion>${maven.compiler.target}</compilerVersion>
+					<release>8</release>
 					<showDeprecation>true</showDeprecation>
 					<showWarnings>true</showWarnings>
 				</configuration>

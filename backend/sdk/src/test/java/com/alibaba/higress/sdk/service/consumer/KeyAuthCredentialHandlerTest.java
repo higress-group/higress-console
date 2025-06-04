@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +29,8 @@ import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 
 @SuppressWarnings("unchecked")
 public class KeyAuthCredentialHandlerTest {
@@ -67,7 +67,8 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
         addAllow(routeInstance, Lists.newArrayList("lisi", "wangwu"));
 
-        Assertions.assertFalse(handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
+        Assertions.assertFalse(
+            handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
     }
 
     @Test
@@ -80,7 +81,8 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
         addAllow(routeInstance, Lists.newArrayList("lisi", "zhangsan"));
 
-        Assertions.assertTrue(handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
+        Assertions.assertTrue(
+            handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
     }
 
     @Test
@@ -93,7 +95,8 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance routeInstance = createInstance(WasmPluginInstanceScope.ROUTE, "test-route");
         addAllow(routeInstance, Lists.newArrayList("lisi", "zhangsan", "wangwu"));
 
-        Assertions.assertTrue(handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
+        Assertions.assertTrue(
+            handler.isConsumerInUse("zhangsan", Lists.newArrayList(instance, domainInstance, routeInstance)));
     }
 
     @Test
@@ -147,24 +150,27 @@ public class KeyAuthCredentialHandlerTest {
         List<Consumer> consumers = handler.extractConsumers(instance);
         Assertions.assertNotNull(consumers);
         Assertions.assertEquals(5, consumers.size());
-        Assertions.assertTrue(consumers.contains(new Consumer("zhangsan",
-            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, Lists.newArrayList("sk-123456"))))));
-        Assertions.assertTrue(consumers.contains(new Consumer("lisi",
-            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("abcd-1234"))))));
-        Assertions.assertTrue(consumers
-            .contains(new Consumer("wangwu", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.QUERY.name(),
+        Assertions.assertTrue(consumers.contains(new Consumer("zhangsan", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, Lists.newArrayList("sk-123456"))))));
+        Assertions.assertTrue(consumers.contains(
+            new Consumer("lisi", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(),
+                "X-API-KEY", Lists.newArrayList("abcd-1234"))))));
+        Assertions.assertTrue(consumers.contains(
+            new Consumer("wangwu", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.QUERY.name(),
                 "api_key", Lists.newArrayList("efgh-5678", "ijkl-91011"))))));
-        Assertions.assertTrue(consumers.contains(new Consumer("zhaoliu", List
-            .of(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "Authorization", Lists.newArrayList("sk-654321"))))));
-        Assertions.assertTrue(consumers.contains(new Consumer("guoqi", List
-                .of(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "Authorization", Lists.newArrayList("sk-abcdefg"))))));
+        Assertions.assertTrue(consumers.contains(
+            new Consumer("zhaoliu", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(),
+                "Authorization", Lists.newArrayList("sk-654321"))))));
+        Assertions.assertTrue(consumers.contains(
+            new Consumer("guoqi", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(),
+                "Authorization", Lists.newArrayList("sk-abcdefg"))))));
     }
 
     @Test
     public void saveConsumerTestFromNothingBearer() {
         WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
-        Consumer consumer = new Consumer("zhangsan",
-            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, Lists.newArrayList("sk-123456"))));
+        Consumer consumer = new Consumer("zhangsan", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, Lists.newArrayList("sk-123456"))));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
@@ -181,8 +187,9 @@ public class KeyAuthCredentialHandlerTest {
     @Test
     public void saveConsumerTestFromNothingBearerMultipleValues() {
         WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
-        Consumer consumer = new Consumer("zhangsan", Lists.newArrayList(
-            new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(), null, Lists.newArrayList("sk-123456", "sk-abcdefg"))));
+        Consumer consumer =
+            new Consumer("zhangsan", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.BEARER.name(),
+                null, Lists.newArrayList("sk-123456", "sk-abcdefg"))));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
@@ -193,7 +200,8 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(Lists.newArrayList("Authorization"), consumerMap.get("keys"));
         Assertions.assertEquals(true, consumerMap.get("in_header"));
         Assertions.assertNotEquals(Boolean.TRUE, consumerMap.get("in_query"));
-        Assertions.assertEquals(Lists.newArrayList("Bearer sk-123456", "Bearer sk-abcdefg"), consumerMap.get("credentials"));
+        Assertions.assertEquals(Lists.newArrayList("Bearer sk-123456", "Bearer sk-abcdefg"),
+            consumerMap.get("credentials"));
     }
 
     @Test
@@ -201,8 +209,9 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         instance.setConfigurations(new HashMap<>(MapUtil.of("consumers", "value")));
 
-        Consumer consumer = new Consumer("zhangsan",
-            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("sk-123456"))));
+        Consumer consumer =
+            new Consumer("zhangsan", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(),
+                "X-API-KEY", Lists.newArrayList("sk-123456"))));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
@@ -222,8 +231,8 @@ public class KeyAuthCredentialHandlerTest {
         instance.setConfigurations(new HashMap<>(MapUtil.of("consumers", "value")));
 
         Consumer consumer =
-            new Consumer("zhangsan", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY",
-                Lists.newArrayList("sk-123456", "sk-abcdefg"))));
+            new Consumer("zhangsan", Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(),
+                "X-API-KEY", Lists.newArrayList("sk-123456", "sk-abcdefg"))));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
@@ -242,8 +251,8 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
         addConsumer(instance, "zhangsan", true, false, "Authorization", "Bearer sk-123456");
 
-        Consumer consumer = new Consumer("zhangsan",
-            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.QUERY.name(), "token", Lists.newArrayList("sk-123456"))));
+        Consumer consumer = new Consumer("zhangsan", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.QUERY.name(), "token", Lists.newArrayList("sk-123456"))));
         Assertions.assertTrue(handler.saveConsumer(instance, consumer));
 
         List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
