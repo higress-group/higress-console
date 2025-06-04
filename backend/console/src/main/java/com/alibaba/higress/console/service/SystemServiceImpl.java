@@ -12,27 +12,6 @@
  */
 package com.alibaba.higress.console.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.annotation.PostConstruct;
-
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.alibaba.higress.console.constant.CapabilityKey;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
@@ -52,10 +31,28 @@ import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.TlsCertificateService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 @Slf4j
 @Service
@@ -197,16 +194,17 @@ public class SystemServiceImpl implements SystemService {
 
         try {
             KeyPair keyPair = CertificateUtil.generateRsaKeyPair(4096);
-            X509CertificateHolder certificateHolder = CertificateUtil.generateSelfSignedCertificate(keyPair,
-                DEFAULT_TLS_CERTIFICATE_HOST, DEFAULT_TLS_CERTIFICATE_DURATION);
+            X509CertificateHolder certificateHolder =
+                CertificateUtil.generateSelfSignedCertificate(keyPair, DEFAULT_TLS_CERTIFICATE_HOST,
+                    DEFAULT_TLS_CERTIFICATE_DURATION);
 
             TlsCertificate defaultCertificate = new TlsCertificate();
             defaultCertificate.setName(DEFAULT_TLS_CERTIFICATE_NAME);
             defaultCertificate.setDomains(Lists.newArrayList(DEFAULT_TLS_CERTIFICATE_HOST));
             defaultCertificate.setKey(
                 CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
-            defaultCertificate
-                .setCert(CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE, certificateHolder.getEncoded()));
+            defaultCertificate.setCert(
+                CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE, certificateHolder.getEncoded()));
             tlsCertificateService.add(defaultCertificate);
 
             Domain domain = new Domain();
@@ -226,7 +224,8 @@ public class SystemServiceImpl implements SystemService {
             RoutePredicate routePredicate =
                 RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
-            route.setServices(Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
+            route.setServices(
+                Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
             routeService.add(route);
 
