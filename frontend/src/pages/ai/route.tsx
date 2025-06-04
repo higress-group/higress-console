@@ -214,6 +214,10 @@ const AiRouteList: React.FC = () => {
     setIsLoading(false);
   };
 
+  const normalizeRoutePredicate = (predicate: RoutePredicate) => {
+    predicate.caseSensitive = !predicate.ignoreCase || !predicate.ignoreCase.length;
+  };
+
   const handleDrawerOK = async () => {
     setLoading(true);
     try {
@@ -221,6 +225,11 @@ const AiRouteList: React.FC = () => {
       if (!values) {
         return false;
       }
+
+      const { pathPredicate, headerPredicates, urlParamPredicates } = values as AiRoute;
+      pathPredicate && normalizeRoutePredicate(pathPredicate);
+      headerPredicates && headerPredicates.forEach((h) => normalizeRoutePredicate(h));
+      urlParamPredicates && urlParamPredicates.forEach((h) => normalizeRoutePredicate(h));
 
       if (currentAiRoute) {
         const params: AiRoute = { version: currentAiRoute.version, ...values };

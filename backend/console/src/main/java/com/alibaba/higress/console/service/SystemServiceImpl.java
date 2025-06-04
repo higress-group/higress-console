@@ -12,6 +12,28 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.alibaba.higress.console.constant.CapabilityKey;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
@@ -19,7 +41,10 @@ import com.alibaba.higress.console.model.SystemInfo;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.util.CertificateUtil;
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.TlsCertificate;
@@ -31,28 +56,13 @@ import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.TlsCertificateService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.swagger.v3.core.util.Yaml;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -64,6 +74,8 @@ public class SystemServiceImpl implements SystemService {
     private static final String DEFAULT_ROUTE_NAME = "default";
     private static final String UNKNOWN = "unknown";
     private static final String COMMIT_ID;
+    private static final String HIGRESS_CONFIG = "higress-config";
+    private static final Set<String> REQUIRED_HIGRESS_CONFIG_KEYS = Set.of("higress", "mesh", "meshNetworks");
 
     static {
         String commitId = null;
@@ -149,7 +161,7 @@ public class SystemServiceImpl implements SystemService {
         }
         this.capabilities = capabilities;
 
-        Map<String, Object> configs = MapUtil.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
+        Map<String, Object> configs = Map.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
             UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
         configService.setConfigs(configs);
 
@@ -194,17 +206,16 @@ public class SystemServiceImpl implements SystemService {
 
         try {
             KeyPair keyPair = CertificateUtil.generateRsaKeyPair(4096);
-            X509CertificateHolder certificateHolder =
-                CertificateUtil.generateSelfSignedCertificate(keyPair, DEFAULT_TLS_CERTIFICATE_HOST,
-                    DEFAULT_TLS_CERTIFICATE_DURATION);
+            X509CertificateHolder certificateHolder = CertificateUtil.generateSelfSignedCertificate(keyPair,
+                DEFAULT_TLS_CERTIFICATE_HOST, DEFAULT_TLS_CERTIFICATE_DURATION);
 
             TlsCertificate defaultCertificate = new TlsCertificate();
             defaultCertificate.setName(DEFAULT_TLS_CERTIFICATE_NAME);
-            defaultCertificate.setDomains(Lists.newArrayList(DEFAULT_TLS_CERTIFICATE_HOST));
+            defaultCertificate.setDomains(List.of(DEFAULT_TLS_CERTIFICATE_HOST));
             defaultCertificate.setKey(
                 CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
-            defaultCertificate.setCert(
-                CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE, certificateHolder.getEncoded()));
+            defaultCertificate
+                .setCert(CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE, certificateHolder.getEncoded()));
             tlsCertificateService.add(defaultCertificate);
 
             Domain domain = new Domain();
@@ -224,8 +235,7 @@ public class SystemServiceImpl implements SystemService {
             RoutePredicate routePredicate =
                 RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
-            route.setServices(
-                Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
+            route.setServices(List.of(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
             routeService.add(route);
 
@@ -247,6 +257,86 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public SystemInfo getSystemInfo() {
         return new SystemInfo(fullVersion, capabilities);
+    }
+
+    @Override
+    public String getHigressConfig() {
+        V1ConfigMap configMap;
+        try {
+            configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+        } catch (ApiException e) {
+            throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
+        }
+        cleanUpConfigMap(configMap);
+        return kubernetesClientService.saveToYaml(configMap);
+    }
+
+    @Override
+    public String setHigressConfig(String config) {
+        V1ConfigMap newConfigMap = kubernetesClientService.loadFromYaml(config, V1ConfigMap.class);
+
+        validateConfigMap(newConfigMap);
+
+        V1ConfigMap currentConfigMap;
+        try {
+            currentConfigMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+        } catch (ApiException e) {
+            throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
+        }
+
+        String resourceVersion = Objects.requireNonNull(newConfigMap.getMetadata()).getResourceVersion();
+        newConfigMap.setMetadata(currentConfigMap.getMetadata());
+        newConfigMap.getMetadata().setResourceVersion(resourceVersion);
+
+        V1ConfigMap updatedConfigMap;
+        try {
+            updatedConfigMap = kubernetesClientService.replaceConfigMap(newConfigMap);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
+                throw new ResourceConflictException();
+            }
+            throw new BusinessException("Error occurs when replacing the " + HIGRESS_CONFIG + " ConfigMap.", e);
+        }
+
+        cleanUpConfigMap(updatedConfigMap);
+        return kubernetesClientService.saveToYaml(updatedConfigMap);
+    }
+
+    private void validateConfigMap(V1ConfigMap newConfigMap) {
+        V1ObjectMeta metadata = newConfigMap.getMetadata();
+        if (metadata == null) {
+            throw new BusinessException("ConfigMap metadata is missing.");
+        }
+        if (StringUtils.isEmpty(metadata.getResourceVersion())) {
+            throw new BusinessException("ConfigMap resourceVersion is missing.");
+        }
+        if (MapUtils.isEmpty(newConfigMap.getData())) {
+            throw new ValidationException("ConfigMap data is empty.");
+        }
+        if (REQUIRED_HIGRESS_CONFIG_KEYS.stream().anyMatch(key -> !newConfigMap.getData().containsKey(key))) {
+            throw new ValidationException(
+                "ConfigMap data must contain all required keys: " + String.join(", ", REQUIRED_HIGRESS_CONFIG_KEYS));
+        }
+        for (String key : REQUIRED_HIGRESS_CONFIG_KEYS) {
+            String value = newConfigMap.getData().get(key);
+            if (StringUtils.isBlank(value)) {
+                throw new ValidationException("ConfigMap data key " + key + " has an empty value.");
+            }
+            try {
+                Yaml.mapper().readValue(new StringReader(value), Map.class);
+            } catch (IOException e) {
+                throw new ValidationException("Invalid YAML data for key " + key + ": " + value, e);
+            }
+        }
+    }
+
+    private static void cleanUpConfigMap(V1ConfigMap configMap) {
+        V1ObjectMeta metadata = Objects.requireNonNull(configMap.getMetadata());
+        metadata.setLabels(null);
+        metadata.setAnnotations(null);
+        metadata.setCreationTimestamp(null);
+        metadata.setUid(null);
+        metadata.setManagedFields(null);
     }
 
     private static String loadGitCommitId() throws IOException {

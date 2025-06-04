@@ -12,3 +12,11 @@ export async function getConfigs(): Promise<any> {
 export async function initialize(payload: InitParams): Promise<any> {
   return request.post<any, any>('/system/init', payload);
 }
+
+export async function getHigressConfig(): Promise<any> {
+  return await request.get('/system/higress-config');
+}
+
+export async function updateHigressConfig(config: string): Promise<any> {
+  return request.put<any, any>('/system/higress-config', { config });
+}

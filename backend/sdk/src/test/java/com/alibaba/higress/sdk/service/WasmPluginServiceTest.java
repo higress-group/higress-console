@@ -12,15 +12,25 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.WasmPlugin;
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -30,27 +40,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import com.alibaba.higress.sdk.constant.HigressConstants;
-import com.alibaba.higress.sdk.constant.Separators;
-import com.alibaba.higress.sdk.model.PaginatedResult;
-import com.alibaba.higress.sdk.model.WasmPlugin;
-import com.alibaba.higress.sdk.model.WasmPluginInstance;
-import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class WasmPluginServiceTest {
 
@@ -71,7 +69,9 @@ public class WasmPluginServiceTest {
     public void setUp() {
         kubernetesClientService = mock(KubernetesClientService.class);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
-        service = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
+
+        service = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
+            WasmPluginServiceConfig.buildFromEnv());
     }
 
     @AfterEach
@@ -105,6 +105,7 @@ public class WasmPluginServiceTest {
     @Test
     public void listPluginsTestWithCustomImageUrlNameAndVersion() throws Exception {
         System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "http://foo.bar.com/plugins/${name}/${version}.wasm");
+        setUp();
         service.initialize();
 
         listPluginsTest();
@@ -121,6 +122,7 @@ public class WasmPluginServiceTest {
     @Test
     public void listPluginsTestWithCustomImageUrlNameOnly() throws Exception {
         System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "https://foo.bar.com/plugins/${name}.wasm");
+        setUp();
         service.initialize();
 
         listPluginsTest();
@@ -136,6 +138,7 @@ public class WasmPluginServiceTest {
     @Test
     public void listPluginsTestWithCustomImageUrlFixed() throws Exception {
         System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "file:///opt/plugins/main.wasm");
+        setUp();
         service.initialize();
 
         listPluginsTest();
@@ -152,8 +155,8 @@ public class WasmPluginServiceTest {
     public void updateBuiltInTestNotConfigured() throws Exception {
         service.initialize();
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
-            .thenReturn(Collections.emptyList());
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(),
+            anyBoolean())).thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -193,15 +196,18 @@ public class WasmPluginServiceTest {
         service.initialize();
 
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.GLOBAL).configurations(MapUtil.of("k", "v")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com").configurations(MapUtil.of("kd", "vd")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("test").configurations(MapUtil.of("ki", "vi")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("k", "v"))
+                .build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com")
+                .configurations(Map.of("kd", "vd")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("test")
+                .configurations(Map.of("ki", "vi")).build());
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
-            .thenReturn(Lists.newArrayList(existedCr));
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(),
+            anyBoolean())).thenReturn(List.of(existedCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -240,15 +246,18 @@ public class WasmPluginServiceTest {
         service.initialize();
 
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.GLOBAL).configurations(MapUtil.of("k", "v")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com").configurations(MapUtil.of("kd", "vd")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("test").configurations(MapUtil.of("ki", "vi")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("k", "v"))
+                .build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com")
+                .configurations(Map.of("kd", "vd")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("test")
+                .configurations(Map.of("ki", "vi")).build());
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
-            .thenReturn(Lists.newArrayList(existedCr));
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(),
+            anyBoolean())).thenReturn(List.of(existedCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -300,26 +309,32 @@ public class WasmPluginServiceTest {
         service.initialize();
 
         V1alpha1WasmPlugin userCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
-        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.GLOBAL).configurations(MapUtil.of("kf", "vf")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("www.foo.com").configurations(MapUtil.of("kfd", "vfd")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("foo").configurations(MapUtil.of("kfi", "vfi")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("kf", "vf"))
+                .build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("www.foo.com")
+                .configurations(Map.of("kfd", "vfd")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(userCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("foo")
+                .configurations(Map.of("kfi", "vfi")).build());
 
         V1alpha1WasmPlugin internalCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
-        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.GLOBAL).configurations(MapUtil.of("k", "v")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com").configurations(MapUtil.of("kd", "vd")).build());
-        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr, WasmPluginInstance.builder()
-            .scope(WasmPluginInstanceScope.DOMAIN).target("test").configurations(MapUtil.of("ki", "vi")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.GLOBAL).configurations(Map.of("k", "v"))
+                .build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com")
+                .configurations(Map.of("kd", "vd")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("test")
+                .configurations(Map.of("ki", "vi")).build());
         when(kubernetesClientService.listWasmPlugin(TEST_BUILT_IN_PLUGIN_NAME)).thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
-            .thenReturn(Lists.newArrayList(userCr, internalCr));
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(),
+            anyBoolean())).thenReturn(List.of(userCr, internalCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -374,9 +389,10 @@ public class WasmPluginServiceTest {
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
-        WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn)
-            .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
-            .imageRepository("oci://docker.io/" + name).build();
+        WasmPlugin plugin =
+            WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn).category("TEST")
+                .icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
+                .imageRepository("oci://docker.io/" + name).build();
         return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
     }
 }
