@@ -7,14 +7,14 @@ import {
   Table,
   Button,
   Spin,
-  Select
+  Select,
 } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, SyncOutlined, ReloadOutlined } from '@ant-design/icons';
-import { MCPLLayout } from '../../components/mcp/MCPLLayout';
 import MCPStatusCard from '../../components/mcp/MCPStatusCard';
-import { useNavigate, useSelector, useDispatch } from 'ice';
+import { useNavigate } from 'ice';
 import { getMCPStatus } from '../../services/mcp/status';
 import { IMCPConfig } from '../../interfaces/mcp';
+import store from '@/store';
 
 const { CheckCircleFilled } = require('@ant-design/icons');
 
@@ -22,8 +22,7 @@ const MCPStatusPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('24h');
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const mcpState = useSelector((state) => state.mcp);
+  const [mcpState, mcpDispatchers] = store.useModel('mcp');
 
   const columns = [
     {
@@ -77,7 +76,7 @@ const MCPStatusPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await getMCPStatus(timeRange);
-      dispatch.mcp.updateState({
+      mcpDispatchers.updateState({
         configurations: mcpState.configurations.map(config => {
           const statusInfo = response.data.find(info => info.id === config.id);
           return statusInfo ? { ...config, ...statusInfo } : config;
@@ -91,13 +90,13 @@ const MCPStatusPage: React.FC = () => {
 
   useEffect(() => {
     if (mcpState.configurations.length === 0) {
-      dispatch.mcp.getMCPConfigs({ page: 1, pageSize: 10 });
+      mcpDispatchers.getMCPConfigs({ page: 1, pageSize: 10 });
     }
   }, []);
 
   // Get human-readable time range label
   const getTimeRangeLabel = (range: string): string => {
-    switch(range) {
+    switch (range) {
       case '1h': return 'Last Hour';
       case '24h': return 'Last 24 Hours';
       case '7d': return 'Last 7 Days';
@@ -107,12 +106,12 @@ const MCPStatusPage: React.FC = () => {
   };
 
   return (
-    <MCPLLayout>
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h2>MCP Server Status</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Select 
-            value={timeRange} 
+          <Select
+            value={timeRange}
             onChange={setTimeRange}
             style={{ width: 150 }}
           >
@@ -131,14 +130,15 @@ const MCPStatusPage: React.FC = () => {
         totalConfigs: mcpState.configurations.length,
         activeConfigs: mcpState.configurations.filter(c => c.status === 'Active').length,
         lastSyncTime: new Date().toLocaleString(),
-        successRate: mcpState.configurations.length > 0 
-          ? Math.round(mcpState.configurations.reduce((sum, c) => sum + (c.successRate || 0), 0) / mcpState.configurations.length) 
+        successRate: mcpState.configurations.length > 0
+          ? Math.round(mcpState.configurations.reduce((sum, c) => sum + (c.successRate || 0), 0) / mcpState.configurations.length)
           : undefined,
-        errorRate: mcpState.configurations.length > 0 
+        errorRate: mcpState.configurations.length > 0
           ? Math.round(mcpState.configurations.reduce((sum, c) => sum + (c.errorRate || 0), 0) / mcpState.configurations.length)
           : undefined,
-        timeRange: getTimeRangeLabel(timeRange)
-      }} />
+        timeRange: getTimeRangeLabel(timeRange),
+      }}
+      />
 
       <Card title="Configuration Status" style={{ marginTop: 16 }}>
         <Table
@@ -153,12 +153,12 @@ const MCPStatusPage: React.FC = () => {
             pageSize: mcpState.pageSize,
             total: mcpState.total,
             onChange: (page, pageSize) => {
-              dispatch.mcp.getMCPConfigs({ page, pageSize });
+              mcpDispatchers.getMCPConfigs({ page, pageSize });
             },
           }}
         />
       </Card>
-    </MCPLLayout>
+    </>
   );
 };
 

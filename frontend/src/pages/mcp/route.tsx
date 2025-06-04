@@ -1,16 +1,16 @@
 import React from 'react';
-import { Navigate } from 'ice';
+// import { Navigate } from 'ice';
 
 export default {
   path: '/mcp',
   children: [
-    {
-      index: true,
-      element: <Navigate to="list" replace />,
-    },
+    // {
+    //   index: true,
+    //   element: <Navigate to="list" replace />,
+    // },
     {
       path: 'list',
-      element: React.lazy(() => import('./index')),
+      element: React.lazy(() => import('./list')),
     },
     {
       path: 'add',

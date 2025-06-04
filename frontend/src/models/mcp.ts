@@ -1,6 +1,8 @@
+import { IMCPConfig } from '@/interfaces/mcp';
+
 export default {
   state: {
-    configurations: [],
+    configurations: [] as IMCPConfig[],
     loading: false,
     total: 0,
     page: 1,
@@ -21,16 +23,16 @@ export default {
             id: `mcp-${i + 1}`,
             name: `MCP 配置 ${i + 1}`,
             description: `这是第 ${i + 1} 个 MCP 配置`,
-            sourceType: i % 3 === 0 ? 'REST' : i % 3 === 1 ? 'DB' : 'INTERNAL',
+            sourceType: ['REST', 'DB', 'INTERNAL'][i % 3],
             enabled: i % 4 !== 0,
             createdAt: '2023-09-20T09:12:12Z',
             updatedAt: '2023-09-20T09:12:12Z',
           }));
-          
+
           const start = (params.page - 1) * params.pageSize;
           const end = start + params.pageSize;
           const paginatedData = mockData.slice(start, end);
-          
+
           dispatch.mcp.updateState({
             configurations: paginatedData,
             total: mockData.length,

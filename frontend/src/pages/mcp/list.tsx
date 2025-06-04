@@ -6,26 +6,24 @@ import {
   Space,
   Switch,
   Popconfirm,
-  message
+  message,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { MCPLLayout } from '../../components/mcp/MCPLLayout';
 import { IMCPConfig } from '../../interfaces/mcp';
-import { useNavigate, useSelector, useDispatch } from 'ice';
+import { useNavigate } from 'ice';
+import store from '@/store';
 
 const MCPListPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const mcpState = useSelector((state) => state.mcp);
+  const [mcpState, mcpDispatchers] = store.useModel('mcp');
 
   const handleEnableToggle = async (id: string, enabled: boolean) => {
     try {
       // This would be replaced with actual API calls
       setTimeout(() => {
-        dispatch.mcp.updateState({
-          configurations: mcpState.configurations.map(config => 
-            config.id === id ? { ...config, enabled: !enabled } : config
-          ),
+        mcpDispatchers.updateState({
+          configurations: mcpState.configurations.map(config =>
+            (config.id === id ? { ...config, enabled: !enabled } : config)),
         });
         message.success(`Configuration ${enabled ? 'disabled' : 'enabled'} successfully`);
       }, 500);
@@ -38,7 +36,7 @@ const MCPListPage: React.FC = () => {
     try {
       // This would be replaced with actual API calls
       setTimeout(() => {
-        dispatch.mcp.updateState({
+        mcpDispatchers.updateState({
           configurations: mcpState.configurations.filter(config => config.id !== id),
           total: mcpState.total - 1,
         });
@@ -100,12 +98,12 @@ const MCPListPage: React.FC = () => {
 
   useEffect(() => {
     if (mcpState.configurations.length === 0) {
-      dispatch.mcp.getMCPConfigs({ page: mcpState.page, pageSize: mcpState.pageSize });
+      mcpDispatchers.getMCPConfigs({ page: mcpState.page, pageSize: mcpState.pageSize });
     }
   }, []);
 
   return (
-    <MCPLLayout>
+    <>
       <Card
         title="MCP Configurations"
         extra={
@@ -127,13 +125,13 @@ const MCPListPage: React.FC = () => {
             total: mcpState.total,
             showSizeChanger: true,
             onChange: (page, pageSize) => {
-              dispatch.mcp.getMCPConfigs({ page, pageSize });
+              mcpDispatchers.getMCPConfigs({ page, pageSize });
             },
           }}
           rowKey="id"
         />
       </Card>
-    </MCPLLayout>
+    </>
   );
 };
 

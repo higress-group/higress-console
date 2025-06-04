@@ -79,18 +79,18 @@ export default {
       },
       {
         name: 'menu.mcpManagement',
-        path: '/mcp',
+        path: '/mcp/list',
         icon: <RobotOutlined />,
-        children: [
-          {
-            name: 'menu.mcpConfigurations',
-            path: '/mcp/list',
-          },
-          {
-            name: 'menu.mcpStatus',
-            path: '/mcp/status',
-          }
-        ],
+        // children: [
+        //   {
+        //     name: 'menu.mcpConfigurations',
+        //     path: '/mcp/list',
+        //   },
+        //   {
+        //     name: 'menu.mcpStatus',
+        //     path: '/mcp/status',
+        //   }
+        // ],
       },
       {
         name: 'menu.domainManagement',
