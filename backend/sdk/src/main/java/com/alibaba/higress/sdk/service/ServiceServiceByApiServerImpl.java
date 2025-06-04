@@ -12,6 +12,17 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -22,22 +33,13 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author lvshui
@@ -49,7 +51,8 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
 
-    public ServiceServiceByApiServerImpl(KubernetesClientService kubernetesClientService, KubernetesModelConverter kubernetesModelConverter) {
+    public ServiceServiceByApiServerImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter) {
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
     }
@@ -63,8 +66,8 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
         List<V1Endpoints> v1Endpoints = kubernetesClientService.listAllEndPointsList();
         final Map<String, V1Endpoints> v1EndpointsMap = Maps.newHashMap();
         if (CollectionUtils.isNotEmpty(v1Endpoints)) {
-            Map<String, V1Endpoints> v1EndpointsMap1 = v1Endpoints.stream().collect(Collectors.toMap(
-                i -> buildMetaUniqueKey(i.getMetadata()), Function.identity(), (k1, k2) -> k1));
+            Map<String, V1Endpoints> v1EndpointsMap1 = v1Endpoints.stream().collect(
+                Collectors.toMap(i -> buildMetaUniqueKey(i.getMetadata()), Function.identity(), (k1, k2) -> k1));
             v1EndpointsMap.putAll(v1EndpointsMap1);
         }
 
@@ -79,17 +82,15 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
                     }
                     if (Objects.nonNull(v1Endpoints1) && CollectionUtils.isNotEmpty(v1Endpoints1.getSubsets())) {
                         try {
-                            List<String> ipList = v1Endpoints1.getSubsets().stream()
-                                .filter(Objects::nonNull)
-                                .map(v1Subset -> {
+                            List<String> ipList =
+                                v1Endpoints1.getSubsets().stream().filter(Objects::nonNull).map(v1Subset -> {
                                     if (v1Subset.getAddresses() != null) {
-                                        return v1Subset.getAddresses().stream().map(V1EndpointAddress::getIp).collect(Collectors.toList());
+                                        return v1Subset.getAddresses().stream().map(V1EndpointAddress::getIp)
+                                            .collect(Collectors.toList());
                                     }
                                     return null;
-                                })
-                                .filter(CollectionUtils::isNotEmpty)
-                                .flatMap(List::stream)
-                                .collect(Collectors.toList());
+                                }).filter(CollectionUtils::isNotEmpty).flatMap(List::stream)
+                                    .collect(Collectors.toList());
                             service.setEndpoints(ipList);
                         } catch (Exception e) {
                             log.error("deal service endpoints appear error. ", e);
@@ -104,38 +105,32 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
 
         List<V1McpBridge> v1McpBridges = kubernetesClientService.listMcpBridge();
         if (CollectionUtils.isNotEmpty(v1McpBridges)) {
-            List<Service> externalServiceList = v1McpBridges.stream()
-                .map(i -> {
-                    List<V1RegistryConfig> registries = i.getSpec().getRegistries();
-                    if (CollectionUtils.isEmpty(registries)) {
-                        return null;
+            List<Service> externalServiceList = v1McpBridges.stream().map(i -> {
+                List<V1RegistryConfig> registries = i.getSpec().getRegistries();
+                if (CollectionUtils.isEmpty(registries)) {
+                    return null;
+                }
+                return registries.stream().map(r -> {
+                    Service service = new Service();
+                    service.setNamespace(MCP_SIMULATE_NS);
+                    service.setName(StringUtils.join(r.getName(), Separators.DOT, r.getType()));
+                    service.setType(r.getType());
+                    service.setProtocol(r.getProtocol());
+                    String[] endPoints =
+                        StringUtils.split(r.getDomain(), V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR);
+                    service.setEndpoints(Arrays.asList(endPoints));
+                    switch (r.getType()) {
+                        case V1McpBridge.REGISTRY_TYPE_DNS:
+                            service.setPort(r.getPort());
+                            return service;
+                        case V1McpBridge.REGISTRY_TYPE_STATIC:
+                            service.setPort(V1McpBridge.STATIC_PORT);
+                            return service;
+                        default:
+                            return null;
                     }
-                    return registries.stream()
-                        .map(r -> {
-                            Service service = new Service();
-                            service.setNamespace(MCP_SIMULATE_NS);
-                            service.setName(StringUtils.join(r.getName(), Separators.DOT, r.getType()));
-                            service.setType(r.getType());
-                            service.setProtocol(r.getProtocol());
-                            String[] endPoints = StringUtils.split(r.getDomain(), V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR);
-                            service.setEndpoints(Arrays.asList(endPoints));
-                            switch (r.getType()) {
-                                case V1McpBridge.REGISTRY_TYPE_DNS:
-                                    service.setPort(r.getPort());
-                                    return service;
-                                case V1McpBridge.REGISTRY_TYPE_STATIC:
-                                    service.setPort(V1McpBridge.STATIC_PORT);
-                                    return service;
-                                default:
-                                    return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                })
-                .filter(CollectionUtils::isNotEmpty)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+                }).filter(Objects::nonNull).collect(Collectors.toList());
+            }).filter(CollectionUtils::isNotEmpty).flatMap(List::stream).collect(Collectors.toList());
 
             if (CollectionUtils.isNotEmpty(externalServiceList)) {
                 resultList.addAll(externalServiceList);

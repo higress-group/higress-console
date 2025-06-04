@@ -12,11 +12,13 @@
  */
 package com.alibaba.higress.sdk.config;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
-import lombok.Data;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Optional;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+
+import lombok.Data;
 
 /**
  * @author CH3CHO
@@ -34,12 +36,10 @@ public class HigressServiceConfig {
     private final String controllerJwtPolicy;
     private final String controllerAccessToken;
     /**
-     * Regarding the service list interface, does it depend on the controller.
-     * true: ServiceServiceImpl
-     * false: ServiceServiceByApiServerImpl
+     * Regarding the service list interface, does it depend on the controller. true: ServiceServiceImpl false:
+     * ServiceServiceByApiServerImpl
      */
     private final Boolean dependControllerApi;
-
 
     /**
      * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
@@ -65,8 +65,7 @@ public class HigressServiceConfig {
         private String controllerAccessToken;
         private Boolean dependControllerApi;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder withDependControllerApi(Boolean dependControllerApi) {
             this.dependControllerApi = dependControllerApi;
