@@ -86,7 +86,8 @@ const LlmProviderList: React.FC = () => {
           }
           value = [providerConfig.serviceAddress];
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.map((endpoint) => <span key={endpoint}>{endpoint}</span>)
+          .reduce((prev, curr) => [prev, <br key={`${prev.key}_br_${curr.key}`} />, curr]);
       },
     },
     {

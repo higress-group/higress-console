@@ -259,6 +259,10 @@
         "ollamaServerHostRequired": "Please input Ollama service host",
         "ollamaServerPortRequired": "Please input Ollama service port",
         "openaiCustomUrlRequired": "Please input a valid custom OpenAI service base URL",
+        "invalidOpenaiCustomUrl": "Bad URL format: ",
+        "openaiCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom OpenAI service base URLs",
+        "openaiCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom OpenAI service base URLs",
+        "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
         "awsRegionRequired": "Please input AWS Region",
         "awsAccessKeyRequired": "Please input AWS Access Key ID",
         "awsSecretKeyRequired": "Please input AWS Secret Access Key"

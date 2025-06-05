@@ -40,6 +40,28 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
       const localFailoverEnabled = !!tokenFailoverConfig?.enabled;
       setFailoverEnabled(localFailoverEnabled);
+
+      if (type === 'openai') {
+        let openaiServerTypeValue = 'official';
+
+        rawConfigs.openaiCustomUrls = [];
+        if (rawConfigs && rawConfigs.openaiCustomUrl) {
+          openaiServerTypeValue = 'custom';
+          rawConfigs.openaiCustomUrls.push(rawConfigs.openaiCustomUrl);
+          if (Array.isArray(rawConfigs.openaiExtraCustomUrls)) {
+            rawConfigs.openaiCustomUrls.push(...rawConfigs.openaiExtraCustomUrls);
+          }
+        }
+        if (rawConfigs.openaiCustomUrl.length === 0) {
+          rawConfigs.openaiCustomUrls.push('');
+        }
+
+        form.setFieldValue('openaiServerType', openaiServerTypeValue);
+        onOpenaiServerTypeChanged(openaiServerTypeValue)
+      }
+
+      onProviderTypeChanged(type);
+
       form.setFieldsValue({
         name,
         type,
@@ -53,14 +75,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckModel,
         rawConfigs,
       });
-
-      if (type === 'openai') {
-        const openaiServerTypeValue = rawConfigs && rawConfigs.openaiCustomUrl ? 'custom' : 'official';
-        form.setFieldValue('openaiServerType', openaiServerTypeValue);
-        onOpenaiServerTypeChanged(openaiServerTypeValue)
-      }
-
-      onProviderTypeChanged(type);
     }
 
     return () => {
@@ -76,6 +90,16 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
+
+      if (values.type === 'openai') {
+        const rawConfigs = { ...values.rawConfigs };
+        if (rawConfigs && Array.isArray(rawConfigs.openaiCustomUrls)) {
+          rawConfigs.openaiExtraCustomUrls = [...rawConfigs.openaiCustomUrls];
+          rawConfigs.openaiCustomUrl = rawConfigs.openaiExtraCustomUrls.shift();
+          delete rawConfigs.openaiCustomUrls;
+        }
+        values.rawConfigs = rawConfigs;
+      }
 
       const result = {
         type: values.type,
@@ -287,24 +311,96 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             </Form.Item>
             {
               openaiServerType === "custom" && (
-                <Form.Item
-                  label={t('llmProvider.providerForm.label.openaiCustomUrl')}
-                  required
-                  name={["rawConfigs", "openaiCustomUrl"]}
+                <Form.List
+                  name={["rawConfigs", "openaiCustomUrls"]}
+                  initialValue={[null]}
                   rules={[
                     {
-                      required: true,
-                      pattern: /http(s)?:\/\/.+/,
-                      message: t('llmProvider.providerForm.rules.openaiCustomUrlRequired'),
+                      validator(rule, value) {
+                        let protocol = '';
+                        let contextPath = '';
+                        for (const item of value) {
+                          if (!item) {
+                            continue;
+                          }
+                          const url = URL.parse(item);
+                          if (!url) {
+                            return Promise.reject(t('llmProvider.providerForm.rules.invalidOpenaiCustomUrl') + item)
+                          }
+                          if (value.length > 1
+                            && !/^(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.test(url.hostname)) {
+                            return Promise.reject(t('llmProvider.providerForm.rules.openaiCustomUrlMultipleValuesWithIpOnly'))
+                          }
+                          if (protocol && url.protocol !== protocol) {
+                            return Promise.reject(t('llmProvider.providerForm.rules.openaiCustomUrlInconsistentProtocols'))
+                          }
+                          protocol = url.protocol;
+                          if (contextPath && url.pathname !== contextPath) {
+                            return Promise.reject(t('llmProvider.providerForm.rules.openaiCustomUrlInconsistentContextPaths'))
+                          }
+                          contextPath = url.pathname;
+                        }
+                        return Promise.resolve();
+                      },
                     },
                   ]}
                 >
-                  <Input
-                    allowClear
-                    type="url"
-                    placeholder={t('llmProvider.providerForm.placeholder.openaiCustomUrlPlaceholder')}
-                  />
-                </Form.Item>
+                  {(fields, { add, remove }, { errors }) => (
+                    <>
+                      {!fields.length ?
+                        <div
+                          style={{ marginBottom: '8px' }}
+                        >
+                          {t('llmProvider.providerForm.label.openaiCustomUrl')}
+                        </div> : null
+                      }
+
+                      {fields.map((field, index) => (
+                        <Form.Item
+                          label={index === 0 ? t('llmProvider.providerForm.label.openaiCustomUrl') : ''}
+                          required
+                          key={index}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          <Form.Item
+                            {...field}
+                            noStyle
+                            rules={[
+                              {
+                                required: true,
+                                pattern: /http(s)?:\/\/.+/,
+                                message: t('llmProvider.providerForm.rules.openaiCustomUrlRequired') || '',
+                              },
+                            ]}
+                          >
+                            <Input
+                              allowClear
+                              type="url"
+                              style={{ width: '94%' }}
+                              placeholder={t('llmProvider.providerForm.placeholder.openaiCustomUrlPlaceholder') || ''}
+                            />
+                          </Form.Item>
+                          <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                            <Button
+                              type="dashed"
+                              disabled={!(fields.length > 1)}
+                              onClick={() => remove(field.name)}
+                              icon={<MinusCircleOutlined />}
+                            />
+                          </div>
+                        </Form.Item>
+                      ))}
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          icon={<PlusOutlined />}
+                        />
+                        <Form.ErrorList errors={errors} />
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
               )
             }
           </>

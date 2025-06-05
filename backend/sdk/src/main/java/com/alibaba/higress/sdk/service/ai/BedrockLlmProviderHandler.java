@@ -12,12 +12,15 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
@@ -57,26 +60,12 @@ public class BedrockLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
-        return V1McpBridge.REGISTRY_TYPE_DNS;
-    }
-
-    @Override
-    protected String getServiceDomain(Map<String, Object> providerConfig) {
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         String region = MapUtils.getString(providerConfig, AWS_REGION_KEY);
         if (StringUtils.isEmpty(region)) {
             throw new ValidationException(AWS_REGION_KEY + " cannot be empty.");
         }
-        return String.format(DOMAIN_FORMAT, region);
-    }
-
-    @Override
-    protected int getServicePort(Map<String, Object> providerConfig) {
-        return 443;
-    }
-
-    @Override
-    protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        return V1McpBridge.PROTOCOL_HTTPS;
+        String domain = String.format(DOMAIN_FORMAT, region);
+        return Collections.singletonList(new LlmProviderEndpoint(V1McpBridge.PROTOCOL_HTTPS, domain, 443, "/"));
     }
 }

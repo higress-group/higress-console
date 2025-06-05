@@ -14,25 +14,32 @@ package com.alibaba.higress.sdk.service.ai;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.sdk.util.ValidateUtil;
 
 public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
 
     private static final String CUSTOM_URL_KEY = "openaiCustomUrl";
+    private static final String EXTRA_CUSTOM_URLS_KEY = "openaiExtraCustomUrls";
 
-    private static final String DEFAULT_REGISTRY_TYPE = V1McpBridge.REGISTRY_TYPE_DNS;
     private static final String DEFAULT_SERVICE_DOMAIN = "api.openai.com";
     private static final int DEFAULT_SERVICE_PORT = 443;
     private static final String DEFAULT_SERVICE_PROTOCOL = V1McpBridge.PROTOCOL_HTTPS;
+    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS = Collections.singletonList(
+        new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN, DEFAULT_SERVICE_PORT, "/v1"));
 
     @Override
     public String getType() {
@@ -44,98 +51,67 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
         if (MapUtils.isEmpty(configurations)) {
             return;
         }
-        URI uri = getCustomUri(configurations);
-        if (uri != null) {
+        List<URI> customUris = getCustomUris(configurations);
+        if (CollectionUtils.isEmpty(customUris)) {
+            return;
+        }
+        for (URI uri : customUris) {
             String scheme = uri.getScheme();
             if (StringUtils.isEmpty(scheme)) {
-                throw new ValidationException("Custom service URL must have a scheme.");
+                throw new ValidationException("Custom service URL must have a scheme: " + uri);
             }
             scheme = scheme.toLowerCase(Locale.ROOT);
             if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
-                throw new ValidationException("Custom service URL must have a valid scheme.");
+                throw new ValidationException("Custom service URL must have a valid scheme: " + uri);
             }
         }
     }
 
     @Override
-    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
-        URI uri = getCustomUri(providerConfig);
-        if (uri == null) {
-            return DEFAULT_REGISTRY_TYPE;
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
+        List<URI> customUris = getCustomUris(providerConfig);
+        if (CollectionUtils.isEmpty(customUris)) {
+            return DEFAULT_ENDPOINTS;
         }
-        if (ValidateUtil.checkIpAddress(uri.getHost())) {
-            return V1McpBridge.REGISTRY_TYPE_STATIC;
-        }
-        return V1McpBridge.REGISTRY_TYPE_DNS;
+        return customUris.stream().map(LlmProviderEndpoint::fromUri).collect(Collectors.toList());
     }
 
-    @Override
-    protected String getServiceDomain(Map<String, Object> providerConfig) {
-        URI uri = getCustomUri(providerConfig);
-        return uri != null ? uri.getHost() : DEFAULT_SERVICE_DOMAIN;
-    }
-
-    @Override
-    protected int getServicePort(Map<String, Object> providerConfig) {
-        URI uri = getCustomUri(providerConfig);
-        if (uri == null){
-            return DEFAULT_SERVICE_PORT;
-        }
-        int port = uri.getPort();
-        if (port != -1){
-            return port;
-        }
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return 80;
-        }
-        scheme = scheme.toLowerCase(Locale.ROOT);
-        switch (scheme) {
-            case V1McpBridge.PROTOCOL_HTTP:
-                return 80;
-            case V1McpBridge.PROTOCOL_HTTPS:
-                return 443;
-            default:
-                return 80;
-        }
-    }
-
-    @Override
-    protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        URI uri = getCustomUri(providerConfig);
-        if (uri == null){
-            return DEFAULT_SERVICE_PROTOCOL;
-        }
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return V1McpBridge.PROTOCOL_HTTP;
-        }
-        scheme = scheme.toLowerCase(Locale.ROOT);
-        switch (scheme) {
-            case V1McpBridge.PROTOCOL_HTTP:
-            case V1McpBridge.PROTOCOL_HTTPS:
-                return scheme;
-            default:
-                return V1McpBridge.PROTOCOL_HTTP;
-        }
-    }
-
-    private static URI getCustomUri(Map<String, Object> providerConfig) {
+    private List<URI> getCustomUris(Map<String, Object> providerConfig) {
         if (MapUtils.isEmpty(providerConfig)) {
             return null;
         }
-        Object customUrlObject = providerConfig.get(CUSTOM_URL_KEY);
-        if (!(customUrlObject instanceof String)) {
+        Object rawCustomUrlObject = providerConfig.get(CUSTOM_URL_KEY);
+        if (!(rawCustomUrlObject instanceof String)) {
             return null;
         }
-        String customUrl= (String)customUrlObject;
-        if (StringUtils.isEmpty(customUrl)) {
+        String rawCustomUrl = (String)rawCustomUrlObject;
+        if (StringUtils.isEmpty(rawCustomUrl)) {
             throw new ValidationException(CUSTOM_URL_KEY + " cannot be empty.");
         }
-        try {
-            return new URI(customUrl);
-        } catch (URISyntaxException e) {
-            throw new ValidationException(CUSTOM_URL_KEY + " is not a valid URL.", e);
+
+        List<String> customUrls = new ArrayList<>();
+        customUrls.add(rawCustomUrl);
+
+        Object rawExtraCustomUrlsObject = providerConfig.get(EXTRA_CUSTOM_URLS_KEY);
+        if (rawExtraCustomUrlsObject instanceof List<?>
+            && CollectionUtils.isNotEmpty((List<?>)rawExtraCustomUrlsObject)) {
+            for (Object extraUrl : (List<?>)rawExtraCustomUrlsObject) {
+                if (extraUrl instanceof String && StringUtils.isNotEmpty((String)extraUrl)) {
+                    customUrls.add((String)extraUrl);
+                } else {
+                    throw new ValidationException(EXTRA_CUSTOM_URLS_KEY + " must contain non-empty strings.");
+                }
+            }
         }
+
+        List<URI> customUris = new ArrayList<>();
+        for (String customUrl : customUrls) {
+            try {
+                customUris.add(new URI(customUrl));
+            } catch (URISyntaxException e) {
+                throw new ValidationException(CUSTOM_URL_KEY + " contains an invalid URL: " + customUrl, e);
+            }
+        }
+        return customUris;
     }
 }

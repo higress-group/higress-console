@@ -35,8 +35,18 @@ export const aiModelProviders = [
       return !record.rawConfigs || !record.rawConfigs.openaiCustomUrl;
     },
     getProviderEndpoints: (record) => {
-      const customUrl = record.rawConfigs && record.rawConfigs.openaiCustomUrl;
-      return customUrl && [customUrl] || null;
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const customUrl = record.rawConfigs.openaiCustomUrl;
+      if (!customUrl) {
+        return null;
+      }
+      const customUrls = [customUrl];
+      if (Array.isArray(record.rawConfigs.openaiExtraCustomUrls)) {
+        customUrls.push(...record.rawConfigs.openaiExtraCustomUrls)
+      }
+      return customUrls;
     },
   },
   {

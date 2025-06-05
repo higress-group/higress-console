@@ -12,9 +12,11 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 
 class DefaultLlmProviderHandler extends AbstractLlmProviderHandler {
 
@@ -22,12 +24,18 @@ class DefaultLlmProviderHandler extends AbstractLlmProviderHandler {
     private final String domain;
     private final int port;
     private final String protocol;
+    private final String contextPath;
 
     DefaultLlmProviderHandler(String type, String domain, int port, String protocol) {
+        this(type, domain, port, protocol, "/");
+    }
+
+    DefaultLlmProviderHandler(String type, String domain, int port, String protocol, String contextPath) {
         this.type = type;
         this.domain = domain;
         this.port = port;
         this.protocol = protocol;
+        this.contextPath = contextPath;
     }
 
     @Override
@@ -36,22 +44,7 @@ class DefaultLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
-        return V1McpBridge.REGISTRY_TYPE_DNS;
-    }
-
-    @Override
-    protected String getServiceDomain(Map<String, Object> providerConfig) {
-        return domain;
-    }
-
-    @Override
-    protected int getServicePort(Map<String, Object> providerConfig) {
-        return port;
-    }
-
-    @Override
-    protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        return protocol;
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
+        return Collections.singletonList(new LlmProviderEndpoint(protocol, domain, port, contextPath));
     }
 }
