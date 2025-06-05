@@ -54,7 +54,8 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
         }
         serviceSourceService = new ServiceSourceServiceImpl(kubernetesClientService, kubernetesModelConverter);
         tlsCertificateService = new TlsCertificateServiceImpl(kubernetesClientService, kubernetesModelConverter);
-        wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
+        wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
+            config.getWasmPluginServiceConfig());
         wasmPluginInstanceService =
             new WasmPluginInstanceServiceImpl(wasmPluginService, kubernetesClientService, kubernetesModelConverter);
         consumerService = new ConsumerServiceImpl(wasmPluginInstanceService);

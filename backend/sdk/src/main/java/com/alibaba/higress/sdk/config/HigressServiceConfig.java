@@ -12,11 +12,13 @@
  */
 package com.alibaba.higress.sdk.config;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 
 import lombok.Data;
 
@@ -35,6 +37,7 @@ public class HigressServiceConfig {
     private final Integer controllerServicePort;
     private final String controllerJwtPolicy;
     private final String controllerAccessToken;
+    private final WasmPluginServiceConfig wasmPluginServiceConfig;
     /**
      * Regarding the service list interface, does it depend on the controller. true: ServiceServiceImpl false:
      * ServiceServiceByApiServerImpl
@@ -63,9 +66,15 @@ public class HigressServiceConfig {
         private Integer controllerServicePort = HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT;
         private String controllerJwtPolicy = HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT;
         private String controllerAccessToken;
+        private WasmPluginServiceConfig wasmPluginServiceConfig;
         private Boolean dependControllerApi;
 
         private Builder() {}
+
+        public Builder withWasmPluginServiceConfig(WasmPluginServiceConfig wasmPluginServiceConfig) {
+            this.wasmPluginServiceConfig = wasmPluginServiceConfig;
+            return this;
+        }
 
         public Builder withDependControllerApi(Boolean dependControllerApi) {
             this.dependControllerApi = dependControllerApi;
@@ -134,6 +143,7 @@ public class HigressServiceConfig {
                 Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),
                 StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
                 controllerAccessToken,
+                Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
                 Optional.ofNullable(dependControllerApi).orElse(HigressConstants.DEPEND_CONTROLLER_API));
         }
     }
