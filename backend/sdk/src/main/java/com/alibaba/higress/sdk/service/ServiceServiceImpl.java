@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -120,7 +121,7 @@ class ServiceServiceImpl implements ServiceService {
         Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
         shards.keySet().forEach(s -> {
             List<IstioEndpoint> istioEndpoints = shards.get(s);
-            endpoints.addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().toList());
+            endpoints.addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().collect(Collectors.toList()));
         });
         return endpoints;
     }

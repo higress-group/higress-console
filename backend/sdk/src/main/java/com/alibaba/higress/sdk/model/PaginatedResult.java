@@ -69,7 +69,6 @@ public class PaginatedResult<T> implements Serializable {
         } else {
             result.data = data.stream().map(converter).collect(Collectors.toList());
         }
-
         return result;
     }
 }

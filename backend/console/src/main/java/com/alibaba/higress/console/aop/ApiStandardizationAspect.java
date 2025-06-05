@@ -12,25 +12,6 @@
  */
 package com.alibaba.higress.console.aop;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-
-import javax.annotation.Resource;
-
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.MDC;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.HealthzController;
 import com.alibaba.higress.console.controller.LandingController;
@@ -45,9 +26,25 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
-
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.MDC;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
 
 /**
  * @author CH3CHO
@@ -86,8 +83,8 @@ public class ApiStandardizationAspect {
                 SessionUserHelper.setCurrentUser(user);
             }
             Object result = point.proceed();
-            if (requestAttributes != null && requestAttributes.getResponse() != null
-                && HttpMethod.DELETE.name().equals(requestAttributes.getRequest().getMethod())) {
+            if (requestAttributes != null && requestAttributes.getResponse() != null && HttpMethod.DELETE.name()
+                .equals(requestAttributes.getRequest().getMethod())) {
                 requestAttributes.getResponse().setStatus(HttpStatus.NO_CONTENT.value());
             }
             return result;
@@ -98,8 +95,7 @@ public class ApiStandardizationAspect {
             String msg = t.getClass().getSimpleName() + " occurs when calling " + objectName + "." + methodName;
             if (t instanceof AuthException) {
                 // No logging for AuthException
-            } else if (t instanceof ValidationException || t instanceof NotFoundException
-                || t instanceof ResourceConflictException) {
+            } else if (t instanceof ValidationException || t instanceof NotFoundException || t instanceof ResourceConflictException) {
                 logException(log::warn, msg, t);
             } else {
                 logException(log::error, msg, t);
@@ -116,14 +112,16 @@ public class ApiStandardizationAspect {
     private static void logException(BiConsumer<String, Object> logFunction, String msg, Throwable t) {
         logFunction.accept(msg, t);
         Set<Throwable> loggedThrowables = new HashSet<>();
-        for (Throwable t1 = t; t1!= null; t1 = t1.getCause()) {
+        for (Throwable t1 = t; t1 != null; t1 = t1.getCause()) {
             if (!loggedThrowables.add(t1)) {
                 break;
             }
-            if (!(t1 instanceof ApiException apiException)){
+            if (!(t1 instanceof ApiException)) {
                 continue;
             }
-            String message = String.format("Related K8s API response: Code=%s Body=%s", apiException.getCode(), apiException.getResponseBody());
+            ApiException apiException = (ApiException)t1;
+            String message = String.format("Related K8s API response: Code=%s Body=%s", apiException.getCode(),
+                apiException.getResponseBody());
             logFunction.accept(message, null);
         }
     }

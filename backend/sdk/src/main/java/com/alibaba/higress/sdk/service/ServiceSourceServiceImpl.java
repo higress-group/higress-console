@@ -158,7 +158,7 @@ class ServiceSourceServiceImpl implements ServiceSourceService {
         }
         Optional<V1RegistryConfig> op =
             mcpBridge.getSpec().getRegistries().stream().filter(r -> name.equals(r.getName())).findFirst();
-        if (op.isEmpty()) {
+        if (!op.isPresent()) {
             return null;
         }
         ServiceSource source = convert(op.get());
