@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotBlank;
@@ -246,7 +247,7 @@ public class WasmPluginInstancesController {
     private ResponseEntity<PaginatedResponse<WasmPluginInstance>> listInstances(WasmPluginInstanceScope scope,
         String target) {
         List<WasmPluginInstance> instances = wasmPluginInstanceService.list(scope, target).
-                stream().filter(instance -> !instance.isInternal()).toList();
+                stream().filter(instance -> !instance.isInternal()).collect(Collectors.toList());
         return ControllerUtil.buildResponseEntity(PaginatedResult.createFromFullList(instances, null));
     }
 

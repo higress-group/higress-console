@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.higress.sdk.util.MapUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,19 +62,20 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
 
         Object tokensObj = configurations.get(PROVIDER_API_TOKENS);
         List<String> tokens = null;
-        if (tokensObj instanceof List<?> tokensList) {
+        if (tokensObj instanceof List<?>) {
+            List<?> tokensList = (List<?>) tokensObj;
             tokens = new ArrayList<>(tokensList.size());
             for (Object tokenObj : tokensList) {
-                if (tokenObj instanceof String token) {
-                    tokens.add(token);
+                if (tokenObj instanceof String) {
+                    tokens.add((String) tokenObj);
                 }
             }
         }
 
         TokenFailoverConfig failoverConfig = null;
         Object failoverObj = configurations.get(FAILOVER);
-        if (failoverObj instanceof Map<?, ?> failoverMap) {
-            failoverConfig = buildTokenFailoverConfig((Map<String, Object>)failoverMap);
+        if (failoverObj instanceof Map<?, ?>) {
+            failoverConfig = buildTokenFailoverConfig((Map<String, Object>)failoverObj);
         }
 
         LlmProviderProtocol protocol =
@@ -117,7 +119,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
             Map<String, Object> failoverMap = new HashMap<>();
             saveTokenFailoverConfig(failoverConfig, failoverMap);
             configurations.put(FAILOVER, failoverMap);
-            Map<String, Object> retryOnFailureMap = Map.of(RETRY_ENABLED, failoverConfig.getEnabled());
+            Map<String, Object> retryOnFailureMap = MapUtil.of(RETRY_ENABLED, failoverConfig.getEnabled());
             configurations.put(RETRY_ON_FAILURE, retryOnFailureMap);
         }
     }
@@ -172,8 +174,9 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         if (serverPortObj instanceof Integer) {
             return (Integer)serverPortObj;
         }
-        if (serverPortObj instanceof String serverPortStr) {
+        if (serverPortObj instanceof String) {
             try {
+                String serverPortStr= (String) serverPortObj;
                 return Integer.parseInt(serverPortStr);
             } catch (NumberFormatException e) {
                 throw new ValidationException(key + " must be a number.");

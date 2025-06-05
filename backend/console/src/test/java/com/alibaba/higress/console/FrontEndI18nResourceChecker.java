@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Sets;
 
 @Disabled
 public class FrontEndI18nResourceChecker {
@@ -42,9 +43,9 @@ public class FrontEndI18nResourceChecker {
     private static final String I18N_RESOURCE_FILE_NAME = "translation.json";
     private static final List<String> TS_FILE_EXTENSIONS = Arrays.asList(".ts", ".tsx");
 
-    private static final Set<String> IMPLICITLY_USED_RESOURCE_KEYS = Set.of("index.title", "init.title", "login.title",
-        "aiRoute.edit", "tlsCertificate.editTlsCertificate", "serviceSource.editServiceSource", "llmProvider.edit",
-        "plugins.editPlugin", "route.editRoute", "domain.editDomain", "consumer.edit");
+    private static final Set<String> IMPLICITLY_USED_RESOURCE_KEYS = Sets.newHashSet("index.title", "init.title",
+        "login" + ".title", "aiRoute.edit", "tlsCertificate.editTlsCertificate", "serviceSource.editServiceSource",
+        "llmProvider.edit", "plugins.editPlugin", "route.editRoute", "domain.editDomain", "consumer.edit");
     private static final List<String> IMPLICITLY_USED_RESOURCE_KEY_PREFIXES =
         Arrays.asList("menu.", "request.error.", "serviceSource.types.", "llmProvider.providerTypes.",
             "route.factorGroup.required.", "route.keyValueGroup.required.", "plugins.configForm.", "plugins.subTitle.");
@@ -69,7 +70,7 @@ public class FrontEndI18nResourceChecker {
             }).forEach(p -> {
                 String content;
                 try {
-                    content = Files.readString(p, StandardCharsets.UTF_8);
+                    content = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     System.out.println("Failed to read file: " + p);
                     return;
@@ -167,7 +168,7 @@ public class FrontEndI18nResourceChecker {
 
     private static Map<String, String> loadI18nResources(String language) throws IOException {
         Path resourceFilePath = Paths.get(FRONTEND_PROJECT_PATH, I18N_RESOURCE_PATH, language, I18N_RESOURCE_FILE_NAME);
-        String json = Files.readString(resourceFilePath, StandardCharsets.UTF_8);
+        String json = new String(Files.readAllBytes(resourceFilePath), StandardCharsets.UTF_8);
         JSONObject obj = JSON.parseObject(json);
         Map<String, String> resources = new LinkedHashMap<>();
         addI18nResources(resources, obj, "");

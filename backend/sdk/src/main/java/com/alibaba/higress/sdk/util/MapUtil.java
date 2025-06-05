@@ -25,4 +25,11 @@ public class MapUtil {
         map.put(k1, v1);
         return map;
     }
+
+    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1, @NotNull K k2, @Nullable V v2) {
+        Map<K, V> map = new HashMap<>();
+        map.put(k1, v1);
+        map.put(k2, v2);
+        return map;
+    }
 }
