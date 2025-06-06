@@ -70,6 +70,10 @@ spec:
               value: "{{ .Values.swagger.enabled }}"
             - name: SPRINGDOC_SWAGGER_UI_ENABLED
               value: "{{ .Values.swagger.enabled }}"
+            {{- if .Values.global.enablePluginServer }}
+            - name: HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN
+              value: "{{ .Values.pluginServer.UrlPattern }}"
+            {{- end }}
             {{- if .Values.podEnvs }}
             {{- range $key, $val := .Values.podEnvs }}
             - name: {{ $key }}
