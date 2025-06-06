@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Drawer, Form, Input, Button, Space, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { SERVICE_TYPE, SERVICE_TYPE_MAP } from '@/interfaces/mcp';
+import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES } from '../constant';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -33,6 +33,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
     }
     onSubmit(values);
   };
+
+  const serviceTypeMap = getServiceTypeMap(t('mcp.form.directRouteText'));
 
   return (
     <Drawer
@@ -87,8 +89,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
           rules={[{ required: true, message: t('mcp.form.typeRequired') }]}
         >
           <Select
-            options={Object.entries(SERVICE_TYPE).map(([k, v]) => ({
-              label: t(`mcp.form.${SERVICE_TYPE_MAP[v] || v}`),
+            options={SERVICE_TYPES.map((v) => ({
+              label: t(`${serviceTypeMap[v]}`),
               value: v,
             }))}
             onChange={(v) => setServiceType(v)}
@@ -148,7 +150,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
           </>
         )}
 
-        {serviceType === SERVICE_TYPE.REDIRECT_ROUTE && (
+        {serviceType === SERVICE_TYPE.DIRECT_ROUTE && (
           <Form.Item
             label={t('mcp.form.upstreamPathPrefix')}
             name="upstreamPathPrefix"

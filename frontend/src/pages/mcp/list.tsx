@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Table, Space, Popconfirm, message, Form, Input, Row, Col, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { McpServer, SERVICE_TYPE, SERVICE_TYPE_MAP } from '@/interfaces/mcp';
+import { Button, Table, Space, Popconfirm, message, Form, Input, Row, Col, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { McpServer } from '@/interfaces/mcp';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useTranslation } from 'react-i18next';
 import { createOrUpdateMcpServer, listMcpServers } from '@/services/mcp';
 import McpFormDrawer from './components/McpFormDrawer';
 import { history } from 'ice';
+import { getServiceTypeMap, SERVICE_TYPES } from './constant';
 
 
 const MCPListPage: React.FC = () => {
@@ -16,6 +17,8 @@ const MCPListPage: React.FC = () => {
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [servers, setServers] = useState<McpServer[]>([]);
+
+  const serviceTypeMap = getServiceTypeMap(t('mcp.form.directRouteText'));
 
   const handleDelete = async (id: string) => {
     try {
@@ -63,7 +66,7 @@ const MCPListPage: React.FC = () => {
       title: t('mcp.columns.type'),
       dataIndex: 'type',
       key: 'type',
-      render: (type: string) => <span>{SERVICE_TYPE_MAP[type]}</span>,
+      render: (type: string) => <span>{serviceTypeMap[type]}</span>,
     },
     {
       title: t('mcp.columns.action'),
@@ -133,8 +136,8 @@ const MCPListPage: React.FC = () => {
               <Select
                 allowClear
                 placeholder={t('mcp.search.type') as string}
-                options={['OPEN_API', 'DATABASE', 'REDIRECT_ROUTE'].map((v) => ({
-                  label: t(`mcp.form.${v}`),
+                options={SERVICE_TYPES.map((v) => ({
+                  label: t(`${serviceTypeMap[v]}`),
                   value: v,
                 }))}
               />

@@ -4,10 +4,6 @@ import React from 'react';
 export default {
   path: '/mcp',
   children: [
-    // {
-    //   index: true,
-    //   element: <Navigate to="list" replace />,
-    // },
     {
       path: 'list',
       element: React.lazy(() => import('./list')),

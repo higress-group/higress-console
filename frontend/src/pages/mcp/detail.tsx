@@ -5,11 +5,11 @@ import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, T
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getMcpServer, createOrUpdateMcpServer } from '@/services/mcp';
-import { DOMAIN_PROTOCOL_MAP, SERVICE_TYPE, SERVICE_TYPE_MAP } from '@/interfaces/mcp';
 import { getGatewayDomains } from '@/services/domain';
 import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
 import McpFormDrawer from './components/McpFormDrawer';
+import { getServiceTypeMap, SERVICE_TYPE } from './constant';
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -113,6 +113,8 @@ const MCPDetailPage: React.FC = () => {
     }
   };
 
+  const serviceTypeMap = getServiceTypeMap(t('mcp.form.directRouteText'));
+
   const handleEditSubmit = async (values: any) => {
     try {
       await createOrUpdateMcpServer({
@@ -165,7 +167,7 @@ const MCPDetailPage: React.FC = () => {
                 ))}
               </Descriptions.Item>
               <Descriptions.Item label={t('mcp.form.type')}>
-                {t(`mcp.form.${SERVICE_TYPE_MAP[mcpData?.type] || mcpData?.type}`)}
+                {t(`${serviceTypeMap[mcpData?.type]}`)}
               </Descriptions.Item>
               <Descriptions.Item label={t('mcp.form.upstreamService')}>
                 {mcpData?.services?.map((service: any) => (

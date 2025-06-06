@@ -1,0 +1,27 @@
+server:
+  name: rest-amap-server
+  config:
+    apiKey: your-api-key-here
+tools:
+  - name: maps-geo
+    description: 将详细的结构化地址转换为经纬度坐标。支持对地标性名胜景区、建筑物名称解析为经纬度坐标
+    args:
+      - name: address
+        description: 待解析的结构化地址信息
+        type: string
+        required: true
+      - name: city
+        description: 指定查询的城市
+        type: string
+        required: false
+      - name: output
+        description: 输出格式
+        type: string
+        enum:
+          - json
+          - xml
+        default: json
+    requestTemplate:
+      url: https://restapi.amap.com/v3/geocode/geo
+      method: GET
+      argsToUrlParam: true

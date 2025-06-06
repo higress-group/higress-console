@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Drawer, Form, Input, Button, Space, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from '@monaco-editor/react';
-import { SERVICE_TYPE } from '@/interfaces/mcp';
 
 interface EditToolDrawerProps {
   visible: boolean;
