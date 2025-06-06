@@ -1,105 +1,46 @@
-import { request } from './index';
+import request from '@/services/request';
 import {
-  IMCPConfig,
-  IMCPListResponse,
-  IMCPRequestParams
-} from '../interfaces/mcp';
-import { message } from 'antd';
+  McpServer,
+  McpServerPageQuery,
+  McpServerConsumers,
+  McpServerConsumerDetail,
+  McpServerConsumersPageQuery,
+  PaginatedResult,
+} from '@/interfaces/mcp';
 
-const BASE_URL = '/api/v1/mcp';
+const BASE_URL = '/v1/mcpServer';
 
-/**
- * Get MCP configurations
- */
-export const getMCPConfigs = async (params: IMCPRequestParams) => {
-  try {
-    const response = await request.get<IMCPListResponse>(BASE_URL, { params });
-    return response;
-  } catch (error) {
-    message.error('Failed to fetch MCP configurations');
-    throw error;
-  }
+export const listMcpServers = (query: McpServerPageQuery): Promise<McpServer[]> => {
+  return request.get<any, McpServer[]>(BASE_URL, { params: query });
 };
 
-/**
- * Get a single MCP configuration
- */
-export const getMCPConfig = async (id: string) => {
-  try {
-    const response = await request.get<IMCPConfig>(`${BASE_URL}/${id}`);
-    return response;
-  } catch (error) {
-    message.error(`Failed to fetch MCP configuration ${id}`);
-    throw error;
-  }
+export const getMcpServer = (name: string): Promise<McpServer> => {
+  return request.get<any, McpServer>(`${BASE_URL}/${name}`);
 };
 
-/**
- * Create a new MCP configuration
- */
-export const createMCPConfig = async (data: IMCPConfig) => {
-  try {
-    const response = await request.post<IMCPConfig>(BASE_URL, data);
-    message.success('Configuration created successfully');
-    return response;
-  } catch (error) {
-    message.error('Failed to create MCP configuration');
-    throw error;
-  }
+export const createOrUpdateMcpServer = (payload: McpServer): Promise<McpServer> => {
+  return payload.name ?
+    request.put<any, McpServer>(`${BASE_URL}/${payload.name}`, payload) :
+    request.post<any, McpServer>(BASE_URL, payload);
 };
 
-/**
- * Update an existing MCP configuration
- */
-export const updateMCPConfig = async (id: string, data: IMCPConfig) => {
-  try {
-    const response = await request.put<IMCPConfig>(`${BASE_URL}/${id}`, data);
-    message.success('Configuration updated successfully');
-    return response;
-  } catch (error) {
-    message.error(`Failed to update MCP configuration ${id}`);
-    throw error;
-  }
+export const deleteMcpServer = (name: string): Promise<any> => {
+  return request.delete<any, any>(`${BASE_URL}/${name}`);
 };
 
-/**
- * Delete an MCP configuration
- */
-export const deleteMCPConfig = async (id: string) => {
-  try {
-    const response = await request.delete(`${BASE_URL}/${id}`);
-    message.success('Configuration deleted successfully');
-    return response;
-  } catch (error) {
-    message.error(`Failed to delete MCP configuration ${id}`);
-    throw error;
-  }
+export const addMcpConsumers = (payload: McpServerConsumers): Promise<any> => {
+  return request.post<any, any>(`${BASE_URL}/consumers`, payload);
 };
 
-/**
- * Enable an MCP configuration
- */
-export const enableMCPConfig = async (id: string) => {
-  try {
-    const response = await request.post(`${BASE_URL}/${id}/enable`);
-    message.success('Configuration enabled successfully');
-    return response;
-  } catch (error) {
-    message.error(`Failed to enable MCP configuration ${id}`);
-    throw error;
-  }
+export const removeMcpConsumers = (payload: McpServerConsumers): Promise<any> => {
+  return request.delete<any, any>(`${BASE_URL}/consumers`, { data: payload });
 };
 
-/**
- * Disable an MCP configuration
- */
-export const disableMCPConfig = async (id: string) => {
-  try {
-    const response = await request.post(`${BASE_URL}/${id}/disable`);
-    message.success('Configuration disabled successfully');
-    return response;
-  } catch (error) {
-    message.error(`Failed to disable MCP configuration ${id}`);
-    throw error;
-  }
+export const listMcpConsumers = (
+  query: McpServerConsumersPageQuery,
+): Promise<PaginatedResult<McpServerConsumerDetail>> => {
+  return request.get<any, PaginatedResult<McpServerConsumerDetail>>(`${BASE_URL}/consumers`, {
+    params: query,
+  });
 };
+

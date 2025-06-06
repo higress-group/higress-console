@@ -1,0 +1,376 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'ice';
+import { PageContainer } from '@ant-design/pro-layout';
+import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, Tooltip, Table, Empty } from 'antd';
+import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import { getMcpServer, createOrUpdateMcpServer } from '@/services/mcp';
+import { DOMAIN_PROTOCOL_MAP, SERVICE_TYPE, SERVICE_TYPE_MAP } from '@/interfaces/mcp';
+import { getGatewayDomains } from '@/services/domain';
+import EditToolDrawer from './components/EditToolDrawer';
+import ConsumerTable from './components/ConsumerTable';
+import McpFormDrawer from './components/McpFormDrawer';
+
+const MCPDetailPage: React.FC = () => {
+  const { t } = useTranslation();
+  const { name } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('config');
+  const [mcpData, setMcpData] = useState<any>(null);
+  const [apiGatewayUrl, setApiGatewayUrl] = useState('');
+  const [authEnabled, setAuthEnabled] = useState(false);
+  const [tools, setTools] = useState<any[]>([]);
+  const [editToolVisible, setEditToolVisible] = useState(false);
+  const [editDrawerVisible, setEditDrawerVisible] = useState(false);
+
+  const fetchMcpData = async () => {
+    try {
+      const res = await getMcpServer(name);
+      if (res) {
+        setMcpData(res);
+        setAuthEnabled(res.consumerAuthInfo?.enable || false);
+
+        // 解析工具配置
+        if (res.rawConfigurations) {
+          try {
+            const config = JSON.parse(res.rawConfigurations);
+            setTools(config.tools || []);
+          } catch (error) {
+            // console.error('Failed to parse tools configuration:', error);
+            setTools([]);
+          }
+        } else {
+          setTools([]);
+        }
+
+        // 获取域名信息
+        // if (res.domains?.[0]) {
+        //   const domainDetailInfo = await getGatewayDomains();
+        //   const domain = domainDetailInfo.find((item: any) => item.name === res.domains[0]);
+        //   const domainProtocol = DOMAIN_PROTOCOL_MAP[domain.protocol];
+        //   setApiGatewayUrl(domainProtocol + '://' + domain.domain);
+        // }
+      }
+    } catch (error) {
+      message.error(t('mcp.detail.fetchError'));
+    }
+  };
+
+  useEffect(() => {
+    fetchMcpData();
+  }, [name]);
+
+  const handleAuthChange = async (checked: boolean) => {
+    try {
+      await createOrUpdateMcpServer({
+        ...mcpData,
+        mcpServerName: name,
+        consumerAuthInfo: {
+          enable: checked,
+          type: 'API_KEY',
+          strategyConfigId: mcpData.consumerAuthInfo?.strategyConfigId,
+        },
+      });
+      message.success(t('mcp.detail.authUpdateSuccess'));
+      setAuthEnabled(checked);
+      fetchMcpData();
+    } catch (error) {
+      message.error(t('mcp.detail.authUpdateError'));
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      // TODO: implement deleteMcpServer
+      message.success(t('mcp.detail.deleteSuccess'));
+      navigate('/mcp/list');
+    } catch (error) {
+      message.error(t('mcp.detail.deleteError'));
+    }
+  };
+
+  const jumpToDomainDetail = (domain: string) => {
+    navigate(`/domain/${domain}`);
+  };
+
+  const jumpToServiceDetail = (service: any) => {
+    navigate(`/service/${service.name}`);
+  };
+
+  const handleEditToolSubmit = async (rawConfigurations: string, securitySchemes: any) => {
+    try {
+      await createOrUpdateMcpServer({
+        ...mcpData,
+        mcpServerName: name,
+        rawConfigurations,
+        securitySchemes,
+      });
+      message.success(t('mcp.detail.toolUpdateSuccess'));
+      setEditToolVisible(false);
+      fetchMcpData();
+    } catch (error) {
+      message.error(t('mcp.detail.toolUpdateError'));
+    }
+  };
+
+  const handleEditSubmit = async (values: any) => {
+    try {
+      await createOrUpdateMcpServer({
+        ...values,
+        mcpServerName: name,
+      });
+      message.success(t('mcp.detail.updateSuccess'));
+      setEditDrawerVisible(false);
+      fetchMcpData();
+    } catch (error) {
+      message.error(t('mcp.detail.updateError'));
+    }
+  };
+
+  return (
+    <PageContainer
+      header={{
+        title: name,
+        onBack: () => navigate('/mcp/list'),
+        extra: (
+          <Space>
+            <Button type="primary" icon={<EditOutlined />} onClick={() => setEditDrawerVisible(true)}>
+              {t('mcp.detail.edit')}
+            </Button>
+            <Popconfirm
+              title={t('mcp.detail.deleteConfirm')}
+              onConfirm={handleDelete}
+              okText={t('misc.confirm')}
+              cancelText={t('misc.cancel')}
+            >
+              <Button danger icon={<DeleteOutlined />}>
+                {t('mcp.detail.delete')}
+              </Button>
+            </Popconfirm>
+          </Space>
+        ),
+      }}
+    >
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs.TabPane tab={t('mcp.detail.basicInfo')} key="config">
+          <Card title={t('mcp.detail.basicInfo')} bordered>
+            <Descriptions column={2}>
+              <Descriptions.Item label={t('mcp.form.name')}>{mcpData?.name}</Descriptions.Item>
+              <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('mcp.form.domains')}>
+                {mcpData?.domains?.map((domain: string) => (
+                  <a key={domain} onClick={() => jumpToDomainDetail(domain)}>
+                    {domain}
+                  </a>
+                ))}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('mcp.form.type')}>
+                {t(`mcp.form.${SERVICE_TYPE_MAP[mcpData?.type] || mcpData?.type}`)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('mcp.form.upstreamService')}>
+                {mcpData?.services?.map((service: any) => (
+                  <a key={service.name} onClick={() => jumpToServiceDetail(service)}>
+                    {service.name}
+                  </a>
+                ))}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+
+          <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
+            <Descriptions column={2}>
+              <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
+                {`${apiGatewayUrl}/mcp-servers/${name}/sse`}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
+                {`${apiGatewayUrl}/mcp-servers/${name}`}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab={t('mcp.detail.tools')} key="tools">
+          <Card
+            title={
+              <Space>
+                <span>{t('mcp.detail.tools')}</span>
+                <span>({tools.length})</span>
+              </Space>
+            }
+            bordered
+            extra={
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setEditToolVisible(true)}
+                disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
+              >
+                {t('mcp.detail.addTool')}
+              </Button>
+            }
+          >
+            {tools.length === 0 ? (
+              <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
+                <Button
+                  type="primary"
+                  onClick={() => setEditToolVisible(true)}
+                  disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
+                >
+                  {t('mcp.detail.addTool')}
+                </Button>
+              </Empty>
+            ) : (
+              <Table
+                dataSource={tools}
+                columns={[
+                  {
+                    title: t('mcp.detail.toolName'),
+                    dataIndex: 'name',
+                    key: 'name',
+                  },
+                  {
+                    title: t('mcp.detail.toolDescription'),
+                    dataIndex: 'description',
+                    key: 'description',
+                  },
+                  {
+                    title: t('mcp.detail.toolParams'),
+                    dataIndex: 'args',
+                    key: 'args',
+                    render: (args: any[]) => (
+                      <>
+                        {args?.length ? (
+                          args.map((arg) => (
+                            <div key={arg.name}>
+                              <b>{arg.name}</b>: {arg.description}
+                            </div>
+                          ))
+                        ) : (
+                          <span>{t('mcp.detail.noParams')}</span>
+                        )}
+                      </>
+                    ),
+                  },
+                ]}
+                pagination={false}
+              />
+            )}
+          </Card>
+
+          <Card title={t('mcp.detail.connectMcp')} bordered style={{ marginTop: 16 }}>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step1')}</div>
+              <Space>
+                <span>{apiGatewayUrl}</span>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    navigator.clipboard.writeText(apiGatewayUrl);
+                    message.success(t('mcp.detail.copySuccess'));
+                  }}
+                >
+                  {t('mcp.detail.copy')}
+                </Button>
+              </Space>
+              <Tabs defaultActiveKey="sse" style={{ marginTop: 16 }}>
+                <Tabs.TabPane tab="Streamable HTTP" key="http">
+                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+                    {`{
+  "mcpServers": {
+    "${name}": {
+      "url": "${apiGatewayUrl}/mcp-servers/${name}"
+    }
+  }
+}`}
+                  </pre>
+                </Tabs.TabPane>
+                <Tabs.TabPane tab="SSE" key="sse">
+                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+                    {`{
+  "mcpServers": {
+    "${name}": {
+      "url": "${apiGatewayUrl}/mcp-servers/${name}/sse"
+    }
+  }
+}`}
+                  </pre>
+                </Tabs.TabPane>
+              </Tabs>
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
+              <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
+                <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
+                <div>
+                  <div>{t('mcp.detail.gatewayAddress')}</div>
+                  <div style={{ marginTop: 4 }}>
+                    {t('mcp.detail.public')}:
+                    <Space>
+                      <span>{apiGatewayUrl}</span>
+                      <Button
+                        type="link"
+                        onClick={() => {
+                          navigator.clipboard.writeText(apiGatewayUrl);
+                          message.success(t('mcp.detail.copySuccess'));
+                        }}
+                      >
+                        {t('mcp.detail.copy')}
+                      </Button>
+                    </Space>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab={t('mcp.detail.resource')} key="resource" disabled>
+          {/* TODO: Implement resource tab */}
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab={t('mcp.detail.prompt')} key="prompt" disabled>
+          {/* TODO: Implement prompt tab */}
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab={t('mcp.detail.consumerAuth')} key="auth">
+          <Card title={t('mcp.detail.consumerAuth')} bordered>
+            <Space align="center">
+              <span>{t('mcp.detail.authStatus')}</span>
+              <Switch checked={authEnabled} onChange={handleAuthChange} />
+              {authEnabled && (
+                <span>
+                  {t('mcp.detail.authType')}
+                  <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
+                    <QuestionCircleOutlined style={{ marginLeft: 8, color: '#888' }} />
+                  </Tooltip>
+                </span>
+              )}
+            </Space>
+          </Card>
+          <Card title={t('mcp.detail.consumers')} bordered style={{ marginTop: 16 }}>
+            <ConsumerTable />
+          </Card>
+        </Tabs.TabPane>
+      </Tabs>
+
+      <EditToolDrawer
+        visible={editToolVisible}
+        serviceType={mcpData?.type}
+        rawConfigurations={mcpData?.rawConfigurations}
+        onClose={() => setEditToolVisible(false)}
+        onSubmit={handleEditToolSubmit}
+      />
+
+      <McpFormDrawer
+        visible={editDrawerVisible}
+        mode="edit"
+        record={mcpData}
+        onClose={() => setEditDrawerVisible(false)}
+        onSubmit={handleEditSubmit}
+      />
+    </PageContainer>
+  );
+};
+
+export default MCPDetailPage;

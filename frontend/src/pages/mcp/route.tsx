@@ -13,16 +13,8 @@ export default {
       element: React.lazy(() => import('./list')),
     },
     {
-      path: 'add',
-      element: React.lazy(() => import('./edit')),
-    },
-    {
-      path: 'edit/:id',
-      element: React.lazy(() => import('./edit')),
-    },
-    {
-      path: 'status',
-      element: React.lazy(() => import('./status')),
+      path: 'detail/:name',
+      element: React.lazy(() => import('./detail')),
     },
   ],
 };

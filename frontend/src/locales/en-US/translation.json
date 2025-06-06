@@ -683,5 +683,39 @@
     "switchToForm": "Form View",
     "isRequired": "is required",
     "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
+  },
+  "mcp": {
+    "columns": {
+      "name": "Service Name",
+      "description": "Description",
+      "type": "Service Type",
+      "action": "Action"
+    },
+    "search": {
+      "name": "Service Name",
+      "type": "Service Type",
+      "search": "Search",
+      "reset": "Reset"
+    },
+    "form": {
+      "create": "Create MCP Service",
+      "edit": "Edit MCP Service",
+      "name": "Service Name",
+      "nameRequired": "Please input service name",
+      "description": "Description",
+      "descriptionRequired": "Please input description",
+      "domains": "MCP Endpoint",
+      "domainsRequired": "Please select endpoint domain",
+      "type": "Service Type",
+      "typeRequired": "Please select service type",
+      "dbType": "Database Type",
+      "dbTypeRequired": "Please select database type",
+      "dsn": "DSN",
+      "upstreamService": "Backend Service",
+      "consumerAuth": "Consumer Auth",
+      "saveAndPublish": "Save and Publish",
+      "cancel": "Cancel"
+    },
+    "deleteConfirm": "Are you sure to delete this service?"
   }
 }

@@ -682,5 +682,39 @@
     "switchToForm": "表单视图",
     "isRequired": "是必填的",
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
+  },
+  "mcp": {
+    "columns": {
+      "name": "服务名称",
+      "description": "描述",
+      "type": "服务类型",
+      "action": "操作"
+    },
+    "search": {
+      "name": "服务名称",
+      "type": "服务类型",
+      "search": "搜索",
+      "reset": "重置"
+    },
+    "form": {
+      "create": "创建MCP服务",
+      "edit": "编辑MCP服务",
+      "name": "服务名称",
+      "nameRequired": "请输入服务名称",
+      "description": "描述",
+      "descriptionRequired": "请输入描述",
+      "domains": "MCP接入点",
+      "domainsRequired": "请选择接入域名",
+      "type": "服务类型",
+      "typeRequired": "请选择服务类型",
+      "dbType": "数据库类型",
+      "dbTypeRequired": "请选择数据库类型",
+      "dsn": "DSN",
+      "upstreamService": "后端服务",
+      "consumerAuth": "消费者认证",
+      "saveAndPublish": "保存并发布",
+      "cancel": "取消"
+    },
+    "deleteConfirm": "确定删除该服务吗？"
   }
 }
