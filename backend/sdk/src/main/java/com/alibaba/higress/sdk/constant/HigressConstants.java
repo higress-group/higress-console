@@ -21,7 +21,6 @@ public class HigressConstants {
     public static final String CONTROLLER_SERVICE_NAME_DEFAULT = "higress-controller";
     public static final String CONTROLLER_INGRESS_CLASS_NAME_DEFAULT = "higress";
     public static final String NGINX_INGRESS_CLASS_NAME = "nginx";
-    public static final Boolean DEPEND_CONTROLLER_API = Boolean.TRUE;
     public static final String CONTROLLER_SERVICE_HOST_DEFAULT = "localhost";
     public static final int CONTROLLER_SERVICE_PORT_DEFAULT = 15014;
     public static final String CONTROLLER_JWT_POLICY_DEFAULT = KubernetesConstants.JwtPolicy.THIRD_PARTY_JWT;
@@ -33,4 +32,5 @@ public class HigressConstants {
     public static final String INTERNAL_RESOURCE_COMMENT =
         "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
     public static final Set<String> VALID_FALLBACK_RESPONSE_CODES = Sets.newHashSet("4xx", "5xx");
+    public static final Boolean SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT = Boolean.TRUE;
 }

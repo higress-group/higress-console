@@ -39,10 +39,19 @@ public class HigressServiceConfig {
     private final String controllerAccessToken;
     private final WasmPluginServiceConfig wasmPluginServiceConfig;
     /**
-     * Regarding the service list interface, does it depend on the controller. true: ServiceServiceImpl false:
-     * ServiceServiceByApiServerImpl
+     * Regarding the service list interface, does it depend on the controller.
+     * <p>
+     * If true, the service list interface will depend on the controller api.
+     * {@link com.alibaba.higress.sdk.service.ServiceServiceImpl}
+     * </p>
+     * <p>
+     * If false, the service list implementation will interaction with the api server
+     * directly.{@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl} Under the current configuration,
+     * there is no need for the capability of service discovery. The sources related to the registry in the service
+     * sources will be disabled
+     * </p>
      */
-    private final Boolean dependControllerApi;
+    private final Boolean serviceListSupportRegistry;
 
     /**
      * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
@@ -67,7 +76,7 @@ public class HigressServiceConfig {
         private String controllerJwtPolicy = HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT;
         private String controllerAccessToken;
         private WasmPluginServiceConfig wasmPluginServiceConfig;
-        private Boolean dependControllerApi;
+        private Boolean serviceListSupportRegistry;
 
         private Builder() {}
 
@@ -76,8 +85,8 @@ public class HigressServiceConfig {
             return this;
         }
 
-        public Builder withDependControllerApi(Boolean dependControllerApi) {
-            this.dependControllerApi = dependControllerApi;
+        public Builder withServiceListSupportRegistry(Boolean serviceListSupportRegistry) {
+            this.serviceListSupportRegistry = serviceListSupportRegistry;
             return this;
         }
 
@@ -144,7 +153,8 @@ public class HigressServiceConfig {
                 StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
                 controllerAccessToken,
                 Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
-                Optional.ofNullable(dependControllerApi).orElse(HigressConstants.DEPEND_CONTROLLER_API));
+                Optional.ofNullable(serviceListSupportRegistry)
+                    .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT));
         }
     }
 }

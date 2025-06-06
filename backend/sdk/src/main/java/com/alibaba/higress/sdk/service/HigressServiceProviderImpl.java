@@ -47,7 +47,7 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
-        if (BooleanUtils.isTrue(config.getDependControllerApi())) {
+        if (BooleanUtils.isTrue(config.getServiceListSupportRegistry())) {
             serviceService = new ServiceServiceImpl(kubernetesClientService);
         } else {
             serviceService = new ServiceServiceByApiServerImpl(kubernetesClientService, kubernetesModelConverter);
