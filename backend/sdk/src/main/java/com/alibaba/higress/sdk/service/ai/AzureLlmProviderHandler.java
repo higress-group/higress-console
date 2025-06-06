@@ -67,11 +67,15 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         if (scheme == null) {
             return 80;
         }
-        return switch (scheme.toLowerCase(Locale.ROOT)) {
-            case V1McpBridge.PROTOCOL_HTTP -> 80;
-            case V1McpBridge.PROTOCOL_HTTPS -> 443;
-            default -> 80;
-        };
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        switch (scheme) {
+            case V1McpBridge.PROTOCOL_HTTP:
+                return 80;
+            case V1McpBridge.PROTOCOL_HTTPS:
+                return 443;
+            default:
+                return 80;
+        }
     }
 
     @Override
@@ -81,10 +85,14 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         if (scheme == null) {
             return V1McpBridge.PROTOCOL_HTTP;
         }
-        return switch (scheme.toLowerCase(Locale.ROOT)) {
-            case V1McpBridge.PROTOCOL_HTTP, V1McpBridge.PROTOCOL_HTTPS -> scheme;
-            default -> V1McpBridge.PROTOCOL_HTTP;
-        };
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        switch (scheme) {
+            case V1McpBridge.PROTOCOL_HTTP:
+            case V1McpBridge.PROTOCOL_HTTPS:
+                return scheme;
+            default:
+                return V1McpBridge.PROTOCOL_HTTP;
+        }
     }
 
     private static URI getServiceUri(Map<String, Object> providerConfig) {
@@ -92,9 +100,10 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
             throw new ValidationException("Missing Azure specific configurations.");
         }
         Object serviceUrlObj = providerConfig.get(SERVICE_URL_KEY);
-        if (!(serviceUrlObj instanceof String serviceUrl)) {
+        if (!(serviceUrlObj instanceof String)) {
             throw new ValidationException(SERVICE_URL_KEY + " must be a string.");
         }
+        String serviceUrl= (String)serviceUrlObj;
         if (StringUtils.isEmpty(serviceUrl)) {
             throw new ValidationException(SERVICE_URL_KEY + " cannot be empty.");
         }

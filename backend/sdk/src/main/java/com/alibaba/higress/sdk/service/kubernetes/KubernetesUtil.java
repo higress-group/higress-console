@@ -75,7 +75,7 @@ public class KubernetesUtil {
         if (labels == null) {
             labels = new HashMap<>();
             metadata.setLabels(labels);
-        } else if (!(labels instanceof HashMap<String, String>)) {
+        } else if (!(labels instanceof HashMap)) {
             labels = new HashMap<>(labels);
             metadata.setLabels(labels);
         }
@@ -100,7 +100,7 @@ public class KubernetesUtil {
         if (annotations == null) {
             annotations = new HashMap<>();
             metadata.setAnnotations(annotations);
-        } else if (!(annotations instanceof HashMap<String, String>)) {
+        } else if (!(annotations instanceof HashMap)) {
             annotations = new HashMap<>(annotations);
             metadata.setAnnotations(annotations);
         }

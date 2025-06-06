@@ -200,7 +200,7 @@
       "tokens": "凭证"
     },
     "providerTypes": {
-      "openai": "OpenAI",
+      "openai": "OpenAI/OpenAI兼容服务",
       "qwen": "通义千问",
       "moonshot": "月之暗面",
       "ai360": "360智脑",

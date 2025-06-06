@@ -17,6 +17,7 @@ import java.util.Map;
 
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 
+import com.alibaba.higress.sdk.util.MapUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,6 +37,6 @@ public class AllowList {
     }
 
     public AllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
-        this(Map.of(scope, target), consumerNames);
+        this(MapUtil.of(scope, target), consumerNames);
     }
 }

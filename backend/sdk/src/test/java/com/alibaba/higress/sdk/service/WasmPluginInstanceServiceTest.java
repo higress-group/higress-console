@@ -37,12 +37,14 @@ import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 
 public class WasmPluginInstanceServiceTest {
 
@@ -64,7 +66,9 @@ public class WasmPluginInstanceServiceTest {
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(i -> i.getArguments()[0]);
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(i -> i.getArguments()[0]);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
-        wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter);
+
+        wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
+            WasmPluginServiceConfig.buildFromEnv());
         wasmPluginService.initialize();
         service =
             new WasmPluginInstanceServiceImpl(wasmPluginService, kubernetesClientService, kubernetesModelConverter);
@@ -80,14 +84,14 @@ public class WasmPluginInstanceServiceTest {
 
     @Test
     public void queryTest() throws Exception {
-        final Map<String, Object> globalConfig = Map.of("k", "v");
+        final Map<String, Object> globalConfig = MapUtil.of("k", "v");
         final boolean globalEnabled = true;
         final String domain = "www.test.com";
         final boolean domainEnabled = true;
-        final Map<String, Object> domainConfig = Map.of("kd", "vd");
+        final Map<String, Object> domainConfig = MapUtil.of("kd", "vd");
         final String route = "test";
         final boolean routeEnabled = true;
-        final Map<String, Object> routeConfig = Map.of("kr", "vr");
+        final Map<String, Object> routeConfig = MapUtil.of("kr", "vr");
 
         V1alpha1WasmPlugin internalCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr,
@@ -102,7 +106,7 @@ public class WasmPluginInstanceServiceTest {
             WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.DOMAIN, domain))
                 .enabled(domainEnabled).configurations(domainConfig).build());
 
-        List<V1alpha1WasmPlugin> crs = List.of(internalCr, userCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(internalCr, userCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -142,7 +146,7 @@ public class WasmPluginInstanceServiceTest {
     public void addOrUpdateTestFromEmptyAddUserConfig() throws Exception {
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -161,7 +165,7 @@ public class WasmPluginInstanceServiceTest {
     @Test
     public void addOrUpdateTestFromInternalAddUserConfig() throws Exception {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -169,7 +173,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -190,9 +194,9 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
         WasmPluginInstance existedInstance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, existedInstance);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -200,7 +204,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com").enabled(false)
-            .configurations(Map.of("kd", "vd")).internal(false).build();
+            .configurations(MapUtil.of("kd", "vd")).internal(false).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -227,9 +231,9 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
         WasmPluginInstance existedInstance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, existedInstance);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -237,7 +241,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(false)
-            .configurations(Map.of("k2", "v2")).internal(false).build();
+            .configurations(MapUtil.of("k2", "v2")).internal(false).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -257,7 +261,7 @@ public class WasmPluginInstanceServiceTest {
     public void addOrUpdateTestFromEmptyAddInternalConfig() throws Exception {
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(true).build();
+            .configurations(MapUtil.of("k", "v")).internal(true).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -276,7 +280,7 @@ public class WasmPluginInstanceServiceTest {
     @Test
     public void addOrUpdateTestFromInternalAddInternalConfig() throws Exception {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -284,7 +288,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(true).build();
+            .configurations(MapUtil.of("k", "v")).internal(true).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -305,9 +309,9 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
         WasmPluginInstance existedInstance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, existedInstance);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -315,7 +319,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.ROUTE).target("test").enabled(true)
-            .configurations(Map.of("kd", "vd")).internal(true).build();
+            .configurations(MapUtil.of("kd", "vd")).internal(true).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);
@@ -342,9 +346,9 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
         WasmPluginInstance existedInstance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
-            .configurations(Map.of("k", "v")).internal(false).build();
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, existedInstance);
-        List<V1alpha1WasmPlugin> crs = List.of(existedCr);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(existedCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME))).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString())).thenReturn(crs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
@@ -352,7 +356,7 @@ public class WasmPluginInstanceServiceTest {
 
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(false)
-            .configurations(Map.of("k2", "v2")).internal(true).build();
+            .configurations(MapUtil.of("k2", "v2")).internal(true).build();
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
         updatedInstance.setRawConfigurations(null);
         Assertions.assertEquals(instance, updatedInstance);

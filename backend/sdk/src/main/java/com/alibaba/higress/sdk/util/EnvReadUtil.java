@@ -12,24 +12,17 @@
  */
 package com.alibaba.higress.sdk.util;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class MapUtil {
-
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        return map;
-    }
-
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1, @NotNull K k2, @Nullable V v2) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        map.put(k2, v2);
-        return map;
+/**
+ * @author lvshui
+ */
+public class EnvReadUtil {
+    public static String loadCustomConfFromEnv(String propertyConf, String env) {
+        String value = System.getProperty(propertyConf);
+        if (StringUtils.isEmpty(value)) {
+            value = System.getenv(env);
+        }
+        return value;
     }
 }

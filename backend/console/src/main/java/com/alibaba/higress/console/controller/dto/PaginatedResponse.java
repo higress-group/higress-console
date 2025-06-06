@@ -14,6 +14,7 @@ package com.alibaba.higress.console.controller.dto;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.alibaba.higress.sdk.model.PaginatedResult;
 
@@ -53,7 +54,7 @@ public class PaginatedResponse<T> extends Response<List<T>> {
         response.setPageNum(result.getPageNum());
         response.setPageSize(result.getPageSize());
         response.setTotal(result.getTotal());
-        response.setData(result.getData().stream().map(converter).toList());
+        response.setData(result.getData().stream().map(converter).collect(Collectors.toList()));
         return response;
     }
 }

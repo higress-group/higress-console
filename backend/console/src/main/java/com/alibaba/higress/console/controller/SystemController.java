@@ -24,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -135,7 +136,7 @@ public class SystemController {
         return ResponseEntity.ok(Response.success(systemService.getHigressConfig()));
     }
 
-    @PostMapping("/higress-config")
+    @PutMapping("/higress-config")
     @Operation(summary = "Update the content of higress-config ConfigMap")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "higress-config updated successfully."),
         @ApiResponse(responseCode = "400", description = "Config data is not valid"),

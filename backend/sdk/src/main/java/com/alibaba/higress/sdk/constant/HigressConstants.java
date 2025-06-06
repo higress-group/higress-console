@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.constant;
 
+import com.google.common.collect.Sets;
+
 import java.util.Set;
 
 public class HigressConstants {
@@ -28,5 +30,5 @@ public class HigressConstants {
     public static final String FALLBACK_FROM_HEADER = "x-higress-fallback-from";
     public static final String MODEL_ROUTING_HEADER = "x-higress-llm-model";
     public static final String INTERNAL_RESOURCE_COMMENT = "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
-    public static final Set<String> VALID_FALLBACK_RESPONSE_CODES = Set.of("4xx", "5xx");
+    public static final Set<String> VALID_FALLBACK_RESPONSE_CODES = Sets.newHashSet("4xx", "5xx");
 }

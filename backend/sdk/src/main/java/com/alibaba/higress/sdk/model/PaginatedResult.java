@@ -12,15 +12,18 @@
  */
 package com.alibaba.higress.sdk.model;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -39,57 +42,33 @@ public class PaginatedResult<T> implements Serializable {
     private List<T> data;
 
     public static <T> PaginatedResult<T> createFromFullList(List<T> list, CommonPageQuery query) {
-        if (list == null) {
-            list = Collections.emptyList();
-        }
-        PaginatedResult<T> result = new PaginatedResult<>();
-        result.total = list.size();
-        List<T> data = list;
-        if (query != null && query.paginationEnabled()) {
-            int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 1;
-            int pageSize =
-                query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
-            int startIndex = (pageNum - 1) * pageSize;
-            int endIndex = startIndex + pageSize;
-            if (startIndex >= list.size()) {
-                data = Collections.emptyList();
-            } else if (endIndex > list.size()) {
-                data = list.subList(startIndex, list.size());
-            } else {
-                data = list.subList(startIndex, endIndex);
-            }
-            result.pageNum = pageNum;
-            result.pageSize = pageSize;
-        }
-        result.data = data;
-        return result;
+        return createFromFullList(list, query, Function.identity());
     }
 
+    @SuppressWarnings("unchecked")
     public static <T, V> PaginatedResult<V> createFromFullList(List<T> list, CommonPageQuery query,
-        Function<T, V> converter) {
-        if (list == null) {
+                                                               Function<T, V> converter) {
+        if (CollectionUtils.isEmpty(list)) {
             list = Collections.emptyList();
         }
         PaginatedResult<V> result = new PaginatedResult<>();
         result.total = list.size();
         List<T> data = list;
         if (query != null && query.paginationEnabled()) {
-            int pageNum = query.getPageNum() != null ? Math.max(1, query.getPageNum()) : 1;
-            int pageSize =
-                query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
+            int pageNum = Math.max(1, ObjectUtils.defaultIfNull(query.getPageNum(), 1));
+            int pageSize = query.getPageSize() != null && query.getPageSize() > 0 ? query.getPageSize() : DEFAULT_PAGE_SIZE;
+
             int startIndex = (pageNum - 1) * pageSize;
-            int endIndex = startIndex + pageSize;
-            if (startIndex >= list.size()) {
-                data = Collections.emptyList();
-            } else if (endIndex > list.size()) {
-                data = list.subList(startIndex, list.size());
-            } else {
-                data = list.subList(startIndex, endIndex);
-            }
+            int toIndex = Math.min(startIndex + pageSize, result.getTotal());
+            data = data.subList(startIndex, toIndex);
             result.pageNum = pageNum;
             result.pageSize = pageSize;
         }
-        result.data = data.stream().map(converter).toList();
+        if (Function.identity().equals(converter)) {
+            result.data = (List<V>) data;
+        } else {
+            result.data = data.stream().map(converter).collect(Collectors.toList());
+        }
         return result;
     }
 }

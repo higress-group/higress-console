@@ -56,6 +56,9 @@ import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.TlsCertificateService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -75,7 +78,7 @@ public class SystemServiceImpl implements SystemService {
     private static final String UNKNOWN = "unknown";
     private static final String COMMIT_ID;
     private static final String HIGRESS_CONFIG = "higress-config";
-    private static final Set<String> REQUIRED_HIGRESS_CONFIG_KEYS = Set.of("higress", "mesh", "meshNetworks");
+    private static final Set<String> REQUIRED_HIGRESS_CONFIG_KEYS = Sets.newHashSet("higress", "mesh", "meshNetworks");
 
     static {
         String commitId = null;
@@ -161,7 +164,7 @@ public class SystemServiceImpl implements SystemService {
         }
         this.capabilities = capabilities;
 
-        Map<String, Object> configs = Map.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
+        Map<String, Object> configs = MapUtil.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
             UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
         configService.setConfigs(configs);
 
@@ -211,7 +214,7 @@ public class SystemServiceImpl implements SystemService {
 
             TlsCertificate defaultCertificate = new TlsCertificate();
             defaultCertificate.setName(DEFAULT_TLS_CERTIFICATE_NAME);
-            defaultCertificate.setDomains(List.of(DEFAULT_TLS_CERTIFICATE_HOST));
+            defaultCertificate.setDomains(Lists.newArrayList(DEFAULT_TLS_CERTIFICATE_HOST));
             defaultCertificate.setKey(
                 CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
             defaultCertificate
@@ -235,7 +238,8 @@ public class SystemServiceImpl implements SystemService {
             RoutePredicate routePredicate =
                 RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
-            route.setServices(List.of(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
+            route.setServices(
+                Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
             routeService.add(route);
 
@@ -267,7 +271,7 @@ public class SystemServiceImpl implements SystemService {
         } catch (ApiException e) {
             throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
         }
-        cleanUpConfigMao(configMap);
+        cleanUpConfigMap(configMap);
         return kubernetesClientService.saveToYaml(configMap);
     }
 
@@ -298,7 +302,7 @@ public class SystemServiceImpl implements SystemService {
             throw new BusinessException("Error occurs when replacing the " + HIGRESS_CONFIG + " ConfigMap.", e);
         }
 
-        cleanUpConfigMao(updatedConfigMap);
+        cleanUpConfigMap(updatedConfigMap);
         return kubernetesClientService.saveToYaml(updatedConfigMap);
     }
 
@@ -330,7 +334,7 @@ public class SystemServiceImpl implements SystemService {
         }
     }
 
-    private static void cleanUpConfigMao(V1ConfigMap configMap) {
+    private static void cleanUpConfigMap(V1ConfigMap configMap) {
         V1ObjectMeta metadata = Objects.requireNonNull(configMap.getMetadata());
         metadata.setLabels(null);
         metadata.setAnnotations(null);
