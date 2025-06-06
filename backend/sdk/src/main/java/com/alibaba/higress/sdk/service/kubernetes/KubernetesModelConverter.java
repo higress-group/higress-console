@@ -39,8 +39,6 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.security.auth.x500.X500Principal;
 
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -56,6 +54,7 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.TlsCertificate;
 import com.alibaba.higress.sdk.model.WasmPlugin;
@@ -76,6 +75,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -83,6 +83,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpe
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.TypeUtil;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -96,6 +97,9 @@ import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1IngressTLS;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServicePort;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.openapi.models.V1TypedLocalObjectReference;
 import io.kubernetes.client.util.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +118,7 @@ public class KubernetesModelConverter {
     private static final Integer DEFAULT_WEIGHT = 100;
 
     private static final Gson GSON = new Gson();
+    public static final String K8S_SVC_FQDN_SUFFIX = ".svc.cluster.local";
 
     private final KubernetesClientService kubernetesClientService;
 
@@ -667,7 +672,6 @@ public class KubernetesModelConverter {
         }
     }
 
-
     @SuppressWarnings("PMD.SwitchStatementRule")
     private void setTargetByScope(MatchRule rule, WasmPluginInstanceScope scope, String target) {
         switch (scope) {
@@ -700,7 +704,7 @@ public class KubernetesModelConverter {
             if (value instanceof Map) {
                 normalizePluginInstanceConfigurations((Map<String, Object>)value);
             } else if (value instanceof Double) {
-                Double d= (Double) value;
+                Double d = (Double)value;
                 if (d == d.intValue()) {
                     entry.setValue(d.intValue());
                 }
@@ -1425,15 +1429,13 @@ public class KubernetesModelConverter {
             return;
         }
         if (CollectionUtils.isNotEmpty(config.getAdd())) {
-            setFunctionalAnnotation(metadata, addKey,
-                StringUtils.join(config.getAdd().stream().map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()),
-                    Separators.NEW_LINE),
+            setFunctionalAnnotation(metadata, addKey, StringUtils.join(config.getAdd().stream()
+                .map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()), Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getSet())) {
-            setFunctionalAnnotation(metadata, setKey,
-                StringUtils.join(config.getSet().stream().map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()),
-                    Separators.NEW_LINE),
+            setFunctionalAnnotation(metadata, setKey, StringUtils.join(config.getSet().stream()
+                .map(this::getHeaderConfig).filter(Objects::nonNull).collect(Collectors.toList()), Separators.NEW_LINE),
                 enabled);
         }
         if (CollectionUtils.isNotEmpty(config.getRemove())) {
@@ -1599,6 +1601,30 @@ public class KubernetesModelConverter {
             KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
                 valueBuilder.toString());
         }
+    }
+
+    public Service v1Service2Service(V1Service v1Service) {
+        Service result = new Service();
+        String fqdn = StringUtils.join(v1Service.getMetadata().getName(), Separators.DOT,
+            v1Service.getMetadata().getNamespace(), K8S_SVC_FQDN_SUFFIX);
+        result.setName(fqdn);
+        result.setNamespace(v1Service.getMetadata().getNamespace());
+        V1ServiceSpec spec = v1Service.getSpec();
+        if (Objects.isNull(spec)) {
+            throw new BusinessException("Service spec is null.");
+        }
+        List<V1ServicePort> ports = spec.getPorts();
+        if (CollectionUtils.isNotEmpty(ports)) {
+            result.setPort(ports.get(0).getPort());
+        }
+
+        if (StringUtils.isNotBlank(v1Service.getMetadata().getResourceVersion())) {
+            result.setVersion(Integer.valueOf(v1Service.getMetadata().getResourceVersion()));
+        }
+        result.setEndpoints(spec.getClusterIPs());
+        result.setType("Kubernetes");
+
+        return result;
     }
 
     public ServiceSource v1RegistryConfig2ServiceSource(V1RegistryConfig v1RegistryConfig) {

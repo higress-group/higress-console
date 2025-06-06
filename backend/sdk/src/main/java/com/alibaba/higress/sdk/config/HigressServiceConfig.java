@@ -12,13 +12,15 @@
  */
 package com.alibaba.higress.sdk.config;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
-import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Objects;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
+
+import lombok.Data;
 
 /**
  * @author CH3CHO
@@ -36,6 +38,20 @@ public class HigressServiceConfig {
     private final String controllerJwtPolicy;
     private final String controllerAccessToken;
     private final WasmPluginServiceConfig wasmPluginServiceConfig;
+    /**
+     * Regarding the service list interface, does it depend on the controller.
+     * <p>
+     * If true, the service list interface will depend on the controller api.
+     * {@link com.alibaba.higress.sdk.service.ServiceServiceImpl}
+     * </p>
+     * <p>
+     * If false, the service list implementation will interaction with the api server
+     * directly.{@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl} Under the current configuration,
+     * there is no need for the capability of service discovery. The sources related to the registry in the service
+     * sources will be disabled
+     * </p>
+     */
+    private final Boolean serviceListSupportRegistry;
 
     /**
      * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
@@ -60,12 +76,17 @@ public class HigressServiceConfig {
         private String controllerJwtPolicy = HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT;
         private String controllerAccessToken;
         private WasmPluginServiceConfig wasmPluginServiceConfig;
+        private Boolean serviceListSupportRegistry;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder withWasmPluginServiceConfig(WasmPluginServiceConfig wasmPluginServiceConfig) {
             this.wasmPluginServiceConfig = wasmPluginServiceConfig;
+            return this;
+        }
+
+        public Builder withServiceListSupportRegistry(Boolean serviceListSupportRegistry) {
+            this.serviceListSupportRegistry = serviceListSupportRegistry;
             return this;
         }
 
@@ -131,7 +152,9 @@ public class HigressServiceConfig {
                 Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),
                 StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
                 controllerAccessToken,
-                Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig);
+                Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
+                Optional.ofNullable(serviceListSupportRegistry)
+                    .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT));
         }
     }
 }

@@ -34,4 +34,8 @@ public class Service {
     private Integer version;
 
     private List<String> endpoints;
+
+    private String type;
+
+    private String protocol;
 }
