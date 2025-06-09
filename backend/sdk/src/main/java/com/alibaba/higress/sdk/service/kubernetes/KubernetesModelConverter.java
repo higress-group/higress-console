@@ -1622,8 +1622,6 @@ public class KubernetesModelConverter {
             result.setVersion(Integer.valueOf(v1Service.getMetadata().getResourceVersion()));
         }
         result.setEndpoints(spec.getClusterIPs());
-        result.setType("Kubernetes");
-
         return result;
     }
 
