@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'ice';
+import { useParams, useNavigate, useSearchParams } from 'ice';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, Tooltip, Table, Empty } from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
@@ -13,7 +13,8 @@ import { getServiceTypeMap, SERVICE_TYPE } from './constant';
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
-  const { name } = useParams();
+  const [searchParams] = useSearchParams();
+  const name = searchParams.get('name');
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('config');
   const [mcpData, setMcpData] = useState<any>(null);

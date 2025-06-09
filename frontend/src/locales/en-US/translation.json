@@ -716,6 +716,6 @@
       "saveAndPublish": "Save and Publish",
       "cancel": "Cancel"
     },
-    "deleteConfirm": "Are you sure to delete this service?"
+    "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?"
   }
 }

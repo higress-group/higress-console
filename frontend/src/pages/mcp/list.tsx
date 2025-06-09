@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, Space, Popconfirm, message, Form, Input, Row, Col, Select } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Table, Space, Popconfirm, message, Form, Input, Row, Col, Select, Modal } from 'antd';
+import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { McpServer } from '@/interfaces/mcp';
 import { PageContainer } from '@ant-design/pro-layout';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { createOrUpdateMcpServer, listMcpServers } from '@/services/mcp';
 import McpFormDrawer from './components/McpFormDrawer';
 import { history } from 'ice';
 import { getServiceTypeMap, SERVICE_TYPES } from './constant';
-
 
 const MCPListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -17,15 +16,33 @@ const MCPListPage: React.FC = () => {
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [servers, setServers] = useState<McpServer[]>([]);
+  const [openModal, setOpenModal] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState<any>(null);
 
   const serviceTypeMap = getServiceTypeMap(t('mcp.form.directRouteText'));
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (record: any) => {
     try {
+      setConfirmLoading(true);
       // TODO: implement deleteMcpServer
+      setConfirmLoading(false);
+      setOpenModal(false);
+      getMcpServers({});
     } catch (error) {
       message.error('Failed to delete configuration');
+      setConfirmLoading(false);
     }
+  };
+
+  const onShowModal = (record: any) => {
+    setCurrentRecord(record);
+    setOpenModal(true);
+  };
+
+  const handleModalCancel = () => {
+    setOpenModal(false);
+    setCurrentRecord(null);
   };
 
   const openDrawer = (mode: 'create' | 'edit', record?: any) => {
@@ -55,7 +72,7 @@ const MCPListPage: React.FC = () => {
       title: t('mcp.columns.name'),
       dataIndex: 'name',
       key: 'name',
-      render: (text: string) => <a onClick={() => history?.push(`/mcp/detail/${text}`)}>{text}</a>,
+      render: (text: string) => <a onClick={() => history?.push(`/mcp/detail?name=${text}`)}>{text}</a>,
     },
     {
       title: t('mcp.columns.description'),
@@ -74,14 +91,7 @@ const MCPListPage: React.FC = () => {
       render: (text: any, record: any) => (
         <Space size="small">
           <a onClick={() => openDrawer('edit', record)}>{t('misc.edit')}</a>
-          <Popconfirm
-            title={t('mcp.deleteConfirm')}
-            onConfirm={() => handleDelete(record.id)}
-            okText={t('misc.confirm')}
-            cancelText={t('misc.cancel')}
-          >
-            <a>{t('misc.delete')}</a>
-          </Popconfirm>
+          <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>
       ),
     },
@@ -170,6 +180,25 @@ const MCPListPage: React.FC = () => {
         onClose={closeDrawer}
         onSubmit={handleDrawerSubmit}
       />
+      <Modal
+        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
+        open={openModal}
+        onOk={() => handleDelete(currentRecord)}
+        confirmLoading={confirmLoading}
+        onCancel={handleModalCancel}
+        cancelText={t('misc.cancel')}
+        okText={t('misc.confirm')}
+      >
+        <p>
+          <Trans t={t} i18nKey="mcp.deleteConfirm">
+            确定删除
+            <span style={{ color: '#0070cc' }}>
+              {{ currentMcpServerName: (currentRecord && currentRecord.name) || '' }}
+            </span>
+            吗？
+          </Trans>
+        </p>
+      </Modal>
     </PageContainer>
   );
 };

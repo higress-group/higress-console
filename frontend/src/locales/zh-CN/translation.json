@@ -715,6 +715,17 @@
       "saveAndPublish": "保存并发布",
       "cancel": "取消"
     },
-    "deleteConfirm": "确定删除该服务吗？"
+    "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
+    "detail": {
+      "basicInfo": "基本信息",
+      "tools": "工具",
+      "resource": "资源",
+      "prompt": "Prompt",
+      "delete": "删除",
+      "consumerAuth": "消费者认证",
+      "endpointInfo": "接入点信息",
+      "sseEndpoint": "SSE接入点",
+      "httpEndpoint": "Streamable HTTP接入点"
+    }
   }
 }
