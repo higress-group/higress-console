@@ -48,6 +48,8 @@ spec:
               value: {{ .Values.controller.serviceName }}
             - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
               value: {{ include "higress-console.controller.jwtPolicy" . }}
+            - name: CLUSTER_DOMAIN_SUFFIX
+              value: {{ .Values.global.proxy.clusterDomain }}
             {{- if $o11y.enabled }}
             - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
               value: http://{{ include "higress-console-grafana.name" . }}.{{ .Release.Namespace }}:{{ $o11y.grafana.port }}{{ include "higress-console-grafana.path" . }}

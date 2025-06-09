@@ -70,6 +70,9 @@ public class SdkConfig {
     @Value("${" + SystemConfigKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
     private String controllerAccessToken;
 
+    @Value("${" + SystemConfigKey.CLUSTER_DOMAIN_SUFFIX + ":" + HigressConstants.CLUSTER_DOMAIN_SUFFIX_DEFAULT + "}")
+    private String clusterDomainSuffix;
+
     private HigressServiceProvider serviceProvider;
 
     @PostConstruct
@@ -81,6 +84,7 @@ public class SdkConfig {
                 .withControllerServiceName(controllerServiceName).withControllerServiceHost(controllerServiceHost)
                 .withControllerServicePort(controllerServicePort).withControllerJwtPolicy(controllerJwtPolicy)
                 .withControllerAccessToken(controllerAccessToken)
+                .withClusterDomainSuffix(clusterDomainSuffix)
                 .withWasmPluginServiceConfig(WasmPluginServiceConfig.buildFromEnv()).build();
         serviceProvider = HigressServiceProvider.create(config);
     }

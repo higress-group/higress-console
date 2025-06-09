@@ -39,19 +39,25 @@ public class HigressServiceConfig {
     private final String controllerAccessToken;
     private final WasmPluginServiceConfig wasmPluginServiceConfig;
     /**
-     * Regarding the service list interface, does it depend on the controller.
+     * Does the service list interface support registry?
+     *
      * <p>
-     * If true, the service list interface will depend on the controller api.
+     * If null, use the default value. {@link HigressConstants#SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT}
+     * </p>
+     * <p>
+     * If true, the service list interface will support registry and depend on the controller API.
      * {@link com.alibaba.higress.sdk.service.ServiceServiceImpl}
      * </p>
      * <p>
-     * If false, the service list implementation will interaction with the api server
-     * directly.{@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl} Under the current configuration,
+     * If false, the service list implementation will not support registry and will interact with the API server
+     * directly. {@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl} Under the current configuration,
      * there is no need for the capability of service discovery. The sources related to the registry in the service
      * sources will be disabled
      * </p>
+     * 
      */
     private final Boolean serviceListSupportRegistry;
+    private final String clusterDomainSuffix;
 
     /**
      * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
@@ -77,6 +83,7 @@ public class HigressServiceConfig {
         private String controllerAccessToken;
         private WasmPluginServiceConfig wasmPluginServiceConfig;
         private Boolean serviceListSupportRegistry;
+        private String clusterDomainSuffix;
 
         private Builder() {}
 
@@ -87,6 +94,11 @@ public class HigressServiceConfig {
 
         public Builder withServiceListSupportRegistry(Boolean serviceListSupportRegistry) {
             this.serviceListSupportRegistry = serviceListSupportRegistry;
+            return this;
+        }
+
+        public Builder withClusterDomainSuffix(String clusterDomainSuffix) {
+            this.clusterDomainSuffix = clusterDomainSuffix;
             return this;
         }
 
@@ -154,7 +166,8 @@ public class HigressServiceConfig {
                 controllerAccessToken,
                 Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
                 Optional.ofNullable(serviceListSupportRegistry)
-                    .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT));
+                    .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT),
+                StringUtils.firstNonEmpty(clusterDomainSuffix, HigressConstants.CLUSTER_DOMAIN_SUFFIX_DEFAULT));
         }
     }
 }

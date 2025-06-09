@@ -33,4 +33,5 @@ public class HigressConstants {
         "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
     public static final Set<String> VALID_FALLBACK_RESPONSE_CODES = Sets.newHashSet("4xx", "5xx");
     public static final Boolean SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT = Boolean.TRUE;
+    public static final String CLUSTER_DOMAIN_SUFFIX_DEFAULT = "cluster.local";
 }

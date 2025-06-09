@@ -116,4 +116,6 @@ public class SystemConfigKey {
     public static final String AI_PROXY_SOCKET_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "ai-proxy.socket-timeout";
 
     public static final int AI_PROXY_SOCKET_TIMEOUT_DEFAULT = 2 * 60 * 1000;
+
+    public static final String CLUSTER_DOMAIN_SUFFIX = "CLUSTER_DOMAIN_SUFFIX";
 }

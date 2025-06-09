@@ -116,9 +116,9 @@ public class KubernetesModelConverter {
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
     private static final Set<String> SUPPORTED_ANNOTATIONS;
     private static final Integer DEFAULT_WEIGHT = 100;
+    private static final String SERVICE_FQDN_TEMPLATE = "%s.%s.svc.%s";
 
     private static final Gson GSON = new Gson();
-    public static final String K8S_SVC_FQDN_SUFFIX = ".svc.cluster.local";
 
     private final KubernetesClientService kubernetesClientService;
 
@@ -1605,8 +1605,8 @@ public class KubernetesModelConverter {
 
     public Service v1Service2Service(V1Service v1Service) {
         Service result = new Service();
-        String fqdn = StringUtils.join(v1Service.getMetadata().getName(), Separators.DOT,
-            v1Service.getMetadata().getNamespace(), K8S_SVC_FQDN_SUFFIX);
+        String fqdn = String.format(SERVICE_FQDN_TEMPLATE, v1Service.getMetadata().getName(),
+            v1Service.getMetadata().getNamespace(), kubernetesClientService.getClusterDomainSuffix());
         result.setName(fqdn);
         result.setNamespace(v1Service.getMetadata().getNamespace());
         V1ServiceSpec spec = v1Service.getSpec();

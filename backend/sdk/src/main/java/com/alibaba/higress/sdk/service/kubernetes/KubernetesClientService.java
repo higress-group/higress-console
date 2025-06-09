@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +51,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginList;
 import com.alibaba.higress.sdk.service.kubernetes.model.IstioEndpointShard;
 import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzService;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 
 import io.kubernetes.client.common.KubernetesObject;
@@ -127,6 +127,9 @@ public class KubernetesClientService {
     @Getter
     private boolean ingressV1Supported;
 
+    @Getter
+    private final String clusterDomainSuffix;
+
     public KubernetesClientService(HigressServiceConfig config) throws IOException {
         validateConfig(config);
 
@@ -143,6 +146,7 @@ public class KubernetesClientService {
         this.isIngressWatched = buildIsIngressWatchedPredicate(this.controllerWatchedIngressClassName);
         this.defaultIngressClass = StringUtils.firstNonEmpty(this.controllerWatchedIngressClassName,
             HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT);
+        this.clusterDomainSuffix = config.getClusterDomainSuffix();
 
         if (inClusterMode) {
             client = ClientBuilder.cluster().build();
@@ -230,7 +234,8 @@ public class KubernetesClientService {
             }
             String responseString = new String(response.body().bytes());
             if (StringUtils.isNotEmpty(responseString)) {
-                return JSON.parseObject(responseString, new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
+                return JSON.parseObject(responseString,
+                    new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
             }
         }
         return null;
