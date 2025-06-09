@@ -716,6 +716,18 @@
       "saveAndPublish": "Save and Publish",
       "cancel": "Cancel"
     },
-    "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?"
+    "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?",
+    "step1": "Step 1. Generate URL",
+    "step2": "Step 2. DNS Mapping",
+    "sseCommand": "SSE Command",
+    "streamableHttpCommand": "Streamable HTTP Command",
+    "streamableHttp": "Streamable HTTP",
+    "sse": "SSE",
+    "copy": "Copy",
+    "copySuccess": "Copied successfully",
+    "dnsDesc": "You need to configure a CNAME record in your DNS service to point your business domain to the gateway entry address for traffic forwarding.",
+    "gatewayAddress": "Gateway Entry Address:",
+    "public": "Public",
+    "commandDesc": "Please run the following command to install VS Code Mcp Server:"
   }
 }

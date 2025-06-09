@@ -276,27 +276,17 @@ const MCPDetailPage: React.FC = () => {
                 </Button>
               </Space>
               <Tabs defaultActiveKey="sse" style={{ marginTop: 16 }}>
-                <Tabs.TabPane tab="Streamable HTTP" key="http">
-                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-                    {`{
-  "mcpServers": {
-    "${name}": {
-      "url": "${apiGatewayUrl}/mcp-servers/${name}"
-    }
-  }
-}`}
-                  </pre>
+                <Tabs.TabPane tab={t('mcp.detail.streamableHttp')} key="http">
+                  {t('mcp.detail.streamableHttpCommand')}
                 </Tabs.TabPane>
-                <Tabs.TabPane tab="SSE" key="sse">
-                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-                    {`{
-  "mcpServers": {
-    "${name}": {
-      "url": "${apiGatewayUrl}/mcp-servers/${name}/sse"
-    }
-  }
-}`}
-                  </pre>
+                <Tabs.TabPane tab={t('mcp.detail.sse')} key="sse">
+                  {t('mcp.detail.sseCommand')}
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={t('mcp.detail.streamableHttpCommand')} key="httpCmd">
+                  {t('mcp.detail.streamableHttpCommand')}
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={t('mcp.detail.sseCommand')} key="sseCmd">
+                  {t('mcp.detail.sseCommand')}
                 </Tabs.TabPane>
               </Tabs>
             </div>

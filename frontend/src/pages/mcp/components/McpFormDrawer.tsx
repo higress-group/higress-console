@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Drawer, Form, Input, Button, Space, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES } from '../constant';
@@ -15,6 +15,19 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [serviceType, setServiceType] = useState(record?.type || '');
+
+  // 监听 record 变化，重置表单
+  useEffect(() => {
+    if (visible) {
+      if (mode === 'create') {
+        form.resetFields();
+        setServiceType('');
+      } else {
+        form.setFieldsValue(record || {});
+        setServiceType(record?.type || '');
+      }
+    }
+  }, [visible, mode, record, form]);
 
   // DSN自动生成逻辑
   const computeDSN = (values: any) => {
@@ -55,7 +68,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
       <Form
         form={form}
         layout="vertical"
-        initialValues={record || {}}
         onValuesChange={(_, allValues) => setServiceType(allValues.type)}
         onFinish={handleFinish}
       >

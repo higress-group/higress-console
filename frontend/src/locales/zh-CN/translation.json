@@ -725,7 +725,24 @@
       "consumerAuth": "消费者认证",
       "endpointInfo": "接入点信息",
       "sseEndpoint": "SSE接入点",
-      "httpEndpoint": "Streamable HTTP接入点"
+      "httpEndpoint": "Streamable HTTP接入点",
+      "addTool": "添加工具",
+      "edit": "编辑",
+      "editTool": "编辑工具",
+      "noTools": "暂无工具",
+      "connectMcp": "连接MCP服务",
+      "step1": "Step 1. 生成 URL",
+      "step2": "Step 2. 域名 DNS 映射",
+      "sseCommand": "SSE Command",
+      "streamableHttpCommand": "Streamable HTTP Command",
+      "streamableHttp": "Streamable HTTP",
+      "sse": "SSE",
+      "copy": "复制",
+      "copySuccess": "复制成功",
+      "dnsDesc": "需要在 DNS 服务中将业务域名通过 CNAME 记录指向网关访问入口地址，以实现流量转发。",
+      "gatewayAddress": "网关访问地址：",
+      "public": "公网",
+      "commandDesc": "请运行以下命令以安装 VS Code Mcp Server："
     }
   }
 }
