@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Drawer, Form, Input, Button, Space, Select, Switch, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, DB_TYPE_OPTIONS } from '../constant';
+import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, DB_TYPE_OPTIONS, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
+import DatabaseConfig from './DatabaseConfig';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -25,6 +26,18 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
   const [serviceLoading, setServiceLoading] = useState(false);
   const [originalBackendServiceList, setOriginalBackendServiceList] = useState<any[]>([]);
   const consumerAuth = useWatch('consumerAuth', form);
+  const selectedService = useWatch('service', form);
+
+  // 计算 dbUrl 和 dbPort
+  const { dbUrl, dbPort } = useMemo(() => {
+    if (!selectedService) return { dbUrl: '-', dbPort: '-' };
+    const serviceName = selectedService.split(':')[0];
+    const service = originalBackendServiceList.find((item) => item.name === serviceName);
+    return {
+      dbUrl: service?.endpoints?.[0] || '-',
+      dbPort: service?.port || '-',
+    };
+  }, [originalBackendServiceList, selectedService]);
 
   // 监听 record 变化，重置表单
   useEffect(() => {
@@ -63,7 +76,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
       setOriginalBackendServiceList(res);
       setBackendServiceList(
         res.map((item: any) => ({
-          value: item.name,
+          value: `${item.name}:${item.port}`,
           label: item.name,
         })),
       );
@@ -82,11 +95,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
   // DSN自动生成逻辑
   const computeDSN = (values: any) => {
     if (serviceType !== SERVICE_TYPE.DB) return '';
-    const { dbType, dbUser, dbPassword, dbHost, dbPort, dbName, dbParams } = values;
-    if (!dbType || !dbUser || !dbPassword || !dbHost || !dbPort || !dbName) return '';
-    return `${dbType.toLowerCase()}:${dbUser}:${dbPassword}@tcp(${dbHost}:${dbPort})/${dbName}${
-      dbParams ? `?${dbParams}` : ''
-    }`;
+    const { dbType, dbUser, dbPassword, dbHost, dbName, dbParams } = values;
+    if (!dbType || !dbUser || !dbPassword || !dbHost || !dbName) return '';
+    return `${dbType.toLowerCase()}:${dbUser}:${dbPassword}@tcp(${dbHost})/${dbName}${dbParams ? `?${dbParams}` : ''}`;
   };
 
   // 表单提交
@@ -216,57 +227,32 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
         </Form.Item>
 
         {serviceType === SERVICE_TYPE.DB && (
-          <>
-            <Form.Item
-              label={t('mcp.form.dbType')}
-              name="dbType"
-              rules={[{ required: true, message: t('mcp.form.dbTypeRequired') }]}
-            >
-              <Select
-                options={DB_TYPE_OPTIONS}
-                onChange={(value) => form.setFieldsValue({ dbType: value })}
-                placeholder={t('mcp.form.dbTypeRequired')!}
-              />
-            </Form.Item>
-            <Form.Item
-              label={t('mcp.form.dbUser')}
-              name="dbUser"
-              rules={[{ required: true, message: t('mcp.form.dbUserRequired') }]}
-            >
-              <Input placeholder={t('mcp.form.dbUserRequired')!} />
-            </Form.Item>
-            <Form.Item
-              label={t('mcp.form.dbPassword')}
-              name="dbPassword"
-              rules={[{ required: true, message: t('mcp.form.dbPasswordRequired') }]}
-            >
-              <Input.Password placeholder={t('mcp.form.dbPasswordRequired')!} />
-            </Form.Item>
-            <Form.Item
-              label={t('mcp.form.dbHost')}
-              name="dbHost"
-              rules={[{ required: true, message: t('mcp.form.dbHostRequired') }]}
-            >
-              <Input placeholder={t('mcp.form.dbHostRequired')!} />
-            </Form.Item>
-            <Form.Item
-              label={t('mcp.form.dbPort')}
-              name="dbPort"
-              rules={[{ required: true, message: t('mcp.form.dbPortRequired') }]}
-            >
-              <Input placeholder={t('mcp.form.dbPortRequired')!} />
-            </Form.Item>
-            <Form.Item
-              label={t('mcp.form.dbName')}
-              name="dbName"
-              rules={[{ required: true, message: t('mcp.form.dbNameRequired') }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item label={t('mcp.form.dbParams')} name="dbParams">
-              <Input />
-            </Form.Item>
-          </>
+          <Form.Item
+            label={t('mcp.form.databaseConfig')}
+            name="dsn"
+            rules={[
+              {
+                required: true,
+                message: t('mcp.form.databaseConfigRequired'),
+                validator: (_, value) => {
+                  if (!value || !value.match(REG_DSN_STRING.DEFAULT)) {
+                    return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <DatabaseConfig
+              dsn={form.getFieldValue('dsn')}
+              dbType={form.getFieldValue('dbType')}
+              dbUrl={dbUrl}
+              dbPort={dbPort}
+              onChange={(dsn, dbType) => {
+                form.setFieldsValue({ dsn, dbType });
+              }}
+            />
+          </Form.Item>
         )}
 
         {serviceType === SERVICE_TYPE.DIRECT_ROUTE && (
@@ -286,14 +272,15 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
         )}
 
         <Form.Item label={t('mcp.form.consumerAuth')} name="consumerAuth" valuePropName="checked">
-          <Switch onChange={(value) => {
-            form.setFieldsValue({
-              consumerAuth: value,
-              consumerAuthInfo: {
-                enable: value,
-              },
-            });
-          }}
+          <Switch
+            onChange={(value) => {
+              form.setFieldsValue({
+                consumerAuth: value,
+                consumerAuthInfo: {
+                  enable: value,
+                },
+              });
+            }}
           />
         </Form.Item>
 
