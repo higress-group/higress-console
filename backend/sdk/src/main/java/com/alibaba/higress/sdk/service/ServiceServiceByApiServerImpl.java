@@ -114,8 +114,10 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
                     service.setNamespace(MCP_SIMULATE_NS);
                     service.setName(StringUtils.join(r.getName(), Separators.DOT, r.getType()));
                     service.setProtocol(r.getProtocol());
-                    String[] endPoints =
-                        StringUtils.split(r.getDomain(), V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR);
+                    String[] endPoints = new String[] {};
+                    if (StringUtils.isNotBlank(r.getDomain())) {
+                        endPoints = StringUtils.split(r.getDomain(), V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR);
+                    }
                     service.setEndpoints(Arrays.asList(endPoints));
                     switch (r.getType()) {
                         case V1McpBridge.REGISTRY_TYPE_DNS:
