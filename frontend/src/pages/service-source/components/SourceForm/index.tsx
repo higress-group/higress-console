@@ -1,5 +1,4 @@
 import { OptionItem } from '@/interfaces/common';
-import { DEFAULT_DOMAIN } from '@/interfaces/domain';
 import { Route } from '@/interfaces/route';
 import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
 import { getGatewayRoutes } from '@/services';
@@ -11,11 +10,6 @@ import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
-enum Nacos3Mode {
-  REGISTRY = "registry",
-  MCP = "mcp",
-}
-
 const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
@@ -25,7 +19,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
   const [mcpEnabled, setMcpEnabled] = useState<boolean>();
-  const [nacos3Mode, setNacos3Mode] = useState<Nacos3Mode | null>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
@@ -41,8 +34,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     },
   });
 
-  useEffect(() => {
+  const resetFields = () => {
     form.resetFields();
+
     if (value) {
       setSourceType(value.type);
       setSourceTypeConfig(getServiceSourceTypeConfig(value.type));
@@ -54,11 +48,15 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setAuthEnabled(authEnabledLocal);
       const mcpEnabledLocal = !!value.properties.enableMCPServer;
       setMcpEnabled(mcpEnabledLocal);
-      if (value.type === ServiceSourceTypes.nacos3.key) {
-        value.nacos3Mode = mcpEnabledLocal ? Nacos3Mode.MCP : Nacos3Mode.REGISTRY;
-        setNacos3Mode(value.nacos3Mode);
-      }
+    } else {
+      setSourceType(null);
+      setSourceTypeConfig(null)
+      setInitAuthEnabled(false);
+      setAuthEnabled(false);
+      setUsingTlsProtocol(false);
+      setMcpEnabled(false);
     }
+
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
     valueToSet.authN.enabled = valueToSet.authN.enabled || false;
@@ -68,7 +66,10 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     valueToSet.protocol = valueToSet.protocol || ServiceProtocols.unspecified.key;
     updateUsingTlsProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
+  };
 
+  useEffect(() => {
+    resetFields();
     if (domainOptions == null) {
       domainsResult.run();
     }
@@ -76,14 +77,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     reset: () => {
-      setSourceType(null);
-      setSourceTypeConfig(null)
-      setInitAuthEnabled(false);
-      setAuthEnabled(false);
-      setUsingTlsProtocol(false);
-      setMcpEnabled(false);
-      setNacos3Mode(null);
-      form.resetFields();
+      resetFields();
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
@@ -99,9 +93,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         }
       } else {
         values.protocol = null;
-      }
-      if (values.type === ServiceSourceTypes.nacos3.key) {
-        values.properties.enableMCPServer = values.nacos3Mode === Nacos3Mode.MCP;
       }
       updateUsingTlsProtocol(values.protocol);
       if (!usingTlsProtocol) {
@@ -313,32 +304,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               )
             }
             {
-              sourceType === ServiceSourceTypes.nacos3.key && (
-                <>
-                  <Form.Item
-                    label={t('serviceSource.serviceSourceForm.nacos3Mode')}
-                    name={'nacos3Mode'}
-                    rules={[
-                      {
-                        required: true,
-                        message: t('serviceSource.serviceSourceForm.nacos3ModeRequired'),
-                      },
-                    ]}
-                  >
-                    <Select
-                      onChange={(v) => { setMcpEnabled(v === Nacos3Mode.MCP); setNacos3Mode(v); }}
-                    >
-                      {/* eslint-disable-next-line react/jsx-boolean-value */}
-                      <Option key={Nacos3Mode.REGISTRY} value={Nacos3Mode.REGISTRY}>{t('serviceSource.serviceSourceForm.nacos3ModeRegistry')}</Option>
-                      {/* eslint-disable-next-line react/jsx-boolean-value */}
-                      <Option key={Nacos3Mode.MCP} value={Nacos3Mode.MCP}>{t('serviceSource.serviceSourceForm.nacos3ModeMcp')}</Option>
-                    </Select>
-                  </Form.Item>
-                </>
-              )
-            }
-            {
-              (sourceType !== ServiceSourceTypes.nacos3.key || nacos3Mode === Nacos3Mode.REGISTRY) &&
               <>
                 <Form.Item
                   label={t('serviceSource.serviceSourceForm.nacosNamespaceId')}
@@ -555,22 +520,19 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       {
         sourceTypeConfig && sourceTypeConfig.mcpSupported &&
         <>
-          {
-            sourceType !== ServiceSourceTypes.nacos3.key &&
-            <Form.Item
-              label={t('serviceSource.serviceSourceForm.mcpServerEnabled')}
-              name={['properties', 'enableMCPServer']}
+          <Form.Item
+            label={t('serviceSource.serviceSourceForm.mcpServerEnabled')}
+            name={['properties', 'enableMCPServer']}
+          >
+            <Select
+              onChange={(v) => setMcpEnabled(v)}
             >
-              <Select
-                onChange={(v) => setMcpEnabled(v)}
-              >
-                {/* eslint-disable-next-line react/jsx-boolean-value */}
-                <Option key={0} value={false}>{t('misc.no')}</Option>
-                {/* eslint-disable-next-line react/jsx-boolean-value */}
-                <Option key={1} value={true}>{t('misc.yes')}</Option>
-              </Select>
-            </Form.Item>
-          }
+              {/* eslint-disable-next-line react/jsx-boolean-value */}
+              <Option key={0} value={false}>{t('misc.no')}</Option>
+              {/* eslint-disable-next-line react/jsx-boolean-value */}
+              <Option key={1} value={true}>{t('misc.yes')}</Option>
+            </Select>
+          </Form.Item>
           {
             mcpEnabled && (
               <>

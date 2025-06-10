@@ -166,6 +166,7 @@ const SourceList: React.FC = () => {
     await deleteServiceSource(currentServiceSource.name);
     setConfirmLoading(false);
     setOpenModal(false);
+    setCurrentServiceSource(null);
     // 重新刷新
     refresh();
   };
