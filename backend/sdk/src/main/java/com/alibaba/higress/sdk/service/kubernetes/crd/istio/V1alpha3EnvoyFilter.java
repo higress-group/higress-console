@@ -16,7 +16,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.Data;
 
 @Data
-public class V1alpha3EnvoyFilter  implements io.kubernetes.client.common.KubernetesObject{
+public class V1alpha3EnvoyFilter implements io.kubernetes.client.common.KubernetesObject {
 
     public static final String API_GROUP = "networking.istio.io";
 

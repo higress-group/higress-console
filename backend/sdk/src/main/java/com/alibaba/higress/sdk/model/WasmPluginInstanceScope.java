@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Schema(description = "Wasm Plugin Instance Scope", allowableValues = {"global", "domain", "route", "service"})

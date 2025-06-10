@@ -121,7 +121,8 @@ class ServiceServiceImpl implements ServiceService {
         Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
         shards.keySet().forEach(s -> {
             List<IstioEndpoint> istioEndpoints = shards.get(s);
-            endpoints.addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().collect(Collectors.toList()));
+            endpoints
+                .addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().collect(Collectors.toList()));
         });
         return endpoints;
     }

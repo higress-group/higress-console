@@ -83,7 +83,8 @@ class DomainServiceImpl implements DomainService {
             throw new BusinessException("Error occurs when listing ConfigMap.", e);
         }
         List<V1ConfigMap> domainConfigMaps = configMaps.stream()
-            .filter(cm -> StringUtils.startsWith(KubernetesUtil.getObjectName(cm), CommonKey.DOMAIN_PREFIX)).collect(Collectors.toList());
+            .filter(cm -> StringUtils.startsWith(KubernetesUtil.getObjectName(cm), CommonKey.DOMAIN_PREFIX))
+            .collect(Collectors.toList());
         return PaginatedResult.createFromFullList(domainConfigMaps, query, kubernetesModelConverter::configMap2Domain);
     }
 
