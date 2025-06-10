@@ -12,24 +12,24 @@
  */
 package com.alibaba.higress.sdk.util;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.collections4.CollectionUtils;
 
-public class MapUtil {
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        return map;
-    }
-
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1, @NotNull K k2, @Nullable V v2) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        map.put(k2, v2);
-        return map;
+/**
+ * @author lvshui
+ */
+public class ConverterUtil {
+    public static <T, R> List<R> toList(Collection<T> v1Ingresses, Function<T, R> function) {
+        if (CollectionUtils.isEmpty(v1Ingresses)) {
+            return Lists.newArrayList();
+        }
+        return v1Ingresses.stream().map(function).filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

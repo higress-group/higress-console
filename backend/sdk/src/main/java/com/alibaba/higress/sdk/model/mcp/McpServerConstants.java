@@ -10,26 +10,19 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.util;
+package com.alibaba.higress.sdk.model.mcp;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class MapUtil {
-
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        return map;
+/**
+ * @author lvshui
+ */
+public class McpServerConstants {
+    public static final class Annotation {
+        public static final String RESOURCE_DESCRIPTION_KEY = "higress.io/resource-description";
     }
 
-    public static <K, V> Map<K, V> of(@NotNull K k1, @Nullable V v1, @NotNull K k2, @Nullable V v2) {
-        Map<K, V> map = new HashMap<>();
-        map.put(k1, v1);
-        map.put(k2, v2);
-        return map;
+    public static final class Label {
+        public static final String RESOURCE_BIZ_TYPE_KEY = "higress.io/biz-type";
+        public static final String RESOURCE_MCP_SERVER_TYPE_KEY = "higress.io/mcp-server-type";
     }
+
 }
