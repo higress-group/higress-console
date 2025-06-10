@@ -259,6 +259,10 @@
         "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
         "ollamaServerPortRequired": "请输入 Ollama 服务端口",
         "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 BaseURL",
+        "invalidOpenaiCustomUrl": "URL 格式不正确：",
+        "openaiCustomUrlMultipleValuesWithIpOnly": "仅支持指定多个使用 IP 和端口的自定义 OpenAI 服务 BaseURL",
+        "openaiCustomUrlInconsistentProtocols": "各个自定义 OpenAI 服务 BaseURL 所使用的协议不一致",
+        "openaiCustomUrlInconsistentContextPaths": "各个自定义 OpenAI 服务 BaseURL 所使用的路径不一致",
         "awsRegionRequired": "请输入 AWS Region",
         "awsAccessKeyRequired": "请输入 AWS Access Key ID",
         "awsSecretKeyRequired": "请输入 AWS Secret Access Key"

@@ -14,6 +14,8 @@ package com.alibaba.higress.sdk.service.ai;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -21,6 +23,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
@@ -50,49 +53,9 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
-        return V1McpBridge.REGISTRY_TYPE_DNS;
-    }
-
-    @Override
-    protected String getServiceDomain(Map<String, Object> providerConfig) {
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         URI uri = getServiceUri(providerConfig);
-        return uri.getHost();
-    }
-
-    @Override
-    protected int getServicePort(Map<String, Object> providerConfig) {
-        URI uri = getServiceUri(providerConfig);
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return 80;
-        }
-        scheme = scheme.toLowerCase(Locale.ROOT);
-        switch (scheme) {
-            case V1McpBridge.PROTOCOL_HTTP:
-                return 80;
-            case V1McpBridge.PROTOCOL_HTTPS:
-                return 443;
-            default:
-                return 80;
-        }
-    }
-
-    @Override
-    protected String getServiceProtocol(Map<String, Object> providerConfig) {
-        URI uri = getServiceUri(providerConfig);
-        String scheme = uri.getScheme();
-        if (scheme == null) {
-            return V1McpBridge.PROTOCOL_HTTP;
-        }
-        scheme = scheme.toLowerCase(Locale.ROOT);
-        switch (scheme) {
-            case V1McpBridge.PROTOCOL_HTTP:
-            case V1McpBridge.PROTOCOL_HTTPS:
-                return scheme;
-            default:
-                return V1McpBridge.PROTOCOL_HTTP;
-        }
+        return Collections.singletonList(LlmProviderEndpoint.fromUri(uri));
     }
 
     private static URI getServiceUri(Map<String, Object> providerConfig) {

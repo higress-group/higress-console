@@ -12,12 +12,15 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.ValidateUtil;
@@ -55,27 +58,19 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
-    protected String getServiceRegistryType(Map<String, Object> providerConfig) {
-        String serviceDomain = getServiceDomain(providerConfig);
-        if (StringUtils.isEmpty(serviceDomain)) {
-            return V1McpBridge.REGISTRY_TYPE_DNS;
-        }
-        if (ValidateUtil.checkIpAddress(serviceDomain)) {
-            return V1McpBridge.REGISTRY_TYPE_STATIC;
-        }
-        return V1McpBridge.REGISTRY_TYPE_DNS;
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
+        return Collections.singletonList(new LlmProviderEndpoint(getServiceProtocol(providerConfig),
+            getServiceDomain(providerConfig), getServicePort(providerConfig), "/"));
     }
 
-    @Override
-    protected String getServiceDomain(Map<String, Object> providerConfig) {
+    private String getServiceDomain(Map<String, Object> providerConfig) {
         if (MapUtils.isEmpty(providerConfig)) {
             return "";
         }
         return (String)providerConfig.getOrDefault(SERVER_HOST_KEY, "");
     }
 
-    @Override
-    protected int getServicePort(Map<String, Object> providerConfig) {
+    private int getServicePort(Map<String, Object> providerConfig) {
         if (MapUtils.isEmpty(providerConfig)) {
             return DEFAULT_PORT;
         }
@@ -87,8 +82,7 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
         }
     }
 
-    @Override
-    protected String getServiceProtocol(Map<String, Object> providerConfig) {
+    private String getServiceProtocol(Map<String, Object> providerConfig) {
         return V1McpBridge.PROTOCOL_HTTP;
     }
 }
