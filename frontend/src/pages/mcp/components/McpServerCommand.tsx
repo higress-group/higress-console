@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Select, message } from 'antd';
-import { useParams } from 'ice';
+import { useSearchParams } from 'ice';
 import CodeEditor from '@/components/CodeEditor';
 import { CLIENT_MAP } from '../constant';
 
@@ -11,7 +11,8 @@ interface McpServerCommandProps {
 
 const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => {
   const [client, setClient] = useState('vscode');
-  const { mcpId } = useParams();
+  const [searchParams] = useSearchParams();
+  const name = searchParams.get('name');
 
   const command = useMemo(() => {
     let parsedConfig: any = null;
@@ -22,12 +23,12 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
     }
 
     if (parsedConfig && parsedConfig.mcpServers) {
-      const mcpConfig = parsedConfig.mcpServers[mcpId];
+      const mcpConfig = parsedConfig.mcpServers[name];
       const configStr = JSON.stringify(mcpConfig);
-      return `npx mcp-installer@latest install ${mcpId} --client ${client} --config '${configStr}'`;
+      return `npx mcp-installer@latest install ${name} --client ${client} --config '${configStr}'`;
     }
     return '';
-  }, [config, client, mcpId]);
+  }, [config, client, name]);
 
   const handleCopy = () => {
     navigator.clipboard
@@ -67,6 +68,7 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
             handleMouseWheel: false,
             alwaysConsumeMouseWheel: false,
           },
+          readonly: true,
         }}
       />
     </div>

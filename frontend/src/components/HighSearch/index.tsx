@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Select, Input, Button, Form } from 'antd';
-import { useNavigate, useLocation } from 'ice';
 import './index.scss';
 import { SearchOutlined } from '@ant-design/icons';
 
@@ -14,51 +13,26 @@ interface SearchParam {
 
 interface HighSearchProps {
   searchParamsList: SearchParam[];
+  activeSearchName: string;
+  activeSearchValue: string;
+  onSearchNameChange: (name: string) => void;
+  onSearchValueChange: (value: string) => void;
+  onSearch: () => void;
 }
 
-const HighSearch: React.FC<HighSearchProps> = ({ searchParamsList }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+const HighSearch: React.FC<HighSearchProps> = ({
+  searchParamsList,
+  activeSearchName,
+  activeSearchValue,
+  onSearchNameChange,
+  onSearchValueChange,
+  onSearch,
+}) => {
   const [form] = Form.useForm();
 
-  const [activeSearchName, setActiveSearchName] = useState<string>('');
-  const [activeSearchValue, setActiveSearchValue] = useState<string>('');
-
-  const defaultName = searchParamsList[0]?.name || '';
   const currentType = searchParamsList.find((item) => item.name === activeSearchName)?.type;
   const currentOptions = searchParamsList.find((item) => item.name === activeSearchName)?.optionList || [];
   const currentPlaceholder = searchParamsList.find((item) => item.name === activeSearchName)?.placeholder || '';
-
-  useEffect(() => {
-    initSearch();
-  }, []);
-
-  const initSearch = () => {
-    const selectOne = searchParamsList.find(
-      (item) => searchParams.get(item.name) && searchParams.get(item.name) !== undefined,
-    );
-    const newActiveSearchName = searchParams.get('activeSearchName') || selectOne?.name || defaultName;
-    setActiveSearchName(newActiveSearchName);
-    handleFill(newActiveSearchName);
-  };
-
-  const handleFill = (name: string) => {
-    setActiveSearchValue(searchParams.get(name) || '');
-  };
-
-  const handleSearch = () => {
-    const newParams = new URLSearchParams(location.search);
-    newParams.set(activeSearchName, activeSearchValue);
-    newParams.set('current', '1');
-    newParams.set('activeSearchName', activeSearchName);
-
-    navigate({
-      pathname: location.pathname,
-      search: newParams.toString(),
-    });
-  };
-
 
   return (
     <div className="high-search">
@@ -66,10 +40,7 @@ const HighSearch: React.FC<HighSearchProps> = ({ searchParamsList }) => {
         <Form.Item className="high-search__left">
           <Select
             value={activeSearchName}
-            onChange={(value) => {
-              setActiveSearchName(value);
-              handleFill(value);
-            }}
+            onChange={onSearchNameChange}
           >
             {searchParamsList.map((item) => (
               <Select.Option key={item.name} value={item.name}>
@@ -84,7 +55,7 @@ const HighSearch: React.FC<HighSearchProps> = ({ searchParamsList }) => {
             <Select
               placeholder={currentPlaceholder}
               value={activeSearchValue}
-              onChange={setActiveSearchValue}
+              onChange={onSearchValueChange}
               allowClear
             >
               {currentOptions.map((option) => (
@@ -97,10 +68,10 @@ const HighSearch: React.FC<HighSearchProps> = ({ searchParamsList }) => {
             <Input
               placeholder={currentPlaceholder}
               value={activeSearchValue}
-              onChange={(e) => setActiveSearchValue(e.target.value)}
-              onPressEnter={handleSearch}
+              onChange={(e) => onSearchValueChange(e.target.value)}
+              onPressEnter={onSearch}
               allowClear
-              addonAfter={<Button type="text" size="small" onClick={handleSearch} icon={<SearchOutlined />} />}
+              addonAfter={<Button type="text" size="small" onClick={onSearch} icon={<SearchOutlined />} />}
             />
           )}
         </Form.Item>

@@ -1,19 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Popconfirm } from 'antd';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { Table, Button, Space, message } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { listMcpConsumers, removeMcpConsumers } from '@/services/mcp';
 import HighSearch from '@/components/HighSearch';
+import { useSearchParams } from 'ice';
+import DeleteConfirm from './DeleteConfirm';
+import AddConsumerAuth from './AddConsumerAuth';
 
-const ConsumerTable: React.FC = () => {
+const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ children }, ref) => {
   const { t } = useTranslation();
   const [consumers, setConsumers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const name = searchParams.get('name');
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState<any>(null);
+  const [addConsumerAuthVisible, setAddConsumerAuthVisible] = useState(false);
 
   const searchParamsList = [
     {
       label: t('mcp.detail.consumerName'),
-      name: 'name',
+      name: 'consumerName',
       placeholder: t('mcp.detail.consumerNameSearchPlaceholder'),
     },
     // {
@@ -26,8 +34,10 @@ const ConsumerTable: React.FC = () => {
   const fetchConsumers = async () => {
     setLoading(true);
     try {
-      const res = await listMcpConsumers({});
-      setConsumers(res.data || []);
+      const res = await listMcpConsumers({
+        serverName: name,
+      });
+      setConsumers(res || []);
     } catch (error) {
       message.error(t('mcp.detail.fetchConsumersError'));
     } finally {
@@ -42,20 +52,21 @@ const ConsumerTable: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await removeMcpConsumers({
-        routeName: id,
+        routeName: name,
         consumers: [id],
       });
+      message.success(t('mcp.detail.deleteSuccess'));
       fetchConsumers();
     } catch (error) {
-      message.error(error.message);
+      message.error(t('mcp.detail.deleteError'));
     }
   };
 
   const columns = [
     {
       title: t('mcp.detail.consumerName'),
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'consumerName',
+      key: 'consumerName',
     },
     // {
     //   title: t('mcp.detail.consumerDescription'),
@@ -63,45 +74,55 @@ const ConsumerTable: React.FC = () => {
     //   key: 'description',
     // },
     {
-      title: t('mcp.detail.consumerApiKey'),
-      dataIndex: 'apiKey',
-      key: 'apiKey',
+      title: t('mcp.detail.consumerAuthType'),
+      dataIndex: 'type',
+      key: 'type',
     },
-    {
-      title: t('mcp.detail.status'),
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <span style={{ color: status === 'active' ? '#52c41a' : '#ff4d4f' }}>
-          {t(`mcp.detail.consumerStatus${status.toUpperCase()}`)}
-        </span>
-      ),
-    },
+    // {
+    //   title: t('mcp.detail.status'),
+    //   dataIndex: 'status',
+    //   key: 'status',
+    //   render: (status: string) => (
+    //     <span style={{ color: status === 'active' ? '#52c41a' : '#ff4d4f' }}>
+    //       {t(`mcp.detail.consumerStatus${status.toUpperCase()}`)}
+    //     </span>
+    //   ),
+    // },
     {
       title: t('misc.action'),
       key: 'action',
       render: (_: any, record: any) => (
         <Space size="middle">
-          <Popconfirm
-            title={t('mcp.detail.deleteConsumerConfirm')}
-            onConfirm={() => handleDelete(record.id)}
-            okText={t('misc.confirm')}
-            cancelText={t('misc.cancel')}
+          <Button
+            type="link"
+            onClick={() => {
+              setCurrentRecord(record);
+              setDeleteModalVisible(true);
+            }}
           >
-            <Button type="link" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+            {t('mcp.detail.delete')}
+          </Button>
         </Space>
       ),
     },
   ];
 
+  useImperativeHandle(ref, () => ({
+    fetchConsumers,
+  }));
+
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />}>
-          {t('mcp.detail.authorize')}
-        </Button>
-        <HighSearch searchParamsList={searchParamsList} />
+        {children}
+        <HighSearch
+          searchParamsList={searchParamsList}
+          activeSearchName={'consumerName'}
+          activeSearchValue={''}
+          onSearchNameChange={() => {}}
+          onSearchValueChange={() => {}}
+          onSearch={() => {}}
+        />
       </div>
       <Table
         columns={columns}
@@ -111,8 +132,25 @@ const ConsumerTable: React.FC = () => {
         pagination={false}
         locale={{ emptyText: t('mcp.detail.noData') }}
       />
+      <DeleteConfirm
+        open={deleteModalVisible}
+        onOk={() => {
+          handleDelete(currentRecord?.consumerName);
+          setDeleteModalVisible(false);
+        }}
+        onCancel={() => setDeleteModalVisible(false)}
+        recordName={currentRecord?.consumerName}
+        i18nKey="mcp.detail.deleteConsumerConfirm"
+      />
+      <AddConsumerAuth
+        visible={addConsumerAuthVisible}
+        onClose={() => setAddConsumerAuthVisible(false)}
+        onSuccess={fetchConsumers}
+        mcpName={name}
+        strategyConfigId=""
+      />
     </div>
   );
-};
+});
 
 export default ConsumerTable;

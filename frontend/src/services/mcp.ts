@@ -20,7 +20,7 @@ export const getMcpServer = (name: string): Promise<McpServer> => {
 
 export const createOrUpdateMcpServer = (payload: McpServer): Promise<McpServer> => {
   return payload.name ?
-    request.put<any, McpServer>(`${BASE_URL}/${payload.name}`, payload) :
+    request.put<any, McpServer>(BASE_URL, payload) :
     request.post<any, McpServer>(BASE_URL, payload);
 };
 
@@ -29,7 +29,7 @@ export const deleteMcpServer = (name: string): Promise<any> => {
 };
 
 export const addMcpConsumers = (payload: McpServerConsumers): Promise<any> => {
-  return request.post<any, any>(`${BASE_URL}/consumers`, payload);
+  return request.put<any, any>(`${BASE_URL}/consumers`, payload);
 };
 
 export const removeMcpConsumers = (payload: McpServerConsumers): Promise<any> => {
@@ -38,8 +38,8 @@ export const removeMcpConsumers = (payload: McpServerConsumers): Promise<any> =>
 
 export const listMcpConsumers = (
   query: McpServerConsumersPageQuery,
-): Promise<PaginatedResult<McpServerConsumerDetail>> => {
-  return request.get<any, PaginatedResult<McpServerConsumerDetail>>(`${BASE_URL}/consumers`, {
+): Promise<McpServerConsumerDetail[]> => {
+  return request.get<any, McpServerConsumerDetail[]>(`${BASE_URL}/consumers`, {
     params: query,
   });
 };
