@@ -16,6 +16,9 @@ import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
+import lombok.Data;
+
+@Data
 public class V1RegistryConfigMetadata {
 
     public static final String SERIALIZED_NAME_INNER_MAP_NAME = "innerMap";
