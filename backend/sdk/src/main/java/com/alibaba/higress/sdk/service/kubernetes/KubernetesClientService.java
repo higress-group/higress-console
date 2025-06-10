@@ -19,6 +19,7 @@ import static com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil.joinLabe
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -29,8 +30,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,6 +107,8 @@ public class KubernetesClientService {
 
     private final String kubeConfig;
 
+    private final String kubeConfigContent;
+
     private final String controllerServiceName;
 
     private final String controllerNamespace;
@@ -134,6 +139,7 @@ public class KubernetesClientService {
         validateConfig(config);
 
         this.kubeConfig = config.getKubeConfigPath();
+        this.kubeConfigContent = config.getKubeConfigContent();
         this.controllerNamespace = config.getControllerNamespace();
         this.controllerServiceName = config.getControllerServiceName();
         this.controllerServiceHost = config.getControllerServiceHost();
@@ -142,7 +148,8 @@ public class KubernetesClientService {
         this.controllerWatchedNamespace = config.getControllerWatchedNamespace();
         this.controllerJwtPolicy = config.getControllerJwtPolicy();
         this.controllerAccessToken = config.getControllerAccessToken();
-        this.inClusterMode = Strings.isNullOrEmpty(kubeConfig) && isInCluster();
+        this.inClusterMode =
+            Strings.isNullOrEmpty(kubeConfig) && Strings.isNullOrEmpty(kubeConfigContent) && isInCluster();
         this.isIngressWatched = buildIsIngressWatchedPredicate(this.controllerWatchedIngressClassName);
         this.defaultIngressClass = StringUtils.firstNonEmpty(this.controllerWatchedIngressClassName,
             HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT);
@@ -152,11 +159,18 @@ public class KubernetesClientService {
             client = ClientBuilder.cluster().build();
             log.info("init KubernetesClientService with InCluster mode");
         } else {
-            String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
-            try (FileReader reader = new FileReader(kubeConfigPath)) {
-                client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
+            if (Strings.isNullOrEmpty(kubeConfigContent)) {
+                String kubeConfigPath = !Strings.isNullOrEmpty(kubeConfig) ? kubeConfig : KUBE_CONFIG_DEFAULT_PATH;
+                try (FileReader reader = new FileReader(kubeConfigPath)) {
+                    client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
+                }
+                log.info("init KubernetesClientService with KubeConfig: {}", kubeConfigPath);
+            } else {
+                try (StringReader reader = new StringReader(kubeConfigContent)) {
+                    client = ClientBuilder.kubeconfig(KubeConfig.loadKubeConfig(reader)).build();
+                }
+                log.info("init KubernetesClientService with KubeConfigContent: {}", kubeConfigContent);
             }
-            log.info("init KubernetesClientService with KubeConfig: {}", kubeConfigPath);
         }
 
         initializeK8sCapabilities();
@@ -300,6 +314,27 @@ public class KubernetesClientService {
         NetworkingV1Api apiInstance = new NetworkingV1Api(client);
         V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
             DEFAULT_LABEL_SELECTORS, null, null, null, null, null);
+        if (list == null) {
+            return Collections.emptyList();
+        }
+        List<V1Ingress> ingresses = new ArrayList<>(list.getItems());
+        retainWatchedIngress(ingresses);
+        return sortKubernetesObjects(ingresses);
+    }
+
+    public List<V1Ingress> listIngress(Map<String, String> labelMap) throws ApiException {
+        NetworkingV1Api apiInstance = new NetworkingV1Api(client);
+        String labelSelectors = null;
+        if (MapUtils.isNotEmpty(labelMap)) {
+            List<String> labelSelectorsList = labelMap.keySet().stream()
+                .map(key -> buildLabelSelector(key, labelMap.get(key))).collect(Collectors.toList());
+            labelSelectorsList.add(DEFAULT_LABEL_SELECTORS);
+            labelSelectors = String.join(Separators.COMMA, labelSelectorsList);
+        } else {
+            labelSelectors = DEFAULT_LABEL_SELECTORS;
+        }
+        V1IngressList list = apiInstance.listNamespacedIngress(controllerNamespace, null, null, null, null,
+            labelSelectors, null, null, null, null, null);
         if (list == null) {
             return Collections.emptyList();
         }
