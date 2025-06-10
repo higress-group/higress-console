@@ -12,9 +12,9 @@
  */
 package com.alibaba.higress.sdk.constant;
 
-import com.google.common.collect.Sets;
-
 import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 public class HigressConstants {
     public static final String NS_DEFAULT = "higress-system";
@@ -29,6 +29,9 @@ public class HigressConstants {
     public static final String FALLBACK_ROUTE_NAME_SUFFIX = ".fallback";
     public static final String FALLBACK_FROM_HEADER = "x-higress-fallback-from";
     public static final String MODEL_ROUTING_HEADER = "x-higress-llm-model";
-    public static final String INTERNAL_RESOURCE_COMMENT = "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
+    public static final String INTERNAL_RESOURCE_COMMENT =
+        "PLEASE DO NOT EDIT DIRECTLY. This resource is managed by Higress.";
     public static final Set<String> VALID_FALLBACK_RESPONSE_CODES = Sets.newHashSet("4xx", "5xx");
+    public static final Boolean SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT = Boolean.TRUE;
+    public static final String CLUSTER_DOMAIN_SUFFIX_DEFAULT = "cluster.local";
 }

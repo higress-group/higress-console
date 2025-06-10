@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import java.io.IOException;
+
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.service.ai.AiRouteService;
 import com.alibaba.higress.sdk.service.ai.AiRouteServiceImpl;
@@ -21,8 +25,6 @@ import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerServiceImpl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-
-import java.io.IOException;
 
 /**
  * @author CH3CHO
@@ -45,7 +47,11 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
-        serviceService = new ServiceServiceImpl(kubernetesClientService);
+        if (BooleanUtils.isTrue(config.getServiceListSupportRegistry())) {
+            serviceService = new ServiceServiceImpl(kubernetesClientService);
+        } else {
+            serviceService = new ServiceServiceByApiServerImpl(kubernetesClientService, kubernetesModelConverter);
+        }
         serviceSourceService = new ServiceSourceServiceImpl(kubernetesClientService, kubernetesModelConverter);
         tlsCertificateService = new TlsCertificateServiceImpl(kubernetesClientService, kubernetesModelConverter);
         wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
@@ -53,15 +59,13 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
         wasmPluginInstanceService =
             new WasmPluginInstanceServiceImpl(wasmPluginService, kubernetesClientService, kubernetesModelConverter);
         consumerService = new ConsumerServiceImpl(wasmPluginInstanceService);
-        routeService =
-            new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService,
-                consumerService);
+        routeService = new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter,
+            wasmPluginInstanceService, consumerService);
         domainService = new DomainServiceImpl(kubernetesClientService, kubernetesModelConverter, routeService,
             wasmPluginInstanceService);
         llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService);
-        aiRouteService =
-            new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService, llmProviderService,
-                wasmPluginInstanceService);
+        aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
+            llmProviderService, wasmPluginInstanceService);
     }
 
     @Override

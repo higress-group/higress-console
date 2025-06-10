@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +51,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginList;
 import com.alibaba.higress.sdk.service.kubernetes.model.IstioEndpointShard;
 import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzService;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 
 import io.kubernetes.client.common.KubernetesObject;
@@ -63,18 +63,23 @@ import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1IngressList;
 import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Strings;
 import io.kubernetes.client.util.Yaml;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -122,6 +127,9 @@ public class KubernetesClientService {
     @Getter
     private boolean ingressV1Supported;
 
+    @Getter
+    private final String clusterDomainSuffix;
+
     public KubernetesClientService(HigressServiceConfig config) throws IOException {
         validateConfig(config);
 
@@ -138,6 +146,7 @@ public class KubernetesClientService {
         this.isIngressWatched = buildIsIngressWatchedPredicate(this.controllerWatchedIngressClassName);
         this.defaultIngressClass = StringUtils.firstNonEmpty(this.controllerWatchedIngressClassName,
             HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT);
+        this.clusterDomainSuffix = config.getClusterDomainSuffix();
 
         if (inClusterMode) {
             client = ClientBuilder.cluster().build();
@@ -225,7 +234,8 @@ public class KubernetesClientService {
             }
             String responseString = new String(response.body().bytes());
             if (StringUtils.isNotEmpty(responseString)) {
-                return JSON.parseObject(responseString, new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
+                return JSON.parseObject(responseString,
+                    new TypeReference<Map<String, Map<String, IstioEndpointShard>>>() {});
             }
         }
         return null;
@@ -253,6 +263,37 @@ public class KubernetesClientService {
         }
         retainWatchedIngress(ingresses);
         return sortKubernetesObjects(ingresses);
+    }
+
+    public List<V1Service> listAllServiceList() throws ApiException {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1ServiceList v1ServiceList =
+            coreV1Api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
+        if (Objects.isNull(v1ServiceList)) {
+            return Collections.emptyList();
+        }
+        List<V1Service> resultList = new ArrayList<>(v1ServiceList.getItems());
+        resultList.removeIf(v1Service -> StringUtils.startsWith(v1Service.getMetadata().getNamespace(), "kube"));
+        if (StringUtils.isNotEmpty(controllerNamespace)) {
+            resultList.removeIf(v1Service -> controllerNamespace.equals(v1Service.getMetadata().getNamespace()));
+        }
+        return sortKubernetesObjects(resultList);
+    }
+
+    @SneakyThrows
+    public List<V1Endpoints> listAllEndPointsList() {
+        CoreV1Api coreV1Api = new CoreV1Api(client);
+        V1EndpointsList v1EndpointsList =
+            coreV1Api.listEndpointsForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
+        if (Objects.isNull(v1EndpointsList)) {
+            return Collections.emptyList();
+        }
+        List<V1Endpoints> resultList = new ArrayList<>(v1EndpointsList.getItems());
+        resultList.removeIf(v1Service -> StringUtils.startsWith(v1Service.getMetadata().getNamespace(), "kube"));
+        if (StringUtils.isNotEmpty(controllerNamespace)) {
+            resultList.removeIf(v1Service -> controllerNamespace.equals(v1Service.getMetadata().getNamespace()));
+        }
+        return sortKubernetesObjects(resultList);
     }
 
     public List<V1Ingress> listIngress() throws ApiException {
