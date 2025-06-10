@@ -127,3 +127,6 @@ o11y:
 
 pvc:
   __placeholder__: true
+
+pluginServer:
+  UrlPattern: "http://higress-plugin-server.higress-system.svc/plugins/${name}/${version}/plugin.wasm"
