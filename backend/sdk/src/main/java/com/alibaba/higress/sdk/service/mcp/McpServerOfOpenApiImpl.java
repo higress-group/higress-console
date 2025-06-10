@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package com.alibaba.higress.sdk.service.mcp;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.RoutePageQuery;
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.mcp.McpServer;
+import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
+import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.service.RouteService;
+import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.util.MapUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
+
+import io.kubernetes.client.openapi.ApiException;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * open api mcp server
+ *
+ * @author HecarimV
+ */
+@Slf4j
+public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
+    private static final String DEFAULT_MCP_PLUGIN = "mcp-server";
+
+    public McpServerOfOpenApiImpl(KubernetesClientService kubernetesClientService,
+        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
+        RouteService routeService) {
+        super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+    }
+
+    @Override
+    public boolean support(McpServer mcpServer) {
+        return McpServerTypeEnum.OPEN_API.equals(mcpServer.getType());
+    }
+
+    @Override
+    protected void saveMcpServerConfig(McpServer mcpInstance) {
+        WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
+        wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
+    }
+
+    private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {
+        WasmPluginInstance pluginInstance =
+            WasmPluginInstance.builder().pluginName(DEFAULT_MCP_PLUGIN).internal(true).build();
+        pluginInstance.setTargets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpInstance.getName()));
+        if (StringUtils.isNotBlank(mcpInstance.getRawConfigurations())) {
+            pluginInstance.setRawConfigurations(mcpInstance.getRawConfigurations());
+            pluginInstance.setEnabled(StringUtils.contains(mcpInstance.getRawConfigurations(), "tools:"));
+        } else {
+            Map<String, Object> serverMap = new HashMap<>();
+            serverMap.put("name", mcpInstance.getName());
+            serverMap.put("description", Optional.ofNullable(mcpInstance.getDescription()).orElse("Nothing"));
+            Map<String, Object> rootMap = new HashMap<>();
+            rootMap.put("server", serverMap);
+            try {
+                String yamlString = YAML.writeValueAsString(rootMap);
+                pluginInstance.setRawConfigurations(yamlString);
+                pluginInstance.setEnabled(false);
+            } catch (JsonProcessingException e) {
+                throw new BusinessException("Error occurs when init mcp config.", e);
+            }
+        }
+        return pluginInstance;
+    }
+
+    @Override
+    public McpServer query(String name) {
+        Route route = routeService.query(name);
+        if (Objects.isNull(route)) {
+            throw new BusinessException("bound route not found!");
+        }
+        McpServer result = routeToMcpServerWithAth(route);
+        completeWasmPluginInfo(name, result);
+
+        return result;
+    }
+
+    @Override
+    protected List<McpServer> getServerListByType(McpServerPageQuery query) {
+        return getOpenApiTypeServers(query);
+    }
+
+    private void completeWasmPluginInfo(String name, McpServer result) {
+        WasmPluginInstance wasmPluginInstance =
+            wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, name, DEFAULT_MCP_PLUGIN);
+        if (Objects.isNull(wasmPluginInstance)) {
+            // No tools related content is configured, return directly
+            return;
+        }
+        result.setRawConfigurations(wasmPluginInstance.getRawConfigurations());
+    }
+
+    private List<McpServer> getOpenApiTypeServers(McpServerPageQuery query) {
+        List<McpServer> resultList = Lists.newArrayList();
+        List<WasmPluginInstance> mcpInstanceList = listMcpInstances();
+        PaginatedResult<Route> routeList = routeService.list(new RoutePageQuery());
+        Map<String, Route> routeMap = routeList.getData().stream().collect(Collectors.toMap(Route::getName, r -> r));
+        if (CollectionUtils.isEmpty(mcpInstanceList)) {
+            return resultList;
+        }
+        for (WasmPluginInstance wasmPluginInstance : mcpInstanceList) {
+            McpServer mcpServer = new McpServer();
+            mcpServer.setName(wasmPluginInstance.getTargets().get(WasmPluginInstanceScope.ROUTE));
+            mcpServer.setDescription(getOpenApiTypeServerDescription(wasmPluginInstance.getConfigurations()));
+            mcpServer.setRawConfigurations(wasmPluginInstance.getRawConfigurations());
+            Route matchRoute = routeMap.get(mcpServer.getName());
+            if (Objects.nonNull(matchRoute)) {
+                mcpServer.setServices(matchRoute.getServices());
+                mcpServer.setDomains(matchRoute.getDomains());
+            }
+            if (StringUtils.isNotEmpty(query.getServerName())
+                && !StringUtils.contains(mcpServer.getName(), query.getServerName())) {
+                continue;
+            }
+            mcpServer.setType(McpServerTypeEnum.OPEN_API);
+            resultList.add(mcpServer);
+        }
+        return resultList;
+    }
+
+    private List<WasmPluginInstance> listMcpInstances() {
+        List<V1alpha1WasmPlugin> plugins;
+        try {
+            plugins = kubernetesClientService.listWasmPlugin(DEFAULT_MCP_PLUGIN, null, true);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing WasmPlugin for mcp.", e);
+        }
+        if (CollectionUtils.isEmpty(plugins)) {
+            return Collections.emptyList();
+        }
+        return plugins.stream().filter(instance -> {
+            String name = instance.getMetadata().getName();
+            return name != null && name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+        }).map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
+            .flatMap(Collection::stream).collect(Collectors.toList());
+    }
+
+    private String getOpenApiTypeServerDescription(Map<String, Object> configurations) {
+        if (MapUtils.isNotEmpty(configurations)) {
+            return Optional.ofNullable(configurations.get("server")).filter(Map.class::isInstance)
+                .map(server -> ((Map<?, ?>)server).get("description")).map(Object::toString).orElse("");
+        }
+        return "";
+    }
+
+}
