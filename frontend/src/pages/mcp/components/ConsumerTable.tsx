@@ -45,10 +45,9 @@ const ConsumerTable: React.FC = () => {
         routeName: id,
         consumers: [id],
       });
-      message.success(t('mcp.detail.deleteConsumerSuccess'));
       fetchConsumers();
     } catch (error) {
-      message.error(t('mcp.detail.deleteConsumerError'));
+      message.error(error.message);
     }
   };
 

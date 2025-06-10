@@ -59,7 +59,7 @@ const MCPDetailPage: React.FC = () => {
         }
       }
     } catch (error) {
-      message.error(t('mcp.detail.fetchError'));
+      message.error(error.message);
     }
   };
 
