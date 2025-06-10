@@ -10,6 +10,9 @@ import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
 import McpFormDrawer from './components/McpFormDrawer';
 import { getServiceTypeMap, SERVICE_TYPE } from './constant';
+import DeleteConfirm from './components/DeleteConfirm';
+import CodeEditor from '@/components/CodeEditor';
+import McpServerCommand from './components/McpServerCommand';
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -23,6 +26,9 @@ const MCPDetailPage: React.FC = () => {
   const [tools, setTools] = useState<any[]>([]);
   const [editToolVisible, setEditToolVisible] = useState(false);
   const [editDrawerVisible, setEditDrawerVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [httpJson, setHttpJson] = useState('');
+  const [sseJson, setSseJson] = useState('');
 
   const fetchMcpData = async () => {
     try {
@@ -45,12 +51,12 @@ const MCPDetailPage: React.FC = () => {
         }
 
         // 获取域名信息
-        // if (res.domains?.[0]) {
-        //   const domainDetailInfo = await getGatewayDomains();
-        //   const domain = domainDetailInfo.find((item: any) => item.name === res.domains[0]);
-        //   const domainProtocol = DOMAIN_PROTOCOL_MAP[domain.protocol];
-        //   setApiGatewayUrl(domainProtocol + '://' + domain.domain);
-        // }
+        if (res.domains?.[0]) {
+          const domainDetailInfo = await getGatewayDomains();
+          const domain = domainDetailInfo.find((item: any) => item.name === res?.domains?.[0]);
+          const domainProtocol = domain?.enableHttps === 'off' ? 'http' : 'https';
+          setApiGatewayUrl(`${domainProtocol}://${domain?.name}`);
+        }
       }
     } catch (error) {
       message.error(t('mcp.detail.fetchError'));
@@ -88,6 +94,14 @@ const MCPDetailPage: React.FC = () => {
     } catch (error) {
       message.error(t('mcp.detail.deleteError'));
     }
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteModalVisible(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalVisible(false);
   };
 
   const jumpToDomainDetail = (domain: string) => {
@@ -130,6 +144,35 @@ const MCPDetailPage: React.FC = () => {
     }
   };
 
+  const generateJson = (type: 'http' | 'sse') => {
+    if (type === 'http') {
+      return `{
+  "mcpServers": {
+    "${name}": {
+      "url": "${apiGatewayUrl}/mcp-servers/${name}"
+    }
+  }
+}`;
+    }
+    if (type === 'sse') {
+      return `{
+  "mcpServers": {
+    "${name}": {
+      "url": "${apiGatewayUrl}/mcp-servers/${name}/sse"
+    }
+  }
+}`;
+    }
+    return '{}';
+  };
+
+  useEffect(() => {
+    if (apiGatewayUrl && name) {
+      setHttpJson(generateJson('http'));
+      setSseJson(generateJson('sse'));
+    }
+  }, [apiGatewayUrl, name]);
+
   return (
     <PageContainer
       header={{
@@ -140,16 +183,9 @@ const MCPDetailPage: React.FC = () => {
             <Button type="primary" icon={<EditOutlined />} onClick={() => setEditDrawerVisible(true)}>
               {t('mcp.detail.edit')}
             </Button>
-            <Popconfirm
-              title={t('mcp.detail.deleteConfirm')}
-              onConfirm={handleDelete}
-              okText={t('misc.confirm')}
-              cancelText={t('misc.cancel')}
-            >
-              <Button danger icon={<DeleteOutlined />}>
-                {t('mcp.detail.delete')}
-              </Button>
-            </Popconfirm>
+            <Button danger icon={<DeleteOutlined />} onClick={handleDeleteClick}>
+              {t('mcp.detail.delete')}
+            </Button>
           </Space>
         ),
       }}
@@ -162,7 +198,7 @@ const MCPDetailPage: React.FC = () => {
               <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
               <Descriptions.Item label={t('mcp.form.domains')}>
                 {mcpData?.domains?.map((domain: string) => (
-                  <a key={domain} onClick={() => jumpToDomainDetail(domain)}>
+                  <a key={domain}>
                     {domain}
                   </a>
                 ))}
@@ -172,7 +208,7 @@ const MCPDetailPage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label={t('mcp.form.upstreamService')}>
                 {mcpData?.services?.map((service: any) => (
-                  <a key={service.name} onClick={() => jumpToServiceDetail(service)}>
+                  <a key={service.name}>
                     {service.name}
                   </a>
                 ))}
@@ -277,16 +313,48 @@ const MCPDetailPage: React.FC = () => {
               </Space>
               <Tabs defaultActiveKey="sse" style={{ marginTop: 16 }}>
                 <Tabs.TabPane tab={t('mcp.detail.streamableHttp')} key="http">
-                  {t('mcp.detail.streamableHttpCommand')}
+                  <CodeEditor
+                    defaultValue={httpJson}
+                    language="json"
+                    height="200px"
+                    readOnly
+                    extraOptions={{
+                      scrollbar: {
+                        vertical: 'hidden',
+                        horizontal: 'hidden',
+                        handleMouseWheel: false,
+                        alwaysConsumeMouseWheel: false,
+                      },
+                    }}
+                  />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={t('mcp.detail.sse')} key="sse">
-                  {t('mcp.detail.sseCommand')}
+                  <CodeEditor
+                    defaultValue={sseJson}
+                    language="json"
+                    height="200px"
+                    readOnly
+                    extraOptions={{
+                      scrollbar: {
+                        vertical: 'hidden',
+                        horizontal: 'hidden',
+                        handleMouseWheel: false,
+                        alwaysConsumeMouseWheel: false,
+                      },
+                    }}
+                  />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={t('mcp.detail.streamableHttpCommand')} key="httpCmd">
-                  {t('mcp.detail.streamableHttpCommand')}
+                  <McpServerCommand
+                    mode="streamableHttp"
+                    config={httpJson}
+                  />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={t('mcp.detail.sseCommand')} key="sseCmd">
-                  {t('mcp.detail.sseCommand')}
+                  <McpServerCommand
+                    mode="sse"
+                    config={sseJson}
+                  />
                 </Tabs.TabPane>
               </Tabs>
             </div>
@@ -300,7 +368,7 @@ const MCPDetailPage: React.FC = () => {
                   <div style={{ marginTop: 4 }}>
                     {t('mcp.detail.public')}:
                     <Space>
-                      <span>{apiGatewayUrl}</span>
+                      <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
                       <Button
                         type="link"
                         onClick={() => {
@@ -327,7 +395,7 @@ const MCPDetailPage: React.FC = () => {
         </Tabs.TabPane>
 
         <Tabs.TabPane tab={t('mcp.detail.consumerAuth')} key="auth">
-          <Card title={t('mcp.detail.consumerAuth')} bordered>
+          <Card title={t('mcp.detail.configInfo')} bordered>
             <Space align="center">
               <span>{t('mcp.detail.authStatus')}</span>
               <Switch checked={authEnabled} onChange={handleAuthChange} />
@@ -361,6 +429,14 @@ const MCPDetailPage: React.FC = () => {
         record={mcpData}
         onClose={() => setEditDrawerVisible(false)}
         onSubmit={handleEditSubmit}
+      />
+
+      <DeleteConfirm
+        open={deleteModalVisible}
+        onOk={handleDelete}
+        onCancel={handleDeleteCancel}
+        recordName={name}
+        i18nKey="mcp.detail.deleteConfirm"
       />
     </PageContainer>
   );

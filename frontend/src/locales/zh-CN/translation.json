@@ -742,7 +742,23 @@
       "dnsDesc": "需要在 DNS 服务中将业务域名通过 CNAME 记录指向网关访问入口地址，以实现流量转发。",
       "gatewayAddress": "网关访问地址：",
       "public": "公网",
-      "commandDesc": "请运行以下命令以安装 VS Code Mcp Server："
+      "commandDesc": "请运行以下命令以安装 VS Code Mcp Server：",
+      "authStatus": "MCP消费者认证-启用状态：",
+      "consumerName": "消费者名称",
+      "consumerApiKey": "认证方式",
+      "consumerStatus": "状态",
+      "addConsumer": "添加消费者",
+      "configInfo": "配置信息",
+      "mcpConsumerAuthStatus": "MCP消费者认证-启用状态",
+      "consumers": "消费者",
+      "authorize": "授权",
+      "consumerDescription": "描述",
+      "authMethod": "认证方式",
+      "status": "状态",
+      "consumerStatusACTIVE": "启用",
+      "consumerStatusINACTIVE": "停用",
+      "consumerNameSearchPlaceholder": "请输入消费者名称搜索",
+      "noData": "暂无数据"
     }
   }
 }

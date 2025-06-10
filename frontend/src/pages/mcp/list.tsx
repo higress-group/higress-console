@@ -8,6 +8,7 @@ import { createOrUpdateMcpServer, listMcpServers } from '@/services/mcp';
 import McpFormDrawer from './components/McpFormDrawer';
 import { history } from 'ice';
 import { getServiceTypeMap, SERVICE_TYPES } from './constant';
+import DeleteConfirm from './components/DeleteConfirm';
 
 const MCPListPage: React.FC = () => {
   const { t } = useTranslation();
@@ -180,25 +181,14 @@ const MCPListPage: React.FC = () => {
         onClose={closeDrawer}
         onSubmit={handleDrawerSubmit}
       />
-      <Modal
-        title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
+      <DeleteConfirm
         open={openModal}
         onOk={() => handleDelete(currentRecord)}
-        confirmLoading={confirmLoading}
         onCancel={handleModalCancel}
-        cancelText={t('misc.cancel')}
-        okText={t('misc.confirm')}
-      >
-        <p>
-          <Trans t={t} i18nKey="mcp.deleteConfirm">
-            确定删除
-            <span style={{ color: '#0070cc' }}>
-              {{ currentMcpServerName: (currentRecord && currentRecord.name) || '' }}
-            </span>
-            吗？
-          </Trans>
-        </p>
-      </Modal>
+        confirmLoading={confirmLoading}
+        recordName={currentRecord?.name}
+        i18nKey="mcp.deleteConfirm"
+      />
     </PageContainer>
   );
 };

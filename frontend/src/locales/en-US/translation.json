@@ -728,6 +728,21 @@
     "dnsDesc": "You need to configure a CNAME record in your DNS service to point your business domain to the gateway entry address for traffic forwarding.",
     "gatewayAddress": "Gateway Entry Address:",
     "public": "Public",
-    "commandDesc": "Please run the following command to install VS Code Mcp Server:"
+    "commandDesc": "Please run the following command to install VS Code Mcp Server:",
+    "detail": {
+      "configInfo": "Configuration Info",
+      "mcpConsumerAuthStatus": "MCP Consumer Auth Status",
+      "consumers": "Consumers",
+      "authorize": "Authorize",
+      "consumerName": "Consumer Name",
+      "consumerDescription": "Description",
+      "consumerApiKey": "API Key",
+      "authMethod": "Auth Method",
+      "status": "Status",
+      "consumerStatusACTIVE": "Active",
+      "consumerStatusINACTIVE": "Inactive",
+      "consumerNameSearchPlaceholder": "Please enter consumer name to search",
+      "noData": "No Data"
+    }
   }
 }

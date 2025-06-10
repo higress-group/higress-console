@@ -3,11 +3,25 @@ import { Table, Button, Space, message, Popconfirm } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { listMcpConsumers, removeMcpConsumers } from '@/services/mcp';
+import HighSearch from '@/components/HighSearch';
 
 const ConsumerTable: React.FC = () => {
   const { t } = useTranslation();
   const [consumers, setConsumers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const searchParamsList = [
+    {
+      label: t('mcp.detail.consumerName'),
+      name: 'name',
+      placeholder: t('mcp.detail.consumerNameSearchPlaceholder'),
+    },
+    // {
+    //   label: t('mcp.detail.consumerApiKey'),
+    //   name: 'apiKey',
+    //   placeholder: t('mcp.detail.consumerApiKeySearchPlaceholder'),
+    // },
+  ];
 
   const fetchConsumers = async () => {
     setLoading(true);
@@ -44,18 +58,18 @@ const ConsumerTable: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
     },
-    {
-      title: t('mcp.detail.consumerDescription'),
-      dataIndex: 'description',
-      key: 'description',
-    },
+    // {
+    //   title: t('mcp.detail.consumerDescription'),
+    //   dataIndex: 'description',
+    //   key: 'description',
+    // },
     {
       title: t('mcp.detail.consumerApiKey'),
       dataIndex: 'apiKey',
       key: 'apiKey',
     },
     {
-      title: t('mcp.detail.consumerStatus'),
+      title: t('mcp.detail.status'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
@@ -86,8 +100,9 @@ const ConsumerTable: React.FC = () => {
     <div>
       <div style={{ marginBottom: 16 }}>
         <Button type="primary" icon={<PlusOutlined />}>
-          {t('mcp.detail.addConsumer')}
+          {t('mcp.detail.authorize')}
         </Button>
+        <HighSearch searchParamsList={searchParamsList} />
       </div>
       <Table
         columns={columns}
@@ -95,6 +110,7 @@ const ConsumerTable: React.FC = () => {
         loading={loading}
         rowKey="id"
         pagination={false}
+        locale={{ emptyText: t('mcp.detail.noData') }}
       />
     </div>
   );
