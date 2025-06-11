@@ -1,7 +1,7 @@
 .high-search {
   position: relative;
   margin-bottom: 16px;
-  display: inline-block;
+  display: flex;
   margin-left: 16px !important;
 
   &__left {
@@ -10,7 +10,7 @@
   }
 
   &__right {
-    width: 600px;
+    flex: 1 !important;
   }
 
   &__tags {

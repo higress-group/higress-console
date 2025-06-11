@@ -18,6 +18,8 @@ interface HighSearchProps {
   onSearchNameChange: (name: string) => void;
   onSearchValueChange: (value: string) => void;
   onSearch: () => void;
+  width?: string;
+  size?: 'small' | 'middle' | 'large';
 }
 
 const HighSearch: React.FC<HighSearchProps> = ({
@@ -27,6 +29,8 @@ const HighSearch: React.FC<HighSearchProps> = ({
   onSearchNameChange,
   onSearchValueChange,
   onSearch,
+  width,
+  size,
 }) => {
   const [form] = Form.useForm();
 
@@ -36,7 +40,7 @@ const HighSearch: React.FC<HighSearchProps> = ({
 
   return (
     <div className="high-search">
-      <Form form={form} layout="inline">
+      <Form form={form} layout="inline" size={size} style={{ width }}>
         <Form.Item className="high-search__left">
           <Select
             value={activeSearchName}

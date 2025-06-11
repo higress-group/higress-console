@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Drawer, Form, Input, Button, Space, Select, Switch, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, DB_TYPE_OPTIONS, REG_DSN_STRING } from '../constant';
+import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
-import DatabaseConfig from './DatabaseConfig';
+import DatabaseConfig, { DB_FIXED_FIELDS } from './DatabaseConfig';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -19,7 +19,6 @@ interface McpFormDrawerProps {
 const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, onClose, onSubmit }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
-  const [serviceType, setServiceType] = useState(record?.type || '');
   const [domainList, setDomainList] = useState<string[]>([]);
   const [domainLoading, setDomainLoading] = useState(false);
   const [backendServiceList, setBackendServiceList] = useState<any[]>([]);
@@ -27,16 +26,19 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
   const [originalBackendServiceList, setOriginalBackendServiceList] = useState<any[]>([]);
   const consumerAuth = useWatch('consumerAuth', form);
   const selectedService = useWatch('service', form);
+  const serviceType = useWatch('type', form);
 
   // 计算 dbUrl 和 dbPort
-  const { dbUrl, dbPort } = useMemo(() => {
-    if (!selectedService) return { dbUrl: '-', dbPort: '-' };
+  useEffect(() => {
+    if (!selectedService) return;
     const serviceName = selectedService.split(':')[0];
     const service = originalBackendServiceList.find((item) => item.name === serviceName);
-    return {
-      dbUrl: service?.endpoints?.[0] || '-',
-      dbPort: service?.port || '-',
-    };
+    if (service) {
+      form.setFieldsValue({
+        [DB_FIXED_FIELDS[0].id]: service.endpoints?.[0] || '-',
+        [DB_FIXED_FIELDS[1].id]: service.port || '-',
+      });
+    }
   }, [originalBackendServiceList, selectedService]);
 
   // 监听 record 变化，重置表单
@@ -44,7 +46,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
     if (visible) {
       if (mode === 'create') {
         form.resetFields();
-        setServiceType('');
       } else {
         form.setFieldsValue({
           ...record,
@@ -52,7 +53,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
           consumerAuth: record?.consumerAuthInfo?.enable || false,
           domains: record?.domains?.[0],
         });
-        setServiceType(record?.type || '');
       }
     }
   }, [visible, mode, record, form]);
@@ -155,7 +155,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
       <Form
         form={form}
         layout="vertical"
-        onValuesChange={(_, allValues) => setServiceType(allValues.type)}
         onFinish={handleFinish}
       >
         <Form.Item
@@ -205,7 +204,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
               label: t(`${serviceTypeMap[v]}`),
               value: v,
             }))}
-            onChange={(v) => setServiceType(v)}
             disabled={mode === 'edit'}
             placeholder={t('mcp.form.typeRequired')!}
           />
@@ -243,15 +241,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
               },
             ]}
           >
-            <DatabaseConfig
-              dsn={form.getFieldValue('dsn')}
-              dbType={form.getFieldValue('dbType')}
-              dbUrl={dbUrl}
-              dbPort={dbPort}
-              onChange={(dsn, dbType) => {
-                form.setFieldsValue({ dsn, dbType });
-              }}
-            />
+            <DatabaseConfig />
           </Form.Item>
         )}
 

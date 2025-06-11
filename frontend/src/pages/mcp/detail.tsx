@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'ice';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -193,187 +194,129 @@ const MCPDetailPage: React.FC = () => {
         ),
       }}
     >
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <Tabs.TabPane tab={t('mcp.detail.basicInfo')} key="config">
-          <Card title={t('mcp.detail.basicInfo')} bordered>
-            <Descriptions column={2}>
-              <Descriptions.Item label={t('mcp.form.name')}>{mcpData?.name}</Descriptions.Item>
-              <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
-              <Descriptions.Item label={t('mcp.form.domains')}>
-                {mcpData?.domains?.map((domain: string) => (
-                  <a key={domain}>
-                    {domain}
-                  </a>
-                ))}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('mcp.form.type')}>
-                {t(`${serviceTypeMap[mcpData?.type]}`)}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('mcp.form.upstreamService')}>
-                {mcpData?.services?.map((service: any) => (
-                  <a key={service.name}>
-                    {service.name}
-                  </a>
-                ))}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'config',
+            label: t('mcp.detail.basicInfo'),
+            children: (
+              <>
+                <Card title={t('mcp.detail.basicInfo')} bordered>
+                  <Descriptions column={2}>
+                    <Descriptions.Item label={t('mcp.form.name')}>{mcpData?.name}</Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.form.domains')}>
+                      {mcpData?.domains?.map((domain: string) => (
+                        <a key={domain}>
+                          {domain}
+                        </a>
+                      ))}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.form.type')}>
+                      {t(`${serviceTypeMap[mcpData?.type]}`)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.form.upstreamService')}>
+                      {mcpData?.services?.map((service: any) => (
+                        <a key={service.name}>
+                          {service.name}
+                        </a>
+                      ))}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
 
-          <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
-            <Descriptions column={2}>
-              <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                {`${apiGatewayUrl}/mcp-servers/${name}/sse`}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                {`${apiGatewayUrl}/mcp-servers/${name}`}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab={t('mcp.detail.tools')} key="tools">
-          <Card
-            title={
-              <Space>
-                <span>{t('mcp.detail.tools')}</span>
-                <span>({tools.length})</span>
-              </Space>
-            }
-            bordered
-            extra={
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setEditToolVisible(true)}
-                disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
-              >
-                {t('mcp.detail.addTool')}
-              </Button>
-            }
-          >
-            {tools.length === 0 ? (
-              <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
-                <Button
-                  type="primary"
-                  onClick={() => setEditToolVisible(true)}
-                  disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
-                >
-                  {t('mcp.detail.addTool')}
-                </Button>
-              </Empty>
-            ) : (
-              <Table
-                dataSource={tools}
-                columns={[
-                  {
-                    title: t('mcp.detail.toolName'),
-                    dataIndex: 'name',
-                    key: 'name',
-                  },
-                  {
-                    title: t('mcp.detail.toolDescription'),
-                    dataIndex: 'description',
-                    key: 'description',
-                  },
-                  {
-                    title: t('mcp.detail.toolParams'),
-                    dataIndex: 'args',
-                    key: 'args',
-                    render: (args: any[]) => (
-                      <>
-                        {args?.length ? (
-                          args.map((arg) => (
-                            <div key={arg.name}>
-                              <b>{arg.name}</b>: {arg.description}
-                            </div>
-                          ))
-                        ) : (
-                          <span>{t('mcp.detail.noParams')}</span>
-                        )}
-                      </>
-                    ),
-                  },
-                ]}
-                pagination={false}
-              />
-            )}
-          </Card>
-
-          <Card title={t('mcp.detail.connectMcp')} bordered style={{ marginTop: 16 }}>
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step1')}</div>
-              <Space>
-                <span>{apiGatewayUrl}</span>
-                <Button
-                  type="link"
-                  onClick={() => {
-                    navigator.clipboard.writeText(apiGatewayUrl);
-                    message.success(t('mcp.detail.copySuccess'));
-                  }}
-                >
-                  {t('mcp.detail.copy')}
-                </Button>
-              </Space>
-              <Tabs defaultActiveKey="sse" style={{ marginTop: 16 }}>
-                <Tabs.TabPane tab={t('mcp.detail.streamableHttp')} key="http">
-                  <CodeEditor
-                    defaultValue={httpJson}
-                    language="json"
-                    height="200px"
-                    readOnly
-                    extraOptions={{
-                      scrollbar: {
-                        vertical: 'hidden',
-                        horizontal: 'hidden',
-                        handleMouseWheel: false,
-                        alwaysConsumeMouseWheel: false,
-                      },
-                      readonly: true,
-                    }}
-                  />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={t('mcp.detail.sse')} key="sse">
-                  <CodeEditor
-                    defaultValue={sseJson}
-                    language="json"
-                    height="200px"
-                    readOnly
-                    extraOptions={{
-                      scrollbar: {
-                        vertical: 'hidden',
-                        horizontal: 'hidden',
-                        handleMouseWheel: false,
-                        alwaysConsumeMouseWheel: false,
-                      },
-                      readonly: true,
-                    }}
-                  />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={t('mcp.detail.streamableHttpCommand')} key="httpCmd">
-                  <McpServerCommand
-                    mode="streamableHttp"
-                    config={httpJson}
-                  />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={t('mcp.detail.sseCommand')} key="sseCmd">
-                  <McpServerCommand
-                    mode="sse"
-                    config={sseJson}
-                  />
-                </Tabs.TabPane>
-              </Tabs>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
-              <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
-                <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
-                <div>
-                  <div>{t('mcp.detail.gatewayAddress')}</div>
-                  <div style={{ marginTop: 4 }}>
-                    {t('mcp.detail.public')}:
+                <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
+                  <Descriptions column={2}>
+                    <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
+                      {`${apiGatewayUrl}/mcp-servers/${name}/sse`}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
+                      {`${apiGatewayUrl}/mcp-servers/${name}`}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </>
+            ),
+          },
+          {
+            key: 'tools',
+            label: t('mcp.detail.tools'),
+            children: (
+              <>
+                <Card
+                  title={
                     <Space>
-                      <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
+                      <span>{t('mcp.detail.tools')}</span>
+                      <span>({tools.length})</span>
+                    </Space>
+                  }
+                  bordered
+                  extra={
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => setEditToolVisible(true)}
+                      disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
+                    >
+                      {t('mcp.detail.addTool')}
+                    </Button>
+                  }
+                >
+                  {tools.length === 0 ? (
+                    <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
+                      <Button
+                        type="primary"
+                        onClick={() => setEditToolVisible(true)}
+                        disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
+                      >
+                        {t('mcp.detail.addTool')}
+                      </Button>
+                    </Empty>
+                  ) : (
+                    <Table
+                      dataSource={tools}
+                      columns={[
+                        {
+                          title: t('mcp.detail.toolName'),
+                          dataIndex: 'name',
+                          key: 'name',
+                        },
+                        {
+                          title: t('mcp.detail.toolDescription'),
+                          dataIndex: 'description',
+                          key: 'description',
+                        },
+                        {
+                          title: t('mcp.detail.toolParams'),
+                          dataIndex: 'args',
+                          key: 'args',
+                          render: (args: any[]) => (
+                            <>
+                              {args?.length ? (
+                                args.map((arg) => (
+                                  <div key={arg.name}>
+                                    <b>{arg.name}</b>: {arg.description}
+                                  </div>
+                                ))
+                              ) : (
+                                <span>{t('mcp.detail.noParams')}</span>
+                              )}
+                            </>
+                          ),
+                        },
+                      ]}
+                      pagination={false}
+                    />
+                  )}
+                </Card>
+
+                <Card title={t('mcp.detail.connectMcp')} bordered style={{ marginTop: 16 }}>
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step1')}</div>
+                    <Space>
+                      <span>{apiGatewayUrl}</span>
                       <Button
                         type="link"
                         onClick={() => {
@@ -384,45 +327,147 @@ const MCPDetailPage: React.FC = () => {
                         {t('mcp.detail.copy')}
                       </Button>
                     </Space>
+                    <Tabs
+                      defaultActiveKey="sse"
+                      style={{ marginTop: 16 }}
+                      items={[
+                        {
+                          key: 'http',
+                          label: t('mcp.detail.streamableHttp'),
+                          children: (
+                            <CodeEditor
+                              defaultValue={httpJson}
+                              language="json"
+                              height="200px"
+                              readOnly
+                              extraOptions={{
+                                scrollbar: {
+                                  vertical: 'hidden',
+                                  horizontal: 'hidden',
+                                  handleMouseWheel: false,
+                                  alwaysConsumeMouseWheel: false,
+                                },
+                                readonly: true,
+                              }}
+                            />
+                          ),
+                        },
+                        {
+                          key: 'sse',
+                          label: t('mcp.detail.sse'),
+                          children: (
+                            <CodeEditor
+                              defaultValue={sseJson}
+                              language="json"
+                              height="200px"
+                              readOnly
+                              extraOptions={{
+                                scrollbar: {
+                                  vertical: 'hidden',
+                                  horizontal: 'hidden',
+                                  handleMouseWheel: false,
+                                  alwaysConsumeMouseWheel: false,
+                                },
+                                readonly: true,
+                              }}
+                            />
+                          ),
+                        },
+                        {
+                          key: 'httpCmd',
+                          label: t('mcp.detail.streamableHttpCommand'),
+                          children: (
+                            <McpServerCommand
+                              mode="streamableHttp"
+                              config={httpJson}
+                            />
+                          ),
+                        },
+                        {
+                          key: 'sseCmd',
+                          label: t('mcp.detail.sseCommand'),
+                          children: (
+                            <McpServerCommand
+                              mode="sse"
+                              config={sseJson}
+                            />
+                          ),
+                        },
+                      ]}
+                    />
                   </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </Tabs.TabPane>
 
-        <Tabs.TabPane tab={t('mcp.detail.resource')} key="resource" disabled>
-          {/* TODO: Implement resource tab */}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab={t('mcp.detail.prompt')} key="prompt" disabled>
-          {/* TODO: Implement prompt tab */}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab={t('mcp.detail.consumerAuth')} key="auth">
-          <Card title={t('mcp.detail.configInfo')} bordered>
-            <Space align="center">
-              <span>{t('mcp.detail.authStatus')}</span>
-              <Switch checked={authEnabled} onChange={handleAuthChange} />
-              {authEnabled && (
-                <span>
-                  {t('mcp.detail.authType')}
-                  <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
-                    <QuestionCircleOutlined style={{ marginLeft: 8, color: '#888' }} />
-                  </Tooltip>
-                </span>
-              )}
-            </Space>
-          </Card>
-          <Card title={t('mcp.detail.consumers')} bordered style={{ marginTop: 16 }}>
-            <ConsumerTable ref={consumerTableRef}>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddConsumerAuthVisible(true)}>
-                {t('mcp.detail.authorize')}
-              </Button>
-            </ConsumerTable>
-          </Card>
-        </Tabs.TabPane>
-      </Tabs>
+                  <div>
+                    <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
+                    <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
+                      <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
+                      <div>
+                        <div>{t('mcp.detail.gatewayAddress')}</div>
+                        <div style={{ marginTop: 4 }}>
+                          {t('mcp.detail.public')}:
+                          <Space>
+                            <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
+                            <Button
+                              type="link"
+                              onClick={() => {
+                                navigator.clipboard.writeText(apiGatewayUrl);
+                                message.success(t('mcp.detail.copySuccess'));
+                              }}
+                            >
+                              {t('mcp.detail.copy')}
+                            </Button>
+                          </Space>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </>
+            ),
+          },
+          {
+            key: 'resource',
+            label: t('mcp.detail.resource'),
+            disabled: true,
+            children: null,
+          },
+          {
+            key: 'prompt',
+            label: t('mcp.detail.prompt'),
+            disabled: true,
+            children: null,
+          },
+          {
+            key: 'auth',
+            label: t('mcp.detail.consumerAuth'),
+            children: (
+              <>
+                <Card title={t('mcp.detail.configInfo')} bordered>
+                  <Space align="center">
+                    <span>{t('mcp.detail.authStatus')}</span>
+                    <Switch checked={authEnabled} onChange={handleAuthChange} />
+                    {authEnabled && (
+                      <span>
+                        {t('mcp.detail.authType')}
+                        <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
+                          <QuestionCircleOutlined style={{ marginLeft: 8, color: '#888' }} />
+                        </Tooltip>
+                      </span>
+                    )}
+                  </Space>
+                </Card>
+                <Card title={t('mcp.detail.consumers')} bordered style={{ marginTop: 16 }}>
+                  <ConsumerTable ref={consumerTableRef}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddConsumerAuthVisible(true)}>
+                      {t('mcp.detail.authorize')}
+                    </Button>
+                  </ConsumerTable>
+                </Card>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <EditToolDrawer
         visible={editToolVisible}

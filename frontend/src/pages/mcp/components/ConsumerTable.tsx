@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Table, Button, Space, message } from 'antd';
+import { Table, Button, Space, message, Input, Form, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { listMcpConsumers, removeMcpConsumers } from '@/services/mcp';
@@ -18,18 +18,7 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
   const [currentRecord, setCurrentRecord] = useState<any>(null);
   const [addConsumerAuthVisible, setAddConsumerAuthVisible] = useState(false);
 
-  const searchParamsList = [
-    {
-      label: t('mcp.detail.consumerName'),
-      name: 'consumerName',
-      placeholder: t('mcp.detail.consumerNameSearchPlaceholder'),
-    },
-    // {
-    //   label: t('mcp.detail.consumerApiKey'),
-    //   name: 'apiKey',
-    //   placeholder: t('mcp.detail.consumerApiKeySearchPlaceholder'),
-    // },
-  ];
+  const [form] = Form.useForm();
 
   const fetchConsumers = async () => {
     setLoading(true);
@@ -113,17 +102,20 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        {children}
-        <HighSearch
-          searchParamsList={searchParamsList}
-          activeSearchName={'consumerName'}
-          activeSearchValue={''}
-          onSearchNameChange={() => {}}
-          onSearchValueChange={() => {}}
-          onSearch={() => {}}
-        />
-      </div>
+      <Form
+        form={form}
+      >
+        <Row gutter={24}>
+          <Col span={3}>
+            {children}
+          </Col>
+          <Col span={12}>
+            <Form.Item name="consumerName" label={t('mcp.detail.consumerName')}>
+              <Input allowClear placeholder={t('mcp.detail.consumerNameSearchPlaceholder') as string} />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
       <Table
         columns={columns}
         dataSource={consumers}
