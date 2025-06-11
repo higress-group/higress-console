@@ -115,6 +115,17 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     }
 
     /**
+     * 1. 鉴权相关配置
+     * 2. 路由配置
+     * 3. consumer auth
+     * 4. mcp server config
+     *
+     *  buildMcpServer -> mcp server info
+     *  buildRoute -> route info
+     *  buildAuthentication -> auth info
+     *  buildAuthorization -> authorization info
+     *
+     *
      * @param mcpInstance
      * @return
      */
@@ -374,7 +385,6 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
 
     private void addOrUpdateMatchRulePath(McpServerConfigMap.MatchList matchItem) {
         updateMatchList(matchList -> {
-            // FIXME-lvshui 2025/5/26: unique key too simple
             matchList.removeIf(rule -> matchItem.getMatchRulePath().equals(rule.get(MATCH_RULE_PATH_KEY)));
             try {
                 String matchItemString = YAML.writeValueAsString(matchItem);
@@ -439,7 +449,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         return keyAuthInstance;
     }
 
-    private Route buildRouteRequest(McpServer mcpInstance) {
+    protected Route buildRouteRequest(McpServer mcpInstance) {
         Route route = Route.builder().name(mcpInstance.getName()).build();
         route.setServices(mcpInstance.getServices());
         route.setPath(RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.name())

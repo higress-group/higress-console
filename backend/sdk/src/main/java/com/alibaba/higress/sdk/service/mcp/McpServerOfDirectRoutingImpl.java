@@ -52,7 +52,6 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
 
     @Override
     public McpServer query(String name) {
-        // TODO-lvshui 2025/5/27: query condition need add labels
         Route route = routeService.query(name);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
@@ -92,7 +91,7 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
 
     @Override
     protected void saveMcpServerConfig(McpServer mcpInstance) {
-        // nothing to do!
+       //update route annotation
     }
 
     @Override
