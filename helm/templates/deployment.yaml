@@ -72,7 +72,7 @@ spec:
               value: "{{ .Values.swagger.enabled }}"
             {{- if and .Values.global.enablePluginServer (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN"))}}
             - name: HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN
-              value: "{{ .Values.pluginServer.UrlPattern }}"
+              value: "{{ .Values.pluginServer.urlPattern }}"
             {{- end }}
             {{- if .Values.podEnvs }}
             {{- range $key, $val := .Values.podEnvs }}

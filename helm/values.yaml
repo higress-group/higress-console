@@ -129,4 +129,4 @@ pvc:
   __placeholder__: true
 
 pluginServer:
-  UrlPattern: "http://higress-plugin-server.higress-system.svc/plugins/${name}/${version}/plugin.wasm"
+  urlPattern: "http://higress-plugin-server.higress-system.svc/plugins/${name}/${version}/plugin.wasm"
