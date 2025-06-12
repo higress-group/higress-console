@@ -177,7 +177,7 @@ const MCPListPage: React.FC = () => {
       <McpFormDrawer
         visible={drawerVisible}
         mode={drawerMode}
-        record={editingRecord}
+        name={editingRecord?.name}
         onClose={closeDrawer}
         onSubmit={handleDrawerSubmit}
       />

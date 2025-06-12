@@ -796,7 +796,20 @@
       "updateSuccess": "更新成功",
       "updateError": "更新失败",
       "toolUpdateSuccess": "工具更新成功",
-      "toolUpdateError": "工具更新失败"
+      "toolUpdateError": "工具更新失败",
+      "swaggerRequired": "请填写Swagger内容",
+      "swaggerParseError": "Swagger解析失败，请检查格式",
+      "swaggerParseSuccess": "Swagger解析成功，已合并到配置",
+      "swaggerModeTitle": "Swagger模式",
+      "swaggerModeDesc": "通过Swagger/OpenAPI文档快速生成工具配置，适合API批量导入。",
+      "yamlModeTitle": "YAML模式",
+      "yamlModeDesc": "直接编辑完整的YAML配置，适合手动微调和高级用法。",
+      "yamlEditTitle": "编辑YAML配置",
+      "swaggerEditTitle": "Swagger内容编辑",
+      "swaggerParseBtn": "解析Swagger并合并",
+      "swaggerPreviewTitle": "Swagger解析结果预览",
+      "swaggerPreviewDesc": "解析后的工具配置（只读）",
+      "yamlEditDesc": "最终生效的YAML配置，可直接编辑。"
     }
   }
 }

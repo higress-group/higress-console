@@ -7,16 +7,17 @@ import { getGatewayServices } from '@/services/service';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
 import DatabaseConfig, { DB_FIXED_FIELDS } from './DatabaseConfig';
+import { getMcpServer } from '@/services/mcp';
 
 interface McpFormDrawerProps {
   visible: boolean;
   mode: 'create' | 'edit';
-  record?: any;
+  name: string;
   onClose: () => void;
   onSubmit: (values: any) => void;
 }
 
-const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, onClose, onSubmit }) => {
+const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onClose, onSubmit }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [domainList, setDomainList] = useState<string[]>([]);
@@ -27,6 +28,16 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
   const consumerAuth = useWatch('consumerAuth', form);
   const selectedService = useWatch('service', form);
   const serviceType = useWatch('type', form);
+  const [record, setRecord] = useState<any>(null);
+
+
+  useEffect(() => {
+    if (visible && mode === 'edit') {
+      getMcpServer(name).then((res) => {
+        setRecord(res);
+      });
+    }
+  }, [visible]);
 
   // 计算 dbUrl 和 dbPort
   useEffect(() => {
@@ -102,7 +113,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
 
   // 表单提交
   const handleFinish = (values: any) => {
-    const service = originalBackendServiceList.find((item) => item.name === values.service);
+    const serviceName = values.service.split(':')[0];
+    const service = originalBackendServiceList.find((item) => item.name === serviceName);
     if (!service) {
       return;
     }
@@ -112,9 +124,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, record, on
       services: [
         {
           name: service.name,
-          port: service.nodes[0].port,
+          port: service.port,
           version: '1.0',
-          weight: service.nodes[0].weight,
+          weight: 100,
         },
       ],
       ...(values.type === SERVICE_TYPE.DB

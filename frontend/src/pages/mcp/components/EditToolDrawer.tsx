@@ -1,167 +1,263 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Form, Input, Button, Space, message } from 'antd';
+import { Drawer, Button, Space, message, Card } from 'antd';
 import { useTranslation } from 'react-i18next';
 import MonacoEditor from '@monaco-editor/react';
+import StepTitle from './StepTitle';
+import YamlUtil from './yamlUtil';
 
 interface EditToolDrawerProps {
   visible: boolean;
   serviceType: string;
   rawConfigurations?: string;
   onClose: () => void;
-  onSubmit: (rawConfigurations: string, securitySchemes: any) => void;
+  onSubmit: (rawConfigurations: string) => void;
 }
+
+// 模拟 swaggerToMcpConfig API
+const swaggerToMcpConfig = async (params: { content: string; gwInstanceId?: string }) => {
+  // 这里直接返回原内容，实际应为后端解析
+  return { data: params.content };
+};
 
 const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
   visible,
   serviceType,
-  rawConfigurations,
+  rawConfigurations = '',
   onClose,
   onSubmit,
 }) => {
   const { t } = useTranslation();
-  const [form] = Form.useForm();
-  const [editorValue, setEditorValue] = useState('');
+  const [mode, setMode] = useState<'swagger' | 'yaml'>('swagger');
+  const [localRawConfigurations, setLocalRawConfigurations] = useState('');
+  const [swaggerContentStr, setSwaggerContentStr] = useState('');
+  const [swaggerToolsContent, setSwaggerToolsContent] = useState('');
 
+  // 初始化/重置
   useEffect(() => {
-    if (visible && rawConfigurations) {
-      try {
-        const config = JSON.parse(rawConfigurations);
-        setEditorValue(JSON.stringify(config, null, 2));
-      } catch (error) {
-        // console.error('Failed to parse configurations:', error);
-        setEditorValue('{\n  "tools": []\n}');
-      }
-    } else {
-      setEditorValue('{\n  "tools": []\n}');
+    if (visible) {
+      setLocalRawConfigurations(rawConfigurations);
+      setSwaggerContentStr('');
+      setSwaggerToolsContent('');
+      setMode('swagger');
     }
   }, [visible, rawConfigurations]);
 
-  const handleSubmit = async () => {
+  // 监听 rawConfigurations 变化
+  useEffect(() => {
+    if (rawConfigurations !== localRawConfigurations) {
+      setLocalRawConfigurations(rawConfigurations);
+    }
+    // eslint-disable-next-line
+  }, [rawConfigurations]);
+
+  // 关闭
+  const handleClose = () => {
+    onClose();
+    setLocalRawConfigurations(rawConfigurations);
+    setSwaggerContentStr('');
+    setSwaggerToolsContent('');
+    setMode('swagger');
+  };
+
+  // 提交
+  const handleSubmit = () => {
+    onSubmit(localRawConfigurations);
+  };
+
+  // swagger 解析
+  const handleSwaggerParse = async () => {
+    if (!swaggerContentStr.trim()) {
+      message.warning(t('mcp.detail.swaggerRequired'));
+      return;
+    }
     try {
-      const values = await form.validateFields();
-      const config = JSON.parse(editorValue);
-
-      // 更新工具配置
-      const toolIndex = config.tools.findIndex((tool: any) => tool.name === values.name);
-      const tool = {
-        name: values.name,
-        description: values.description,
-        args: values.args?.map((arg: any) => ({
-          name: arg.name,
-          description: arg.description,
-          required: arg.required,
-        })),
-      };
-
-      if (toolIndex > -1) {
-        config.tools[toolIndex] = tool;
-      } else {
-        config.tools.push(tool);
+      const res = await swaggerToMcpConfig({ content: swaggerContentStr });
+      let swaggerObj = {};
+      try {
+        swaggerObj = YamlUtil.parseYaml(res.data) || {};
+      } catch (e) {
+        message.error(t('mcp.detail.swaggerParseError'));
+        return;
       }
-
-      onSubmit(JSON.stringify(config), {});
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        message.error(t('mcp.detail.invalidJson'));
-      } else {
-        message.error(t('mcp.detail.formError'));
+      setSwaggerToolsContent(YamlUtil.stringifyYaml(swaggerObj));
+      let finalObj = {};
+      try {
+        finalObj = YamlUtil.parseYaml(localRawConfigurations) || {};
+      } catch (e) {
+        finalObj = {};
       }
+      if (!finalObj.server) finalObj.server = {};
+      if (!finalObj.tools) finalObj.tools = [];
+      if (swaggerObj.server) {
+        finalObj.server = {
+          ...finalObj.server,
+          ...swaggerObj.server,
+        };
+      }
+      if (swaggerObj.tools) {
+        finalObj.tools = [...finalObj.tools, ...swaggerObj.tools];
+      }
+      setLocalRawConfigurations(YamlUtil.stringifyYaml(finalObj));
+      message.success(t('mcp.detail.swaggerParseSuccess'));
+    } catch (e) {
+      message.error(String(e));
     }
   };
 
+  // UI
   return (
     <Drawer
       title={t('mcp.detail.editTool')}
-      width={600}
+      width={1000}
       open={visible}
-      onClose={onClose}
+      onClose={handleClose}
+      destroyOnClose
       extra={
         <Space>
-          <Button onClick={onClose}>{t('misc.cancel')}</Button>
+          <Button onClick={handleClose}>
+            {t('misc.cancel')}
+          </Button>
           <Button type="primary" onClick={handleSubmit}>
             {t('misc.confirm')}
           </Button>
         </Space>
       }
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{
-          name: '',
-          description: '',
-          args: [],
-        }}
-      >
-        <Form.Item
-          label={t('mcp.detail.toolName')}
-          name="name"
-          rules={[{ required: true, message: t('mcp.detail.toolNameRequired') }]}
+      {/* 模式切换卡片 */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+        <Card
+          style={{
+            flex: 1,
+            width: 220,
+            border: mode === 'swagger' ? '2px solid #409eff' : '1px solid #e0e0e0',
+            boxShadow: mode === 'swagger' ? '0 2px 8px #409eff22' : undefined,
+            cursor: 'pointer',
+          }}
+          onClick={() => setMode('swagger')}
         >
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label={t('mcp.detail.toolDescription')}
-          name="description"
-          rules={[{ required: true, message: t('mcp.detail.toolDescriptionRequired') }]}
+          <div>{t('mcp.detail.swaggerModeTitle')}</div>
+          <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+            {t('mcp.detail.swaggerModeDesc')}
+          </div>
+        </Card>
+        <Card
+          style={{
+            flex: 1,
+            width: 220,
+            border: mode === 'yaml' ? '2px solid #409eff' : '1px solid #e0e0e0',
+            boxShadow: mode === 'yaml' ? '0 2px 8px #409eff22' : undefined,
+            cursor: 'pointer',
+          }}
+          onClick={() => setMode('yaml')}
         >
-          <Input.TextArea rows={4} />
-        </Form.Item>
-
-        <Form.List name="args">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'name']}
-                    rules={[{ required: true, message: t('mcp.detail.paramNameRequired') }]}
-                  >
-                    <Input placeholder={t('mcp.detail.paramName')} />
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'description']}
-                    rules={[{ required: true, message: t('mcp.detail.paramDescriptionRequired') }]}
-                  >
-                    <Input placeholder={t('mcp.detail.paramDescription')} />
-                  </Form.Item>
-                  <Form.Item {...restField} name={[name, 'required']} valuePropName="checked">
-                    <Input type="checkbox" />
-                  </Form.Item>
-                  <Button type="link" onClick={() => remove(name)}>
-                    {t('misc.delete')}
-                  </Button>
-                </Space>
-              ))}
-              <Form.Item>
-                <Button type="dashed" onClick={() => add()} block>
-                  {t('mcp.detail.addParam')}
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
-
-        <Form.Item label={t('mcp.detail.rawConfig')}>
+          <div>{t('mcp.detail.yamlModeTitle')}</div>
+          <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+            {t('mcp.detail.yamlModeDesc')}
+          </div>
+        </Card>
+      </div>
+      {/* YAML模式 */}
+      {mode === 'yaml' ? (
+        <>
+          <StepTitle>
+            {t('mcp.detail.yamlEditTitle')}
+          </StepTitle>
           <MonacoEditor
-            height="300px"
-            language="json"
-            value={editorValue}
-            onChange={(value) => setEditorValue(value || '')}
+            height="400px"
+            language="yaml"
+            theme="vs-dark"
+            value={localRawConfigurations}
+            onChange={(v) => setLocalRawConfigurations(v || '')}
             options={{
               minimap: { enabled: false },
-              scrollBeyondLastLine: false,
               fontSize: 14,
               lineNumbers: 'on',
               wordWrap: 'on',
               automaticLayout: true,
             }}
+            style={{ marginBottom: 10 }}
           />
-        </Form.Item>
-      </Form>
+        </>
+      ) : (
+        <>
+          <div style={{ marginBottom: 24 }}>
+            <StepTitle>
+              {t('mcp.detail.swaggerEditTitle')}
+            </StepTitle>
+            <MonacoEditor
+              height="400px"
+              language="yaml"
+              theme="vs-dark"
+              value={swaggerContentStr}
+              onChange={(v) => setSwaggerContentStr(v || '')}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                wordWrap: 'on',
+                automaticLayout: true,
+              }}
+            />
+            <Button type="primary" style={{ marginTop: 12 }} onClick={handleSwaggerParse}>
+              {t('mcp.detail.swaggerParseBtn')}
+            </Button>
+          </div>
+          <div>
+            <StepTitle>
+              {t('mcp.detail.swaggerPreviewTitle')}
+            </StepTitle>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: 4 }}>
+                  {t('mcp.detail.swaggerPreviewDesc')}
+                </div>
+                <MonacoEditor
+                  height="400px"
+                  language="yaml"
+                  theme="vs-dark"
+                  value={swaggerToolsContent}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                    readOnly: true,
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: 4 }}>
+                  {t('mcp.detail.yamlEditDesc')}
+                </div>
+                <MonacoEditor
+                  height="400px"
+                  language="yaml"
+                  theme="vs-dark"
+                  value={localRawConfigurations}
+                  onChange={(v) => setLocalRawConfigurations(v || '')}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      <div style={{ height: 50 }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <Button onClick={handleClose}>
+          {t('misc.cancel')}
+        </Button>
+        <Button type="primary" onClick={handleSubmit}>
+          {t('misc.confirm')}
+        </Button>
+      </div>
     </Drawer>
   );
 };
