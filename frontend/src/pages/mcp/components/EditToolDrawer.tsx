@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import MonacoEditor from '@monaco-editor/react';
 import StepTitle from './StepTitle';
 import YamlUtil from './yamlUtil';
+import { swaggerToMcpConfig } from '@/services/mcp';
 
 interface EditToolDrawerProps {
   visible: boolean;
@@ -12,12 +13,6 @@ interface EditToolDrawerProps {
   onClose: () => void;
   onSubmit: (rawConfigurations: string) => void;
 }
-
-// 模拟 swaggerToMcpConfig API
-const swaggerToMcpConfig = async (params: { content: string; gwInstanceId?: string }) => {
-  // 这里直接返回原内容，实际应为后端解析
-  return { data: params.content };
-};
 
 const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
   visible,
@@ -74,7 +69,7 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
       const res = await swaggerToMcpConfig({ content: swaggerContentStr });
       let swaggerObj = {};
       try {
-        swaggerObj = YamlUtil.parseYaml(res.data) || {};
+        swaggerObj = YamlUtil.parseYaml(res) || {};
       } catch (e) {
         message.error(t('mcp.detail.swaggerParseError'));
         return;
