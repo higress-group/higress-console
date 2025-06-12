@@ -11,7 +11,7 @@ interface EditToolDrawerProps {
   serviceType: string;
   rawConfigurations?: string;
   onClose: () => void;
-  onSubmit: (rawConfigurations: string) => void;
+  onSubmit: (rawConfigurations: string) => any;
 }
 
 const EditToolDrawer: React.FC<EditToolDrawerProps> = ({

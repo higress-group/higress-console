@@ -116,13 +116,13 @@ const MCPDetailPage: React.FC = () => {
     navigate(`/service/${service.name}`);
   };
 
-  const handleEditToolSubmit = async (rawConfigurations: string, securitySchemes: any) => {
+  const handleEditToolSubmit = async (rawConfigurations: string) => {
     try {
       await createOrUpdateMcpServer({
         ...mcpData,
         mcpServerName: name,
         rawConfigurations,
-        securitySchemes,
+        // securitySchemes: securitySchemes || [],
       });
       message.success(t('mcp.detail.toolUpdateSuccess'));
       setEditToolVisible(false);
@@ -480,7 +480,7 @@ const MCPDetailPage: React.FC = () => {
       <McpFormDrawer
         visible={editDrawerVisible}
         mode="edit"
-        record={mcpData}
+        name={name}
         onClose={() => setEditDrawerVisible(false)}
         onSubmit={handleEditSubmit}
       />
