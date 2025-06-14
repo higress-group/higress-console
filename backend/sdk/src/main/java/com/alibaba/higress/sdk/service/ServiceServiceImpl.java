@@ -38,8 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class ServiceServiceImpl implements ServiceService {
-
-    private static final boolean SHOW_MCP_SERVICE_PORTS = true;
+    private static String SHOW_MCP_SERVICE_PORTS = System.getenv("SHOW_MCP_SERVICE_PORTS_ENABELED");
+    static {
+        if (SHOW_MCP_SERVICE_PORTS == null) {
+            SHOW_MCP_SERVICE_PORTS = "true";
+        }
+    }
 
     private final KubernetesClientService kubernetesClientService;
 
@@ -69,7 +73,7 @@ class ServiceServiceImpl implements ServiceService {
 
                 List<String> endpoints = getServiceEndpoints(serviceEndpoint, namespace, name);
                 if (CollectionUtils.isEmpty(registryzService.getPorts())
-                    || !SHOW_MCP_SERVICE_PORTS && CommonKey.MCP_NAMESPACE.equals(namespace)) {
+                    || "false".equals(SHOW_MCP_SERVICE_PORTS) && CommonKey.MCP_NAMESPACE.equals(namespace)) {
                     Service service = new Service();
                     service.setName(name);
                     service.setNamespace(namespace);
