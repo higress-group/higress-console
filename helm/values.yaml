@@ -50,7 +50,7 @@ global:
       securityContext: {}
 
   pvc:
-    rwxSupported: true
+    rwxSupported: false
 
 replicaCount: 1
 
