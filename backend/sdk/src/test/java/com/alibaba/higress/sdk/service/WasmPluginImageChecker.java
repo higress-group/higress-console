@@ -97,7 +97,7 @@ public class WasmPluginImageChecker {
         if (pluginImageIssues.isEmpty()) {
             System.out.println("All good.");
         } else {
-            System.out.printf("Found %s issues with plugin images:\n");
+            System.out.printf("Found %d issues with plugin images:\n", pluginImageIssues.size());
             for (Map.Entry<String, String> entry : pluginImageIssues.entrySet()) {
                 System.out.println();
                 System.out.printf("Plugin %s: \n", entry.getKey());
