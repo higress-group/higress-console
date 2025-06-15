@@ -54,7 +54,7 @@ const AiRouteList: React.FC = () => {
             {
               value && value.length ? value.map((v, i) => {
                 return (
-                  <>{!!i && <br />}{`${t(`route.matchTypes.${v.matchType}`)} ｜ ${v.matchValue}`}</>
+                  <span key={i}>{!!i && <br />}{`${t(`route.matchTypes.${v.matchType}`)} ｜ ${v.matchValue}`}</span>
                 )
               }) : '-'
             }

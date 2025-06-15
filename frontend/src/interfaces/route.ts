@@ -157,3 +157,9 @@ export const fetchPluginsByRoute = async (record: Route): Promise<WasmPluginData
   data[record.name] = data[record.name] ? data[record.name].concat(builtInPlugins) : builtInPlugins;
   return data[record.name] || [];
 };
+
+export enum MatchType {
+  EQUAL = "EQUAL", // 精确匹配
+  PRE = "PRE", // 前缀匹配
+  REGULAR = "REGULAR", // 正则匹配
+}

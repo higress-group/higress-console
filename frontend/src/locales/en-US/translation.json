@@ -89,6 +89,15 @@
         "badWeightSum": "The sum of all service weights must be 100.",
         "noUpstreams": "At least one target service is required."
       },
+      "modelMapping": {
+        "key": "Model Name Match Key",
+        "target": "Mapped Model Name",
+        "mappingTargetPlaceholder_full": "If left empty, the model name in the request will be used.",
+        "mappingTargetPlaceholder_simple": "Empty means unchanged.",
+        "add": "Add New Mapping",
+        "default": "Default Model Name",
+        "advanced": "Model Name Mapping"
+      },
       "modelMatchType": "Model Match Type",
       "modelMatchValue": "Match Value",
       "byModelName": "By model name",

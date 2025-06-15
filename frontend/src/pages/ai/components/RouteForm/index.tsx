@@ -7,12 +7,13 @@ import { getConsumers } from '@/services/consumer';
 import { getLlmProviders } from '@/services/llm-provider';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { AutoComplete, Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
+import { Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
-import { HistoryButton, RedoOutlinedBtn } from './Components';
+import { HistoryButton, ModelMappingEditor, RedoOutlinedBtn } from './Components';
+import { modelMapping2String, string2ModelMapping } from './util';
 
 const { Option } = Select;
 
@@ -88,7 +89,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
       fallbackInitValues['fallbackConfig_upstreams'] = value?.fallbackConfig?.upstreams?.[0]?.provider;
       try {
-        fallbackInitValues['fallbackConfig_modelNames'] = value?.fallbackConfig?.upstreams?.[0]?.modelMapping['*'];
+        fallbackInitValues['fallbackConfig_modelNames'] = modelMapping2String(value?.fallbackConfig?.upstreams?.[0]?.modelMapping);
       } catch (err) {
         fallbackInitValues['fallbackConfig_modelNames'] = '';
       }
@@ -123,7 +124,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         weight: item.weight,
       };
       if (item.modelMapping) {
-        obj["modelMapping"] = item.modelMapping["*"] || null;
+        obj["modelMapping"] = modelMapping2String(item.modelMapping);
       }
       return obj;
     });
@@ -183,9 +184,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
       payload["upstreams"] = upstreams.map(({ provider, weight, modelMapping }) => {
         const obj = { provider, weight, modelMapping: {} };
-        if (modelMapping) {
-          obj["modelMapping"]["*"] = modelMapping;
-        }
+        obj["modelMapping"] = string2ModelMapping(modelMapping);
         return obj;
       });
       payload["modelPredicates"] = modelPredicates ? modelPredicates.map(({ matchType, matchValue }) => ({ matchType, matchValue })) : null;
@@ -194,7 +193,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
           provider: fallbackConfig_upstreams,
           modelMapping: {},
         };
-        _upstreams["modelMapping"]["*"] = fallbackConfig_modelNames;
+        _upstreams["modelMapping"] = string2ModelMapping(fallbackConfig_modelNames);
         payload['fallbackConfig']['upstreams'] = [_upstreams];
         payload['fallbackConfig']['strategy'] = "SEQ";
         payload['fallbackConfig']['responseCodes'] = fallbackConfig_responseCodes;
@@ -462,14 +461,10 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                       />
                     </Form.Item>
 
-                    <Form.Item {...restField} name={[name, 'modelMapping']} noStyle>{/* 模型名称 */}
-                      <AutoComplete
+                    <Form.Item {...restField} name={[name, 'modelMapping']} noStyle>
+                      <ModelMappingEditor
                         style={{ ...baseStyle }}
                         options={getOptions(index)}
-                        filterOption={(inputValue, option: any) => {
-                          return option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                        }}
-                        allowClear
                       />
                     </Form.Item>
                     {
@@ -545,10 +540,8 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 label={t("aiRoute.routeForm.label.targetModel")}
                 rules={[{ required: true, message: t('aiRoute.routeForm.rule.modelNameRequired') }]}
               >{/* 模型名称 */}
-                <AutoComplete
+                <ModelMappingEditor
                   options={getOptionsForAi(form.getFieldValue("fallbackConfig_upstreams"))}
-                  filterOption={(inputValue, option: any) => option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}
-                  allowClear
                 />
               </Form.Item>
             </div>
