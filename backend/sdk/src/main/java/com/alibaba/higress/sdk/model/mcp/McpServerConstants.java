@@ -18,6 +18,18 @@ package com.alibaba.higress.sdk.model.mcp;
 public class McpServerConstants {
     public static final class Annotation {
         public static final String RESOURCE_DESCRIPTION_KEY = "higress.io/resource-description";
+        /**
+         * The following constants are referenced from:: https://github.com/alibaba/higress/pull/2207
+         */
+        public static final String RESOURCE_MCP_SERVER_KEY = "higress.io/mcp-server";
+        public static final String RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY =
+            "higress.io/mcp-server-match-rule-domains";
+        public static final String RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY = "higress.io/mcp-server-match-rule-type";
+        public static final String RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY = "higress.io/mcp-server-match-rule-value";
+        public static final String RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY = "higress.io/mcp-server-upstream-type";
+        public static final String RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY = "higress.io/mcp-server-enable-path-rewrite";
+        public static final String RESOURCE_MCP_SERVER_PATH_REWRITE_KEY = "higress.io/mcp-server-path-rewrite-prefix";
+
     }
 
     public static final class Label {

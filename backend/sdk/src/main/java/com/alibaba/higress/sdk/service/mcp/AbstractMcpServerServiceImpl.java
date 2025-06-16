@@ -39,6 +39,8 @@ import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RouteAuthConfig;
@@ -60,6 +62,9 @@ import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.authorization.AuthorizationOfKeyAuthServiceImpl;
+import com.alibaba.higress.sdk.service.authorization.AuthorizationService;
+import com.alibaba.higress.sdk.service.authorization.RelationshipConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.util.ConverterUtil;
@@ -104,6 +109,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     protected final KubernetesModelConverter kubernetesModelConverter;
     protected final WasmPluginInstanceService wasmPluginInstanceService;
     protected final RouteService routeService;
+    protected final AuthorizationService authorizationService;
 
     public AbstractMcpServerServiceImpl(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
@@ -111,19 +117,19 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
+        this.authorizationService = new AuthorizationOfKeyAuthServiceImpl(wasmPluginInstanceService);
         this.routeService = routeService;
     }
 
     /**
-     * 1. 鉴权相关配置
-     * 2. 路由配置
-     * 3. consumer auth
-     * 4. mcp server config
      *
-     *  buildMcpServer -> mcp server info
-     *  buildRoute -> route info
-     *  buildAuthentication -> auth info
-     *  buildAuthorization -> authorization info
+     * <p>
+     * saveRoute -> route info <br>
+     * buildMcpServer -> mcp server info <br>
+     * buildAuthentication -> auth info <br>
+     * buildAuthorization -> authorization info <br>
+     * </p>
+     * 
      *
      *
      * @param mcpInstance
@@ -131,35 +137,10 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
      */
     @Override
     public McpServer addOrUpdate(McpServer mcpInstance) {
-        // 1. global key-auth
-        WasmPluginInstance globalKeyAuth =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.KEY_AUTH, true);
-        if (globalKeyAuth == null) {
-            WasmPluginInstance keyAuthRequest = buildGlobalKeyAuthRequest();
-            wasmPluginInstanceService.addOrUpdate(keyAuthRequest);
-        }
-
-        // 2. route
-        Route routeRequest = buildRouteRequest(mcpInstance);
-        routeRequest.validate();
-        Route route = routeService.query(mcpInstance.getName());
-        if (Objects.isNull(route)) {
-            routeService.add(routeRequest);
-        } else {
-            route.getAuthConfig().setEnabled(true);
-            routeRequest.setAuthConfig(route.getAuthConfig());
-            routeService.update(routeRequest);
-        }
-
-        // 3. consumer auth
-        addOrUpdateConsumerAuth(mcpInstance);
-
-        // 4. mcp server config
-        saveMcpServerConfig(mcpInstance);
-
-        // 4.higress-config
-        McpServerConfigMap.MatchList matchList = generateMatchList(mcpInstance);
-        addOrUpdateMatchRulePath(matchList);
+        saveRoute(mcpInstance);
+        buildMcpServer(mcpInstance);
+        buildAuthentication(mcpInstance);
+        buildAuthorization(mcpInstance);
         return mcpInstance;
     }
 
@@ -182,8 +163,6 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         return PaginatedResult.createFromFullList(resultList, query);
     }
 
-    protected abstract List<McpServer> getServerListByType(McpServerPageQuery query);
-
     @Override
     public void delete(String name) {
         routeService.delete(name);
@@ -193,41 +172,25 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        Route route = routeService.query(consumers.getRouteName());
+        Route route = routeService.query(consumers.getMcpServerName());
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
-        RouteAuthConfig authConfig = route.getAuthConfig();
-        List<String> preAllowedConsumers =
-            Optional.ofNullable(authConfig.getAllowedConsumers()).orElse(new ArrayList<>());
-        route.getAuthConfig().setEnabled(true);
-        if (CollectionUtils.isNotEmpty(consumers.getConsumers())) {
-            consumers.getConsumers().addAll(preAllowedConsumers);
-            List<String> union = consumers.getConsumers().stream().distinct().collect(Collectors.toList());
-            route.getAuthConfig().setAllowedConsumers(union);
-        }
-        route.getAuthConfig().setAllowedConsumers(consumers.getConsumers());
-        routeService.update(route);
+        authorizationService.bindList(RelationshipConverter.convert(consumers));
     }
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        Route route = routeService.query(consumers.getRouteName());
+        Route route = routeService.query(consumers.getMcpServerName());
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
-        RouteAuthConfig authConfig = route.getAuthConfig();
-        if (CollectionUtils.isNotEmpty(authConfig.getAllowedConsumers())
-            && CollectionUtils.isNotEmpty(consumers.getConsumers())) {
-            authConfig.getAllowedConsumers().removeAll(consumers.getConsumers());
-        }
-        route.getAuthConfig().setEnabled(true);
-        routeService.update(route);
+        authorizationService.unbindList(RelationshipConverter.convert(consumers));
     }
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        Route route = routeService.query(query.getServerName());
+        Route route = routeService.query(query.getMcpServerName());
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
@@ -244,7 +207,92 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         return PaginatedResult.createFromFullList(resultList, query);
     }
 
-    protected abstract void saveMcpServerConfig(McpServer mcpInstance);
+    protected abstract void buildMcpServer(McpServer mcpInstance);
+
+    /**
+     * build and save route info
+     * 
+     * @param mcpInstance
+     */
+    private Route saveRoute(McpServer mcpInstance) {
+        Route routeRequest = buildRouteRequest(mcpInstance);
+        routeRequest.validate();
+        V1Ingress ingress = kubernetesModelConverter.route2Ingress(routeRequest);
+
+        Route existRoute = routeService.query(mcpInstance.getName());
+        if (Objects.isNull(existRoute)) {
+            // create route
+            V1Ingress newIngress;
+            try {
+                newIngress = kubernetesClientService.createIngress(ingress);
+            } catch (ApiException e) {
+                if (e.getCode() == HttpStatus.CONFLICT) {
+                    throw new ResourceConflictException();
+                }
+                throw new BusinessException(
+                    "Error occurs when updating the ingress generated by route with name: " + existRoute.getName(), e);
+            }
+            return kubernetesModelConverter.ingress2Route(newIngress);
+        }
+
+        // update route
+        V1Ingress updatedIngress;
+        try {
+            updatedIngress = kubernetesClientService.replaceIngress(ingress);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
+                throw new ResourceConflictException();
+            }
+            throw new BusinessException(
+                "Error occurs when updating the ingress generated by route with name: " + existRoute.getName(), e);
+        }
+        return kubernetesModelConverter.ingress2Route(updatedIngress);
+    }
+
+    private void buildAuthentication(McpServer mcpInstance) {
+        // global key-auth init
+        WasmPluginInstance globalKeyAuth =
+            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.KEY_AUTH, true);
+        if (globalKeyAuth == null) {
+            WasmPluginInstance keyAuthRequest = buildGlobalKeyAuthRequest();
+            wasmPluginInstanceService.addOrUpdate(keyAuthRequest);
+        }
+
+        initMcpServerAuthentication(mcpInstance);
+    }
+
+    private void buildAuthorization(McpServer mcpServer) {
+        if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
+            return;
+        }
+        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServer.getName());
+        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+        Objects.requireNonNull(instance);
+        ConsumerAuthInfo consumerAuthInfo = mcpServer.getConsumerAuthInfo();
+
+        if (CollectionUtils.isEmpty(consumerAuthInfo.getAllowedConsumers())) {
+            instance.getConfigurations().put(ALLOW, Collections.emptyList());
+        } else {
+            instance.getConfigurations().put(ALLOW, consumerAuthInfo.getAllowedConsumers());
+        }
+        wasmPluginInstanceService.addOrUpdate(instance);
+    }
+
+    private WasmPluginInstance initMcpServerAuthentication(McpServer mcpInstance) {
+        if (Objects.isNull(mcpInstance.getConsumerAuthInfo())) {
+            return null;
+        }
+        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpInstance.getName());
+        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+        if (Objects.isNull(instance)) {
+            instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.KEY_AUTH);
+            instance.setInternal(true);
+            instance.setTargets(targets);
+            instance.setConfigurations(MapUtil.of(ALLOW, Collections.emptyList()));
+        }
+        instance.setEnabled(mcpInstance.getConsumerAuthInfo().getEnable());
+        return wasmPluginInstanceService.addOrUpdate(instance);
+    }
 
     private void sortMcpServers(List<McpServer> mcpServers) {
         if (CollectionUtils.isEmpty(mcpServers)) {
@@ -383,7 +431,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         }
     }
 
-    private void addOrUpdateMatchRulePath(McpServerConfigMap.MatchList matchItem) {
+    protected void addOrUpdateMatchRulePath(McpServerConfigMap.MatchList matchItem) {
         updateMatchList(matchList -> {
             matchList.removeIf(rule -> matchItem.getMatchRulePath().equals(rule.get(MATCH_RULE_PATH_KEY)));
             try {
@@ -466,6 +514,19 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     private void setDefaultConfigs(Route route, McpServer mcpInstance) {
         Map<String, String> annotationsMap = new TreeMap<>();
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY, mcpInstance.getDescription());
+        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY, Boolean.TRUE.toString());
+        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY,
+            route.getPath().getMatchType());
+        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY,
+            route.getPath().getMatchValue());
+        if (StringUtils.isNotBlank(mcpInstance.getUpstreamPathPrefix())) {
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY,
+                mcpInstance.getUpstreamPathPrefix());
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY,
+                Boolean.TRUE.toString());
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY, "sse");
+        }
+
         route.setCustomConfigs(annotationsMap);
     }
 
@@ -495,7 +556,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         if (CollectionUtils.isEmpty(resultList)) {
             return;
         }
-        String fuzzyServerName = query.getServerName();
+        String fuzzyServerName = query.getMcpServerName();
         if (StringUtils.isNotBlank(fuzzyServerName)) {
             resultList.removeIf(mcpServer -> !StringUtils.contains(mcpServer.getName(), fuzzyServerName));
         }
@@ -528,23 +589,6 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
             }
         }
         return McpServiceContextImpl.routeToMcpServer(route);
-    }
-
-    private void addOrUpdateConsumerAuth(McpServer mcpServer) {
-        if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
-            return;
-        }
-        ConsumerAuthInfo consumerAuthInfo = mcpServer.getConsumerAuthInfo();
-        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServer.getName());
-        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
-        if (instance == null) {
-            instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.KEY_AUTH);
-            instance.setInternal(true);
-            instance.setTargets(targets);
-            instance.setConfigurations(MapUtil.of(ALLOW, Collections.emptyList()));
-        }
-        instance.setEnabled(consumerAuthInfo.getEnable());
-        wasmPluginInstanceService.addOrUpdate(instance);
     }
 
 }

@@ -23,13 +23,11 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
-import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.google.common.collect.Lists;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
@@ -62,11 +60,6 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
         return result;
     }
 
-    @Override
-    protected List<McpServer> getServerListByType(McpServerPageQuery query) {
-        return Lists.newArrayList();
-    }
-
     private void completeUpstreamPathPrefix(Route route, McpServer mcpServer) {
         V1ConfigMap configMap = null;
         try {
@@ -90,8 +83,8 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
     }
 
     @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
-       //update route annotation
+    protected void buildMcpServer(McpServer mcpInstance) {
+        // nothing to do!
     }
 
     @Override

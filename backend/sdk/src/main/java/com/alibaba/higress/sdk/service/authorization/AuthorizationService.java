@@ -10,20 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.model.mcp;
+package com.alibaba.higress.sdk.service.authorization;
+
+import com.alibaba.higress.sdk.model.authorization.AuthorizationRelationship;
 
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+public interface AuthorizationService {
+    void init();
 
-/**
- * @author HecarimV
- */
-@Data
-public class McpServerConsumers {
-    @Schema(description = "Mcp server route name")
-    private String mcpServerName;
-    @Schema(description = "Consumer names")
-    private List<String> consumers;
+    void bind(AuthorizationRelationship relationship);
+    void bindList(List<AuthorizationRelationship> relationships);
+    void unbind(AuthorizationRelationship relationship);
+    void unbindAll(String resourceName);
+    void unbindList(List<AuthorizationRelationship> relationships);
+
+    List<AuthorizationRelationship> boundList(AuthorizationRelationship param);
 }

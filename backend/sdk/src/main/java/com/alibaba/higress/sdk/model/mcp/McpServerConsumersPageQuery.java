@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 public class McpServerConsumersPageQuery extends CommonPageQuery {
 
     @Schema(description = "McpServer name associated with route.")
-    private String serverName;
+    private String mcpServerName;
 
     @Schema(description = "Consumer name for search.")
     private String consumerName;

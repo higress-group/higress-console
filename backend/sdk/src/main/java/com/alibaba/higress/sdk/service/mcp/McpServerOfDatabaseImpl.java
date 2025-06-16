@@ -59,13 +59,11 @@ public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
     }
 
     @Override
-    protected List<McpServer> getServerListByType(McpServerPageQuery query) {
-        return getDatabaseTypeMcpServers(query);
-    }
-
-    @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
+    protected void buildMcpServer(McpServer mcpInstance) {
         addOrUpdateServersConfig(mcpInstance);
+
+        McpServerConfigMap.MatchList matchList = generateMatchList(mcpInstance);
+        addOrUpdateMatchRulePath(matchList);
     }
 
     private void validate(McpServer mcpInstance) {
@@ -140,8 +138,8 @@ public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             McpServerConfigMap mcpConfig = getMcpConfig(configMap);
             for (McpServerConfigMap.Server server : mcpConfig.getServers()) {
-                if (StringUtils.isNotEmpty(query.getServerName())
-                    && !StringUtils.contains(server.getName(), query.getServerName())) {
+                if (StringUtils.isNotEmpty(query.getMcpServerName())
+                    && !StringUtils.contains(server.getName(), query.getMcpServerName())) {
                     continue;
                 }
 

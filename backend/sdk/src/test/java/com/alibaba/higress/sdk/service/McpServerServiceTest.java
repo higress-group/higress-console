@@ -12,10 +12,23 @@
  */
 package com.alibaba.higress.sdk.service;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +42,12 @@ import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
-import com.alibaba.higress.sdk.model.mcp.*;
+import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
+import com.alibaba.higress.sdk.model.mcp.McpServer;
+import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
+import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
+import com.alibaba.higress.sdk.model.mcp.McpServerConsumers;
+import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
@@ -48,7 +66,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
-import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 
 /**
  * @author HecarimV
@@ -181,7 +204,7 @@ public class McpServerServiceTest {
         mcpServerService.addOrUpdate(instance);
 
         ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
-        verify(kubernetesClientService, times(3)).replaceWasmPlugin(pluginCaptor.capture());
+        verify(kubernetesClientService, times(4)).replaceWasmPlugin(pluginCaptor.capture());
         List<V1alpha1WasmPlugin> capturedValues = pluginCaptor.getAllValues();
         Assertions.assertNotNull(capturedValues);
         for (V1alpha1WasmPlugin plugin : capturedValues) {
@@ -315,7 +338,7 @@ public class McpServerServiceTest {
         when(kubernetesClientService.readIngress(eq(mcpServerName))).thenReturn(ingress);
 
         McpServerConsumers newConsumers = new McpServerConsumers();
-        newConsumers.setRouteName(mcpServerName);
+        newConsumers.setMcpServerName(mcpServerName);
         ArrayList<String> consumersToAdd = new ArrayList<String>() {
             {
                 add("consumerC");
@@ -329,7 +352,7 @@ public class McpServerServiceTest {
         V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
-        Assertions.assertEquals(Arrays.asList("consumerC", "consumerA", "consumerB"),
+        Assertions.assertEquals(Arrays.asList("consumerC", "consumerB", "consumerA"),
             capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
     }
 
@@ -354,7 +377,7 @@ public class McpServerServiceTest {
         when(kubernetesClientService.readIngress(eq(mcpServerName))).thenReturn(ingress);
 
         McpServerConsumers newConsumers = new McpServerConsumers();
-        newConsumers.setRouteName(mcpServerName);
+        newConsumers.setMcpServerName(mcpServerName);
         ArrayList<String> consumersToDelete = new ArrayList<String>() {
             {
                 add("consumerA");

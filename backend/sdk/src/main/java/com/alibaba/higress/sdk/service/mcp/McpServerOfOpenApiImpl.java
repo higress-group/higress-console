@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,9 +69,12 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
     }
 
     @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
+    protected void buildMcpServer(McpServer mcpInstance) {
         WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
         wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
+
+        McpServerConfigMap.MatchList matchList = generateMatchList(mcpInstance);
+        addOrUpdateMatchRulePath(matchList);
     }
 
     private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {
@@ -109,11 +113,6 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
         return result;
     }
 
-    @Override
-    protected List<McpServer> getServerListByType(McpServerPageQuery query) {
-        return getOpenApiTypeServers(query);
-    }
-
     private void completeWasmPluginInfo(String name, McpServer result) {
         WasmPluginInstance wasmPluginInstance =
             wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, name, DEFAULT_MCP_PLUGIN);
@@ -142,8 +141,8 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
                 mcpServer.setServices(matchRoute.getServices());
                 mcpServer.setDomains(matchRoute.getDomains());
             }
-            if (StringUtils.isNotEmpty(query.getServerName())
-                && !StringUtils.contains(mcpServer.getName(), query.getServerName())) {
+            if (StringUtils.isNotEmpty(query.getMcpServerName())
+                && !StringUtils.contains(mcpServer.getName(), query.getMcpServerName())) {
                 continue;
             }
             mcpServer.setType(McpServerTypeEnum.OPEN_API);
