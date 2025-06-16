@@ -6,7 +6,7 @@ export interface PaginatedResult<T> {
 export interface McpServerPageQuery {
   pageNum?: number;
   pageSize?: number;
-  serverName?: string;
+  mcpServerName?: string;
   type?: string;
 }
 

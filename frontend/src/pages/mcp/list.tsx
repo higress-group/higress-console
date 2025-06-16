@@ -103,7 +103,7 @@ const MCPListPage: React.FC = () => {
     const res = await listMcpServers({
       pageNum: 1,
       pageSize: 100,
-      serverName: params.name,
+      mcpServerName: params.name,
       type: params.type,
     });
     setServers(res || []);

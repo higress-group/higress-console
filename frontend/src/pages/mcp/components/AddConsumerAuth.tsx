@@ -49,7 +49,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       const values = await form.validateFields();
       setLoading(true);
       await addMcpConsumers({
-        routeName: mcpName,
+        mcpServerName: mcpName,
         consumers: [values.consumerId],
       });
       message.success(t('mcp.detail.authSuccess'));
