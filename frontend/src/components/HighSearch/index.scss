@@ -1,0 +1,41 @@
+.high-search {
+  position: relative;
+  margin-bottom: 16px;
+  display: flex;
+  margin-left: 16px !important;
+
+  &__left {
+    width: 120px;
+    margin-right: 0 !important;
+  }
+
+  &__right {
+    flex: 1 !important;
+  }
+
+  &__tags {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 4px;
+
+    &-label {
+      margin-bottom: 8px;
+      color: #666;
+    }
+  }
+
+  &__tag-value {
+    color: #333;
+  }
+
+  &__clear-all {
+    color: #1890ff;
+    cursor: pointer;
+    margin-left: 8px;
+
+    &:hover {
+      color: #40a9ff;
+    }
+  }
+} 

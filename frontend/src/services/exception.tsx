@@ -15,7 +15,9 @@ export const ErrorComp = ({ content, options, code }) => {
           <div>
             <span>
               <Trans t={t} i18nKey="exception.info">
-                错误详情（错误码：<span style={{ color: '#0077cc' }}>{{ code: !isNil(code) ? code : 'N/A' }}</span>）
+                {JSON.stringify(code)}
+                {/* {JSON.stringify(options)} */}
+                {/* 错误详情（错误码：<span style={{ color: '#0077cc' }}>{{ code: !isNil(code) ? code : 'N/A' }}</span>） */}
               </Trans>
             </span>
             <RightOutlined
