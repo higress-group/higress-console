@@ -28,7 +28,7 @@ export interface McpServer {
 }
 
 export interface McpServerConsumers {
-  routeName: string;
+  mcpServerName: string;
   consumers: string[];
 }
 

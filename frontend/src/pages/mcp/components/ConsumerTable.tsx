@@ -43,7 +43,7 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
   const handleDelete = async (id: string) => {
     try {
       await removeMcpConsumers({
-        routeName: name,
+        mcpServerName: name,
         consumers: [id],
       });
       message.success(t('mcp.detail.deleteSuccess'));
