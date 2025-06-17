@@ -107,7 +107,7 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
-        McpServer result = routeToMcpServerWithAth(route);
+        McpServer result = routeToMcpServerWithAuth(route);
         completeWasmPluginInfo(name, result);
 
         return result;

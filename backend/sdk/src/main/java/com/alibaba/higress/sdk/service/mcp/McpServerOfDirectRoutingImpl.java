@@ -12,11 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -24,12 +21,12 @@ import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
-import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -54,31 +51,16 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
-        McpServer result = routeToMcpServerWithAth(route);
+        McpServer result = routeToMcpServerWithAuth(route);
 
         completeUpstreamPathPrefix(route, result);
         return result;
     }
 
     private void completeUpstreamPathPrefix(Route route, McpServer mcpServer) {
-        V1ConfigMap configMap = null;
-        try {
-            configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
-        } catch (Exception e) {
-            log.error("Failed to get mcp server list", e);
-        }
-
-        McpServerConfigMap mcpConfig = getMcpConfig(configMap);
-        List<McpServerConfigMap.MatchList> matchList = mcpConfig.getMatchList();
-        if (CollectionUtils.isEmpty(matchList)) {
-            throw new BusinessException("no any match list");
-        }
-        Optional<McpServerConfigMap.MatchList> first = matchList.stream()
-            .filter(i -> StringUtils.equals(i.getMatchRulePath(), route.getPath().getMatchValue())).findFirst();
-
-        if (first.isPresent()) {
-            McpServerConfigMap.MatchList matchListItem = first.get();
-            mcpServer.setUpstreamPathPrefix(matchListItem.getPathRewritePrefix());
+        RewriteConfig rewrite = route.getRewrite();
+        if (Objects.nonNull(rewrite)) {
+            mcpServer.setUpstreamPathPrefix(rewrite.getPath());
         }
     }
 

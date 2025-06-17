@@ -58,6 +58,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerConsumers;
 import com.alibaba.higress.sdk.model.mcp.McpServerConsumersPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
@@ -140,7 +141,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         saveRoute(mcpInstance);
         buildMcpServer(mcpInstance);
         buildAuthentication(mcpInstance);
-        buildAuthorization(mcpInstance);
+        // buildAuthorization(mcpInstance);
         return mcpInstance;
     }
 
@@ -283,10 +284,11 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
             return null;
         }
         Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpInstance.getName());
-        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+        WasmPluginInstance instance =
+            wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, Boolean.TRUE);
         if (Objects.isNull(instance)) {
             instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.KEY_AUTH);
-            instance.setInternal(true);
+            instance.setInternal(Boolean.TRUE);
             instance.setTargets(targets);
             instance.setConfigurations(MapUtil.of(ALLOW, Collections.emptyList()));
         }
@@ -515,16 +517,24 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         Map<String, String> annotationsMap = new TreeMap<>();
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY, mcpInstance.getDescription());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY, Boolean.TRUE.toString());
+        Optional.ofNullable(route.getDomains()).ifPresent(domains -> annotationsMap
+            .put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY, domains.get(0)));
+        RoutePredicateTypeEnum predicateTypeEnum = RoutePredicateTypeEnum.fromName(route.getPath().getMatchType());
+        Objects.requireNonNull(predicateTypeEnum, "Unknown matchType: " + route.getPath().getMatchType());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY,
-            route.getPath().getMatchType());
+            predicateTypeEnum.getAnnotationPrefix());
+
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY,
             route.getPath().getMatchValue());
         if (StringUtils.isNotBlank(mcpInstance.getUpstreamPathPrefix())) {
-            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY,
-                mcpInstance.getUpstreamPathPrefix());
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY, "sse");
             annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY,
                 Boolean.TRUE.toString());
-            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY, "sse");
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY,
+                mcpInstance.getUpstreamPathPrefix());
+            RewriteConfig rewriteConfig =
+                RewriteConfig.builder().path(mcpInstance.getUpstreamPathPrefix()).enabled(Boolean.TRUE).build();
+            route.setRewrite(rewriteConfig);
         }
 
         route.setCustomConfigs(annotationsMap);
@@ -532,6 +542,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
 
     private void setDefaultLabels(Route route, McpServer mcpInstance) {
         Map<String, String> labelsMap = new TreeMap<>();
+        labelsMap.put(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
         labelsMap.put(KubernetesConstants.Label.INTERNAL_KEY, Boolean.TRUE.toString());
         labelsMap.put(McpServerConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
         labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY, mcpInstance.getType().name());
@@ -572,7 +583,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         return McpServiceContextImpl.routeToMcpServer(route);
     }
 
-    protected McpServer routeToMcpServerWithAth(Route route) {
+    protected McpServer routeToMcpServerWithAuth(Route route) {
         WasmPluginInstance instance = wasmPluginInstanceService
             .query(MapUtil.of(WasmPluginInstanceScope.ROUTE, route.getName()), BuiltInPluginName.KEY_AUTH, true);
         route.setAuthConfig(RouteAuthConfig.builder().enabled(false).build());
