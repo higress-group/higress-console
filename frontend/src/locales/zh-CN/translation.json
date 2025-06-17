@@ -684,6 +684,10 @@
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。"
   },
   "mcp": {
+    "common": {
+      "add": "添加",
+      "cancel": "取消"
+    },
     "columns": {
       "name": "服务名称",
       "description": "描述",
@@ -734,7 +738,8 @@
       "apiKeyTooltip": "API Key是一种简单的认证方式，客户端访问时，需将凭证以指定的方式添加至请求中，网关收到请求后会验证API Key的合法性及权限。API Key常用于不涉及敏感操作的简单场景，安全性相比JWT、AK/SK较低，请注意凭证的管理与保护。",
       "databaseConfig": "数据库配置",
       "databaseConfigRequired": "请配置数据库信息",
-      "databaseConfigInvalid": "数据库配置格式不正确"
+      "databaseConfigInvalid": "数据库配置格式不正确",
+      "addDomain":"添加域名"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {

@@ -77,10 +77,10 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       footer={
         <div style={{ textAlign: 'right' }}>
           <Button onClick={handleClose} style={{ marginRight: 8 }}>
-            {t('common.cancel')}
+            {t('mcp.common.cancel')}
           </Button>
           <Button type="primary" onClick={handleSubmit} loading={loading}>
-            {t('common.add')}
+            {t('mcp.common.add')}
           </Button>
         </div>
       }

@@ -15,6 +15,7 @@ import DeleteConfirm from './components/DeleteConfirm';
 import CodeEditor from '@/components/CodeEditor';
 import McpServerCommand from './components/McpServerCommand';
 import AddConsumerAuth from './components/AddConsumerAuth';
+import YamlUtil from './components/yamlUtil';
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -44,7 +45,7 @@ const MCPDetailPage: React.FC = () => {
         // 解析工具配置
         if (res.rawConfigurations) {
           try {
-            const config = JSON.parse(res.rawConfigurations);
+            const config = YamlUtil.parseYaml(res.rawConfigurations);
             setTools(config.tools || []);
           } catch (error) {
             // console.error('Failed to parse tools configuration:', error);
