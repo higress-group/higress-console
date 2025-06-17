@@ -11,7 +11,8 @@ COPY start.sh /app
 ARG TARGETARCH
 COPY tools/mcp/${TARGETARCH}/main /app/tools/mcp/
 COPY tools/mcp/openapiToMcpserver.sh /app/tools/mcp/
-RUN chmod +x /app/tools/mcp/openapiToMcpserver.sh
+RUN chmod +x /app/tools/mcp/openapiToMcpserver.sh \
+    && chmod +x /app/tools/mcp/main
 
 EXPOSE 8080
 CMD ["/app/start.sh"]
