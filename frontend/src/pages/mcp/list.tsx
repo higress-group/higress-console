@@ -4,7 +4,7 @@ import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { McpServer } from '@/interfaces/mcp';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useTranslation, Trans } from 'react-i18next';
-import { createOrUpdateMcpServer, listMcpServers } from '@/services/mcp';
+import { createOrUpdateMcpServer, listMcpServers, deleteMcpServer } from '@/services/mcp';
 import McpFormDrawer from './components/McpFormDrawer';
 import { history } from 'ice';
 import { getServiceTypeMap, SERVICE_TYPES } from './constant';
@@ -26,12 +26,13 @@ const MCPListPage: React.FC = () => {
   const handleDelete = async (record: any) => {
     try {
       setConfirmLoading(true);
-      // TODO: implement deleteMcpServer
+      await deleteMcpServer(record.name);
+      message.success(t('misc.deleteSuccess'));
       setConfirmLoading(false);
       setOpenModal(false);
       getMcpServers({});
     } catch (error) {
-      message.error('Failed to delete configuration');
+      message.error(t('misc.deleteError'));
       setConfirmLoading(false);
     }
   };
@@ -118,6 +119,10 @@ const MCPListPage: React.FC = () => {
   const onReset = () => {
     form.resetFields();
     getMcpServers({});
+  };
+
+  const handleGoToDomain = () => {
+    history?.push('/domain');
   };
 
   useEffect(() => {

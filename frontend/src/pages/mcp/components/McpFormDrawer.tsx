@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
 import DatabaseConfig, { DB_FIXED_FIELDS } from './DatabaseConfig';
 import { getMcpServer } from '@/services/mcp';
+import { history } from 'ice';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -29,6 +30,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   const selectedService = useWatch('service', form);
   const serviceType = useWatch('type', form);
   const [record, setRecord] = useState<any>(null);
+  const [allDomainList, setAllDomainList] = useState<string[]>([]);
+  const [allBackendServiceList, setAllBackendServiceList] = useState<any[]>([]);
 
 
   useEffect(() => {
@@ -68,22 +71,25 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     }
   }, [visible, mode, record, form]);
 
-  // 获取域名列表
-  const getDomainList = async (query?: string) => {
+  // 获取域名列表（全量）
+  const getDomainList = async () => {
     setDomainLoading(true);
     try {
       const res = await getGatewayDomains();
-      setDomainList(res.map((item: any) => item.name));
+      const domains = res.map((item: any) => item.name);
+      setAllDomainList(domains);
+      setDomainList(domains);
     } finally {
       setDomainLoading(false);
     }
   };
 
-  // 获取后端服务列表
-  const getBackendServiceList = async (query?: string) => {
+  // 获取后端服务列表（全量）
+  const getBackendServiceList = async () => {
     setServiceLoading(true);
     try {
       const res = await getGatewayServices();
+      setAllBackendServiceList(res);
       setOriginalBackendServiceList(res);
       setBackendServiceList(
         res.map((item: any) => ({
@@ -93,6 +99,36 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       );
     } finally {
       setServiceLoading(false);
+    }
+  };
+
+  // 本地模糊过滤域名
+  const handleDomainSearch = (value: string) => {
+    if (!value) {
+      setDomainList(allDomainList);
+    } else {
+      setDomainList(allDomainList.filter(domain => domain.includes(value)));
+    }
+  };
+
+  // 本地模糊过滤服务
+  const handleServiceSearch = (value: string) => {
+    if (!value) {
+      setBackendServiceList(
+        allBackendServiceList.map((item: any) => ({
+          value: `${item.name}:${item.port}`,
+          label: item.name,
+        })),
+      );
+    } else {
+      setBackendServiceList(
+        allBackendServiceList
+          .filter((item: any) => item.name.includes(value))
+          .map((item: any) => ({
+            value: `${item.name}:${item.port}`,
+            label: item.name,
+          })),
+      );
     }
   };
 
@@ -196,14 +232,53 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           name="domains"
           rules={[{ required: true, message: t('mcp.form.domainsRequired') }]}
         >
-          <Select
-            showSearch
-            loading={domainLoading}
-            options={domainList.map((domain) => ({ label: domain, value: domain }))}
-            onSearch={(value) => getDomainList(value)}
-            filterOption={false}
-            placeholder={t('mcp.form.domainsRequired')!}
-          />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Select
+              showSearch
+              loading={domainLoading}
+              options={domainList.map((domain) => ({ label: domain, value: domain }))}
+              onSearch={handleDomainSearch}
+              filterOption={false}
+              placeholder={t('mcp.form.domainsRequired')!}
+              style={{ flex: 1 }}
+            />
+            <Button style={{ color: '#3883ea' }} type="text" icon={<RedoOutlined />} onClick={getDomainList} />
+            <Button
+              type="text"
+              style={{ width: 50, color: '#3883ea', padding: 0 }}
+              onClick={() => history?.push('/domain')}
+            >
+              {t('mcp.form.addDomain')}
+            </Button>
+          </div>
+
+          {/* todo sse & streamable */}
+          <div
+            style={{
+              marginTop: 8,
+              color: '#bfbfbf',
+              background: '#f5f5f5',
+              borderRadius: 6,
+              padding: '8px 12px',
+              fontSize: 14,
+              lineHeight: '22px',
+            }}
+          >
+            路径 (SSE) 规则为：/mcp-servers/服务名称/sse
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              color: '#bfbfbf',
+              background: '#f5f5f5',
+              borderRadius: 6,
+              padding: '8px 12px',
+              fontSize: 14,
+              lineHeight: '22px',
+            }}
+          >
+            路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称
+          </div>
         </Form.Item>
 
         <Form.Item
@@ -230,7 +305,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             showSearch
             loading={serviceLoading}
             options={backendServiceList}
-            onSearch={(value) => getBackendServiceList(value)}
+            onSearch={handleServiceSearch}
             filterOption={false}
             placeholder={t('mcp.form.upstreamServiceRequired')!}
           />
