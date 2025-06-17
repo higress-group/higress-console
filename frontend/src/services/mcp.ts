@@ -37,7 +37,7 @@ export const removeMcpConsumers = (payload: McpServerConsumers): Promise<any> =>
 };
 
 export const listMcpConsumers = (
-  query: { mcpServerName: any },
+  query: any,
 ): Promise<McpServerConsumerDetail[]> => {
   return request.get<any, McpServerConsumerDetail[]>(`${BASE_URL}/consumers`, {
     params: query,

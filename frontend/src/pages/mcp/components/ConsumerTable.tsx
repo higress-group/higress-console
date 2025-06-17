@@ -26,6 +26,7 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
     try {
       const res = await listMcpConsumers({
         mcpServerName: name,
+        consumerName,
       });
       setConsumers(res || []);
     } catch (error) {
