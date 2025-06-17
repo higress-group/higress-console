@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { Table, Button, Space, message, Input, Form, Row, Col } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,9 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
   const [addConsumerAuthVisible, setAddConsumerAuthVisible] = useState(false);
 
   const [form] = Form.useForm();
+  const debounceRef = useRef<any | null>(null);
 
-  const fetchConsumers = async () => {
+  const fetchConsumers = async (consumerName?: string) => {
     setLoading(true);
     try {
       const res = await listMcpConsumers({
@@ -35,7 +36,7 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
   };
 
   useEffect(() => {
-    fetchConsumers();
+    fetchConsumers('');
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -100,6 +101,16 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
     fetchConsumers,
   }));
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      fetchConsumers(value);
+    }, 800);
+  };
+
   return (
     <div>
       <Form
@@ -111,7 +122,11 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
           </Col>
           <Col span={12}>
             <Form.Item name="consumerName" label={t('mcp.detail.consumerName')}>
-              <Input allowClear placeholder={t('mcp.detail.consumerNameSearchPlaceholder') as string} />
+              <Input
+                allowClear
+                placeholder={t('mcp.detail.consumerNameSearchPlaceholder') as string}
+                onChange={handleInputChange}
+              />
             </Form.Item>
           </Col>
         </Row>

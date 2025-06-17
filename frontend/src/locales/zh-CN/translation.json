@@ -814,7 +814,11 @@
       "swaggerParseBtn": "解析Swagger并合并",
       "swaggerPreviewTitle": "Swagger解析结果预览",
       "swaggerPreviewDesc": "解析后的工具配置（只读）",
-      "yamlEditDesc": "最终生效的YAML配置，可直接编辑。"
+      "yamlEditDesc": "最终生效的YAML配置，可直接编辑。",
+      "toolName": "工具名称",
+      "toolDescription": "描述",
+      "toolParams": "参数",
+      "noParams": "无参数"
     }
   }
 }

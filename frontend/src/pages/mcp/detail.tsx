@@ -209,21 +209,13 @@ const MCPDetailPage: React.FC = () => {
                     <Descriptions.Item label={t('mcp.form.name')}>{mcpData?.name}</Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.domains')}>
-                      {mcpData?.domains?.map((domain: string) => (
-                        <a key={domain}>
-                          {domain}
-                        </a>
-                      ))}
+                      {mcpData?.domains?.map((domain: string) => domain)}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.type')}>
                       {t(`${serviceTypeMap[mcpData?.type]}`)}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.upstreamService')}>
-                      {mcpData?.services?.map((service: any) => (
-                        <a key={service.name}>
-                          {service.name}
-                        </a>
-                      ))}
+                      {mcpData?.services?.map((service: any) => service.name)}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
