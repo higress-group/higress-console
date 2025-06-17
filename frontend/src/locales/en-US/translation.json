@@ -685,6 +685,10 @@
     "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
   },
   "mcp": {
+    "common": {
+      "add": "Add",
+      "cancel": "Cancel"
+    },
     "columns": {
       "name": "Service Name",
       "description": "Description",
@@ -714,7 +718,29 @@
       "upstreamService": "Backend Service",
       "consumerAuth": "Consumer Auth",
       "saveAndPublish": "Save and Publish",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "directRouteText": "Direct Route",
+      "upstreamServiceRequired": "Please select backend service",
+      "upstreamPathPrefix": "Path Prefix",
+      "upstreamPathPrefixRequired": "Please input path prefix",
+      "dbUser": "Database Username",
+      "dbUserRequired": "Please input database username",
+      "dbPassword": "Database Password",
+      "dbPasswordRequired": "Please input database password",
+      "dbHost": "Database Host",
+      "dbHostRequired": "Please input database host",
+      "dbPort": "Database Port",
+      "dbPortRequired": "Please input database port",
+      "dbName": "Database Name",
+      "dbNameRequired": "Please input database name",
+      "dbParams": "Database Parameters",
+      "dbParamsRequired": "Please input database parameters",
+      "authType": "Auth Type",
+      "apiKeyTooltip": "API Key is a simple authentication method. The client must add the credential in the specified way when accessing. The gateway will verify the validity and permission of the API Key. API Key is suitable for simple scenarios without sensitive operations. Its security is lower than JWT or AK/SK. Please manage and protect the credential carefully.",
+      "databaseConfig": "Database Configuration",
+      "databaseConfigRequired": "Please configure database information",
+      "databaseConfigInvalid": "Invalid database configuration format",
+      "addDomain": "Add Domain"
     },
     "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?",
     "step1": "Step 1. Generate URL",
@@ -801,7 +827,11 @@
       "swaggerParseBtn": "Parse Swagger and Merge",
       "swaggerPreviewTitle": "Swagger Parse Preview",
       "swaggerPreviewDesc": "Parsed tool config (read only)",
-      "yamlEditDesc": "Final effective YAML config, can be edited directly."
+      "yamlEditDesc": "Final effective YAML config, can be edited directly.",
+      "toolName": "Tool Name",
+      "toolDescription": "Description",
+      "toolParams": "Parameters",
+      "noParams": "No Parameters"
     }
   }
 }

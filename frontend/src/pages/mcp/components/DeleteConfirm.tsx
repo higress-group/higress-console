@@ -18,7 +18,7 @@ const DeleteConfirm: React.FC<DeleteConfirmProps> = ({
   onCancel,
   confirmLoading = false,
   recordName = '',
-  i18nKey = 'misc.deleteConfirm',
+  i18nKey = 'mcp.deleteConfirm',
 }) => {
   const { t } = useTranslation();
 

@@ -32,7 +32,7 @@ const MCPListPage: React.FC = () => {
       setOpenModal(false);
       getMcpServers({});
     } catch (error) {
-      message.error(t('misc.deleteError'));
+      message.error(error.message);
       setConfirmLoading(false);
     }
   };
@@ -65,7 +65,7 @@ const MCPListPage: React.FC = () => {
       closeDrawer();
       getMcpServers({});
     } catch (e) {
-      message.error(t('misc.error'));
+      message.error(e.message);
     }
   };
 
