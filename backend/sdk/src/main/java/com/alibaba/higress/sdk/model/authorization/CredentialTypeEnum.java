@@ -19,7 +19,7 @@ public enum CredentialTypeEnum {
     /**
      * credential type is key-auth
      */
-    KEY_AUTH("key-auth"),;
+    KEY_AUTH("key-auth");
 
     private final String type;
 

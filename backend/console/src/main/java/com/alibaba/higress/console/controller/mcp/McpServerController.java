@@ -74,7 +74,8 @@ public class McpServerController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<McpServer>> addOrUpdateMcpInstance(@RequestBody McpServer instance) {
-        return addOrUpdateInstance(instance);
+        instance = mcpServerService.addOrUpdate(instance);
+        return ControllerUtil.buildResponseEntity(instance);
     }
 
     @GetMapping
@@ -97,7 +98,7 @@ public class McpServerController {
     @Operation(summary = "Delete a mcp server")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Route deleted successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<Route>> delete(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Void> delete(@PathVariable("name") @NotBlank String name) {
         mcpServerService.delete(name);
         return ResponseEntity.noContent().build();
     }
@@ -130,11 +131,6 @@ public class McpServerController {
     public ResponseEntity<PaginatedResponse<McpServerConsumerDetail>>
         listAllowConsumers(@ParameterObject McpServerConsumersPageQuery query) {
         return ControllerUtil.buildResponseEntity(mcpServerService.listAllowConsumers(query));
-    }
-
-    private ResponseEntity<Response<McpServer>> addOrUpdateInstance(McpServer instance) {
-        instance = mcpServerService.addOrUpdate(instance);
-        return ControllerUtil.buildResponseEntity(instance);
     }
 
 }
