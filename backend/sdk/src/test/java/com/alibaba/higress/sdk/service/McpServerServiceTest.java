@@ -204,7 +204,7 @@ public class McpServerServiceTest {
         mcpServerService.addOrUpdate(instance);
 
         ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
-        verify(kubernetesClientService, times(4)).replaceWasmPlugin(pluginCaptor.capture());
+        verify(kubernetesClientService, times(3)).replaceWasmPlugin(pluginCaptor.capture());
         List<V1alpha1WasmPlugin> capturedValues = pluginCaptor.getAllValues();
         Assertions.assertNotNull(capturedValues);
         for (V1alpha1WasmPlugin plugin : capturedValues) {
