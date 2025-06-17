@@ -12,19 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_ENABLED;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_FAILURE_THRESHOLD;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_INTERVAL;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_MODEL;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_TIMEOUT;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_SUCCESS_THRESHOLD;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTOCOL;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ENABLED;
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_FAILURE;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,11 +29,13 @@ import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.TokenFailoverConfig;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.MapUtil;
+import com.alibaba.higress.sdk.util.ValidateUtil;
 
 abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
 
@@ -130,43 +121,68 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {
         ServiceSource serviceSource = new ServiceSource();
         serviceSource.setName(generateServiceProviderName(providerName));
-        serviceSource.setType(getServiceRegistryType(providerConfig));
-        serviceSource.setProtocol(getServiceProtocol(providerConfig));
-
-        String domain = getServiceDomain(providerConfig);
-        int port = getServicePort(providerConfig);
-        if (V1McpBridge.REGISTRY_TYPE_STATIC.equals(serviceSource.getType())) {
-            serviceSource.setDomain(domain + Separators.COLON + port);
-            serviceSource.setPort(V1McpBridge.STATIC_PORT);
-        } else {
-            serviceSource.setDomain(domain);
-            serviceSource.setPort(port);
+        List<LlmProviderEndpoint> endpoints = getProviderEndpoints(providerConfig);
+        if (CollectionUtils.isEmpty(endpoints)) {
+            throw new ValidationException("No endpoints found for provider: " + providerName);
         }
+        String type = null, protocol = null, contextPath = null;
+        List<String> domains = new ArrayList<>(endpoints.size());
+        Integer port = null;
+        for (LlmProviderEndpoint endpoint : endpoints) {
+            if (endpoint == null) {
+                continue;
+            }
+            endpoint.validate();
 
+            if (protocol != null && !protocol.equals(endpoint.getProtocol())) {
+                throw new ValidationException("Multiple protocols found in the endpoints of provider: " + providerName);
+            }
+            protocol = endpoint.getProtocol();
+
+            if (contextPath != null && !contextPath.equals(endpoint.getContextPath())) {
+                throw new ValidationException(
+                    "Multiple context paths found in the endpoints of provider: " + providerName);
+            }
+            contextPath = endpoint.getContextPath();
+
+            String endpointSourceType;
+            if (ValidateUtil.checkIpAddress(endpoint.getAddress())) {
+                endpointSourceType = V1McpBridge.REGISTRY_TYPE_STATIC;
+                domains.add(endpoint.getAddress() + Separators.COLON + endpoint.getPort());
+                port = V1McpBridge.STATIC_PORT;
+            } else {
+                if (endpoints.size() > 1) {
+                    throw new ValidationException(
+                        "Multiple endpoints only work with static IP addresses, provider: " + providerName);
+                }
+                port = endpoint.getPort();
+                endpointSourceType = V1McpBridge.REGISTRY_TYPE_DNS;
+                domains.add(endpoint.getAddress());
+            }
+            if (type != null && !type.equals(endpointSourceType)) {
+                throw new ValidationException("Multiple types of endpoints found for provider: " + providerName);
+            }
+            type = endpointSourceType;
+        }
+        serviceSource.setType(type);
+        serviceSource.setProtocol(protocol);
+        serviceSource.setDomain(String.join(Separators.COMMA, domains));
+        serviceSource.setPort(port);
         return serviceSource;
     }
 
     @Override
     public UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig) {
+        ServiceSource serviceSource = buildServiceSource(providerName, providerConfig);
+
         UpstreamService service = new UpstreamService();
-        String registryType = getServiceRegistryType(providerConfig);
-        service.setName(generateServiceProviderName(providerName) + Separators.DOT + registryType);
-        if (V1McpBridge.REGISTRY_TYPE_STATIC.equals(registryType)) {
-            service.setPort(V1McpBridge.STATIC_PORT);
-        } else {
-            service.setPort(getServicePort(providerConfig));
-        }
+        service.setName(serviceSource.getName() + Separators.DOT + serviceSource.getType());
+        service.setPort(serviceSource.getPort());
         service.setWeight(100);
         return service;
     }
 
-    protected abstract String getServiceRegistryType(Map<String, Object> providerConfig);
-
-    protected abstract String getServiceDomain(Map<String, Object> providerConfig);
-
-    protected abstract int getServicePort(Map<String, Object> providerConfig);
-
-    protected abstract String getServiceProtocol(Map<String, Object> providerConfig);
+    protected abstract List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig);
 
     protected static int getIntConfig(Map<String, Object> providerConfig, String key) {
         Object serverPortObj = providerConfig.get(key);
