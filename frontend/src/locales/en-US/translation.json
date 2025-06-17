@@ -682,7 +682,9 @@
     "switchToYAML": "YAML View",
     "switchToForm": "Form View",
     "isRequired": "is required",
-    "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing."
+    "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing.",
+    "deleteSuccess": "Deleted successfully",
+    "saveSuccess": "Saved successfully."
   },
   "mcp": {
     "common": {
