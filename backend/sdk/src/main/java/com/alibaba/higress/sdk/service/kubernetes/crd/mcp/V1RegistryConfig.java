@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.service.kubernetes.crd.mcp;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -80,6 +81,14 @@ public class V1RegistryConfig {
     @SerializedName(SERIALIZED_NAME_ENABLE_MCP_SERVER_NAME)
     private Boolean enableMcpServer;
 
+    public static final String SERIALIZED_NAME_ENABLE_SCOPE_MCP_SERVER_NAME = "enableScopeMcpServers";
+    @SerializedName(SERIALIZED_NAME_ENABLE_SCOPE_MCP_SERVER_NAME)
+    private Boolean enableScopeMcpServers;
+
+    public static final String SERIALIZED_NAME_ALLOW_MCP_SERVERS_NAME = "allowMcpServers";
+    @SerializedName(SERIALIZED_NAME_ALLOW_MCP_SERVERS_NAME)
+    private List<String> allowMcpServers;
+
     public static final String SERIALIZED_NAME_MCP_SERVER_BASE_URL_NAME = "mcpServerBaseUrl";
     @SerializedName(SERIALIZED_NAME_MCP_SERVER_BASE_URL_NAME)
     private String mcpServerBaseUrl;
@@ -91,4 +100,8 @@ public class V1RegistryConfig {
     public static final String SERIALIZED_NAME_AUTH_SECRET_NAME = "authSecretName";
     @SerializedName(SERIALIZED_NAME_AUTH_SECRET_NAME)
     private String authSecretName;
+
+    public static final String SERIALIZED_NAME_METADATA_NAME = "metadata";
+    @SerializedName(SERIALIZED_NAME_METADATA_NAME)
+    private Map<String, V1RegistryConfigMetadata> metadata;
 }

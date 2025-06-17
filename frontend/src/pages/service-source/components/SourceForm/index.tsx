@@ -1,5 +1,4 @@
 import { OptionItem } from '@/interfaces/common';
-import { DEFAULT_DOMAIN } from '@/interfaces/domain';
 import { Route } from '@/interfaces/route';
 import {
   getServiceSourceTypeConfig,
@@ -31,7 +30,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
   const [mcpEnabled, setMcpEnabled] = useState<boolean>();
-  const [nacos3Mode, setNacos3Mode] = useState<Nacos3Mode | null>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
@@ -48,8 +46,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     },
   });
 
-  useEffect(() => {
+  const resetFields = () => {
     form.resetFields();
+
     if (value) {
       setSourceType(value.type);
       setSourceTypeConfig(getServiceSourceTypeConfig(value.type));
@@ -61,11 +60,15 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setAuthEnabled(authEnabledLocal);
       const mcpEnabledLocal = !!value.properties.enableMCPServer;
       setMcpEnabled(mcpEnabledLocal);
-      if (value.type === ServiceSourceTypes.nacos3.key) {
-        value.nacos3Mode = mcpEnabledLocal ? Nacos3Mode.MCP : Nacos3Mode.REGISTRY;
-        setNacos3Mode(value.nacos3Mode);
-      }
+    } else {
+      setSourceType(null);
+      setSourceTypeConfig(null)
+      setInitAuthEnabled(false);
+      setAuthEnabled(false);
+      setUsingTlsProtocol(false);
+      setMcpEnabled(false);
     }
+
     const valueToSet = value || {};
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
     valueToSet.authN.enabled = valueToSet.authN.enabled || false;
@@ -75,7 +78,10 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     valueToSet.protocol = valueToSet.protocol || ServiceProtocols.unspecified.key;
     updateUsingTlsProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
+  };
 
+  useEffect(() => {
+    resetFields();
     if (domainOptions == null) {
       domainsResult.run();
     }
@@ -110,9 +116,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         }
       } else {
         values.protocol = null;
-      }
-      if (values.type === ServiceSourceTypes.nacos3.key) {
-        values.properties.enableMCPServer = values.nacos3Mode === Nacos3Mode.MCP;
       }
       updateUsingTlsProtocol(values.protocol);
       if (!usingTlsProtocol) {
