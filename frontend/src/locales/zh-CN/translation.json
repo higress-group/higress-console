@@ -682,7 +682,8 @@
     "switchToForm": "表单视图",
     "isRequired": "是必填的",
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。",
-    "deleteSuccess": "删除成功"
+    "deleteSuccess": "删除成功",
+    "saveSuccess": "保存成功"
   },
   "mcp": {
     "common": {

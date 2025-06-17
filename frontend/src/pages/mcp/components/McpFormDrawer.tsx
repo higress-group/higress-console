@@ -232,54 +232,53 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           name="domains"
           rules={[{ required: true, message: t('mcp.form.domainsRequired') }]}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Select
-              showSearch
-              loading={domainLoading}
-              options={domainList.map((domain) => ({ label: domain, value: domain }))}
-              onSearch={handleDomainSearch}
-              filterOption={false}
-              placeholder={t('mcp.form.domainsRequired')!}
-              style={{ flex: 1 }}
-            />
-            <Button style={{ color: '#3883ea' }} type="text" icon={<RedoOutlined />} onClick={getDomainList} />
-            <Button
-              type="text"
-              style={{ width: 50, color: '#3883ea', padding: 0 }}
-              onClick={() => history?.push('/domain')}
-            >
-              {t('mcp.form.addDomain')}
-            </Button>
-          </div>
-
-          {/* todo sse & streamable */}
-          <div
-            style={{
-              marginTop: 8,
-              color: '#bfbfbf',
-              background: '#f5f5f5',
-              borderRadius: 6,
-              padding: '8px 12px',
-              fontSize: 14,
-              lineHeight: '22px',
-            }}
-          >
-            路径 (SSE) 规则为：/mcp-servers/服务名称/sse
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              color: '#bfbfbf',
-              background: '#f5f5f5',
-              borderRadius: 6,
-              padding: '8px 12px',
-              fontSize: 14,
-              lineHeight: '22px',
-            }}
-          >
-            路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称
-          </div>
+          <Select
+            showSearch
+            loading={domainLoading}
+            options={domainList.map((domain) => ({ label: domain, value: domain }))}
+            onSearch={handleDomainSearch}
+            filterOption={false}
+            placeholder={t('mcp.form.domainsRequired')!}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
+        {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: -24, marginBottom: 16 }}>
+          <Button style={{ color: '#3883ea' }} type="text" icon={<RedoOutlined />} onClick={getDomainList} />
+          <Button
+            type="text"
+            style={{ width: 50, color: '#3883ea', padding: 0 }}
+            onClick={() => history?.push('/domain')}
+          >
+            {t('mcp.form.addDomain')}
+          </Button>
+        </div> */}
+        <div
+          style={{
+            marginTop: -8,
+            color: '#bfbfbf',
+            background: '#f5f5f5',
+            borderRadius: 6,
+            padding: '8px 12px',
+            fontSize: 14,
+            lineHeight: '22px',
+          }}
+        >
+          路径 (SSE) 规则为：/mcp-servers/服务名称/sse
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            marginBottom: 10,
+            color: '#bfbfbf',
+            background: '#f5f5f5',
+            borderRadius: 6,
+            padding: '8px 12px',
+            fontSize: 14,
+            lineHeight: '22px',
+          }}
+        >
+          路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称
+        </div>
 
         <Form.Item
           label={t('mcp.form.type')}
