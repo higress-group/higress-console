@@ -12,7 +12,19 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.*;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_ENABLED;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_FAILURE_THRESHOLD;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_INTERVAL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_MODEL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_TIMEOUT;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_SUCCESS_THRESHOLD;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTOCOL;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ENABLED;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_FAILURE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
