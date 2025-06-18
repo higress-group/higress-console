@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Form, Select, Input, Space, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { SERVICE_TYPE, DB_TYPE_OPTIONS, REG_DSN_STRING } from '../constant';
@@ -10,6 +10,7 @@ interface DatabaseConfigProps {
   dbUrl?: string;
   dbPort?: string | number;
   onChange?: (dsn: string, dbType: string) => void;
+  form: any;
 }
 
 const DB_FIELDS = [
@@ -55,7 +56,24 @@ export const DB_FIXED_FIELDS = [
   },
 ];
 
-const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbPort, onChange }) => {
+const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbPort, onChange, form }) => {
+  // 计算 DSN
+  const computeDSN = (values: any) => {
+    const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
+    if (!db_type || !db_user_name || !db_password || !db_server_host || !db_database) return '';
+    // eslint-disable-next-line max-len
+    return `${db_type.toLowerCase()}:${db_user_name}:${db_password}@tcp(${db_server_host}:${db_server_port})/${db_database}?charset=utf8mb4&parseTime=True&loc=Local`;
+  };
+
+  // 监听表单字段变化
+  useEffect(() => {
+    const values = form.getFieldsValue();
+    const newDsn = computeDSN(values);
+    if (onChange && newDsn) {
+      onChange(newDsn, values.db_type);
+    }
+  }, [form.getFieldsValue()]);
+
   return (
     <div style={{ background: '#f7f8fa', borderRadius: 8, padding: 16, marginBottom: 16 }}>
       <div style={{ display: 'flex', marginBottom: 8 }}>
@@ -64,7 +82,6 @@ const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbP
       </div>
       {DB_FIXED_FIELDS.map((item, idx) => (
         <div key={item.type} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-          {/* item.type: {item.type} {JSON.stringify(DB_FIELDS.find((f) => f.value === item.type))} */}
           <div className="db-config-label">
             {DB_FIELDS.find((f) => f.value === item.type)?.label}
           </div>

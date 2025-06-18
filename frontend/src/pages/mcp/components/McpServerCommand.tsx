@@ -31,14 +31,49 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
   }, [config, client, name]);
 
   const handleCopy = () => {
-    navigator.clipboard
-      .writeText(command)
-      .then(() => {
+    // 尝试使用现代 API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(command)
+        .then(() => {
+          message.success('命令已复制到剪贴板');
+        })
+        .catch(() => {
+          fallbackCopy();
+        });
+    } else {
+      fallbackCopy();
+    }
+  };
+
+  const fallbackCopy = () => {
+    // 创建临时文本区域
+    const textArea = document.createElement('textarea');
+    textArea.value = command;
+
+    // 设置样式使其不可见
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+
+    // 选择并复制文本
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
         message.success('命令已复制到剪贴板');
-      })
-      .catch(() => {
+      } else {
         message.error('复制失败，请手动复制');
-      });
+      }
+    } catch (err) {
+      message.error('复制失败，请手动复制');
+    }
+
+    // 清理
+    document.body.removeChild(textArea);
   };
 
   return (
