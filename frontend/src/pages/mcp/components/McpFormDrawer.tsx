@@ -6,7 +6,7 @@ import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
-import DatabaseConfig, { DB_FIXED_FIELDS } from './DatabaseConfig';
+import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
 import { getMcpServer } from '@/services/mcp';
 import { history } from 'ice';
 
@@ -61,6 +61,16 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       if (mode === 'create') {
         form.resetFields();
       } else {
+        if (record && record.dsn) {
+          const match = record.dsn.match(REG_DSN_STRING.DEFAULT)
+          if (match) {
+            form.setFieldsValue({
+              db_user_name: match[1],
+              db_password: match[2],
+              db_database: match[5],
+            });
+          }
+        }
         form.setFieldsValue({
           ...record,
           service: record?.services?.[0]?.name,
@@ -159,7 +169,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       ],
       ...(values.type === SERVICE_TYPE.DB
         ? {
-          // dsn: computeDSN(values),
+          dsn: computeDSN(values),
           dbType: values.db_type,
         }
         : {}),

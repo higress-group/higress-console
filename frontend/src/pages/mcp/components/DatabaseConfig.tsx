@@ -56,15 +56,14 @@ export const DB_FIXED_FIELDS = [
   },
 ];
 
-const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbPort, onChange, form }) => {
-  // 计算 DSN
-  const computeDSN = (values: any) => {
-    const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
-    if (!db_type || !db_user_name || !db_password || !db_server_host || !db_database) return '';
-    // eslint-disable-next-line max-len
-    return `${db_type.toLowerCase()}:${db_user_name}:${db_password}@tcp(${db_server_host}:${db_server_port})/${db_database}?charset=utf8mb4&parseTime=True&loc=Local`;
-  };
+export const computeDSN = (values: any) => {
+  const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
+  if (!db_type || !db_user_name || !db_password || !db_server_host || !db_database) return '';
+  // eslint-disable-next-line max-len
+  return `${db_user_name}:${db_password}@tcp(${db_server_host}:${db_server_port})/${db_database}?charset=utf8mb4&parseTime=True&loc=Local`;
+};
 
+const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbPort, onChange, form }) => {
   // 监听表单字段变化
   useEffect(() => {
     const values = form.getFieldsValue();
