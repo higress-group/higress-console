@@ -21,7 +21,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
 }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
-  const [consumerList, setConsumerList] = useState<{ label: string; value: string }[]>([]);
+  const [consumerList, setConsumerList] = useState<Array<{ label: string; value: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchConsumerList = async () => {
@@ -41,6 +41,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
   useEffect(() => {
     if (visible) {
       fetchConsumerList();
+      form.resetFields();
     }
   }, [visible]);
 

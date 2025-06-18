@@ -5,7 +5,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, Tooltip, Table, Empty } from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer } from '@/services/mcp';
+import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
 import { getGatewayDomains } from '@/services/domain';
 import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
@@ -93,7 +93,7 @@ const MCPDetailPage: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      // TODO: implement deleteMcpServer
+      await deleteMcpServer(name);
       message.success(t('mcp.detail.deleteSuccess'));
       navigate('/mcp/list');
     } catch (error) {

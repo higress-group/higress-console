@@ -705,6 +705,7 @@
       "reset": "重置"
     },
     "form": {
+      "namePattern": "包含大小写字母，数字以及特殊字符（- .），且不能以特殊字符开头和结尾",
       "create": "创建MCP服务",
       "edit": "编辑MCP服务",
       "name": "服务名称",
@@ -799,7 +800,7 @@
       "fetchConsumerListError": "获取消费者列表失败",
       "authSuccess": "授权成功",
       "authError": "授权失败",
-      "deleteConsumerConfirm": "确定删除该消费者授权吗？",
+      "deleteConsumerConfirm": "确定删除该消费者吗？",
       "deleteSuccess": "删除成功",
       "deleteError": "删除失败",
       "updateSuccess": "更新成功",

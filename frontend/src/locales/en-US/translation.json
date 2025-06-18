@@ -705,6 +705,7 @@
       "reset": "Reset"
     },
     "form": {
+      "namePattern": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
       "create": "Create MCP Service",
       "edit": "Edit MCP Service",
       "name": "Service Name",
@@ -811,7 +812,7 @@
       "fetchConsumerListError": "Failed to fetch consumer list",
       "authSuccess": "Authorized successfully",
       "authError": "Authorization failed",
-      "deleteConsumerConfirm": "Are you sure to delete this consumer auth?",
+      "deleteConsumerConfirm": "Are you sure to delete this consumer?",
       "deleteSuccess": "Deleted successfully",
       "deleteError": "Delete failed",
       "updateSuccess": "Updated successfully",

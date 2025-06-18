@@ -139,14 +139,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     }
   }, [visible]);
 
-  // DSN自动生成逻辑
-  const computeDSN = (values: any) => {
-    if (serviceType !== SERVICE_TYPE.DB) return '';
-    const { dbType, dbUser, dbPassword, dbHost, dbName, dbParams } = values;
-    if (!dbType || !dbUser || !dbPassword || !dbHost || !dbName) return '';
-    return `${dbType.toLowerCase()}:${dbUser}:${dbPassword}@tcp(${dbHost})/${dbName}${dbParams ? `?${dbParams}` : ''}`;
-  };
-
   // 表单提交
   const handleFinish = (values: any) => {
     const serviceName = values.service.split(':')[0];
@@ -167,8 +159,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       ],
       ...(values.type === SERVICE_TYPE.DB
         ? {
-          dsn: computeDSN(values),
-          dbType: values.dbType,
+          // dsn: computeDSN(values),
+          dbType: values.db_type,
         }
         : {}),
       consumerAuthInfo: {
@@ -317,7 +309,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             rules={[
               {
                 required: true,
-                message: t('mcp.form.databaseConfigRequired'),
                 validator: (_, value) => {
                   if (!value || !value.match(REG_DSN_STRING.DEFAULT)) {
                     return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
@@ -327,7 +318,17 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
               },
             ]}
           >
-            <DatabaseConfig />
+            <DatabaseConfig
+              form={form}
+              onChange={
+                (dsn, dbType) => {
+                  form.setFieldsValue({
+                    dsn,
+                    dbType,
+                  });
+                }
+              }
+            />
           </Form.Item>
         )}
 
