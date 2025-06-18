@@ -76,6 +76,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           service: record?.services?.[0]?.name,
           consumerAuth: record?.consumerAuthInfo?.enable || false,
           domains: record?.domains?.[0],
+          db_type: record?.dbType,
         });
       }
     }
