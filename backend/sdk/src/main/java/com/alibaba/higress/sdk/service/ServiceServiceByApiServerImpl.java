@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.sdk.constant.CommonKey;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,7 +47,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ServiceServiceByApiServerImpl implements ServiceService {
-    public static final String MCP_SIMULATE_NS = "mcp";
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
 
@@ -111,7 +111,7 @@ public class ServiceServiceByApiServerImpl implements ServiceService {
                 }
                 return registries.stream().map(r -> {
                     Service service = new Service();
-                    service.setNamespace(MCP_SIMULATE_NS);
+                    service.setNamespace(CommonKey.MCP_NAMESPACE);
                     service.setName(StringUtils.join(r.getName(), Separators.DOT, r.getType()));
                     service.setProtocol(r.getProtocol());
                     String[] endPoints = new String[] {};

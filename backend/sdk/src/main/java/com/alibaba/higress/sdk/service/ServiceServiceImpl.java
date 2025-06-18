@@ -13,26 +13,35 @@
 package com.alibaba.higress.sdk.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.sdk.service.kubernetes.model.IstioEndpoint;
 import com.alibaba.higress.sdk.service.kubernetes.model.IstioEndpointShard;
 import com.alibaba.higress.sdk.service.kubernetes.model.Port;
 import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzService;
+import com.alibaba.higress.sdk.service.kubernetes.model.RegistryzServiceAttributes;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +66,9 @@ class ServiceServiceImpl implements ServiceService {
 
             Map<String, Map<String, IstioEndpointShard>> serviceEndpoint =
                 kubernetesClientService.gatewayServiceEndpoint();
+
+            Map<String, String> mcpBridgeDomain = getMcpBridgeDnsDomain();
+
             List<Service> services = new ArrayList<>(registryzServices.size());
             for (RegistryzService registryzService : registryzServices) {
                 String namespace = registryzService.getAttributes().getNamespace();
@@ -68,6 +80,9 @@ class ServiceServiceImpl implements ServiceService {
                 String name = registryzService.getHostname();
 
                 List<String> endpoints = getServiceEndpoints(serviceEndpoint, namespace, name);
+                if (CollectionUtils.isEmpty(endpoints)) {
+                    endpoints = completeMcpDnsEndpoints(registryzService, mcpBridgeDomain);
+                }
                 if (CollectionUtils.isEmpty(registryzService.getPorts())
                     || !SHOW_MCP_SERVICE_PORTS && CommonKey.MCP_NAMESPACE.equals(namespace)) {
                     Service service = new Service();
@@ -99,6 +114,40 @@ class ServiceServiceImpl implements ServiceService {
         } catch (Exception e) {
             throw new BusinessException("Error occurs when listing services.", e);
         }
+    }
+
+    private Map<String/*serviceName*/, String/*domain*/> getMcpBridgeDnsDomain() {
+        List<V1McpBridge> v1McpBridges = kubernetesClientService.listMcpBridge();
+        if (CollectionUtils.isEmpty(v1McpBridges)) {
+            return Maps.newHashMap();
+        }
+
+        return v1McpBridges.stream().map(i -> {
+            if (Objects.isNull(i) || Objects.isNull(i.getSpec())) {
+                return null;
+            }
+            return i.getSpec().getRegistries();
+        }).filter(CollectionUtils::isNotEmpty).flatMap(Collection::stream)
+            .filter(i -> StringUtils.endsWithIgnoreCase(i.getType(), V1McpBridge.REGISTRY_TYPE_DNS))
+            .collect(Collectors.toMap(i -> StringUtils.join(i.getName(), Separators.DOT, i.getType()),
+                V1RegistryConfig::getDomain, (k1, k2) -> k1));
+    }
+
+    private List<String> completeMcpDnsEndpoints(RegistryzService registryzService,
+        Map<String, String> mcpBridgeDomain) {
+        RegistryzServiceAttributes attributes = registryzService.getAttributes();
+        if (Objects.isNull(attributes)) {
+            return null;
+        }
+        String namespace = attributes.getNamespace();
+        if (StringUtils.equalsIgnoreCase(CommonKey.MCP_NAMESPACE, namespace)
+            && StringUtils.endsWith(attributes.getName(), Separators.DOT + V1McpBridge.REGISTRY_TYPE_DNS)) {
+            String domain = mcpBridgeDomain.get(attributes.getName());
+            if (StringUtils.isNotBlank(domain)) {
+                return Lists.newArrayList(domain);
+            }
+        }
+        return null;
     }
 
     private static List<String> getServiceEndpoints(Map<String, Map<String, IstioEndpointShard>> serviceEndpoint,
