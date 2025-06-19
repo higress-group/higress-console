@@ -46,8 +46,7 @@ public class ServiceSourceAuthN {
     private Boolean enabled;
 
     @Schema(description = "Authentication properties, depending on the type.\n"
-        + "For nacos/nacos2: nacosUsername, nacosPassword\n"
-        + "For consul: consulToken\n")
+        + "For nacos/nacos2: nacosUsername, nacosPassword\n" + "For consul: consulToken\n")
     private Map<String, String> properties;
 
     public boolean validate(String registryType) {

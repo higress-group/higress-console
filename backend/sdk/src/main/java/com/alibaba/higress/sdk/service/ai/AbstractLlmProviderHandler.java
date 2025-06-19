@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.higress.sdk.util.MapUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +46,7 @@ import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.TokenFailoverConfig;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 
 abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
@@ -65,11 +65,11 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         Object tokensObj = configurations.get(PROVIDER_API_TOKENS);
         List<String> tokens = null;
         if (tokensObj instanceof List<?>) {
-            List<?> tokensList = (List<?>) tokensObj;
+            List<?> tokensList = (List<?>)tokensObj;
             tokens = new ArrayList<>(tokensList.size());
             for (Object tokenObj : tokensList) {
                 if (tokenObj instanceof String) {
-                    tokens.add((String) tokenObj);
+                    tokens.add((String)tokenObj);
                 }
             }
         }
@@ -203,7 +203,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         }
         if (serverPortObj instanceof String) {
             try {
-                String serverPortStr= (String) serverPortObj;
+                String serverPortStr = (String)serverPortObj;
                 return Integer.parseInt(serverPortStr);
             } catch (NumberFormatException e) {
                 throw new ValidationException(key + " must be a number.");

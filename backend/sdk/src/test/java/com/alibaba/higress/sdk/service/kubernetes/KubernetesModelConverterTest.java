@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Domain;
@@ -58,7 +57,9 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
+import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.TypeUtil;
+import com.google.common.collect.Lists;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -537,7 +538,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
@@ -566,7 +567,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
@@ -595,7 +596,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -624,7 +625,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -655,7 +656,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "20% hello1.default.svc.cluster.local:8080\n"
                 + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
@@ -685,7 +686,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -714,7 +715,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
+//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
@@ -1236,8 +1237,8 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestDomainScopeExistingRuleShouldUpdateExistingDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
-        spec.setMatchRules(
-            Lists.newArrayList(new MatchRule(false, MapUtil.of("key", "original"), Lists.newArrayList("higress.cn"), Lists.newArrayList(), Lists.newArrayList())));
+        spec.setMatchRules(Lists.newArrayList(new MatchRule(false, MapUtil.of("key", "original"),
+            Lists.newArrayList("higress.cn"), Lists.newArrayList(), Lists.newArrayList())));
         cr.setSpec(spec);
 
         WasmPluginInstance instance =
@@ -1933,6 +1934,10 @@ public class KubernetesModelConverterTest {
         route.setPath(new RoutePredicate());
         route.setCors(new CorsConfig());
         route.setCustomConfigs(new HashMap<>());
+        route.setCustomLabels(
+            MapUtil.of(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE,
+                KubernetesConstants.Label.DOMAIN_KEY_PREFIX + HigressConstants.DEFAULT_DOMAIN,
+                KubernetesConstants.Label.DOMAIN_VALUE_DUMMY));
         route.setReadonly(false);
         return route;
     }

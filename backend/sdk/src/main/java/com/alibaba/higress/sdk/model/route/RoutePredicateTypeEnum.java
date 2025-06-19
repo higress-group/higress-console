@@ -17,8 +17,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Route Predicate Types", type = "string", allowableValues = {"EXACT", "PRE", "REGEX"})
 public enum RoutePredicateTypeEnum {

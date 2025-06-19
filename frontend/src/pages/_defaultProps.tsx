@@ -78,6 +78,11 @@ export default {
         ],
       },
       {
+        name: 'menu.mcpManagement',
+        path: '/mcp/list',
+        icon: <RobotOutlined />,
+      },
+      {
         name: 'menu.domainManagement',
         path: '/domain',
         icon: <GlobalOutlined />,

@@ -12,14 +12,14 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.crd.mcp;
 
+import java.util.Set;
+
 import com.alibaba.higress.sdk.constant.Separators;
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.SerializedName;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.Data;
-
-import java.util.Set;
 
 @Data
 public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject {

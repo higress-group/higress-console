@@ -12,6 +12,14 @@
  */
 package com.alibaba.higress.console.config;
 
+import java.io.IOException;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.sdk.config.HigressServiceConfig;
 import com.alibaba.higress.sdk.constant.HigressConstants;
@@ -29,12 +37,8 @@ import com.alibaba.higress.sdk.service.ai.LlmProviderService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-import java.io.IOException;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
+import com.alibaba.higress.sdk.service.mcp.McpServerService;
 
 @Configuration
 public class SdkConfig {
@@ -42,8 +46,8 @@ public class SdkConfig {
     @Value("${" + SystemConfigKey.KUBE_CONFIG_KEY + ":}")
     private String kubeConfig;
 
-    @Value(
-        "${" + SystemConfigKey.CONTROLLER_SERVICE_NAME_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT + "}")
+    @Value("${" + SystemConfigKey.CONTROLLER_SERVICE_NAME_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT
+        + "}")
     private String controllerServiceName = HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT;
 
     @Value("${" + SystemConfigKey.NS_KEY + ":" + HigressConstants.NS_DEFAULT + "}")
@@ -55,16 +59,16 @@ public class SdkConfig {
     @Value("${" + SystemConfigKey.CONTROLLER_INGRESS_CLASS_NAME_KEY + ":}")
     private String controllerWatchedIngressClassName;
 
-    @Value(
-        "${" + SystemConfigKey.CONTROLLER_SERVICE_HOST_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT + "}")
+    @Value("${" + SystemConfigKey.CONTROLLER_SERVICE_HOST_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT
+        + "}")
     private String controllerServiceHost = HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT;
 
-    @Value(
-        "${" + SystemConfigKey.CONTROLLER_SERVICE_PORT_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT + "}")
+    @Value("${" + SystemConfigKey.CONTROLLER_SERVICE_PORT_KEY + ":" + HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT
+        + "}")
     private int controllerServicePort = HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT;
 
-    @Value(
-        "${" + SystemConfigKey.CONTROLLER_JWT_POLICY_KEY + ":" + HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT + "}")
+    @Value("${" + SystemConfigKey.CONTROLLER_JWT_POLICY_KEY + ":" + HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT
+        + "}")
     private String controllerJwtPolicy = HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT;
 
     @Value("${" + SystemConfigKey.CONTROLLER_ACCESS_TOKEN_KEY + ":}")
@@ -77,15 +81,13 @@ public class SdkConfig {
 
     @PostConstruct
     public void initialize() throws IOException {
-        HigressServiceConfig config =
-            HigressServiceConfig.builder().withKubeConfigPath(kubeConfig).withControllerNamespace(controllerNamespace)
-                .withControllerWatchedNamespace(controllerWatchedNamespace)
-                .withControllerWatchedIngressClassName(controllerWatchedIngressClassName)
-                .withControllerServiceName(controllerServiceName).withControllerServiceHost(controllerServiceHost)
-                .withControllerServicePort(controllerServicePort).withControllerJwtPolicy(controllerJwtPolicy)
-                .withControllerAccessToken(controllerAccessToken)
-                .withClusterDomainSuffix(clusterDomainSuffix)
-                .withWasmPluginServiceConfig(WasmPluginServiceConfig.buildFromEnv()).build();
+        HigressServiceConfig config = HigressServiceConfig.builder().withKubeConfigPath(kubeConfig)
+            .withControllerNamespace(controllerNamespace).withControllerWatchedNamespace(controllerWatchedNamespace)
+            .withControllerWatchedIngressClassName(controllerWatchedIngressClassName)
+            .withControllerServiceName(controllerServiceName).withControllerServiceHost(controllerServiceHost)
+            .withControllerServicePort(controllerServicePort).withControllerJwtPolicy(controllerJwtPolicy)
+            .withControllerAccessToken(controllerAccessToken).withClusterDomainSuffix(clusterDomainSuffix)
+            .withWasmPluginServiceConfig(WasmPluginServiceConfig.buildFromEnv()).build();
         serviceProvider = HigressServiceProvider.create(config);
     }
 
@@ -148,4 +150,15 @@ public class SdkConfig {
     public LlmProviderService llmProviderService() {
         return serviceProvider.llmProviderService();
     }
+
+    @Bean
+    public McpServerService mcpServerService() {
+        return serviceProvider.mcpServerService();
+    }
+
+    @Bean
+    public McpServerHelper mcpServerHelper() {
+        return new McpServerHelper();
+    }
+
 }
