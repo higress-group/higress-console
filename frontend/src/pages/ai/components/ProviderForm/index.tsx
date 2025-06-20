@@ -323,8 +323,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                           if (!item) {
                             continue;
                           }
-                          const url = URL.parse(item);
-                          if (!url) {
+                          let url;
+                          try {
+                            url = new URL(item);
+                          } catch (e) {
                             return Promise.reject(t('llmProvider.providerForm.rules.invalidOpenaiCustomUrl') + item)
                           }
                           if (value.length > 1
