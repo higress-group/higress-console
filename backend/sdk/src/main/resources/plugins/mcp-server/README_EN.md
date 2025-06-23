@@ -79,6 +79,7 @@ Plugin execution priority: `30`
 | `tools[].requestTemplate.security`    | object  | No     | -      | Security configuration for the HTTP request template, defining authentication between MCP Server and REST API. |
 | `tools[].requestTemplate.security.id` | string  | Required when `tools[].requestTemplate.security` is configured | - | References a security scheme ID defined in `server.securitySchemes`. |
 | `tools[].requestTemplate.security.credential` | string | No | - | Overrides the default credential defined in `server.securitySchemes`. If `tools[].security.passthrough` is enabled, this field will be ignored, and the passthrough credential will be used instead. |
+| `tools[].errorResponseTemplate`       | string  | No     | -      | Error Response Template when HTTP Response Status >=300 \\|\\| <200 |
 
 ## Authentication and Security
 
@@ -619,6 +620,71 @@ This example demonstrates:
 - Using `appendBody` to add usage suggestions at the end of the response
 - Preserving the original JSON response, allowing the AI assistant to directly access all data
 
+### Example of Customizing Error Responses Using errorResponseTemplate
+
+The errorResponseTemplate is used to customize the response transformation template when the HTTP response status code is >= 300 or < 200. It supports accessing header key-value pairs in map structure via _headers, so that values from the header can be referenced in the errorResponseTemplate to customize the error response result.
+
+```yaml
+server:
+  config:
+    appCode: ""
+  name: "Bank Card 2nd, 3rd, and 4th Element Verification"
+tools:
+- args:
+  - description: "Bank card number"
+    name: "cardno"
+    position: "query"
+    required: true
+    type: "string"
+  - description: "Name (Note: apply UrlEncode encoding)"
+    name: "name"
+    position: "query"
+    required: false
+    type: "string"
+  - description: "Registered mobile number"
+    name: "mobile"
+    position: "query"
+    required: false
+    type: "string"
+  - description: "ID card number"
+    name: "idcard"
+    position: "query"
+    required: false
+    type: "string"
+  description: "Verify whether card number, name, mobile number, and ID card number match"
+  errorResponseTemplate: |-
+    statusCode: {{gjson "_headers.\\:status"}}
+    errorCode: {{gjson "_headers.x-ca-error-code"}}
+    data: {{.data.value}}
+  name: "Bank Card 2nd, 3rd, and 4th Element Validation"
+  requestTemplate:
+    argsToFormBody: false
+    argsToJsonBody: false
+    argsToUrlParam: true
+    method: "GET"
+    url: "https://ckid.market.alicloudapi.com/lundear/verifyBank"
+  responseTemplate:
+    appendBody: |2-
+        - Below are descriptions of the returned parameters
+        - Parameter Name: code, Parameter Type: integer, Description: Response status code
+        - Parameter Name: desc, Parameter Type: string, Description: Description message
+        - Parameter Name: data, Parameter Type: object, Description: No description
+        - Parameter Name: data.bankId, Parameter Type: string, Description: Bank code
+        - Parameter Name: data.bankName, Parameter Type: string, Description: Bank name
+        - Parameter Name: data.abbr, Parameter Type: string, Description: Bank abbreviation
+        - Parameter Name: data.cardName, Parameter Type: string, Description: Card name
+        - Parameter Name: data.cardType, Parameter Type: string, Description: Card type
+        - Parameter Name: data.cardBin, Parameter Type: string, Description: Card BIN
+        - Parameter Name: data.binLen, Parameter Type: integer, Description: Length of card BIN
+        - Parameter Name: data.area, Parameter Type: string, Description: Region where the card belongs
+        - Parameter Name: data.bankPhone, Parameter Type: string, Description: Bank phone number
+        - Parameter Name: data.bankUrl, Parameter Type: string, Description: Bank website URL
+        - Parameter Name: data.bankLogo, Parameter Type: string, Description: Bank logo URL
+```
+This example demonstrates:
+- {{gjson "_headers.\\:status"}} -> Get HTTP status code
+- {{gjson "_headers.x-ca-error-code"}} -> Get value of header key "x-ca-error-code"
+- {{.data.value}} -> Access original responseBody content (e.g., JSON field "data.value")
 
 ## AI Prompt for Template Generation
 
