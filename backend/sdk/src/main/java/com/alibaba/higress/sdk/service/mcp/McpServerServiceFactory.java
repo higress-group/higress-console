@@ -15,6 +15,7 @@ package com.alibaba.higress.sdk.service.mcp;
 import java.util.List;
 import java.util.Objects;
 
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
@@ -31,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 class McpServerServiceFactory {
 
     private final List<McpServerService> mcpServerServiceList = Lists.newArrayList();
+    private final McpServerService defaultMcpServerService;
 
     public McpServerServiceFactory(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
@@ -48,13 +50,14 @@ class McpServerServiceFactory {
         mcpServerServiceList.add(mcpServerOfOpenApiService);
         mcpServerServiceList.add(mcpServerOfDatabaseService);
         mcpServerServiceList.add(mcpServerOfDirectRoutingService);
+        defaultMcpServerService = mcpServerOfDirectRoutingService;
 
     }
 
-    public McpServerService instanceOf(McpServer mcpServer) {
+    public McpServerService getServiceImpl(McpServer mcpServer) {
         if (Objects.isNull(mcpServer)) {
             // support default mcp server
-            return mcpServerServiceList.get(0);
+            return defaultMcpServerService;
         }
 
         for (McpServerService mcpServerService : mcpServerServiceList) {
@@ -62,7 +65,8 @@ class McpServerServiceFactory {
                 return mcpServerService;
             }
         }
-        throw new RuntimeException("No McpServerService implement found to support mcp type: " + mcpServer.getType());
+        throw new BusinessException(
+            "No McpServerService implementation found to support mcp type: " + mcpServer.getType());
     }
 
     public List<McpServerService> getAll() {

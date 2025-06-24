@@ -538,7 +538,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
@@ -567,7 +566,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local");
 
@@ -596,7 +594,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -625,7 +622,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -656,7 +652,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "20% hello1.default.svc.cluster.local:8080\n"
                 + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
@@ -686,7 +681,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
 
@@ -715,7 +709,6 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
-//        expectedMetadata.getLabels().remove(KubernetesConstants.Label.RESOURCE_DEFINER_KEY);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
             "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.USE_REGEX_KEY,

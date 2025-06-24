@@ -26,10 +26,10 @@ import com.google.common.collect.Lists;
  * @author lvshui
  */
 public class ConverterUtil {
-    public static <T, R> List<R> toList(Collection<T> v1Ingresses, Function<T, R> function) {
-        if (CollectionUtils.isEmpty(v1Ingresses)) {
+    public static <T, R> List<R> toList(Collection<T> sourceCollection, Function<T, R> function) {
+        if (CollectionUtils.isEmpty(sourceCollection)) {
             return Lists.newArrayList();
         }
-        return v1Ingresses.stream().map(function).filter(Objects::nonNull).collect(Collectors.toList());
+        return sourceCollection.stream().map(function).filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

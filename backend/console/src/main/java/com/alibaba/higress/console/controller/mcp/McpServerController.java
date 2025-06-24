@@ -71,7 +71,7 @@ public class McpServerController {
 
     @PutMapping
     @Operation(summary = "Add or update a mcp server instance")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances retrieved successfully"),
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances saved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<McpServer>> addOrUpdateMcpInstance(@RequestBody McpServer instance) {
         instance = mcpServerService.addOrUpdate(instance);

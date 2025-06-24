@@ -63,7 +63,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public McpServer addOrUpdate(McpServer instance) {
-        return serviceFactory.instanceOf(instance).addOrUpdate(instance);
+        return serviceFactory.getServiceImpl(instance).addOrUpdate(instance);
     }
 
     @Override
@@ -74,32 +74,32 @@ public class McpServiceContextImpl implements McpServerService {
         }
         McpServer mcpServer = routeToMcpServer(route);
 
-        return serviceFactory.instanceOf(mcpServer).query(name);
+        return serviceFactory.getServiceImpl(mcpServer).query(name);
     }
 
     @Override
     public PaginatedResult<McpServer> list(McpServerPageQuery query) {
-        return serviceFactory.instanceOf(null).list(query);
+        return serviceFactory.getServiceImpl(null).list(query);
     }
 
     @Override
     public void delete(String name) {
-        serviceFactory.instanceOf(null).delete(name);
+        serviceFactory.getServiceImpl(null).delete(name);
     }
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        serviceFactory.instanceOf(null).addAllowConsumers(consumers);
+        serviceFactory.getServiceImpl(null).addAllowConsumers(consumers);
     }
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        serviceFactory.instanceOf(null).deleteAllowConsumers(consumers);
+        serviceFactory.getServiceImpl(null).deleteAllowConsumers(consumers);
     }
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        return serviceFactory.instanceOf(null).listAllowConsumers(query);
+        return serviceFactory.getServiceImpl(null).listAllowConsumers(query);
     }
 
     public static McpServer routeToMcpServer(Route route) {
