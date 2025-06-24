@@ -112,12 +112,14 @@ const ModelMappingEditor = (props) => {
           case MatchType.PRE:
             modelMappingObj[modelMapping.key + '*'] = modelMapping.target || '';
             break;
+          default:
+            throw new Error(`Unsupported match type: ${modelMapping.matchType}`);
         }
-        if (values.defaultMapping) {
-          modelMappingObj['*'] = values.defaultMapping;
-        }
-        handleChange(modelMapping2String(modelMappingObj));
       }
+      if (values.defaultMapping) {
+        modelMappingObj['*'] = values.defaultMapping;
+      }
+      handleChange(modelMapping2String(modelMappingObj));
     });
   };
 

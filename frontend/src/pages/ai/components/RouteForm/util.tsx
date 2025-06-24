@@ -1,4 +1,4 @@
-const modelMapping2String = (modelMapping?: { [key: string]: string }): string => {
+const modelMapping2String = (modelMapping?: { [key: string]: string } | string): string => {
   if (!modelMapping) {
     return '';
   }
