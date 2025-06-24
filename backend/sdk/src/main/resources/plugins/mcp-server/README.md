@@ -79,6 +79,7 @@ description: MCP 服务器插件配置参考
 | `tools[].requestTemplate.security`    | object  | 选填     | -      | HTTP 请求模板的安全配置，用于定义 MCP Server 和 REST API 之间的认证方式。 |
 | `tools[].requestTemplate.security.id` | string  | 当 `tools[].requestTemplate.security` 配置时必填 | - | 引用在 `server.securitySchemes` 中定义的认证方案 ID。 |
 | `tools[].requestTemplate.security.credential` | string | 选填 | - | 覆盖 `server.securitySchemes` 中定义的默认凭证。如果同时启用了 `tools[].security.passthrough`，则此字段将被忽略，优先使用透传的凭证。 |
+| `tools[].errorResponseTemplate`       | string  | 选填     | -      | HTTP响应Status>=300 \\|\\| <200 时的错误响应转换模板 |
 
 ## 认证与安全
 
@@ -619,6 +620,72 @@ tools:
 - 使用 `appendBody` 在响应末尾添加使用建议
 - 保留原始 JSON 响应，使 AI 助手可以直接访问所有数据
 
+### 使用 errorResponseTemplate自定义错误响应的示例
+
+errorResponseTemplate用于在HTTP响应status code>=300 || <200时自定义响应转换模板。支持通过_headers访问map结构的header key value, 以便在errorResponseTemplate中引用header中的值自定义错误响应结果。
+
+```yaml
+server:
+  config:
+    appCode: ""
+  name: "银行卡二三四要素"
+tools:
+- args:
+  - description: "银行卡号"
+    name: "cardno"
+    position: "query"
+    required: true
+    type: "string"
+  - description: "姓名（注意UrlEncode编码）"
+    name: "name"
+    position: "query"
+    required: false
+    type: "string"
+  - description: "预留手机号"
+    name: "mobile"
+    position: "query"
+    required: false
+    type: "string"
+  - description: "身份证号码"
+    name: "idcard"
+    position: "query"
+    required: false
+    type: "string"
+  description: "验证卡号、姓名、手机号、证件号是否一致"
+  errorResponseTemplate: |-
+    statusCode: {{gjson "_headers.\\:status"}}
+    errorCode: {{gjson "_headers.x-ca-error-code"}}
+    data: {{.data.value}}
+  name: "银行卡二三四要素验证"
+  requestTemplate:
+    argsToFormBody: false
+    argsToJsonBody: false
+    argsToUrlParam: true
+    method: "GET"
+    url: "https://ckid.market.alicloudapi.com/lundear/verifyBank"
+  responseTemplate:
+    appendBody: |2-
+        - 以下是返回参数说明
+        - 参数名称: code, 参数类型: integer, 参数描述: 响应状态码
+        - 参数名称: desc, 参数类型: string, 参数描述: 描述信息
+        - 参数名称: data, 参数类型: object, 参数描述: 无描述
+        - 参数名称: data.bankId, 参数类型: string, 参数描述: 银行编码
+        - 参数名称: data.bankName, 参数类型: string, 参数描述: 银行名称
+        - 参数名称: data.abbr, 参数类型: string, 参数描述: 银行英文缩写
+        - 参数名称: data.cardName, 参数类型: string, 参数描述: 卡名称
+        - 参数名称: data.cardType, 参数类型: string, 参数描述: 卡类型
+        - 参数名称: data.cardBin, 参数类型: string, 参数描述: 卡bin
+        - 参数名称: data.binLen, 参数类型: integer, 参数描述: 卡bin长度
+        - 参数名称: data.area, 参数类型: string, 参数描述: 卡所在地区
+        - 参数名称: data.bankPhone, 参数类型: string, 参数描述: 银行电话
+        - 参数名称: data.bankUrl, 参数类型: string, 参数描述: 银行网址
+        - 参数名称: data.bankLogo, 参数类型: string, 参数描述: 银行logo
+
+```
+此示例展示了：
+- {{gjson "_headers.\\:status"}} -> 访问HTTP响应code
+- {{gjson "_headers.x-ca-error-code"}} -> 访问Header中"x-ca-error-code"的值
+- {{.data.value}} -> 访问响应体 (e.g., JSON 字段 "data.value")
 
 ## AI 提示词生成模板
 
