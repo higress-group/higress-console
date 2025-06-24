@@ -653,7 +653,7 @@ tools:
     type: "string"
   description: "Verify whether card number, name, mobile number, and ID card number match"
   errorResponseTemplate: |-
-    statusCode: {{._headers.\\:status}}
+    statusCode: {{gjson "_headers.\\:status"}}
     errorCode: {{gjson "_headers.x-ca-error-code"}}
     data: {{.data.value}}
   name: "Bank Card 2nd, 3rd, and 4th Element Validation"
@@ -682,7 +682,7 @@ tools:
         - Parameter Name: data.bankLogo, Parameter Type: string, Description: Bank logo URL
 ```
 This example demonstrates:
-- {{._headers.\\:status}} -> Get HTTP status code
+- {{gjson "_headers.\\:status"}} -> Get HTTP status code
 - {{gjson "_headers.x-ca-error-code"}} -> Get value of header key "x-ca-error-code"
 - {{.data.value}} -> Access original responseBody content (e.g., JSON field "data.value")
 

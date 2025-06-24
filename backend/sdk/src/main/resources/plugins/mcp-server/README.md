@@ -653,7 +653,7 @@ tools:
     type: "string"
   description: "验证卡号、姓名、手机号、证件号是否一致"
   errorResponseTemplate: |-
-    statusCode: {{._headers.\\:status}}
+    statusCode: {{gjson "_headers.\\:status"}}
     errorCode: {{gjson "_headers.x-ca-error-code"}}
     data: {{.data.value}}
   name: "银行卡二三四要素验证"
@@ -683,7 +683,7 @@ tools:
 
 ```
 此示例展示了：
-- {{._headers.\\:status}} -> 访问HTTP响应code
+- {{gjson "_headers.\\:status"}} -> 访问HTTP响应code
 - {{gjson "_headers.x-ca-error-code"}} -> 访问Header中"x-ca-error-code"的值
 - {{.data.value}} -> 访问响应体 (e.g., JSON 字段 "data.value")
 
