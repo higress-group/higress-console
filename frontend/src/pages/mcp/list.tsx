@@ -92,6 +92,7 @@ const MCPListPage: React.FC = () => {
       key: 'action',
       render: (text: any, record: any) => (
         <Space size="small">
+          <a onClick={() => history?.push(`/mcp/detail?name=${record.name}`)}>{t('misc.detail') || '详情'}</a>
           <a onClick={() => openDrawer('edit', record)}>{t('misc.edit')}</a>
           <a onClick={() => onShowModal(record)}>{t('misc.delete')}</a>
         </Space>

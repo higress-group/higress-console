@@ -92,9 +92,7 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
       </div>
       <CodeEditor
         defaultValue={command}
-        language="bash"
-        height="200px"
-        readOnly
+        defaultLanguage="bash"
         extraOptions={{
           onCopy: handleCopy,
           scrollbar: {

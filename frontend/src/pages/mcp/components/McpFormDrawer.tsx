@@ -7,7 +7,7 @@ import { getGatewayServices } from '@/services/service';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
 import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
-import { getMcpServer } from '@/services/mcp';
+import { getMcpServer, listMcpConsumers } from '@/services/mcp';
 import { history } from 'ice';
 
 interface McpFormDrawerProps {
@@ -32,7 +32,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   const [record, setRecord] = useState<any>(null);
   const [allDomainList, setAllDomainList] = useState<string[]>([]);
   const [allBackendServiceList, setAllBackendServiceList] = useState<any[]>([]);
-
+  const [consumerList, setConsumerList] = useState<any[]>([]);
 
   useEffect(() => {
     if (visible && mode === 'edit') {
@@ -62,7 +62,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         form.resetFields();
       } else {
         if (record && record.dsn) {
-          const match = record.dsn.match(REG_DSN_STRING.DEFAULT)
+          const match = record.dsn.match(REG_DSN_STRING.DEFAULT);
           if (match) {
             form.setFieldsValue({
               db_user_name: match[1],
@@ -118,7 +118,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     if (!value) {
       setDomainList(allDomainList);
     } else {
-      setDomainList(allDomainList.filter(domain => domain.includes(value)));
+      setDomainList(allDomainList.filter((domain) => domain.includes(value)));
     }
   };
 
@@ -149,6 +149,12 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       getBackendServiceList();
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (visible && name) {
+      listMcpConsumers({ mcpServerName: name }).then((res) => setConsumerList(res || []));
+    }
+  }, [visible, name]);
 
   // 表单提交
   const handleFinish = (values: any) => {
@@ -198,16 +204,12 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         <Space>
           <Button onClick={onClose}>{t('mcp.form.cancel')}</Button>
           <Button type="primary" onClick={() => form.submit()}>
-            {t('mcp.form.saveAndPublish')}
+            {t('mcp.form.ok') || '确定'}
           </Button>
         </Space>
       }
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleFinish}
-      >
+      <Form form={form} layout="vertical" onFinish={handleFinish}>
         <Form.Item
           label={t('mcp.form.name')}
           name="name"
@@ -233,7 +235,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         <Form.Item
           label={t('mcp.form.domains')}
           name="domains"
-          rules={[{ required: true, message: t('mcp.form.domainsRequired') }]}
+          /* 域名非必填 */
+          /* rules={[{ required: true, message: t('mcp.form.domainsRequired') }]} */
         >
           <Select
             showSearch
@@ -243,6 +246,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             filterOption={false}
             placeholder={t('mcp.form.domainsRequired')!}
             style={{ width: '100%' }}
+            allowClear
           />
         </Form.Item>
         {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: -24, marginBottom: 16 }}>
@@ -331,21 +335,19 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           >
             <DatabaseConfig
               form={form}
-              onChange={
-                (dsn, dbType) => {
-                  form.setFieldsValue({
-                    dsn,
-                    dbType,
-                  });
-                }
-              }
+              onChange={(dsn, dbType) => {
+                form.setFieldsValue({
+                  dsn,
+                  dbType,
+                });
+              }}
             />
           </Form.Item>
         )}
 
         {serviceType === SERVICE_TYPE.DIRECT_ROUTE && (
           <Form.Item
-            label={t('mcp.form.upstreamPathPrefix')}
+            label={t('mcp.form.upstreamPathPrefixLabel') || '后端服务前缀匹配路径'}
             name="upstreamPathPrefix"
             rules={[
               { required: true, message: t('mcp.form.upstreamPathPrefixRequired') },
@@ -354,6 +356,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 message: t('mcp.form.upstreamPathPrefixPattern'),
               },
             ]}
+            extra={t('mcp.form.upstreamPathPrefixExtra') || '后端服务需支持 SSE 或 Streamable 协议'}
           >
             <Input />
           </Form.Item>
@@ -364,23 +367,46 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             onChange={(value) => {
               form.setFieldsValue({
                 consumerAuth: value,
-                consumerAuthInfo: {
-                  enable: value,
-                },
+                authType: value ? 'key-auth' : undefined,
+                allowedConsumers: value ? form.getFieldValue('allowedConsumers') : undefined,
               });
             }}
           />
         </Form.Item>
 
-        {consumerAuth && (
-          <Form.Item label={t('mcp.form.authType')}>
-            <Space>
-              <span>API Key</span>
-              <Tooltip title={t('mcp.form.apiKeyTooltip')}>
-                <QuestionCircleOutlined style={{ color: '#888' }} />
-              </Tooltip>
-            </Space>
-          </Form.Item>
+        {form.getFieldValue('consumerAuth') && (
+          <>
+            <Form.Item label={t('mcp.form.authType')} name="authType" initialValue="key-auth">
+              <Select disabled>
+                <Select.Option value="key-auth">Key Auth</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label={t('mcp.form.allowedConsumers')}
+              name="allowedConsumers"
+              rules={[{ required: true, message: t('mcp.form.allowedConsumersRequired') }]}
+              extra={
+                <Button type="link" onClick={() => history?.push('/consumer')}>
+                  {t('consumer.create')}
+                </Button>
+              }
+            >
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('mcp.form.allowedConsumersPlaceholder') || '请选择允许访问的消费者'}
+              >
+                {consumerList.map((item) => (
+                  <Select.Option key={item.name} value={item.name}>
+                    {item.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <div style={{ color: '#888', marginBottom: 8 }}>
+              {t('mcp.form.keyAuthOnlyTip') || '目前仅支持 Key Auth 认证'}
+            </div>
+          </>
         )}
       </Form>
     </Drawer>

@@ -13,7 +13,7 @@
     "serviceSources": "服务来源",
     "serviceList": "服务列表",
     "routeConfig": "路由配置",
-    "aiServiceManagement": "AI流量入口管理",
+    "aiServiceManagement": "AI网关管理",
     "aiRouteManagement": "AI路由管理",
     "aiDashboard": "AI监控面板",
     "llmProviderManagement": "AI服务提供者管理",
@@ -685,7 +685,8 @@
     "isRequired": "是必填的",
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。",
     "deleteSuccess": "删除成功",
-    "saveSuccess": "保存成功"
+    "saveSuccess": "保存成功",
+    "detail": "详情"
   },
   "mcp": {
     "common": {
@@ -720,13 +721,14 @@
       "dbTypeRequired": "请选择数据库类型",
       "dsn": "DSN",
       "upstreamService": "后端服务",
-      "consumerAuth": "消费者认证",
+      "consumerAuth": "认证",
       "saveAndPublish": "保存并发布",
       "cancel": "取消",
       "directRouteText": "直接路由",
       "upstreamServiceRequired": "请选择后端服务",
-      "upstreamPathPrefix": "前缀匹配路径",
-      "upstreamPathPrefixRequired": "请输入前缀匹配路径",
+      "upstreamPathPrefix": "后端服务前缀匹配路径",
+      "upstreamPathPrefixRequired": "请输入后端服务前缀匹配路径",
+      "upstreamPathPrefixExtra": "后端服务需支持 SSE 或 Streamable 协议",
       "dbUser": "数据库用户名",
       "dbUserRequired": "请输入数据库用户名",
       "dbPassword": "数据库密码",
@@ -744,10 +746,16 @@
       "databaseConfig": "数据库配置",
       "databaseConfigRequired": "请配置数据库信息",
       "databaseConfigInvalid": "数据库配置格式不正确",
-      "addDomain":"添加域名"
+      "addDomain": "添加域名",
+      "allowedConsumers": "允许访问的消费者",
+      "allowedConsumersRequired": "请选择允许访问的消费者",
+      "allowedConsumersPlaceholder": "请选择允许访问的消费者",
+      "keyAuthOnlyTip": "目前仅支持 Key Auth 认证",
+      "ok": "确定"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {
+      "titlePrefix": "MCP 服务",
       "basicInfo": "基本信息",
       "tools": "工具",
       "resource": "资源",

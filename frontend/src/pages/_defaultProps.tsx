@@ -75,12 +75,18 @@ export default {
             path: '/ai/dashboard',
             visiblePredicate: (configData: any) => configData && configData['dashboard.builtin'],
           },
+          {
+            name: 'menu.mcpManagement',
+            path: '/mcp/list',
+            hideChildrenInMenu: true,
+            children: [
+              {
+                name: 'menu.mcpConfigurations',
+                path: '/mcp/detail',
+              },
+            ],
+          },
         ],
-      },
-      {
-        name: 'menu.mcpManagement',
-        path: '/mcp/list',
-        icon: <RobotOutlined />,
       },
       {
         name: 'menu.domainManagement',

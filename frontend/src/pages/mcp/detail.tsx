@@ -181,7 +181,7 @@ const MCPDetailPage: React.FC = () => {
   return (
     <PageContainer
       header={{
-        title: name,
+        title: `${t('mcp.detail.titlePrefix')}: ${name}`,
         onBack: () => navigate('/mcp/list'),
         extra: (
           <Space>
