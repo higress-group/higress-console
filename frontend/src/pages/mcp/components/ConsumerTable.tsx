@@ -59,41 +59,21 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
       dataIndex: 'consumerName',
       key: 'consumerName',
     },
-    // {
-    //   title: t('mcp.detail.consumerDescription'),
-    //   dataIndex: 'description',
-    //   key: 'description',
-    // },
-    {
-      title: t('mcp.detail.consumerAuthType'),
-      dataIndex: 'type',
-      key: 'type',
-    },
-    // {
-    //   title: t('mcp.detail.status'),
-    //   dataIndex: 'status',
-    //   key: 'status',
-    //   render: (status: string) => (
-    //     <span style={{ color: status === 'active' ? '#52c41a' : '#ff4d4f' }}>
-    //       {t(`mcp.detail.consumerStatus${status.toUpperCase()}`)}
-    //     </span>
-    //   ),
-    // },
     {
       title: t('misc.action'),
       key: 'action',
       render: (_: any, record: any) => (
-        <Space size="middle">
-          <Button
-            type="link"
+        <div key={`action-${record.consumerName}`} style={{ textAlign: 'left' }}>
+          <a
             onClick={() => {
               setCurrentRecord(record);
               setDeleteModalVisible(true);
             }}
+            style={{ cursor: 'pointer', color: '#1890ff' }}
           >
             {t('mcp.detail.delete')}
-          </Button>
-        </Space>
+          </a>
+        </div>
       ),
     },
   ];
@@ -134,9 +114,9 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
       </Form>
       <Table
         columns={columns}
-        dataSource={consumers}
+        dataSource={consumers.map((consumer, index) => ({ ...consumer, key: consumer.consumerName || index }))}
         loading={loading}
-        rowKey="id"
+        rowKey="key"
         pagination={false}
         locale={{ emptyText: t('mcp.detail.noData') }}
       />

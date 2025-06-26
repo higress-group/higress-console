@@ -24,8 +24,8 @@ export function getServiceTypeMap(directRouteText: string) {
 export const DB_TYPE_OPTIONS = [
   { label: 'MySQL', value: 'MYSQL' },
   { label: 'PostgreSQL', value: 'PostgreSQL' },
-  { label: 'Sqlite', value: 'Sqlite' },
-  { label: 'Clickhouse', value: 'Clickhouse' },
+  { label: 'SQLite', value: 'Sqlite' },
+  { label: 'ClickHouse', value: 'Clickhouse' },
 ];
 
 export const DOMAIN_PROTOCOL_MAP = {

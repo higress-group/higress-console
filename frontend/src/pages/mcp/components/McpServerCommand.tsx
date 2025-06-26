@@ -3,6 +3,7 @@ import { Select, message } from 'antd';
 import { useSearchParams } from 'ice';
 import CodeEditor from '@/components/CodeEditor';
 import { CLIENT_MAP } from '../constant';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface McpServerCommandProps {
   mode: 'streamableHttp' | 'sse';
@@ -13,6 +14,8 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
   const [client, setClient] = useState('vscode');
   const [searchParams] = useSearchParams();
   const name = searchParams.get('name');
+  const { t } = useTranslation();
+
 
   const command = useMemo(() => {
     let parsedConfig: any = null;
@@ -87,7 +90,9 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
           ))}
         </Select>
         <div style={{ display: 'inline-block', marginRight: 15, marginLeft: 15 }}>
-          请运行以下命令以安装 {CLIENT_MAP[client]} Mcp Server：
+          <Trans t={t} i18nKey="mcp.detail.commandDesc" values={{ client: CLIENT_MAP[client] }}>
+            使用 {{ client }} 客户端安装 MCP 服务器
+          </Trans>
         </div>
       </div>
       <CodeEditor
