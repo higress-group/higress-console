@@ -125,10 +125,10 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     /**
      *
      * <p>
-     * saveRoute -> route info <br>
-     * buildMcpServer -> mcp server info <br>
-     * buildAuthentication -> auth info <br>
-     * buildAuthorization -> authorization info <br>
+     * saveRoute - route info <br>
+     * buildMcpServer - mcp server info <br>
+     * buildAuthentication - auth info <br>
+     * buildAuthorization - authorization info <br>
      * </p>
      * 
      *

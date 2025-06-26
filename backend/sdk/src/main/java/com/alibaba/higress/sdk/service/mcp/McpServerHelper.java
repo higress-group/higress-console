@@ -107,7 +107,7 @@ public class McpServerHelper {
 
         StringBuilder sb = new StringBuilder();
         for (char c : slice.toCharArray()) {
-            if (isAlphabetic(c) || isDigit(c) || isSpecialChar(c) || isChineseChar(c)) {
+            if (isLetter(c) || isDigit(c) || isUpperCase(c) || isSpecialChar(c) || isChineseChar(c)) {
                 sb.append(c);
             }
         }
@@ -116,13 +116,19 @@ public class McpServerHelper {
 
     }
 
-    private static boolean isAlphabetic(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    // Checks if the character is a lowercase letter (a-z)
+    private static boolean isLetter(char c) {
+        return c >= 'a' && c <= 'z';
     }
 
     // Checks if the character is a digit (0-9)
     private static boolean isDigit(char c) {
         return c >= '0' && c <= '9';
+    }
+
+    // Checks if the character is an uppercase letter (A-Z)
+    private static boolean isUpperCase(char c) {
+        return c >= 'A' && c <= 'Z';
     }
 
     // Checks if the character is one of the specified special characters: '_', '-', ',', '/', '.'

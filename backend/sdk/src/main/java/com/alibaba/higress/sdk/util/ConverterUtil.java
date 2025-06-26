@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 
 /**
  * @author lvshui
