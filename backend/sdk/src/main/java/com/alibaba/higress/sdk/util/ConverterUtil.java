@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.util;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ import com.google.common.collect.Lists;
 public class ConverterUtil {
     public static <T, R> List<R> toList(Collection<T> sourceCollection, Function<T, R> function) {
         if (CollectionUtils.isEmpty(sourceCollection)) {
-            return Lists.newArrayList();
+            return Collections.emptyList();
         }
         return sourceCollection.stream().map(function).filter(Objects::nonNull).collect(Collectors.toList());
     }

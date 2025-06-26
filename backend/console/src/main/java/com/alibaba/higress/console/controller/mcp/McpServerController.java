@@ -87,7 +87,7 @@ public class McpServerController {
     }
 
     @GetMapping("/{name}")
-    @Operation(summary = "get detail for mcp server")
+    @Operation(summary = "Get detail for mcp server")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "McpServer detail query successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<McpServer>> query(@PathVariable("name") @NotBlank String name) {
@@ -108,7 +108,7 @@ public class McpServerController {
     @ApiResponses(
         value = {@ApiResponse(responseCode = "204", description = "Add mcp server allow consumers successfully"),
             @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<Route>> addAllowConsumers(@RequestBody McpServerConsumers consumers) {
+    public ResponseEntity<Void> addAllowConsumers(@RequestBody McpServerConsumers consumers) {
         mcpServerService.addAllowConsumers(consumers);
         return ResponseEntity.noContent().build();
     }
@@ -118,7 +118,7 @@ public class McpServerController {
     @ApiResponses(
         value = {@ApiResponse(responseCode = "204", description = "Delete mcp server allow consumers successfully"),
             @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<Route>> deleteAllowConsumers(@RequestBody McpServerConsumers consumers) {
+    public ResponseEntity<Void> deleteAllowConsumers(@RequestBody McpServerConsumers consumers) {
         mcpServerService.deleteAllowConsumers(consumers);
         return ResponseEntity.noContent().build();
     }

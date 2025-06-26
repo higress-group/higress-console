@@ -120,17 +120,6 @@ public class McpServerServiceTest {
             wasmPluginInstanceService, routeService);
     }
 
-    @AfterEach
-    public void tearDown() {
-        mcpServerService = null;
-        wasmPluginService = null;
-        wasmPluginInstanceService = null;
-        consumerService = null;
-        routeService = null;
-        kubernetesModelConverter = null;
-        kubernetesClientService = null;
-    }
-
     @Test
     public void queryMcpServerTest() throws Exception {
         final String mcpServerName = "test";

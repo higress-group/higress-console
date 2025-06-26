@@ -14,6 +14,10 @@ package com.alibaba.higress.sdk.constant;
 
 import java.nio.file.Paths;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.util.EnvReadUtil;
+
 /**
  * @author fuyang
  */
@@ -33,23 +37,33 @@ public class McpConstants {
      * mcp work dir key
      */
     public static final String MCP_WORK_DIR_KEY = "mcp.work.dir";
+    public static final String MCP_WORK_DIR_ENV_KEY = "MCP_WORK_DIR";
 
     /**
      * openapi to mcpserver script path key
      */
     public static final String OPENAPI_TO_MCPSERVER_SCRIPT_PATH_KEY = "openapi.to.mcpserver.script.path";
+    public static final String OPENAPI_TO_MCPSERVER_SCRIPT_PATH_ENV_KEY = "OPENAPI_TO_MCPSERVER_SCRIPT_PATH";
 
     public static String getMcpTempDir() {
-        String workDir = System.getProperty(MCP_WORK_DIR_KEY, DEFAULT_MCP_WORK_DIR);
-        return Paths.get(workDir, "temp").toString();
+        return Paths.get(getMcpWorkDir(), "temp").toString();
     }
 
     public static String getMcpWorkDir() {
-        return System.getProperty(MCP_WORK_DIR_KEY, DEFAULT_MCP_WORK_DIR);
+        String workDir = EnvReadUtil.loadCustomConfFromEnv(MCP_WORK_DIR_KEY, MCP_WORK_DIR_ENV_KEY);
+        if (StringUtils.isBlank(workDir)) {
+            workDir = DEFAULT_MCP_WORK_DIR;
+        }
+        return workDir;
     }
 
     public static String getOpenApiToMcpserverScriptPath() {
-        return System.getProperty(OPENAPI_TO_MCPSERVER_SCRIPT_PATH_KEY, OPENAPI_TO_MCPSERVER_SCRIPT_PATH);
+        String path = EnvReadUtil.loadCustomConfFromEnv(OPENAPI_TO_MCPSERVER_SCRIPT_PATH_KEY,
+            OPENAPI_TO_MCPSERVER_SCRIPT_PATH_ENV_KEY);
+        if (StringUtils.isBlank(path)) {
+            path = OPENAPI_TO_MCPSERVER_SCRIPT_PATH;
+        }
+        return path;
     }
 
 }

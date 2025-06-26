@@ -14,12 +14,9 @@ package com.alibaba.higress.sdk.service.mcp;
 
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
-import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
@@ -67,16 +64,5 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
     @Override
     protected void buildMcpServer(McpServer mcpInstance) {
         // nothing to do!
-    }
-
-    @Override
-    protected McpServerConfigMap.MatchList generateMatchList(McpServer mcpInstance) {
-        McpServerConfigMap.MatchList result = super.generateMatchList(mcpInstance);
-        result.setUpstreamType("sse");
-        if (StringUtils.isNotBlank(mcpInstance.getUpstreamPathPrefix())) {
-            result.setEnablePathRewrite(Boolean.TRUE);
-            result.setPathRewritePrefix(mcpInstance.getUpstreamPathPrefix());
-        }
-        return result;
     }
 }

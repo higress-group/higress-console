@@ -12,40 +12,27 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.RoutePageQuery;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
-import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
+import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Lists;
 
-import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -122,58 +109,4 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
         }
         result.setRawConfigurations(wasmPluginInstance.getRawConfigurations());
     }
-
-    private List<McpServer> getOpenApiTypeServers(McpServerPageQuery query) {
-        List<McpServer> resultList = Lists.newArrayList();
-        List<WasmPluginInstance> mcpInstanceList = listMcpInstances();
-        PaginatedResult<Route> routeList = routeService.list(new RoutePageQuery());
-        Map<String, Route> routeMap = routeList.getData().stream().collect(Collectors.toMap(Route::getName, r -> r));
-        if (CollectionUtils.isEmpty(mcpInstanceList)) {
-            return resultList;
-        }
-        for (WasmPluginInstance wasmPluginInstance : mcpInstanceList) {
-            McpServer mcpServer = new McpServer();
-            mcpServer.setName(wasmPluginInstance.getTargets().get(WasmPluginInstanceScope.ROUTE));
-            mcpServer.setDescription(getOpenApiTypeServerDescription(wasmPluginInstance.getConfigurations()));
-            mcpServer.setRawConfigurations(wasmPluginInstance.getRawConfigurations());
-            Route matchRoute = routeMap.get(mcpServer.getName());
-            if (Objects.nonNull(matchRoute)) {
-                mcpServer.setServices(matchRoute.getServices());
-                mcpServer.setDomains(matchRoute.getDomains());
-            }
-            if (StringUtils.isNotEmpty(query.getMcpServerName())
-                && !StringUtils.contains(mcpServer.getName(), query.getMcpServerName())) {
-                continue;
-            }
-            mcpServer.setType(McpServerTypeEnum.OPEN_API);
-            resultList.add(mcpServer);
-        }
-        return resultList;
-    }
-
-    private List<WasmPluginInstance> listMcpInstances() {
-        List<V1alpha1WasmPlugin> plugins;
-        try {
-            plugins = kubernetesClientService.listWasmPlugin(DEFAULT_MCP_PLUGIN, null, true);
-        } catch (ApiException e) {
-            throw new BusinessException("Error occurs when listing WasmPlugin for mcp.", e);
-        }
-        if (CollectionUtils.isEmpty(plugins)) {
-            return Collections.emptyList();
-        }
-        return plugins.stream().filter(instance -> {
-            String name = instance.getMetadata().getName();
-            return name != null && name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
-        }).map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
-            .flatMap(Collection::stream).collect(Collectors.toList());
-    }
-
-    private String getOpenApiTypeServerDescription(Map<String, Object> configurations) {
-        if (MapUtils.isNotEmpty(configurations)) {
-            return Optional.ofNullable(configurations.get("server")).filter(Map.class::isInstance)
-                .map(server -> ((Map<?, ?>)server).get("description")).map(Object::toString).orElse("");
-        }
-        return "";
-    }
-
 }
