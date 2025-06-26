@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
+import static com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName.DEFAULT_MCP_PLUGIN;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -42,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
-    private static final String DEFAULT_MCP_PLUGIN = "mcp-server";
 
     public McpServerOfOpenApiImpl(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,

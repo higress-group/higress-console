@@ -123,7 +123,6 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     }
 
     /**
-     *
      * <p>
      * saveRoute - route info <br>
      * buildMcpServer - mcp server info <br>
@@ -131,10 +130,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
      * buildAuthorization - authorization info <br>
      * </p>
      * 
-     *
-     *
      * @param mcpInstance
-     * @return
      */
     @Override
     public McpServer addOrUpdate(McpServer mcpInstance) {
