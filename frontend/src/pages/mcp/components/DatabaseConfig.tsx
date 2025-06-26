@@ -75,10 +75,10 @@ const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbP
 
   return (
     <div style={{ background: '#f7f8fa', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-      <div style={{ display: 'flex', marginBottom: 8 }}>
+      {/* <div style={{ display: 'flex', marginBottom: 8 }}>
         <div style={{ fontWeight: 'bold', width: 200 }}>认证类型</div>
         <div style={{ fontWeight: 'bold', flex: 1, marginLeft: 12 }}>认证凭证</div>
-      </div>
+      </div> */}
       {DB_FIXED_FIELDS.map((item, idx) => (
         <div key={item.type} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
           <div className="db-config-label">

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Drawer, Form, Select, Button, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getConsumers } from '@/services/consumer';
-import { addMcpConsumers } from '@/services/mcp';
+import { addMcpConsumers, listMcpConsumers } from '@/services/mcp';
 
 interface AddConsumerAuthProps {
   visible: boolean;
@@ -22,6 +22,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [consumerList, setConsumerList] = useState<Array<{ label: string; value: string }>>([]);
+  const [authorizedConsumers, setAuthorizedConsumers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchConsumerList = async () => {
@@ -38,12 +39,23 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
     }
   };
 
+  const fetchAuthorizedConsumers = async () => {
+    try {
+      const res = await listMcpConsumers({ mcpServerName: mcpName });
+      setAuthorizedConsumers(res.map((item: any) => item.consumerName));
+    } catch (error) {
+      // 如果获取已授权消费者失败，不影响添加功能
+      message.warning(t('mcp.detail.fetchAuthorizedConsumersError'));
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       fetchConsumerList();
+      fetchAuthorizedConsumers();
       form.resetFields();
     }
-  }, [visible]);
+  }, [visible, mcpName]);
 
   const handleSubmit = async () => {
     try {
@@ -51,7 +63,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       setLoading(true);
       await addMcpConsumers({
         mcpServerName: mcpName,
-        consumers: [values.consumerId],
+        consumers: values.consumerIds,
       });
       message.success(t('mcp.detail.authSuccess'));
       onSuccess();
@@ -68,6 +80,9 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
     onClose();
   };
 
+  // 过滤掉已授权的消费者
+  const availableConsumers = consumerList.filter(consumer => !authorizedConsumers.includes(consumer.value));
+
   return (
     <Drawer
       title={t('mcp.detail.addConsumerAuth')}
@@ -75,7 +90,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       onClose={handleClose}
       width={700}
       destroyOnClose
-      footer={
+      extra={
         <div style={{ textAlign: 'right' }}>
           <Button onClick={handleClose} style={{ marginRight: 8 }}>
             {t('mcp.common.cancel')}
@@ -86,16 +101,17 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
         </div>
       }
     >
-      <Form form={form} layout="vertical" initialValues={{ consumerId: undefined }}>
-        <Form.Item label={t('mcp.detail.authScope')}>MCP服务</Form.Item>
+      <Form form={form} layout="vertical" initialValues={{ consumerIds: [] }}>
+        <Form.Item label={t('mcp.detail.authScope')}>{t('mcp.detail.authScopeMcpService', { name: mcpName })}</Form.Item>
         <Form.Item
-          name="consumerId"
+          name="consumerIds"
           label={t('mcp.detail.consumer')}
-          rules={[{ required: true, message: t('mcp.detail.selectConsumer') }]}
+          rules={[{ required: true, message: t('mcp.detail.selectConsumer') || '请选择消费者' }]}
         >
           <Select
-            placeholder={t('mcp.detail.selectConsumer')}
-            options={consumerList}
+            mode="multiple"
+            placeholder={t('mcp.detail.selectConsumer') || '请选择消费者'}
+            options={availableConsumers}
             showSearch
             filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
           />

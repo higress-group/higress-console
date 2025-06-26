@@ -2,7 +2,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'ice';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, Tooltip, Table, Empty } from 'antd';
+import {
+  Card,
+  Tabs,
+  Button,
+  Descriptions,
+  Space,
+  message,
+  Popconfirm,
+  Switch,
+  Tooltip,
+  Table,
+  Empty,
+  Modal,
+} from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
@@ -207,15 +220,21 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.basicInfo')} bordered>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.form.name')}>{mcpData?.name}</Descriptions.Item>
-                    <Descriptions.Item label={t('mcp.form.description')}>{mcpData?.description || '-'}</Descriptions.Item>
+                    <Descriptions.Item label={t('mcp.form.description')}>
+                      <span style={{ whiteSpace: 'pre-line' }}>{mcpData?.description || '-'}</span>
+                    </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.domains')}>
-                      {mcpData?.domains?.map((domain: string) => domain)}
+                      {mcpData?.domains?.map((domain: string, index: number) => (
+                        <span key={`domain-${index}`}>{domain}</span>
+                      ))}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.type')}>
                       {t(`${serviceTypeMap[mcpData?.type]}`)}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.upstreamService')}>
-                      {mcpData?.services?.map((service: any) => service.name)}
+                      {mcpData?.services?.map((service: any, index: number) => (
+                        <span key={`service-${index}`}>{service.name}</span>
+                      ))}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -259,17 +278,17 @@ const MCPDetailPage: React.FC = () => {
                 >
                   {tools.length === 0 ? (
                     <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
-                      <Button
+                      {/* <Button
                         type="primary"
                         onClick={() => setEditToolVisible(true)}
                         disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
                       >
                         {t('mcp.detail.addTool')}
-                      </Button>
+                      </Button> */}
                     </Empty>
                   ) : (
                     <Table
-                      dataSource={tools}
+                      dataSource={tools.map((tool, idx) => ({ ...tool, key: tool.name || idx }))}
                       columns={[
                         {
                           title: t('mcp.detail.toolName'),
@@ -288,8 +307,8 @@ const MCPDetailPage: React.FC = () => {
                           render: (args: any[]) => (
                             <>
                               {args?.length ? (
-                                args.map((arg) => (
-                                  <div key={arg.name}>
+                                args.map((arg, idx) => (
+                                  <div key={arg.name || idx}>
                                     <b>{arg.name}</b>: {arg.description}
                                   </div>
                                 ))
@@ -300,6 +319,7 @@ const MCPDetailPage: React.FC = () => {
                           ),
                         },
                       ]}
+                      rowKey="key"
                       pagination={false}
                     />
                   )}
@@ -330,9 +350,8 @@ const MCPDetailPage: React.FC = () => {
                           children: (
                             <CodeEditor
                               defaultValue={httpJson}
-                              language="json"
-                              height="200px"
-                              readOnly
+                              defaultLanguage="json"
+                              editorHeight="200px"
                               extraOptions={{
                                 scrollbar: {
                                   vertical: 'hidden',
@@ -351,9 +370,8 @@ const MCPDetailPage: React.FC = () => {
                           children: (
                             <CodeEditor
                               defaultValue={sseJson}
-                              language="json"
-                              height="200px"
-                              readOnly
+                              defaultLanguage="json"
+                              editorHeight="200px"
                               extraOptions={{
                                 scrollbar: {
                                   vertical: 'hidden',
@@ -369,22 +387,12 @@ const MCPDetailPage: React.FC = () => {
                         {
                           key: 'httpCmd',
                           label: t('mcp.detail.streamableHttpCommand'),
-                          children: (
-                            <McpServerCommand
-                              mode="streamableHttp"
-                              config={httpJson}
-                            />
-                          ),
+                          children: <McpServerCommand mode="streamableHttp" config={httpJson} />,
                         },
                         {
                           key: 'sseCmd',
                           label: t('mcp.detail.sseCommand'),
-                          children: (
-                            <McpServerCommand
-                              mode="sse"
-                              config={sseJson}
-                            />
-                          ),
+                          children: <McpServerCommand mode="sse" config={sseJson} />,
                         },
                       ]}
                     />
@@ -421,14 +429,14 @@ const MCPDetailPage: React.FC = () => {
           {
             key: 'resource',
             label: t('mcp.detail.resource'),
-            disabled: true,
-            children: null,
+            // disabled: true,
+            children: <Card>{t('misc.tbd')}</Card>,
           },
           {
             key: 'prompt',
             label: t('mcp.detail.prompt'),
-            disabled: true,
-            children: null,
+            // disabled: true,
+            children: <Card>{t('misc.tbd')}</Card>,
           },
           {
             key: 'auth',
@@ -436,23 +444,39 @@ const MCPDetailPage: React.FC = () => {
             children: (
               <>
                 <Card title={t('mcp.detail.configInfo')} bordered>
-                  <Space align="center">
-                    <span>{t('mcp.detail.authStatus')}</span>
-                    <Switch checked={authEnabled} onChange={handleAuthChange} />
+                  <Descriptions column={2}>
+                    <Descriptions.Item label={t('mcp.detail.authStatus')}>
+                      <a
+                        onClick={() => {
+                          Modal.confirm({
+                            title: t('mcp.detail.confirmAuthChange'),
+                            content: authEnabled
+                              ? t('mcp.detail.confirmDisableAuth')
+                              : t('mcp.detail.confirmEnableAuth'),
+                            onOk: () => handleAuthChange(!authEnabled),
+                          });
+                        }}
+                        // style={{ color: authEnabled ? '#52c41a' : '#d9d9d9' }}
+                      >
+                        {authEnabled ? t('mcp.detail.enabled') : t('mcp.detail.disabled')}
+                      </a>
+                    </Descriptions.Item>
                     {authEnabled && (
-                      <span>
-                        {t('mcp.detail.authType')}
-                        <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
-                          <QuestionCircleOutlined style={{ marginLeft: 8, color: '#888' }} />
-                        </Tooltip>
-                      </span>
+                      <Descriptions.Item label={t('mcp.detail.authType')}>
+                        <Space>
+                          <span>API Key</span>
+                          <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
+                            <QuestionCircleOutlined style={{ color: '#888' }} />
+                          </Tooltip>
+                        </Space>
+                      </Descriptions.Item>
                     )}
-                  </Space>
+                  </Descriptions>
                 </Card>
-                <Card title={t('mcp.detail.consumers')} bordered style={{ marginTop: 16 }}>
+                <Card title={t('mcp.detail.authorizedConsumers')} bordered style={{ marginTop: 16 }}>
                   <ConsumerTable ref={consumerTableRef}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddConsumerAuthVisible(true)}>
-                      {t('mcp.detail.authorize')}
+                      {t('mcp.detail.add')}
                     </Button>
                   </ConsumerTable>
                 </Card>

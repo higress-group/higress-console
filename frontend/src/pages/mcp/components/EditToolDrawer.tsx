@@ -26,6 +26,7 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
   const [localRawConfigurations, setLocalRawConfigurations] = useState('');
   const [swaggerContentStr, setSwaggerContentStr] = useState('');
   const [swaggerToolsContent, setSwaggerToolsContent] = useState('');
+  const [editorReady, setEditorReady] = useState(false);
 
   // 初始化/重置
   useEffect(() => {
@@ -44,6 +45,15 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
     }
     // eslint-disable-next-line
   }, [rawConfigurations]);
+
+  // 主题加载完成后再展示编辑器
+  useEffect(() => {
+    if (visible) {
+      setTimeout(() => setEditorReady(true), 100); // 模拟主题加载
+    } else {
+      setEditorReady(false);
+    }
+  }, [visible]);
 
   // 关闭
   const handleClose = () => {
@@ -157,34 +167,13 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
           <StepTitle>
             {t('mcp.detail.yamlEditTitle')}
           </StepTitle>
-          <MonacoEditor
-            height="400px"
-            language="yaml"
-            theme="vs-dark"
-            value={localRawConfigurations}
-            onChange={(v) => setLocalRawConfigurations(v || '')}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              lineNumbers: 'on',
-              wordWrap: 'on',
-              automaticLayout: true,
-            }}
-            style={{ marginBottom: 10 }}
-          />
-        </>
-      ) : (
-        <>
-          <div style={{ marginBottom: 24 }}>
-            <StepTitle>
-              {t('mcp.detail.swaggerEditTitle')}
-            </StepTitle>
+          {editorReady && (
             <MonacoEditor
               height="400px"
               language="yaml"
               theme="vs-dark"
-              value={swaggerContentStr}
-              onChange={(v) => setSwaggerContentStr(v || '')}
+              value={localRawConfigurations}
+              onChange={(v) => setLocalRawConfigurations(v || '')}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -192,7 +181,32 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
                 wordWrap: 'on',
                 automaticLayout: true,
               }}
+              style={{ marginBottom: 10 }}
             />
+          )}
+        </>
+      ) : (
+        <>
+          <div style={{ marginBottom: 24 }}>
+            <StepTitle>
+              {t('mcp.detail.swaggerEditTitle')}
+            </StepTitle>
+            {editorReady && (
+              <MonacoEditor
+                height="400px"
+                language="yaml"
+                theme="vs-dark"
+                value={swaggerContentStr}
+                onChange={(v) => setSwaggerContentStr(v || '')}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                  automaticLayout: true,
+                }}
+              />
+            )}
             <Button type="primary" style={{ marginTop: 12 }} onClick={handleSwaggerParse}>
               {t('mcp.detail.swaggerParseBtn')}
             </Button>
@@ -206,39 +220,43 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
                 <div style={{ marginBottom: 4 }}>
                   {t('mcp.detail.swaggerPreviewDesc')}
                 </div>
-                <MonacoEditor
-                  height="400px"
-                  language="yaml"
-                  theme="vs-dark"
-                  value={swaggerToolsContent}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    wordWrap: 'on',
-                    automaticLayout: true,
-                    readOnly: true,
-                  }}
-                />
+                {editorReady && (
+                  <MonacoEditor
+                    height="400px"
+                    language="yaml"
+                    theme="vs-dark"
+                    value={swaggerToolsContent}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      wordWrap: 'on',
+                      automaticLayout: true,
+                      readOnly: true,
+                    }}
+                  />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: 4 }}>
                   {t('mcp.detail.yamlEditDesc')}
                 </div>
-                <MonacoEditor
-                  height="400px"
-                  language="yaml"
-                  theme="vs-dark"
-                  value={localRawConfigurations}
-                  onChange={(v) => setLocalRawConfigurations(v || '')}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    wordWrap: 'on',
-                    automaticLayout: true,
-                  }}
-                />
+                {editorReady && (
+                  <MonacoEditor
+                    height="400px"
+                    language="yaml"
+                    theme="vs-dark"
+                    value={localRawConfigurations}
+                    onChange={(v) => setLocalRawConfigurations(v || '')}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      wordWrap: 'on',
+                      automaticLayout: true,
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>

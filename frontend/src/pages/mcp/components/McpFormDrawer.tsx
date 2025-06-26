@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
-import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useWatch } from 'antd/es/form/Form';
 import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
-import { getMcpServer, listMcpConsumers } from '@/services/mcp';
+import { getMcpServer } from '@/services/mcp';
 import { history } from 'ice';
+import { getConsumers } from '@/services/consumer';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -151,10 +151,10 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   }, [visible]);
 
   useEffect(() => {
-    if (visible && name) {
-      listMcpConsumers({ mcpServerName: name }).then((res) => setConsumerList(res || []));
+    if (visible) {
+      getConsumers().then((res) => setConsumerList(res || []));
     }
-  }, [visible, name]);
+  }, [visible]);
 
   // 表单提交
   const handleFinish = (values: any) => {
@@ -270,7 +270,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          路径 (SSE) 规则为：/mcp-servers/服务名称/sse
+          {/* 路径 (SSE) 规则为：/mcp-servers/服务名称/sse */}
+          {t('mcp.form.ssePathRule')}
         </div>
         <div
           style={{
@@ -284,7 +285,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称
+          {/* 路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称 */}
+          {t('mcp.form.httpPathRule')}
         </div>
 
         <Form.Item
@@ -362,7 +364,12 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           </Form.Item>
         )}
 
-        <Form.Item label={t('mcp.form.consumerAuth')} name="consumerAuth" valuePropName="checked">
+        <Form.Item
+          label={t('mcp.form.consumerAuth')}
+          name="consumerAuth"
+          valuePropName="checked"
+          extra={t('mcp.form.keyAuthOnlyTip')}
+        >
           <Switch
             onChange={(value) => {
               form.setFieldsValue({
@@ -394,7 +401,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
               <Select
                 mode="multiple"
                 allowClear
-                placeholder={t('mcp.form.allowedConsumersPlaceholder') || '请选择允许访问的消费者'}
+                placeholder={t('mcp.form.allowedConsumersPlaceholder')}
               >
                 {consumerList.map((item) => (
                   <Select.Option key={item.name} value={item.name}>
@@ -403,9 +410,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 ))}
               </Select>
             </Form.Item>
-            <div style={{ color: '#888', marginBottom: 8 }}>
-              {t('mcp.form.keyAuthOnlyTip') || '目前仅支持 Key Auth 认证'}
-            </div>
           </>
         )}
       </Form>

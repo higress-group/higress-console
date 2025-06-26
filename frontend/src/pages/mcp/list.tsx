@@ -4,7 +4,7 @@ import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { McpServer } from '@/interfaces/mcp';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useTranslation, Trans } from 'react-i18next';
-import { createOrUpdateMcpServer, listMcpServers, deleteMcpServer } from '@/services/mcp';
+import { createOrUpdateMcpServer, listMcpServers, deleteMcpServer, addMcpConsumers } from '@/services/mcp';
 import McpFormDrawer from './components/McpFormDrawer';
 import { history } from 'ice';
 import { getServiceTypeMap, SERVICE_TYPES } from './constant';
@@ -61,6 +61,12 @@ const MCPListPage: React.FC = () => {
   const handleDrawerSubmit = async (values: any) => {
     try {
       await createOrUpdateMcpServer(values);
+      if (values.consumerAuth) {
+        await addMcpConsumers({
+          mcpServerName: values.name,
+          consumers: values.allowedConsumers,
+        });
+      }
       message.success(t('misc.saveSuccess'));
       closeDrawer();
       getMcpServers({});
