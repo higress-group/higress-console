@@ -136,6 +136,6 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
     @Override
     public List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig,
         boolean forDelete) {
-        return forDelete ? null : EXTRA_SERVICE_SOURCES;
+        return forDelete ? Collections.emptyList() : EXTRA_SERVICE_SOURCES;
     }
 }
