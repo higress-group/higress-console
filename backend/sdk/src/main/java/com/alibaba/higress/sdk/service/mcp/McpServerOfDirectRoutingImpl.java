@@ -14,7 +14,7 @@ package com.alibaba.higress.sdk.service.mcp;
 
 import java.util.Objects;
 
-import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
@@ -46,7 +46,7 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
     public McpServer query(String name) {
         Route route = routeService.query(name);
         if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
+            throw new NotFoundException("can't found the bound route by name: " + name);
         }
         McpServer result = routeToMcpServerWithAuth(route);
 

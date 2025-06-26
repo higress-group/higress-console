@@ -18,25 +18,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.RoutePageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerDBTypeEnum;
-import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
-import com.google.common.collect.Lists;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +99,7 @@ public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
     public McpServer query(String name) {
         Route route = routeService.query(name);
         if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
+            throw new NotFoundException("can't found the bound route by name: " + name);
         }
         McpServer result = routeToMcpServerWithAuth(route);
         completeConfigFields(name, result);
@@ -127,44 +123,6 @@ public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
             result.setDbType(McpServerDBTypeEnum.fromValue(server.getConfig().getDbType()));
             result.setRawConfigurations(buildDatabaseToolsConfig(name, server.getConfig().getDbType()));
         }
-    }
-
-    private List<McpServer> getDatabaseTypeMcpServers(McpServerPageQuery query) {
-        List<McpServer> resultList = Lists.newArrayList();
-        PaginatedResult<Route> routeList = routeService.list(new RoutePageQuery());
-        Map<String, Route> routeMap = routeList.getData().stream().collect(Collectors.toMap(Route::getName, r -> r));
-
-        try {
-            V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
-            McpServerConfigMap mcpConfig = getMcpConfig(configMap);
-            for (McpServerConfigMap.Server server : mcpConfig.getServers()) {
-                if (StringUtils.isNotEmpty(query.getMcpServerName())
-                    && !StringUtils.contains(server.getName(), query.getMcpServerName())) {
-                    continue;
-                }
-
-                McpServer mcpServer = new McpServer();
-                mcpServer.setName(server.getName());
-                mcpServer.setType(McpServerTypeEnum.DATABASE);
-                mcpServer.setDsn(server.getConfig().getDsn());
-                mcpServer.setDbType(McpServerDBTypeEnum.fromValue(server.getConfig().getDbType()));
-                mcpServer.setRawConfigurations(
-                    buildDatabaseToolsConfig(mcpServer.getName(), mcpServer.getDbType().getValue()));
-
-                Route matchRoute = routeMap.get(server.getName());
-                if (Objects.nonNull(matchRoute)) {
-                    mcpServer.setServices(matchRoute.getServices());
-                    mcpServer.setDomains(matchRoute.getDomains());
-                }
-
-                resultList.add(mcpServer);
-            }
-
-        } catch (Exception e) {
-            log.error("Failed to get mcp server list", e);
-        }
-
-        return resultList;
     }
 
     /**

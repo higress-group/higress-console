@@ -17,6 +17,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBA
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
+import static com.alibaba.higress.sdk.model.mcp.McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,7 +97,6 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
     protected static final String MATCH_RULE_PATH_KEY = "match_rule_path";
     private static final String SERVERS_KEY = "servers";
     private static final String SERVERS_NAME_KEY = "name";
-    private static final String MCP_SERVER_BIZ_TYPE_VALUE = "mcp-server";
     private static final String MCP_SERVER_PATH_PRE = "/mcp-servers";
 
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
@@ -146,7 +146,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         List<McpServer> resultList;
 
         Map<String, String> labelMap =
-            MapUtil.of(McpServerConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
+            MapUtil.of(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
         try {
             List<V1Ingress> v1Ingresses = kubernetesClientService.listIngress(labelMap);
             List<Route> routeList = ConverterUtil.toList(v1Ingresses, kubernetesModelConverter::ingress2Route);
@@ -540,7 +540,7 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
         Map<String, String> labelsMap = new TreeMap<>();
         labelsMap.put(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
         labelsMap.put(KubernetesConstants.Label.INTERNAL_KEY, Boolean.TRUE.toString());
-        labelsMap.put(McpServerConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
+        labelsMap.put(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
         labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY, mcpInstance.getType().name());
         route.setCustomLabels(labelsMap);
     }

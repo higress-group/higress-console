@@ -31,6 +31,9 @@ public enum McpServerTypeEnum {
 
     /**
      * OpenAPI
+     * <p>
+     *     upstream service is an open api
+     * </p>
      */
     OPEN_API("open_api"),
 
@@ -41,6 +44,9 @@ public enum McpServerTypeEnum {
 
     /**
      * Direct Route
+     * <p>
+     *     upstream service is a mcp server
+     * </p>
      */
     DIRECT_ROUTE("direct_route");
 

@@ -12,13 +12,16 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
+import static com.alibaba.higress.sdk.constant.KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
@@ -69,12 +72,21 @@ public class McpServiceContextImpl implements McpServerService {
     @Override
     public McpServer query(String name) {
         Route route = routeService.query(name);
-        if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
+        if (Objects.isNull(route) || !isMcpServerRoute(route.getCustomLabels())) {
+            throw new NotFoundException("can't found the bound route by name: " + name);
         }
         McpServer mcpServer = routeToMcpServer(route);
 
         return serviceFactory.getServiceImpl(mcpServer).query(name);
+    }
+
+    private boolean isMcpServerRoute(Map<String, String> customLabels) {
+        if (MapUtils.isEmpty(customLabels)) {
+            return false;
+        }
+
+        return StringUtils.equalsIgnoreCase(McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE,
+            customLabels.get(RESOURCE_BIZ_TYPE_KEY));
     }
 
     @Override

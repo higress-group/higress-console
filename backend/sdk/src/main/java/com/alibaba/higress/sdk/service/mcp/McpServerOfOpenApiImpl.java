@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
@@ -93,7 +94,7 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
     public McpServer query(String name) {
         Route route = routeService.query(name);
         if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
+            throw new NotFoundException("can't found the bound route by name: " + name);
         }
         McpServer result = routeToMcpServerWithAuth(route);
         completeWasmPluginInfo(name, result);
