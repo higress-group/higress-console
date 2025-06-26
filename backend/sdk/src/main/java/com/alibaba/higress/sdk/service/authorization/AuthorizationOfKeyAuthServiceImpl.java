@@ -41,6 +41,7 @@ import com.alibaba.higress.sdk.model.authorization.AuthorizationResourceTypeEnum
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
+
+    private static final List<String> DEFAULT_KEYS = Lists.newArrayList("Authorization", "x-api-key");
 
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
@@ -65,7 +68,7 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
         configurations.put(GLOBAL_AUTH, false);
         configurations.put(IN_HEADER, true);
         configurations.put(IN_QUERY, false);
-        configurations.put(KEYS, Lists.newArrayList("Authorization", "x-api-key"));
+        configurations.put(KEYS, DEFAULT_KEYS);
         keyAuthInstance.setConfigurations(configurations);
         return keyAuthInstance;
     }
@@ -79,9 +82,11 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
             wasmPluginInstanceService.addOrUpdate(keyAuthRequest);
         } else {
             Map<String, Object> configurations = globalKeyAuth.getConfigurations();
-            configurations.get(KEYS);
-            Set<String> keysValue =
-                JSON.parseObject(JSON.toJSONString(configurations.get(KEYS)), new TypeReference<Set<String>>() {});
+            Set<String> keysValue = Sets.newHashSet();
+            if (Objects.nonNull(configurations.get(KEYS))) {
+                keysValue =
+                    JSON.parseObject(JSON.toJSONString(configurations.get(KEYS)), new TypeReference<Set<String>>() {});
+            }
             keysValue.addAll(Lists.newArrayList("Authorization", "x-api-key"));
             configurations.put(KEYS, keysValue);
             globalKeyAuth.setConfigurations(null);

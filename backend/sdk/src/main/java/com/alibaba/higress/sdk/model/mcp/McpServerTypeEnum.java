@@ -32,7 +32,7 @@ public enum McpServerTypeEnum {
     /**
      * OpenAPI
      */
-    OPEN_API("openapi"),
+    OPEN_API("open_api"),
 
     /**
      * Database, supported database types {@link McpServerDBTypeEnum}

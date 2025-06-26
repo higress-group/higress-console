@@ -34,29 +34,29 @@ public class McpServer {
     private List<String> domains;
     @Schema(description = "Mcp server upstream services")
     private List<UpstreamService> services;
-    @Schema(description = "Mcp server type")
+    @Schema(description = "Mcp server type", allowableValues = {"OPEN_API", "DATABASE", "DIRECT_ROUTE"})
     private McpServerTypeEnum type;
 
     @Schema(description = "Mcp server consumer auth info")
     private ConsumerAuthInfo consumerAuthInfo;
 
     /**
-     * type =open api
+     * type = "OPEN_API"
      */
     @Schema(description = "Raw configurations in YAML format")
     private String rawConfigurations;
 
     /**
-     * type= db
+     * type= "DATABASE"
      */
     @Schema(description = "Data Source Name. For DB type server, it is required")
     private String dsn;
 
-    @Schema(description = "Database type, support MYSQL POSTGRESQL SQLITE CLICKHOUSE")
+    @Schema(description = "Database type",allowableValues = {"MYSQL", "POSTGRESQL", "SQLITE", "CLICKHOUSE"})
     private McpServerDBTypeEnum dbType;
 
     /**
-     * type= redirect route
+     * type= "DIRECT_ROUTE"
      */
     @Schema(description = "The upstream MCP server will redirect requests based on the path prefix.")
     private String upstreamPathPrefix;

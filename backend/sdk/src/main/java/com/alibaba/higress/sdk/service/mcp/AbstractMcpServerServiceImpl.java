@@ -588,18 +588,30 @@ public abstract class AbstractMcpServerServiceImpl implements McpServerService {
             .query(MapUtil.of(WasmPluginInstanceScope.ROUTE, route.getName()), BuiltInPluginName.KEY_AUTH, true);
         route.setAuthConfig(RouteAuthConfig.builder().enabled(false).build());
         if (Objects.nonNull(instance)) {
-            route.getAuthConfig().setEnabled(instance.getEnabled());
+            route.setAuthConfig(generateAuthConfig(instance));
+        }
+        return McpServiceContextImpl.routeToMcpServer(route);
+    }
+
+    private RouteAuthConfig generateAuthConfig(WasmPluginInstance instance) {
+        RouteAuthConfig routeAuthConfig = new RouteAuthConfig();
+        routeAuthConfig.setEnabled(instance.getEnabled());
+
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (Objects.isNull(configurations)) {
+            routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
+        } else {
             Object allowObj = instance.getConfigurations().get(ALLOW);
             if (!(allowObj instanceof List<?>)) {
-                route.getAuthConfig().setAllowedConsumers(Lists.newArrayList());
+                routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
             } else {
                 List<?> allowList = (List<?>)allowObj;
                 List<String> collectList = allowList.stream().filter(a -> a instanceof String).map(a -> (String)a)
                     .collect(Collectors.toList());
-                route.getAuthConfig().setAllowedConsumers(collectList);
+                routeAuthConfig.setAllowedConsumers(collectList);
             }
         }
-        return McpServiceContextImpl.routeToMcpServer(route);
+        return routeAuthConfig;
     }
 
 }

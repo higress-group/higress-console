@@ -73,27 +73,24 @@ public class McpServerConfigMap {
             if (map == null) {
                 map = new HashMap<>();
             }
-            if (StringUtils.isNotEmpty(matchRuleDomain)) {
-                map.put("match_rule_domain", matchRuleDomain);
-            }
-            if (StringUtils.isNotEmpty(matchRulePath)) {
-                map.put("match_rule_path", matchRulePath);
-            }
-            if (StringUtils.isNotEmpty(matchRuleType)) {
-                map.put("match_rule_type", matchRuleType);
-            }
-            if (StringUtils.isNotEmpty(upstreamType)) {
-                map.put("upstream_type", upstreamType);
-            }
+
+            putIfNotEmpty(map, "match_rule_domain", matchRuleDomain);
+            putIfNotEmpty(map, "match_rule_path", matchRulePath);
+            putIfNotEmpty(map, "match_rule_type", matchRuleType);
+            putIfNotEmpty(map, "upstream_type", upstreamType);
+            putIfNotEmpty(map, "path_rewrite_prefix", pathRewritePrefix);
             if (enablePathRewrite != null) {
                 map.put("enable_path_rewrite", enablePathRewrite);
             }
-            if (StringUtils.isNotEmpty(pathRewritePrefix)) {
-                map.put("path_rewrite_prefix", pathRewritePrefix);
-            }
-
             return map;
         }
+
+        private void putIfNotEmpty(Map<String, Object> map, String key, String value) {
+            if (StringUtils.isNotEmpty(value)) {
+                map.put(key, value);
+            }
+        }
+
     }
 
     @Data
