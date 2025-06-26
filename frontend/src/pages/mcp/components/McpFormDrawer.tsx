@@ -270,7 +270,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          路径 (SSE) 规则为：/mcp-servers/服务名称/sse
+          {/* 路径 (SSE) 规则为：/mcp-servers/服务名称/sse */}
+          {t('mcp.form.ssePathRule')}
         </div>
         <div
           style={{
@@ -284,7 +285,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称
+          {/* 路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称 */}
+          {t('mcp.form.httpPathRule')}
         </div>
 
         <Form.Item

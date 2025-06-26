@@ -685,7 +685,8 @@
     "isRequired": "is required",
     "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing.",
     "deleteSuccess": "Deleted successfully",
-    "saveSuccess": "Saved successfully."
+    "saveSuccess": "Saved successfully.",
+    "detail": "Detail"
   },
   "mcp": {
     "common": {
@@ -751,7 +752,9 @@
       "keyAuthOnlyTip": "Currently only Key Auth is supported",
       "ok": "OK",
       "upstreamPathPrefixLabel": "Backend Service Path Prefix",
-      "upstreamPathPrefixExtra": "Backend service must support SSE or Streamable protocol"
+      "upstreamPathPrefixExtra": "Backend service must support SSE or Streamable protocol",
+      "ssePathRule": "Path (SSE) rule: /mcp-servers/{serviceName}/sse",
+      "httpPathRule": "Path (Streamable HTTP) rule: /mcp-servers/{serviceName}"
     },
     "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?",
     "step1": "Step 1. Generate URL",

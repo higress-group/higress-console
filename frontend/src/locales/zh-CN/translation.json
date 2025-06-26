@@ -751,7 +751,10 @@
       "allowedConsumersRequired": "请选择允许访问的消费者",
       "allowedConsumersPlaceholder": "请选择允许访问的消费者",
       "keyAuthOnlyTip": "目前仅支持 Key Auth 认证",
-      "ok": "确定"
+      "ok": "确定",
+      "upstreamPathPrefixLabel": "后端服务前缀匹配路径",
+      "ssePathRule": "路径 (SSE) 规则为：/mcp-servers/服务名称/sse",
+      "httpPathRule": "路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {
