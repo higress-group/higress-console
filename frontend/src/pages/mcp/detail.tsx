@@ -2,7 +2,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'ice';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Tabs, Button, Descriptions, Space, message, Popconfirm, Switch, Tooltip, Table, Empty } from 'antd';
+import {
+  Card,
+  Tabs,
+  Button,
+  Descriptions,
+  Space,
+  message,
+  Popconfirm,
+  Switch,
+  Tooltip,
+  Table,
+  Empty,
+  Modal,
+} from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
@@ -374,22 +387,12 @@ const MCPDetailPage: React.FC = () => {
                         {
                           key: 'httpCmd',
                           label: t('mcp.detail.streamableHttpCommand'),
-                          children: (
-                            <McpServerCommand
-                              mode="streamableHttp"
-                              config={httpJson}
-                            />
-                          ),
+                          children: <McpServerCommand mode="streamableHttp" config={httpJson} />,
                         },
                         {
                           key: 'sseCmd',
                           label: t('mcp.detail.sseCommand'),
-                          children: (
-                            <McpServerCommand
-                              mode="sse"
-                              config={sseJson}
-                            />
-                          ),
+                          children: <McpServerCommand mode="sse" config={sseJson} />,
                         },
                       ]}
                     />
@@ -427,17 +430,13 @@ const MCPDetailPage: React.FC = () => {
             key: 'resource',
             label: t('mcp.detail.resource'),
             // disabled: true,
-            children: (
-              <Card>{t("misc.tbd")}</Card>
-            ),
+            children: <Card>{t('misc.tbd')}</Card>,
           },
           {
             key: 'prompt',
             label: t('mcp.detail.prompt'),
             // disabled: true,
-            children: (
-              <Card>{t("misc.tbd")}</Card>
-            ),
+            children: <Card>{t('misc.tbd')}</Card>,
           },
           {
             key: 'auth',
@@ -447,7 +446,20 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.configInfo')} bordered>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.authStatus')}>
-                      <Switch checked={authEnabled} onChange={handleAuthChange} />
+                      <a
+                        onClick={() => {
+                          Modal.confirm({
+                            title: t('mcp.detail.confirmAuthChange'),
+                            content: authEnabled
+                              ? t('mcp.detail.confirmDisableAuth')
+                              : t('mcp.detail.confirmEnableAuth'),
+                            onOk: () => handleAuthChange(!authEnabled),
+                          });
+                        }}
+                        // style={{ color: authEnabled ? '#52c41a' : '#d9d9d9' }}
+                      >
+                        {authEnabled ? t('mcp.detail.enabled') : t('mcp.detail.disabled')}
+                      </a>
                     </Descriptions.Item>
                     {authEnabled && (
                       <Descriptions.Item label={t('mcp.detail.authType')}>

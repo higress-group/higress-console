@@ -362,7 +362,12 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           </Form.Item>
         )}
 
-        <Form.Item label={t('mcp.form.consumerAuth')} name="consumerAuth" valuePropName="checked">
+        <Form.Item
+          label={t('mcp.form.consumerAuth')}
+          name="consumerAuth"
+          valuePropName="checked"
+          extra={t('mcp.form.keyAuthOnlyTip')}
+        >
           <Switch
             onChange={(value) => {
               form.setFieldsValue({
@@ -403,9 +408,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 ))}
               </Select>
             </Form.Item>
-            <div style={{ color: '#888', marginBottom: 8 }}>
-              {t('mcp.form.keyAuthOnlyTip') || '目前仅支持 Key Auth 认证'}
-            </div>
           </>
         )}
       </Form>

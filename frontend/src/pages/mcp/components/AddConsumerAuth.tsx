@@ -45,7 +45,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       setAuthorizedConsumers(res.map((item: any) => item.consumerName));
     } catch (error) {
       // 如果获取已授权消费者失败，不影响添加功能
-      message.warn('Failed to fetch authorized consumers:', error);
+      message.warning(t('mcp.detail.fetchAuthorizedConsumersError'));
     }
   };
 
@@ -102,6 +102,7 @@ const AddConsumerAuth: React.FC<AddConsumerAuthProps> = ({
       }
     >
       <Form form={form} layout="vertical" initialValues={{ consumerIds: [] }}>
+        <Form.Item label={t('mcp.detail.authScope')}>{t('mcp.detail.authScopeMcpService', { name: mcpName })}</Form.Item>
         <Form.Item
           name="consumerIds"
           label={t('mcp.detail.consumer')}
