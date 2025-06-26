@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import static com.alibaba.higress.sdk.model.mcp.McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,6 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,7 +159,7 @@ public class McpServerServiceTest {
         Assertions.assertTrue(mcpServer.getConsumerAuthInfo().getEnable());
         Assertions.assertEquals(allowConsumers, mcpServer.getConsumerAuthInfo().getAllowedConsumers());
 
-        Assertions.assertThrows(BusinessException.class, () -> mcpServerService.query("random mcp"));
+        Assertions.assertThrows(NotFoundException.class, () -> mcpServerService.query("random mcp"));
     }
 
     @Test
@@ -403,6 +405,7 @@ public class McpServerServiceTest {
         Map<String, String> labelsMap = new TreeMap<>();
         labelsMap.put(KubernetesConstants.Label.INTERNAL_KEY, Boolean.TRUE.toString());
         labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY, type.name());
+        labelsMap.put(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
         route.setCustomLabels(labelsMap);
         return kubernetesModelConverter.route2Ingress(route);
     }
