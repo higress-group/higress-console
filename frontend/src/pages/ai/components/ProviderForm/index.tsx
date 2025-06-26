@@ -1,9 +1,10 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
+import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
 
+const { TextArea } = Input;
 const { Text, Link } = Typography;
 
 const protocolList = [
@@ -37,6 +38,12 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckTimeout,
         healthCheckModel,
       } = tokenFailoverConfig ?? {};
+
+      // providerConfig cannot be used here directly because it is not updated yet
+      const newProviderConfig = getProviderConfigByType(type);
+      if (newProviderConfig && typeof newProviderConfig.parseRawConfigs === 'function' && rawConfigs) {
+        newProviderConfig.parseRawConfigs(rawConfigs);
+      }
 
       const localFailoverEnabled = !!tokenFailoverConfig?.enabled;
       setFailoverEnabled(localFailoverEnabled);
@@ -91,14 +98,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     handleSubmit: async () => {
       const values = await form.validateFields();
 
-      if (values.type === 'openai') {
-        const rawConfigs = { ...values.rawConfigs };
-        if (rawConfigs && Array.isArray(rawConfigs.openaiCustomUrls)) {
-          rawConfigs.openaiExtraCustomUrls = [...rawConfigs.openaiCustomUrls];
-          rawConfigs.openaiCustomUrl = rawConfigs.openaiExtraCustomUrls.shift();
-          delete rawConfigs.openaiCustomUrls;
-        }
-        values.rawConfigs = rawConfigs;
+      if (providerConfig && typeof providerConfig.normalizeRawConfigs === 'function' && values.rawConfigs) {
+        providerConfig.normalizeRawConfigs(values.rawConfigs);
       }
 
       const result = {
@@ -128,7 +129,11 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   function onProviderTypeChanged(value: string | null) {
     setProviderType(value);
-    setProviderConfig(value ? aiModelProviders.find(p => p.value === value) : null);
+    setProviderConfig(getProviderConfigByType(value));
+  }
+
+  function getProviderConfigByType(type: string | null) {
+    return aiModelProviders.find(p => p.value === type) || null;
   }
 
   function openSecretRefModal() {
@@ -532,7 +537,195 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 maxLength={256}
               />
             </Form.Item>
+          </>
+        )
+      }
 
+      {
+        providerType === 'vertex' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.vertexRegion')}
+              required
+              name={["rawConfigs", "vertexRegion"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.vertexRegionRequired'),
+                },
+              ]}
+            >
+              <AutoComplete
+                options={providerConfig.availableRegions.map(r => ({ label: r, value: r }))}
+                filterOption={(inputValue, option: any) => {
+                  return option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                }}
+                allowClear
+                maxLength={64}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.vertexProjectId')}
+              required
+              name={["rawConfigs", "vertexProjectId"]}
+              rules={[
+                {
+                  required: true,
+                  message: t('llmProvider.providerForm.rules.vertexProjectIdRequired'),
+                },
+              ]}
+            >
+              <Input
+                showCount
+                allowClear
+                maxLength={256}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.vertexAuthKey')}
+              tooltip={t('llmProvider.providerForm.label.vertexAuthKeyTooltip')}
+              required
+            >
+              <Form.Item
+                name={["rawConfigs", "vertexAuthKey"]}
+                noStyle
+                rules={[
+                  {
+                    validator(rule, value) {
+                      if (!value) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.vertexAuthKeyRequired'));
+                      }
+                      try {
+                        const authKeyObj = JSON.parse(value);
+                        if (typeof authKeyObj !== 'object') {
+                          return Promise.reject(t('llmProvider.providerForm.rules.vertexAuthKeyBadFormat'));
+                        }
+                        for (const key of ['client_email', 'private_key_id', 'private_key', 'token_uri']) {
+                          if (!authKeyObj[key] || typeof authKeyObj[key] !== 'string' || !authKeyObj[key].trim()) {
+                            return Promise.reject(t('llmProvider.providerForm.rules.vertexAuthKeyBadRequiredProperty', { key }));
+                          }
+                        }
+                        return Promise.resolve();
+                      } catch (e) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.vertexAuthKeyBadFormat'));
+                      }
+                    },
+                  },
+                ]}
+              >
+                <TextArea rows={15} />
+              </Form.Item>
+              <div style={{ marginTop: '1rem' }}>
+                <Link onClick={openSecretRefModal}>{t("llmProvider.providerForm.secretRefModal.entry")}</Link>
+              </div>
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.vertexTokenRefreshAhead')}
+              tooltip={t('llmProvider.providerForm.tooltips.vertexTokenRefreshAheadTooltip')}
+              name={["rawConfigs", "vertexTokenRefreshAhead"]}
+            >
+              <InputNumber
+                min={1}
+                max={1800}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+            <Form.Item label={t('llmProvider.providerForm.label.geminiSafetySettings')}>
+              <Form.List name={["rawConfigs", "parsed", "geminiSafetySettings"]} initialValue={[]}>
+                {(fields, { add, remove }) => (
+                  <>
+                    <div className="ant-table ant-table-small">
+                      <div className="ant-table-content">
+                        <table style={{ tableLayout: "auto" }}>
+                          <thead className="ant-table-thead">
+                            <tr>
+                              <th className="ant-table-cell">{t("llmProvider.providerForm.label.geminiSafetyCategory")}</th>
+                              <th className="ant-table-cell">{t("llmProvider.providerForm.label.geminiSafetyThreshold")}</th>
+                              <th className="ant-table-cell">{t("misc.action")}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="ant-table-tbody">
+                            {
+                              fields.length && fields.map(({ key, name, ...restField }, index) => (
+                                <tr className="ant-table-row ant-table-row-level-0" key={index}>
+                                  <td className="ant-table-cell">
+                                    <Form.Item
+                                      name={[name, 'category']}
+                                      noStyle
+                                      rules={[
+                                        {
+                                          validator(rule, value) {
+                                            if (!value) {
+                                              return Promise.reject(t("llmProvider.providerForm.rules.geminiSafetyCategoryRequired"));
+                                            }
+                                            for (let i = 0; i < index; ++i) {
+                                              const prevValue = form.getFieldValue([
+                                                'rawConfigs',
+                                                'parsed',
+                                                'geminiSafetySettings',
+                                                i,
+                                                'category',
+                                              ]);
+                                              if (prevValue === value) {
+                                                return Promise.reject(t("llmProvider.providerForm.rules.geminiSafetyCategoryDuplicated"));
+                                              }
+                                            }
+                                            return Promise.resolve();
+                                          },
+                                        },
+                                      ]}
+                                    >
+                                      <AutoComplete
+                                        options={providerConfig.safetySettings.categories.map(r => ({ label: r, value: r }))}
+                                        filterOption={(inputValue, option: any) => {
+                                          return option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                                        }}
+                                        style={{ width: "250px" }}
+                                        allowClear
+                                      />
+                                    </Form.Item>
+                                  </td>
+                                  <td className="ant-table-cell">
+                                    <Form.Item
+                                      name={[name, 'threshold']}
+                                      noStyle
+                                      rules={[{ required: true, message: t("llmProvider.providerForm.rules.geminiSafetyThresholdRequired") || '' }]}
+                                    >
+                                      <AutoComplete
+                                        options={providerConfig.safetySettings.thresholds.map(r => ({ label: r, value: r }))}
+                                        filterOption={(inputValue, option: any) => {
+                                          return option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
+                                        }}
+                                        style={{ width: "250px" }}
+                                        allowClear
+                                      />
+                                    </Form.Item>
+                                  </td>
+                                  <td className="ant-table-cell">
+                                    <MinusCircleOutlined onClick={() => remove(name)} />
+                                  </td>
+                                </tr>
+                              )) || (
+                                <tr className="ant-table-row ant-table-row-level-0">
+                                  <td className="ant-table-cell" colSpan={4}>
+                                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: 0 }} />
+                                  </td>
+                                </tr>
+                              )
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div>
+                      <Button type="dashed" block icon={<PlusOutlined />} onClick={() => add()}>
+                        {t("llmProvider.providerForm.addGeminiSafetySetting")}
+                      </Button>
+                    </div>
+                  </>)
+                }
+              </Form.List>
+            </Form.Item>
           </>
         )
       }

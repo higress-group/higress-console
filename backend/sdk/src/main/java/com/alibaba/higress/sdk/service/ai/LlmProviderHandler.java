@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import java.util.List;
 import java.util.Map;
 
 import com.alibaba.higress.sdk.model.ServiceSource;
@@ -32,11 +33,16 @@ interface LlmProviderHandler {
 
     /**
      * Validate the provider configurations and normalize configuration values based on the provider type.
+     * 
      * @param configurations provider configurations
      */
     void normalizeConfigs(Map<String, Object> configurations);
 
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
+
+    default List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig, boolean forDelete) {
+        return null;
+    }
 
     UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig);
 }

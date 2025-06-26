@@ -48,6 +48,13 @@ export const aiModelProviders = [
       }
       return customUrls;
     },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (rawConfigs && Array.isArray(rawConfigs.openaiCustomUrls)) {
+        rawConfigs.openaiExtraCustomUrls = [...rawConfigs.openaiCustomUrls];
+        rawConfigs.openaiCustomUrl = rawConfigs.openaiExtraCustomUrls.shift();
+        delete rawConfigs.openaiCustomUrls;
+      }
+    },
   },
   {
     label: 'Qwen',
@@ -580,6 +587,129 @@ export const aiModelProviders = [
     },
     targetModelList: [],
   },
+  {
+    label: 'Google Vertex',
+    value: 'vertex',
+    availableRegions: [
+      'africa-south1',
+      'asia-east1',
+      'asia-east2',
+      'asia-northeast1',
+      'asia-northeast2',
+      'asia-northeast3',
+      'asia-south1',
+      'asia-southeast1',
+      'asia-southeast2',
+      'australia-southeast1',
+      'australia-southeast2',
+      'europe-central2',
+      'europe-north1',
+      'europe-southwest1',
+      'europe-west1',
+      'europe-west2',
+      'europe-west3',
+      'europe-west4',
+      'europe-west6',
+      'europe-west8',
+      'europe-west9',
+      'europe-west12',
+      'me-central1',
+      'me-central2',
+      'me-west1',
+      'northamerica-northeast1',
+      'northamerica-northeast2',
+      'southamerica-east1',
+      'southamerica-west1',
+      'us-central1',
+      'us-east1',
+      'us-east4',
+      'us-south1',
+      'us-west1',
+      'us-west2',
+      'us-west3',
+      'us-west4',
+      'us-east5',
+    ],
+    safetySettings: {
+      categories: [
+        'HARM_CATEGORY_HATE_SPEECH',
+        'HARM_CATEGORY_DANGEROUS_CONTENT',
+        'HARM_CATEGORY_HARASSMENT',
+        'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+      ],
+      thresholds: [
+        'HARM_BLOCK_THRESHOLD_UNSPECIFIED',
+        'OFF',
+        'BLOCK_NONE',
+        'BLOCK_LOW_AND_ABOVE',
+        'BLOCK_MEDIUM_AND_ABOVE',
+        'BLOCK_ONLY_HIGH',
+      ],
+    },
+    useCustomCredentials: true,
+    getCredentialsForDisplay: (record): string[] => {
+      if (!record.rawConfigs) {
+        return [];
+      }
+      const authKey = record.rawConfigs.vertexAuthKey;
+      if (!authKey) {
+        return [];
+      }
+      try {
+        const authKeyObj = JSON.parse(authKey);
+        if (typeof authKeyObj !== 'object' || !authKeyObj.client_email || !authKeyObj.private_key_id) {
+          return [];
+        }
+        return [`${authKeyObj.client_email}:${authKeyObj.private_key_id}`];
+      } catch (e) {
+        return [];
+      }
+    },
+    getProviderEndpoints: (record): string[] => {
+      const region = record.rawConfigs && record.rawConfigs.vertexRegion;
+      return region && [`${region}-aiplatform.googleapis.com`] || [];
+    },
+    parseRawConfigs: (rawConfigs) => {
+      if (!rawConfigs) {
+        return;
+      }
+      delete rawConfigs.parsed;
+      if (typeof rawConfigs.geminiSafetySettings !== 'object') {
+        return;
+      }
+      const parsedSafetySettings: any[] = [];
+      for (const [key, value] of Object.entries(rawConfigs.geminiSafetySettings)) {
+        parsedSafetySettings.push({
+          category: key,
+          threshold: value,
+        });
+      }
+      rawConfigs.parsed = { geminiSafetySettings: parsedSafetySettings };
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (!rawConfigs) {
+        return;
+      }
+      const parsed = rawConfigs.parsed;
+      delete rawConfigs.parsed;
+      delete rawConfigs.geminiSafetySettings;
+      if (typeof parsed !== 'object' || !Array.isArray(parsed.geminiSafetySettings)) {
+        return;
+      }
+      for (const setting of parsed.geminiSafetySettings) {
+        if (typeof setting.category !== 'string' || typeof setting.threshold !== 'string') {
+          continue;
+        }
+        rawConfigs.geminiSafetySettings = rawConfigs.geminiSafetySettings || {};
+        rawConfigs.geminiSafetySettings[setting.category] = setting.threshold;
+      }
+    },
+    targetModelList: [],
+  },
 ];
 
-aiModelProviders.find(p => p.value === 'bedrock')?.availableRegions?.sort();
+for (const provider of aiModelProviders) {
+  if (Array.isArray(provider.availableRegions)) {
+    provider.availableRegions.sort();
+  }
+}

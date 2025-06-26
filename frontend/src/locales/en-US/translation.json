@@ -252,7 +252,14 @@
         "openaiCustomUrl": "Custom OpenAI Service Base URL",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
-        "awsSecretKey": "AWS Secret Access Key"
+        "awsSecretKey": "AWS Secret Access Key",
+        "vertexRegion": "Google Cloud Region",
+        "vertexProjectId": "Google Cloud Product ID",
+        "vertexAuthKey": "Google Cloud Service Account Key",
+        "vertexTokenRefreshAhead": "Lead time of rereshing Google Cloud Access Token (sec)",
+        "geminiSafetySettings": "Gemini API Safety Settings",
+        "geminiSafetyCategory": "Harm Category",
+        "geminiSafetyThreshold": "Block Threshold"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -274,7 +281,18 @@
         "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
         "awsRegionRequired": "Please input AWS Region",
         "awsAccessKeyRequired": "Please input AWS Access Key ID",
-        "awsSecretKeyRequired": "Please input AWS Secret Access Key"
+        "awsSecretKeyRequired": "Please input AWS Secret Access Key",
+        "vertexRegionRequired": "Please input Google Cloud Region",
+        "vertexProjectIdRequired": "Please input Google Cloud Product ID",
+        "vertexAuthKeyRequired": "Please input  Google Cloud Service Account Key",
+        "vertexAuthKeyBadFormat": "Invalid Google Cloud service account key format, which must be a JSON string.",
+        "vertexAuthKeyBadRequiredProperty": "Required property is missing in the Google Cloud service account key: {{key}}",
+        "geminiSafetyCategoryRequired": "Please input harm category",
+        "geminiSafetyCategoryDuplicated": "Found duplicated harm categories",
+        "geminiSafetyThresholdRequired": "Please input block threshold"
+      },
+      "tooltips": {
+        "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired."
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
@@ -293,7 +311,8 @@
         "content_diffNs": "If the Secret and Higress belong to different namespaces:",
         "example": "e.g. ",
         "roleConfig": "Higress can read Secret data in any namespace by default. But if the role configuration is modified, please make sure the ServiceAccount bound to Higress Controller is allowed to read the configured Secret resource."
-      }
+      },
+      "addGeminiSafetySetting": "Add a safety setting"
     },
     "create": "Create AI Service Provider",
     "edit": "Edit AI Service Provider",
