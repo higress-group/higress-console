@@ -482,6 +482,8 @@ const MCPDetailPage: React.FC = () => {
                               ? t('mcp.detail.confirmDisableAuth')
                               : t('mcp.detail.confirmEnableAuth'),
                             onOk: () => handleAuthChange(!authEnabled),
+                            okText: t('misc.confirm'),
+                            cancelText: t('misc.cancel'),
                           });
                         }}
                         // style={{ color: authEnabled ? '#52c41a' : '#d9d9d9' }}
@@ -535,7 +537,7 @@ const MCPDetailPage: React.FC = () => {
         onOk={handleDelete}
         onCancel={handleDeleteCancel}
         recordName={name}
-        i18nKey="mcp.detail.deleteConfirm"
+        i18nKey="mcp.deleteConfirm"
       />
 
       <AddConsumerAuth
