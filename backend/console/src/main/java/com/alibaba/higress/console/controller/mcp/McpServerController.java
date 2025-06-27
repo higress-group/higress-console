@@ -73,7 +73,7 @@ public class McpServerController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances saved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<McpServer>> addOrUpdateMcpInstance(@RequestBody McpServer instance) {
-        instance = mcpServerService.addOrUpdate(instance);
+        instance = mcpServerService.addOrUpdateWithAuthorization(instance);
         return ControllerUtil.buildResponseEntity(instance);
     }
 
