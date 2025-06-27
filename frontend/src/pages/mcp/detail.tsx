@@ -191,6 +191,28 @@ const MCPDetailPage: React.FC = () => {
     }
   }, [apiGatewayUrl, name]);
 
+  // 复制兼容 http/https
+  const handleCopy = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // 非安全上下文降级处理
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      message.success(t('mcp.detail.copySuccess'));
+    } catch (e) {
+      message.error(t('mcp.detail.copyError') || '复制失败，请手动复制');
+    }
+  };
+
   return (
     <PageContainer
       header={{
@@ -332,10 +354,7 @@ const MCPDetailPage: React.FC = () => {
                       <span>{apiGatewayUrl}</span>
                       <Button
                         type="link"
-                        onClick={() => {
-                          navigator.clipboard.writeText(apiGatewayUrl);
-                          message.success(t('mcp.detail.copySuccess'));
-                        }}
+                        onClick={() => handleCopy(apiGatewayUrl)}
                       >
                         {t('mcp.detail.copy')}
                       </Button>
@@ -410,10 +429,7 @@ const MCPDetailPage: React.FC = () => {
                             <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
                             <Button
                               type="link"
-                              onClick={() => {
-                                navigator.clipboard.writeText(apiGatewayUrl);
-                                message.success(t('mcp.detail.copySuccess'));
-                              }}
+                              onClick={() => handleCopy(apiGatewayUrl)}
                             >
                               {t('mcp.detail.copy')}
                             </Button>

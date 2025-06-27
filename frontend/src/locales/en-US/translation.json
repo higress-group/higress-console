@@ -686,7 +686,9 @@
     "invalidSchema": "Since schema information cannot be properly parsed, this plugin only supports YAML editing.",
     "deleteSuccess": "Deleted successfully",
     "saveSuccess": "Saved successfully.",
-    "detail": "Detail"
+    "detail": "Detail",
+    "keyAuthOnlyTip": "Currently only Key Auth is supported",
+    "authType": "Auth Type"
   },
   "mcp": {
     "common": {
@@ -749,7 +751,6 @@
       "allowedConsumers": "Allowed Consumers",
       "allowedConsumersRequired": "Please select allowed consumers",
       "allowedConsumersPlaceholder": "Please select allowed consumers",
-      "keyAuthOnlyTip": "Currently only Key Auth is supported",
       "ok": "OK",
       "upstreamPathPrefixLabel": "Backend Service Path Prefix",
       "upstreamPathPrefixExtra": "Backend service must support SSE or Streamable protocol",

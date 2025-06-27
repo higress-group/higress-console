@@ -686,7 +686,9 @@
     "invalidSchema": "由于 schema 信息无法正常解析，本插件只支持 YAML 编辑方式。",
     "deleteSuccess": "删除成功",
     "saveSuccess": "保存成功",
-    "detail": "详情"
+    "detail": "详情",
+    "keyAuthOnlyTip": "目前仅支持 Key Auth 认证",
+    "authType": "认证方式"
   },
   "mcp": {
     "common": {
@@ -750,7 +752,6 @@
       "allowedConsumers": "允许访问的消费者",
       "allowedConsumersRequired": "请选择允许访问的消费者",
       "allowedConsumersPlaceholder": "请选择允许访问的消费者",
-      "keyAuthOnlyTip": "目前仅支持 Key Auth 认证",
       "ok": "确定",
       "upstreamPathPrefixLabel": "后端服务前缀匹配路径",
       "ssePathRule": "路径 (SSE) 规则为：/mcp-servers/服务名称/sse",

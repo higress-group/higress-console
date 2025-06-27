@@ -77,6 +77,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           consumerAuth: record?.consumerAuthInfo?.enable || false,
           domains: record?.domains?.[0],
           db_type: record?.dbType,
+          allowedConsumers: record?.consumerAuthInfo?.allowedConsumers,
         });
       }
     }
@@ -165,6 +166,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     }
 
     const submitData = {
+      ...record,
       ...values,
       services: [
         {
@@ -368,7 +370,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           label={t('mcp.form.consumerAuth')}
           name="consumerAuth"
           valuePropName="checked"
-          extra={t('mcp.form.keyAuthOnlyTip')}
         >
           <Switch
             onChange={(value) => {
@@ -383,7 +384,12 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
         {form.getFieldValue('consumerAuth') && (
           <>
-            <Form.Item label={t('mcp.form.authType')} name="authType" initialValue="key-auth">
+            <Form.Item
+              label={t('misc.authType')}
+              name="authType"
+              initialValue="key-auth"
+              extra={t('misc.keyAuthOnlyTip')}
+            >
               <Select disabled>
                 <Select.Option value="key-auth">Key Auth</Select.Option>
               </Select>
