@@ -61,12 +61,6 @@ const MCPListPage: React.FC = () => {
   const handleDrawerSubmit = async (values: any) => {
     try {
       await createOrUpdateMcpServer(values);
-      if (values.consumerAuth) {
-        await addMcpConsumers({
-          mcpServerName: values.name,
-          consumers: values.allowedConsumers,
-        });
-      }
       message.success(t('misc.saveSuccess'));
       closeDrawer();
       getMcpServers({});

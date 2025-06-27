@@ -186,6 +186,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         enable: values.consumerAuth,
         type: 'API_KEY',
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
+        allowedConsumers: values.allowedConsumers || [],
       },
       domains: Array.isArray(values.domains) ? values.domains : [values.domains],
     };

@@ -154,15 +154,10 @@ const MCPDetailPage: React.FC = () => {
         ...values,
         mcpServerName: name,
       });
-      if (values.consumerAuth) {
-        await addMcpConsumers({
-          mcpServerName: values.name,
-          consumers: values.allowedConsumers,
-        });
-      }
       message.success(t('mcp.detail.updateSuccess'));
       setEditDrawerVisible(false);
       fetchMcpData();
+      consumerTableRef.current?.fetchConsumers();
     } catch (error) {
       message.error(t('mcp.detail.updateError'));
     }
