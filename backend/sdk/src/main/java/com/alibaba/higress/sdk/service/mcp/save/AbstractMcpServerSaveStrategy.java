@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
@@ -36,6 +37,7 @@ import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
@@ -109,6 +111,15 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         return mcpInstance;
     }
 
+    @Override
+    public McpServer saveWithAuthorization(McpServer mcpInstance) {
+        saveRoute(mcpInstance);
+        buildMcpServer(mcpInstance);
+        buildAuthentication(mcpInstance);
+        buildAuthorization(mcpInstance);
+        return mcpInstance;
+    }
+
     protected abstract void buildMcpServer(McpServer mcpInstance);
 
     /**
@@ -161,6 +172,23 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         }
 
         initMcpServerAuthentication(mcpInstance);
+    }
+
+    private void buildAuthorization(McpServer mcpServer) {
+        if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
+            return;
+        }
+        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServer.getName());
+        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+        Objects.requireNonNull(instance);
+        ConsumerAuthInfo consumerAuthInfo = mcpServer.getConsumerAuthInfo();
+
+        if (CollectionUtils.isEmpty(consumerAuthInfo.getAllowedConsumers())) {
+            instance.getConfigurations().put(ALLOW, Collections.emptyList());
+        } else {
+            instance.getConfigurations().put(ALLOW, consumerAuthInfo.getAllowedConsumers());
+        }
+        wasmPluginInstanceService.addOrUpdate(instance);
     }
 
     private WasmPluginInstance initMcpServerAuthentication(McpServer mcpInstance) {

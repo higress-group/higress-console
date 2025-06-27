@@ -49,6 +49,14 @@ public interface McpServerService {
     McpServer addOrUpdate(McpServer instance);
 
     /**
+     * add or update mcp server with override Authorization config
+     *
+     * @param instance mcp server
+     * @return mcp server
+     */
+    McpServer addOrUpdateWithAuthorization(McpServer instance);
+
+    /**
      * delete mcp server
      *
      * @param name mcp server name

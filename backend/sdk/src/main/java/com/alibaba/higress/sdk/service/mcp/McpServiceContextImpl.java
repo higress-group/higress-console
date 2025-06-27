@@ -93,6 +93,11 @@ public class McpServiceContextImpl implements McpServerService {
     }
 
     @Override
+    public McpServer addOrUpdateWithAuthorization(McpServer instance) {
+        return saveStrategyFactory.getService(instance).saveWithAuthorization(instance);
+    }
+
+    @Override
     public McpServer query(String name) {
         Route route = routeService.query(name);
         if (Objects.isNull(route) || !isMcpServerRoute(route.getCustomLabels())) {

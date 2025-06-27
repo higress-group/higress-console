@@ -30,5 +30,6 @@ public interface McpServerSaveStrategy {
      * @return mcp server
      */
     McpServer save(McpServer mcpServer);
+    McpServer saveWithAuthorization(McpServer mcpServer);
 
 }
