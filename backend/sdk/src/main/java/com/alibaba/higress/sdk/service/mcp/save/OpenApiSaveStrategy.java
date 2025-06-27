@@ -10,20 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.service.mcp;
+package com.alibaba.higress.sdk.service.mcp.save;
 
 import static com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName.DEFAULT_MCP_PLUGIN;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.NotFoundException;
-import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
@@ -44,9 +41,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author HecarimV
  */
 @Slf4j
-public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
+public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
 
-    public McpServerOfOpenApiImpl(KubernetesClientService kubernetesClientService,
+    public OpenApiSaveStrategy(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
         RouteService routeService) {
         super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
@@ -62,8 +59,8 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
         WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
         wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
 
-        McpServerConfigMap.MatchList matchList = generateMatchList(mcpInstance);
-        addOrUpdateMatchRulePath(matchList);
+        McpServerConfigMap.MatchList matchList = mcpServerConfigMapHelper.generateMatchList(mcpInstance);
+        mcpServerConfigMapHelper.addOrUpdateMatchRulePath(matchList);
     }
 
     private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {
@@ -90,25 +87,4 @@ public class McpServerOfOpenApiImpl extends AbstractMcpServerServiceImpl {
         return pluginInstance;
     }
 
-    @Override
-    public McpServer query(String name) {
-        Route route = routeService.query(name);
-        if (Objects.isNull(route)) {
-            throw new NotFoundException("can't found the bound route by name: " + name);
-        }
-        McpServer result = routeToMcpServerWithAuth(route);
-        completeWasmPluginInfo(name, result);
-
-        return result;
-    }
-
-    private void completeWasmPluginInfo(String name, McpServer result) {
-        WasmPluginInstance wasmPluginInstance =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, name, DEFAULT_MCP_PLUGIN);
-        if (Objects.isNull(wasmPluginInstance)) {
-            // No tools related content is configured, return directly
-            return;
-        }
-        result.setRawConfigurations(wasmPluginInstance.getRawConfigurations());
-    }
 }

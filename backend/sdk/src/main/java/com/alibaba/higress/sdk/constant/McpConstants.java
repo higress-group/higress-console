@@ -22,6 +22,8 @@ import com.alibaba.higress.sdk.util.EnvReadUtil;
  * @author fuyang
  */
 public class McpConstants {
+    public static final String MCP_SERVER_PATH_PRE = "/mcp-servers";
+
 
     /**
      * mcp temp file dir

@@ -23,13 +23,6 @@ import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
  * @author Thomas-eliot
  */
 public interface McpServerService {
-    /**
-     * support mcp server
-     *
-     * @param mcpServer mcp server
-     * @return true or false
-     */
-    boolean support(McpServer mcpServer);
 
     /**
      * list mcp server

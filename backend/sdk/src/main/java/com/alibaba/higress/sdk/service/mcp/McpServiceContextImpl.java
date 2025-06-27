@@ -13,17 +13,26 @@
 package com.alibaba.higress.sdk.service.mcp;
 
 import static com.alibaba.higress.sdk.constant.KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY;
+import static com.alibaba.higress.sdk.model.mcp.McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
@@ -34,9 +43,18 @@ import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.authorization.AuthorizationService;
+import com.alibaba.higress.sdk.service.authorization.AuthorizationServiceFactory;
+import com.alibaba.higress.sdk.service.authorization.RelationshipConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.detail.McpServerDetailStrategyFactory;
+import com.alibaba.higress.sdk.service.mcp.save.McpServerSaveStrategyFactory;
+import com.alibaba.higress.sdk.util.ConverterUtil;
+import com.alibaba.higress.sdk.util.MapUtil;
 
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -47,26 +65,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class McpServiceContextImpl implements McpServerService {
 
-    private final McpServerServiceFactory serviceFactory;
-
+    private final McpServerSaveStrategyFactory saveStrategyFactory;
+    private final AuthorizationServiceFactory authorizationServiceFactory;
+    private final KubernetesClientService kubernetesClientService;
+    private final KubernetesModelConverter kubernetesModelConverter;
     private final RouteService routeService;
+    private final McpServerConfigMapHelper configMapHelper;
+    private final McpServerDetailStrategyFactory detailStrategyFactory;
 
     public McpServiceContextImpl(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
         RouteService routeService) {
+        this.kubernetesClientService = kubernetesClientService;
+        this.kubernetesModelConverter = kubernetesModelConverter;
         this.routeService = routeService;
-        this.serviceFactory = new McpServerServiceFactory(kubernetesClientService, kubernetesModelConverter,
+        this.configMapHelper = new McpServerConfigMapHelper(kubernetesClientService);
+        this.authorizationServiceFactory = new AuthorizationServiceFactory(wasmPluginInstanceService);
+        this.saveStrategyFactory = new McpServerSaveStrategyFactory(kubernetesClientService, kubernetesModelConverter,
             wasmPluginInstanceService, routeService);
-    }
-
-    @Override
-    public boolean support(McpServer mcpServer) {
-        return true;
+        this.detailStrategyFactory =
+            new McpServerDetailStrategyFactory(kubernetesClientService, wasmPluginInstanceService, routeService);
     }
 
     @Override
     public McpServer addOrUpdate(McpServer instance) {
-        return serviceFactory.getServiceImpl(instance).addOrUpdate(instance);
+        return saveStrategyFactory.getService(instance).save(instance);
     }
 
     @Override
@@ -76,42 +99,74 @@ public class McpServiceContextImpl implements McpServerService {
             throw new NotFoundException("can't found the bound route by name: " + name);
         }
         McpServer mcpServer = routeToMcpServer(route);
-
-        return serviceFactory.getServiceImpl(mcpServer).query(name);
-    }
-
-    private boolean isMcpServerRoute(Map<String, String> customLabels) {
-        if (MapUtils.isEmpty(customLabels)) {
-            return false;
-        }
-
-        return StringUtils.equalsIgnoreCase(McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE,
-            customLabels.get(RESOURCE_BIZ_TYPE_KEY));
+        Objects.requireNonNull(mcpServer);
+        return detailStrategyFactory.getService(mcpServer.getType()).query(name);
     }
 
     @Override
     public PaginatedResult<McpServer> list(McpServerPageQuery query) {
-        return serviceFactory.getServiceImpl(null).list(query);
+        List<McpServer> resultList;
+
+        Map<String, String> labelMap =
+            MapUtil.of(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
+        try {
+            List<V1Ingress> v1Ingresses = kubernetesClientService.listIngress(labelMap);
+            List<Route> routeList = ConverterUtil.toList(v1Ingresses, kubernetesModelConverter::ingress2Route);
+            resultList = ConverterUtil.toList(routeList, McpServiceContextImpl::routeToMcpServer);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when listing Ingresses.", e);
+        }
+
+        filterMcpServers(resultList, query);
+        sortMcpServers(resultList);
+        return PaginatedResult.createFromFullList(resultList, query);
     }
 
     @Override
     public void delete(String name) {
-        serviceFactory.getServiceImpl(null).delete(name);
+        routeService.delete(name);
+        deleteMatchRulePath(name);
+        deleteServersConfig(name);
     }
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        serviceFactory.getServiceImpl(null).addAllowConsumers(consumers);
+        Route route = routeService.query(consumers.getMcpServerName());
+        if (Objects.isNull(route)) {
+            throw new BusinessException("bound route not found!");
+        }
+        AuthorizationService authorizationService = authorizationServiceFactory.getService(CredentialTypeEnum.KEY_AUTH);
+        authorizationService.bindList(RelationshipConverter.convert(consumers));
     }
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        serviceFactory.getServiceImpl(null).deleteAllowConsumers(consumers);
+        Route route = routeService.query(consumers.getMcpServerName());
+        if (Objects.isNull(route)) {
+            throw new BusinessException("bound route not found!");
+        }
+        AuthorizationService authorizationService = authorizationServiceFactory.getService(CredentialTypeEnum.KEY_AUTH);
+        authorizationService.unbindList(RelationshipConverter.convert(consumers));
     }
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        return serviceFactory.getServiceImpl(null).listAllowConsumers(query);
+        Route route = routeService.query(query.getMcpServerName());
+        if (Objects.isNull(route)) {
+            throw new BusinessException("bound route not found!");
+        }
+        List<String> allowedConsumers =
+            Optional.ofNullable(route.getAuthConfig().getAllowedConsumers()).orElse(new ArrayList<>());
+        List<McpServerConsumerDetail> resultList = allowedConsumers.stream().filter(consumer -> {
+            String searchTerm = query.getConsumerName();
+            if (StringUtils.isBlank(searchTerm)) {
+                return true;
+            }
+            return consumer.contains(searchTerm);
+        }).map(consumer -> McpServerConsumerDetail.builder().mcpServerName(route.getName()).consumerName(consumer)
+            .type(CredentialTypeEnum.KEY_AUTH.getType()).build()).collect(Collectors.toList());
+
+        return PaginatedResult.createFromFullList(resultList, query);
     }
 
     public static McpServer routeToMcpServer(Route route) {
@@ -143,7 +198,48 @@ public class McpServiceContextImpl implements McpServerService {
         }
 
         return result;
+    }
 
+    private void deleteMatchRulePath(String name) {
+        configMapHelper.updateMatchList(
+            matchList -> matchList.removeIf(rule -> (McpServerConfigMapHelper.generateMcpServerPath(name))
+                .equals(rule.get(McpServerConfigMapHelper.MATCH_RULE_PATH_KEY))));
+    }
+
+    private void deleteServersConfig(String name) {
+        configMapHelper.updateServerConfig(servers -> servers.removeIf(server -> server.getName().equals(name)));
+    }
+
+    private void sortMcpServers(List<McpServer> mcpServers) {
+        if (CollectionUtils.isEmpty(mcpServers)) {
+            return;
+        }
+        mcpServers.sort(Comparator.comparing(McpServer::getName));
+    }
+
+    private void filterMcpServers(List<McpServer> resultList, McpServerPageQuery query) {
+        if (CollectionUtils.isEmpty(resultList)) {
+            return;
+        }
+        String fuzzyServerName = query.getMcpServerName();
+        if (StringUtils.isNotBlank(fuzzyServerName)) {
+            resultList.removeIf(mcpServer -> !StringUtils.contains(mcpServer.getName(), fuzzyServerName));
+        }
+
+        String type = query.getType();
+        if (StringUtils.isNotBlank(type)) {
+            McpServerTypeEnum mcpServerTypeEnum = McpServerTypeEnum.fromName(type);
+            resultList.removeIf(mcpServer -> !mcpServerTypeEnum.equals(mcpServer.getType()));
+        }
+    }
+
+    private boolean isMcpServerRoute(Map<String, String> customLabels) {
+        if (MapUtils.isEmpty(customLabels)) {
+            return false;
+        }
+
+        return StringUtils.equalsIgnoreCase(McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE,
+            customLabels.get(RESOURCE_BIZ_TYPE_KEY));
     }
 
 }

@@ -10,15 +10,10 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.service.mcp;
+package com.alibaba.higress.sdk.service.mcp.save;
 
-import java.util.Objects;
-
-import com.alibaba.higress.sdk.exception.NotFoundException;
-import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
-import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
@@ -30,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
  * @author Thomas-eliot
  */
 @Slf4j
-public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
-    public McpServerOfDirectRoutingImpl(KubernetesClientService kubernetesClientService,
+public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
+    public DirectRoutingSaveStrategy(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
         RouteService routeService) {
         super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
@@ -40,25 +35,6 @@ public class McpServerOfDirectRoutingImpl extends AbstractMcpServerServiceImpl {
     @Override
     public boolean support(McpServer mcpServer) {
         return McpServerTypeEnum.DIRECT_ROUTE.equals(mcpServer.getType());
-    }
-
-    @Override
-    public McpServer query(String name) {
-        Route route = routeService.query(name);
-        if (Objects.isNull(route)) {
-            throw new NotFoundException("can't found the bound route by name: " + name);
-        }
-        McpServer result = routeToMcpServerWithAuth(route);
-
-        completeUpstreamPathPrefix(route, result);
-        return result;
-    }
-
-    private void completeUpstreamPathPrefix(Route route, McpServer mcpServer) {
-        RewriteConfig rewrite = route.getRewrite();
-        if (Objects.nonNull(rewrite)) {
-            mcpServer.setUpstreamPathPrefix(rewrite.getPath());
-        }
     }
 
     @Override

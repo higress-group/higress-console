@@ -10,12 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.service.mcp;
+package com.alibaba.higress.sdk.service.mcp.save;
 
 import java.util.List;
 import java.util.Objects;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
@@ -29,47 +30,39 @@ import lombok.extern.slf4j.Slf4j;
  * @author Thomas-eliot
  */
 @Slf4j
-class McpServerServiceFactory {
+public class McpServerSaveStrategyFactory {
 
-    private final List<McpServerService> mcpServerServiceList = Lists.newArrayList();
-    private final McpServerService defaultMcpServerService;
+    private final List<McpServerSaveStrategy> mcpServerServiceList = Lists.newArrayList();
 
-    public McpServerServiceFactory(KubernetesClientService kubernetesClientService,
+    public McpServerSaveStrategyFactory(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
         RouteService routeService) {
 
-        final McpServerService mcpServerOfOpenApiService = new McpServerOfOpenApiImpl(kubernetesClientService,
+        final McpServerSaveStrategy mcpServerOfOpenApiService = new OpenApiSaveStrategy(kubernetesClientService,
             kubernetesModelConverter, wasmPluginInstanceService, routeService);
 
-        final McpServerService mcpServerOfDatabaseService = new McpServerOfDatabaseImpl(kubernetesClientService,
+        final McpServerSaveStrategy mcpServerOfDatabaseService = new DatabaseSaveStrategy(kubernetesClientService,
             kubernetesModelConverter, wasmPluginInstanceService, routeService);
 
-        final McpServerService mcpServerOfDirectRoutingService = new McpServerOfDirectRoutingImpl(
+        final McpServerSaveStrategy mcpServerOfDirectRoutingService = new DirectRoutingSaveStrategy(
             kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
 
         mcpServerServiceList.add(mcpServerOfOpenApiService);
         mcpServerServiceList.add(mcpServerOfDatabaseService);
         mcpServerServiceList.add(mcpServerOfDirectRoutingService);
-        defaultMcpServerService = mcpServerOfDirectRoutingService;
-
     }
 
-    public McpServerService getServiceImpl(McpServer mcpServer) {
+    public McpServerSaveStrategy getService(McpServer mcpServer) {
         if (Objects.isNull(mcpServer)) {
-            // support default mcp server
-            return defaultMcpServerService;
+            throw new NotFoundException("can't found mcp server");
         }
 
-        for (McpServerService mcpServerService : mcpServerServiceList) {
+        for (McpServerSaveStrategy mcpServerService : mcpServerServiceList) {
             if (mcpServerService.support(mcpServer)) {
                 return mcpServerService;
             }
         }
         throw new BusinessException(
             "No McpServerService implementation found to support mcp type: " + mcpServer.getType());
-    }
-
-    public List<McpServerService> getAll() {
-        return mcpServerServiceList;
     }
 }

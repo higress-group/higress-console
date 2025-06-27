@@ -10,20 +10,16 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.service.mcp;
+package com.alibaba.higress.sdk.service.mcp.detail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.NotFoundException;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
@@ -32,7 +28,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
@@ -41,70 +37,20 @@ import lombok.extern.slf4j.Slf4j;
  * @author lvshui
  */
 @Slf4j
-public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
+public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
+    @Override
+    public boolean support(McpServerTypeEnum type) {
+        return McpServerTypeEnum.DATABASE.equals(type);
+    }
 
-    public McpServerOfDatabaseImpl(KubernetesClientService kubernetesClientService,
-        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
-        super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+    public DatabaseDetailStrategy(KubernetesClientService kubernetesClientService,
+        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
+        super(kubernetesClientService, wasmPluginInstanceService, routeService);
     }
 
     @Override
-    public boolean support(McpServer mcpServer) {
-        return McpServerTypeEnum.DATABASE.equals(mcpServer.getType());
-    }
-
-    @Override
-    protected void buildMcpServer(McpServer mcpInstance) {
-        addOrUpdateServersConfig(mcpInstance);
-
-        McpServerConfigMap.MatchList matchList = generateMatchList(mcpInstance);
-        addOrUpdateMatchRulePath(matchList);
-    }
-
-    private void validate(McpServer mcpInstance) {
-        if (StringUtils.isBlank(mcpInstance.getDsn())) {
-            throw new ValidationException("dsn cannot be blank.");
-        }
-        if (Objects.isNull(mcpInstance.getDbType())) {
-            throw new ValidationException("dbType is null.");
-        }
-    }
-
-    private void addOrUpdateServersConfig(McpServer mcpInstance) {
-        validate(mcpInstance);
-
-        try {
-            McpServerConfigMap.DBServerConfig dbConfig = new McpServerConfigMap.DBServerConfig();
-            dbConfig.setDsn(mcpInstance.getDsn());
-            dbConfig.setDbType(mcpInstance.getDbType().getValue());
-
-            updateServerConfig(severs -> {
-                severs.removeIf(server -> server.getName().equals(mcpInstance.getName()));
-
-                McpServerConfigMap.Server server = new McpServerConfigMap.Server();
-                server.setName(mcpInstance.getName());
-                server.setPath(generateMcpServerPath(mcpInstance.getName()));
-                server.setType(McpServerTypeEnum.DATABASE.getValue());
-                server.setConfig(dbConfig);
-                severs.add(server);
-            });
-
-        } catch (Exception e) {
-            throw new BusinessException("Error occurs when add or update mcp servers config: ", e);
-        }
-    }
-
-    @Override
-    public McpServer query(String name) {
-        Route route = routeService.query(name);
-        if (Objects.isNull(route)) {
-            throw new NotFoundException("can't found the bound route by name: " + name);
-        }
-        McpServer result = routeToMcpServerWithAuth(route);
-        completeConfigFields(name, result);
-
-        return result;
+    protected void completeInfo(Route route, McpServer result) {
+        completeConfigFields(route.getName(), result);
     }
 
     private void completeConfigFields(String name, McpServer result) {
@@ -114,7 +60,7 @@ public class McpServerOfDatabaseImpl extends AbstractMcpServerServiceImpl {
         } catch (Exception e) {
             log.error("Failed to get mcp server list", e);
         }
-        McpServerConfigMap mcpConfig = getMcpConfig(configMap);
+        McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
         Optional<McpServerConfigMap.Server> first =
             mcpConfig.getServers().stream().filter(i -> StringUtils.equals(i.getName(), name)).findFirst();
         if (first.isPresent()) {
