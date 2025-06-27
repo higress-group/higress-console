@@ -86,6 +86,7 @@ public class KubernetesConstants {
         public static final String WASM_PLUGIN_VERSION_KEY = "higress.io/wasm-plugin-version";
         public static final String WASM_PLUGIN_BUILT_IN_KEY = "higress.io/wasm-plugin-built-in";
         public static final String WASM_PLUGIN_CATEGORY_KEY = "higress.io/wasm-plugin-category";
+        public static final String RESOURCE_BIZ_TYPE_KEY = "higress.io/biz-type";
     }
 
     public static class IngressPathType {

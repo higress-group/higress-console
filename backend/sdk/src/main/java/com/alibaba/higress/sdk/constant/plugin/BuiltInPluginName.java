@@ -30,6 +30,8 @@ public final class BuiltInPluginName {
     public static final String AI_AGENT = "ai-agent";
     public static final String MODEL_ROUTER = "model-router";
     public static final String MODEL_MAPPER = "model-mapper";
+    public static final String DEFAULT_MCP_PLUGIN = "mcp-server";
+
 
     // Auth
     public static final String BASIC_AUTH = "basic-auth";

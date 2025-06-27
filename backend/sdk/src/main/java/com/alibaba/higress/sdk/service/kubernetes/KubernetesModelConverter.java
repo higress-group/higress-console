@@ -198,6 +198,7 @@ public class KubernetesModelConverter {
         fillRouteMetadata(route, ingress.getMetadata());
         fillRouteInfo(route, ingress.getMetadata(), ingress.getSpec());
         fillCustomConfigs(route, ingress.getMetadata());
+        fillCustomLabels(route, ingress.getMetadata());
         route.setReadonly(!kubernetesClientService.isDefinedByConsole(ingress) || !isIngressSupported(ingress));
         return route;
     }
@@ -210,6 +211,7 @@ public class KubernetesModelConverter {
         fillIngressSpec(ingress, route);
         fillIngressCors(ingress, route);
         fillIngressAnnotations(ingress, route);
+        fillIngressLabels(ingress, route);
         return ingress;
     }
 
@@ -1004,6 +1006,13 @@ public class KubernetesModelConverter {
         route.setCustomConfigs(customConfigs);
     }
 
+    private void fillCustomLabels(Route route, V1ObjectMeta metadata) {
+        if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
+            return;
+        }
+        route.setCustomLabels(metadata.getLabels());
+    }
+
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
         fillPathPredicates(route, metadata, path);
         fillRouteDestinations(route, metadata, path.getBackend());
@@ -1065,6 +1074,15 @@ public class KubernetesModelConverter {
                 }
             }
             KubernetesUtil.setAnnotation(ingress, config.getKey(), config.getValue());
+        }
+    }
+
+    private void fillIngressLabels(V1Ingress ingress, Route route) {
+        if (MapUtils.isEmpty(route.getCustomLabels())) {
+            return;
+        }
+        for (Map.Entry<String, String> config : route.getCustomLabels().entrySet()) {
+            KubernetesUtil.setLabel(ingress, config.getKey(), config.getValue());
         }
     }
 

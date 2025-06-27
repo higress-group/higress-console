@@ -19,6 +19,7 @@ header:
     - 'backend/mvnw*'
     - 'backend/**/pom.xml'
     - 'backend/*.sh'
+    - 'backend/tools/**'
     - 'backend/**/*.json'
     - 'backend/**/*.html'
     - 'backend/**/*.md'

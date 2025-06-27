@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Consumer } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { LlmProvider } from '@/interfaces/llm-provider';
@@ -497,7 +498,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.fallbackConfigExtra')}
-        style={fallbackConfig_enabled ? { marginBottom: 0 } : null}
+        noStyle={fallbackConfig_enabled ? { marginBottom: 0 } : null}
       >
         <Switch onChange={e => {
           setFallbackConfigEnabled(e)
@@ -555,7 +556,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        style={authConfig_enabled ? { marginBottom: 0 } : {}}
+        // style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
@@ -565,7 +566,12 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       </Form.Item>
       {
         authConfig_enabled ? // 允许请求本路由的消费者名称列表
-          <div style={{ display: 'flex' }}>
+          <>
+            <Form.Item label={t('misc.authType')} name="authType" initialValue="key-auth" extra={t('misc.keyAuthOnlyTip')}>
+              <Select disabled>
+                <Select.Option value="key-auth">Key Auth</Select.Option>
+              </Select>
+            </Form.Item>
             <Form.Item
               style={{ flex: 1, marginRight: '8px' }}
               required
@@ -579,7 +585,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
               </Select>
             </Form.Item>
             <RedoOutlinedBtn getList={consumerResult} />
-          </div>
+          </>
           : null
       }
     </Form>

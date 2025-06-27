@@ -25,6 +25,8 @@ import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerServiceImpl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerService;
+import com.alibaba.higress.sdk.service.mcp.McpServiceContextImpl;
 
 /**
  * @author CH3CHO
@@ -43,6 +45,7 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     private final ConsumerService consumerService;
     private final AiRouteService aiRouteService;
     private final LlmProviderService llmProviderService;
+    private final McpServerService mcpServerService;
 
     HigressServiceProviderImpl(HigressServiceConfig config) throws IOException {
         kubernetesClientService = new KubernetesClientService(config);
@@ -66,6 +69,8 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
         llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService);
         aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
             llmProviderService, wasmPluginInstanceService);
+        mcpServerService = new McpServiceContextImpl(kubernetesClientService, kubernetesModelConverter,
+            wasmPluginInstanceService, routeService);
     }
 
     @Override
@@ -126,5 +131,10 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     @Override
     public LlmProviderService llmProviderService() {
         return llmProviderService;
+    }
+
+    @Override
+    public McpServerService mcpServerService() {
+        return mcpServerService;
     }
 }

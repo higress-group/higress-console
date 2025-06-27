@@ -28,3 +28,6 @@ rules:
   - apiGroups: ["networking.istio.io"]
     resources: ["envoyfilters"]
     verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["services","endpoints"]
+    verbs: ["get", "list", "watch"]

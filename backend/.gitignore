@@ -1,2 +1,3 @@
 **/src/main/resources/static/
 **/src/main/resources/git.properties
+/build-image.sh

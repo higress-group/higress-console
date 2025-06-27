@@ -101,6 +101,9 @@ public class Route implements VersionedDto {
     @Schema(description = "Custom configurations, e.g., custom annotations")
     private Map<String, String> customConfigs;
 
+    @Schema(description = "Custom labels")
+    private Map<String, String> customLabels;
+
     @Schema(hidden = true)
     private Boolean readonly;
 
