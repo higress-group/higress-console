@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Select, message } from 'antd';
+import { Select, message, Button } from 'antd';
 import { useSearchParams } from 'ice';
-import CodeEditor from '@/components/CodeEditor';
 import { CLIENT_MAP } from '../constant';
 import { useTranslation, Trans } from 'react-i18next';
+import MonacoEditor from '@monaco-editor/react';
 
 interface McpServerCommandProps {
   mode: 'streamableHttp' | 'sse';
@@ -95,20 +95,29 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
           </Trans>
         </div>
       </div>
-      <CodeEditor
-        defaultValue={command}
-        defaultLanguage="bash"
-        extraOptions={{
-          onCopy: handleCopy,
+      <MonacoEditor
+        height="200px"
+        language="bash"
+        theme="vs-dark"
+        value={command}
+        options={{
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: 'on',
+          wordWrap: 'on',
+          automaticLayout: true,
+          readOnly: true,
           scrollbar: {
             vertical: 'hidden',
             horizontal: 'hidden',
             handleMouseWheel: false,
             alwaysConsumeMouseWheel: false,
           },
-          readonly: true,
         }}
       />
+      <Button style={{ marginTop: 12 }} onClick={handleCopy}>
+        复制命令
+      </Button>
     </div>
   );
 };

@@ -25,10 +25,10 @@ import ConsumerTable from './components/ConsumerTable';
 import McpFormDrawer from './components/McpFormDrawer';
 import { getServiceTypeMap, SERVICE_TYPE } from './constant';
 import DeleteConfirm from './components/DeleteConfirm';
-import CodeEditor from '@/components/CodeEditor';
 import McpServerCommand from './components/McpServerCommand';
 import AddConsumerAuth from './components/AddConsumerAuth';
 import YamlUtil from './components/yamlUtil';
+import MonacoEditor from '@monaco-editor/react';
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -367,18 +367,24 @@ const MCPDetailPage: React.FC = () => {
                           key: 'http',
                           label: t('mcp.detail.streamableHttp'),
                           children: (
-                            <CodeEditor
-                              defaultValue={httpJson}
-                              defaultLanguage="json"
-                              editorHeight="200px"
-                              extraOptions={{
+                            <MonacoEditor
+                              height="200px"
+                              language="json"
+                              theme="vs-dark"
+                              value={httpJson}
+                              options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                lineNumbers: 'on',
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                                readOnly: true,
                                 scrollbar: {
                                   vertical: 'hidden',
                                   horizontal: 'hidden',
                                   handleMouseWheel: false,
                                   alwaysConsumeMouseWheel: false,
                                 },
-                                readonly: true,
                               }}
                             />
                           ),
@@ -387,18 +393,24 @@ const MCPDetailPage: React.FC = () => {
                           key: 'sse',
                           label: t('mcp.detail.sse'),
                           children: (
-                            <CodeEditor
-                              defaultValue={sseJson}
-                              defaultLanguage="json"
-                              editorHeight="200px"
-                              extraOptions={{
+                            <MonacoEditor
+                              height="200px"
+                              language="json"
+                              theme="vs-dark"
+                              value={sseJson}
+                              options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                lineNumbers: 'on',
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                                readOnly: true,
                                 scrollbar: {
                                   vertical: 'hidden',
                                   horizontal: 'hidden',
                                   handleMouseWheel: false,
                                   alwaysConsumeMouseWheel: false,
                                 },
-                                readonly: true,
                               }}
                             />
                           ),
