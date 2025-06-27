@@ -18,7 +18,7 @@ import {
 } from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
+import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer, addMcpConsumers } from '@/services/mcp';
 import { getGatewayDomains } from '@/services/domain';
 import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
@@ -154,6 +154,12 @@ const MCPDetailPage: React.FC = () => {
         ...values,
         mcpServerName: name,
       });
+      if (values.consumerAuth) {
+        await addMcpConsumers({
+          mcpServerName: values.name,
+          consumers: values.allowedConsumers,
+        });
+      }
       message.success(t('mcp.detail.updateSuccess'));
       setEditDrawerVisible(false);
       fetchMcpData();
