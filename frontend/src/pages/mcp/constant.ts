@@ -1,10 +1,3 @@
-import vscode from '@/assets/mcp/vscode.svg'
-import cline from '@/assets/mcp/cline.svg'
-import windsurf from '@/assets/mcp/windsurf.svg'
-// import cherrystudio from '@/assets/mcp/cherrystudio.svg'
-import cursor from '@/assets/mcp/cursor.svg'
-import claude from '@/assets/mcp/claude.svg'
-
 export const SERVICE_TYPE = {
   OPENAPI: 'OPEN_API',
   DB: 'DATABASE',
@@ -47,16 +40,6 @@ export const CLIENT_MAP = {
   vscode: 'VS Code',
   cline: 'Cline',
   windsurf: 'Windsurf',
-  // cherrystudio: 'Cherry Studio',
   cursor: 'Cursor',
   claude: 'Claude Desktop',
-}
-
-export const CLIENT_MAP_ICON = {
-  vscode,
-  cline,
-  windsurf,
-  // cherrystudio,
-  cursor,
-  claude,
 }

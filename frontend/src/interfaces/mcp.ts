@@ -4,14 +4,8 @@ export interface PaginatedResult<T> {
 }
 
 export interface McpServerPageQuery {
-  pageNum?: number;
-  pageSize?: number;
   mcpServerName?: string;
   type?: string;
-}
-
-export interface McpServerConsumersPageQuery extends McpServerPageQuery {
-  consumerName?: string;
 }
 
 export interface McpServer {

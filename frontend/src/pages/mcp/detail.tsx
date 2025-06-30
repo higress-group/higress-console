@@ -61,7 +61,6 @@ const MCPDetailPage: React.FC = () => {
             const config = YamlUtil.parseYaml(res.rawConfigurations);
             setTools(config.tools || []);
           } catch (error) {
-            // console.error('Failed to parse tools configuration:', error);
             setTools([]);
           }
         } else {
@@ -247,16 +246,16 @@ const MCPDetailPage: React.FC = () => {
                       <span style={{ whiteSpace: 'pre-line' }}>{mcpData?.description || '-'}</span>
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.domains')}>
-                      {mcpData?.domains?.map((domain: string, index: number) => (
-                        <span key={`domain-${index}`}>{domain}</span>
+                      {mcpData?.domains?.map((domain: string) => (
+                        <span key={domain}>{domain}</span>
                       ))}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.type')}>
                       {t(`${serviceTypeMap[mcpData?.type]}`)}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.upstreamService')}>
-                      {mcpData?.services?.map((service: any, index: number) => (
-                        <span key={`service-${index}`}>{service.name}</span>
+                      {mcpData?.services?.map((service: any) => (
+                        <span key={service.name}>{service.name}</span>
                       ))}
                     </Descriptions.Item>
                   </Descriptions>
@@ -300,15 +299,7 @@ const MCPDetailPage: React.FC = () => {
                   }
                 >
                   {tools.length === 0 ? (
-                    <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
-                      {/* <Button
-                        type="primary"
-                        onClick={() => setEditToolVisible(true)}
-                        disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
-                      >
-                        {t('mcp.detail.addTool')}
-                      </Button> */}
-                    </Empty>
+                    <Empty description={t('mcp.detail.noTools')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
                   ) : (
                     <Table
                       dataSource={tools.map((tool, idx) => ({ ...tool, key: tool.name || idx }))}
@@ -336,7 +327,7 @@ const MCPDetailPage: React.FC = () => {
                                   </div>
                                 ))
                               ) : (
-                                <span>{t('mcp.detail.noParams')}</span>
+                                <span>{t('mcp.detail.noParam')}</span>
                               )}
                             </>
                           ),
@@ -351,15 +342,6 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.connectMcp')} bordered style={{ marginTop: 16 }}>
                   <div style={{ marginBottom: 24 }}>
                     <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step1')}</div>
-                    <Space>
-                      <span>{apiGatewayUrl}</span>
-                      <Button
-                        type="link"
-                        onClick={() => handleCopy(apiGatewayUrl)}
-                      >
-                        {t('mcp.detail.copy')}
-                      </Button>
-                    </Space>
                     <Tabs
                       defaultActiveKey="sse"
                       style={{ marginTop: 16 }}
@@ -435,9 +417,8 @@ const MCPDetailPage: React.FC = () => {
                     <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
                       <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
                       <div>
-                        <div>{t('mcp.detail.gatewayAddress')}</div>
                         <div style={{ marginTop: 4 }}>
-                          {t('mcp.detail.public')}:
+                          {t('mcp.detail.gatewayAddress')}
                           <Space>
                             <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
                             <Button
@@ -458,13 +439,11 @@ const MCPDetailPage: React.FC = () => {
           {
             key: 'resource',
             label: t('mcp.detail.resource'),
-            // disabled: true,
             children: <Card>{t('misc.tbd')}</Card>,
           },
           {
             key: 'prompt',
             label: t('mcp.detail.prompt'),
-            // disabled: true,
             children: <Card>{t('misc.tbd')}</Card>,
           },
           {
@@ -487,13 +466,12 @@ const MCPDetailPage: React.FC = () => {
                             cancelText: t('misc.cancel'),
                           });
                         }}
-                        // style={{ color: authEnabled ? '#52c41a' : '#d9d9d9' }}
                       >
                         {authEnabled ? t('mcp.detail.enabled') : t('mcp.detail.disabled')}
                       </a>
                     </Descriptions.Item>
                     {authEnabled && (
-                      <Descriptions.Item label={t('mcp.detail.authType')}>
+                      <Descriptions.Item label={t('misc.authType')}>
                         <Space>
                           <span>API Key</span>
                           <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
@@ -505,7 +483,7 @@ const MCPDetailPage: React.FC = () => {
                   </Descriptions>
                 </Card>
                 <Card title={t('mcp.detail.authorizedConsumers')} bordered style={{ marginTop: 16 }}>
-                  <ConsumerTable ref={consumerTableRef}>
+                  <ConsumerTable ref={consumerTableRef} authEnabled={authEnabled}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddConsumerAuthVisible(true)}>
                       {t('mcp.detail.add')}
                     </Button>

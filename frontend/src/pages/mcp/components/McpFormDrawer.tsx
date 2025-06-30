@@ -29,6 +29,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   const consumerAuth = useWatch('consumerAuth', form);
   const selectedService = useWatch('service', form);
   const serviceType = useWatch('type', form);
+  const mcpServerName = useWatch('name', form);
   const [record, setRecord] = useState<any>(null);
   const [allDomainList, setAllDomainList] = useState<string[]>([]);
   const [allBackendServiceList, setAllBackendServiceList] = useState<any[]>([]);
@@ -238,13 +239,11 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         <Form.Item
           label={t('mcp.form.domains')}
           name="domains"
-          /* 域名非必填 */
-          /* rules={[{ required: true, message: t('mcp.form.domainsRequired') }]} */
         >
           <Select
             showSearch
             loading={domainLoading}
-            options={domainList.map((domain) => ({ label: domain, value: domain }))}
+            options={domainList.filter((domain) => domain !== 'higress-default-domain').map((domain) => ({ label: domain, value: domain }))}
             onSearch={handleDomainSearch}
             filterOption={false}
             placeholder={t('mcp.form.domainsRequired')!}
@@ -252,16 +251,6 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             allowClear
           />
         </Form.Item>
-        {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: -24, marginBottom: 16 }}>
-          <Button style={{ color: '#3883ea' }} type="text" icon={<RedoOutlined />} onClick={getDomainList} />
-          <Button
-            type="text"
-            style={{ width: 50, color: '#3883ea', padding: 0 }}
-            onClick={() => history?.push('/domain')}
-          >
-            {t('mcp.form.addDomain')}
-          </Button>
-        </div> */}
         <div
           style={{
             marginTop: -8,
@@ -274,7 +263,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           }}
         >
           {/* 路径 (SSE) 规则为：/mcp-servers/服务名称/sse */}
-          {t('mcp.form.ssePathRule')}
+          {`/mcp-servers/${name || mcpServerName || t('mcp.form.nameDefault')}/sse`}
         </div>
         <div
           style={{
@@ -289,7 +278,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           }}
         >
           {/* 路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称 */}
-          {t('mcp.form.httpPathRule')}
+          {`/mcp-servers/${name || mcpServerName || t('mcp.form.nameDefault')}`}
         </div>
 
         <Form.Item

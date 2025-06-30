@@ -43,7 +43,6 @@ const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
     if (rawConfigurations !== localRawConfigurations) {
       setLocalRawConfigurations(rawConfigurations);
     }
-    // eslint-disable-next-line
   }, [rawConfigurations]);
 
   // 主题加载完成后再展示编辑器

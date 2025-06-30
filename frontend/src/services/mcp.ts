@@ -4,8 +4,6 @@ import {
   McpServerPageQuery,
   McpServerConsumers,
   McpServerConsumerDetail,
-  McpServerConsumersPageQuery,
-  PaginatedResult,
 } from '@/interfaces/mcp';
 
 const BASE_URL = '/v1/mcpServer';

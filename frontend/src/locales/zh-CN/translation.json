@@ -23,8 +23,7 @@
     "pluginManagement": "插件配置",
     "systemSettings": "系统设置",
     "mcpManagement": "MCP管理",
-    "mcpConfigurations": "MCP配置",
-    "mcpStatus": "MCP状态"
+    "mcpConfigurations": "MCP配置"
   },
   "index": {
     "title": "Higress Console"
@@ -743,7 +742,6 @@
       "dbNameRequired": "请输入数据库名称",
       "dbParams": "数据库参数",
       "dbParamsRequired": "请输入数据库参数",
-      "authType": "认证方式",
       "apiKeyTooltip": "API Key是一种简单的认证方式，客户端访问时，需将凭证以指定的方式添加至请求中，网关收到请求后会验证API Key的合法性及权限。API Key常用于不涉及敏感操作的简单场景，安全性相比JWT、AK/SK较低，请注意凭证的管理与保护。",
       "databaseConfig": "数据库配置",
       "databaseConfigRequired": "请配置数据库信息",
@@ -754,8 +752,7 @@
       "allowedConsumersPlaceholder": "请选择允许访问的消费者",
       "ok": "确定",
       "upstreamPathPrefixLabel": "后端服务前缀匹配路径",
-      "ssePathRule": "路径 (SSE) 规则为：/mcp-servers/服务名称/sse",
-      "httpPathRule": "路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称"
+      "nameDefault": "MCP服务名称"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {
@@ -782,10 +779,9 @@
       "sse": "SSE",
       "copy": "复制",
       "copySuccess": "复制成功",
-      "dnsDesc": "Higress 不提供域名解析能力，需要用户自行在 DNS 服务中将业务域名通过 CNAME 记录指向网关访问入口地址，以实现流量转发。",
+      "dnsDesc": "Higress 不提供域名解析能力，需用户自行在 DNS 服务中对业务域名进行配置，可根据实际场景选择合适的记录类型（如 CNAME 记录、A 记录等），将其指向网关访问入口地址，从而实现流量转发",
       "gatewayAddress": "网关访问地址：",
-      "public": "公网",
-      "commandDesc": "请运行以下命令以安装 <1>{{client}}</1> Mcp Server：",
+      "commandDesc": "请运行以下命令以安装 <1>{{client}}</1> MCP Server：",
       "authStatus": "开启请求认证",
       "enabled": "已启用",
       "disabled": "已禁用",
@@ -802,7 +798,6 @@
       "authorize": "授权",
       "add": "添加",
       "consumerDescription": "描述",
-      "authMethod": "认证方式",
       "status": "状态",
       "consumerStatusACTIVE": "启用",
       "consumerStatusINACTIVE": "停用",
@@ -812,7 +807,6 @@
       "authUpdateError": "认证状态更新失败",
       "fetchConsumersError": "获取消费者列表失败",
       "fetchAuthorizedConsumersError": "获取已授权消费者列表失败",
-      "authType": "认证方式 API Key",
       "apiKeyTooltip": "API Key是一种简单的认证方式，客户端访问时，需将凭证以指定的方式添加至请求中，网关收到请求后会验证API Key的合法性及权限。API Key常用于不涉及敏感操作的简单场景，安全性相比JWT、AK/SK较低，请注意凭证的管理与保护。",
       "addConsumerAuth": "添加消费者授权",
       "authScope": "授权范围",
@@ -825,6 +819,7 @@
       "deleteConsumerConfirm": "确定删除该消费者吗？",
       "deleteSuccess": "删除成功",
       "deleteError": "删除失败",
+      "cannotDeleteLastConsumer": "无法删除最后一个授权消费者",
       "updateSuccess": "更新成功",
       "updateError": "更新失败",
       "toolUpdateSuccess": "工具更新成功",
@@ -845,7 +840,7 @@
       "toolName": "工具名称",
       "toolDescription": "描述",
       "toolParams": "参数",
-      "noParams": "无参数"
+      "noParam": "无参数"
     }
   }
 }

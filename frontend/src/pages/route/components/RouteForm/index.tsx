@@ -5,15 +5,15 @@ import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Switch, Tooltip } from 'antd';
+import { Checkbox, Form, Input, Select, Switch, Tooltip, Button } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 import KeyValueGroup from '../KeyValueGroup';
-import { HistoryButton, RedoOutlinedBtn } from '@/pages/ai/components/RouteForm/Components';
+import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 
 const { Option } = Select;
 
@@ -287,11 +287,24 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
               extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
             >
-              <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>
-                {consumerList.map((item) => (<Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>))}
-              </Select>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Select
+                  allowClear
+                  mode="multiple"
+                  placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                  style={{ flex: 1 }}
+                >
+                  {consumerList.map((item) => (
+                    <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                  ))}
+                </Select>
+                <Button
+                  style={{ marginLeft: 8 }}
+                  onClick={() => consumerResult.run()}
+                  icon={<RedoOutlined />}
+                />
+              </div>
             </Form.Item>
-            <RedoOutlinedBtn getList={consumerResult} />
           </>
         }
         <Form.Item

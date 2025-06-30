@@ -8,7 +8,7 @@ import { useSearchParams } from 'ice';
 import DeleteConfirm from './DeleteConfirm';
 import AddConsumerAuth from './AddConsumerAuth';
 
-const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ children }, ref) => {
+const ConsumerTable = forwardRef<any, { children?: React.ReactNode; authEnabled?: boolean }>(({ children, authEnabled = false }, ref) => {
   const { t } = useTranslation();
   const [consumers, setConsumers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +53,17 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
     }
   };
 
+  const handleDeleteClick = (record: any) => {
+    // 检查是否开启授权且只有一个消费者
+    if (authEnabled && consumers.length === 1) {
+      message.warning(t('mcp.detail.cannotDeleteLastConsumer') || '无法删除最后一个授权消费者');
+      return;
+    }
+
+    setCurrentRecord(record);
+    setDeleteModalVisible(true);
+  };
+
   const columns = [
     {
       title: t('mcp.detail.consumerName'),
@@ -65,11 +76,11 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
       render: (_: any, record: any) => (
         <div key={`action-${record.consumerName}`} style={{ textAlign: 'left' }}>
           <a
-            onClick={() => {
-              setCurrentRecord(record);
-              setDeleteModalVisible(true);
+            onClick={() => handleDeleteClick(record)}
+            style={{
+              cursor: authEnabled && consumers.length === 1 ? 'not-allowed' : 'pointer',
+              color: authEnabled && consumers.length === 1 ? '#d9d9d9' : '#1890ff',
             }}
-            style={{ cursor: 'pointer', color: '#1890ff' }}
           >
             {t('mcp.detail.delete')}
           </a>
@@ -83,7 +94,7 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode }>(({ childre
   }));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const { value } = e.target;
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }

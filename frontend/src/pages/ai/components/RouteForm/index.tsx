@@ -6,7 +6,7 @@ import FactorGroup from '@/pages/route/components/FactorGroup';
 import { getGatewayDomains } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { getLlmProviders } from '@/services/llm-provider';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { AutoComplete, Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
 import { uniqueId } from "lodash";
@@ -213,7 +213,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const _list = aiModelProviders.filter(item => item.value.toUpperCase().indexOf(providerName.toUpperCase()) !== -1);
       if (_list.length) {
         const _filterList = _list.map(item => item.targetModelList || []);
-        return _filterList.flatMap(item => item)
+        return _filterList.reduce((acc: any[], item) => acc.concat(item), []);
       }
       return [];
     } catch (error) { return []; }
@@ -587,11 +587,24 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
               rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') }]}
               extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
             >
-              <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>
-                {consumerList.map((item) => (<Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>))}
-              </Select>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Select
+                  allowClear
+                  mode="multiple"
+                  placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                  style={{ flex: 1 }}
+                >
+                  {consumerList.map((item) => (
+                    <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                  ))}
+                </Select>
+                <Button
+                  style={{ marginLeft: 8 }}
+                  onClick={() => consumerResult.run()}
+                  icon={<RedoOutlined />}
+                />
+              </div>
             </Form.Item>
-            <RedoOutlinedBtn getList={consumerResult} />
           </>
           : null
       }
