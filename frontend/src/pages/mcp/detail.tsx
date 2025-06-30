@@ -246,9 +246,15 @@ const MCPDetailPage: React.FC = () => {
                       <span style={{ whiteSpace: 'pre-line' }}>{mcpData?.description || '-'}</span>
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.domains')}>
-                      {mcpData?.domains?.map((domain: string) => (
-                        <span key={domain}>{domain}</span>
-                      ))}
+                      {(() => {
+                        const domains = mcpData?.domains;
+                        if (!domains || domains.length === 0 || domains.every(domain => !domain || domain.trim() === '')) {
+                          return '-';
+                        }
+                        return domains.map((domain: string) => (
+                          <span key={domain}>{domain}</span>
+                        ));
+                      })()}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.form.type')}>
                       {t(`${serviceTypeMap[mcpData?.type]}`)}
@@ -264,10 +270,10 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                      {`${apiGatewayUrl}/mcp-servers/${name}/sse`}
+                      {`http://<higress-gateway-ip>/mcp-servers/${name}/sse`}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                      {`${apiGatewayUrl}/mcp-servers/${name}`}
+                      {`http://<higress-gateway-ip>/mcp-servers/${name}`}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
