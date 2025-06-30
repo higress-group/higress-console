@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.alibaba.higress.sdk.model.authorization.AuthorizationRelationship;
 import com.alibaba.higress.sdk.model.authorization.AuthorizationResourceTypeEnum;
+import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServerConsumers;
 import com.google.common.collect.Lists;
@@ -41,6 +42,7 @@ public class RelationshipConverter {
             relationship.setResourceName(resourceName);
             relationship.setResourceType(AuthorizationResourceTypeEnum.ROUTE);
             relationship.setConsumerName(consumerName);
+            relationship.setConsumerType(CredentialTypeEnum.fromType(authInfo.getType()));
             return relationship;
         }).collect(Collectors.toList());
 

@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
@@ -37,7 +36,7 @@ import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
-import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
+import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
@@ -45,8 +44,9 @@ import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.authorization.AuthorizationOfKeyAuthServiceImpl;
 import com.alibaba.higress.sdk.service.authorization.AuthorizationService;
+import com.alibaba.higress.sdk.service.authorization.AuthorizationServiceFactory;
+import com.alibaba.higress.sdk.service.authorization.RelationshipConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
@@ -78,7 +78,7 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
     protected final KubernetesModelConverter kubernetesModelConverter;
     protected final WasmPluginInstanceService wasmPluginInstanceService;
     protected final RouteService routeService;
-    protected final AuthorizationService authorizationService;
+    protected final AuthorizationServiceFactory authorizationServiceFactory;
     protected final McpServerConfigMapHelper mcpServerConfigMapHelper;
 
     public AbstractMcpServerSaveStrategy(KubernetesClientService kubernetesClientService,
@@ -87,10 +87,18 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
-        this.authorizationService = new AuthorizationOfKeyAuthServiceImpl(wasmPluginInstanceService);
         this.routeService = routeService;
+        this.authorizationServiceFactory = new AuthorizationServiceFactory(wasmPluginInstanceService);
         this.mcpServerConfigMapHelper = new McpServerConfigMapHelper(kubernetesClientService);
 
+    }
+
+    @Override
+    public McpServer save(McpServer mcpInstance) {
+        saveRoute(mcpInstance);
+        buildMcpServer(mcpInstance);
+        buildAuthentication(mcpInstance);
+        return mcpInstance;
     }
 
     /**
@@ -100,17 +108,9 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
      * buildAuthentication - auth info <br>
      * buildAuthorization - authorization info <br>
      * </p>
-     * 
+     *
      * @param mcpInstance
      */
-    @Override
-    public McpServer save(McpServer mcpInstance) {
-        saveRoute(mcpInstance);
-        buildMcpServer(mcpInstance);
-        buildAuthentication(mcpInstance);
-        return mcpInstance;
-    }
-
     @Override
     public McpServer saveWithAuthorization(McpServer mcpInstance) {
         saveRoute(mcpInstance);
@@ -178,17 +178,11 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
             return;
         }
-        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServer.getName());
-        WasmPluginInstance instance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
-        Objects.requireNonNull(instance);
-        ConsumerAuthInfo consumerAuthInfo = mcpServer.getConsumerAuthInfo();
-
-        if (CollectionUtils.isEmpty(consumerAuthInfo.getAllowedConsumers())) {
-            instance.getConfigurations().put(ALLOW, Collections.emptyList());
-        } else {
-            instance.getConfigurations().put(ALLOW, consumerAuthInfo.getAllowedConsumers());
-        }
-        wasmPluginInstanceService.addOrUpdate(instance);
+        CredentialTypeEnum credentialTypeEnum = CredentialTypeEnum.fromType(mcpServer.getConsumerAuthInfo().getType());
+        AuthorizationService authorizationService = authorizationServiceFactory.getService(credentialTypeEnum);
+        authorizationService.unbindAll(mcpServer.getName());
+        authorizationService
+            .bindList(RelationshipConverter.convert(mcpServer.getName(), mcpServer.getConsumerAuthInfo()));
     }
 
     private WasmPluginInstance initMcpServerAuthentication(McpServer mcpInstance) {
