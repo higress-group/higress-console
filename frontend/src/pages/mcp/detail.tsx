@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
+import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer, listMcpConsumers } from '@/services/mcp';
 import { getGatewayDomains } from '@/services/domain';
 import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
@@ -85,6 +85,17 @@ const MCPDetailPage: React.FC = () => {
 
   const handleAuthChange = async (checked: boolean) => {
     try {
+      // 如果要启用认证，先检查是否已有授权消费者
+      if (checked) {
+        const consumers = await listMcpConsumers({ mcpServerName: name });
+        if (!consumers || consumers.length === 0) {
+          message.warning(t('mcp.detail.enableAuthNeedConsumer') || '启用认证前需要至少添加一个授权消费者');
+          // 切换到认证标签页
+          setActiveTab('auth');
+          return;
+        }
+      }
+
       await createOrUpdateMcpServer({
         ...mcpData,
         mcpServerName: name,
@@ -97,6 +108,8 @@ const MCPDetailPage: React.FC = () => {
       message.success(`${t('mcp.detail.authUpdateSuccess')}`);
       setAuthEnabled(checked);
       fetchMcpData();
+      // 刷新消费者列表
+      consumerTableRef.current?.fetchConsumers();
     } catch (error) {
       message.error(t('mcp.detail.authUpdateError'));
     }

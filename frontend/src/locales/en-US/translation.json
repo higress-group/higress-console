@@ -849,7 +849,8 @@
       "toolName": "Tool Name",
       "toolDescription": "Description",
       "toolParams": "Parameters",
-      "noParam": "No Parameter"
+      "noParam": "No Parameter",
+      "enableAuthNeedConsumer": "At least one authorized consumer is required before enabling authentication"
     }
   }
 }

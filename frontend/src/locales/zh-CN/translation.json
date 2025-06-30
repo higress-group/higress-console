@@ -842,7 +842,8 @@
       "toolName": "工具名称",
       "toolDescription": "描述",
       "toolParams": "参数",
-      "noParam": "无参数"
+      "noParam": "无参数",
+      "enableAuthNeedConsumer": "启用认证前需要至少添加一个授权消费者"
     }
   }
 }
