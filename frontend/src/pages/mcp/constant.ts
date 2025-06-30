@@ -26,7 +26,7 @@ export const DOMAIN_PROTOCOL_MAP = {
   HTTPS: 'https',
 };
 
-// 数据库连接字符串正则 eg: mysql:user:pass@tcp(127.0.0.1:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local
+// 数据库连接字符串正则 eg: mysql:user:pass@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
 export const REG_DSN_STRING = {
   MYSQL: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
   POSTGRESQL: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,

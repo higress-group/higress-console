@@ -5,7 +5,7 @@ const DEFAULT_YAML_TEMPLATE = {
   server: {
     name: 'rest-amap-server',
     config: {
-      apiKey: 'your-api-key-here',
+      apiKey: '<your-api-key>',
     },
     securitySchemes: [],
   },

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Drawer, Form, Input, Button, Space, Select, Switch, Tooltip } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Drawer, Form, Input, Button, Space, Select, Switch } from 'antd';
 import { useTranslation, Trans } from 'react-i18next';
 import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';

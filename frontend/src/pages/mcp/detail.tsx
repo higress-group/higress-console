@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'ice';
+import { useNavigate, useSearchParams } from 'ice';
 import { PageContainer } from '@ant-design/pro-layout';
 import {
   Card,
@@ -9,7 +9,6 @@ import {
   Descriptions,
   Space,
   message,
-  Popconfirm,
   Switch,
   Tooltip,
   Table,
@@ -18,7 +17,7 @@ import {
 } from 'antd';
 import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer, addMcpConsumers } from '@/services/mcp';
+import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer } from '@/services/mcp';
 import { getGatewayDomains } from '@/services/domain';
 import EditToolDrawer from './components/EditToolDrawer';
 import ConsumerTable from './components/ConsumerTable';
@@ -119,14 +118,6 @@ const MCPDetailPage: React.FC = () => {
 
   const handleDeleteCancel = () => {
     setDeleteModalVisible(false);
-  };
-
-  const jumpToDomainDetail = (domain: string) => {
-    navigate(`/domain/${domain}`);
-  };
-
-  const jumpToServiceDetail = (service: any) => {
-    navigate(`/service/${service.name}`);
   };
 
   const handleEditToolSubmit = async (rawConfigurations: string) => {

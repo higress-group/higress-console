@@ -1,9 +1,6 @@
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-}
+import { PageQuery } from './common';
 
-export interface McpServerPageQuery {
+export interface McpServerPageQuery extends PageQuery {
   mcpServerName?: string;
   type?: string;
 }
