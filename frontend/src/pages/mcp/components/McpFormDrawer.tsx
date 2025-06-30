@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Drawer, Form, Input, Button, Space, Select, Switch, Tooltip } from 'antd';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
 import { getGatewayDomains } from '@/services/domain';
 import { getGatewayServices } from '@/services/service';
@@ -262,8 +262,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          {/* 路径 (SSE) 规则为：/mcp-servers/服务名称/sse */}
-          {`/mcp-servers/${name || mcpServerName || t('mcp.form.nameDefault')}/sse`}
+          <Trans t={t} i18nKey="mcp.form.ssePathRule" values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}>
+            {/* SSE 路径规则：/mcp/{currentMcpServerName}/sse */}
+          </Trans>
         </div>
         <div
           style={{
@@ -277,8 +278,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          {/* 路径 (Streamable HTTP) 规则为：/mcp-servers/服务名称 */}
-          {`/mcp-servers/${name || mcpServerName || t('mcp.form.nameDefault')}`}
+          <Trans t={t} i18nKey="mcp.form.httpPathRule" values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}>
+            {/* HTTP 路径规则：/mcp/{currentMcpServerName} */}
+          </Trans>
         </div>
 
         <Form.Item

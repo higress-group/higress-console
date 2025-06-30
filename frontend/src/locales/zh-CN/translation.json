@@ -752,6 +752,8 @@
       "allowedConsumersPlaceholder": "请选择允许访问的消费者",
       "ok": "确定",
       "upstreamPathPrefixLabel": "后端服务前缀匹配路径",
+      "ssePathRule": "路径 (SSE) : /mcp-servers/<1>{{currentMcpServerName}}</1>/sse",
+      "httpPathRule": "路径 (Streamable HTTP) : /mcp-servers/<1>{{currentMcpServerName}}</1>",
       "nameDefault": "MCP服务名称"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",

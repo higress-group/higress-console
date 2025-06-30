@@ -752,7 +752,9 @@
       "ok": "OK",
       "upstreamPathPrefixLabel": "Backend Service Path Prefix",
       "upstreamPathPrefixExtra": "Backend service must support SSE or Streamable protocol",
-      "nameDefault": "MCPServerName"
+      "ssePathRule": "Path (SSE) : /mcp-servers/<1>{{currentMcpServerName}}</1>/sse",
+      "httpPathRule": "Path (Streamable HTTP) : /mcp-servers/<1>{{currentMcpServerName}}</1>",
+      "nameDefault": "MCP-Server-Name"
     },
     "deleteConfirm": "Are you sure to delete <1>{{currentMcpServerName}}</1>?",
     "sseCommand": "SSE Command",
