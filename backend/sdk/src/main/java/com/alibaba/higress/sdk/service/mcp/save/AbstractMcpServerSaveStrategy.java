@@ -23,12 +23,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.TreeMap;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
@@ -234,8 +235,11 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         Map<String, String> annotationsMap = new TreeMap<>();
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY, mcpInstance.getDescription());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY, Boolean.TRUE.toString());
-        Optional.ofNullable(route.getDomains()).ifPresent(domains -> annotationsMap
-            .put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY, domains.get(0)));
+        String matchRuleDomains = Separators.ASTERISK;
+        if (CollectionUtils.isNotEmpty(route.getDomains())) {
+            matchRuleDomains = String.join(Separators.COMMA, route.getDomains());
+        }
+        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY, matchRuleDomains);
         RoutePredicateTypeEnum predicateTypeEnum = RoutePredicateTypeEnum.fromName(route.getPath().getMatchType());
         Objects.requireNonNull(predicateTypeEnum, "Unknown matchType: " + route.getPath().getMatchType());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY,
