@@ -191,7 +191,15 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
         allowedConsumers: values.allowedConsumers || [],
       },
-      domains: Array.isArray(values.domains) ? values.domains : [values.domains],
+      domains: (() => {
+        if (Array.isArray(values.domains)) {
+          return values.domains;
+        } else if (values.domains) {
+          return [values.domains];
+        } else {
+          return [];
+        }
+      })(),
     };
 
     onSubmit(submitData);
