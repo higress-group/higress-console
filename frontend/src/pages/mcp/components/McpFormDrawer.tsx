@@ -222,7 +222,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           rules={[
             { required: true, message: t('mcp.form.nameRequired') },
             {
-              pattern: /^(?!-)[A-Za-z0-9-]{1,63}[A-Za-z0-9]$/,
+              pattern: /^(?![-.])[A-Za-z0-9.-]{1,63}[A-Za-z0-9]$/,
               message: t('mcp.form.namePattern'),
             },
           ]}
