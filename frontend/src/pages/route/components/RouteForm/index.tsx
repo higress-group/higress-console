@@ -99,6 +99,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         customConfigs: customConfigArray,
       });
       setAuthConfigEnabled(_authConfig_enabled);
+      // form.setFieldsValue({
+      //   authConfig_allowedConsumers: _authConfig_allowedConsumers,
+      // })
     }
 
     return () => {
@@ -262,7 +265,6 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         >
           <Switch onChange={e => {
             setAuthConfigEnabled(e)
-            form.resetFields(["authConfig_allowedConsumers"])
           }}
           />
         </Form.Item>
@@ -280,24 +282,27 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               </Select>
             </Form.Item>
             <Form.Item
-              style={{ flex: 1, marginRight: '8px' }}
               required
-              name="authConfig_allowedConsumers"
               label={t('aiRoute.routeForm.label.authConfigList')}
-              rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
               extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
             >
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Select
-                  allowClear
-                  mode="multiple"
-                  placeholder={t('aiRoute.routeForm.label.authConfigList')}
-                  style={{ flex: 1 }}
+                <Form.Item
+                  name="authConfig_allowedConsumers"
+                  noStyle
+                  rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
                 >
-                  {consumerList.map((item) => (
-                    <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
-                  ))}
-                </Select>
+                  <Select
+                    allowClear
+                    mode="multiple"
+                    placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                    style={{ flex: 1 }}
+                  >
+                    {consumerList.map((item) => (
+                      <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
                 <Button
                   style={{ marginLeft: 8 }}
                   onClick={() => consumerResult.run()}
@@ -345,5 +350,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     </Form>
   );
 });
+
+RouteForm.displayName = 'RouteForm';
 
 export default RouteForm;

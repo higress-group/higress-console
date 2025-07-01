@@ -9,6 +9,8 @@ import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
 import { getMcpServer } from '@/services/mcp';
 import { history } from 'ice';
 import { getConsumers } from '@/services/consumer';
+import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
+import { RedoOutlined } from '@ant-design/icons';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -387,26 +389,35 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
               </Select>
             </Form.Item>
             <Form.Item
+              required
               label={t('mcp.form.allowedConsumers')}
-              name="allowedConsumers"
-              rules={[{ required: true, message: t('mcp.form.allowedConsumersRequired') }]}
-              extra={
-                <Button type="link" onClick={() => history?.push('/consumer')}>
-                  {t('consumer.create')}
-                </Button>
-              }
+              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
             >
-              <Select
-                mode="multiple"
-                allowClear
-                placeholder={t('mcp.form.allowedConsumersPlaceholder')}
-              >
-                {consumerList.map((item) => (
-                  <Select.Option key={item.name} value={item.name}>
-                    {item.name}
-                  </Select.Option>
-                ))}
-              </Select>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Form.Item
+                  name="allowedConsumers"
+                  noStyle
+                  rules={[{ required: true, message: t('mcp.form.allowedConsumersRequired') }]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    placeholder={t('mcp.form.allowedConsumersPlaceholder')}
+                    style={{ flex: 1 }}
+                  >
+                    {consumerList.map((item) => (
+                      <Select.Option key={item.name} value={item.name}>
+                        {item.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Button
+                  style={{ marginLeft: 8 }}
+                  onClick={() => getConsumers().then((res) => setConsumerList(res || []))}
+                  icon={<RedoOutlined />}
+                />
+              </div>
             </Form.Item>
           </>
         )}
