@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.authorization;
 
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
@@ -122,6 +123,7 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
             newInstance.setTargets(targets);
             newInstance.setInternal(Boolean.TRUE);
             newInstance.setPluginName(BuiltInPluginName.KEY_AUTH);
+            newInstance.setConfigurations(new HashMap<>());
 
             authRouteConfig = new AuthorizationOfRouteConfig();
         } else {
@@ -130,8 +132,7 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
                 AuthorizationOfRouteConfig.class);
         }
         authRouteConfig.addAllAllow(consumerNameList);
-        newInstance.setConfigurations(null);
-        newInstance.setRawConfigurations(JSON.toJSONString(authRouteConfig));
+        newInstance.getConfigurations().put(ALLOW, authRouteConfig.getAllow());
         wasmPluginInstanceService.addOrUpdate(newInstance);
     }
 
@@ -149,8 +150,7 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
         }
 
         consumerNameList.forEach(authRouteConfig.getAllow()::remove);
-        existInstance.setConfigurations(null);
-        existInstance.setRawConfigurations(JSON.toJSONString(authRouteConfig));
+        existInstance.getConfigurations().put(ALLOW, authRouteConfig.getAllow());
         wasmPluginInstanceService.addOrUpdate(existInstance);
     }
 
@@ -164,8 +164,18 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
         if (StringUtils.isBlank(resourceName)) {
             throw new IllegalArgumentException("resourceName cannot be null or blank.");
         }
+
         Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, resourceName);
-        wasmPluginInstanceService.delete(targets, BuiltInPluginName.KEY_AUTH);
+
+        AuthorizationRelationship param = new AuthorizationRelationship();
+
+        param.setResourceName(resourceName);
+        param.setResourceType(AuthorizationResourceTypeEnum.ROUTE);
+        List<AuthorizationRelationship> authorizationRelationships = boundList(param);
+        if (CollectionUtils.isNotEmpty(authorizationRelationships)) {
+            ;
+            unbindList(authorizationRelationships);
+        }
     }
 
     @Override
