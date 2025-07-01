@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.service.mcp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.McpConstants;
@@ -32,6 +34,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -59,6 +62,7 @@ public class McpServerConfigMapHelper {
 
     static {
         YAML.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        YAML.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     private final KubernetesClientService kubernetesClientService;
@@ -85,6 +89,9 @@ public class McpServerConfigMapHelper {
         try {
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             McpServerConfigMap mcpConfig = getMcpConfig(configMap);
+            if (CollectionUtils.isEmpty(mcpConfig.getServers())) {
+                return;
+            }
             updateFunction.accept(mcpConfig.getServers());
 
             updateMcpConfig2ConfigMap(configMap, mcpConfig);
@@ -264,21 +271,26 @@ public class McpServerConfigMapHelper {
             String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
             Map<String, Object> higressConfig =
                 YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
-            McpServerConfigMap mcpConfig = null;
+            McpServerConfigMap mcpConfig;
             if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
                 mcpConfig = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
                     McpServerConfigMap.class);
             } else {
                 mcpConfig = new McpServerConfigMap();
             }
+            boolean needInit = false;
 
             if (StringUtils.isBlank(mcpConfig.getSsePathSuffix())) {
+                needInit = true;
                 mcpConfig.setSsePathSuffix("/sse");
             }
             if (Objects.isNull(mcpConfig.getEnable())) {
+                needInit = true;
                 mcpConfig.setEnable(Boolean.TRUE);
             }
             if (Objects.isNull(mcpConfig.getRedis())) {
+                needInit = true;
+
                 McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
                 redisConfig.setDb(0);
                 redisConfig.setAddress("your.redis.host:6379");
@@ -286,7 +298,17 @@ public class McpServerConfigMapHelper {
                 redisConfig.setUsername("your_username");
                 mcpConfig.setRedis(redisConfig);
             }
-            updateMcpConfig2ConfigMap(configMap, mcpConfig);
+            if (!needInit) {
+                return;
+            }
+
+            if (CollectionUtils.isEmpty(mcpConfig.getServers())) {
+                mcpConfig.setServers(Collections.emptyList());
+            }
+            higressConfig.put(MCP_SERVER_KEY, mcpConfig);
+            String updatedHigressConfigYaml = YAML.writeValueAsString(higressConfig);
+            Objects.requireNonNull(configMap.getData()).put(MCP_CONFIG_KEY, updatedHigressConfigYaml);
+            kubernetesClientService.replaceConfigMap(configMap);
         } catch (Exception e) {
             throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
         }
