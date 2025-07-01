@@ -4523,7 +4523,7 @@ ajv-keywords@^3.4.1, ajv-keywords@^3.5.2:
   resolved "https://registry.npmmirror.com/ajv-keywords/-/ajv-keywords-3.5.2.tgz"
   integrity sha512-5p6WTN0DdTGVQk6VjcEju19IgaHudalcfabD7yhDGeA6bcQnmL+CpveLJq/3hvfwd1aof6L386Ougkx6RfyMIQ==
 
-ajv-keywords@^5.0.0:
+ajv-keywords@^5.1.0:
   version "5.1.0"
   resolved "https://registry.npmmirror.com/ajv-keywords/-/ajv-keywords-5.1.0.tgz"
   integrity sha512-YCS/JNFAUyr5vAuhk1DWm1CBxRHW9LbJ2ozWeemrIqpbsqKjHVxYPyi5GC0rjZIT5JxJ3virVTS8wk4i/Z+krw==
@@ -4570,7 +4570,7 @@ ajv@^8.6.0, ajv@>=8:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-ajv@^8.8.0, ajv@^8.8.2:
+ajv@^8.8.2, ajv@^8.9.0:
   version "8.12.0"
   resolved "https://registry.npmmirror.com/ajv/-/ajv-8.12.0.tgz"
   integrity sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==
@@ -6169,6 +6169,17 @@ copy-to-clipboard@^3.2.0, copy-to-clipboard@^3.3.1:
   integrity sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==
   dependencies:
     toggle-selection "^1.0.6"
+
+copy-webpack-plugin@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.npmjs.org/copy-webpack-plugin/-/copy-webpack-plugin-13.0.0.tgz"
+  integrity sha512-FgR/h5a6hzJqATDGd9YG41SeDViH+0bkHn6WNXCi5zKAZkeESeSxLySSsFLHqLEVCh0E+rITmCf0dusXWYukeQ==
+  dependencies:
+    glob-parent "^6.0.1"
+    normalize-path "^3.0.0"
+    schema-utils "^4.2.0"
+    serialize-javascript "^6.0.2"
+    tinyglobby "^0.2.12"
 
 core-js-compat@^3.25.1, core-js-compat@^3.30.1, core-js-compat@^3.30.2:
   version "3.31.0"
@@ -7978,6 +7989,11 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "2.1.1"
 
+fdir@^6.4.4:
+  version "6.4.6"
+  resolved "https://registry.npmjs.org/fdir/-/fdir-6.4.6.tgz"
+  integrity sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==
+
 fecha@~4.2.0:
   version "4.2.3"
   resolved "https://registry.npmmirror.com/fecha/-/fecha-4.2.3.tgz"
@@ -8421,6 +8437,13 @@ glob-parent@^5.1.2, glob-parent@~5.1.2:
   integrity sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==
   dependencies:
     is-glob "^4.0.1"
+
+glob-parent@^6.0.1:
+  version "6.0.2"
+  resolved "https://registry.npmjs.org/glob-parent/-/glob-parent-6.0.2.tgz"
+  integrity sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==
+  dependencies:
+    is-glob "^4.0.3"
 
 glob-parent@^6.0.2:
   version "6.0.2"
@@ -11788,6 +11811,11 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.2.3, picomatc
   resolved "https://registry.npmmirror.com/picomatch/-/picomatch-2.3.1.tgz"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
+"picomatch@^3 || ^4", picomatch@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.npmjs.org/picomatch/-/picomatch-4.0.2.tgz"
+  integrity sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==
+
 pidtree@^0.6.0:
   version "0.6.0"
   resolved "https://registry.npmmirror.com/pidtree/-/pidtree-0.6.0.tgz"
@@ -14255,15 +14283,15 @@ schema-utils@^3.1.1:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-schema-utils@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.npmmirror.com/schema-utils/-/schema-utils-4.0.0.tgz"
-  integrity sha512-1edyXKgh6XnJsJSQ8mKWXnN/BVaIbFMLpouRUrXgVq7WYne5kw3MW7UPhO44uRXQSIpTSXoJbmrR2X0w9kUTyg==
+schema-utils@^4.0.0, schema-utils@^4.2.0:
+  version "4.3.2"
+  resolved "https://registry.npmjs.org/schema-utils/-/schema-utils-4.3.2.tgz"
+  integrity sha512-Gn/JaSk/Mt9gYubxTtSn/QCV4em9mpAPiR1rqy/Ocu19u/G9J5WWdNoUT4SiV6mFC3y6cxyFcFwdzPM3FgxGAQ==
   dependencies:
     "@types/json-schema" "^7.0.9"
-    ajv "^8.8.0"
+    ajv "^8.9.0"
     ajv-formats "^2.1.1"
-    ajv-keywords "^5.0.0"
+    ajv-keywords "^5.1.0"
 
 schema-utils@2.7.0:
   version "2.7.0"
@@ -14351,10 +14379,10 @@ serialize-javascript@^4.0.0:
   dependencies:
     randombytes "^2.1.0"
 
-serialize-javascript@^6.0.0:
-  version "6.0.1"
-  resolved "https://registry.npmmirror.com/serialize-javascript/-/serialize-javascript-6.0.1.tgz"
-  integrity sha512-owoXEFjWRllis8/M1Q+Cw5k8ZH40e3zhp/ovX+Xr/vi1qj6QesbyXXViFbpNvWvPNAD62SutwEXavefrLJWj7w==
+serialize-javascript@^6.0.0, serialize-javascript@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-6.0.2.tgz"
+  integrity sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==
   dependencies:
     randombytes "^2.1.0"
 
@@ -15434,6 +15462,14 @@ tinycolor2@^1.4.1, tinycolor2@^1.4.2:
   version "1.6.0"
   resolved "https://registry.npmmirror.com/tinycolor2/-/tinycolor2-1.6.0.tgz"
   integrity sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==
+
+tinyglobby@^0.2.12:
+  version "0.2.14"
+  resolved "https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.14.tgz"
+  integrity sha512-tX5e7OM1HnYr2+a2C/4V0htOcSQcoSTH9KgJnVvNm5zm/cyEWKJ7j7YutsH9CxMdtOkkLFy2AHrMci9IM8IPZQ==
+  dependencies:
+    fdir "^6.4.4"
+    picomatch "^4.0.2"
 
 tinyqueue@^2.0.3:
   version "2.0.3"
