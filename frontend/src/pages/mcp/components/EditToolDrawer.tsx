@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Drawer, Button, Space, message, Card } from 'antd';
 import { useTranslation } from 'react-i18next';
-import MonacoEditor, { loader } from '@monaco-editor/react';
+import MonacoEditor from '@monaco-editor/react';
 import StepTitle from './StepTitle';
 import YamlUtil from './yamlUtil';
 import { swaggerToMcpConfig } from '@/services/mcp';
@@ -13,8 +13,6 @@ interface EditToolDrawerProps {
   onClose: () => void;
   onSubmit: (rawConfigurations: string) => any;
 }
-
-loader.config({ paths: { vs: '/vs' } });
 
 const EditToolDrawer: React.FC<EditToolDrawerProps> = ({
   visible,

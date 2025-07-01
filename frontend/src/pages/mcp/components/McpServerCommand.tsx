@@ -3,14 +3,12 @@ import { Select, message, Button } from 'antd';
 import { useSearchParams } from 'ice';
 import { CLIENT_MAP } from '../constant';
 import { useTranslation, Trans } from 'react-i18next';
-import MonacoEditor, { loader } from '@monaco-editor/react';
+import MonacoEditor from '@monaco-editor/react';
 
 interface McpServerCommandProps {
   mode: 'streamableHttp' | 'sse';
   config: string;
 }
-
-loader.config({ paths: { vs: '/vs' } });
 
 const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => {
   const [client, setClient] = useState('vscode');
