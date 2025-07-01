@@ -47,6 +47,8 @@ public class McpServerConfigMap {
         private String address;
         private String password;
         private Integer db;
+        private String username;
+        private String secret;
     }
 
     @Data

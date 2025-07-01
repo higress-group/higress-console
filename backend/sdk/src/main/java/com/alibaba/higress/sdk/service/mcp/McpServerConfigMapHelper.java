@@ -283,6 +283,7 @@ public class McpServerConfigMapHelper {
                 redisConfig.setDb(0);
                 redisConfig.setAddress("your.redis.host:6379");
                 redisConfig.setPassword("your_password");
+                redisConfig.setUsername("your_username");
                 mcpConfig.setRedis(redisConfig);
             }
             updateMcpConfig2ConfigMap(configMap, mcpConfig);
