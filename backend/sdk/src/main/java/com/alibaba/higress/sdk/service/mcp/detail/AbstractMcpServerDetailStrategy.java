@@ -64,7 +64,7 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
 
     @Override
     public McpServer query(String name) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(name);
+        String routeName = McpServerHelper.mcpServerName2RouteName(name);
         Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new NotFoundException("can't found the bound route by name: " + routeName);

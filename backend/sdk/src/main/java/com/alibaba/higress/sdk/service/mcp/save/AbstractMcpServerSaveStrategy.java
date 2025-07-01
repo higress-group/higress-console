@@ -224,7 +224,7 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
     }
 
     protected Route buildRouteRequest(McpServer mcpInstance) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(mcpInstance.getName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
         Route route = Route.builder().name(routeName).build();
         route.setServices(mcpInstance.getServices());
         route.setPath(RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.name())

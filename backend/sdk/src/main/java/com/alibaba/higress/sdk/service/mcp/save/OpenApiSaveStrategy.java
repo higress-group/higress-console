@@ -29,6 +29,7 @@ import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -62,7 +63,8 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
     private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {
         WasmPluginInstance pluginInstance =
             WasmPluginInstance.builder().pluginName(DEFAULT_MCP_PLUGIN).internal(true).build();
-        pluginInstance.setTargets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpInstance.getName()));
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
+        pluginInstance.setTargets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName));
         if (StringUtils.isNotBlank(mcpInstance.getRawConfigurations())) {
             pluginInstance.setRawConfigurations(mcpInstance.getRawConfigurations());
             pluginInstance.setEnabled(StringUtils.contains(mcpInstance.getRawConfigurations(), "tools:"));

@@ -98,7 +98,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public McpServer query(String name) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(name);
+        String routeName = McpServerHelper.mcpServerName2RouteName(name);
         Route route = routeService.query(routeName);
         if (Objects.isNull(route) || !isMcpServerRoute(route.getCustomLabels())) {
             throw new NotFoundException("can't found the bound route by name: " + routeName);
@@ -129,7 +129,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void delete(String name) {
-        routeService.delete(McpServerHelper.mcpServerName2IngressName(name));
+        routeService.delete(McpServerHelper.mcpServerName2RouteName(name));
         routeService.delete(name);
         deleteMatchRulePath(name);
         deleteServersConfig(name);
@@ -137,7 +137,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(consumers.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(consumers.getMcpServerName());
         Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
@@ -148,7 +148,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(consumers.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(consumers.getMcpServerName());
         Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
@@ -159,7 +159,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        String routeName = McpServerHelper.mcpServerName2IngressName(query.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(query.getMcpServerName());
         Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");

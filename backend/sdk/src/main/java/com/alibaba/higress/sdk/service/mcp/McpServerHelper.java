@@ -153,12 +153,12 @@ public class McpServerHelper {
         return c >= 0x4e00 && c <= 0x9fbb;
     }
 
-    public static String mcpServerName2IngressName(String mcpServerName) {
+    public static String mcpServerName2RouteName(String mcpServerName) {
         return StringUtils.join(CommonKey.MCP_SERVER_ROUTE_PREFIX, mcpServerName,
             HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
     }
 
-    public static String ingressName2McpServerName(String mcpServerName) {
+    public static String routeName2McpServerName(String mcpServerName) {
         if (StringUtils.isBlank(mcpServerName)) {
             return StringUtils.EMPTY;
         }
@@ -174,7 +174,7 @@ public class McpServerHelper {
             return null;
         }
         McpServer result = new McpServer();
-        String mcpServerName = ingressName2McpServerName(route.getName());
+        String mcpServerName = routeName2McpServerName(route.getName());
         result.setName(mcpServerName);
         result.setServices(route.getServices());
         result.setDomains(route.getDomains());
