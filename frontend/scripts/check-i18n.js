@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable */
 
 const fs = require('fs');
 const path = require('path');
@@ -62,7 +63,7 @@ function isValidI18nKey(key) {
     /^[^a-zA-Z_][^a-zA-Z0-9_.]*$/, // 不以字母或下划线开头的键
   ];
 
-  return !invalidPatterns.some(pattern => pattern.test(key));
+  return !invalidPatterns.some((pattern) => pattern.test(key));
 }
 
 /**
@@ -74,7 +75,7 @@ function extractI18nKeys(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const keys = new Set();
 
-  CONFIG.i18nPatterns.forEach(pattern => {
+  CONFIG.i18nPatterns.forEach((pattern) => {
     for (let match = pattern.exec(content); match !== null; match = pattern.exec(content)) {
       if (match[1] && isValidI18nKey(match[1])) {
         keys.add(match[1]);
@@ -90,12 +91,12 @@ function extractI18nKeys(filePath) {
  * @returns {string[]} 文件路径数组
  */
 function getSourceFiles() {
-  const patterns = CONFIG.fileExtensions.map(ext => `${CONFIG.srcDir}/**/*.${ext}`);
+  const patterns = CONFIG.fileExtensions.map((ext) => `${CONFIG.srcDir}/**/*.${ext}`);
   const files = [];
 
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     const matches = glob.sync(pattern, {
-      ignore: CONFIG.ignoreDirs.map(dir => `**/${dir}/**`),
+      ignore: CONFIG.ignoreDirs.map((dir) => `**/${dir}/**`),
     });
     files.push(...matches);
   });
@@ -137,54 +138,59 @@ function checkI18n() {
 
   // 提取所有使用的国际化键
   const usedKeys = new Set();
-  sourceFiles.forEach(file => {
+  sourceFiles.forEach((file) => {
     const keys = extractI18nKeys(file);
-    keys.forEach(key => usedKeys.add(key));
+    keys.forEach((key) => usedKeys.add(key));
   });
 
   console.log(`🔑 找到 ${usedKeys.size} 个使用的国际化键`);
 
   // 获取所有语言文件
-  const locales = fs.readdirSync(CONFIG.localesDir)
-    .filter(dir => fs.statSync(path.join(CONFIG.localesDir, dir)).isDirectory());
+  const locales = fs
+    .readdirSync(CONFIG.localesDir)
+    .filter((dir) => fs.statSync(path.join(CONFIG.localesDir, dir)).isDirectory());
 
   console.log(`🌍 找到 ${locales.length} 个语言: ${locales.join(', ')}\n`);
 
   let hasIssues = false;
+  const allUnusedKeys = new Set();
+  const allMissingKeys = new Set();
 
   // 检查每个语言文件
-  locales.forEach(locale => {
+  locales.forEach((locale) => {
     console.log(`📋 检查 ${locale} 语言文件:`);
 
     const localeData = loadLocaleFile(locale);
     const definedKeys = new Set(getAllKeys(localeData));
 
     // 检查未使用的键
-    const unusedKeys = [...definedKeys].filter(key => !usedKeys.has(key));
+    const unusedKeys = [...definedKeys].filter((key) => !usedKeys.has(key));
     if (unusedKeys.length > 0) {
       console.log(`  ⚠️  发现 ${unusedKeys.length} 个未使用的键:`);
-      unusedKeys.slice(0, 10).forEach(key => {
+      unusedKeys.slice(0, 10).forEach((key) => {
         console.log(`    - ${key}`);
       });
       if (unusedKeys.length > 10) {
         console.log(`    ... 还有 ${unusedKeys.length - 10} 个未使用的键`);
       }
       hasIssues = true;
+      unusedKeys.forEach((key) => allUnusedKeys.add(key));
     } else {
       console.log(`  ✅ 没有未使用的键`);
     }
 
     // 检查缺失的键
-    const missingKeys = [...usedKeys].filter(key => !definedKeys.has(key));
+    const missingKeys = [...usedKeys].filter((key) => !definedKeys.has(key));
     if (missingKeys.length > 0) {
       console.log(`  ❌ 发现 ${missingKeys.length} 个缺失的键:`);
-      missingKeys.slice(0, 10).forEach(key => {
+      missingKeys.slice(0, 10).forEach((key) => {
         console.log(`    - ${key}`);
       });
       if (missingKeys.length > 10) {
         console.log(`    ... 还有 ${missingKeys.length - 10} 个缺失的键`);
       }
       hasIssues = true;
+      missingKeys.forEach((key) => allMissingKeys.add(key));
     } else {
       console.log(`  ✅ 没有缺失的键`);
     }
@@ -192,20 +198,52 @@ function checkI18n() {
     console.log('');
   });
 
+  // 导出结果到文件
+  const outputDir = path.join(__dirname, '../i18n-check-results');
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  // 导出未使用的键
+  if (allUnusedKeys.size > 0) {
+    const unusedKeysFile = path.join(outputDir, 'unused-keys.json');
+    const unusedKeysData = {
+      timestamp: new Date().toISOString(),
+      count: allUnusedKeys.size,
+      keys: [...allUnusedKeys].sort(),
+    };
+    fs.writeFileSync(unusedKeysFile, JSON.stringify(unusedKeysData, null, 2), 'utf8');
+    console.log(`📄 未使用的键已导出到: ${unusedKeysFile}`);
+  }
+
+  // 导出缺失的键
+  if (allMissingKeys.size > 0) {
+    const missingKeysFile = path.join(outputDir, 'missing-keys.json');
+    const missingKeysData = {
+      timestamp: new Date().toISOString(),
+      count: allMissingKeys.size,
+      keys: [...allMissingKeys].sort(),
+    };
+    fs.writeFileSync(missingKeysFile, JSON.stringify(missingKeysData, null, 2), 'utf8');
+    console.log(`📄 缺失的键已导出到: ${missingKeysFile}`);
+  }
+
   // 输出统计信息
   console.log('📊 统计信息:');
   console.log(`  - 源码文件: ${sourceFiles.length}`);
   console.log(`  - 使用的国际化键: ${usedKeys.size}`);
   console.log(`  - 语言文件: ${locales.length}`);
+  console.log(`  - 未使用的键: ${allUnusedKeys.size}`);
+  console.log(`  - 缺失的键: ${allMissingKeys.size}`);
 
   // 输出详细的使用情况
   if (process.argv.includes('--verbose')) {
     console.log('\n📝 详细使用情况:');
-    sourceFiles.forEach(file => {
+    sourceFiles.forEach((file) => {
       const keys = extractI18nKeys(file);
       if (keys.size > 0) {
         console.log(`  ${path.relative(CONFIG.srcDir, file)}:`);
-        keys.forEach(key => {
+        keys.forEach((key) => {
           console.log(`    - ${key}`);
         });
       }
@@ -214,6 +252,7 @@ function checkI18n() {
 
   if (hasIssues) {
     console.log('\n❌ 发现国际化文案问题，请检查上述警告和错误');
+    console.log(`📁 详细结果已导出到: ${outputDir}`);
     process.exit(1);
   } else {
     console.log('\n✅ 国际化文案检查通过！');
