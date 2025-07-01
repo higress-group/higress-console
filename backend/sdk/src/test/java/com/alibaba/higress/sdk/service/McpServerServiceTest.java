@@ -31,15 +31,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import com.alibaba.higress.sdk.exception.NotFoundException;
-import org.junit.jupiter.api.AfterEach;
+import org.apache.commons.compress.utils.Sets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
-import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -60,6 +59,7 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.alibaba.higress.sdk.service.mcp.McpServerService;
 import com.alibaba.higress.sdk.service.mcp.McpServiceContextImpl;
 import com.alibaba.higress.sdk.util.MapUtil;
@@ -67,6 +67,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.Lists;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
@@ -131,22 +132,24 @@ public class McpServerServiceTest {
         final List<String> allowConsumers = Arrays.asList("consumerA", "consumerB");
         final Map<String, Object> mcpPluginConfig = MapUtil.of("server", MapUtil.of("name", mcpServerName));
         final Map<String, Object> keyAuthPluginConfig = MapUtil.of("allow", allowConsumers);
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
+
         V1alpha1WasmPlugin mcpServerPluginCr = buildWasmPluginResource(TEST_MCP_SERVER_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(mcpServerPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
                 .enabled(routeEnabled).configurations(mcpPluginConfig).build());
         List<V1alpha1WasmPlugin> mcpPlugins = Collections.singletonList(mcpServerPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME))).thenReturn(mcpPlugins);
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
                 .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
 
-        V1Ingress ingress = buildIngressResource(mcpServerName, description, mcpServerType);
-        when(kubernetesClientService.readIngress(eq(mcpServerName))).thenReturn(ingress);
+        V1Ingress ingress = buildIngressResource(routeName, description, mcpServerType);
+        when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
 
         McpServer mcpServer = mcpServerService.query(mcpServerName);
         Assertions.assertNotNull(mcpServer);
@@ -184,7 +187,7 @@ public class McpServerServiceTest {
         instance.setName(mcpServerName);
         instance.setType(mcpServerType);
         instance.setDescription(description);
-        instance.setDomains(Collections.singletonList(DEFAULT_ROUTE_DOMAIN));
+        instance.setDomains(Lists.newArrayList(DEFAULT_ROUTE_DOMAIN));
         UpstreamService testService =
             UpstreamService.builder().name(DEFAULT_UPSTREAM_SERVICE).port(8080).weight(100).build();
         instance.setServices(Collections.singletonList(testService));
@@ -198,8 +201,10 @@ public class McpServerServiceTest {
         verify(kubernetesClientService, times(3)).replaceWasmPlugin(pluginCaptor.capture());
         List<V1alpha1WasmPlugin> capturedValues = pluginCaptor.getAllValues();
         Assertions.assertNotNull(capturedValues);
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
+
         for (V1alpha1WasmPlugin plugin : capturedValues) {
-            Assertions.assertEquals(Collections.singletonList(mcpServerName),
+            Assertions.assertEquals(Collections.singletonList(routeName),
                 plugin.getSpec().getMatchRules().get(0).getIngress());
             Assertions.assertNotNull(plugin.getSpec().getMatchRules().get(0).getConfig());
         }
@@ -208,7 +213,7 @@ public class McpServerServiceTest {
         verify(kubernetesClientService, times(1)).createIngress(ingressCaptor.capture());
         V1Ingress ingress = ingressCaptor.getValue();
         Assertions.assertNotNull(ingress);
-        Assertions.assertEquals(mcpServerName, Objects.requireNonNull(ingress.getMetadata()).getName());
+        Assertions.assertEquals(routeName, Objects.requireNonNull(ingress.getMetadata()).getName());
         Assertions.assertEquals(description,
             Objects.requireNonNull(Objects.requireNonNull(ingress.getMetadata()).getAnnotations())
                 .get(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY));
@@ -221,22 +226,16 @@ public class McpServerServiceTest {
             .filter(paths -> !paths.isEmpty()).map(paths -> paths.get(0)).map(V1HTTPIngressPath::getPath).orElse("");
         Assertions.assertEquals("/mcp-servers/" + mcpServerName, path, "Ingress path mismatch");
 
-        ArgumentCaptor<V1ConfigMap> cmCaptor = ArgumentCaptor.forClass(V1ConfigMap.class);
-        verify(kubernetesClientService, times(1)).replaceConfigMap(cmCaptor.capture());
-        V1ConfigMap configMap = cmCaptor.getValue();
-        Assertions.assertNotNull(configMap);
-        Assertions.assertNotNull(configMap.getData());
-        Assertions.assertNotNull(configMap.getData().get(DEFAULT_CONFIG_NAME_HIGRESS_KEY));
-        String higressConfigYaml = configMap.getData().get(DEFAULT_CONFIG_NAME_HIGRESS_KEY);
-        Map<String, Object> higressConfig =
-            YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
-        Assertions.assertNotNull(higressConfig);
-        McpServerConfigMap mcpConfig =
-            YAML.readValue(YAML.writeValueAsString(higressConfig.get(DEFAULT_CONFIG_NAME_MCP_KEY)),
-                new TypeReference<McpServerConfigMap>() {});
-        Assertions.assertNotNull(mcpConfig);
-        Assertions.assertNotNull(mcpConfig.getMatchList());
-        Assertions.assertEquals(path, mcpConfig.getMatchList().get(0).getMatchRulePath());
+        Map<String, String> annotations = ingress.getMetadata().getAnnotations();
+
+        Assertions.assertNotNull(annotations);
+        Assertions
+            .assertNotNull(annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY));
+        Assertions.assertEquals("true", annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY));
+        Assertions
+            .assertNotNull(annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY));
+        Assertions.assertEquals(path,
+            annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY));
     }
 
     @Test
@@ -315,9 +314,12 @@ public class McpServerServiceTest {
         final McpServerTypeEnum mcpServerType = McpServerTypeEnum.OPEN_API;
         final List<String> allowConsumers = Arrays.asList("consumerA", "consumerB");
         final Map<String, Object> keyAuthPluginConfig = MapUtil.of("allow", allowConsumers);
+
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
+
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
                 .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
@@ -325,8 +327,8 @@ public class McpServerServiceTest {
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any(), any()))
             .thenReturn(keyAuthPlugins);
 
-        V1Ingress ingress = buildIngressResource(mcpServerName, "", mcpServerType);
-        when(kubernetesClientService.readIngress(eq(mcpServerName))).thenReturn(ingress);
+        V1Ingress ingress = buildIngressResource(routeName, "", mcpServerType);
+        when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
 
         McpServerConsumers newConsumers = new McpServerConsumers();
         newConsumers.setMcpServerName(mcpServerName);
@@ -343,7 +345,7 @@ public class McpServerServiceTest {
         V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
-        Assertions.assertEquals(Arrays.asList("consumerC", "consumerB", "consumerA"),
+        Assertions.assertEquals(Sets.newHashSet("consumerC", "consumerB", "consumerA"),
             capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
     }
 
@@ -354,9 +356,11 @@ public class McpServerServiceTest {
         final McpServerTypeEnum mcpServerType = McpServerTypeEnum.OPEN_API;
         final List<String> allowConsumers = Arrays.asList("consumerA", "consumerB");
         final Map<String, Object> keyAuthPluginConfig = MapUtil.of("allow", allowConsumers);
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
+
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
                 .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
@@ -364,8 +368,8 @@ public class McpServerServiceTest {
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any(), any()))
             .thenReturn(keyAuthPlugins);
 
-        V1Ingress ingress = buildIngressResource(mcpServerName, "", mcpServerType);
-        when(kubernetesClientService.readIngress(eq(mcpServerName))).thenReturn(ingress);
+        V1Ingress ingress = buildIngressResource(routeName, "", mcpServerType);
+        when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
 
         McpServerConsumers newConsumers = new McpServerConsumers();
         newConsumers.setMcpServerName(mcpServerName);
@@ -382,7 +386,7 @@ public class McpServerServiceTest {
         V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
-        Assertions.assertEquals(Collections.singletonList("consumerB"),
+        Assertions.assertEquals(Collections.singleton("consumerB"),
             capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
     }
 
