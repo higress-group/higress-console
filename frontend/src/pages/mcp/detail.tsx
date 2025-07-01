@@ -424,26 +424,29 @@ const MCPDetailPage: React.FC = () => {
                     />
                   </div>
 
-                  <div>
-                    <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
-                    <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
-                      <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
-                      <div>
-                        <div style={{ marginTop: 4 }}>
-                          {t('mcp.detail.gatewayAddress')}
-                          <Space>
-                            <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
-                            <Button
-                              type="link"
-                              onClick={() => handleCopy(apiGatewayUrl)}
-                            >
-                              {t('mcp.detail.copy')}
-                            </Button>
-                          </Space>
+                  {apiGatewayUrl !== 'https://<higress-gateway-ip>' && (
+                    <div>
+                      <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
+                      <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
+                        <div style={{ color: '#666', marginBottom: 12 }}>{t('mcp.detail.dnsDesc')}</div>
+                        <div>
+
+                          <div style={{ marginTop: 4 }}>
+                            {t('mcp.detail.gatewayAddress')}
+                            <Space>
+                              <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
+                              <Button
+                                type="link"
+                                onClick={() => handleCopy(apiGatewayUrl)}
+                              >
+                                {t('mcp.detail.copy')}
+                              </Button>
+                            </Space>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </Card>
               </>
             ),
