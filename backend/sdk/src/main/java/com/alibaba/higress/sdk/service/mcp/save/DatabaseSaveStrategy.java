@@ -47,11 +47,8 @@ public class DatabaseSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void buildMcpServer(McpServer mcpInstance) {
+    protected void saveMcpServerConfig(McpServer mcpInstance) {
         addOrUpdateServersConfig(mcpInstance);
-
-        McpServerConfigMap.MatchList matchList = mcpServerConfigMapHelper.generateMatchList(mcpInstance);
-        mcpServerConfigMapHelper.addOrUpdateMatchRulePath(matchList);
     }
 
     private void validate(McpServer mcpInstance) {

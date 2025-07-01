@@ -38,7 +38,7 @@ public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void buildMcpServer(McpServer mcpInstance) {
+    protected void saveMcpServerConfig(McpServer mcpInstance) {
         // nothing to do!
     }
 }

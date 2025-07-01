@@ -24,7 +24,6 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
-import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
@@ -55,12 +54,9 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void buildMcpServer(McpServer mcpInstance) {
+    protected void saveMcpServerConfig(McpServer mcpInstance) {
         WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
         wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
-
-        McpServerConfigMap.MatchList matchList = mcpServerConfigMapHelper.generateMatchList(mcpInstance);
-        mcpServerConfigMapHelper.addOrUpdateMatchRulePath(matchList);
     }
 
     private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {

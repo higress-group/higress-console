@@ -22,9 +22,12 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
@@ -249,5 +252,42 @@ public class McpServerConfigMapHelper {
             }
         }
         return matchList;
+    }
+
+    public void initMcpServerConfig() {
+        try {
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+            if (Objects.isNull(configMap) || Objects.isNull(configMap.getData())) {
+                throw new NotFoundException("configMap is empty for name = " + HIGRESS_CONFIG);
+            }
+
+            String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
+            Map<String, Object> higressConfig =
+                YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
+            McpServerConfigMap mcpConfig = null;
+            if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
+                mcpConfig = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
+                    McpServerConfigMap.class);
+            } else {
+                mcpConfig = new McpServerConfigMap();
+            }
+
+            if (StringUtils.isBlank(mcpConfig.getSsePathSuffix())) {
+                mcpConfig.setSsePathSuffix("/sse");
+            }
+            if (Objects.isNull(mcpConfig.getEnable())) {
+                mcpConfig.setEnable(Boolean.TRUE);
+            }
+            if (Objects.isNull(mcpConfig.getRedis())) {
+                McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
+                redisConfig.setDb(0);
+                redisConfig.setAddress("your.redis.host:6379");
+                redisConfig.setPassword("your_password");
+                mcpConfig.setRedis(redisConfig);
+            }
+            updateMcpConfig2ConfigMap(configMap, mcpConfig);
+        } catch (Exception e) {
+            throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
+        }
     }
 }

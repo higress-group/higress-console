@@ -121,7 +121,12 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         return mcpInstance;
     }
 
-    protected abstract void buildMcpServer(McpServer mcpInstance);
+    private void buildMcpServer(McpServer mcpInstance) {
+        mcpServerConfigMapHelper.initMcpServerConfig();
+        saveMcpServerConfig(mcpInstance);
+    }
+
+    protected abstract void saveMcpServerConfig(McpServer mcpInstance);
 
     /**
      * build and save route info
