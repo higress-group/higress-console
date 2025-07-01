@@ -302,7 +302,7 @@ const MCPDetailPage: React.FC = () => {
                   extra={
                     <Button
                       type="primary"
-                      icon={<PlusOutlined />}
+                      icon={<EditOutlined />}
                       onClick={() => setEditToolVisible(true)}
                       disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
                     >
