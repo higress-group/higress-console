@@ -185,11 +185,11 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
             return;
         }
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServer.getName());
+
         CredentialTypeEnum credentialTypeEnum = CredentialTypeEnum.fromType(mcpServer.getConsumerAuthInfo().getType());
         AuthorizationService authorizationService = authorizationServiceFactory.getService(credentialTypeEnum);
-        authorizationService.unbindAll(mcpServer.getName());
-
-        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServer.getName());
+        authorizationService.unbindAll(routeName);
         authorizationService
             .bindList(RelationshipConverter.convert(routeName, mcpServer.getConsumerAuthInfo()));
     }
