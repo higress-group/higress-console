@@ -50,7 +50,7 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
 
     @Override
     protected void completeInfo(Route route, McpServer result) {
-        completeConfigFields(route.getName(), result);
+        completeConfigFields(result.getName(), result);
     }
 
     private void completeConfigFields(String name, McpServer result) {

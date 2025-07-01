@@ -89,9 +89,6 @@ public class McpServerConfigMapHelper {
         try {
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             McpServerConfigMap mcpConfig = getMcpConfig(configMap);
-            if (CollectionUtils.isEmpty(mcpConfig.getServers())) {
-                return;
-            }
             updateFunction.accept(mcpConfig.getServers());
 
             updateMcpConfig2ConfigMap(configMap, mcpConfig);

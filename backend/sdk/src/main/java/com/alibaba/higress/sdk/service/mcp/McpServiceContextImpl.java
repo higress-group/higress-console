@@ -185,7 +185,12 @@ public class McpServiceContextImpl implements McpServerService {
     }
 
     private void deleteServersConfig(String name) {
-        configMapHelper.updateServerConfig(servers -> servers.removeIf(server -> server.getName().equals(name)));
+        configMapHelper.updateServerConfig(servers -> {
+            if (CollectionUtils.isEmpty(servers)) {
+                return;
+            }
+            servers.removeIf(server -> server.getName().equals(name));
+        });
     }
 
     private void sortMcpServers(List<McpServer> mcpServers) {
