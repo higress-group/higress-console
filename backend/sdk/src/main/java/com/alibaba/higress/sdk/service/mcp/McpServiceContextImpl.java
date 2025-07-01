@@ -33,7 +33,6 @@ import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
-import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.mcp.McpServerConsumerDetail;
@@ -99,11 +98,12 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public McpServer query(String name) {
-        Route route = routeService.query(name);
+        String routeName = McpServerHelper.mcpServerName2IngressName(name);
+        Route route = routeService.query(routeName);
         if (Objects.isNull(route) || !isMcpServerRoute(route.getCustomLabels())) {
-            throw new NotFoundException("can't found the bound route by name: " + name);
+            throw new NotFoundException("can't found the bound route by name: " + routeName);
         }
-        McpServer mcpServer = routeToMcpServer(route);
+        McpServer mcpServer = McpServerHelper.routeToMcpServer(route);
         Objects.requireNonNull(mcpServer);
         return detailStrategyFactory.getService(mcpServer.getType()).query(name);
     }
@@ -117,7 +117,7 @@ public class McpServiceContextImpl implements McpServerService {
         try {
             List<V1Ingress> v1Ingresses = kubernetesClientService.listIngress(labelMap);
             List<Route> routeList = ConverterUtil.toList(v1Ingresses, kubernetesModelConverter::ingress2Route);
-            resultList = ConverterUtil.toList(routeList, McpServiceContextImpl::routeToMcpServer);
+            resultList = ConverterUtil.toList(routeList, McpServerHelper::routeToMcpServer);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing Ingresses.", e);
         }
@@ -129,6 +129,7 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void delete(String name) {
+        routeService.delete(McpServerHelper.mcpServerName2IngressName(name));
         routeService.delete(name);
         deleteMatchRulePath(name);
         deleteServersConfig(name);
@@ -136,7 +137,8 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        Route route = routeService.query(consumers.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2IngressName(consumers.getMcpServerName());
+        Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
@@ -146,7 +148,8 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        Route route = routeService.query(consumers.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2IngressName(consumers.getMcpServerName());
+        Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
@@ -156,7 +159,8 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        Route route = routeService.query(query.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2IngressName(query.getMcpServerName());
+        Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
             throw new BusinessException("bound route not found!");
         }
@@ -172,37 +176,6 @@ public class McpServiceContextImpl implements McpServerService {
             .type(CredentialTypeEnum.KEY_AUTH.getType()).build()).collect(Collectors.toList());
 
         return PaginatedResult.createFromFullList(resultList, query);
-    }
-
-    public static McpServer routeToMcpServer(Route route) {
-        if (Objects.isNull(route)) {
-            return null;
-        }
-        McpServer result = new McpServer();
-        result.setName(route.getName());
-        result.setServices(route.getServices());
-        result.setDomains(route.getDomains());
-
-        Map<String, String> customConfigs = route.getCustomConfigs();
-        if (MapUtils.isNotEmpty(customConfigs)) {
-            result.setDescription(customConfigs.get(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY));
-        }
-
-        Map<String, String> customLabels = route.getCustomLabels();
-        if (MapUtils.isNotEmpty(customLabels)) {
-            String mcpServerTypeStr = customLabels.get(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY);
-            Optional.ofNullable(mcpServerTypeStr).ifPresent(s -> result.setType(McpServerTypeEnum.fromName(s)));
-        }
-
-        if (Objects.nonNull(route.getAuthConfig())) {
-            ConsumerAuthInfo consumerAuthInfo = new ConsumerAuthInfo();
-            consumerAuthInfo.setType("API_KEY");
-            consumerAuthInfo.setAllowedConsumers(route.getAuthConfig().getAllowedConsumers());
-            consumerAuthInfo.setEnable(route.getAuthConfig().getEnabled());
-            result.setConsumerAuthInfo(consumerAuthInfo);
-        }
-
-        return result;
     }
 
     private void deleteMatchRulePath(String name) {

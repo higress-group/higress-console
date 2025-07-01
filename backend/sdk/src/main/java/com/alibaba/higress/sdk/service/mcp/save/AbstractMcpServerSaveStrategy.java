@@ -51,6 +51,7 @@ import com.alibaba.higress.sdk.service.authorization.RelationshipConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -138,7 +139,7 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         routeRequest.validate();
         V1Ingress ingress = kubernetesModelConverter.route2Ingress(routeRequest);
 
-        Route existRoute = routeService.query(mcpInstance.getName());
+        Route existRoute = routeService.query(routeRequest.getName());
         if (Objects.isNull(existRoute)) {
             // create route
             V1Ingress newIngress;
@@ -223,7 +224,8 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
     }
 
     protected Route buildRouteRequest(McpServer mcpInstance) {
-        Route route = Route.builder().name(mcpInstance.getName()).build();
+        String routeName = McpServerHelper.mcpServerName2IngressName(mcpInstance.getName());
+        Route route = Route.builder().name(routeName).build();
         route.setServices(mcpInstance.getServices());
         route.setPath(RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.name())
             .matchValue(McpServerConfigMapHelper.generateMcpServerPath(mcpInstance.getName())).build());

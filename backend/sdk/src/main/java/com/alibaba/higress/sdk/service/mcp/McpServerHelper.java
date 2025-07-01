@@ -17,11 +17,24 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.constant.CommonKey;
+import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
+import com.alibaba.higress.sdk.model.mcp.McpServer;
+import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
+import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +46,6 @@ public class McpServerHelper {
 
     @PostConstruct
     public void init() {
-
         // init temp file
         File tempFile = new File(McpConstants.getMcpTempDir());
         if (!tempFile.exists()) {
@@ -139,5 +151,53 @@ public class McpServerHelper {
     // Checks if the character is a Chinese character (Unicode range 0x4e00 - 0x9fbb)
     private static boolean isChineseChar(char c) {
         return c >= 0x4e00 && c <= 0x9fbb;
+    }
+
+    public static String mcpServerName2IngressName(String mcpServerName) {
+        return StringUtils.join(CommonKey.MCP_SERVER_ROUTE_PREFIX, mcpServerName,
+            HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+    }
+
+    public static String ingressName2McpServerName(String mcpServerName) {
+        if (StringUtils.isBlank(mcpServerName)) {
+            return StringUtils.EMPTY;
+        }
+        if (!mcpServerName.startsWith(CommonKey.MCP_SERVER_ROUTE_PREFIX)) {
+            return mcpServerName;
+        }
+        return mcpServerName.replaceFirst(CommonKey.MCP_SERVER_ROUTE_PREFIX, StringUtils.EMPTY)
+            .replace(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX, StringUtils.EMPTY);
+    }
+
+    public static McpServer routeToMcpServer(Route route) {
+        if (Objects.isNull(route)) {
+            return null;
+        }
+        McpServer result = new McpServer();
+        String mcpServerName = ingressName2McpServerName(route.getName());
+        result.setName(mcpServerName);
+        result.setServices(route.getServices());
+        result.setDomains(route.getDomains());
+
+        Map<String, String> customConfigs = route.getCustomConfigs();
+        if (MapUtils.isNotEmpty(customConfigs)) {
+            result.setDescription(customConfigs.get(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY));
+        }
+
+        Map<String, String> customLabels = route.getCustomLabels();
+        if (MapUtils.isNotEmpty(customLabels)) {
+            String mcpServerTypeStr = customLabels.get(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY);
+            Optional.ofNullable(mcpServerTypeStr).ifPresent(s -> result.setType(McpServerTypeEnum.fromName(s)));
+        }
+
+        if (Objects.nonNull(route.getAuthConfig())) {
+            ConsumerAuthInfo consumerAuthInfo = new ConsumerAuthInfo();
+            consumerAuthInfo.setType("API_KEY");
+            consumerAuthInfo.setAllowedConsumers(route.getAuthConfig().getAllowedConsumers());
+            consumerAuthInfo.setEnable(route.getAuthConfig().getEnabled());
+            result.setConsumerAuthInfo(consumerAuthInfo);
+        }
+
+        return result;
     }
 }

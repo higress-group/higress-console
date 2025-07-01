@@ -29,7 +29,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
-import com.alibaba.higress.sdk.service.mcp.McpServiceContextImpl;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,9 +64,10 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
 
     @Override
     public McpServer query(String name) {
-        Route route = routeService.query(name);
+        String routeName = McpServerHelper.mcpServerName2IngressName(name);
+        Route route = routeService.query(routeName);
         if (Objects.isNull(route)) {
-            throw new NotFoundException("can't found the bound route by name: " + name);
+            throw new NotFoundException("can't found the bound route by name: " + routeName);
         }
         McpServer result = routeToMcpServerWithAuth(route);
         completeInfo(route, result);
@@ -83,7 +84,7 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
         if (Objects.nonNull(instance)) {
             route.setAuthConfig(generateAuthConfig(instance));
         }
-        return McpServiceContextImpl.routeToMcpServer(route);
+        return McpServerHelper.routeToMcpServer(route);
     }
 
     private RouteAuthConfig generateAuthConfig(WasmPluginInstance instance) {
