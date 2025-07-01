@@ -242,6 +242,7 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY, Boolean.TRUE.toString());
         String matchRuleDomains = Separators.ASTERISK;
         if (CollectionUtils.isNotEmpty(route.getDomains())) {
+            route.getDomains().removeIf(StringUtils::isBlank);
             matchRuleDomains = String.join(Separators.COMMA, route.getDomains());
         }
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY, matchRuleDomains);
