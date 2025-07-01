@@ -173,7 +173,6 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
         param.setResourceType(AuthorizationResourceTypeEnum.ROUTE);
         List<AuthorizationRelationship> authorizationRelationships = boundList(param);
         if (CollectionUtils.isNotEmpty(authorizationRelationships)) {
-            ;
             unbindList(authorizationRelationships);
         }
     }
