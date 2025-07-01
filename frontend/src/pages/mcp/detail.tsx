@@ -88,17 +88,6 @@ const MCPDetailPage: React.FC = () => {
 
   const handleAuthChange = async (checked: boolean) => {
     try {
-      // 如果要启用认证，先检查是否已有授权消费者
-      if (checked) {
-        const consumers = await listMcpConsumers({ mcpServerName: name });
-        if (!consumers || consumers.length === 0) {
-          message.warning(t('mcp.detail.enableAuthNeedConsumer') || '启用认证前需要至少添加一个授权消费者');
-          // 切换到认证标签页
-          setActiveTab('auth');
-          return;
-        }
-      }
-
       await createOrUpdateMcpServer({
         ...mcpData,
         mcpServerName: name,
@@ -435,10 +424,10 @@ const MCPDetailPage: React.FC = () => {
                           <div style={{ marginTop: 4 }}>
                             {t('mcp.detail.gatewayAddress')}
                             <Space>
-                              <span style={{ marginLeft: 15 }}>{apiGatewayUrl}</span>
+                              <span style={{ marginLeft: 15 }}>{apiGatewayUrl.replace(/^https?:\/\//, '')}</span>
                               <Button
                                 type="link"
-                                onClick={() => handleCopy(apiGatewayUrl)}
+                                onClick={() => handleCopy(apiGatewayUrl.replace(/^https?:\/\//, ''))}
                               >
                                 {t('mcp.detail.copy')}
                               </Button>
