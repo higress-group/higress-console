@@ -23,6 +23,7 @@ import com.alibaba.higress.sdk.model.authorization.AuthorizationResourceTypeEnum
 import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServerConsumers;
+import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.google.common.collect.Lists;
 
 /**
@@ -50,6 +51,7 @@ public class RelationshipConverter {
 
     public static List<AuthorizationRelationship> convert(McpServerConsumers authInfo) {
         Objects.requireNonNull(authInfo.getMcpServerName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(authInfo.getMcpServerName());
 
         if (CollectionUtils.isEmpty(authInfo.getConsumers())) {
             return Lists.newArrayList();
@@ -57,7 +59,7 @@ public class RelationshipConverter {
 
         return authInfo.getConsumers().stream().map(consumerName -> {
             AuthorizationRelationship relationship = new AuthorizationRelationship();
-            relationship.setResourceName(authInfo.getMcpServerName());
+            relationship.setResourceName(routeName);
             relationship.setResourceType(AuthorizationResourceTypeEnum.ROUTE);
             relationship.setConsumerName(consumerName);
             return relationship;

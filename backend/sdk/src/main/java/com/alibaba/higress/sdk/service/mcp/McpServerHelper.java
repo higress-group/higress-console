@@ -154,6 +154,10 @@ public class McpServerHelper {
     }
 
     public static String mcpServerName2RouteName(String mcpServerName) {
+        if (StringUtils.startsWith(mcpServerName, CommonKey.MCP_SERVER_ROUTE_PREFIX)
+            && StringUtils.endsWith(mcpServerName, HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            return mcpServerName;
+        }
         return StringUtils.join(CommonKey.MCP_SERVER_ROUTE_PREFIX, mcpServerName,
             HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
     }

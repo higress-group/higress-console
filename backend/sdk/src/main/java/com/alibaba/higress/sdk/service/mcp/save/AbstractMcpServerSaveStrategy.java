@@ -188,15 +188,18 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         CredentialTypeEnum credentialTypeEnum = CredentialTypeEnum.fromType(mcpServer.getConsumerAuthInfo().getType());
         AuthorizationService authorizationService = authorizationServiceFactory.getService(credentialTypeEnum);
         authorizationService.unbindAll(mcpServer.getName());
+
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServer.getName());
         authorizationService
-            .bindList(RelationshipConverter.convert(mcpServer.getName(), mcpServer.getConsumerAuthInfo()));
+            .bindList(RelationshipConverter.convert(routeName, mcpServer.getConsumerAuthInfo()));
     }
 
     private WasmPluginInstance initMcpServerAuthentication(McpServer mcpInstance) {
         if (Objects.isNull(mcpInstance.getConsumerAuthInfo())) {
             return null;
         }
-        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpInstance.getName());
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
+        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName);
         WasmPluginInstance instance =
             wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, Boolean.TRUE);
         if (Objects.isNull(instance)) {
