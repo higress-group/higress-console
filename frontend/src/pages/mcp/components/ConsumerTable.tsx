@@ -54,12 +54,6 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode; authEnabled?
   };
 
   const handleDeleteClick = (record: any) => {
-    // 检查是否开启授权且只有一个消费者
-    if (authEnabled && consumers.length === 1) {
-      message.warning(t('mcp.detail.cannotDeleteLastConsumer') || '无法删除最后一个授权消费者');
-      return;
-    }
-
     setCurrentRecord(record);
     setDeleteModalVisible(true);
   };
@@ -77,10 +71,6 @@ const ConsumerTable = forwardRef<any, { children?: React.ReactNode; authEnabled?
         <div key={`action-${record.consumerName}`} style={{ textAlign: 'left' }}>
           <a
             onClick={() => handleDeleteClick(record)}
-            style={{
-              cursor: authEnabled && consumers.length === 1 ? 'not-allowed' : 'pointer',
-              color: authEnabled && consumers.length === 1 ? '#d9d9d9' : '#1890ff',
-            }}
           >
             {t('mcp.detail.delete')}
           </a>
