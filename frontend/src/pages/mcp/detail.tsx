@@ -36,7 +36,7 @@ const MCPDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('config');
   const [mcpData, setMcpData] = useState<any>(null);
-  const [apiGatewayUrl, setApiGatewayUrl] = useState('');
+  const [apiGatewayUrl, setApiGatewayUrl] = useState('https://<higress-gateway-ip>');
   const [authEnabled, setAuthEnabled] = useState(false);
   const [tools, setTools] = useState<any[]>([]);
   const [editToolVisible, setEditToolVisible] = useState(false);
@@ -102,7 +102,7 @@ const MCPDetailPage: React.FC = () => {
         consumerAuthInfo: {
           enable: checked,
           type: 'API_KEY',
-          strategyConfigId: mcpData.consumerAuthInfo?.strategyConfigId,
+          allowedConsumers: mcpData.consumerAuthInfo?.allowedConsumers || [],
         },
       });
       message.success(`${t('mcp.detail.authUpdateSuccess')}`);
@@ -249,17 +249,17 @@ const MCPDetailPage: React.FC = () => {
                     <Descriptions.Item label={t('mcp.form.description')}>
                       <span style={{ whiteSpace: 'pre-line' }}>{mcpData?.description || '-'}</span>
                     </Descriptions.Item>
-                    <Descriptions.Item label={t('mcp.form.domains')}>
-                      {(() => {
-                        const domains = mcpData?.domains;
-                        if (!domains || domains.length === 0 || domains.every(domain => !domain || domain.trim() === '')) {
-                          return '-';
-                        }
-                        return domains.map((domain: string) => (
-                          <span key={domain}>{domain}</span>
-                        ));
-                      })()}
-                    </Descriptions.Item>
+                    {
+                      mcpData?.domains?.length > 0 && (
+                        <Descriptions.Item label={t('mcp.form.domains')}>
+                          {(() => {
+                            return mcpData?.domains?.map((domain: string) => (
+                              <span key={domain}>{domain}</span>
+                            ));
+                          })()}
+                        </Descriptions.Item>
+                      )
+                    }
                     <Descriptions.Item label={t('mcp.form.type')}>
                       {t(`${serviceTypeMap[mcpData?.type]}`)}
                     </Descriptions.Item>
@@ -274,10 +274,10 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                      {`http://<higress-gateway-ip>/mcp-servers/${name}/sse`}
+                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'} /mcp-servers/${name}/sse`}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                      {`http://<higress-gateway-ip>/mcp-servers/${name}`}
+                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'} /mcp-servers/${name}`}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -304,7 +304,7 @@ const MCPDetailPage: React.FC = () => {
                       onClick={() => setEditToolVisible(true)}
                       disabled={mcpData?.type !== SERVICE_TYPE.OPENAPI}
                     >
-                      {t('mcp.detail.addTool')}
+                      {t('mcp.detail.editTool')}
                     </Button>
                   }
                 >
