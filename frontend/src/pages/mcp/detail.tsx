@@ -274,10 +274,10 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'} /mcp-servers/${name}/sse`}
+                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}/sse`}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'} /mcp-servers/${name}`}
+                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}`}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
