@@ -27,8 +27,9 @@ import DeleteConfirm from './components/DeleteConfirm';
 import McpServerCommand from './components/McpServerCommand';
 import AddConsumerAuth from './components/AddConsumerAuth';
 import YamlUtil from './components/yamlUtil';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
 
+loader.config({ paths: { vs: '/vs' } });
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();

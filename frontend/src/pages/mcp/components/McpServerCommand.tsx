@@ -3,12 +3,14 @@ import { Select, message, Button } from 'antd';
 import { useSearchParams } from 'ice';
 import { CLIENT_MAP } from '../constant';
 import { useTranslation, Trans } from 'react-i18next';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
 
 interface McpServerCommandProps {
   mode: 'streamableHttp' | 'sse';
   config: string;
 }
+
+loader.config({ paths: { vs: '/vs' } });
 
 const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => {
   const [client, setClient] = useState('vscode');
@@ -39,7 +41,7 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
       navigator.clipboard
         .writeText(command)
         .then(() => {
-          message.success('命令已复制到剪贴板');
+          message.success(t('mcp.copy.success'));
         })
         .catch(() => {
           fallbackCopy();
@@ -67,12 +69,12 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        message.success('命令已复制到剪贴板');
+        message.success(t('mcp.copy.success'));
       } else {
-        message.error('复制失败，请手动复制');
+        message.error(t('mcp.copy.fail'));
       }
     } catch (err) {
-      message.error('复制失败，请手动复制');
+      message.error(t('mcp.copy.fail'));
     }
 
     // 清理
@@ -116,7 +118,7 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
         }}
       />
       <Button style={{ marginTop: 12 }} onClick={handleCopy}>
-        复制命令
+        {t('mcp.copy.button')}
       </Button>
     </div>
   );
