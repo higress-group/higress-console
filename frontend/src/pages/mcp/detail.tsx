@@ -72,6 +72,8 @@ const MCPDetailPage: React.FC = () => {
           const domain = domainDetailInfo.find((item: any) => item.name === res?.domains?.[0]);
           const domainProtocol = domain?.enableHttps === 'off' ? 'http' : 'https';
           setApiGatewayUrl(`${domainProtocol}://${domain?.name}`);
+        } else {
+          setApiGatewayUrl('https://<higress-gateway-ip>');
         }
       }
     } catch (error) {
