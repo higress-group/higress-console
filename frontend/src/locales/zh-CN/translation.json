@@ -91,6 +91,15 @@
         "badWeightSum": "所有服务的权重总和必须为100",
         "noUpstreams": "至少要配置一个目标AI服务"
       },
+      "modelMapping": {
+        "key": "模型名称匹配条件",
+        "target": "映射后的模型名称",
+        "mappingTargetPlaceholder_full": "留空表示使用请求中的模型名称",
+        "mappingTargetPlaceholder_simple": "留空表示不变",
+        "add": "添加模型名称映射规则",
+        "default": "默认模型名称",
+        "advanced": "模型名称映射规则"
+      },
       "modelMatchType": "匹配方式",
       "modelMatchValue": "匹配条件",
       "byModelName": "按模型名称",

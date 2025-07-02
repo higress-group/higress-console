@@ -23,4 +23,5 @@ export interface AiRouteFallbackConfig {
 export interface AiUpstream {
   provider: string;
   weight?: number;
+  modelMapping?: Record<string, string>;
 }
