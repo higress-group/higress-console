@@ -26,7 +26,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.alibaba.higress.sdk.util.MapUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +44,7 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.util.MapUtil;
 
 @SuppressWarnings("unchecked")
 public class LlmProviderServiceImpl implements LlmProviderService {
@@ -80,7 +80,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.DOUBAO, "ark.cn-beijing.volces.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new BedrockLlmProviderHandler()).collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
+            new BedrockLlmProviderHandler(), new VertexLlmProviderHandler())
+            .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
     }
 
     private final ServiceSourceService serviceSourceService;
@@ -149,6 +150,14 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
+
+        List<ServiceSource> extraServiceSources =
+            handler.getExtraServiceSources(provider.getName(), providerConfig, false);
+        if (CollectionUtils.isNotEmpty(extraServiceSources)) {
+            for (ServiceSource extraSource : extraServiceSources) {
+                serviceSourceService.addOrUpdate(extraSource);
+            }
+        }
 
         UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
         WasmPluginInstance serviceInstance = new WasmPluginInstance();
@@ -232,6 +241,14 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                     BuiltInPluginName.AI_PROXY);
                 ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
                 serviceSourceService.delete(serviceSource.getName());
+
+                List<ServiceSource> extraServiceSources =
+                    handler.getExtraServiceSources(providerName, deletedProvider, true);
+                if (CollectionUtils.isNotEmpty(extraServiceSources)) {
+                    for (ServiceSource extraSource : extraServiceSources) {
+                        serviceSourceService.delete(extraSource.getName());
+                    }
+                }
             }
         }
 
@@ -268,7 +285,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         if (!(providersObj instanceof List<?>)) {
             return new TreeMap<>();
         }
-        List<?> providerList= (List<?>)providersObj;
+        List<?> providerList = (List<?>)providersObj;
         SortedMap<String, LlmProvider> providers = new TreeMap<>();
         for (Object providerObj : providerList) {
             if (!(providerObj instanceof Map<?, ?>)) {

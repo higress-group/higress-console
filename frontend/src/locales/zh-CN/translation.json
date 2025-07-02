@@ -254,7 +254,14 @@
         "openaiCustomUrl": "自定义 OpenAI 服务 BaseURL",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
-        "awsSecretKey": "AWS Secret Access Key"
+        "awsSecretKey": "AWS Secret Access Key",
+        "vertexRegion": "Google Cloud Region",
+        "vertexProjectId": "Google Cloud 项目 ID",
+        "vertexAuthKey": "Google Cloud 服务账号密钥",
+        "vertexTokenRefreshAhead": "Google Cloud 访问令牌刷新提前量（秒）",
+        "geminiSafetySettings": "Gemini API 安全设置",
+        "geminiSafetyCategory": "危害类别",
+        "geminiSafetyThreshold": "屏蔽阈值"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -276,7 +283,18 @@
         "openaiCustomUrlInconsistentContextPaths": "各个自定义 OpenAI 服务 BaseURL 所使用的路径不一致",
         "awsRegionRequired": "请输入 AWS Region",
         "awsAccessKeyRequired": "请输入 AWS Access Key ID",
-        "awsSecretKeyRequired": "请输入 AWS Secret Access Key"
+        "awsSecretKeyRequired": "请输入 AWS Secret Access Key",
+        "vertexRegionRequired": "请输入 Google Cloud Region",
+        "vertexProjectIdRequired": "请输入 Google Cloud 项目 ID",
+        "vertexAuthKeyRequired": "请输入 Google Cloud 服务账号密钥",
+        "vertexAuthKeyBadFormat": "Google Cloud 服务账号密钥的格式不正确，必须为 JSON 格式的字符串",
+        "vertexAuthKeyBadRequiredProperty": "Google Cloud 服务账号密钥中缺少必要的属性：{{key}}",
+        "geminiSafetyCategoryRequired": "请输入危害类别",
+        "geminiSafetyCategoryDuplicated": "存在重复配置的危害类别",
+        "geminiSafetyThresholdRequired": "请输入屏蔽阈值"
+      },
+      "tooltips": {
+        "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
@@ -295,7 +313,8 @@
         "content_diffNs": "若 Secret 与 Higress 在不同的命名空间：",
         "example": "例如：",
         "roleConfig": "默认配置下，Higress 可以读取任意命名空间下的 Secret 信息。如果你调整过这部分配置，请确保 Higress Controller 的 ServiceAccount 可以读取配置中所引用的 Secret 数据。"
-      }
+      },
+      "addGeminiSafetySetting": "添加安全设置"
     },
     "create": "创建AI服务提供者",
     "edit": "编辑AI服务提供者",
