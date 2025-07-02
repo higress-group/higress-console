@@ -29,6 +29,7 @@ import lombok.Data;
 public class HigressServiceConfig {
 
     private final String kubeConfigPath;
+    private final String kubeConfigContent;
     private final String controllerNamespace;
     private final String controllerWatchedNamespace;
     private final String controllerWatchedIngressClassName;
@@ -73,6 +74,7 @@ public class HigressServiceConfig {
 
     public static final class Builder {
         private String kubeConfigPath;
+        private String kubeConfigContent;
         private String controllerWatchedNamespace;
         private String controllerWatchedIngressClassName = HigressConstants.CONTROLLER_INGRESS_CLASS_NAME_DEFAULT;
         private String controllerNamespace = HigressConstants.NS_DEFAULT;
@@ -99,6 +101,11 @@ public class HigressServiceConfig {
 
         public Builder withClusterDomainSuffix(String clusterDomainSuffix) {
             this.clusterDomainSuffix = clusterDomainSuffix;
+            return this;
+        }
+
+        public Builder withKubeConfigContent(String kubeConfigContent) {
+            this.kubeConfigContent = kubeConfigContent;
             return this;
         }
 
@@ -156,7 +163,7 @@ public class HigressServiceConfig {
         }
 
         public HigressServiceConfig build() {
-            return new HigressServiceConfig(kubeConfigPath,
+            return new HigressServiceConfig(kubeConfigPath, kubeConfigContent,
                 StringUtils.firstNonEmpty(controllerNamespace, HigressConstants.NS_DEFAULT), controllerWatchedNamespace,
                 controllerWatchedIngressClassName,
                 StringUtils.firstNonEmpty(controllerServiceName, HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT),

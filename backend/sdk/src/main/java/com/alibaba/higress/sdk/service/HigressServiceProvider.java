@@ -20,6 +20,7 @@ import com.alibaba.higress.sdk.service.ai.LlmProviderService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerService;
 
 /**
  * @author CH3CHO
@@ -53,4 +54,7 @@ public interface HigressServiceProvider {
     AiRouteService aiRouteService();
 
     LlmProviderService llmProviderService();
+
+    McpServerService mcpServerService();
+
 }

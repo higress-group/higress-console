@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.model.wasmplugin;
 
 import com.alibaba.higress.sdk.util.EnvReadUtil;
+
 import lombok.Data;
 
 /**
@@ -24,8 +25,7 @@ public class WasmPluginServiceConfig {
     private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
     private static final String CUSTOM_IMAGE_PULL_SECRET_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_SECRET";
     private static final String CUSTOM_IMAGE_PULL_POLICY_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_POLICY";
-    private static final String CUSTOM_IMAGE_PULL_SECRET_PROPERTY =
-        "higress-admin.wasmplugin.custom-image-pull-secret";
+    private static final String CUSTOM_IMAGE_PULL_SECRET_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-secret";
     private static final String CUSTOM_IMAGE_PULL_POLICY_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-policy";
 
     public static WasmPluginServiceConfig buildFromEnv() {

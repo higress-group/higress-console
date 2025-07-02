@@ -26,6 +26,8 @@ import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
+import com.alibaba.higress.sdk.model.mcp.McpServerDBTypeEnum;
+import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
 import io.swagger.v3.core.converter.AnnotatedType;
@@ -58,6 +60,8 @@ public class SwaggerConfig {
 
         registerClassSchema(openApi, CapabilityKey.class);
         registerClassSchema(openApi, RoutePredicateTypeEnum.class);
+        registerClassSchema(openApi, McpServerTypeEnum.class);
+        registerClassSchema(openApi, McpServerDBTypeEnum.class);
         registerClassSchema(openApi, LlmProviderType.class);
         registerClassSchema(openApi, LlmProviderProtocol.class);
         registerClassSchema(openApi, AiRouteFallbackStrategy.class);

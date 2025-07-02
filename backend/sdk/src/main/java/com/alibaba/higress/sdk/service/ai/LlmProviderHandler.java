@@ -32,6 +32,7 @@ interface LlmProviderHandler {
 
     /**
      * Validate the provider configurations and normalize configuration values based on the provider type.
+     * 
      * @param configurations provider configurations
      */
     void normalizeConfigs(Map<String, Object> configurations);

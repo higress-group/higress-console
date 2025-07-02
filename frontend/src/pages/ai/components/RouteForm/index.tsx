@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { Consumer } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { LlmProvider } from '@/interfaces/llm-provider';
@@ -5,7 +6,7 @@ import FactorGroup from '@/pages/route/components/FactorGroup';
 import { getGatewayDomains } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { getLlmProviders } from '@/services/llm-provider';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
 import { uniqueId } from "lodash";
@@ -211,7 +212,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const _list = aiModelProviders.filter(item => item.value.toUpperCase().indexOf(providerName.toUpperCase()) !== -1);
       if (_list.length) {
         const _filterList = _list.map(item => item.targetModelList || []);
-        return _filterList.flatMap(item => item)
+        return _filterList.reduce((acc: any[], item) => acc.concat(item), []);
       }
       return [];
     } catch (error) { return []; }
@@ -497,7 +498,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.fallbackConfigExtra')}
-        style={fallbackConfig_enabled ? { marginBottom: 0 } : null}
+        noStyle={fallbackConfig_enabled ? { marginBottom: 0 } : null}
       >
         <Switch onChange={e => {
           setFallbackConfigEnabled(e)
@@ -555,7 +556,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        style={authConfig_enabled ? { marginBottom: 0 } : {}}
+        // style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
@@ -565,21 +566,42 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       </Form.Item>
       {
         authConfig_enabled ? // 允许请求本路由的消费者名称列表
-          <div style={{ display: 'flex' }}>
-            <Form.Item
-              style={{ flex: 1, marginRight: '8px' }}
-              required
-              name="authConfig_allowedConsumers"
-              label={t('aiRoute.routeForm.label.authConfigList')}
-              rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') }]}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
-            >
-              <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>
-                {consumerList.map((item) => (<Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>))}
+          <>
+            <Form.Item label={t('misc.authType')} name="authType" initialValue="key-auth" extra={t('misc.keyAuthOnlyTip')}>
+              <Select disabled>
+                <Select.Option value="key-auth">Key Auth</Select.Option>
               </Select>
             </Form.Item>
-            <RedoOutlinedBtn getList={consumerResult} />
-          </div>
+            <Form.Item
+              required
+              label={t('aiRoute.routeForm.label.authConfigList')}
+              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Form.Item
+                  name="authConfig_allowedConsumers"
+                  noStyle
+                  rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') }]}
+                >
+                  <Select
+                    allowClear
+                    mode="multiple"
+                    placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                    style={{ flex: 1 }}
+                  >
+                    {consumerList.map((item) => (
+                      <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Button
+                  style={{ marginLeft: 8 }}
+                  onClick={() => consumerResult.run()}
+                  icon={<RedoOutlined />}
+                />
+              </div>
+            </Form.Item>
+          </>
           : null
       }
     </Form>

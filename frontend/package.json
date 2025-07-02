@@ -36,8 +36,10 @@
     "@types/react-dom": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "ahooks": "^3.7.2",
+    "copy-webpack-plugin": "^13.0.0",
     "cross-env": "^7.0.3",
     "eslint": "7.30.0",
+    "glob": "^10.4.5",
     "husky": "^8.0.3",
     "ice.js": "^2.0.0",
     "lint-staged": "^13.1.2",
@@ -55,7 +57,9 @@
     "lint:lint-staged": "lint-staged",
     "eslint": "eslint --cache --ext .js,.ts,.jsx,.tsx ./",
     "eslint:fix": "npm run eslint -- --fix",
-    "stylelint": "stylelint \"**/*.{css,scss,less}\""
+    "stylelint": "stylelint \"**/*.{css,scss,less}\"",
+    "check-i18n": "node scripts/check-i18n.js",
+    "check-i18n:verbose": "node scripts/check-i18n.js --verbose"
   },
   "husky": {
     "hooks": {

@@ -47,7 +47,7 @@ public enum PluginPhase {
     STATS("STATS", 3);
 
     private static final Map<String, PluginPhase> LOWERED_NAME_MAP = Arrays.stream(PluginPhase.values())
-            .collect(Collectors.toMap(p -> p.getName().toLowerCase(Locale.ROOT), Function.identity()));
+        .collect(Collectors.toMap(p -> p.getName().toLowerCase(Locale.ROOT), Function.identity()));
 
     static {
         LOWERED_NAME_MAP.put("unspecified", UNSPECIFIED);

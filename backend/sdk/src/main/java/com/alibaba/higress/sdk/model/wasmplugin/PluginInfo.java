@@ -15,13 +15,12 @@ package com.alibaba.higress.sdk.model.wasmplugin;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.swagger.v3.oas.models.info.Contact;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.models.info.Contact;
 import lombok.Data;
 import lombok.Getter;
 

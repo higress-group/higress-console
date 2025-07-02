@@ -31,4 +31,6 @@ public class CommonKey {
     public static final String AI_ROUTE_PREFIX = AI_ROUTE + Separators.DASH;
 
     public static final String LLM_SERVICE_NAME_PREFIX = "llm-";
+
+    public static final String MCP_SERVER_ROUTE_PREFIX = "mcp-server" + Separators.DASH;
 }

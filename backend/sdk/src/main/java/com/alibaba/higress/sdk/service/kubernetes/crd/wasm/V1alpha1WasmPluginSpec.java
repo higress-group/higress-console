@@ -12,10 +12,10 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.crd.wasm;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
 
 @Data
 public class V1alpha1WasmPluginSpec {

@@ -5,15 +5,15 @@ import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Switch, Tooltip } from 'antd';
+import { Checkbox, Form, Input, Select, Switch, Tooltip, Button } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 import KeyValueGroup from '../KeyValueGroup';
-import { HistoryButton, RedoOutlinedBtn } from '@/pages/ai/components/RouteForm/Components';
+import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 
 const { Option } = Select;
 
@@ -99,6 +99,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         customConfigs: customConfigArray,
       });
       setAuthConfigEnabled(_authConfig_enabled);
+      // form.setFieldsValue({
+      //   authConfig_allowedConsumers: _authConfig_allowedConsumers,
+      // })
     }
 
     return () => {
@@ -259,31 +262,55 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           valuePropName="checked"
           initialValue={false}
           extra={t('aiRoute.routeForm.label.authConfigExtra')}
-          style={authConfig_enabled ? { marginBottom: 0 } : {}}
         >
           <Switch onChange={e => {
             setAuthConfigEnabled(e)
-            form.resetFields(["authConfig_allowedConsumers"])
           }}
           />
         </Form.Item>
         {
           authConfig_enabled && // 允许请求本路由的消费者名称列表
-          <div style={{ display: 'flex' }}>
+          <>
             <Form.Item
-              style={{ flex: 1, marginRight: '8px' }}
-              required
-              name="authConfig_allowedConsumers"
-              label={t('aiRoute.routeForm.label.authConfigList')}
-              rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+              label={t('misc.authType')}
+              name="authType"
+              initialValue="key-auth"
+              extra={t('misc.keyAuthOnlyTip')}
             >
-              <Select allowClear mode="multiple" placeholder={t('aiRoute.routeForm.label.authConfigList')}>
-                {consumerList.map((item) => (<Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>))}
+              <Select disabled>
+                <Select.Option value="key-auth">Key Auth</Select.Option>
               </Select>
             </Form.Item>
-            <RedoOutlinedBtn getList={consumerResult} />
-          </div>
+            <Form.Item
+              required
+              label={t('aiRoute.routeForm.label.authConfigList')}
+              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Form.Item
+                  name="authConfig_allowedConsumers"
+                  noStyle
+                  rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
+                >
+                  <Select
+                    allowClear
+                    mode="multiple"
+                    placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                    style={{ flex: 1 }}
+                  >
+                    {consumerList.map((item) => (
+                      <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Button
+                  style={{ marginLeft: 8 }}
+                  onClick={() => consumerResult.run()}
+                  icon={<RedoOutlined />}
+                />
+              </div>
+            </Form.Item>
+          </>
         }
         <Form.Item
           label={
@@ -323,5 +350,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
     </Form>
   );
 });
+
+RouteForm.displayName = 'RouteForm';
 
 export default RouteForm;
