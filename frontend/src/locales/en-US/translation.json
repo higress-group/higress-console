@@ -88,6 +88,7 @@
         "fallbackResponseCodesRequired": "Please select the response codes that need fallback",
         "nameRequired": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
         "targetServiceRequired": "Please select a target service",
+        "authConfigListRequired": "Please select at least one allowed consumer",
         "badWeightSum": "The sum of all service weights must be 100.",
         "noUpstreams": "At least one target service is required."
       },

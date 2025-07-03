@@ -290,7 +290,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
                 <Form.Item
                   name="authConfig_allowedConsumers"
                   noStyle
-                  rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
+                  rules={[{ required: true, message: t('aiRoute.routeForm.rule.authConfigListRequired') || '' }]}
                 >
                   <Select
                     allowClear
