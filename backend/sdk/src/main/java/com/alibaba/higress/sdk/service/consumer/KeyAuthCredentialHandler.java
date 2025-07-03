@@ -26,9 +26,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +39,7 @@ import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 
 class KeyAuthCredentialHandler implements CredentialHandler {
@@ -134,7 +135,9 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         // TODO: Remove this after plugin upgrade.
         // Add a dummy key to the global keys list because the plugin requires at least one global key.
-        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
+        if (Objects.isNull(configurations.get(KEYS))) {
+            configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
+        }
 
         Object consumersObj = configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
         List<Object> consumers;
