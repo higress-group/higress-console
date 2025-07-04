@@ -12,35 +12,22 @@
  */
 package com.alibaba.higress.sdk.service.mcp.save;
 
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
 import static com.alibaba.higress.sdk.model.mcp.McpServerConstants.Label.MCP_SERVER_BIZ_TYPE_VALUE;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
-import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
@@ -62,7 +49,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.google.common.collect.Lists;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -76,7 +62,6 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
 
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
         .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
-    public static final List<String> DEFAULT_AUTHORIZATION_KEYS = Lists.newArrayList("Authorization", "x-api-key");
 
     static {
         YAML.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -84,8 +69,8 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
 
     protected final KubernetesClientService kubernetesClientService;
     protected final KubernetesModelConverter kubernetesModelConverter;
-    protected final WasmPluginInstanceService wasmPluginInstanceService;
     protected final RouteService routeService;
+    protected final WasmPluginInstanceService wasmPluginInstanceService;
     protected final AuthorizationServiceFactory authorizationServiceFactory;
     protected final McpServerConfigMapHelper mcpServerConfigMapHelper;
 
@@ -94,8 +79,8 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         RouteService routeService) {
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
-        this.wasmPluginInstanceService = wasmPluginInstanceService;
         this.routeService = routeService;
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
         this.authorizationServiceFactory = new AuthorizationServiceFactory(wasmPluginInstanceService);
         this.mcpServerConfigMapHelper = new McpServerConfigMapHelper(kubernetesClientService);
 
@@ -177,42 +162,22 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
     }
 
     private void buildAuthentication(McpServer mcpInstance) {
-        // global key-auth init
-        WasmPluginInstance globalKeyAuth =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.KEY_AUTH, true);
-        if (globalKeyAuth == null || MapUtils.isEmpty(globalKeyAuth.getConfigurations())) {
-            globalKeyAuth = buildGlobalKeyAuthRequest();
-            wasmPluginInstanceService.addOrUpdate(globalKeyAuth);
-        } else {
-            boolean needUpdate = false;
-            Map<String, Object> configurations = globalKeyAuth.getConfigurations();
-            Object keysObj = configurations.get(KEYS);
-            if (Objects.nonNull(keysObj)) {
-                List<String> keys = JSON.parseArray(JSON.toJSONString(keysObj), String.class);
-                if (!CollectionUtils.containsAll(keys, DEFAULT_AUTHORIZATION_KEYS)) {
-                    keys.addAll(DEFAULT_AUTHORIZATION_KEYS);
-                    keys = keys.stream().distinct().collect(Collectors.toList());
-                    configurations.put(KEYS, keys);
-                    needUpdate = true;
-                }
-            } else {
-                configurations.put(KEYS, DEFAULT_AUTHORIZATION_KEYS);
-            }
-            Boolean aBoolean = MapUtils.getBoolean(configurations, IN_HEADER);
-            if (Objects.isNull(aBoolean) || !aBoolean) {
-                configurations.put(IN_HEADER, true);
-                needUpdate = true;
-            }
-            if (needUpdate) {
-                wasmPluginInstanceService.addOrUpdate(globalKeyAuth);
-            }
+        if (Objects.isNull(mcpInstance.getConsumerAuthInfo())) {
+            return;
         }
+        String type = mcpInstance.getConsumerAuthInfo().getType();
+        CredentialTypeEnum credentialTypeEnum =
+            StringUtils.isBlank(type) ? CredentialTypeEnum.KEY_AUTH : CredentialTypeEnum.fromType(type);
+        AuthorizationService service = authorizationServiceFactory.getService(credentialTypeEnum);
 
-        initMcpServerAuthentication(mcpInstance);
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
+        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName);
+        service.changeEnableStatus(targets, mcpInstance.getConsumerAuthInfo().getEnable());
     }
 
     private void buildAuthorization(McpServer mcpServer) {
-        if (Objects.isNull(mcpServer.getConsumerAuthInfo())) {
+        if (Objects.isNull(mcpServer.getConsumerAuthInfo())
+            || BooleanUtils.isFalse(mcpServer.getConsumerAuthInfo().getEnable())) {
             return;
         }
         String routeName = McpServerHelper.mcpServerName2RouteName(mcpServer.getName());
@@ -221,39 +186,6 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         AuthorizationService authorizationService = authorizationServiceFactory.getService(credentialTypeEnum);
         authorizationService.unbindAll(routeName);
         authorizationService.bindList(RelationshipConverter.convert(routeName, mcpServer.getConsumerAuthInfo()));
-    }
-
-    private WasmPluginInstance initMcpServerAuthentication(McpServer mcpInstance) {
-        if (Objects.isNull(mcpInstance.getConsumerAuthInfo())) {
-            return null;
-        }
-        String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
-        Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName);
-        WasmPluginInstance instance =
-            wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, Boolean.TRUE);
-        if (Objects.isNull(instance)) {
-            instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.KEY_AUTH);
-            instance.setInternal(Boolean.TRUE);
-            instance.setTargets(targets);
-            instance.setConfigurations(MapUtil.of(ALLOW, Collections.emptyList()));
-        }
-        instance.setEnabled(mcpInstance.getConsumerAuthInfo().getEnable());
-        return wasmPluginInstanceService.addOrUpdate(instance);
-    }
-
-    private WasmPluginInstance buildGlobalKeyAuthRequest() {
-        WasmPluginInstance keyAuthInstance =
-            WasmPluginInstance.builder().pluginName(BuiltInPluginName.KEY_AUTH).enabled(true).build();
-        keyAuthInstance.setGlobalTarget();
-        keyAuthInstance.setInternal(true);
-        Map<String, Object> configurations = new HashMap<>();
-        configurations.put(GLOBAL_AUTH, false);
-        configurations.put(IN_HEADER, true);
-        configurations.put(IN_QUERY, false);
-        configurations.put(KEYS, DEFAULT_AUTHORIZATION_KEYS);
-        configurations.put(CONSUMERS, Lists.newArrayList());
-        keyAuthInstance.setConfigurations(configurations);
-        return keyAuthInstance;
     }
 
     protected Route buildRouteRequest(McpServer mcpInstance) {

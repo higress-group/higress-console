@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.service.authorization;
 
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
+import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.CONSUMERS;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.GLOBAL_AUTH;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_HEADER;
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QUERY;
@@ -24,15 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
@@ -42,7 +42,6 @@ import com.alibaba.higress.sdk.model.authorization.AuthorizationResourceTypeEnum
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
 
-    private static final List<String> DEFAULT_KEYS = Lists.newArrayList("Authorization", "x-api-key");
+    private static final List<String> DEFAULT_KEYS = Lists.newArrayList("x-higress-dummy-key");
 
     private final WasmPluginInstanceService wasmPluginInstanceService;
 
@@ -70,29 +69,67 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
         configurations.put(IN_HEADER, true);
         configurations.put(IN_QUERY, false);
         configurations.put(KEYS, DEFAULT_KEYS);
+        configurations.put(CONSUMERS, Lists.newArrayList());
         keyAuthInstance.setConfigurations(configurations);
         return keyAuthInstance;
     }
 
     @Override
-    public void init() {
+    public void initGlobalInstance() {
+        // global key-auth init
         WasmPluginInstance globalKeyAuth =
             wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.KEY_AUTH, true);
-        if (globalKeyAuth == null) {
-            WasmPluginInstance keyAuthRequest = buildGlobalKeyAuthRequest();
-            wasmPluginInstanceService.addOrUpdate(keyAuthRequest);
-        } else {
-            Map<String, Object> configurations = globalKeyAuth.getConfigurations();
-            Set<String> keysValue = Sets.newHashSet();
-            if (Objects.nonNull(configurations.get(KEYS))) {
-                keysValue =
-                    JSON.parseObject(JSON.toJSONString(configurations.get(KEYS)), new TypeReference<Set<String>>() {});
-            }
-            keysValue.addAll(Lists.newArrayList("Authorization", "x-api-key"));
-            configurations.put(KEYS, keysValue);
-            globalKeyAuth.setConfigurations(null);
-            globalKeyAuth.setRawConfigurations(JSON.toJSONString(configurations));
+        if (globalKeyAuth == null || MapUtils.isEmpty(globalKeyAuth.getConfigurations())) {
+            globalKeyAuth = buildGlobalKeyAuthRequest();
             wasmPluginInstanceService.addOrUpdate(globalKeyAuth);
+        } else {
+            boolean needUpdate = false;
+            Map<String, Object> configurations = globalKeyAuth.getConfigurations();
+            if (Objects.isNull(configurations.get(KEYS))) {
+                needUpdate = true;
+                configurations.put(KEYS, DEFAULT_KEYS);
+            }
+            Boolean aBoolean = MapUtils.getBoolean(configurations, IN_HEADER);
+            if (BooleanUtils.isNotTrue(aBoolean)) {
+                configurations.put(IN_HEADER, Boolean.TRUE);
+                needUpdate = true;
+            }
+            if (needUpdate) {
+                wasmPluginInstanceService.addOrUpdate(globalKeyAuth);
+            }
+        }
+
+    }
+
+    @Override
+    public WasmPluginInstance initInstance(Map<WasmPluginInstanceScope, String> targets, Boolean enable) {
+        WasmPluginInstance instance =
+            wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, Boolean.TRUE);
+        if (Objects.nonNull(instance)) {
+            return instance;
+        }
+        initGlobalInstance();
+        instance = wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.KEY_AUTH);
+        instance.setTargets(targets);
+        instance.setInternal(Boolean.TRUE);
+        instance.setConfigurations(MapUtil.of(ALLOW, Collections.emptyList()));
+        instance.setEnabled(enable);
+        return wasmPluginInstanceService.addOrUpdate(instance);
+    }
+
+    @Override
+    public void changeEnableStatus(Map<WasmPluginInstanceScope, String> targets, Boolean enable) {
+        WasmPluginInstance instance =
+            wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, Boolean.TRUE);
+        boolean needInitInstance = Objects.isNull(instance) && BooleanUtils.isTrue(enable);
+        if (needInitInstance) {
+            initInstance(targets, enable);
+            return;
+        }
+        boolean needUpdateInstance = Objects.nonNull(instance) && !Objects.equals(instance.getEnabled(), enable);
+        if (needUpdateInstance) {
+            instance.setEnabled(enable);
+            wasmPluginInstanceService.addOrUpdate(instance);
         }
     }
 
@@ -114,26 +151,18 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
 
     private void addAllowList(String resourceName, List<String> consumerNameList) {
         Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, resourceName);
-        WasmPluginInstance existInstance = wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+        WasmPluginInstance existInstance = initInstance(targets, null);
 
-        WasmPluginInstance newInstance;
-        AuthorizationOfRouteConfig authRouteConfig;
-        if (Objects.isNull(existInstance)) {
-            newInstance = new WasmPluginInstance();
-            newInstance.setTargets(targets);
-            newInstance.setInternal(Boolean.TRUE);
-            newInstance.setPluginName(BuiltInPluginName.KEY_AUTH);
-            newInstance.setConfigurations(new HashMap<>());
-
-            authRouteConfig = new AuthorizationOfRouteConfig();
-        } else {
-            newInstance = existInstance;
+        AuthorizationOfRouteConfig authRouteConfig = new AuthorizationOfRouteConfig();
+        if (MapUtils.isNotEmpty(existInstance.getConfigurations())) {
             authRouteConfig = JSON.parseObject(JSON.toJSONString(existInstance.getConfigurations()),
                 AuthorizationOfRouteConfig.class);
         }
+        // merge
         authRouteConfig.addAllAllow(consumerNameList);
-        newInstance.getConfigurations().put(ALLOW, authRouteConfig.getAllow());
-        wasmPluginInstanceService.addOrUpdate(newInstance);
+
+        existInstance.getConfigurations().put(ALLOW, authRouteConfig.getAllow());
+        wasmPluginInstanceService.addOrUpdate(existInstance);
     }
 
     private void removeAllowList(String resourceName, List<String> consumerNameList) {
@@ -196,6 +225,9 @@ public class AuthorizationOfKeyAuthServiceImpl implements AuthorizationService {
             Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, resourceName);
             WasmPluginInstance existInstance =
                 wasmPluginInstanceService.query(targets, BuiltInPluginName.KEY_AUTH, true);
+            if (Objects.isNull(existInstance)) {
+                return Collections.emptyList();
+            }
             instanceList = Lists.newArrayList(existInstance);
         } else {
             instanceList = wasmPluginInstanceService.list(BuiltInPluginName.KEY_AUTH, true);
