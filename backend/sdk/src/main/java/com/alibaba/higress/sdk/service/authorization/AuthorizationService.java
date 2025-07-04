@@ -12,12 +12,17 @@
  */
 package com.alibaba.higress.sdk.service.authorization;
 
+import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.authorization.AuthorizationRelationship;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AuthorizationService {
-    void init();
+    void initGlobalInstance();
+    WasmPluginInstance initInstance(Map<WasmPluginInstanceScope, String> targets, Boolean enable);
+    void changeEnableStatus(Map<WasmPluginInstanceScope, String> targets, Boolean enable);
 
     void bind(AuthorizationRelationship relationship);
     void bindList(List<AuthorizationRelationship> relationships);
@@ -26,4 +31,5 @@ public interface AuthorizationService {
     void unbindList(List<AuthorizationRelationship> relationships);
 
     List<AuthorizationRelationship> boundList(AuthorizationRelationship param);
+
 }
