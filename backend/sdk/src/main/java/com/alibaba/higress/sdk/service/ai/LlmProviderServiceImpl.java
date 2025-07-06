@@ -37,6 +37,7 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.ai.AiRoute;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
@@ -45,6 +46,8 @@ import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.MapUtil;
+
+import lombok.Setter;
 
 @SuppressWarnings("unchecked")
 public class LlmProviderServiceImpl implements LlmProviderService {
@@ -86,6 +89,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     private final ServiceSourceService serviceSourceService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
+    @Setter
+    private AiRouteService aiRouteService;
 
     public LlmProviderServiceImpl(ServiceSourceService serviceSourceService,
         WasmPluginInstanceService wasmPluginInstanceService) {
@@ -172,6 +177,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         wasmPluginInstanceService.addOrUpdate(instance);
         serviceSourceService.addOrUpdate(serviceSource);
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
+
+        if (handler.needSyncRouteAfterUpdate()) {
+            syncRelatedAiRoutes(provider);
+        }
 
         return query(provider.getName());
     }
@@ -270,6 +279,28 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         return handler.buildUpstreamService(provider.getName(), provider.getRawConfigs());
+    }
+
+    private void syncRelatedAiRoutes(LlmProvider provider) {
+        AiRouteService aiRouteService = this.aiRouteService;
+        if (aiRouteService == null) {
+            return;
+        }
+
+        PaginatedResult<AiRoute> aiRoutes = aiRouteService.list(null);
+        if (aiRoutes == null || CollectionUtils.isEmpty(aiRoutes.getData())) {
+            return;
+        }
+
+        String providerName = provider.getName();
+        for (AiRoute aiRoute : aiRoutes.getData()) {
+            if (CollectionUtils.isEmpty(aiRoute.getUpstreams())) {
+                continue;
+            }
+            if (aiRoute.getUpstreams().stream().anyMatch(u -> providerName.equals(u.getProvider()))) {
+                aiRouteService.update(aiRoute);
+            }
+        }
     }
 
     private SortedMap<String, LlmProvider> getProviders() {

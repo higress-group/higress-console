@@ -68,6 +68,11 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
+    public boolean needSyncRouteAfterUpdate() {
+        return true;
+    }
+
+    @Override
     protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         List<URI> customUris = getCustomUris(providerConfig);
         if (CollectionUtils.isEmpty(customUris)) {
