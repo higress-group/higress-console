@@ -33,6 +33,7 @@ const SystemSettings: React.FC = () => {
   const handleSubmit = async () => {
     try {
       const updatedConfigYaml = await updateHigressConfig(configYaml);
+      setConfigYaml(updatedConfigYaml);
       codeEditorRef.current?.pushContent(updatedConfigYaml);
       message.success(t('plugins.saveSuccess'));
     } catch (errInfo) {
