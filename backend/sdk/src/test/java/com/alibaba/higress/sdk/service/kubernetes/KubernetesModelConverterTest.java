@@ -1504,7 +1504,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+            new ServiceSource("testService",null, "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1529,7 +1529,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+            new ServiceSource("testService", null,"1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1538,6 +1538,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(serviceSource.getDomain(), result.getDomain());
         Assertions.assertEquals(serviceSource.getType(), result.getType());
         Assertions.assertEquals(serviceSource.getPort(), result.getPort());
+        Assertions.assertEquals(serviceSource.getVport().getDefaultValue(),result.getVport().getDefaultValue());
         Assertions.assertTrue(registries.contains(result));
     }
 
@@ -1560,7 +1561,7 @@ public class KubernetesModelConverterTest {
         V1McpBridge v1McpBridge = new V1McpBridge();
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+            new ServiceSource("testService", null,"1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1577,7 +1578,7 @@ public class KubernetesModelConverterTest {
         v1McpBridge.setSpec(spec);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+            new ServiceSource("testService",null, "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 

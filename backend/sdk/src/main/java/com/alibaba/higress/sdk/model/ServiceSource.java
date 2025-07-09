@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.VPort;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +52,10 @@ public class ServiceSource implements VersionedDto {
 
     @Schema(description = "Service source name")
     private String name;
+
+    @Schema(description = "Register vport configuration with default and service-specific values. Optional.",
+            example = "{\"default\": 8080, \"services\": [{\"name\": \"svc1\", \"value\": 9090}]}")
+    private VPort vport;
 
     @Schema(description = "Service source version. Required when updating.")
     private String version;
@@ -107,6 +112,20 @@ public class ServiceSource implements VersionedDto {
         ServiceSourceValidator validator = VALIDATORS.get(this.getType());
         if (validator != null && !validator.validate(this)) {
             return false;
+        }
+
+        if (this.vport != null) {
+            if (this.vport.getDefaultValue() != null && !ValidateUtil.checkPort(this.vport.getDefaultValue())) {
+                return false;
+            }
+
+            if (this.vport.getVportServices() != null) {
+                for (VPort.vportService vportService : this.vport.getVportServices()) {
+                    if (!ValidateUtil.checkPort(vportService.getValue())) {
+                        return false;
+                    }
+                }
+            }
         }
 
         return true;
