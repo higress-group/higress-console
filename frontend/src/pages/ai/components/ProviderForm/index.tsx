@@ -20,6 +20,16 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
 
+  const resetForm = () => {
+    form.resetFields();
+    setFailoverEnabled(false);
+    setProviderType(null);
+    onProviderTypeChanged(null);
+    setProviderConfig(null);
+    setOpenaiServerType(null);
+    onOpenaiServerTypeChanged(null)
+  };
+
   useEffect(() => {
     form.resetFields();
     if (props.value) {
@@ -85,15 +95,13 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     }
 
     return () => {
-      setFailoverEnabled(false);
-      onProviderTypeChanged(null);
-      onOpenaiServerTypeChanged(null)
+      resetForm();
     }
   }, [props.value]);
 
   useImperativeHandle(ref, () => ({
     reset: () => {
-      form.resetFields();
+      resetForm();
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
