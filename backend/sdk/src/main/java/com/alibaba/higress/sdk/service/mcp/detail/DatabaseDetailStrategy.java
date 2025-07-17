@@ -13,9 +13,8 @@
 package com.alibaba.higress.sdk.service.mcp.detail;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +30,8 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -79,38 +80,105 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
      * @return db tools config YAML
      */
     private String buildDatabaseToolsConfig(String serverName, String dbType) {
-
-        Map<String, Object> sqlArg = new HashMap<>();
-        sqlArg.put("name", "sql");
-        sqlArg.put("type", "string");
-        sqlArg.put("description", "The sql query to execute");
-        sqlArg.put("required", true);
-        sqlArg.put("position", "body");
-
-        List<Map<String, Object>> args = new ArrayList<>();
-        args.add(sqlArg);
-
-        Map<String, Object> queryTool = new HashMap<>();
-        queryTool.put("name", "query");
-        queryTool.put("description", String.format("Run a read-only SQL query in database %s.", dbType));
-        queryTool.put("args", args);
-
-        List<Map<String, Object>> tools = new ArrayList<>();
-        tools.add(queryTool);
-
-        Map<String, Object> server = new HashMap<>();
-        server.put("name", serverName);
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("tools", tools);
-        config.put("server", server);
-
+        SchemaConfig schemaConfig = buildSchemaConfig(serverName, dbType);
         String result = "";
         try {
-            result = YAML.writeValueAsString(config);
+            result = YAML.writeValueAsString(schemaConfig);
         } catch (Exception e) {
             log.error("Failed to build db tools config", e);
         }
         return result;
     }
+
+    @Data
+    @Builder
+    static class ToolArgsSchemaConfig {
+        private String name;
+        private String type;
+        private String description;
+        private boolean required;
+        private String position;
+    }
+    @Data
+    @Builder
+    static class ToolsSchemaConfig {
+        private String name;
+        private String description;
+        private List<ToolArgsSchemaConfig> args;
+    }
+    @Data
+    @Builder
+    static class SchemaConfig {
+        private String server;
+        private List<ToolsSchemaConfig> tools;
+    }
+
+    private SchemaConfig buildSchemaConfig(String server, String dbType) {
+
+        String descriptionSuffix = String.format("in database %s.", dbType);
+
+        List<ToolsSchemaConfig> tools = new ArrayList<>();
+        tools.add(buildToolsConfig("query",
+                                   String.format("Run a read-only SQL query %s", descriptionSuffix),
+                                   buildQueryToolsConfig()));
+        tools.add(buildToolsConfig("execute",
+                                   String.format("Execute an insert, update, or delete SQL %s", descriptionSuffix),
+                                   buildExecuteToolsConfig()));
+        tools.add(buildToolsConfig("list tables",
+                                   String.format("List all tables %s", descriptionSuffix),
+                                   Collections.emptyList()));
+        tools.add(buildToolsConfig("describe table",
+                                   String.format("Get the structure of a specific table %s", descriptionSuffix),
+                                   buildDescribeTableToolsConfig()));
+
+        return SchemaConfig.builder()
+                .server(server)
+                .tools(tools)
+                .build();
+    }
+
+    private List<ToolArgsSchemaConfig> buildQueryToolsConfig() {
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
+                .name("sql")
+                .type("string")
+                .description("The sql query to execute")
+                .required(true)
+                .position("body")
+                .build();
+
+        return Collections.singletonList(build);
+    }
+
+    private List<ToolArgsSchemaConfig> buildExecuteToolsConfig() {
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
+                .name("sql")
+                .type("string")
+                .description("The sql to execute")
+                .required(true)
+                .position("body")
+                .build();
+
+        return Collections.singletonList(build);
+    }
+
+    private List<ToolArgsSchemaConfig> buildDescribeTableToolsConfig() {
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
+                .name("table")
+                .type("string")
+                .description("table name")
+                .required(true)
+                .position("body")
+                .build();
+
+        return Collections.singletonList(build);
+    }
+
+    private ToolsSchemaConfig buildToolsConfig(String name, String desc, List<ToolArgsSchemaConfig> args) {
+        return ToolsSchemaConfig.builder()
+                .name(name)
+                .description(desc)
+                .args(args)
+                .build();
+    }
+
 }
