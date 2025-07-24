@@ -23,6 +23,67 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        policy:
+          type: string
+          title: OPA 策略
+          x-title-i18n:
+            en-US: OPA Policy
+          description: opa 策略
+          x-description-i18n:
+            en-US: OPA Policy
+        timeout:
+          type: string
+          title: 访问超时时间
+          x-title-i18n:
+            en-US: Timeout Setting
+          description: 访问超时时间设置
+          x-description-i18n:
+            en-US: Timeout setting for access
+        serviceSource:
+          type: string
+          title: 服务来源
+          x-title-i18n:
+            en-US: Service Source
+          description: 服务来源类型，可选值：k8s, nacos, ip, route
+          x-description-i18n:
+            en-US: Service source type, options: k8s, nacos, ip, route
+        host:
+          type: string
+          title: 服务主机
+          x-title-i18n:
+            en-US: Service Host
+          description: 服务主机（serviceSource为`ip`必填）
+          x-description-i18n:
+            en-US: Service host (required if serviceSource is `ip`)
+        serviceName:
+          type: string
+          title: 服务名称
+          x-title-i18n:
+            en-US: Service Name
+          description: 服务名称（serviceSource为`k8s,nacos,ip`必填）
+          x-description-i18n:
+            en-US: Service name (required if serviceSource is `k8s,nacos,ip`)
+        servicePort:
+          type: string
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 服务端口（serviceSource为`k8s,nacos,ip`必填）
+          x-description-i18n:
+            en-US: Service port (required if serviceSource is `k8s,nacos,ip`)
+        namespace:
+          type: string
+          title: 命名空间
+          x-title-i18n:
+            en-US: Namespace
+          description: 命名空间（serviceSource为`k8s,nacos`必填）
+          x-description-i18n:
+            en-US: Namespace (required if serviceSource is `k8s,nacos`)
+      required:
+        - policy
+        - timeout
+        - serviceSource
       example:
         serviceSource: k8s
         serviceName: opa
@@ -33,6 +94,67 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        policy:
+          type: string
+          title: OPA 策略
+          x-title-i18n:
+            en-US: OPA Policy
+          description: opa 策略
+          x-description-i18n:
+            en-US: OPA Policy
+        timeout:
+          type: string
+          title: 访问超时时间
+          x-title-i18n:
+            en-US: Timeout Setting
+          description: 访问超时时间设置
+          x-description-i18n:
+            en-US: Timeout setting for access
+        serviceSource:
+          type: string
+          title: 服务来源
+          x-title-i18n:
+            en-US: Service Source
+          description: 服务来源类型，可选值：k8s, nacos, ip, route
+          x-description-i18n:
+            en-US: Service source type, options: k8s, nacos, ip, route
+        host:
+          type: string
+          title: 服务主机
+          x-title-i18n:
+            en-US: Service Host
+          description: 服务主机（serviceSource为`ip`必填）
+          x-description-i18n:
+            en-US: Service host (required if serviceSource is `ip`)
+        serviceName:
+          type: string
+          title: 服务名称
+          x-title-i18n:
+            en-US: Service Name
+          description: 服务名称（serviceSource为`k8s,nacos,ip`必填）
+          x-description-i18n:
+            en-US: Service name (required if serviceSource is `k8s,nacos,ip`)
+        servicePort:
+          type: string
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 服务端口（serviceSource为`k8s,nacos,ip`必填）
+          x-description-i18n:
+            en-US: Service port (required if serviceSource is `k8s,nacos,ip`)
+        namespace:
+          type: string
+          title: 命名空间
+          x-title-i18n:
+            en-US: Namespace
+          description: 命名空间（serviceSource为`k8s,nacos`必填）
+          x-description-i18n:
+            en-US: Namespace (required if serviceSource is `k8s,nacos`)
+      required:
+        - policy
+        - timeout
+        - serviceSource
       example:
         serviceSource: k8s
         serviceName: opa

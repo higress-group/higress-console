@@ -21,6 +21,196 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        http_service:
+          type: object
+          title: 外部授权服务配置
+          x-title-i18n:
+            en-US: Configuration for the external authorization service
+          description: 外部授权服务配置
+          x-description-i18n:
+            en-US: Configuration for the external authorization service
+          properties:
+            endpoint_mode:
+              type: string
+              title: 端点模式
+              x-title-i18n:
+                en-US: Endpoint Mode
+              description: 端点模式，可选值为 envoy 或 forward_auth
+              x-description-i18n:
+                en-US: Select either `envoy` or `forward_auth` as an optional choice
+              default: envoy
+            endpoint:
+              type: object
+              title: 端点信息
+              x-title-i18n:
+                en-US: Endpoint Information
+              description: 发送鉴权请求的 HTTP 服务信息
+              x-description-i18n:
+                en-US: Information about the HTTP service for sending authentication requests
+              properties:
+                service_name:
+                  type: string
+                  title: 服务名称
+                  x-title-i18n:
+                    en-US: Service Name
+                  description: 输入授权服务名称，带服务类型的完整 FQDN 名称，例如 `ext-auth.dns` 、`ext-auth.my-ns.svc.cluster.local`
+                  x-description-i18n:
+                    en-US: Input the name of the authorization service, in complete FQDN format, e.g., `ext-auth.dns` or `ext-auth.my-ns.svc.cluster.local`
+                service_port:
+                  type: integer
+                  title: 服务端口
+                  x-title-i18n:
+                    en-US: Service Port
+                  description: 输入授权服务的服务端口
+                  x-description-i18n:
+                    en-US: Input the port of the authorization service
+                  default: 80
+                service_host:
+                  type: string
+                  title: 服务主机
+                  x-title-i18n:
+                    en-US: Service Host
+                  description: 请求授权服务时设置的Host头，不填时和FQDN保持一致
+                  x-description-i18n:
+                    en-US: The Host header set when requesting the authorization service; remains the same as FQDN if not filled
+                path_prefix:
+                  type: string
+                  title: 路径前缀
+                  x-title-i18n:
+                    en-US: Path Prefix
+                  description: endpoint_mode 为 envoy 时，客户端向授权服务发送请求的请求路径前缀
+                  x-description-i18n:
+                    en-US: Request path prefix for the client when sending requests to the authorization service
+                request_method:
+                  type: string
+                  title: 请求方法
+                  x-title-i18n:
+                    en-US: Request Method
+                  description: endpoint_mode 为 forward_auth 时，客户端向授权服务发送请求的HTTP Method
+                  x-description-i18n:
+                    en-US: HTTP Method for client requests to the authorization service when endpoint_mode is forward_auth
+                  default: GET
+                path:
+                  type: string
+                  title: 请求路径
+                  x-title-i18n:
+                    en-US: Request Path
+                  description: endpoint_mode 为 forward_auth 时，客户端向授权服务发送请求的请求路径
+                  x-description-i18n:
+                    en-US: Request path for the client when sending requests to the authorization service
+            timeout:
+              type: integer
+              title: 超时时间
+              x-title-i18n:
+                en-US: Timeout
+              description: ext-auth 服务连接超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Connection timeout for ext-auth service, in milliseconds
+              default: 1000
+            authorization_request:
+              type: object
+              title: 鉴权请求配置
+              x-title-i18n:
+                en-US: Authorization Request Configuration
+              description: 发送鉴权请求配置
+              x-description-i18n:
+                en-US: Configuration for sending authentication requests
+              properties:
+                allowed_headers:
+                  type: array
+                  title: 允许的请求头
+                  x-title-i18n:
+                    en-US: Allowed Headers
+                  description: 当设置后，具有相应匹配项的客户端请求头将添加到授权服务请求中的请求头中
+                  x-description-i18n:
+                    en-US: When set, client request headers with matching criteria will be added to the headers of the request to the authorization service
+                  items:
+                    type: object
+                headers_to_add:
+                  type: object
+                  title: 添加的请求头
+                  x-title-i18n:
+                    en-US: Headers to Add
+                  description: 设置将包含在授权服务请求中的请求头列表。请注意，同名的客户端请求头将被覆盖
+                  x-description-i18n:
+                    en-US: Sets the list of request headers to include in the authorization service request. Note that headers with the same name from the client will be overwritten
+                with_request_body:
+                  type: boolean
+                  title: 是否包含请求体
+                  x-title-i18n:
+                    en-US: Include Request Body
+                  description: 缓冲客户端请求体，并将其发送至鉴权请求中（HTTP Method为GET、OPTIONS、HEAD请求时不生效）
+                  x-description-i18n:
+                    en-US: Buffer the client request body and send it in the authentication request (does not take effect for HTTP Methods GET, OPTIONS, and HEAD)
+                  default: false
+                max_request_body_bytes:
+                  type: integer
+                  title: 最大请求体大小
+                  x-title-i18n:
+                    en-US: Maximum Request Body Size
+                  description: 设置在内存中保存客户端请求体的最大尺寸。当客户端请求体达到在此字段中设置的数值时，将会返回HTTP 413状态码，并且不会启动授权过程
+                  x-description-i18n:
+                    en-US: Sets the maximum size of the client request body to keep in memory. When the client request body reaches the value set in this field, an HTTP 413 status code will be returned, and the authorization process will not start
+                  default: 10485760
+            authorization_response:
+              type: object
+              title: 鉴权响应配置
+              x-title-i18n:
+                en-US: Authorization Response Configuration
+              description: 处理鉴权响应配置
+              x-description-i18n:
+                en-US: Configuration for processing authentication responses
+              properties:
+                allowed_upstream_headers:
+                  type: array
+                  title: 允许的上游请求头
+                  x-title-i18n:
+                    en-US: Allowed Upstream Headers
+                  description: 当设置后，具有相应匹配项的鉴权请求的响应头将添加到原始的客户端请求头中。请注意，同名的请求头将被覆盖
+                  x-description-i18n:
+                    en-US: When set, the response headers of the authorization request with matching criteria will be added to the original client request headers. Note that headers with the same name will be overwritten
+                  items:
+                    type: object
+                allowed_client_headers:
+                  type: array
+                  title: 允许的客户端请求头
+                  x-title-i18n:
+                    en-US: Allowed Client Headers
+                  description: 如果不设置，在请求被拒绝时，所有的鉴权请求的响应头将添加到客户端的响应头中。当设置后，在请求被拒绝时，具有相应匹配项的鉴权请求的响应头将添加到客户端的响应头中
+                  x-description-i18n:
+                    en-US: If not set, all response headers from authorization requests will be added to the client's response when a request is denied. When set, response headers from authorization requests with matching criteria will be added to the client's response when a request is denied
+                  items:
+                    type: object
+        failure_mode_allow:
+          type: boolean
+          title: 失败模式允许
+          x-title-i18n:
+            en-US: Failure Mode Allow
+          description: 当设置为 true 时，即使与授权服务的通信失败，或者授权服务返回了 HTTP 5xx 错误，仍会接受客户端请求
+          x-description-i18n:
+            en-US: When set to true, client requests will still be accepted even if communication with the authorization service fails or the authorization service returns an HTTP 5xx error
+          default: false
+        failure_mode_allow_header_add:
+          type: boolean
+          title: 失败模式添加请求头
+          x-title-i18n:
+            en-US: Failure Mode Add Header
+          description: 当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true
+          x-description-i18n:
+            en-US: When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true
+          default: false
+        status_on_error:
+          type: integer
+          title: 错误状态码
+          x-title-i18n:
+            en-US: Error Status Code
+          description: 当授权服务无法访问或状态码为 5xx 时，设置返回给客户端的 HTTP 状态码。默认状态码是 403
+          x-description-i18n:
+            en-US: Sets the HTTP status code returned to the client when the authorization service is unreachable or returns a 5xx status code. The default status code is 403
+          default: 403
+      required:
+        - http_service
       example:
         http_service:
           endpoint_mode: envoy
@@ -32,6 +222,196 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        http_service:
+          type: object
+          title: 外部授权服务配置
+          x-title-i18n:
+            en-US: Configuration for the external authorization service
+          description: 外部授权服务配置
+          x-description-i18n:
+            en-US: Configuration for the external authorization service
+          properties:
+            endpoint_mode:
+              type: string
+              title: 端点模式
+              x-title-i18n:
+                en-US: Endpoint Mode
+              description: 端点模式，可选值为 envoy 或 forward_auth
+              x-description-i18n:
+                en-US: Select either `envoy` or `forward_auth` as an optional choice
+              default: envoy
+            endpoint:
+              type: object
+              title: 端点信息
+              x-title-i18n:
+                en-US: Endpoint Information
+              description: 发送鉴权请求的 HTTP 服务信息
+              x-description-i18n:
+                en-US: Information about the HTTP service for sending authentication requests
+              properties:
+                service_name:
+                  type: string
+                  title: 服务名称
+                  x-title-i18n:
+                    en-US: Service Name
+                  description: 输入授权服务名称，带服务类型的完整 FQDN 名称，例如 `ext-auth.dns` 、`ext-auth.my-ns.svc.cluster.local`
+                  x-description-i18n:
+                    en-US: Input the name of the authorization service, in complete FQDN format, e.g., `ext-auth.dns` or `ext-auth.my-ns.svc.cluster.local`
+                service_port:
+                  type: integer
+                  title: 服务端口
+                  x-title-i18n:
+                    en-US: Service Port
+                  description: 输入授权服务的服务端口
+                  x-description-i18n:
+                    en-US: Input the port of the authorization service
+                  default: 80
+                service_host:
+                  type: string
+                  title: 服务主机
+                  x-title-i18n:
+                    en-US: Service Host
+                  description: 请求授权服务时设置的Host头，不填时和FQDN保持一致
+                  x-description-i18n:
+                    en-US: The Host header set when requesting the authorization service; remains the same as FQDN if not filled
+                path_prefix:
+                  type: string
+                  title: 路径前缀
+                  x-title-i18n:
+                    en-US: Path Prefix
+                  description: endpoint_mode 为 envoy 时，客户端向授权服务发送请求的请求路径前缀
+                  x-description-i18n:
+                    en-US: Request path prefix for the client when sending requests to the authorization service
+                request_method:
+                  type: string
+                  title: 请求方法
+                  x-title-i18n:
+                    en-US: Request Method
+                  description: endpoint_mode 为 forward_auth 时，客户端向授权服务发送请求的HTTP Method
+                  x-description-i18n:
+                    en-US: HTTP Method for client requests to the authorization service when endpoint_mode is forward_auth
+                  default: GET
+                path:
+                  type: string
+                  title: 请求路径
+                  x-title-i18n:
+                    en-US: Request Path
+                  description: endpoint_mode 为 forward_auth 时，客户端向授权服务发送请求的请求路径
+                  x-description-i18n:
+                    en-US: Request path for the client when sending requests to the authorization service
+            timeout:
+              type: integer
+              title: 超时时间
+              x-title-i18n:
+                en-US: Timeout
+              description: ext-auth 服务连接超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Connection timeout for ext-auth service, in milliseconds
+              default: 1000
+            authorization_request:
+              type: object
+              title: 鉴权请求配置
+              x-title-i18n:
+                en-US: Authorization Request Configuration
+              description: 发送鉴权请求配置
+              x-description-i18n:
+                en-US: Configuration for sending authentication requests
+              properties:
+                allowed_headers:
+                  type: array
+                  title: 允许的请求头
+                  x-title-i18n:
+                    en-US: Allowed Headers
+                  description: 当设置后，具有相应匹配项的客户端请求头将添加到授权服务请求中的请求头中
+                  x-description-i18n:
+                    en-US: When set, client request headers with matching criteria will be added to the headers of the request to the authorization service
+                  items:
+                    type: object
+                headers_to_add:
+                  type: object
+                  title: 添加的请求头
+                  x-title-i18n:
+                    en-US: Headers to Add
+                  description: 设置将包含在授权服务请求中的请求头列表。请注意，同名的客户端请求头将被覆盖
+                  x-description-i18n:
+                    en-US: Sets the list of request headers to include in the authorization service request. Note that headers with the same name from the client will be overwritten
+                with_request_body:
+                  type: boolean
+                  title: 是否包含请求体
+                  x-title-i18n:
+                    en-US: Include Request Body
+                  description: 缓冲客户端请求体，并将其发送至鉴权请求中（HTTP Method为GET、OPTIONS、HEAD请求时不生效）
+                  x-description-i18n:
+                    en-US: Buffer the client request body and send it in the authentication request (does not take effect for HTTP Methods GET, OPTIONS, and HEAD)
+                  default: false
+                max_request_body_bytes:
+                  type: integer
+                  title: 最大请求体大小
+                  x-title-i18n:
+                    en-US: Maximum Request Body Size
+                  description: 设置在内存中保存客户端请求体的最大尺寸。当客户端请求体达到在此字段中设置的数值时，将会返回HTTP 413状态码，并且不会启动授权过程
+                  x-description-i18n:
+                    en-US: Sets the maximum size of the client request body to keep in memory. When the client request body reaches the value set in this field, an HTTP 413 status code will be returned, and the authorization process will not start
+                  default: 10485760
+            authorization_response:
+              type: object
+              title: 鉴权响应配置
+              x-title-i18n:
+                en-US: Authorization Response Configuration
+              description: 处理鉴权响应配置
+              x-description-i18n:
+                en-US: Configuration for processing authentication responses
+              properties:
+                allowed_upstream_headers:
+                  type: array
+                  title: 允许的上游请求头
+                  x-title-i18n:
+                    en-US: Allowed Upstream Headers
+                  description: 当设置后，具有相应匹配项的鉴权请求的响应头将添加到原始的客户端请求头中。请注意，同名的请求头将被覆盖
+                  x-description-i18n:
+                    en-US: When set, the response headers of the authorization request with matching criteria will be added to the original client request headers. Note that headers with the same name will be overwritten
+                  items:
+                    type: object
+                allowed_client_headers:
+                  type: array
+                  title: 允许的客户端请求头
+                  x-title-i18n:
+                    en-US: Allowed Client Headers
+                  description: 如果不设置，在请求被拒绝时，所有的鉴权请求的响应头将添加到客户端的响应头中。当设置后，在请求被拒绝时，具有相应匹配项的鉴权请求的响应头将添加到客户端的响应头中
+                  x-description-i18n:
+                    en-US: If not set, all response headers from authorization requests will be added to the client's response when a request is denied. When set, response headers from authorization requests with matching criteria will be added to the client's response when a request is denied
+                  items:
+                    type: object
+        failure_mode_allow:
+          type: boolean
+          title: 失败模式允许
+          x-title-i18n:
+            en-US: Failure Mode Allow
+          description: 当设置为 true 时，即使与授权服务的通信失败，或者授权服务返回了 HTTP 5xx 错误，仍会接受客户端请求
+          x-description-i18n:
+            en-US: When set to true, client requests will still be accepted even if communication with the authorization service fails or the authorization service returns an HTTP 5xx error
+          default: false
+        failure_mode_allow_header_add:
+          type: boolean
+          title: 失败模式添加请求头
+          x-title-i18n:
+            en-US: Failure Mode Add Header
+          description: 当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true
+          x-description-i18n:
+            en-US: When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true
+          default: false
+        status_on_error:
+          type: integer
+          title: 错误状态码
+          x-title-i18n:
+            en-US: Error Status Code
+          description: 当授权服务无法访问或状态码为 5xx 时，设置返回给客户端的 HTTP 状态码。默认状态码是 403
+          x-description-i18n:
+            en-US: Sets the HTTP status code returned to the client when the authorization service is unreachable or returns a 5xx status code. The default status code is 403
+          default: 403
+      required:
+        - http_service
       example:
         http_service:
           endpoint_mode: envoy

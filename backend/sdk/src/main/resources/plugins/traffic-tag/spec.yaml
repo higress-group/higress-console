@@ -30,7 +30,139 @@ spec:
   priority: 400
   configSchema:
     openAPIV3Schema:
-      # 配置示例字段
+      type: object
+      properties:
+        conditionGroups:
+          type: array
+          title: 基于内容的标记条件组
+          x-title-i18n:
+            en-US: Content-based Tagging Condition Groups
+          description: 定义基于内容的标记条件组
+          x-description-i18n:
+            en-US: Defines content-based tagging condition groups
+          items:
+            type: object
+            properties:
+              headerName:
+                type: string
+                title: HTTP 头名称
+                x-title-i18n:
+                  en-US: HTTP Header Name
+                description: 要添加或修改的 HTTP 头名称
+                x-description-i18n:
+                  en-US: The HTTP header name to be added or modified
+              headerValue:
+                type: string
+                title: HTTP 头的值
+                x-title-i18n:
+                  en-US: HTTP Header Value
+                description: HTTP 头的值
+                x-description-i18n:
+                  en-US: The value of the HTTP header
+              logic:
+                type: string
+                title: 逻辑关系
+                x-title-i18n:
+                  en-US: Logical Relationship
+                description: 条件组中的逻辑关系，支持 and、or，必须为小写字母
+                x-description-i18n:
+                  en-US: Logical relationship in the condition group, supports 'and', 'or', must be in lowercase
+              conditions:
+                type: array
+                title: 标记条件
+                x-title-i18n:
+                  en-US: Tagging Conditions
+                description: 描述具体的标记条件
+                x-description-i18n:
+                  en-US: Describes specific tagging conditions
+                items:
+                  type: object
+                  properties:
+                    conditionType:
+                      type: string
+                      title: 条件类型
+                      x-title-i18n:
+                        en-US: Condition Type
+                      description: 条件类型，支持 header、parameter、cookie
+                      x-description-i18n:
+                        en-US: Condition type, supports 'header', 'parameter', 'cookie'
+                    key:
+                      type: string
+                      title: 条件关键字
+                      x-title-i18n:
+                        en-US: Condition Key
+                      description: 条件的关键字
+                      x-description-i18n:
+                        en-US: The key of the condition
+                    operator:
+                      type: string
+                      title: 操作符
+                      x-title-i18n:
+                        en-US: Operator
+                      description: 操作符，支持 equal、not_equal、prefix、in、not_in、regex、percentage
+                      x-description-i18n:
+                        en-US: Operator, supports 'equal', 'not_equal', 'prefix', 'in', 'not_in', 'regex', 'percentage'
+                    value:
+                      type: array
+                      items:
+                        type: string
+                      title: 条件值
+                      x-title-i18n:
+                        en-US: Condition Value
+                      description: 条件的值，仅当操作符为 in 和 not_in 时支持配置多个值
+                      x-description-i18n:
+                        en-US: The value of the condition. Only when the operator is 'in' and 'not_in' multiple values are supported
+        weightGroups:
+          type: array
+          title: 基于权重的标记条件组
+          x-title-i18n:
+            en-US: Weight-based Tagging Condition Groups
+          description: 定义基于权重的标记条件组
+          x-description-i18n:
+            en-US: Defines weight-based tagging condition groups
+          items:
+            type: object
+            properties:
+              headerName:
+                type: string
+                title: HTTP 头名称
+                x-title-i18n:
+                  en-US: HTTP Header Name
+                description: 要添加或修改的 HTTP 头名称
+                x-description-i18n:
+                  en-US: The HTTP header name to be added or modified
+              headerValue:
+                type: string
+                title: HTTP 头的值
+                x-title-i18n:
+                  en-US: HTTP Header Value
+                description: HTTP 头的值
+                x-description-i18n:
+                  en-US: The value of the HTTP header
+              weight:
+                type: integer
+                title: 流量权重
+                x-title-i18n:
+                  en-US: Traffic Weight
+                description: 流量权重百分比
+                x-description-i18n:
+                  en-US: Traffic weight percentage
+        defaultTagKey:
+          type: string
+          title: 默认标记键名
+          x-title-i18n:
+            en-US: Default Tag Key
+          description: 默认的标记键名，当未匹配到任何条件时使用。当且仅当同时配置了 defaultTagVal 时生效
+          x-description-i18n:
+            en-US: Default tagging key name used when no conditions are matched. Only effective when defaultTagVal is also configured
+        defaultTagVal:
+          type: string
+          title: 默认标记值
+          x-title-i18n:
+            en-US: Default Tag Value
+          description: 默认的标记值，当未匹配到任何条件时使用。当且仅当同时配置了 defaultTagKey 时生效
+          x-description-i18n:
+            en-US: Default tagging value used when no conditions are matched. Only effective when defaultTagKey is also configured
       example:
         conditionGroups:
           - headerName: x-mse-tag
@@ -46,7 +178,139 @@ spec:
                   - editor
   routeConfigSchema:
     openAPIV3Schema:
-      # 域名/路由级配置示例字段
+      type: object
+      properties:
+        conditionGroups:
+          type: array
+          title: 基于内容的标记条件组
+          x-title-i18n:
+            en-US: Content-based Tagging Condition Groups
+          description: 定义基于内容的标记条件组
+          x-description-i18n:
+            en-US: Defines content-based tagging condition groups
+          items:
+            type: object
+            properties:
+              headerName:
+                type: string
+                title: HTTP 头名称
+                x-title-i18n:
+                  en-US: HTTP Header Name
+                description: 要添加或修改的 HTTP 头名称
+                x-description-i18n:
+                  en-US: The HTTP header name to be added or modified
+              headerValue:
+                type: string
+                title: HTTP 头的值
+                x-title-i18n:
+                  en-US: HTTP Header Value
+                description: HTTP 头的值
+                x-description-i18n:
+                  en-US: The value of the HTTP header
+              logic:
+                type: string
+                title: 逻辑关系
+                x-title-i18n:
+                  en-US: Logical Relationship
+                description: 条件组中的逻辑关系，支持 and、or，必须为小写字母
+                x-description-i18n:
+                  en-US: Logical relationship in the condition group, supports 'and', 'or', must be in lowercase
+              conditions:
+                type: array
+                title: 标记条件
+                x-title-i18n:
+                  en-US: Tagging Conditions
+                description: 描述具体的标记条件
+                x-description-i18n:
+                  en-US: Describes specific tagging conditions
+                items:
+                  type: object
+                  properties:
+                    conditionType:
+                      type: string
+                      title: 条件类型
+                      x-title-i18n:
+                        en-US: Condition Type
+                      description: 条件类型，支持 header、parameter、cookie
+                      x-description-i18n:
+                        en-US: Condition type, supports 'header', 'parameter', 'cookie'
+                    key:
+                      type: string
+                      title: 条件关键字
+                      x-title-i18n:
+                        en-US: Condition Key
+                      description: 条件的关键字
+                      x-description-i18n:
+                        en-US: The key of the condition
+                    operator:
+                      type: string
+                      title: 操作符
+                      x-title-i18n:
+                        en-US: Operator
+                      description: 操作符，支持 equal、not_equal、prefix、in、not_in、regex、percentage
+                      x-description-i18n:
+                        en-US: Operator, supports 'equal', 'not_equal', 'prefix', 'in', 'not_in', 'regex', 'percentage'
+                    value:
+                      type: array
+                      items:
+                        type: string
+                      title: 条件值
+                      x-title-i18n:
+                        en-US: Condition Value
+                      description: 条件的值，仅当操作符为 in 和 not_in 时支持配置多个值
+                      x-description-i18n:
+                        en-US: The value of the condition. Only when the operator is 'in' and 'not_in' multiple values are supported
+        weightGroups:
+          type: array
+          title: 基于权重的标记条件组
+          x-title-i18n:
+            en-US: Weight-based Tagging Condition Groups
+          description: 定义基于权重的标记条件组
+          x-description-i18n:
+            en-US: Defines weight-based tagging condition groups
+          items:
+            type: object
+            properties:
+              headerName:
+                type: string
+                title: HTTP 头名称
+                x-title-i18n:
+                  en-US: HTTP Header Name
+                description: 要添加或修改的 HTTP 头名称
+                x-description-i18n:
+                  en-US: The HTTP header name to be added or modified
+              headerValue:
+                type: string
+                title: HTTP 头的值
+                x-title-i18n:
+                  en-US: HTTP Header Value
+                description: HTTP 头的值
+                x-description-i18n:
+                  en-US: The value of the HTTP header
+              weight:
+                type: integer
+                title: 流量权重
+                x-title-i18n:
+                  en-US: Traffic Weight
+                description: 流量权重百分比
+                x-description-i18n:
+                  en-US: Traffic weight percentage
+        defaultTagKey:
+          type: string
+          title: 默认标记键名
+          x-title-i18n:
+            en-US: Default Tag Key
+          description: 默认的标记键名，当未匹配到任何条件时使用。当且仅当同时配置了 defaultTagVal 时生效
+          x-description-i18n:
+            en-US: Default tagging key name used when no conditions are matched. Only effective when defaultTagVal is also configured
+        defaultTagVal:
+          type: string
+          title: 默认标记值
+          x-title-i18n:
+            en-US: Default Tag Value
+          description: 默认的标记值，当未匹配到任何条件时使用。当且仅当同时配置了 defaultTagKey 时生效
+          x-description-i18n:
+            en-US: Default tagging value used when no conditions are matched. Only effective when defaultTagKey is also configured
       example:
         conditionGroups:
           - headerName: x-mse-tag

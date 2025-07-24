@@ -23,13 +23,135 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: array
+          title: 授权访问的调用方列表
+          x-title-i18n:
+            en-US: Allowed Consumers
+          description: 对于符合匹配条件的请求，配置允许访问的 consumer，从而实现细粒度的权限控制
+          x-description-i18n:
+            en-US: For requests that match the conditions, configure the allowed consumers to achieve fine-grained permission control
+          items:
+            type: string
+            example:
+              - consumer1
       example:
-        allows:
+        allow:
         - consumer1
         - consumer2        
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        consumers:
+          type: array
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 配置服务的调用者，用于对请求进行认证
+          x-description-i18n:
+            en-US: Configures the callers of the service for request authentication
+          items:
+            type: object
+            required: [name, client_id, client_secret]
+            properties:
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 配置该consumer的名称
+                x-description-i18n:
+                  en-US: Configures the name of the consumer
+              client_id:
+                type: string
+                title: 客户端ID
+                x-title-i18n:
+                  en-US: Client ID
+                description: OAuth2 client id
+                x-description-i18n:
+                  en-US: OAuth2 client id
+              client_secret:
+                type: string
+                title: 客户端密钥
+                x-title-i18n:
+                  en-US: Client Secret
+                description: OAuth2 client secret
+                x-description-i18n:
+                  en-US: OAuth2 client secret
+        issuer:
+          type: string
+          title: 签发者
+          x-title-i18n:
+            en-US: Issuer
+          description: 用于填充JWT中的issuer
+          x-description-i18n:
+            en-US: Used to fill the issuer in the JWT
+          default: Higress-Gateway
+        auth_path:
+          type: string
+          title: 认证路径
+          x-title-i18n:
+            en-US: Authentication Path
+          description: 指定路径后缀用于签发Token，路由级配置时，要确保首先能匹配对应的路由
+          x-description-i18n:
+            en-US: Specifies the path suffix for issuing Tokens. When configured at the routing level, ensure it matches the corresponding route first
+          default: /oauth2/token
+        global_credentials:
+          type: boolean
+          title: 全局凭证
+          x-title-i18n:
+            en-US: Global Credentials
+          description: 在通过 consumer 认证的前提下，允许任意路由签发的凭证访问
+          x-description-i18n:
+            en-US: Allows any route to issue credentials for access under the condition of authentication through the consumer
+          default: true
+        auth_header_name:
+          type: string
+          title: 认证头名称
+          x-title-i18n:
+            en-US: Authentication Header Name
+          description: 用于指定从哪个请求头获取JWT
+          x-description-i18n:
+            en-US: Specifies which request header to retrieve the JWT from
+          default: Authorization
+        token_ttl:
+          type: number
+          title: Token有效期
+          x-title-i18n:
+            en-US: Token TTL
+          description: token从签发后多久内有效，单位为秒
+          x-description-i18n:
+            en-US: The time duration in seconds for which the token is valid after issuance
+          default: 7200
+        clock_skew_seconds:
+          type: number
+          title: 时钟偏移量
+          x-title-i18n:
+            en-US: Clock Skew
+          description: 校验JWT的exp和iat字段时允许的时钟偏移量，单位为秒
+          x-description-i18n:
+            en-US: Allowed clock skew when verifying the exp and iat fields of the JWT, in seconds
+          default: 60
+        keep_token:
+          type: boolean
+          title: 保留Token
+          x-title-i18n:
+            en-US: Keep Token
+          description: 转发给后端时是否保留JWT
+          x-description-i18n:
+            en-US: Indicates whether to keep the JWT when forwarding to the backend
+          default: true
+        global_auth:
+          type: boolean
+          x-scope: GLOBAL
+          title: 是否开启全局认证
+          x-title-i18n:
+            en-US: Enable Global Auth
+          description: 若配置为true，则全局生效认证机制; 若配置为false，则只对做了配置的域名和路由生效认证机制; 若不配置则仅当没有域名和路由配置时全局生效
+          x-description-i18n:
+            en-US: If set to true, the global authentication mechanism takes effect; if false, the authentication mechanism only takes effect for configured domains and routes; if not configured, global effect occurs only when there are no domain and route configurations
       example:
         global_auth: false
         consumers:

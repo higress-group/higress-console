@@ -21,6 +21,240 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        cookie_name:
+          type: string
+          title: Cookie 名称
+          x-title-i18n:
+            en-US: Cookie Name
+          description: oauth_proxy 创建的 cookie 名称。如果设置了 cookie-secure，应该使用 cookie 前缀（__Host- 或 __Secure-）
+          x-description-i18n:
+            en-US: The name of the cookie that the oauth_proxy creates. Should be changed to use a cookie prefix (__Host- or __Secure-) if cookie-secure is set
+          default: "_oauth2_proxy"
+        cookie_secret:
+          type: string
+          title: Cookie 密钥
+          x-title-i18n:
+            en-US: Cookie Secret
+          description: 用于安全 cookie 的种子字符串（可选择 base64 编码）
+          x-description-i18n:
+            en-US: The seed string for secure cookies (optionally base64 encoded)
+        cookie_domains:
+          type: array
+          title: Cookie 域名
+          x-title-i18n:
+            en-US: Cookie Domains
+          description: 可选的强制 cookie 域名（例如 .yourcompany.com）。将使用与请求主机匹配的最长域名（如果没有匹配则使用最短的 cookie 域名）
+          x-description-i18n:
+            en-US: Optional cookie domains to force cookies to (e.g. .yourcompany.com). The longest domain matching the request's host will be used (or the shortest cookie domain if there is no match)
+          items:
+            type: string
+        cookie_path:
+          type: string
+          title: Cookie 路径
+          x-title-i18n:
+            en-US: Cookie Path
+          description: 可选的强制 cookie 路径（例如 /poc/）
+          x-description-i18n:
+            en-US: An optional cookie path to force cookies to (e.g. /poc/)
+          default: "/"
+        cookie_expire:
+          type: string
+          title: Cookie 过期时间
+          x-title-i18n:
+            en-US: Cookie Expire
+          description: cookie 的过期时间。如果设置为 0，cookie 将成为会话 cookie，在浏览器关闭时过期
+          x-description-i18n:
+            en-US: Expire timeframe for cookie. If set to 0, cookie becomes a session-cookie which will expire when the browser is closed
+          default: "168h0m0s"
+        cookie_refresh:
+          type: string
+          title: Cookie 刷新时间
+          x-title-i18n:
+            en-US: Cookie Refresh
+          description: 在此持续时间后刷新 cookie；0 表示禁用
+          x-description-i18n:
+            en-US: Refresh the cookie after this duration; 0 to disable
+        cookie_secure:
+          type: boolean
+          title: Cookie 安全标志
+          x-title-i18n:
+            en-US: Cookie Secure Flag
+          description: 设置安全（仅 HTTPS）cookie 标志
+          x-description-i18n:
+            en-US: Set secure (HTTPS only) cookie flag
+          default: true
+        cookie_httponly:
+          type: boolean
+          title: HttpOnly Cookie 标志
+          x-title-i18n:
+            en-US: HttpOnly Cookie Flag
+          description: 设置 HttpOnly cookie 标志
+          x-description-i18n:
+            en-US: Set HttpOnly cookie flag
+          default: true
+        cookie_samesite:
+          type: string
+          title: SameSite Cookie 属性
+          x-title-i18n:
+            en-US: SameSite Cookie Attribute
+          description: 设置 SameSite cookie 属性（"lax"、"strict"、"none" 或 ""）
+          x-description-i18n:
+            en-US: Set SameSite cookie attribute ("lax", "strict", "none", or "")
+          default: ""
+        cookie_csrf_per_request:
+          type: boolean
+          title: 每个请求的 CSRF Cookie
+          x-title-i18n:
+            en-US: CSRF Cookie Per Request
+          description: 启用每个请求使用不同的 CSRF cookie，使并行请求成为可能
+          x-description-i18n:
+            en-US: Enable having different CSRF cookies per request, making it possible to have parallel requests
+          default: false
+        cookie_csrf_expire:
+          type: string
+          title: CSRF Cookie 过期时间
+          x-title-i18n:
+            en-US: CSRF Cookie Expire
+          description: CSRF cookie 的过期时间
+          x-description-i18n:
+            en-US: Expire timeframe for CSRF cookie
+          default: "15m"
+        client_id:
+          type: string
+          title: OAuth 客户端 ID
+          x-title-i18n:
+            en-US: OAuth Client ID
+          description: OAuth 客户端 ID
+          x-description-i18n:
+            en-US: The OAuth Client ID
+        client_secret:
+          type: string
+          title: OAuth 客户端密钥
+          x-title-i18n:
+            en-US: OAuth Client Secret
+          description: OAuth 客户端密钥
+          x-description-i18n:
+            en-US: The OAuth Client Secret
+        provider:
+          type: string
+          title: OAuth 提供商
+          x-title-i18n:
+            en-US: OAuth Provider
+          description: OAuth 提供商
+          x-description-i18n:
+            en-US: OAuth provider
+          default: "oidc"
+        pass_authorization_header:
+          type: boolean
+          title: 传递授权头
+          x-title-i18n:
+            en-US: Pass Authorization Header
+          description: 通过 Authorization Bearer 头部将 OIDC IDToken 传递给上游
+          x-description-i18n:
+            en-US: Pass OIDC IDToken to upstream via Authorization Bearer header
+          default: true
+        oidc_issuer_url:
+          type: string
+          title: OIDC 签发者 URL
+          x-title-i18n:
+            en-US: OIDC Issuer URL
+          description: OpenID Connect 签发者 URL，例如 "https://dev-o43xb1mz7ya7ach4.us.auth0.com"
+          x-description-i18n:
+            en-US: The OpenID Connect issuer URL, e.g. "https://dev-o43xb1mz7ya7ach4.us.auth0.com"
+        oidc_verifier_request_timeout:
+          type: integer
+          title: OIDC 验证请求超时
+          x-title-i18n:
+            en-US: OIDC Verifier Request Timeout
+          description: OIDC 验证器发现请求超时时间
+          x-description-i18n:
+            en-US: OIDC verifier discovery request timeout
+          default: 2000
+        scope:
+          type: string
+          title: OAuth 作用域
+          x-title-i18n:
+            en-US: OAuth Scope
+          description: OAuth 作用域规范
+          x-description-i18n:
+            en-US: OAuth scope specification
+        redirect_url:
+          type: string
+          title: OAuth 重定向 URL
+          x-title-i18n:
+            en-US: OAuth Redirect URL
+          description: OAuth 重定向 URL，例如 "https://internalapp.yourcompany.com/oauth2/callback"
+          x-description-i18n:
+            en-US: The OAuth Redirect URL, e.g. "https://internalapp.yourcompany.com/oauth2/callback"
+        service_name:
+          type: string
+          title: OIDC 服务名称
+          x-title-i18n:
+            en-US: OIDC Service Name
+          description: 已注册的 OIDC 服务名称，例如 auth.dns, keycloak.static
+          x-description-i18n:
+            en-US: Registered name of the OIDC service, e.g. auth.dns, keycloak.static
+        service_port:
+          type: integer
+          title: OIDC 服务端口
+          x-title-i18n:
+            en-US: OIDC Service Port
+          description: OIDC 服务端口
+          x-description-i18n:
+            en-US: Service port of the OIDC service
+        service_host:
+          type: string
+          title: OIDC 服务主机
+          x-title-i18n:
+            en-US: OIDC Service Host
+          description: 当类型为静态 IP 时的 OIDC 服务主机
+          x-description-i18n:
+            en-US: Host of the OIDC service when type is static IP
+        match_type:
+          type: string
+          title: 匹配类型
+          x-title-i18n:
+            en-US: Match Type
+          description: 匹配类型（whitelist 或 blacklist）
+          x-description-i18n:
+            en-US: Match type (whitelist or blacklist)
+          default: "whitelist"
+        match_list:
+          type: array
+          title: 匹配规则列表
+          x-title-i18n:
+            en-US: Match Rule List
+          description: 匹配规则列表（包含 match_rule_domain、match_rule_path 和 match_rule_type）
+          x-description-i18n:
+            en-US: A list of (match_rule_domain, match_rule_path, and match_rule_type)
+          items:
+            type: object
+            properties:
+              match_rule_domain:
+                type: string
+                title: 匹配规则域名
+                x-title-i18n:
+                  en-US: Match Rule Domain
+                description: 匹配规则域名，支持通配符模式，如 *.bar.com
+                x-description-i18n:
+                  en-US: Match rule domain, support wildcard pattern such as *.bar.com
+              match_rule_path:
+                type: string
+                title: 匹配规则路径
+                x-title-i18n:
+                  en-US: Match Rule Path
+                description: 匹配规则路径，如 /headers
+                x-description-i18n:
+                  en-US: Match rule path such as /headers
+              match_rule_type:
+                type: string
+                title: 匹配规则类型
+                x-title-i18n:
+                  en-US: Match Rule Type
+                description: 匹配规则类型可以是 exact、prefix 或 regex
+                x-description-i18n:
+                  en-US: Match rule type can be exact or prefix or regex
       example:
         redirect_url: 'http://foo.bar.com/oauth2/callback'
         oidc_issuer_url: 'https://dev-o43xb1mz7ya7ach4.us.auth0.com/'
@@ -38,6 +272,16 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: boolean
+          title: 启用 OIDC 认证
+          x-title-i18n:
+            en-US: Enable OIDC Authentication
+          description: 是否在此路由上启用 OIDC 认证
+          x-description-i18n:
+            en-US: Whether to enable OIDC authentication on this route
+          default: true
       example:
         redirect_url: 'http://foo.bar.com/oauth2/callback'
         oidc_issuer_url: 'https://dev-o43xb1mz7ya7ach4.us.auth0.com/'

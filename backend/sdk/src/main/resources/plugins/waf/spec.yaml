@@ -23,10 +23,62 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        useCRS:
+          type: boolean
+          title: Enable OWASP CRS
+          x-title-i18n:
+            zh-CN: 启用 OWASP CRS
+          description: Whether to enable OWASP CRS, for details refer to coreruleset
+          x-description-i18n:
+            zh-CN: 是否开启 OWASP CRS，详情可参考 coreruleset
+          default: false
+        secRules:
+          type: array
+          title: WAF Protection Rules
+          x-title-i18n:
+            zh-CN: WAF 防护规则
+          description: User-defined WAF protection rules, syntax rules can refer to ModSecurity Chinese Manual
+          x-description-i18n:
+            zh-CN: 用户自定义的 waf 防护规则，语法规则可参考 ModSecurity 中文手册
+          items:
+            type: string
       example:
         useCRS: true
+        secRules:
+          - "SecDebugLogLevel 3"
+          - "SecRuleEngine On"
+          - "SecAction \"id:100,phase:1,pass\""
+          - "SecRule REQUEST_URI \"@streq /admin\" \"id:101,phase:1,t:lowercase,deny\""
+          - "SecRule REQUEST_BODY \"@rx maliciouspayload\" \"id:102,phase:2,t:lowercase,deny\""
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        useCRS:
+          type: boolean
+          title: Enable OWASP CRS
+          x-title-i18n:
+            zh-CN: 启用 OWASP CRS
+          description: Whether to enable OWASP CRS, for details refer to coreruleset
+          x-description-i18n:
+            zh-CN: 是否开启 OWASP CRS，详情可参考 coreruleset
+          default: false
+        secRules:
+          type: array
+          title: WAF Protection Rules
+          x-title-i18n:
+            zh-CN: WAF 防护规则
+          description: User-defined WAF protection rules, syntax rules can refer to ModSecurity Chinese Manual
+          x-description-i18n:
+            zh-CN: 用户自定义的 waf 防护规则，语法规则可参考 ModSecurity 中文手册
+          items:
+            type: string
       example:
         useCRS: true
+        secRules:
+          - "SecDebugLogLevel 3"
+          - "SecRuleEngine On"
+          - "SecAction \"id:100,phase:1,pass\""
+          - "SecRule REQUEST_URI \"@streq /admin\" \"id:101,phase:1,t:lowercase,deny\""
+          - "SecRule REQUEST_BODY \"@rx maliciouspayload\" \"id:102,phase:2,t:lowercase,deny\""
