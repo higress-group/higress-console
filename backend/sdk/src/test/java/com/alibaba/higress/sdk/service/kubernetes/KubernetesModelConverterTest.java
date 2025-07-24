@@ -13,6 +13,8 @@
 
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import io.kubernetes.client.openapi.ApiException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +85,7 @@ public class KubernetesModelConverterTest {
     private KubernetesModelConverter converter;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ApiException {
         final Predicate<V1ObjectMeta> isDefinedByConsole = metadata -> metadata != null
             && DEFAULT_NAMESPACE.equals(metadata.getNamespace()) && KubernetesConstants.Label.RESOURCE_DEFINER_VALUE
                 .equals(KubernetesUtil.getLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY));
@@ -94,6 +97,15 @@ public class KubernetesModelConverterTest {
         });
         when(service.isDefinedByConsole(any(V1ObjectMeta.class)))
             .thenAnswer((Answer<Boolean>)invocation -> isDefinedByConsole.test(invocation.getArgument(0)));
+        V1ConfigMap coreConfigMap = mock(V1ConfigMap.class);
+        Map<String, String> data = new HashMap<>();
+        data.put(KubernetesConstants.K8S_ENABLE_HTTPS, "force");
+        data.put(KubernetesConstants.K8S_CERT, "cert");
+        when(coreConfigMap.getData())
+                .thenReturn(data);
+        when(service.readConfigMap(eq("domain-higress.ai")))
+                .thenReturn(coreConfigMap);
+
         converter = new KubernetesModelConverter(service);
     }
 
@@ -389,16 +401,6 @@ public class KubernetesModelConverterTest {
     }
 
     @Test
-    void route2IngressTestMultipleDomainsThrowsException() {
-        Route route = new Route();
-        route.setDomains(Collections.singletonList("higress.cn"));
-        route.setPath(RoutePredicate.builder().matchType("exact").matchValue("/test").build());
-        route.setServices(Collections.singletonList(new UpstreamService()));
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
-    }
-
-    @Test
     void route2IngressTestInvalidPathMatchTypeThrowsException() {
         Route route = new Route();
         route.setDomains(Collections.singletonList("higress.cn"));
@@ -406,6 +408,21 @@ public class KubernetesModelConverterTest {
         route.setServices(Collections.singletonList(new UpstreamService()));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
+    }
+
+    @Test
+    void route2IngressTestMultipleDomains() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add("higress.cn");
+        domains.add("higress.ai");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        V1Ingress ingress = converter.route2Ingress(route);
+        Assertions.assertEquals(2, ingress.getSpec().getRules().size());
+        Assertions.assertEquals(1, ingress.getSpec().getTls().size());
     }
 
     @Test

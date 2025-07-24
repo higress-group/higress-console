@@ -1489,11 +1489,7 @@ public class KubernetesModelConverter {
             domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
 
-        if (domains.size() > 1) {
-            throw new IllegalArgumentException("Only one domain is allowed.");
-        }
-
-        List<V1IngressTLS> tlses = null;
+        List<V1IngressTLS> tlses = new ArrayList<>();
         for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
@@ -1526,37 +1522,40 @@ public class KubernetesModelConverter {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
-            if (tlses == null) {
-                tlses = new ArrayList<>();
-                spec.setTls(tlses);
-            }
             tlses.add(tls);
 
+            // 这里不确定强制开启https是否会影响http
             if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
                     KubernetesConstants.Annotation.TRUE_VALUE);
             }
         }
+        if(CollectionUtils.isNotEmpty(tlses)) {
+            spec.setTls(tlses);
+        }
     }
 
     private static void fillIngressRules(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
-        V1IngressRule rule = new V1IngressRule();
-        spec.setRules(Collections.singletonList(rule));
+        List<String> domains = route.getDomains();
+        if(CollectionUtils.isEmpty(domains)) {
+            domains = Collections.singletonList(null);
+        }
 
-        if (CollectionUtils.isNotEmpty(route.getDomains())) {
-            if (route.getDomains().size() > 1) {
-                throw new IllegalArgumentException("Only one domain is allowed.");
+        List<V1IngressRule> rules = domains.stream().map(d -> {
+            V1IngressRule rule = new V1IngressRule();
+            rule.setHost(d);
+            V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
+            rule.setHttp(httpRule);
+
+            RoutePredicate pathPredicate = route.getPath();
+            if (pathPredicate != null) {
+                fillHttpPathRule(metadata, httpRule, pathPredicate);
             }
-            rule.setHost(route.getDomains().get(0));
-        }
+            return rule;
+        }).collect(Collectors.toList());
 
-        V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
-        rule.setHttp(httpRule);
+        spec.setRules(rules);
 
-        RoutePredicate pathPredicate = route.getPath();
-        if (pathPredicate != null) {
-            fillHttpPathRule(metadata, httpRule, pathPredicate);
-        }
     }
 
     private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule,

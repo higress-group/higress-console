@@ -105,7 +105,11 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
     const initValues = {
       name,
-      domains: domains?.length ? domains[0] : [],
+      domains: Array.isArray(domains)
+        ? domains.filter(d => !!d)
+        : domains
+          ? [domains]
+          : [],
       pathPredicate: Object.assign({ ...pathPredicate }, { ignoreCase: pathPredicate.caseSensitive === false ? ['ignore'] : [] }),
       headerPredicates,
       urlParamPredicates,
@@ -261,7 +265,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
           name="domains"
           extra={(<HistoryButton text={t("domain.createDomain")} path={"/domain"} />)}
         >
-          <Select allowClear>
+          <Select allowClear mode="multiple">
             {domainList.map((item) => (<Select.Option key={item.name} value={item.name}>{item.name}</Select.Option>))}
           </Select>
         </Form.Item>
