@@ -21,27 +21,257 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        needReference:
+          type: boolean
+          title: 引用来源
+          x-title-i18n:
+            en-US: Reference Sources
+          description: 是否在回答中添加引用来源
+          x-description-i18n:
+            en-US: Whether to add reference sources in the response
+          default: false
+        referenceFormat:
+          type: string
+          title: 引用格式
+          x-title-i18n:
+            en-US: Reference Format
+          description: 引用内容格式，必须包含%s占位符
+          x-description-i18n:
+            en-US: Reference content format, must include %s placeholder
+          default: "**References:**\n%s"
+        defaultLang:
+          type: string
+          title: 默认语言
+          x-title-i18n:
+            en-US: Default Language
+          description: 默认搜索语言代码（如zh-CN/en-US）
+          x-description-i18n:
+            en-US: Default search language code (e.g. zh-CN/en-US)
+        promptTemplate:
+          type: string
+          title: 提示模板
+          x-title-i18n:
+            en-US: Prompt Template
+          description: 提示模板，必须包含{search_results}和{question}占位符
+          x-description-i18n:
+            en-US: Prompt template, must include {search_results} and {question} placeholders
+        searchFrom:
+          type: array
+          title: 搜索引擎配置
+          x-title-i18n:
+            en-US: Search Engine Configuration
+          description: 搜索引擎配置列表，至少配置一个引擎
+          x-description-i18n:
+            en-US: Search engine configuration list, at least one engine must be configured
+          items:
+            type: object
+            required: [type, serviceName, servicePort, apiKey]
+            properties:
+              type:
+                type: string
+                title: 引擎类型
+                x-title-i18n:
+                  en-US: Engine Type
+                description: 引擎类型（google/bing/arxiv/elasticsearch/quark）
+                x-description-i18n:
+                  en-US: Engine type (google/bing/arxiv/elasticsearch/quark)
+              apiKey:
+                type: string
+                title: API密钥
+                x-title-i18n:
+                  en-US: API Key
+                description: 搜索引擎API密钥/Aliyun AccessKey
+                x-description-i18n:
+                  en-US: Search engine API key/Aliyun AccessKey
+              serviceName:
+                type: string
+                title: 服务名称
+                x-title-i18n:
+                  en-US: Service Name
+                description: 后端服务名称
+                x-description-i18n:
+                  en-US: Backend service name
+              servicePort:
+                type: integer
+                title: 服务端口
+                x-title-i18n:
+                  en-US: Service Port
+                description: 后端服务端口
+                x-description-i18n:
+                  en-US: Backend service port
+              count:
+                type: integer
+                title: 结果数量
+                x-title-i18n:
+                  en-US: Result Count
+                description: 单次搜索返回结果数量
+                x-description-i18n:
+                  en-US: Number of results returned per search
+                default: 10
+              start:
+                type: integer
+                title: 结果偏移量
+                x-title-i18n:
+                  en-US: Result Offset
+                description: 搜索结果偏移量（从第start+1条结果开始返回）
+                x-description-i18n:
+                  en-US: Search result offset (start returning from the start+1 result)
+                default: 0
+              timeoutMillisecond:
+                type: integer
+                title: 超时时间
+                x-title-i18n:
+                  en-US: Timeout
+                description: API调用超时时间（毫秒）
+                x-description-i18n:
+                  en-US: API call timeout (milliseconds)
+                default: 5000
+              optionArgs:
+                type: object
+                title: 特定参数
+                x-title-i18n:
+                  en-US: Specific Parameters
+                description: 搜索引擎特定参数（key-value格式）
+                x-description-i18n:
+                  en-US: Search engine specific parameters (key-value format)
+              cx:
+                type: string
+                title: 搜索引擎ID
+                x-title-i18n:
+                  en-US: Search Engine ID
+                description: Google自定义搜索引擎ID，用于指定搜索范围
+                x-description-i18n:
+                  en-US: Google Custom Search Engine ID, used to specify search scope
+              arxivCategory:
+                type: string
+                title: 论文类别
+                x-title-i18n:
+                  en-US: Paper Category
+                description: 搜索的论文类别（如cs.AI, cs.CL等）
+                x-description-i18n:
+                  en-US: Search paper category (e.g. cs.AI, cs.CL etc.)
+              index:
+                type: string
+                title: 索引名称
+                x-title-i18n:
+                  en-US: Index Name
+                description: 要搜索的Elasticsearch索引名称
+                x-description-i18n:
+                  en-US: Elasticsearch index name to search
+              contentField:
+                type: string
+                title: 内容字段
+                x-title-i18n:
+                  en-US: Content Field
+                description: 要查询的内容字段名称
+                x-description-i18n:
+                  en-US: Content field name to query
+              linkField:
+                type: string
+                title: 链接字段
+                x-title-i18n:
+                  en-US: Link Field
+                description: 结果链接字段名称
+                x-description-i18n:
+                  en-US: Result link field name
+              titleField:
+                type: string
+                title: 标题字段
+                x-title-i18n:
+                  en-US: Title Field
+                description: 结果标题字段名称
+                x-description-i18n:
+                  en-US: Result title field name
+              contentMode:
+                type: string
+                title: 内容模式
+                x-title-i18n:
+                  en-US: Content Mode
+                description: 内容模式："summary"使用摘要(snippet)，"full"使用正文
+                x-description-i18n:
+                  en-US: Content mode: "summary" uses snippet, "full" uses full text
+                default: "summary"
+        searchRewrite:
+          type: object
+          title: 搜索重写配置
+          x-title-i18n:
+            en-US: Search Rewrite Configuration
+          description: 搜索重写配置，用于使用LLM服务优化搜索查询
+          x-description-i18n:
+            en-US: Search rewrite configuration, used to optimize search queries using an LLM service
+          properties:
+            llmServiceName:
+              type: string
+              title: LLM服务名称
+              x-title-i18n:
+                en-US: LLM Service Name
+              description: LLM服务名称
+              x-description-i18n:
+                en-US: LLM service name
+            llmServicePort:
+              type: integer
+              title: LLM服务端口
+              x-title-i18n:
+                en-US: LLM Service Port
+              description: LLM服务端口
+              x-description-i18n:
+                en-US: LLM service port
+            llmApiKey:
+              type: string
+              title: LLM API密钥
+              x-title-i18n:
+                en-US: LLM API Key
+              description: LLM服务API密钥
+              x-description-i18n:
+                en-US: LLM service API key
+            llmUrl:
+              type: string
+              title: LLM服务地址
+              x-title-i18n:
+                en-US: LLM Service URL
+              description: LLM服务API地址
+              x-description-i18n:
+                en-US: LLM service API URL
+            llmModelName:
+              type: string
+              title: LLM模型名称
+              x-title-i18n:
+                en-US: LLM Model Name
+              description: LLM模型名称
+              x-description-i18n:
+                en-US: LLM model name
+            timeoutMillisecond:
+              type: integer
+              title: 超时时间
+              x-title-i18n:
+                en-US: Timeout
+              description: API调用超时时间（毫秒）
+              x-description-i18n:
+                en-US: API call timeout (milliseconds)
+              default: 30000
+      required: [searchFrom]
       example:
-        needReference: true # Set to true to include web page reference information in results
-        searchFrom: # Below is a list of configured search engine options; only configure the ones you need
+        needReference: true
+        searchFrom:
         - type: quark
-          apiKey: "your-quark-api-key" # Replace with your key
+          apiKey: "your-quark-api-key"
           serviceName: "quark.dns"
           servicePort: 443
         - type: google
-          apiKey: "your-google-api-key" # Replace with your key
-          cx: "your-search-engine-id" # Replace with your engine id
+          apiKey: "your-google-api-key"
+          cx: "your-search-engine-id"
           serviceName: "google.dns"
           servicePort: 443
         - type: bing
-          apiKey: "bing-key" # Replace with your key
+          apiKey: "bing-key"
           serviceName: "bing.dns"
           servicePort: 443
         - type: arxiv
           serviceName: "arxiv.dns"
           servicePort: 443
         searchRewrite:
-          llmApiKey: "your-deepseek-api-key" # Replace with your key
+          llmApiKey: "your-deepseek-api-key"
           llmModelName: "deepseek-chat"
           llmServiceName: "llm-deepseek.internal.dns"
           llmServicePort: 443
@@ -49,27 +279,257 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        needReference:
+          type: boolean
+          title: 引用来源
+          x-title-i18n:
+            en-US: Reference Sources
+          description: 是否在回答中添加引用来源
+          x-description-i18n:
+            en-US: Whether to add reference sources in the response
+          default: false
+        referenceFormat:
+          type: string
+          title: 引用格式
+          x-title-i18n:
+            en-US: Reference Format
+          description: 引用内容格式，必须包含%s占位符
+          x-description-i18n:
+            en-US: Reference content format, must include %s placeholder
+          default: "**References:**\n%s"
+        defaultLang:
+          type: string
+          title: 默认语言
+          x-title-i18n:
+            en-US: Default Language
+          description: 默认搜索语言代码（如zh-CN/en-US）
+          x-description-i18n:
+            en-US: Default search language code (e.g. zh-CN/en-US)
+        promptTemplate:
+          type: string
+          title: 提示模板
+          x-title-i18n:
+            en-US: Prompt Template
+          description: 提示模板，必须包含{search_results}和{question}占位符
+          x-description-i18n:
+            en-US: Prompt template, must include {search_results} and {question} placeholders
+        searchFrom:
+          type: array
+          title: 搜索引擎配置
+          x-title-i18n:
+            en-US: Search Engine Configuration
+          description: 搜索引擎配置列表，至少配置一个引擎
+          x-description-i18n:
+            en-US: Search engine configuration list, at least one engine must be configured
+          items:
+            type: object
+            required: [type, serviceName, servicePort, apiKey]
+            properties:
+              type:
+                type: string
+                title: 引擎类型
+                x-title-i18n:
+                  en-US: Engine Type
+                description: 引擎类型（google/bing/arxiv/elasticsearch/quark）
+                x-description-i18n:
+                  en-US: Engine type (google/bing/arxiv/elasticsearch/quark)
+              apiKey:
+                type: string
+                title: API密钥
+                x-title-i18n:
+                  en-US: API Key
+                description: 搜索引擎API密钥/Aliyun AccessKey
+                x-description-i18n:
+                  en-US: Search engine API key/Aliyun AccessKey
+              serviceName:
+                type: string
+                title: 服务名称
+                x-title-i18n:
+                  en-US: Service Name
+                description: 后端服务名称
+                x-description-i18n:
+                  en-US: Backend service name
+              servicePort:
+                type: integer
+                title: 服务端口
+                x-title-i18n:
+                  en-US: Service Port
+                description: 后端服务端口
+                x-description-i18n:
+                  en-US: Backend service port
+              count:
+                type: integer
+                title: 结果数量
+                x-title-i18n:
+                  en-US: Result Count
+                description: 单次搜索返回结果数量
+                x-description-i18n:
+                  en-US: Number of results returned per search
+                default: 10
+              start:
+                type: integer
+                title: 结果偏移量
+                x-title-i18n:
+                  en-US: Result Offset
+                description: 搜索结果偏移量（从第start+1条结果开始返回）
+                x-description-i18n:
+                  en-US: Search result offset (start returning from the start+1 result)
+                default: 0
+              timeoutMillisecond:
+                type: integer
+                title: 超时时间
+                x-title-i18n:
+                  en-US: Timeout
+                description: API调用超时时间（毫秒）
+                x-description-i18n:
+                  en-US: API call timeout (milliseconds)
+                default: 5000
+              optionArgs:
+                type: object
+                title: 特定参数
+                x-title-i18n:
+                  en-US: Specific Parameters
+                description: 搜索引擎特定参数（key-value格式）
+                x-description-i18n:
+                  en-US: Search engine specific parameters (key-value format)
+              cx:
+                type: string
+                title: 搜索引擎ID
+                x-title-i18n:
+                  en-US: Search Engine ID
+                description: Google自定义搜索引擎ID，用于指定搜索范围
+                x-description-i18n:
+                  en-US: Google Custom Search Engine ID, used to specify search scope
+              arxivCategory:
+                type: string
+                title: 论文类别
+                x-title-i18n:
+                  en-US: Paper Category
+                description: 搜索的论文类别（如cs.AI, cs.CL等）
+                x-description-i18n:
+                  en-US: Search paper category (e.g. cs.AI, cs.CL etc.)
+              index:
+                type: string
+                title: 索引名称
+                x-title-i18n:
+                  en-US: Index Name
+                description: 要搜索的Elasticsearch索引名称
+                x-description-i18n:
+                  en-US: Elasticsearch index name to search
+              contentField:
+                type: string
+                title: 内容字段
+                x-title-i18n:
+                  en-US: Content Field
+                description: 要查询的内容字段名称
+                x-description-i18n:
+                  en-US: Content field name to query
+              linkField:
+                type: string
+                title: 链接字段
+                x-title-i18n:
+                  en-US: Link Field
+                description: 结果链接字段名称
+                x-description-i18n:
+                  en-US: Result link field name
+              titleField:
+                type: string
+                title: 标题字段
+                x-title-i18n:
+                  en-US: Title Field
+                description: 结果标题字段名称
+                x-description-i18n:
+                  en-US: Result title field name
+              contentMode:
+                type: string
+                title: 内容模式
+                x-title-i18n:
+                  en-US: Content Mode
+                description: 内容模式："summary"使用摘要(snippet)，"full"使用正文
+                x-description-i18n:
+                  en-US: Content mode: "summary" uses snippet, "full" uses full text
+                default: "summary"
+        searchRewrite:
+          type: object
+          title: 搜索重写配置
+          x-title-i18n:
+            en-US: Search Rewrite Configuration
+          description: 搜索重写配置，用于使用LLM服务优化搜索查询
+          x-description-i18n:
+            en-US: Search rewrite configuration, used to optimize search queries using an LLM service
+          properties:
+            llmServiceName:
+              type: string
+              title: LLM服务名称
+              x-title-i18n:
+                en-US: LLM Service Name
+              description: LLM服务名称
+              x-description-i18n:
+                en-US: LLM service name
+            llmServicePort:
+              type: integer
+              title: LLM服务端口
+              x-title-i18n:
+                en-US: LLM Service Port
+              description: LLM服务端口
+              x-description-i18n:
+                en-US: LLM service port
+            llmApiKey:
+              type: string
+              title: LLM API密钥
+              x-title-i18n:
+                en-US: LLM API Key
+              description: LLM服务API密钥
+              x-description-i18n:
+                en-US: LLM service API key
+            llmUrl:
+              type: string
+              title: LLM服务地址
+              x-title-i18n:
+                en-US: LLM Service URL
+              description: LLM服务API地址
+              x-description-i18n:
+                en-US: LLM service API URL
+            llmModelName:
+              type: string
+              title: LLM模型名称
+              x-title-i18n:
+                en-US: LLM Model Name
+              description: LLM模型名称
+              x-description-i18n:
+                en-US: LLM model name
+            timeoutMillisecond:
+              type: integer
+              title: 超时时间
+              x-title-i18n:
+                en-US: Timeout
+              description: API调用超时时间（毫秒）
+              x-description-i18n:
+                en-US: API call timeout (milliseconds)
+              default: 30000
+      required: [searchFrom]
       example:
-        needReference: true # Set to true to include web page reference information in results
-        searchFrom: # Below is a list of configured search engine options; only configure the ones you need
+        needReference: true
+        searchFrom:
         - type: quark
-          apiKey: "your-quark-api-key" # Replace with your key
+          apiKey: "your-quark-api-key"
           serviceName: "quark.dns"
           servicePort: 443
         - type: google
-          apiKey: "your-google-api-key" # Replace with your key
-          cx: "your-search-engine-id" # Replace with your engine id
+          apiKey: "your-google-api-key"
+          cx: "your-search-engine-id"
           serviceName: "google.dns"
           servicePort: 443
         - type: bing
-          apiKey: "bing-key" # Replace with your key
+          apiKey: "bing-key"
           serviceName: "bing.dns"
           servicePort: 443
         - type: arxiv
           serviceName: "arxiv.dns"
           servicePort: 443
         searchRewrite:
-          llmApiKey: "your-deepseek-api-key" # Replace with your key
+          llmApiKey: "your-deepseek-api-key"
           llmModelName: "deepseek-chat"
           llmServiceName: "llm-deepseek.internal.dns"
           llmServicePort: 443

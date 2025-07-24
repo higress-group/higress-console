@@ -21,31 +21,255 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        dashscope:
+          type: object
+          title: 通义千问服务配置
+          x-title-i18n:
+            en-US: Tongyi Qianwen Service Configuration
+          description: 通义千问服务的配置信息
+          x-description-i18n:
+            en-US: Configuration information for Tongyi Qianwen service
+          required: [apiKey, serviceFQDN, servicePort, serviceHost]
+          properties:
+            apiKey:
+              type: string
+              title: API密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问通义千问服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token used for authentication when accessing Tongyi Qianwen service
+            serviceFQDN:
+              type: string
+              title: 服务名
+              x-title-i18n:
+                en-US: Service Name
+              description: 通义千问服务名
+              x-description-i18n:
+                en-US: Tongyi Qianwen service name
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 通义千问服务端口
+              x-description-i18n:
+                en-US: Tongyi Qianwen service port
+            serviceHost:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Host
+              description: 访问通义千问服务时域名
+              x-description-i18n:
+                en-US: Domain name for accessing Tongyi Qianwen service
+        dashvector:
+          type: object
+          title: 阿里云向量检索服务配置
+          x-title-i18n:
+            en-US: Alibaba Cloud Vector Search Service Configuration
+          description: 阿里云向量检索服务的配置信息
+          x-description-i18n:
+            en-US: Configuration information for Alibaba Cloud Vector Search service
+          required: [apiKey, serviceFQDN, servicePort, serviceHost, topk, threshold, field]
+          properties:
+            apiKey:
+              type: string
+              title: API密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问阿里云向量检索服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token used for authentication when accessing Alibaba Cloud Vector Search Service
+            serviceFQDN:
+              type: string
+              title: 服务名
+              x-title-i18n:
+                en-US: Service Name
+              description: 阿里云向量检索服务名
+              x-description-i18n:
+                en-US: Alibaba Cloud Vector Search service name
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 阿里云向量检索服务端口
+              x-description-i18n:
+                en-US: Alibaba Cloud Vector Search service port
+            serviceHost:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Host
+              description: 访问阿里云向量检索服务时域名
+              x-description-i18n:
+                en-US: Domain name for accessing Alibaba Cloud Vector Search service
+            topk:
+              type: integer
+              title: 检索向量数
+              x-title-i18n:
+                en-US: Number of Vectors
+              description: 阿里云向量检索时获取向量数
+              x-description-i18n:
+                en-US: Number of vectors to retrieve from Alibaba Cloud Vector Search
+            threshold:
+              type: number
+              title: 向量距离阈值
+              x-title-i18n:
+                en-US: Vector Distance Threshold
+              description: 向量距离阈值，高于该阈值的文档会被过滤掉
+              x-description-i18n:
+                en-US: Vector distance threshold; documents above this threshold will be filtered out
+            field:
+              type: string
+              title: 文档字段名
+              x-title-i18n:
+                en-US: Document Field Name
+              description: 阿里云向量检索存储文档的字段名
+              x-description-i18n:
+                en-US: Field name where documents are stored in Alibaba Cloud Vector Search
+      required: [dashscope, dashvector]
       example:
         dashscope:
           apiKey: xxxxxxxxxxxxxxxxxxxx
           serviceName: dashscope
           servicePort: 443
-          domain: dashscope.aliyuncs.com
+          serviceHost: dashscope.aliyuncs.com
         dashvector:
           apiKey: xxxxxxxxxxxxxxxxxxxx
-          serviceName: dashvector
+          serviceFQDN: dashvector
           servicePort: 443
-          domain: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
-          collection: news_embedings
+          serviceHost: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
+          topk: 1
+          threshold: 0.4
+          field: raw
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        dashscope:
+          type: object
+          title: 通义千问服务配置
+          x-title-i18n:
+            en-US: Tongyi Qianwen Service Configuration
+          description: 通义千问服务的配置信息
+          x-description-i18n:
+            en-US: Configuration information for Tongyi Qianwen service
+          required: [apiKey, serviceFQDN, servicePort, serviceHost]
+          properties:
+            apiKey:
+              type: string
+              title: API密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问通义千问服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token used for authentication when accessing Tongyi Qianwen service
+            serviceFQDN:
+              type: string
+              title: 服务名
+              x-title-i18n:
+                en-US: Service Name
+              description: 通义千问服务名
+              x-description-i18n:
+                en-US: Tongyi Qianwen service name
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 通义千问服务端口
+              x-description-i18n:
+                en-US: Tongyi Qianwen service port
+            serviceHost:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Host
+              description: 访问通义千问服务时域名
+              x-description-i18n:
+                en-US: Domain name for accessing Tongyi Qianwen service
+        dashvector:
+          type: object
+          title: 阿里云向量检索服务配置
+          x-title-i18n:
+            en-US: Alibaba Cloud Vector Search Service Configuration
+          description: 阿里云向量检索服务的配置信息
+          x-description-i18n:
+            en-US: Configuration information for Alibaba Cloud Vector Search service
+          required: [apiKey, serviceFQDN, servicePort, serviceHost, topk, threshold, field]
+          properties:
+            apiKey:
+              type: string
+              title: API密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问阿里云向量检索服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token used for authentication when accessing Alibaba Cloud Vector Search Service
+            serviceFQDN:
+              type: string
+              title: 服务名
+              x-title-i18n:
+                en-US: Service Name
+              description: 阿里云向量检索服务名
+              x-description-i18n:
+                en-US: Alibaba Cloud Vector Search service name
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 阿里云向量检索服务端口
+              x-description-i18n:
+                en-US: Alibaba Cloud Vector Search service port
+            serviceHost:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Host
+              description: 访问阿里云向量检索服务时域名
+              x-description-i18n:
+                en-US: Domain name for accessing Alibaba Cloud Vector Search service
+            topk:
+              type: integer
+              title: 检索向量数
+              x-title-i18n:
+                en-US: Number of Vectors
+              description: 阿里云向量检索时获取向量数
+              x-description-i18n:
+                en-US: Number of vectors to retrieve from Alibaba Cloud Vector Search
+            threshold:
+              type: number
+              title: 向量距离阈值
+              x-title-i18n:
+                en-US: Vector Distance Threshold
+              description: 向量距离阈值，高于该阈值的文档会被过滤掉
+              x-description-i18n:
+                en-US: Vector distance threshold; documents above this threshold will be filtered out
+            field:
+              type: string
+              title: 文档字段名
+              x-title-i18n:
+                en-US: Document Field Name
+              description: 阿里云向量检索存储文档的字段名
+              x-description-i18n:
+                en-US: Field name where documents are stored in Alibaba Cloud Vector Search
+      required: [dashscope, dashvector]
       example:
         dashscope:
           apiKey: xxxxxxxxxxxxxxxxxxxx
-          serviceName: dashscope
+          serviceFQDN: dashscope
           servicePort: 443
-          domain: dashscope.aliyuncs.com
+          serviceHost: dashscope.aliyuncs.com
         dashvector:
           apiKey: xxxxxxxxxxxxxxxxxxxx
-          serviceName: dashvector
+          serviceFQDN: dashvector
           servicePort: 443
-          domain: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
-          collection: news_embedings
+          serviceHost: vrs-cn-xxxxxxxxxxxxxxxxxxxx.dashvector.cn-hangzhou.aliyuncs.com
+          topk: 1
+          threshold: 0.4
+          field: raw
 
