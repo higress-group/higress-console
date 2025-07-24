@@ -1488,8 +1488,7 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isEmpty(domains)) {
             domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
-
-        List<V1IngressTLS> tlses = new ArrayList<>();
+        Map<String, Domain> mappedDomains = new HashMap<>(domains.size());
         for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
@@ -1500,7 +1499,7 @@ public class KubernetesModelConverter {
                 configMap = kubernetesClientService.readConfigMap(domainName2ConfigMapName(domainName));
             } catch (ApiException e) {
                 throw new BusinessException("Error occurs when reading config map associated with domain " + domainName,
-                    e);
+                        e);
             }
 
             if (configMap == null) {
@@ -1517,6 +1516,16 @@ public class KubernetesModelConverter {
                 continue;
             }
 
+            mappedDomains.put(domainName, domain);
+        }
+        // Check if the number of domains with HTTPS enabled matches the original configuration
+        if(!mappedDomains.isEmpty() && mappedDomains.size() != domains.size()) {
+            throw new BusinessException("Currently only supports domains with the same protocol");
+        }
+
+        List<V1IngressTLS> tlses = new ArrayList<>();
+
+        mappedDomains.forEach((domainName, domain) -> {
             V1IngressTLS tls = new V1IngressTLS();
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
@@ -1524,12 +1533,13 @@ public class KubernetesModelConverter {
             tls.setSecretName(domain.getCertIdentifier());
             tlses.add(tls);
 
-            // 这里不确定强制开启https是否会影响http
+            // Here we have confirmed that all domain protocols are consistent
             if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
-                    KubernetesConstants.Annotation.TRUE_VALUE);
+                        KubernetesConstants.Annotation.TRUE_VALUE);
             }
-        }
+        });
+
         if(CollectionUtils.isNotEmpty(tlses)) {
             spec.setTls(tlses);
         }
