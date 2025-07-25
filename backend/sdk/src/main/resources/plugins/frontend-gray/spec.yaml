@@ -198,8 +198,10 @@ spec:
               - version
               - name
               - enabled
+              - backendVersion
       required:
         - rules
+        - rewrite
       example:
         grayKey: userid
         rules:
@@ -401,8 +403,10 @@ spec:
               - version
               - name
               - enabled
+              - backendVersion
       required:
         - rules
+        - rewrite
       example:
         grayKey: userid
         rules:

@@ -194,6 +194,12 @@ spec:
                 default: "summary"
         searchRewrite:
           type: object
+          required:
+            - llmServiceName
+            - llmServicePort
+            - llmApiKey
+            - llmUrl
+            - llmModelName
           title: 搜索重写配置
           x-title-i18n:
             en-US: Search Rewrite Configuration
@@ -452,6 +458,12 @@ spec:
                 default: "summary"
         searchRewrite:
           type: object
+          required:
+            - llmServiceName
+            - llmServicePort
+            - llmApiKey
+            - llmUrl
+            - llmModelName
           title: 搜索重写配置
           x-title-i18n:
             en-US: Search Rewrite Configuration

@@ -23,6 +23,8 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      required:
+        - limit_keys
       properties:
         limit_by_header:
           type: string
@@ -103,6 +105,8 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      required:
+        - limit_keys
       properties:
         limit_by_header:
           type: string

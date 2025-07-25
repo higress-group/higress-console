@@ -36,10 +36,6 @@ spec:
             type: string
             example:
               - consumer1
-  configSchema:
-    openAPIV3Schema:
-      type: object
-      properties:
         global_auth:
           type: boolean
           x-scope: GLOBAL
@@ -95,6 +91,10 @@ spec:
                   en-US: Extract specified fields from JWT payload and set them in specified request headers to forward to backend
                 items:
                   type: object
+                  required:
+                    - claim
+                    - header
+                    - override
                   properties:
                     claim:
                       type: string
@@ -131,6 +131,205 @@ spec:
                   en-US: Extract JWT from specified request headers
                 items:
                   type: object
+                  required:
+                    - name
+                    - value_prefix
+                  properties:
+                    name:
+                      type: string
+                      title: 请求头名称
+                      x-title-i18n:
+                        en-US: Header Name
+                      description: 抽取JWT的请求header
+                      x-description-i18n:
+                        en-US: The request header to extract JWT from
+                    value_prefix:
+                      type: string
+                      title: 值前缀
+                      x-title-i18n:
+                        en-US: Value Prefix
+                      description: 对请求header的value去除此前缀，剩余部分作为JWT
+                      x-description-i18n:
+                        en-US: Remove this prefix from the request header value, use the remaining part as JWT
+                default:
+                  - name: Authorization
+                    value_prefix: "Bearer "
+              from_params:
+                type: array
+                title: 从URL参数获取JWT
+                x-title-i18n:
+                  en-US: Get JWT from URL Parameters
+                description: 从指定的URL参数中抽取JWT
+                x-description-i18n:
+                  en-US: Extract JWT from specified URL parameters
+                items:
+                  type: string
+                default:
+                  - access_token
+              from_cookies:
+                type: array
+                title: 从Cookie获取JWT
+                x-title-i18n:
+                  en-US: Get JWT from Cookies
+                description: 从指定的cookie中抽取JWT
+                x-description-i18n:
+                  en-US: Extract JWT from specified cookies
+                items:
+                  type: string
+              clock_skew_seconds:
+                type: integer
+                title: 时钟偏移量
+                x-title-i18n:
+                  en-US: Clock Skew
+                description: 校验JWT的exp和iat字段时允许的时钟偏移量，单位为秒
+                x-description-i18n:
+                  en-US: The allowed clock skew when validating JWT's exp and iat fields, in seconds
+                default: 60
+              keep_token:
+                type: boolean
+                title: 保留JWT
+                x-title-i18n:
+                  en-US: Keep JWT
+                description: 转发给后端时是否保留JWT
+                x-description-i18n:
+                  en-US: Whether to retain JWT when forwarding to backend
+                default: true
+            required:
+              - name
+              - issuer
+              - jwks
+      required:
+        - consumers
+      example:
+        global_auth: false
+        consumers:
+          - name: consumer1
+            issuer: abcd
+            jwks: |
+              {
+                "keys": [
+                  {
+                    "kty": "oct",
+                    "kid": "123",
+                    "k": "hM0k3AbXBPpKOGg__Ql2Obcq7s60myWDpbHXzgKUQdYo7YCRp0gUqkCnbGSvZ2rGEl4YFkKqIqW7mTHdj-bcqXpNr-NOznEyMpVPOIlqG_NWVC3dydBgcsIZIdD-MR2AQceEaxriPA_VmiUCwfwL2Bhs6_i7eolXoY11EapLQtutz0BV6ZxQQ4dYUmct--7PLNb4BWJyQeWu0QfbIthnvhYllyl2dgeLTEJT58wzFz5HeNMNz8ohY5K0XaKAe5cepryqoXLhA-V-O1OjSG8lCNdKS09OY6O0fkyweKEtuDfien5tHHSsHXoAxYEHPFcSRL4bFPLZ0orTt1_4zpyfew",
+                    "alg": "HS256"
+                  }
+                ]
+              }
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        allow:
+          type: array
+          title: 授权访问的调用方列表
+          x-title-i18n:
+            en-US: Allowed Consumers
+          description: 对于匹配上述条件的请求，允许访问的调用方列表
+          x-description-i18n:
+            en-US: Consumers to be allowed for matched requests
+          items:
+            type: string
+            example:
+              - consumer1
+        global_auth:
+          type: boolean
+          x-scope: GLOBAL
+          title: 是否开启全局认证
+          x-title-i18n:
+            en-US: Enable Global Auth
+          description: 若不开启全局认证，则全局配置只提供凭证信息。只有在域名或路由上进行了配置才会启用认证。
+          x-description-i18n:
+            en-US: If set to false, only consumer info will be accepted from the global config. Auth feature shall only be enabled if the corresponding domain or route is configured.
+        consumers:
+          type: array
+          x-scope: GLOBAL
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 服务调用方列表，用于对请求进行认证
+          x-description-i18n:
+            en-US: List of service consumers which will be used in request authentication
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 该调用方的名称
+                x-description-i18n:
+                  en-US: The name of the consumer
+              issuer:
+                type: string
+                title: JWT 签发者
+                x-title-i18n:
+                  en-US: JWT Issuer
+                description: JWT的签发者，需要和payload中的iss字段保持一致
+                x-description-i18n:
+                  en-US: The issuer of the JWT, must match the iss field in the payload
+              jwks:
+                type: string
+                title: JSON Web Key Set
+                x-title-i18n:
+                  en-US: JSON Web Key Set
+                description: 由验证JWT中签名的公钥（或对称密钥）组成的Json Web Key Set
+                x-description-i18n:
+                  en-US: A Json Web Key Set composed of public keys (or symmetric keys) used to verify JWT signatures
+              claims_to_headers:
+                type: array
+                title: JWT Payload 转换请求头
+                x-title-i18n:
+                  en-US: JWT Payload to Headers
+                description: 抽取JWT的payload中指定字段，设置到指定的请求头中转发给后端
+                x-description-i18n:
+                  en-US: Extract specified fields from JWT payload and set them in specified request headers to forward to backend
+                items:
+                  type: object
+                  required:
+                    - claim
+                    - header
+                    - override
+                  properties:
+                    claim:
+                      type: string
+                      title: JWT Payload 字段
+                      x-title-i18n:
+                        en-US: JWT Payload Field
+                      description: JWT payload中的指定字段，要求必须是字符串或无符号整数类型
+                      x-description-i18n:
+                        en-US: The specified field in JWT payload, must be a string or unsigned integer type
+                    header:
+                      type: string
+                      title: 请求头名称
+                      x-title-i18n:
+                        en-US: Header Name
+                      description: 从payload取出字段的值设置到这个请求头中，转发给后端
+                      x-description-i18n:
+                        en-US: Set the value from payload to this request header and forward to backend
+                    override:
+                      type: boolean
+                      title: 是否覆盖同名请求头
+                      x-title-i18n:
+                        en-US: Override Existing Header
+                      description: true时，存在同名请求头会进行覆盖；false时，追加同名请求头
+                      x-description-i18n:
+                        en-US: When true, existing headers with the same name will be overridden; when false, they will be appended
+                      default: true
+              from_headers:
+                type: array
+                title: 从请求头获取JWT
+                x-title-i18n:
+                  en-US: Get JWT from Headers
+                description: 从指定的请求头中抽取JWT
+                x-description-i18n:
+                  en-US: Extract JWT from specified request headers
+                items:
+                  type: object
+                  required:
+                    - name
+                    - value_prefix
                   properties:
                     name:
                       type: string

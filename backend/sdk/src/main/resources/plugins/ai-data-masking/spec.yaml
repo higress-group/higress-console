@@ -152,10 +152,6 @@ spec:
                 description: 替换值（支持正则变量）
                 x-description-i18n:
                   en-US: Replacement value (supports regex variables)
-            required:
-              - regex
-              - type
-              - value
       example:
         system_deny: true
         deny_openai: true
@@ -323,10 +319,6 @@ spec:
                 description: 替换值（支持正则变量）
                 x-description-i18n:
                   en-US: Replacement value (supports regex variables)
-            required:
-              - regex
-              - type
-              - value
       example:
         system_deny: true
         deny_openai: true

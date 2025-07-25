@@ -34,8 +34,7 @@ spec:
             en-US: List of origins allowed for cross-origin access. * can be used to indicate any origin is allowed.
           items:
             type: string
-          example:
-            - '*'
+          default: '*'
         allow_origin_patterns:
           type: array
           title: 允许的来源模式
@@ -46,8 +45,6 @@ spec:
             en-US: List of origin patterns allowed for cross-origin access. * can be used to indicate any origin is allowed.
           items:
             type: string
-          example:
-            - '*'
         allow_methods:
           type: array
           title: 允许的方法
@@ -58,8 +55,7 @@ spec:
             en-US: List of HTTP methods allowed for cross-origin access. * can be used to indicate any method is allowed.
           items:
             type: string
-          example:
-            - '*'
+          default: [GET, PUT, POST, DELETE, PATCH, OPTIONS]
         allow_headers:
           type: array
           title: 允许的请求头
@@ -70,8 +66,6 @@ spec:
             en-US: Allowed Headers for the requester to carry that are not part of CORS specifications during cross-origin access. * can be used to indicate any Header is allowed.
           items:
             type: string
-          example:
-            - '*'
         expose_headers:
           type: array
           title: 允许的响应头
@@ -82,8 +76,7 @@ spec:
             en-US: Allowed Headers for the responder to carry that are not part of CORS specifications during cross-origin access. * can be used to indicate any Header is allowed.
           items:
             type: string
-          example:
-            - '*'
+        default: [DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With，If-Modified-Since,Cache-Control,Content-Type,Authorization]
         allow_credentials:
           type: boolean
           title: 允许携带凭据
@@ -127,8 +120,7 @@ spec:
             en-US: List of origins allowed for cross-origin access. * can be used to indicate any origin is allowed.
           items:
             type: string
-          example:
-            - '*'
+          default: '*'
         allow_origin_patterns:
           type: array
           title: 允许的来源模式
@@ -139,8 +131,6 @@ spec:
             en-US: List of origin patterns allowed for cross-origin access. * can be used to indicate any origin is allowed.
           items:
             type: string
-          example:
-            - '*'
         allow_methods:
           type: array
           title: 允许的方法
@@ -151,8 +141,7 @@ spec:
             en-US: List of HTTP methods allowed for cross-origin access. * can be used to indicate any method is allowed.
           items:
             type: string
-          example:
-            - '*'
+          default: [GET, PUT, POST, DELETE, PATCH, OPTIONS]
         allow_headers:
           type: array
           title: 允许的请求头
@@ -163,8 +152,7 @@ spec:
             en-US: Allowed Headers for the requester to carry that are not part of CORS specifications during cross-origin access. * can be used to indicate any Header is allowed.
           items:
             type: string
-          example:
-            - '*'
+          default: [DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With，If-Modified-Since,Cache-Control,Content-Type,Authorization]
         expose_headers:
           type: array
           title: 允许的响应头
@@ -175,8 +163,6 @@ spec:
             en-US: Allowed Headers for the responder to carry that are not part of CORS specifications during cross-origin access. * can be used to indicate any Header is allowed.
           items:
             type: string
-          example:
-            - '*'
         allow_credentials:
           type: boolean
           title: 允许携带凭据

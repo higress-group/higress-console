@@ -112,7 +112,7 @@ spec:
                 en-US: Type of the large model
               default: "qwen-long"
             proxyTimeout:
-              type: integer
+              type: number
               title: 大模型调用超时时间
               description: 调用大模型超时时间，单位ms
               x-title-i18n:
@@ -226,7 +226,7 @@ spec:
                 en-US: Type of the large model
               default: "qwen-long"
             proxyTimeout:
-              type: integer
+              type: number
               title: 大模型调用超时时间
               description: 调用大模型超时时间，单位ms
               x-title-i18n:

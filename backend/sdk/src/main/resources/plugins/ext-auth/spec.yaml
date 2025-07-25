@@ -24,6 +24,8 @@ spec:
       properties:
         http_service:
           type: object
+          required:
+            - endpoint
           title: 外部授权服务配置
           x-title-i18n:
             en-US: Configuration for the external authorization service
@@ -42,6 +44,8 @@ spec:
               default: envoy
             endpoint:
               type: object
+              required:
+                - service_name
               title: 端点信息
               x-title-i18n:
                 en-US: Endpoint Information
@@ -225,6 +229,8 @@ spec:
       properties:
         http_service:
           type: object
+          required:
+            - endpoint
           title: 外部授权服务配置
           x-title-i18n:
             en-US: Configuration for the external authorization service
@@ -243,6 +249,8 @@ spec:
               default: envoy
             endpoint:
               type: object
+              required:
+                - service_name
               title: 端点信息
               x-title-i18n:
                 en-US: Endpoint Information

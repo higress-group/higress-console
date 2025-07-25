@@ -37,6 +37,9 @@ spec:
             - domain
             - path
             - model
+            - maxIterations
+            - maxExecutionTime
+            - maxTokens
           properties:
             apiKey:
               type: string
@@ -356,6 +359,9 @@ spec:
             - domain
             - path
             - model
+            - maxIterations
+            - maxExecutionTime
+            - maxTokens
           properties:
             apiKey:
               type: string

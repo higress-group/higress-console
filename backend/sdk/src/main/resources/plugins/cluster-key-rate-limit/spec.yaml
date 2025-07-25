@@ -34,6 +34,8 @@ spec:
             zh-CN: 限流规则名称，根据限流规则名称 + 限流类型 + 限流 key 名称 + 限流 key 对应的实际值来拼装 redis key
         rule_items:
           type: array
+          required:
+            - limit_keys
           title: Rate Limit Rules
           x-title-i18n:
             zh-CN: 限流规则项
@@ -125,7 +127,8 @@ spec:
                   zh-CN: 配置匹配键值后的限流次数
                 items:
                   type: object
-                  required: [key]
+                  required: 
+                  - key
                   properties:
                     key:
                       type: string
@@ -202,7 +205,8 @@ spec:
           description: Redis related configuration.
           x-description-i18n:
             zh-CN: Redis 相关配置
-          required: [service_name]
+          required: 
+          - service_name
           properties:
             service_name:
               type: string
@@ -245,7 +249,10 @@ spec:
               x-description-i18n:
                 zh-CN: Redis 连接超时时间，单位毫秒
               default: 1000
-      required: [rule_name, rule_items, redis]
+      required: 
+      - rule_name
+      - rule_items
+      - redis
       example:
         rule_name: default_rule
         rule_items:
@@ -280,6 +287,8 @@ spec:
             zh-CN: 限流规则名称，根据限流规则名称 + 限流类型 + 限流 key 名称 + 限流 key 对应的实际值来拼装 redis key
         rule_items:
           type: array
+          required:
+            - limit_keys
           title: Rate Limit Rules
           x-title-i18n:
             zh-CN: 限流规则项
@@ -371,7 +380,8 @@ spec:
                   zh-CN: 配置匹配键值后的限流次数
                 items:
                   type: object
-                  required: [key]
+                  required: 
+                  - key
                   properties:
                     key:
                       type: string
@@ -448,7 +458,8 @@ spec:
           description: Redis related configuration.
           x-description-i18n:
             zh-CN: Redis 相关配置
-          required: [service_name]
+          required: 
+          - service_name
           properties:
             service_name:
               type: string
@@ -491,7 +502,10 @@ spec:
               x-description-i18n:
                 zh-CN: Redis 连接超时时间，单位毫秒
               default: 1000
-      required: [rule_name, rule_items, redis]
+      required: 
+      - rule_name
+      - rule_items
+      - redis
       example:
         rule_name: default_rule
         rule_items:

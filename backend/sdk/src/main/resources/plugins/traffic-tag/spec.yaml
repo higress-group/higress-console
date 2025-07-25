@@ -34,6 +34,11 @@ spec:
       properties:
         conditionGroups:
           type: array
+          required:
+            - headerName
+            - headerValue
+            - conditions
+            - logic
           title: 基于内容的标记条件组
           x-title-i18n:
             en-US: Content-based Tagging Condition Groups
@@ -69,6 +74,11 @@ spec:
                   en-US: Logical relationship in the condition group, supports 'and', 'or', must be in lowercase
               conditions:
                 type: array
+                required:
+                  - conditionType
+                  - key
+                  - operator
+                  - value
                 title: 标记条件
                 x-title-i18n:
                   en-US: Tagging Conditions
@@ -114,6 +124,10 @@ spec:
                         en-US: The value of the condition. Only when the operator is 'in' and 'not_in' multiple values are supported
         weightGroups:
           type: array
+          required:
+            - headerName
+            - headerValue
+            - weight
           title: 基于权重的标记条件组
           x-title-i18n:
             en-US: Weight-based Tagging Condition Groups
@@ -182,6 +196,11 @@ spec:
       properties:
         conditionGroups:
           type: array
+          required:
+            - headerName
+            - headerValue
+            - conditions
+            - logic
           title: 基于内容的标记条件组
           x-title-i18n:
             en-US: Content-based Tagging Condition Groups
@@ -217,6 +236,11 @@ spec:
                   en-US: Logical relationship in the condition group, supports 'and', 'or', must be in lowercase
               conditions:
                 type: array
+                required:
+                  - conditionType
+                  - key
+                  - operator
+                  - value
                 title: 标记条件
                 x-title-i18n:
                   en-US: Tagging Conditions
@@ -262,6 +286,10 @@ spec:
                         en-US: The value of the condition. Only when the operator is 'in' and 'not_in' multiple values are supported
         weightGroups:
           type: array
+          required:
+            - headerName
+            - headerValue
+            - weight
           title: 基于权重的标记条件组
           x-title-i18n:
             en-US: Weight-based Tagging Condition Groups

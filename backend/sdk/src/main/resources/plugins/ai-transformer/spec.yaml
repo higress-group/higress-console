@@ -115,10 +115,6 @@ spec:
             - serviceName
             - domain
             - apiKey
-      required:
-        - request
-        - response
-        - provider
       example:
         request:
           enable: false
@@ -227,10 +223,6 @@ spec:
             - serviceName
             - domain
             - apiKey
-      required:
-        - request
-        - response
-        - provider
       example:
         request:
           enable: false

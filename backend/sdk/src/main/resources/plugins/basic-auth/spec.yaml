@@ -23,6 +23,9 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      required:
+        - consumers
+        - allow
       properties:
         allow:
           type: array
@@ -78,6 +81,9 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      required:
+      - consumers
+      - allow
       properties:
         global_auth:
           type: boolean
