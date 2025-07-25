@@ -23,13 +23,157 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: array
+          title: 授权访问的调用方列表
+          x-title-i18n:
+            en-US: Allowed Consumers
+          description: 对于符合匹配条件的请求，配置允许访问的 consumer，从而实现细粒度的权限控制
+          x-description-i18n:
+            en-US: For requests that match the conditions, configure the allowed consumers to achieve fine-grained permission control.
+          items:
+            type: string
+            example:
+              - consumer-1
+        global_auth:
+          type: boolean
+          x-scope: GLOBAL
+          title: 是否开启全局认证
+          x-title-i18n:
+            en-US: Enable Global Auth
+          description: 若配置为true，则全局生效认证机制; 若配置为false，则只对做了配置的域名和路由生效认证机制，若不配置则仅当没有域名和路由配置时全局生效（兼容老用户使用习惯）。
+          x-description-i18n:
+            en-US: If set to true, it acts globally; if false, only applies to configured domains and routes. If not configured, it will apply globally only when there are no domain and route configurations (to accommodate old user habits).
+        consumers:
+          type: array
+          x-scope: GLOBAL
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 配置服务的调用者，用于对请求进行认证
+          x-description-i18n:
+            en-US: Configures the callers of the service for request authentication.
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                title: 请求Key
+                x-title-i18n:
+                  en-US: Request Key
+                description: 配置从请求的x-ca-key头中提取的key
+                x-description-i18n:
+                  en-US: Configures the key extracted from the x-ca-key header of the request.
+              secret:
+                type: string
+                title: 签名密钥
+                x-title-i18n:
+                  en-US: Signature Secret
+                description: 配置用于生成签名的secret
+                x-description-i18n:
+                  en-US: Configures the secret used to generate the signature.
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 配置该consumer的名称
+                x-description-i18n:
+                  en-US: Configures the name of the consumer.
+            required:
+              - key
+              - secret
+              - name
+        date_offset:
+          type: number
+          title: 客户端时间偏移
+          x-title-i18n:
+            en-US: Client Time Offset
+          description: 配置允许的客户端最大时间偏移，单位为秒，根据请求头Date解析客户端 UTC 时间，可用于避免请求重放；未配置时，不做校验
+          x-description-i18n:
+            en-US: Configures the maximum allowed client time offset, in seconds; parsed based on the request header Date; can be used to prevent request replay; no validation is performed if not configured.
+      required:
+        - consumers
       example:
-        allows:
+        allow:
         - consumer-1
         - consumer-2        
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: array
+          title: 授权访问的调用方列表
+          x-title-i18n:
+            en-US: Allowed Consumers
+          description: 对于符合匹配条件的请求，配置允许访问的 consumer，从而实现细粒度的权限控制
+          x-description-i18n:
+            en-US: For requests that match the conditions, configure the allowed consumers to achieve fine-grained permission control.
+          items:
+            type: string
+            example:
+              - consumer-1
+        global_auth:
+          type: boolean
+          x-scope: GLOBAL
+          title: 是否开启全局认证
+          x-title-i18n:
+            en-US: Enable Global Auth
+          description: 若配置为true，则全局生效认证机制; 若配置为false，则只对做了配置的域名和路由生效认证机制，若不配置则仅当没有域名和路由配置时全局生效（兼容老用户使用习惯）。
+          x-description-i18n:
+            en-US: If set to true, it acts globally; if false, only applies to configured domains and routes. If not configured, it will apply globally only when there are no domain and route configurations (to accommodate old user habits).
+        consumers:
+          type: array
+          x-scope: GLOBAL
+          title: 调用方列表
+          x-title-i18n:
+            en-US: Consumer List
+          description: 配置服务的调用者，用于对请求进行认证
+          x-description-i18n:
+            en-US: Configures the callers of the service for request authentication.
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                title: 请求Key
+                x-title-i18n:
+                  en-US: Request Key
+                description: 配置从请求的x-ca-key头中提取的key
+                x-description-i18n:
+                  en-US: Configures the key extracted from the x-ca-key header of the request.
+              secret:
+                type: string
+                title: 签名密钥
+                x-title-i18n:
+                  en-US: Signature Secret
+                description: 配置用于生成签名的secret
+                x-description-i18n:
+                  en-US: Configures the secret used to generate the signature.
+              name:
+                type: string
+                title: 名称
+                x-title-i18n:
+                  en-US: Name
+                description: 配置该consumer的名称
+                x-description-i18n:
+                  en-US: Configures the name of the consumer.
+            required:
+              - key
+              - secret
+              - name
+        date_offset:
+          type: number
+          title: 客户端时间偏移
+          x-title-i18n:
+            en-US: Client Time Offset
+          description: 配置允许的客户端最大时间偏移，单位为秒，根据请求头Date解析客户端 UTC 时间，可用于避免请求重放；未配置时，不做校验
+          x-description-i18n:
+            en-US: Configures the maximum allowed client time offset, in seconds; parsed based on the request header Date; can be used to prevent request replay; no validation is performed if not configured.
+      required:
+        - consumers
       example:
         global_auth: false
         consumers:
