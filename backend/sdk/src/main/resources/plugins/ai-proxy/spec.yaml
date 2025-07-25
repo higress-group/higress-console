@@ -35,7 +35,7 @@ spec:
           x-description-i18n:
             zh-CN: AI服务提供商配置，包含API接口、模型和知识库文件等信息
           required:
-            - typ
+            - type
           properties:
             apiTokens:
               type: array
@@ -159,7 +159,7 @@ spec:
           x-description-i18n:
             zh-CN: AI服务提供商配置，包含API接口、模型和知识库文件等信息
           required:
-            - typ
+            - type
           properties:
             apiTokens:
               type: array
