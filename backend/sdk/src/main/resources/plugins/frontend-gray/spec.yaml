@@ -37,7 +37,7 @@ spec:
             en-US: User Identity Sub Key
           description: 用户身份信息可能以JSON形式透出，比如：`userInfo:{ userCode:"001" }`,当前例子`graySubKey`取值为`userCode`
           x-description-i18n:
-            en-US: User identity information may be output in JSON format, for example: `userInfo:{ userCode:"001" }`, in the current example, `graySubKey` is `userCode`.
+            en-US: "User identity information may be output in JSON format, for example: `userInfo:{ userCode:001 }`, in the current example, `graySubKey` is `userCode`."
         rules:
           type: array
           title: 灰度规则
@@ -242,7 +242,7 @@ spec:
             en-US: User Identity Sub Key
           description: 用户身份信息可能以JSON形式透出，比如：`userInfo:{ userCode:"001" }`,当前例子`graySubKey`取值为`userCode`
           x-description-i18n:
-            en-US: User identity information may be output in JSON format, for example: `userInfo:{ userCode:"001" }`, in the current example, `graySubKey` is `userCode`.
+            en-US: "User identity information may be output in JSON format, for example: `userInfo:{ userCode:001 }`, in the current example, `graySubKey` is `userCode`."
         rules:
           type: array
           title: 灰度规则

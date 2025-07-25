@@ -190,7 +190,7 @@ spec:
                   en-US: Content Mode
                 description: 内容模式："summary"使用摘要(snippet)，"full"使用正文
                 x-description-i18n:
-                  en-US: Content mode: "summary" uses snippet, "full" uses full text
+                  en-US: "Content mode: `summary` uses snippet, `full` uses full text"
                 default: "summary"
         searchRewrite:
           type: object
@@ -454,7 +454,7 @@ spec:
                   en-US: Content Mode
                 description: 内容模式："summary"使用摘要(snippet)，"full"使用正文
                 x-description-i18n:
-                  en-US: Content mode: "summary" uses snippet, "full" uses full text
+                  en-US: "Content mode: `summary` uses snippet, `full` uses full text"
                 default: "summary"
         searchRewrite:
           type: object

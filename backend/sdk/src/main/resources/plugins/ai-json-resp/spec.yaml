@@ -122,9 +122,9 @@ spec:
           title: 启用Content-Disposition
           x-title-i18n:
             en-US: Enable Content-Disposition
-          description: 是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename="response.json"
+          description: "是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename=response.json"
           x-description-i18n:
-            en-US: Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename="response.json"
+            en-US: "Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename=response.json"
           default: true
       required:
         - serviceName
@@ -253,9 +253,9 @@ spec:
           title: 启用Content-Disposition
           x-title-i18n:
             en-US: Enable Content-Disposition
-          description: 是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename="response.json"
+          description: "是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename=response.json"
           x-description-i18n:
-            en-US: Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename="response.json"
+            en-US: "Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename=response.json"
           default: true
       required:
         - serviceName

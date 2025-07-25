@@ -40,7 +40,7 @@ spec:
               x-title-i18n:
                 en-US: Preset Scene Categories
               x-description-i18n:
-                en-US: Preset scene categories, separated by "|", e.g.: "Finance|E-commerce|Law|Higress"
+                en-US: "Preset scene categories, separated by |, e.g.: Finance|E-commerce|Law|Higress"
             prompt:
               type: string
               title: LLM请求prompt模板
@@ -154,7 +154,7 @@ spec:
               x-title-i18n:
                 en-US: Preset Scene Categories
               x-description-i18n:
-                en-US: Preset scene categories, separated by "|", e.g.: "Finance|E-commerce|Law|Higress"
+                en-US: "Preset scene categories, separated by |, e.g.: Finance|E-commerce|Law|Higress"
             prompt:
               type: string
               title: LLM请求prompt模板

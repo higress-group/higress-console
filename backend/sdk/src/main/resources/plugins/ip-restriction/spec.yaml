@@ -31,7 +31,7 @@ spec:
             en-US: IP Source Type
           description: 可选值：1. 对端socket ip：origin-source; 2. 通过header获取：header
           x-description-i18n:
-            en-US: Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header"
           default: origin-source
         ip_header_name:
           type: string
@@ -98,7 +98,7 @@ spec:
             en-US: IP Source Type
           description: 可选值：1. 对端socket ip：origin-source; 2. 通过header获取：header
           x-description-i18n:
-            en-US: Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header"
           default: origin-source
         ip_header_name:
           type: string

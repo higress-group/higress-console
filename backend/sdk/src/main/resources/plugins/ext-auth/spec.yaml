@@ -200,9 +200,9 @@ spec:
           title: 失败模式添加请求头
           x-title-i18n:
             en-US: Failure Mode Add Header
-          description: 当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true
+          description: "当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true"
           x-description-i18n:
-            en-US: When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true
+            en-US: "When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true"
           default: false
         status_on_error:
           type: integer
@@ -405,9 +405,9 @@ spec:
           title: 失败模式添加请求头
           x-title-i18n:
             en-US: Failure Mode Add Header
-          description: 当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true
+          description: "当 failure_mode_allow 和 failure_mode_allow_header_add 都设置为 true 时，若与授权服务的通信失败，或授权服务返回了 HTTP 5xx 错误，那么请求头中将会添加 x-envoy-auth-failure-mode-allowed: true"
           x-description-i18n:
-            en-US: When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true
+            en-US: "When both failure_mode_allow and failure_mode_allow_header_add are set to true, if communication with the authorization service fails or returns an HTTP 5xx error, the request header will include x-envoy-auth-failure-mode-allowed: true"
           default: false
         status_on_error:
           type: integer

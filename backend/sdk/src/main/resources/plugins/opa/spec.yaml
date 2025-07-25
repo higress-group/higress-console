@@ -47,7 +47,7 @@ spec:
             en-US: Service Source
           description: 服务来源类型，可选值：k8s, nacos, ip, route
           x-description-i18n:
-            en-US: Service source type, options: k8s, nacos, ip, route
+            en-US: "Service source type, options: k8s, nacos, ip, route"
         host:
           type: string
           title: 服务主机
@@ -118,7 +118,7 @@ spec:
             en-US: Service Source
           description: 服务来源类型，可选值：k8s, nacos, ip, route
           x-description-i18n:
-            en-US: Service source type, options: k8s, nacos, ip, route
+            en-US: "Service source type, options: k8s, nacos, ip, route"
         host:
           type: string
           title: 服务主机
