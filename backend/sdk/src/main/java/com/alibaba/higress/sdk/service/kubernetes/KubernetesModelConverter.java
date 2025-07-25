@@ -1488,7 +1488,7 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isEmpty(domains)) {
             domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
-        Map<String, Domain> mappedDomains = new HashMap<>(domains.size());
+        Map<String, Domain> httpsDomains = new HashMap<>(domains.size());
         for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
@@ -1499,7 +1499,7 @@ public class KubernetesModelConverter {
                 configMap = kubernetesClientService.readConfigMap(domainName2ConfigMapName(domainName));
             } catch (ApiException e) {
                 throw new BusinessException("Error occurs when reading config map associated with domain " + domainName,
-                        e);
+                    e);
             }
 
             if (configMap == null) {
@@ -1516,16 +1516,16 @@ public class KubernetesModelConverter {
                 continue;
             }
 
-            mappedDomains.put(domainName, domain);
+            httpsDomains.put(domainName, domain);
         }
         // Check if the number of domains with HTTPS enabled matches the original configuration
-        if(!mappedDomains.isEmpty() && mappedDomains.size() != domains.size()) {
+        if (!httpsDomains.isEmpty() && httpsDomains.size() != domains.size()) {
             throw new BusinessException("Currently only supports domains with the same protocol");
         }
 
         List<V1IngressTLS> tlses = new ArrayList<>();
 
-        mappedDomains.forEach((domainName, domain) -> {
+        httpsDomains.forEach((domainName, domain) -> {
             V1IngressTLS tls = new V1IngressTLS();
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
@@ -1536,18 +1536,18 @@ public class KubernetesModelConverter {
             // Here we have confirmed that all domain protocols are consistent
             if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
-                        KubernetesConstants.Annotation.TRUE_VALUE);
+                    KubernetesConstants.Annotation.TRUE_VALUE);
             }
         });
 
-        if(CollectionUtils.isNotEmpty(tlses)) {
+        if (CollectionUtils.isNotEmpty(tlses)) {
             spec.setTls(tlses);
         }
     }
 
     private static void fillIngressRules(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
         List<String> domains = route.getDomains();
-        if(CollectionUtils.isEmpty(domains)) {
+        if (CollectionUtils.isEmpty(domains)) {
             domains = Collections.singletonList(null);
         }
 
