@@ -23,6 +23,44 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        status_code:
+          type: number
+          title: 自定义 HTTP 应答状态码
+          x-title-i18n:
+            en-US: Custom HTTP response status code
+          description: 自定义 HTTP 应答状态码
+          x-description-i18n:
+            en-US: Custom HTTP response status code
+          default: 200
+        headers:
+          type: array
+          title: 自定义 HTTP 应答头
+          x-title-i18n:
+            en-US: Custom HTTP response headers
+          description: 自定义 HTTP 应答头，key 和 value 用`=`分隔
+          x-description-i18n:
+            en-US: Custom HTTP response headers, keys and values separated by `=`
+          items:
+            type: string
+        body:
+          type: string
+          title: 自定义 HTTP 应答 Body
+          x-title-i18n:
+            en-US: Custom HTTP response body
+          description: 自定义 HTTP 应答 Body
+          x-description-i18n:
+            en-US: Custom HTTP response body
+        enable_on_status:
+          type: array
+          title: 匹配原始状态码
+          x-title-i18n:
+            en-US: Match original status codes
+          description: 匹配原始状态码，生成自定义响应，不填写时，不判断原始状态码
+          x-description-i18n:
+            en-US: Match original status codes to generate custom responses; if not specified, the original status code is not checked
+          items:
+            type: number
       example:
         status_code: 200
         headers:
@@ -31,6 +69,44 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        status_code:
+          type: number
+          title: 自定义 HTTP 应答状态码
+          x-title-i18n:
+            en-US: Custom HTTP response status code
+          description: 自定义 HTTP 应答状态码
+          x-description-i18n:
+            en-US: Custom HTTP response status code
+          default: 200
+        headers:
+          type: array
+          title: 自定义 HTTP 应答头
+          x-title-i18n:
+            en-US: Custom HTTP response headers
+          description: 自定义 HTTP 应答头，key 和 value 用`=`分隔
+          x-description-i18n:
+            en-US: Custom HTTP response headers, keys and values separated by `=`
+          items:
+            type: string
+        body:
+          type: string
+          title: 自定义 HTTP 应答 Body
+          x-title-i18n:
+            en-US: Custom HTTP response body
+          description: 自定义 HTTP 应答 Body
+          x-description-i18n:
+            en-US: Custom HTTP response body
+        enable_on_status:
+          type: array
+          title: 匹配原始状态码
+          x-title-i18n:
+            en-US: Match original status codes
+          description: 匹配原始状态码，生成自定义响应，不填写时，不判断原始状态码
+          x-description-i18n:
+            en-US: Match original status codes to generate custom responses; if not specified, the original status code is not checked
+          items:
+            type: number
       example:
         status_code: 200
         headers:

@@ -21,6 +21,34 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        ip_protocol:
+          type: string
+          title: IP协议类型
+          x-title-i18n:
+            en-US: IP Protocol Type
+          description: 可选值：1. ipv4：只对ipv4用户请求查询地理位置信息，传递给后续插件，ipv6用户请求会跳过该插件，由后续插件处理。2. ipv6：（未来实现）只对ipv6用户查询地理位置信息，传递给后续插件，ipv4用户请求会跳过该插件，由后续插件处理。（当前会跳过插件，请求由后续插件处理）
+          x-description-i18n:
+            en-US: "Optional values: 1. ipv4: Only queries geographical location information for ipv4 user requests, passing it to subsequent plugins. Requests from ipv6 users will skip this plugin and be processed by later plugins. 2. ipv6: (To be implemented in the future) Only queries geographical location information for ipv6 users, passing it to subsequent plugins. Requests from ipv4 users will skip this plugin and be processed by later plugins. (Currently skips the plugin; requests are handled by subsequent plugins.)"
+          default: ipv4
+        ip_source_type:
+          type: string
+          title: IP来源类型
+          x-title-i18n:
+            en-US: IP Source Type
+          description: 可选值：1. 对端socket IP：origin-source；2. 通过header获取：header
+          x-description-i18n:
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Retrieved via header: header"
+          default: origin-source
+        ip_header_name:
+          type: string
+          title: IP头部名称
+          x-title-i18n:
+            en-US: IP Header Name
+          description: 当ip_source_type为header时，指定自定义IP来源header
+          x-description-i18n:
+            en-US: When ip_source_type is header, specify the custom IP source header.
+          default: x-forwarded-for
       example:
         ip_protocol: ipv4
         ip_source_type: header
@@ -28,6 +56,34 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        ip_protocol:
+          type: string
+          title: IP协议类型
+          x-title-i18n:
+            en-US: IP Protocol Type
+          description: 可选值：1. ipv4：只对ipv4用户请求查询地理位置信息，传递给后续插件，ipv6用户请求会跳过该插件，由后续插件处理。2. ipv6：（未来实现）只对ipv6用户查询地理位置信息，传递给后续插件，ipv4用户请求会跳过该插件，由后续插件处理。（当前会跳过插件，请求由后续插件处理）
+          x-description-i18n:
+            en-US: "Optional values: 1. ipv4: Only queries geographical location information for ipv4 user requests, passing it to subsequent plugins. Requests from ipv6 users will skip this plugin and be processed by later plugins. 2. ipv6: (To be implemented in the future) Only queries geographical location information for ipv6 users, passing it to subsequent plugins. Requests from ipv4 users will skip this plugin and be processed by later plugins. (Currently skips the plugin; requests are handled by subsequent plugins.)"
+          default: ipv4
+        ip_source_type:
+          type: string
+          title: IP来源类型
+          x-title-i18n:
+            en-US: IP Source Type
+          description: 可选值：1. 对端socket IP：origin-source；2. 通过header获取：header
+          x-description-i18n:
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Retrieved via header: header"
+          default: origin-source
+        ip_header_name:
+          type: string
+          title: IP头部名称
+          x-title-i18n:
+            en-US: IP Header Name
+          description: 当ip_source_type为header时，指定自定义IP来源header
+          x-description-i18n:
+            en-US: When ip_source_type is header, specify the custom IP source header.
+          default: x-forwarded-for
       example:
         ip_protocol: ipv4
         ip_source_type: header

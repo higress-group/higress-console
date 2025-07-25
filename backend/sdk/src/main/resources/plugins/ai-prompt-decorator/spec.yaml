@@ -21,6 +21,67 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        prepend:
+          type: array
+          title: 前置提示词
+          x-title-i18n:
+            en-US: Prepend Prompts
+          description: 在初始输入之前插入的语句
+          x-description-i18n:
+            en-US: Statements inserted before the initial input
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                title: 角色
+                x-title-i18n:
+                  en-US: Role
+                description: 角色
+                x-description-i18n:
+                  en-US: Role
+              content:
+                type: string
+                title: 消息内容
+                x-title-i18n:
+                  en-US: Message Content
+                description: 消息
+                x-description-i18n:
+                  en-US: Message
+            required:
+              - role
+              - content
+        append:
+          type: array
+          title: 后置提示词
+          x-title-i18n:
+            en-US: Append Prompts
+          description: 在初始输入之后插入的语句
+          x-description-i18n:
+            en-US: Statements inserted after the initial input
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                title: 角色
+                x-title-i18n:
+                  en-US: Role
+                description: 角色
+                x-description-i18n:
+                  en-US: Role
+              content:
+                type: string
+                title: 消息内容
+                x-title-i18n:
+                  en-US: Message Content
+                description: 消息
+                x-description-i18n:
+                  en-US: Message
+            required:
+              - role
+              - content
       example:
         prepend:
         - role: system
@@ -31,6 +92,67 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        prepend:
+          type: array
+          title: 前置提示词
+          x-title-i18n:
+            en-US: Prepend Prompts
+          description: 在初始输入之前插入的语句
+          x-description-i18n:
+            en-US: Statements inserted before the initial input
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                title: 角色
+                x-title-i18n:
+                  en-US: Role
+                description: 角色
+                x-description-i18n:
+                  en-US: Role
+              content:
+                type: string
+                title: 消息内容
+                x-title-i18n:
+                  en-US: Message Content
+                description: 消息
+                x-description-i18n:
+                  en-US: Message
+            required:
+              - role
+              - content
+        append:
+          type: array
+          title: 后置提示词
+          x-title-i18n:
+            en-US: Append Prompts
+          description: 在初始输入之后插入的语句
+          x-description-i18n:
+            en-US: Statements inserted after the initial input
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                title: 角色
+                x-title-i18n:
+                  en-US: Role
+                description: 角色
+                x-description-i18n:
+                  en-US: Role
+              content:
+                type: string
+                title: 消息内容
+                x-title-i18n:
+                  en-US: Message Content
+                description: 消息
+                x-description-i18n:
+                  en-US: Message
+            required:
+              - role
+              - content
       example:
         prepend:
         - role: system
