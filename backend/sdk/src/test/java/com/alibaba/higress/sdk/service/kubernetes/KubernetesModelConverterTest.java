@@ -100,14 +100,23 @@ public class KubernetesModelConverterTest {
         });
         when(service.isDefinedByConsole(any(V1ObjectMeta.class)))
                 .thenAnswer((Answer<Boolean>) invocation -> isDefinedByConsole.test(invocation.getArgument(0)));
-        V1ConfigMap coreConfigMap = mock(V1ConfigMap.class);
-        Map<String, String> data = new HashMap<>();
-        data.put(KubernetesConstants.K8S_ENABLE_HTTPS, "force");
-        data.put(KubernetesConstants.K8S_CERT, "cert");
-        when(coreConfigMap.getData())
-                .thenReturn(data);
+        V1ConfigMap httpsForceConfigmap = mock(V1ConfigMap.class);
+        Map<String, String> httpsForceData = new HashMap<>();
+        httpsForceData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "force");
+        httpsForceData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsForceConfigmap.getData())
+                .thenReturn(httpsForceData);
         when(service.readConfigMap(eq("domain-" + httpsDomain)))
-                .thenReturn(coreConfigMap);
+                .thenReturn(httpsForceConfigmap);
+
+        V1ConfigMap httpsOnConfigMap = mock(V1ConfigMap.class);
+        Map<String, String> httpsOnData = new HashMap<>();
+        httpsOnData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "on");
+        httpsOnData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsOnConfigMap.getData())
+            .thenReturn(httpsOnData);
+        when(service.readConfigMap(eq("domain-" + httpsDomain +"-on")))
+            .thenReturn(httpsOnConfigMap);
 
         converter = new KubernetesModelConverter(service);
     }
@@ -438,7 +447,23 @@ public class KubernetesModelConverterTest {
         route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
         route.setServices(Collections.singletonList(new UpstreamService()));
 
-        Assertions.assertThrows(BusinessException.class, () -> converter.route2Ingress(route));
+        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("Currently only supports domains with the same protocol", exception.getMessage());
+    }
+
+    @Test
+    void route2IngressTestMultipleDomainsWithDifferentHttpsConfiguration() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add(httpsDomain);
+        domains.add(httpsDomain + "-on");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        BusinessException exception =
+            Assertions.assertThrows(BusinessException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("All domains must use consistent HTTPS configuration", exception.getMessage());
     }
 
     @Test

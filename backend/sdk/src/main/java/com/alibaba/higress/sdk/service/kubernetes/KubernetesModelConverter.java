@@ -1523,6 +1523,10 @@ public class KubernetesModelConverter {
             throw new BusinessException("Currently only supports domains with the same protocol");
         }
 
+        if (!httpsDomains.isEmpty() && httpsDomains.values().stream().map(Domain::getEnableHttps).distinct().count() != 1) {
+            throw new BusinessException("All domains must use consistent HTTPS configuration");
+        }
+
         List<V1IngressTLS> tlses = new ArrayList<>();
 
         httpsDomains.forEach((domainName, domain) -> {
