@@ -107,9 +107,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       name,
       domains: Array.isArray(domains)
         ? domains.filter(d => !!d)
-        : domains
-          ? [domains]
-          : [],
+        : (domains ? [domains] : []),
       pathPredicate: Object.assign({ ...pathPredicate }, { ignoreCase: pathPredicate.caseSensitive === false ? ['ignore'] : [] }),
       headerPredicates,
       urlParamPredicates,
