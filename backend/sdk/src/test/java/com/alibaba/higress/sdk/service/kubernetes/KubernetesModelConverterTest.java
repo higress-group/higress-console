@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,6 @@ import org.mockito.stubbing.Answer;
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
-import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Domain;
 import com.alibaba.higress.sdk.model.Route;
@@ -447,7 +447,7 @@ public class KubernetesModelConverterTest {
         route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
         route.setServices(Collections.singletonList(new UpstreamService()));
 
-        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> converter.route2Ingress(route));
+        ValidationException exception = Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
         Assertions.assertEquals("Currently only supports domains with the same protocol", exception.getMessage());
     }
 
@@ -461,8 +461,8 @@ public class KubernetesModelConverterTest {
         route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
         route.setServices(Collections.singletonList(new UpstreamService()));
 
-        BusinessException exception =
-            Assertions.assertThrows(BusinessException.class, () -> converter.route2Ingress(route));
+        ValidationException exception =
+            Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
         Assertions.assertEquals("All domains must use consistent HTTPS configuration", exception.getMessage());
     }
 
@@ -1758,7 +1758,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(route);
         Assertions.assertEquals("test-ingress", route.getName());
         Assertions.assertEquals("1", route.getVersion());
-        Assertions.assertEquals(null, route.getDomains());
+        Assertions.assertTrue(CollectionUtils.isEmpty(route.getDomains()));
     }
 
     @Test
