@@ -17,17 +17,19 @@ const PLUGIN_COMP_MAP = {
 };
 
 export default function PluginDrawer(props) {
+  const emptyPluginData = { title: '', key: '' };
   const { t } = useTranslation();
   const { pluginDrawerRef, routerDetail, onSuccess } = props;
   const routePluginDetailRef = useRef<{ submit: () => {} }>(null);
   const globalPluginDetailRef = useRef<{ submit: () => {} }>(null);
 
-  const [activePluginData, setActivePluginData] = useState({ title: '', key: '' });
+  const [activePluginData, setActivePluginData] = useState(emptyPluginData);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onCloseDrawer = () => {
     setOpen(false);
+    setActivePluginData(emptyPluginData);
   };
 
   const onSubmit = () => {
