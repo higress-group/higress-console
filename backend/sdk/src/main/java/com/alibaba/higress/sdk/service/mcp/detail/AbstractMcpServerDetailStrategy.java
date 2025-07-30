@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
-import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RouteAuthConfig;
