@@ -23,12 +23,88 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: array
+          title: Allow List
+          x-title-i18n:
+            zh-CN: 放行列表
+          description: Regular expressions to match the User-Agent request header; requests matching will be allowed to access
+          x-description-i18n:
+            zh-CN: 配置匹配 User-Agent 请求头的正则表达式，匹配命中时将允许其访问
+          items:
+            type: string
+        deny:
+          type: array
+          title: Deny List
+          x-title-i18n:
+            zh-CN: 拦截列表
+          description: Regular expressions to match the User-Agent request header; requests matching will be blocked
+          x-description-i18n:
+            zh-CN: 配置匹配 User-Agent 请求头的正则表达式，匹配命中时将屏蔽请求
+          items:
+            type: string
+        blocked_code:
+          type: number
+          title: Blocked Status Code
+          x-title-i18n:
+            zh-CN: 拦截状态码
+          description: HTTP status code returned when a request is blocked
+          x-description-i18n:
+            zh-CN: 配置请求被屏蔽时返回的 HTTP 状态码
+          default: 403
+        blocked_message:
+          type: string
+          title: Blocked Message
+          x-title-i18n:
+            zh-CN: 拦截提示信息
+          description: HTTP response body returned when a request is blocked
+          x-description-i18n:
+            zh-CN: 配置请求被屏蔽时返回的 HTTP 应答 Body
       example:
         blocked_code: 404
         blocked_message: "resource not found"
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        allow:
+          type: array
+          title: Allow List
+          x-title-i18n:
+            zh-CN: 放行列表
+          description: Regular expressions to match the User-Agent request header; requests matching will be allowed to access
+          x-description-i18n:
+            zh-CN: 配置匹配 User-Agent 请求头的正则表达式，匹配命中时将允许其访问
+          items:
+            type: string
+        deny:
+          type: array
+          title: Deny List
+          x-title-i18n:
+            zh-CN: 拦截列表
+          description: Regular expressions to match the User-Agent request header; requests matching will be blocked
+          x-description-i18n:
+            zh-CN: 配置匹配 User-Agent 请求头的正则表达式，匹配命中时将屏蔽请求
+          items:
+            type: string
+        blocked_code:
+          type: number
+          title: Blocked Status Code
+          x-title-i18n:
+            zh-CN: 拦截状态码
+          description: HTTP status code returned when a request is blocked
+          x-description-i18n:
+            zh-CN: 配置请求被屏蔽时返回的 HTTP 状态码
+          default: 403
+        blocked_message:
+          type: string
+          title: Blocked Message
+          x-title-i18n:
+            zh-CN: 拦截提示信息
+          description: HTTP response body returned when a request is blocked
+          x-description-i18n:
+            zh-CN: 配置请求被屏蔽时返回的 HTTP 应答 Body
       example:
         blocked_code: 404
         blocked_message: "resource not found"

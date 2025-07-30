@@ -106,7 +106,7 @@ const WasmForm = forwardRef((props: { editData?: WasmPluginData }, ref) => {
       category: 'custom',
       builtIn: false,
     }, editData, await form.validateFields());
-    const imageUrl: string = data.imageUrl || '';
+    const imageUrl: string = (data.imageUrl || '').trim();
     const protocolIndex = imageUrl.indexOf('://');
     const lastColonIndex = imageUrl.lastIndexOf(':');
     const isOciImage = protocolIndex === -1 || imageUrl.startsWith('oci://');
