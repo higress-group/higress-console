@@ -23,6 +23,65 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        ip_source_type:
+          type: string
+          title: IP 来源类型
+          x-title-i18n:
+            en-US: IP Source Type
+          description: 可选值：1. 对端socket ip：origin-source; 2. 通过header获取：header
+          x-description-i18n:
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header"
+          default: origin-source
+        ip_header_name:
+          type: string
+          title: IP 来源头
+          x-title-i18n:
+            en-US: IP Header Name
+          description: 当ip_source_type为header时，指定自定义IP来源头
+          x-description-i18n:
+            en-US: When ip_source_type is header, specify the custom IP source header
+          default: x-forwarded-for
+        allow:
+          type: array
+          title: 白名单列表
+          x-title-i18n:
+            en-US: Whitelist
+          description: 白名单列表
+          x-description-i18n:
+            en-US: Whitelist
+          items:
+            type: string
+          default: []
+        deny:
+          type: array
+          title: 黑名单列表
+          x-title-i18n:
+            en-US: Blacklist
+          description: 黑名单列表
+          x-description-i18n:
+            en-US: Blacklist
+          items:
+            type: string
+          default: []
+        status:
+          type: integer
+          title: 拒绝访问状态码
+          x-title-i18n:
+            en-US: Denied Status Code
+          description: 拒绝访问时的 HTTP 状态码
+          x-description-i18n:
+            en-US: HTTP status code when access is denied
+          default: 403
+        message:
+          type: string
+          title: 拒绝访问提示信息
+          x-title-i18n:
+            en-US: Denied Message
+          description: 拒绝访问时的返回信息
+          x-description-i18n:
+            en-US: Return message when access is denied
+          default: Your IP address is blocked.
       example:
         ip_source_type: origin-source
         allow:
@@ -31,6 +90,65 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        ip_source_type:
+          type: string
+          title: IP 来源类型
+          x-title-i18n:
+            en-US: IP Source Type
+          description: 可选值：1. 对端socket ip：origin-source; 2. 通过header获取：header
+          x-description-i18n:
+            en-US: "Optional values: 1. Peer socket IP: origin-source; 2. Get from header: header"
+          default: origin-source
+        ip_header_name:
+          type: string
+          title: IP 来源头
+          x-title-i18n:
+            en-US: IP Header Name
+          description: 当ip_source_type为header时，指定自定义IP来源头
+          x-description-i18n:
+            en-US: When ip_source_type is header, specify the custom IP source header
+          default: x-forwarded-for
+        allow:
+          type: array
+          title: 白名单列表
+          x-title-i18n:
+            en-US: Whitelist
+          description: 白名单列表
+          x-description-i18n:
+            en-US: Whitelist
+          items:
+            type: string
+          default: []
+        deny:
+          type: array
+          title: 黑名单列表
+          x-title-i18n:
+            en-US: Blacklist
+          description: 黑名单列表
+          x-description-i18n:
+            en-US: Blacklist
+          items:
+            type: string
+          default: []
+        status:
+          type: integer
+          title: 拒绝访问状态码
+          x-title-i18n:
+            en-US: Denied Status Code
+          description: 拒绝访问时的 HTTP 状态码
+          x-description-i18n:
+            en-US: HTTP status code when access is denied
+          default: 403
+        message:
+          type: string
+          title: 拒绝访问提示信息
+          x-title-i18n:
+            en-US: Denied Message
+          description: 拒绝访问时的返回信息
+          x-description-i18n:
+            en-US: Return message when access is denied
+          default: Your IP address is blocked.
       example:
         ip_source_type: origin-source
         allow:

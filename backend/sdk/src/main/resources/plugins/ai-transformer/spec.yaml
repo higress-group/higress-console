@@ -21,6 +21,100 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        request:
+          type: object
+          title: Request Configuration
+          x-title-i18n:
+            zh-CN: 请求配置
+          description: Configuration for request transformation
+          x-description-i18n:
+            zh-CN: 请求转换配置
+          properties:
+            enable:
+              type: boolean
+              title: Enable Request Transformation
+              x-title-i18n:
+                zh-CN: 开启请求转换
+              description: Whether to enable transformation in the request phase
+              x-description-i18n:
+                zh-CN: 是否在请求阶段开启转换
+            prompt:
+              type: string
+              title: Request Prompt
+              x-title-i18n:
+                zh-CN: 请求提示词
+              description: Prompt used for transformation in the request phase
+              x-description-i18n:
+                zh-CN: 请求阶段转换使用的提示词
+          required:
+            - enable
+            - prompt
+        response:
+          type: object
+          title: Response Configuration
+          x-title-i18n:
+            zh-CN: 响应配置
+          description: Configuration for response transformation
+          x-description-i18n:
+            zh-CN: 响应转换配置
+          properties:
+            enable:
+              type: boolean
+              title: Enable Response Transformation
+              x-title-i18n:
+                zh-CN: 开启响应转换
+              description: Whether to enable transformation in the response phase
+              x-description-i18n:
+                zh-CN: 是否在响应阶段开启转换
+            prompt:
+              type: string
+              title: Response Prompt
+              x-title-i18n:
+                zh-CN: 响应提示词
+              description: Prompt used for transformation in the response phase
+              x-description-i18n:
+                zh-CN: 响应阶段转换使用的提示词
+          required:
+            - enable
+            - prompt
+        provider:
+          type: object
+          title: Provider Configuration
+          x-title-i18n:
+            zh-CN: 服务提供商配置
+          description: Configuration for LLM service provider
+          x-description-i18n:
+            zh-CN: LLM 服务提供商配置
+          properties:
+            serviceName:
+              type: string
+              title: Service Name
+              x-title-i18n:
+                zh-CN: 服务名称
+              description: DNS type service name, currently only supports Qwen
+              x-description-i18n:
+                zh-CN: DNS类型的服务名，目前仅支持通义千问
+            domain:
+              type: string
+              title: Service Domain
+              x-title-i18n:
+                zh-CN: 服务域名
+              description: LLM service domain
+              x-description-i18n:
+                zh-CN: LLM服务域名
+            apiKey:
+              type: string
+              title: API Key
+              x-title-i18n:
+                zh-CN: API密钥
+              description: Alibaba Cloud Dashscope service API Key
+              x-description-i18n:
+                zh-CN: 阿里云dashscope服务的API Key
+          required:
+            - serviceName
+            - domain
+            - apiKey
       example:
         request:
           enable: false
@@ -35,6 +129,100 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        request:
+          type: object
+          title: Request Configuration
+          x-title-i18n:
+            zh-CN: 请求配置
+          description: Configuration for request transformation
+          x-description-i18n:
+            zh-CN: 请求转换配置
+          properties:
+            enable:
+              type: boolean
+              title: Enable Request Transformation
+              x-title-i18n:
+                zh-CN: 开启请求转换
+              description: Whether to enable transformation in the request phase
+              x-description-i18n:
+                zh-CN: 是否在请求阶段开启转换
+            prompt:
+              type: string
+              title: Request Prompt
+              x-title-i18n:
+                zh-CN: 请求提示词
+              description: Prompt used for transformation in the request phase
+              x-description-i18n:
+                zh-CN: 请求阶段转换使用的提示词
+          required:
+            - enable
+            - prompt
+        response:
+          type: object
+          title: Response Configuration
+          x-title-i18n:
+            zh-CN: 响应配置
+          description: Configuration for response transformation
+          x-description-i18n:
+            zh-CN: 响应转换配置
+          properties:
+            enable:
+              type: boolean
+              title: Enable Response Transformation
+              x-title-i18n:
+                zh-CN: 开启响应转换
+              description: Whether to enable transformation in the response phase
+              x-description-i18n:
+                zh-CN: 是否在响应阶段开启转换
+            prompt:
+              type: string
+              title: Response Prompt
+              x-title-i18n:
+                zh-CN: 响应提示词
+              description: Prompt used for transformation in the response phase
+              x-description-i18n:
+                zh-CN: 响应阶段转换使用的提示词
+          required:
+            - enable
+            - prompt
+        provider:
+          type: object
+          title: Provider Configuration
+          x-title-i18n:
+            zh-CN: 服务提供商配置
+          description: Configuration for LLM service provider
+          x-description-i18n:
+            zh-CN: LLM 服务提供商配置
+          properties:
+            serviceName:
+              type: string
+              title: Service Name
+              x-title-i18n:
+                zh-CN: 服务名称
+              description: DNS type service name, currently only supports Qwen
+              x-description-i18n:
+                zh-CN: DNS类型的服务名，目前仅支持通义千问
+            domain:
+              type: string
+              title: Service Domain
+              x-title-i18n:
+                zh-CN: 服务域名
+              description: LLM service domain
+              x-description-i18n:
+                zh-CN: LLM服务域名
+            apiKey:
+              type: string
+              title: API Key
+              x-title-i18n:
+                zh-CN: API密钥
+              description: Alibaba Cloud Dashscope service API Key
+              x-description-i18n:
+                zh-CN: 阿里云dashscope服务的API Key
+          required:
+            - serviceName
+            - domain
+            - apiKey
       example:
         request:
           enable: false

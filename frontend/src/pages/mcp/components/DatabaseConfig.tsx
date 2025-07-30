@@ -95,7 +95,6 @@ const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbP
               <Input
                 key={item.id}
                 style={{ width: 180 }}
-                disabled={item.type === 'db_server_host' || item.type === 'db_server_port'}
                 type={item.type === 'db_password' ? 'password' : 'text'}
               />
             )}
