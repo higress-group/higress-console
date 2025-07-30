@@ -26,6 +26,8 @@ public class KubernetesConstants {
     public static final String SECRET_TLS_KEY_FIELD = "tls.key";
     public static final String YAML_SEPARATOR = "---\n";
 
+    public static final String HIGRESS_CONFIG = "higress-config";
+
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
         public static final String NGINX_INGRESS_KEY_PREFIX = "nginx.ingress.kubernetes.io/";
@@ -60,8 +62,8 @@ public class KubernetesConstants {
         public static final String HEADER_MATCH_KEYWORD = "-match-header-";
         public static final String HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + HEADER_MATCH_KEYWORD + "%s";
         public static final String PSEUDO_HEADER_MATCH_KEYWORD = "-match-pseudo-header-";
-        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT =
-            "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD + "%s";
+        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD
+                + "%s";
         public static final String METHOD_KEY = "higress.io/match-method";
 
         public static final String IGNORE_PATH_CASE_KEY = "higress.io/ignore-path-case";

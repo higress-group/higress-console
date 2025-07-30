@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.RouteAuthConfig;
@@ -42,10 +43,8 @@ import com.google.common.collect.Lists;
  */
 public abstract class AbstractMcpServerDetailStrategy implements McpServerDetailStrategy {
 
-    protected static final String HIGRESS_CONFIG = "higress-config";
-
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
-        .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
 
     static {
         YAML.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -56,7 +55,7 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
     protected final RouteService routeService;
 
     public AbstractMcpServerDetailStrategy(KubernetesClientService kubernetesClientService,
-        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
+            WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
         this.kubernetesClientService = kubernetesClientService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
         this.routeService = routeService;
@@ -79,7 +78,7 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
 
     protected McpServer routeToMcpServerWithAuth(Route route) {
         WasmPluginInstance instance = wasmPluginInstanceService
-            .query(MapUtil.of(WasmPluginInstanceScope.ROUTE, route.getName()), BuiltInPluginName.KEY_AUTH, true);
+                .query(MapUtil.of(WasmPluginInstanceScope.ROUTE, route.getName()), BuiltInPluginName.KEY_AUTH, true);
         route.setAuthConfig(RouteAuthConfig.builder().enabled(false).build());
         if (Objects.nonNull(instance)) {
             route.setAuthConfig(generateAuthConfig(instance));
@@ -99,9 +98,9 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
             if (!(allowObj instanceof List<?>)) {
                 routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
             } else {
-                List<?> allowList = (List<?>)allowObj;
-                List<String> collectList = allowList.stream().filter(a -> a instanceof String).map(a -> (String)a)
-                    .collect(Collectors.toList());
+                List<?> allowList = (List<?>) allowObj;
+                List<String> collectList = allowList.stream().filter(a -> a instanceof String).map(a -> (String) a)
+                        .collect(Collectors.toList());
                 routeAuthConfig.setAllowedConsumers(collectList);
             }
         }
