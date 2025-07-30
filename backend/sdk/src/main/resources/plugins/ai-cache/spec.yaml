@@ -4,12 +4,12 @@ info:
   category: ai
   image: platform_wasm/ai-cache
   name: ai-cache
-  title: AI Cache
+  title: AI 缓存
   x-title-i18n:
-    zh-CN: AI 缓存
-  description: Cache the response of large language models, significantly reduce the response latency of similar problems and save costs.
+    en-US: AI Cache
+  description: 缓存大语言模型的响应结果，显著降低相似问题的响应时延并节省成本。
   x-description-i18n:
-    zh-CN: 缓存大语言模型的响应结果，显著降低相似问题的响应时延并节省成本。
+    en-US: Cache the response of large language models, significantly reduce the response latency of similar problems and save costs.
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
   version: 1.0.0
   contact:
@@ -21,6 +21,120 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        cacheKeyFrom:
+          type: string
+          title: 从请求 Body 中提取缓存 Key
+          x-title-i18n:
+            en-US: Cache Key From Request Body
+          description: 从请求 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the request Body based on GJSON PATH syntax
+          default: "messages.@reverse.0.content"
+        cacheValueFrom:
+          type: string
+          title: 从响应 Body 中提取缓存值
+          x-title-i18n:
+            en-US: Cache Value From Response Body
+          description: 从响应 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the response Body based on GJSON PATH syntax
+          default: "choices.0.message.content"
+        cacheStreamValueFrom:
+          type: string
+          title: 从流式响应 Body 中提取缓存值
+          x-title-i18n:
+            en-US: Cache Value From Stream Response Body
+          description: 从流式响应 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the streaming response Body based on GJSON PATH syntax
+          default: "choices.0.delta.content"
+        cacheKeyPrefix:
+          type: string
+          title: 缓存 Key 前缀
+          x-title-i18n:
+            en-US: Cache Key Prefix
+          description: Redis缓存Key的前缀
+          x-description-i18n:
+            en-US: Prefix for the Redis cache key
+          default: "higress-ai-cache:"
+        cacheTTL:
+          type: integer
+          title: 缓存过期时间
+          x-title-i18n:
+            en-US: Cache TTL
+          description: 缓存的过期时间，单位是秒，默认值为0，即永不过期
+          x-description-i18n:
+            en-US: Cache expiration time in seconds, default value is 0, which means never expire
+          default: 0
+        redis:
+          type: object
+          title: Redis 配置
+          x-title-i18n:
+            en-US: Redis Configuration
+          properties:
+            serviceName:
+              type: string
+              title: Redis 服务名称
+              x-title-i18n:
+                en-US: Redis Service Name
+              description: redis 服务名称，带服务类型的完整 FQDN 名称
+              x-description-i18n:
+                en-US: The complete FQDN name of the Redis service, including the service type
+            servicePort:
+              type: integer
+              title: Redis 服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              description: redis 服务端口
+              x-description-i18n:
+                en-US: Redis service port
+              default: 6379
+            timeout:
+              type: integer
+              title: Redis 超时时间
+              x-title-i18n:
+                en-US: Redis Timeout
+              description: 请求 redis 的超时时间，单位为毫秒
+              x-description-i18n:
+                en-US: Timeout for requests to Redis, in milliseconds
+              default: 1000
+            username:
+              type: string
+              title: Redis 用户名
+              x-title-i18n:
+                en-US: Redis Username
+              description: 登陆 redis 的用户名
+              x-description-i18n:
+                en-US: Username for logging into Redis
+            password:
+              type: string
+              title: Redis 密码
+              x-title-i18n:
+                en-US: Redis Password
+              description: 登陆 redis 的密码
+              x-description-i18n:
+                en-US: Password for logging into Redis
+          required:
+            - serviceName
+        returnResponseTemplate:
+          type: string
+          title: 响应模板
+          x-title-i18n:
+            en-US: Response Template
+          description: 返回 HTTP 响应的模版，用 %s 标记需要被 cache value 替换的部分
+          x-description-i18n:
+            en-US: Template for returning HTTP response, with %s marking the part to be replaced by cache value
+          default: '{"id":"from-cache","choices":[%s],"model":"gpt-4o","object":"chat.completion","usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}'
+        returnStreamResponseTemplate:
+          type: string
+          title: 流式响应模板
+          x-title-i18n:
+            en-US: Stream Response Template
+          description: 返回流式 HTTP 响应的模版，用 %s 标记需要被 cache value 替换的部分
+          x-description-i18n:
+            en-US: Template for returning streaming HTTP response, with %s marking the part to be replaced by cache value
+          default: 'data:{"id":"from-cache","choices":[{"index":0,"delta":{"role":"assistant","content":"%s"},"finish_reason":"stop"}],"model":"gpt-4o","object":"chat.completion","usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}\n\ndata:[DONE]\n\n'
       example:
         redis:
           serviceName: my-redis.dns
@@ -37,8 +151,122 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
-      example:
+      properties:
+        cacheKeyFrom:
+          type: string
+          title: 从请求 Body 中提取缓存 Key
+          x-title-i18n:
+            en-US: Cache Key From Request Body
+          description: 从请求 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the request Body based on GJSON PATH syntax
+          default: "messages.@reverse.0.content"
+        cacheValueFrom:
+          type: string
+          title: 从响应 Body 中提取缓存值
+          x-title-i18n:
+            en-US: Cache Value From Response Body
+          description: 从响应 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the response Body based on GJSON PATH syntax
+          default: "choices.0.message.content"
+        cacheStreamValueFrom:
+          type: string
+          title: 从流式响应 Body 中提取缓存值
+          x-title-i18n:
+            en-US: Cache Value From Stream Response Body
+          description: 从流式响应 Body 中基于 GJSON PATH 语法提取字符串
+          x-description-i18n:
+            en-US: Extract a string from the streaming response Body based on GJSON PATH syntax
+          default: "choices.0.delta.content"
+        cacheKeyPrefix:
+          type: string
+          title: 缓存 Key 前缀
+          x-title-i18n:
+            en-US: Cache Key Prefix
+          description: Redis缓存Key的前缀
+          x-description-i18n:
+            en-US: Prefix for the Redis cache key
+          default: "higress-ai-cache:"
+        cacheTTL:
+          type: integer
+          title: 缓存过期时间
+          x-title-i18n:
+            en-US: Cache TTL
+          description: 缓存的过期时间，单位是秒，默认值为0，即永不过期
+          x-description-i18n:
+            en-US: Cache expiration time in seconds, default value is 0, which means never expire
+          default: 0
         redis:
+          type: object
+          title: Redis 配置
+          x-title-i18n:
+            en-US: Redis Configuration
+          properties:
+            serviceName:
+              type: string
+              title: Redis 服务名称
+              x-title-i18n:
+                en-US: Redis Service Name
+              description: redis 服务名称，带服务类型的完整 FQDN 名称
+              x-description-i18n:
+                en-US: The complete FQDN name of the Redis service, including the service type
+            servicePort:
+              type: integer
+              title: Redis 服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              description: redis 服务端口
+              x-description-i18n:
+                en-US: Redis service port
+              default: 6379
+            timeout:
+              type: integer
+              title: Redis 超时时间
+              x-title-i18n:
+                en-US: Redis Timeout
+              description: 请求 redis 的超时时间，单位为毫秒
+              x-description-i18n:
+                en-US: Timeout for requests to Redis, in milliseconds
+              default: 1000
+            username:
+              type: string
+              title: Redis 用户名
+              x-title-i18n:
+                en-US: Redis Username
+              description: 登陆 redis 的用户名
+              x-description-i18n:
+                en-US: Username for logging into Redis
+            password:
+              type: string
+              title: Redis 密码
+              x-title-i18n:
+                en-US: Redis Password
+              description: 登陆 redis 的密码
+              x-description-i18n:
+                en-US: Password for logging into Redis
+          required:
+            - serviceName
+        returnResponseTemplate:
+          type: string
+          title: 响应模板
+          x-title-i18n:
+            en-US: Response Template
+          description: 返回 HTTP 响应的模版，用 %s 标记需要被 cache value 替换的部分
+          x-description-i18n:
+            en-US: Template for returning HTTP response, with %s marking the part to be replaced by cache value
+          default: '{"id":"from-cache","choices":[%s],"model":"gpt-4o","object":"chat.completion","usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}'
+        returnStreamResponseTemplate:
+          type: string
+          title: 流式响应模板
+          x-title-i18n:
+            en-US: Stream Response Template
+          description: 返回流式 HTTP 响应的模版，用 %s 标记需要被 cache value 替换的部分
+          x-description-i18n:
+            en-US: Template for returning streaming HTTP response, with %s marking the part to be replaced by cache value
+          default: 'data:{"id":"from-cache","choices":[{"index":0,"delta":{"role":"assistant","content":"%s"},"finish_reason":"stop"}],"model":"gpt-4o","object":"chat.completion","usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}\n\ndata:[DONE]\n\n'
+      example:
+        redis:  
           serviceName: my-redis.dns
           timeout: 2000
         cacheKeyFrom: "messages.@reverse.0.content"

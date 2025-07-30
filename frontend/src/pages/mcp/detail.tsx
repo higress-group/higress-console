@@ -36,7 +36,7 @@ const MCPDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('config');
   const [mcpData, setMcpData] = useState<any>(null);
-  const [apiGatewayUrl, setApiGatewayUrl] = useState('https://<higress-gateway-ip>');
+  const [apiGatewayUrl, setApiGatewayUrl] = useState('http://<higress-gateway-ip>');
   const [authEnabled, setAuthEnabled] = useState(false);
   const [tools, setTools] = useState<any[]>([]);
   const [editToolVisible, setEditToolVisible] = useState(false);
@@ -73,7 +73,7 @@ const MCPDetailPage: React.FC = () => {
           const domainProtocol = domain?.enableHttps === 'off' ? 'http' : 'https';
           setApiGatewayUrl(`${domainProtocol}://${domain?.name}`);
         } else {
-          setApiGatewayUrl('https://<higress-gateway-ip>');
+          setApiGatewayUrl('http://<higress-gateway-ip>');
         }
       }
     } catch (error) {
@@ -265,10 +265,10 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}/sse`}
+                      {`${apiGatewayUrl || 'http://<higress-gateway-ip>'}/mcp-servers/${name}/sse`}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}`}
+                      {`${apiGatewayUrl || 'http://<higress-gateway-ip>'}/mcp-servers/${name}`}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -413,7 +413,7 @@ const MCPDetailPage: React.FC = () => {
                     />
                   </div>
 
-                  {apiGatewayUrl !== 'https://<higress-gateway-ip>' && (
+                  {apiGatewayUrl !== 'http://<higress-gateway-ip>' && (
                     <div>
                       <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
                       <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>

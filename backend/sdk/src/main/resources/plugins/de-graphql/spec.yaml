@@ -23,6 +23,41 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        gql:
+          type: string
+          title: GraphQL 查询
+          x-title-i18n:
+            en-US: GraphQL Query
+          description: graphql 查询
+          x-description-i18n:
+            en-US: graphql query
+        endpoint:
+          type: string
+          title: GraphQL 查询端点
+          x-title-i18n:
+            en-US: GraphQL Endpoint
+          description: graphql 查询端点
+          x-description-i18n:
+            en-US: graphql query endpoint
+          default: "/graphql"
+        timeout:
+          type: integer
+          title: 查询连接超时
+          x-title-i18n:
+            en-US: Query Connection Timeout
+          description: 查询连接超时，单位毫秒
+          x-description-i18n:
+            en-US: query connection timeout in milliseconds
+          default: 5000
+        domain:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Domain
+          description: 服务域名，当服务来源是dns配置
+          x-description-i18n:
+            en-US: service domain, when service source is dns configuration
       example:
         timeout: 5000
         endpoint: /graphql
@@ -38,6 +73,41 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        gql:
+          type: string
+          title: GraphQL 查询
+          x-title-i18n:
+            en-US: GraphQL Query
+          description: graphql 查询
+          x-description-i18n:
+            en-US: graphql query
+        endpoint:
+          type: string
+          title: GraphQL 查询端点
+          x-title-i18n:
+            en-US: GraphQL Endpoint
+          description: graphql 查询端点
+          x-description-i18n:
+            en-US: graphql query endpoint
+          default: "/graphql"
+        timeout:
+          type: integer
+          title: 查询连接超时
+          x-title-i18n:
+            en-US: Query Connection Timeout
+          description: 查询连接超时，单位毫秒
+          x-description-i18n:
+            en-US: query connection timeout in milliseconds
+          default: 5000
+        domain:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Domain
+          description: 服务域名，当服务来源是dns配置
+          x-description-i18n:
+            en-US: service domain, when service source is dns configuration
       example:
         timeout: 5000
         endpoint: /graphql

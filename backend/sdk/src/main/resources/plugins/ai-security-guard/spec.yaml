@@ -21,8 +21,139 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        serviceName:
+          type: string
+          title: 服务名
+          x-title-i18n:
+            en-US: Service Name
+          description: 服务名
+          x-description-i18n:
+            en-US: Service name
+        servicePort:
+          type: string
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 服务端口
+          x-description-i18n:
+            en-US: Service port
+        serviceHost:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Host
+          description: 阿里云内容安全endpoint的域名
+          x-description-i18n:
+            en-US: Host of Aliyun content security service endpoint
+        accessKey:
+          type: string
+          title: 访问密钥
+          x-title-i18n:
+            en-US: Access Key
+          description: 阿里云AK
+          x-description-i18n:
+            en-US: Aliyun accesskey
+        secretKey:
+          type: string
+          title: 访问密钥密文
+          x-title-i18n:
+            en-US: Secret Key
+          description: 阿里云SK
+          x-description-i18n:
+            en-US: Aliyun secretkey
+        checkRequest:
+          type: boolean
+          title: 检查请求内容
+          x-title-i18n:
+            en-US: Check Request
+          description: 检查提问内容是否合规
+          x-description-i18n:
+            en-US: Check if the input is legal
+          default: false
+        checkResponse:
+          type: boolean
+          title: 检查响应内容
+          x-title-i18n:
+            en-US: Check Response
+          description: 检查大模型的回答内容是否合规，生效时会使流式响应变为非流式
+          x-description-i18n:
+            en-US: Check if the output is legal
+          default: false
+        requestCheckService:
+          type: string
+          title: 请求检查服务
+          x-title-i18n:
+            en-US: Request Check Service
+          description: 指定阿里云内容安全用于检测输入内容的服务
+          x-description-i18n:
+            en-US: Aliyun yundun service name for input check
+          default: "llm_query_moderation"
+        responseCheckService:
+          type: string
+          title: 响应检查服务
+          x-title-i18n:
+            en-US: Response Check Service
+          description: 指定阿里云内容安全用于检测输出内容的服务
+          x-description-i18n:
+            en-US: Aliyun yundun service name for output check
+          default: "llm_response_moderation"
+        requestContentJsonPath:
+          type: string
+          title: 请求内容路径
+          x-title-i18n:
+            en-US: Request Content Path
+          description: 指定要检测内容在请求body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the request body
+          default: "messages.@reverse.0.content"
+        responseContentJsonPath:
+          type: string
+          title: 响应内容路径
+          x-title-i18n:
+            en-US: Response Content Path
+          description: 指定要检测内容在响应body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the response body
+          default: "choices.0.message.content"
+        responseStreamContentJsonPath:
+          type: string
+          title: 流式响应内容路径
+          x-title-i18n:
+            en-US: Stream Response Content Path
+          description: 指定要检测内容在流式响应body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the streaming response body
+          default: "choices.0.delta.content"
+        denyCode:
+          type: integer
+          title: 拒绝状态码
+          x-title-i18n:
+            en-US: Deny Status Code
+          description: 指定内容非法时的响应状态码
+          x-description-i18n:
+            en-US: Response status code when the specified content is illegal
+          default: 200
+        denyMessage:
+          type: string
+          title: 拒绝响应内容
+          x-title-i18n:
+            en-US: Deny Message
+          description: 指定内容非法时的响应内容
+          x-description-i18n:
+            en-US: Response content when the specified content is illegal
+        protocol:
+          type: string
+          title: 协议类型
+          x-title-i18n:
+            en-US: Protocol Type
+          description: 协议格式，非openai协议填original
+          x-description-i18n:
+            en-US: Protocol format, openai or original
+          default: "openai"
+      required: [serviceName, servicePort, serviceHost, accessKey, secretKey]
       example:
-        serviceName: safecheck.dns # 请先创建好相应服务
+        serviceName: safecheck.dns
         servicePort: 443
         serviceHost: green-cip.cn-hangzhou.aliyuncs.com
         accessKey: "XXXXXXXXX"
@@ -32,8 +163,139 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        serviceName:
+          type: string
+          title: 服务名
+          x-title-i18n:
+            en-US: Service Name
+          description: 服务名
+          x-description-i18n:
+            en-US: Service name
+        servicePort:
+          type: string
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 服务端口
+          x-description-i18n:
+            en-US: Service port
+        serviceHost:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Host
+          description: 阿里云内容安全endpoint的域名
+          x-description-i18n:
+            en-US: Host of Aliyun content security service endpoint
+        accessKey:
+          type: string
+          title: 访问密钥
+          x-title-i18n:
+            en-US: Access Key
+          description: 阿里云AK
+          x-description-i18n:
+            en-US: Aliyun accesskey
+        secretKey:
+          type: string
+          title: 访问密钥密文
+          x-title-i18n:
+            en-US: Secret Key
+          description: 阿里云SK
+          x-description-i18n:
+            en-US: Aliyun secretkey
+        checkRequest:
+          type: boolean
+          title: 检查请求内容
+          x-title-i18n:
+            en-US: Check Request
+          description: 检查提问内容是否合规
+          x-description-i18n:
+            en-US: Check if the input is legal
+          default: false
+        checkResponse:
+          type: boolean
+          title: 检查响应内容
+          x-title-i18n:
+            en-US: Check Response
+          description: 检查大模型的回答内容是否合规，生效时会使流式响应变为非流式
+          x-description-i18n:
+            en-US: Check if the output is legal
+          default: false
+        requestCheckService:
+          type: string
+          title: 请求检查服务
+          x-title-i18n:
+            en-US: Request Check Service
+          description: 指定阿里云内容安全用于检测输入内容的服务
+          x-description-i18n:
+            en-US: Aliyun yundun service name for input check
+          default: "llm_query_moderation"
+        responseCheckService:
+          type: string
+          title: 响应检查服务
+          x-title-i18n:
+            en-US: Response Check Service
+          description: 指定阿里云内容安全用于检测输出内容的服务
+          x-description-i18n:
+            en-US: Aliyun yundun service name for output check
+          default: "llm_response_moderation"
+        requestContentJsonPath:
+          type: string
+          title: 请求内容路径
+          x-title-i18n:
+            en-US: Request Content Path
+          description: 指定要检测内容在请求body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the request body
+          default: "messages.@reverse.0.content"
+        responseContentJsonPath:
+          type: string
+          title: 响应内容路径
+          x-title-i18n:
+            en-US: Response Content Path
+          description: 指定要检测内容在响应body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the response body
+          default: "choices.0.message.content"
+        responseStreamContentJsonPath:
+          type: string
+          title: 流式响应内容路径
+          x-title-i18n:
+            en-US: Stream Response Content Path
+          description: 指定要检测内容在流式响应body中的jsonpath
+          x-description-i18n:
+            en-US: Specify the jsonpath of the content to be detected in the streaming response body
+          default: "choices.0.delta.content"
+        denyCode:
+          type: integer
+          title: 拒绝状态码
+          x-title-i18n:
+            en-US: Deny Status Code
+          description: 指定内容非法时的响应状态码
+          x-description-i18n:
+            en-US: Response status code when the specified content is illegal
+          default: 200
+        denyMessage:
+          type: string
+          title: 拒绝响应内容
+          x-title-i18n:
+            en-US: Deny Message
+          description: 指定内容非法时的响应内容
+          x-description-i18n:
+            en-US: Response content when the specified content is illegal
+        protocol:
+          type: string
+          title: 协议类型
+          x-title-i18n:
+            en-US: Protocol Type
+          description: 协议格式，非openai协议填original
+          x-description-i18n:
+            en-US: Protocol format, openai or original
+          default: "openai"
+      required: [serviceName, servicePort, serviceHost, accessKey, secretKey]
       example:
-        serviceName: safecheck.dns # 请先创建好相应服务
+        serviceName: safecheck.dns
         servicePort: 443
         serviceHost: green-cip.cn-hangzhou.aliyuncs.com
         accessKey: "XXXXXXXXX"

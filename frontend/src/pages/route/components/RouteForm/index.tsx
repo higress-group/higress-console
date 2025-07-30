@@ -88,7 +88,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const _authConfig_allowedConsumers = authConfig?.allowedConsumers || [];
       form.setFieldsValue({
         name,
-        domains: domains || [],
+        domains: (Array.isArray(domains) ? domains : [domains]).filter(d => !!d),
         path: Object.assign({ ...path }, { ignoreCase: path.caseSensitive === false ? ['ignore'] : [] }),
         methods: methods || [],
         headers: headers || [],
@@ -172,7 +172,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <Select
           showSearch
           allowClear
-          mode="single"
+          mode="multiple"
           placeholder={t('route.routeForm.domainSearchPlaceholder')}
           options={domainOptions}
         />
@@ -290,7 +290,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
                 <Form.Item
                   name="authConfig_allowedConsumers"
                   noStyle
-                  rules={[{ required: true, message: t('aiRoute.routeForm.label.authConfigList') || '' }]}
+                  rules={[{ required: true, message: t('aiRoute.routeForm.rule.authConfigListRequired') || '' }]}
                 >
                   <Select
                     allowClear
