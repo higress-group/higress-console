@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.NotFoundException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -88,6 +89,7 @@ public class McpServerServiceTest {
     private static final String DEFAULT_CONFIG_NAME = "higress-config";
     private static final String DEFAULT_CONFIG_NAME_HIGRESS_KEY = "higress";
     private static final String DEFAULT_CONFIG_NAME_MCP_KEY = "mcpServer";
+    private static final String REDIS_PLACEHOLDER_ADDRESS = "your.redis.host:6379";
 
     private KubernetesClientService kubernetesClientService;
     private KubernetesModelConverter kubernetesModelConverter;
@@ -98,7 +100,7 @@ public class McpServerServiceTest {
     private McpServerService mcpServerService;
 
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
-        .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -112,15 +114,15 @@ public class McpServerServiceTest {
         kubernetesModelConverter = new KubernetesModelConverter(kubernetesClientService);
 
         wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
-            WasmPluginServiceConfig.buildFromEnv());
+                WasmPluginServiceConfig.buildFromEnv());
         wasmPluginService.initialize();
-        wasmPluginInstanceService =
-            new WasmPluginInstanceServiceImpl(wasmPluginService, kubernetesClientService, kubernetesModelConverter);
+        wasmPluginInstanceService = new WasmPluginInstanceServiceImpl(wasmPluginService, kubernetesClientService,
+                kubernetesModelConverter);
         consumerService = new ConsumerServiceImpl(wasmPluginInstanceService);
         routeService = new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter,
-            wasmPluginInstanceService, consumerService);
+                wasmPluginInstanceService, consumerService);
         mcpServerService = new McpServiceContextImpl(kubernetesClientService, kubernetesModelConverter,
-            wasmPluginInstanceService, routeService);
+                wasmPluginInstanceService, routeService);
     }
 
     @Test
@@ -136,15 +138,15 @@ public class McpServerServiceTest {
 
         V1alpha1WasmPlugin mcpServerPluginCr = buildWasmPluginResource(TEST_MCP_SERVER_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(mcpServerPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
-                .enabled(routeEnabled).configurations(mcpPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
+                        .enabled(routeEnabled).configurations(mcpPluginConfig).build());
         List<V1alpha1WasmPlugin> mcpPlugins = Collections.singletonList(mcpServerPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME))).thenReturn(mcpPlugins);
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
-                .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
+                        .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
 
@@ -174,12 +176,12 @@ public class McpServerServiceTest {
         List<V1alpha1WasmPlugin> mcpPluginCrs = Collections.singletonList(existedMcpPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME))).thenReturn(mcpPluginCrs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME), anyString()))
-            .thenReturn(mcpPluginCrs);
+                .thenReturn(mcpPluginCrs);
         V1alpha1WasmPlugin existedKeyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         List<V1alpha1WasmPlugin> keyAuthPluginCrs = Collections.singletonList(existedKeyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPluginCrs);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), anyString()))
-            .thenReturn(keyAuthPluginCrs);
+                .thenReturn(keyAuthPluginCrs);
         when(kubernetesClientService.readIngress(anyString())).thenReturn(null);
         V1ConfigMap systemConfigMap = buildSystemConfigMap(null);
         when(kubernetesClientService.readConfigMap(anyString())).thenReturn(systemConfigMap);
@@ -188,8 +190,8 @@ public class McpServerServiceTest {
         instance.setType(mcpServerType);
         instance.setDescription(description);
         instance.setDomains(Lists.newArrayList(DEFAULT_ROUTE_DOMAIN));
-        UpstreamService testService =
-            UpstreamService.builder().name(DEFAULT_UPSTREAM_SERVICE).port(8080).weight(100).build();
+        UpstreamService testService = UpstreamService.builder().name(DEFAULT_UPSTREAM_SERVICE).port(8080).weight(100)
+                .build();
         instance.setServices(Collections.singletonList(testService));
         ConsumerAuthInfo consumerAuthInfo = new ConsumerAuthInfo();
         consumerAuthInfo.setEnable(true);
@@ -205,7 +207,7 @@ public class McpServerServiceTest {
 
         for (V1alpha1WasmPlugin plugin : capturedValues) {
             Assertions.assertEquals(Collections.singletonList(routeName),
-                plugin.getSpec().getMatchRules().get(0).getIngress());
+                    plugin.getSpec().getMatchRules().get(0).getIngress());
             Assertions.assertNotNull(plugin.getSpec().getMatchRules().get(0).getConfig());
         }
 
@@ -215,27 +217,29 @@ public class McpServerServiceTest {
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals(routeName, Objects.requireNonNull(ingress.getMetadata()).getName());
         Assertions.assertEquals(description,
-            Objects.requireNonNull(Objects.requireNonNull(ingress.getMetadata()).getAnnotations())
-                .get(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY));
+                Objects.requireNonNull(Objects.requireNonNull(ingress.getMetadata()).getAnnotations())
+                        .get(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY));
         Assertions.assertNotNull(ingress.getSpec(), "Ingress spec should not be null");
         List<V1IngressRule> rules = ingress.getSpec().getRules();
         Assertions.assertNotNull(rules, "Ingress should have at least one rule");
         V1IngressRule rule = rules.get(0);
         Assertions.assertEquals(DEFAULT_ROUTE_DOMAIN, rule.getHost(), "Ingress rule host mismatch");
         String path = Optional.ofNullable(rule.getHttp()).map(V1HTTPIngressRuleValue::getPaths)
-            .filter(paths -> !paths.isEmpty()).map(paths -> paths.get(0)).map(V1HTTPIngressPath::getPath).orElse("");
+                .filter(paths -> !paths.isEmpty()).map(paths -> paths.get(0)).map(V1HTTPIngressPath::getPath)
+                .orElse("");
         Assertions.assertEquals("/mcp-servers/" + mcpServerName, path, "Ingress path mismatch");
 
         Map<String, String> annotations = ingress.getMetadata().getAnnotations();
 
         Assertions.assertNotNull(annotations);
         Assertions
-            .assertNotNull(annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY));
+                .assertNotNull(
+                        annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_DOMAINS_KEY));
         Assertions.assertEquals("true", annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY));
         Assertions
-            .assertNotNull(annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY));
+                .assertNotNull(annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_TYPE_KEY));
         Assertions.assertEquals(path,
-            annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY));
+                annotations.get(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY));
     }
 
     @Test
@@ -247,23 +251,23 @@ public class McpServerServiceTest {
         final Map<String, Object> keyAuthPluginConfig = MapUtil.of("allow", allowConsumers);
         V1alpha1WasmPlugin mcpServerPluginCr = buildWasmPluginResource(TEST_MCP_SERVER_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(mcpServerPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
-                .enabled(routeEnabled).configurations(mcpPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+                        .enabled(routeEnabled).configurations(mcpPluginConfig).build());
         List<V1alpha1WasmPlugin> mcpPlugins = Collections.singletonList(mcpServerPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME))).thenReturn(mcpPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME), any())).thenReturn(mcpPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME), any(), any()))
-            .thenReturn(mcpPlugins);
+                .thenReturn(mcpPlugins);
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
-                .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+                        .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any())).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any(), any()))
-            .thenReturn(keyAuthPlugins);
+                .thenReturn(keyAuthPlugins);
 
         List<V1alpha1WasmPlugin> allPlugins = Arrays.asList(mcpServerPluginCr, keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin()).thenReturn(allPlugins);
@@ -296,12 +300,13 @@ public class McpServerServiceTest {
         Assertions.assertNotNull(configMap.getData());
         Assertions.assertNotNull(configMap.getData().get(DEFAULT_CONFIG_NAME_HIGRESS_KEY));
         String higressConfigYaml = configMap.getData().get(DEFAULT_CONFIG_NAME_HIGRESS_KEY);
-        Map<String, Object> higressConfig =
-            YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> higressConfig = YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {
+        });
         Assertions.assertNotNull(higressConfig);
-        McpServerConfigMap mcpConfig =
-            YAML.readValue(YAML.writeValueAsString(higressConfig.get(DEFAULT_CONFIG_NAME_MCP_KEY)),
-                new TypeReference<McpServerConfigMap>() {});
+        McpServerConfigMap mcpConfig = YAML.readValue(
+                YAML.writeValueAsString(higressConfig.get(DEFAULT_CONFIG_NAME_MCP_KEY)),
+                new TypeReference<McpServerConfigMap>() {
+                });
         Assertions.assertNotNull(mcpConfig);
         Assertions.assertEquals(0, mcpConfig.getMatchList().size());
         Assertions.assertEquals(0, mcpConfig.getServers().size());
@@ -319,13 +324,13 @@ public class McpServerServiceTest {
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
-                .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
+                        .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any())).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any(), any()))
-            .thenReturn(keyAuthPlugins);
+                .thenReturn(keyAuthPlugins);
 
         V1Ingress ingress = buildIngressResource(routeName, "", mcpServerType);
         when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
@@ -346,7 +351,7 @@ public class McpServerServiceTest {
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
         Assertions.assertEquals(Sets.newHashSet("consumerC", "consumerB", "consumerA"),
-            capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
+                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
     }
 
     @Test
@@ -360,13 +365,13 @@ public class McpServerServiceTest {
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
-                .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
+                WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
+                        .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any())).thenReturn(keyAuthPlugins);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), any(), any()))
-            .thenReturn(keyAuthPlugins);
+                .thenReturn(keyAuthPlugins);
 
         V1Ingress ingress = buildIngressResource(routeName, "", mcpServerType);
         when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
@@ -387,13 +392,13 @@ public class McpServerServiceTest {
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
         Assertions.assertEquals(Collections.singleton("consumerB"),
-            capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
+                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
         WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn)
-            .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
-            .imageRepository("oci://docker.io/" + name).build();
+                .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
+                .imageRepository("oci://docker.io/" + name).build();
         return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
     }
 
@@ -401,9 +406,9 @@ public class McpServerServiceTest {
         Route route = Route.builder().name(mcpServerName).build();
         route.setDomains(Collections.singletonList(DEFAULT_ROUTE_DOMAIN));
         route.setPath(
-            RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.toString()).matchValue("/test").build());
-        UpstreamService testService =
-            UpstreamService.builder().name(DEFAULT_UPSTREAM_SERVICE).port(8080).weight(100).build();
+                RoutePredicate.builder().matchType(RoutePredicateTypeEnum.PRE.toString()).matchValue("/test").build());
+        UpstreamService testService = UpstreamService.builder().name(DEFAULT_UPSTREAM_SERVICE).port(8080).weight(100)
+                .build();
         route.setServices(Collections.singletonList(testService));
         route.setCustomConfigs(MapUtil.of(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY, description));
         Map<String, String> labelsMap = new TreeMap<>();
@@ -427,5 +432,34 @@ public class McpServerServiceTest {
         String rawConfigurations = KubernetesUtil.toYaml(configurations);
         configMap.setData(MapUtil.of(DEFAULT_CONFIG_NAME_HIGRESS_KEY, rawConfigurations));
         return configMap;
+    }
+
+    @Test
+    public void testRedisConfigurationValidation() throws Exception {
+        // 测试 Redis 配置为占位符的情况
+        McpServerConfigMap mcpConfig = new McpServerConfigMap();
+        mcpConfig.setEnable(true);
+
+        // 只设置地址为占位符，用户名和密码使用真实值
+        McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
+        redisConfig.setAddress(REDIS_PLACEHOLDER_ADDRESS);
+        redisConfig.setPassword("real_password");
+        redisConfig.setUsername("real_username");
+        redisConfig.setDb(0);
+        mcpConfig.setRedis(redisConfig);
+
+        V1ConfigMap configMap = buildSystemConfigMap(mcpConfig);
+        when(kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG)).thenReturn(configMap);
+
+        // 创建 OpenAPI 类型的 MCP Server
+        McpServer mcpServer = new McpServer();
+        mcpServer.setName("test-openapi-server");
+        mcpServer.setType(McpServerTypeEnum.OPEN_API);
+        mcpServer.setDescription("Test OpenAPI Server");
+
+        // 验证会抛出 ValidationException
+        Assertions.assertThrows(ValidationException.class, () -> {
+            mcpServerService.addOrUpdate(mcpServer);
+        });
     }
 }
