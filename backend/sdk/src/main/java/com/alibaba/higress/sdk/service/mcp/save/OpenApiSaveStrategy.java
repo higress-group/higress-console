@@ -53,6 +53,10 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
 
     private static final String REDIS_PLACEHOLDER_ADDRESS = "your.redis.host:6379";
 
+    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
+            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+
     public OpenApiSaveStrategy(KubernetesClientService kubernetesClientService,
             KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
             RouteService routeService) {
@@ -91,20 +95,17 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
                 throw new ValidationException("Missing higress configuration item in higress-config");
             }
 
-            ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory()
-                    .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
-                    .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
-            yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-            Map<String, Object> higressConfig = yamlMapper.readValue(higressConfigYaml, Map.class);
+            Map<String, Object> higressConfig = YAML_MAPPER.readValue(higressConfigYaml, Map.class);
             Object mcpServerObj = higressConfig.get("mcpServer");
 
             if (mcpServerObj == null) {
                 throw new ValidationException("Missing mcpServer configuration item in higress-config");
             }
 
-            McpServerConfigMap mcpConfig = yamlMapper.readValue(
-                    yamlMapper.writeValueAsString(mcpServerObj), McpServerConfigMap.class);
+            McpServerConfigMap mcpConfig = YAML_MAPPER.readValue(
+                    YAML_MAPPER.writeValueAsString(mcpServerObj), McpServerConfigMap.class);
 
             if (mcpConfig.getRedis() == null) {
                 throw new ValidationException(
@@ -146,7 +147,7 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
             Map<String, Object> rootMap = new HashMap<>();
             rootMap.put("server", serverMap);
             try {
-                String yamlString = YAML.writeValueAsString(rootMap);
+                String yamlString = YAML_MAPPER.writeValueAsString(rootMap);
                 pluginInstance.setRawConfigurations(yamlString);
                 pluginInstance.setEnabled(false);
             } catch (JsonProcessingException e) {
