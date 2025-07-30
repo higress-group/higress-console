@@ -21,6 +21,113 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        serviceName:
+          type: string
+          title: AI服务名称
+          x-title-i18n:
+            en-US: AI Service Name
+          description: AI服务或支持AI-Proxy的网关服务名称
+          x-description-i18n:
+            en-US: AI service or gateway service name that supports AI-Proxy
+        serviceDomain:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Domain
+          description: AI服务或支持AI-Proxy的网关服务域名/IP地址
+          x-description-i18n:
+            en-US: AI service or gateway service domain/IP address that supports AI-Proxy
+        servicePath:
+          type: string
+          title: 服务路径
+          x-title-i18n:
+            en-US: Service Path
+          description: AI服务或支持AI-Proxy的网关服务基础路径
+          x-description-i18n:
+            en-US: AI service or gateway service base path that supports AI-Proxy
+          default: /v1/chat/completions
+        serviceUrl:
+          type: string
+          title: 服务URL
+          x-title-i18n:
+            en-US: Service URL
+          description: AI服务或支持AI-Proxy的网关服务URL, 插件将自动提取Domain和Path, 用于填充未配置的serviceDomain或servicePath
+          x-description-i18n:
+            en-US: AI service or gateway service URL that supports AI-Proxy; the plugin will automatically extract domain and path to fill in the unconfigured serviceDomain or servicePath
+        servicePort:
+          type: integer
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 网关服务端口
+          x-description-i18n:
+            en-US: Gateway service port
+          default: 443
+        serviceTimeout:
+          type: integer
+          title: 服务超时时间
+          x-title-i18n:
+            en-US: Service Timeout
+          description: 默认请求超时时间
+          x-description-i18n:
+            en-US: Default request timeout
+          default: 50000
+        maxRetry:
+          type: integer
+          title: 最大重试次数
+          x-title-i18n:
+            en-US: Max Retry Count
+          description: 若回答无法正确提取格式化时重试次数
+          x-description-i18n:
+            en-US: Number of retry attempts when the answer cannot be correctly extracted and formatted
+          default: 3
+        contentPath:
+          type: string
+          title: 内容路径
+          x-title-i18n:
+            en-US: Content Path
+          description: 从LLM回答中提取响应结果的gpath路径
+          x-description-i18n:
+            en-US: gpath path to extract the response result from the LLM answer
+          default: choices.0.message.content
+        jsonSchema:
+          type: string
+          title: JSON Schema
+          x-title-i18n:
+            en-US: JSON Schema
+          description: 验证请求所参照的jsonSchema, 为空只验证并返回合法Json格式响应
+          x-description-i18n:
+            en-US: The jsonSchema against which the request is validated; if empty, only valid Json format responses are returned
+        enableSwagger:
+          type: boolean
+          title: 启用Swagger
+          x-title-i18n:
+            en-US: Enable Swagger
+          description: 是否启用Swagger协议进行验证
+          x-description-i18n:
+            en-US: Whether to enable the Swagger protocol for validation
+          default: false
+        enableOas3:
+          type: boolean
+          title: 启用OAS3
+          x-title-i18n:
+            en-US: Enable OAS3
+          description: 是否启用Oas3协议进行验证
+          x-description-i18n:
+            en-US: Whether to enable the Oas3 protocol for validation
+          default: true
+        enableContentDisposition:
+          type: boolean
+          title: 启用Content-Disposition
+          x-title-i18n:
+            en-US: Enable Content-Disposition
+          description: "是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename=response.json"
+          x-description-i18n:
+            en-US: "Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename=response.json"
+          default: true
+      required:
+        - serviceName
       example:
         serviceName: qwen
         serviceDomain: dashscope.aliyuncs.com
@@ -45,6 +152,113 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        serviceName:
+          type: string
+          title: AI服务名称
+          x-title-i18n:
+            en-US: AI Service Name
+          description: AI服务或支持AI-Proxy的网关服务名称
+          x-description-i18n:
+            en-US: AI service or gateway service name that supports AI-Proxy
+        serviceDomain:
+          type: string
+          title: 服务域名
+          x-title-i18n:
+            en-US: Service Domain
+          description: AI服务或支持AI-Proxy的网关服务域名/IP地址
+          x-description-i18n:
+            en-US: AI service or gateway service domain/IP address that supports AI-Proxy
+        servicePath:
+          type: string
+          title: 服务路径
+          x-title-i18n:
+            en-US: Service Path
+          description: AI服务或支持AI-Proxy的网关服务基础路径
+          x-description-i18n:
+            en-US: AI service or gateway service base path that supports AI-Proxy
+          default: /v1/chat/completions
+        serviceUrl:
+          type: string
+          title: 服务URL
+          x-title-i18n:
+            en-US: Service URL
+          description: AI服务或支持AI-Proxy的网关服务URL, 插件将自动提取Domain和Path, 用于填充未配置的serviceDomain或servicePath
+          x-description-i18n:
+            en-US: AI service or gateway service URL that supports AI-Proxy; the plugin will automatically extract domain and path to fill in the unconfigured serviceDomain or servicePath
+        servicePort:
+          type: integer
+          title: 服务端口
+          x-title-i18n:
+            en-US: Service Port
+          description: 网关服务端口
+          x-description-i18n:
+            en-US: Gateway service port
+          default: 443
+        serviceTimeout:
+          type: integer
+          title: 服务超时时间
+          x-title-i18n:
+            en-US: Service Timeout
+          description: 默认请求超时时间
+          x-description-i18n:
+            en-US: Default request timeout
+          default: 50000
+        maxRetry:
+          type: integer
+          title: 最大重试次数
+          x-title-i18n:
+            en-US: Max Retry Count
+          description: 若回答无法正确提取格式化时重试次数
+          x-description-i18n:
+            en-US: Number of retry attempts when the answer cannot be correctly extracted and formatted
+          default: 3
+        contentPath:
+          type: string
+          title: 内容路径
+          x-title-i18n:
+            en-US: Content Path
+          description: 从LLM回答中提取响应结果的gpath路径
+          x-description-i18n:
+            en-US: gpath path to extract the response result from the LLM answer
+          default: choices.0.message.content
+        jsonSchema:
+          type: string
+          title: JSON Schema
+          x-title-i18n:
+            en-US: JSON Schema
+          description: 验证请求所参照的jsonSchema, 为空只验证并返回合法Json格式响应
+          x-description-i18n:
+            en-US: The jsonSchema against which the request is validated; if empty, only valid Json format responses are returned
+        enableSwagger:
+          type: boolean
+          title: 启用Swagger
+          x-title-i18n:
+            en-US: Enable Swagger
+          description: 是否启用Swagger协议进行验证
+          x-description-i18n:
+            en-US: Whether to enable the Swagger protocol for validation
+          default: false
+        enableOas3:
+          type: boolean
+          title: 启用OAS3
+          x-title-i18n:
+            en-US: Enable OAS3
+          description: 是否启用Oas3协议进行验证
+          x-description-i18n:
+            en-US: Whether to enable the Oas3 protocol for validation
+          default: true
+        enableContentDisposition:
+          type: boolean
+          title: 启用Content-Disposition
+          x-title-i18n:
+            en-US: Enable Content-Disposition
+          description: "是否启用Content-Disposition头部, 若启用则会在响应头中添加Content-Disposition: attachment; filename=response.json"
+          x-description-i18n:
+            en-US: "Whether to enable the Content-Disposition header; if enabled, the response header will include Content-Disposition: attachment; filename=response.json"
+          default: true
+      required:
+        - serviceName
       example:
         serviceName: qwen
         serviceDomain: dashscope.aliyuncs.com

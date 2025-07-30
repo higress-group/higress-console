@@ -21,6 +21,303 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        llm:
+          type: object
+          title: AI 服务提供商配置
+          x-title-i18n:
+            en-US: AI Service Provider Configuration
+          description: 配置 AI 服务提供商的信息
+          x-description-i18n:
+            en-US: Configuration information for AI service provider
+          required:
+            - apiKey
+            - serviceName
+            - servicePort
+            - domain
+            - path
+            - model
+            - maxIterations
+            - maxExecutionTime
+            - maxTokens
+          properties:
+            apiKey:
+              type: string
+              title: API 密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问大模型服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token for authentication when accessing large model services
+            serviceName:
+              type: string
+              title: 服务名称
+              x-title-i18n:
+                en-US: Service Name
+              description: 大模型服务名
+              x-description-i18n:
+                en-US: Name of the large model service
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 大模型服务端口
+              x-description-i18n:
+                en-US: Port of the large model service
+            domain:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Domain
+              description: 访问大模型服务时域名
+              x-description-i18n:
+                en-US: Domain for accessing the large model service
+            path:
+              type: string
+              title: 服务路径
+              x-title-i18n:
+                en-US: Service Path
+              description: 访问大模型服务时路径
+              x-description-i18n:
+                en-US: Path for accessing the large model service
+            model:
+              type: string
+              title: 模型名称
+              x-title-i18n:
+                en-US: Model Name
+              description: 访问大模型服务时模型名
+              x-description-i18n:
+                en-US: Model name for accessing the large model service
+            maxIterations:
+              type: integer
+              title: 最大迭代次数
+              x-title-i18n:
+                en-US: Maximum Iterations
+              description: 结束执行循环前的最大步数
+              x-description-i18n:
+                en-US: Maximum steps before ending the execution loop
+              default: 15
+            maxExecutionTime:
+              type: integer
+              title: 最大执行时间
+              x-title-i18n:
+                en-US: Maximum Execution Time
+              description: 每一次请求大模型的超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Timeout for each request to the large model, in milliseconds
+              default: 50000
+            maxTokens:
+              type: integer
+              title: 最大令牌数
+              x-title-i18n:
+                en-US: Maximum Tokens
+              description: 每一次请求大模型的输出token限制
+              x-description-i18n:
+                en-US: Token limit for each request to the large model
+              default: 1000
+        apis:
+          type: array
+          title: 外部 API 配置
+          x-title-i18n:
+            en-US: External API Configuration
+          description: 配置外部 API 服务提供商的信息
+          x-description-i18n:
+            en-US: Configuration information for external API service provider
+          items:
+            type: object
+            required:
+              - apiProvider
+              - api
+            properties:
+              apiProvider:
+                type: object
+                title: API 提供商
+                x-title-i18n:
+                  en-US: API Provider
+                description: 外部 API 服务信息
+                x-description-i18n:
+                  en-US: Information about the external API service
+                required:
+                  - serviceName
+                  - servicePort
+                  - domain
+                properties:
+                  apiKey:
+                    type: object
+                    title: API 密钥配置
+                    x-title-i18n:
+                      en-US: API Key Configuration
+                    description: 用于在访问外部 API 服务时进行认证的令牌
+                    x-description-i18n:
+                      en-US: Token for authentication when accessing external API services
+                    properties:
+                      in:
+                        type: string
+                        title: 密钥位置
+                        x-title-i18n:
+                          en-US: Key Location
+                        description: 认证令牌放置位置（header/query/none）
+                        x-description-i18n:
+                          en-US: Location of the authentication token (header/query/none)
+                        default: none
+                      name:
+                        type: string
+                        title: 密钥名称
+                        x-title-i18n:
+                          en-US: Key Name
+                        description: 认证令牌的名称
+                        x-description-i18n:
+                          en-US: Name of the authentication token
+                      value:
+                        type: string
+                        title: 密钥值
+                        x-title-i18n:
+                          en-US: Key Value
+                        description: 认证令牌的值
+                        x-description-i18n:
+                          en-US: Value of the authentication token
+                  maxExecutionTime:
+                    type: integer
+                    title: 最大执行时间
+                    x-title-i18n:
+                      en-US: Maximum Execution Time
+                    description: 每一次请求API的超时时间，单位毫秒
+                    x-description-i18n:
+                      en-US: Timeout for each request to the API, in milliseconds
+                    default: 50000
+                  serviceName:
+                    type: string
+                    title: 服务名称
+                    x-title-i18n:
+                      en-US: Service Name
+                    description: 访问外部 API 服务名
+                    x-description-i18n:
+                      en-US: Name of the external API service
+                  servicePort:
+                    type: integer
+                    title: 服务端口
+                    x-title-i18n:
+                      en-US: Service Port
+                    description: 访问外部 API 服务端口
+                    x-description-i18n:
+                      en-US: Port of the external API service
+                  domain:
+                    type: string
+                    title: 服务域名
+                    x-title-i18n:
+                      en-US: Service Domain
+                    description: 访问外部 API 时域名
+                    x-description-i18n:
+                      en-US: Domain for accessing the external API
+              api:
+                type: string
+                title: API 文档
+                x-title-i18n:
+                  en-US: API Documentation
+                description: 工具的 OpenAPI 文档
+                x-description-i18n:
+                  en-US: OpenAPI documentation of the tool
+        promptTemplate:
+          type: object
+          title: 提示词模板配置
+          x-title-i18n:
+            en-US: Prompt Template Configuration
+          description: 配置 Agent ReAct 模板的信息
+          x-description-i18n:
+            en-US: Configuration information for Agent ReAct template
+          properties:
+            language:
+              type: string
+              title: 模板语言
+              x-title-i18n:
+                en-US: Template Language
+              description: Agent ReAct 模板的语言类型，包括 CH 和 EN 两种
+              x-description-i18n:
+                en-US: Language type of the Agent ReAct template, including CH and EN
+              default: EN
+            chTemplate:
+              type: object
+              title: 中文模板
+              x-title-i18n:
+                en-US: Chinese Template
+              description: Agent ReAct 中文模板
+              x-description-i18n:
+                en-US: Agent ReAct Chinese template
+              properties:
+                question:
+                  type: string
+                  title: 问题部分
+                  x-title-i18n:
+                    en-US: Question Part
+                  description: Agent ReAct 模板的 question 部分
+                  x-description-i18n:
+                    en-US: The question part of the Agent ReAct template
+                thought1:
+                  type: string
+                  title: 思考部分1
+                  x-title-i18n:
+                    en-US: Thought Part 1
+                  description: Agent ReAct 模板的 thought1 部分
+                  x-description-i18n:
+                    en-US: The thought1 part of the Agent ReAct template
+                observation:
+                  type: string
+                  title: 观察部分
+                  x-title-i18n:
+                    en-US: Observation Part
+                  description: Agent ReAct 模板的 observation 部分
+                  x-description-i18n:
+                    en-US: The observation part of the Agent ReAct template
+                thought2:
+                  type: string
+                  title: 思考部分2
+                  x-title-i18n:
+                    en-US: Thought Part 2
+                  description: Agent ReAct 模板的 thought2 部分
+                  x-description-i18n:
+                    en-US: The thought2 part of the Agent ReAct template
+            enTemplate:
+              type: object
+              title: 英文模板
+              x-title-i18n:
+                en-US: English Template
+              description: Agent ReAct 英文模板
+              x-description-i18n:
+                en-US: Agent ReAct English template
+              properties:
+                question:
+                  type: string
+                  title: 问题部分
+                  x-title-i18n:
+                    en-US: Question Part
+                  description: Agent ReAct 模板的 question 部分
+                  x-description-i18n:
+                    en-US: The question part of the Agent ReAct template
+                thought1:
+                  type: string
+                  title: 思考部分1
+                  x-title-i18n:
+                    en-US: Thought Part 1
+                  description: Agent ReAct 模板的 thought1 部分
+                  x-description-i18n:
+                    en-US: The thought1 part of the Agent ReAct template
+                observation:
+                  type: string
+                  title: 观察部分
+                  x-title-i18n:
+                    en-US: Observation Part
+                  description: Agent ReAct 模板的 observation 部分
+                  x-description-i18n:
+                    en-US: The observation part of the Agent ReAct template
+                thought2:
+                  type: string
+                  title: 思考部分2
+                  x-title-i18n:
+                    en-US: Thought Part 2
+                  description: Agent ReAct 模板的 thought2 部分
+                  x-description-i18n:
+                    en-US: The thought2 part of the Agent ReAct template
       example:
         llm:
           apiKey: xxxxxxxxxxxxxxxxxx
@@ -45,7 +342,304 @@ spec:
                 ......
   configSchema:
     openAPIV3Schema:
-      type: object
+      type: object    
+      properties:
+        llm:
+          type: object
+          title: AI 服务提供商配置
+          x-title-i18n:
+            en-US: AI Service Provider Configuration
+          description: 配置 AI 服务提供商的信息
+          x-description-i18n:
+            en-US: Configuration information for AI service provider
+          required:
+            - apiKey
+            - serviceName
+            - servicePort
+            - domain
+            - path
+            - model
+            - maxIterations
+            - maxExecutionTime
+            - maxTokens
+          properties:
+            apiKey:
+              type: string
+              title: API 密钥
+              x-title-i18n:
+                en-US: API Key
+              description: 用于在访问大模型服务时进行认证的令牌
+              x-description-i18n:
+                en-US: Token for authentication when accessing large model services
+            serviceName:
+              type: string
+              title: 服务名称
+              x-title-i18n:
+                en-US: Service Name
+              description: 大模型服务名
+              x-description-i18n:
+                en-US: Name of the large model service
+            servicePort:
+              type: integer
+              title: 服务端口
+              x-title-i18n:
+                en-US: Service Port
+              description: 大模型服务端口
+              x-description-i18n:
+                en-US: Port of the large model service
+            domain:
+              type: string
+              title: 服务域名
+              x-title-i18n:
+                en-US: Service Domain
+              description: 访问大模型服务时域名
+              x-description-i18n:
+                en-US: Domain for accessing the large model service
+            path:
+              type: string
+              title: 服务路径
+              x-title-i18n:
+                en-US: Service Path
+              description: 访问大模型服务时路径
+              x-description-i18n:
+                en-US: Path for accessing the large model service
+            model:
+              type: string
+              title: 模型名称
+              x-title-i18n:
+                en-US: Model Name
+              description: 访问大模型服务时模型名
+              x-description-i18n:
+                en-US: Model name for accessing the large model service
+            maxIterations:
+              type: integer
+              title: 最大迭代次数
+              x-title-i18n:
+                en-US: Maximum Iterations
+              description: 结束执行循环前的最大步数
+              x-description-i18n:
+                en-US: Maximum steps before ending the execution loop
+              default: 15
+            maxExecutionTime:
+              type: integer
+              title: 最大执行时间
+              x-title-i18n:
+                en-US: Maximum Execution Time
+              description: 每一次请求大模型的超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Timeout for each request to the large model, in milliseconds
+              default: 50000
+            maxTokens:
+              type: integer
+              title: 最大令牌数
+              x-title-i18n:
+                en-US: Maximum Tokens
+              description: 每一次请求大模型的输出token限制
+              x-description-i18n:
+                en-US: Token limit for each request to the large model
+              default: 1000
+        apis:
+          type: array
+          title: 外部 API 配置
+          x-title-i18n:
+            en-US: External API Configuration
+          description: 配置外部 API 服务提供商的信息
+          x-description-i18n:
+            en-US: Configuration information for external API service provider
+          items:
+            type: object
+            required:
+              - apiProvider
+              - api
+            properties:
+              apiProvider:
+                type: object
+                title: API 提供商
+                x-title-i18n:
+                  en-US: API Provider
+                description: 外部 API 服务信息
+                x-description-i18n:
+                  en-US: Information about the external API service
+                required:
+                  - serviceName
+                  - servicePort
+                  - domain
+                properties:
+                  apiKey:
+                    type: object
+                    title: API 密钥配置
+                    x-title-i18n:
+                      en-US: API Key Configuration
+                    description: 用于在访问外部 API 服务时进行认证的令牌
+                    x-description-i18n:
+                      en-US: Token for authentication when accessing external API services
+                    properties:
+                      in:
+                        type: string
+                        title: 密钥位置
+                        x-title-i18n:
+                          en-US: Key Location
+                        description: 认证令牌放置位置（header/query/none）
+                        x-description-i18n:
+                          en-US: Location of the authentication token (header/query/none)
+                        default: none
+                      name:
+                        type: string
+                        title: 密钥名称
+                        x-title-i18n:
+                          en-US: Key Name
+                        description: 认证令牌的名称
+                        x-description-i18n:
+                          en-US: Name of the authentication token
+                      value:
+                        type: string
+                        title: 密钥值
+                        x-title-i18n:
+                          en-US: Key Value
+                        description: 认证令牌的值
+                        x-description-i18n:
+                          en-US: Value of the authentication token
+                  maxExecutionTime:
+                    type: integer
+                    title: 最大执行时间
+                    x-title-i18n:
+                      en-US: Maximum Execution Time
+                    description: 每一次请求API的超时时间，单位毫秒
+                    x-description-i18n:
+                      en-US: Timeout for each request to the API, in milliseconds
+                    default: 50000
+                  serviceName:
+                    type: string
+                    title: 服务名称
+                    x-title-i18n:
+                      en-US: Service Name
+                    description: 访问外部 API 服务名
+                    x-description-i18n:
+                      en-US: Name of the external API service
+                  servicePort:
+                    type: integer
+                    title: 服务端口
+                    x-title-i18n:
+                      en-US: Service Port
+                    description: 访问外部 API 服务端口
+                    x-description-i18n:
+                      en-US: Port of the external API service
+                  domain:
+                    type: string
+                    title: 服务域名
+                    x-title-i18n:
+                      en-US: Service Domain
+                    description: 访问外部 API 时域名
+                    x-description-i18n:
+                      en-US: Domain for accessing the external API
+              api:
+                type: string
+                title: API 文档
+                x-title-i18n:
+                  en-US: API Documentation
+                description: 工具的 OpenAPI 文档
+                x-description-i18n:
+                  en-US: OpenAPI documentation of the tool
+        promptTemplate:
+          type: object
+          title: 提示词模板配置
+          x-title-i18n:
+            en-US: Prompt Template Configuration
+          description: 配置 Agent ReAct 模板的信息
+          x-description-i18n:
+            en-US: Configuration information for Agent ReAct template
+          properties:
+            language:
+              type: string
+              title: 模板语言
+              x-title-i18n:
+                en-US: Template Language
+              description: Agent ReAct 模板的语言类型，包括 CH 和 EN 两种
+              x-description-i18n:
+                en-US: Language type of the Agent ReAct template, including CH and EN
+              default: EN
+            chTemplate:
+              type: object
+              title: 中文模板
+              x-title-i18n:
+                en-US: Chinese Template
+              description: Agent ReAct 中文模板
+              x-description-i18n:
+                en-US: Agent ReAct Chinese template
+              properties:
+                question:
+                  type: string
+                  title: 问题部分
+                  x-title-i18n:
+                    en-US: Question Part
+                  description: Agent ReAct 模板的 question 部分
+                  x-description-i18n:
+                    en-US: The question part of the Agent ReAct template
+                thought1:
+                  type: string
+                  title: 思考部分1
+                  x-title-i18n:
+                    en-US: Thought Part 1
+                  description: Agent ReAct 模板的 thought1 部分
+                  x-description-i18n:
+                    en-US: The thought1 part of the Agent ReAct template
+                observation:
+                  type: string
+                  title: 观察部分
+                  x-title-i18n:
+                    en-US: Observation Part
+                  description: Agent ReAct 模板的 observation 部分
+                  x-description-i18n:
+                    en-US: The observation part of the Agent ReAct template
+                thought2:
+                  type: string
+                  title: 思考部分2
+                  x-title-i18n:
+                    en-US: Thought Part 2
+                  description: Agent ReAct 模板的 thought2 部分
+                  x-description-i18n:
+                    en-US: The thought2 part of the Agent ReAct template
+            enTemplate:
+              type: object
+              title: 英文模板
+              x-title-i18n:
+                en-US: English Template
+              description: Agent ReAct 英文模板
+              x-description-i18n:
+                en-US: Agent ReAct English template
+              properties:
+                question:
+                  type: string
+                  title: 问题部分
+                  x-title-i18n:
+                    en-US: Question Part
+                  description: Agent ReAct 模板的 question 部分
+                  x-description-i18n:
+                    en-US: The question part of the Agent ReAct template
+                thought1:
+                  type: string
+                  title: 思考部分1
+                  x-title-i18n:
+                    en-US: Thought Part 1
+                  description: Agent ReAct 模板的 thought1 部分
+                  x-description-i18n:
+                    en-US: The thought1 part of the Agent ReAct template
+                observation:
+                  type: string
+                  title: 观察部分
+                  x-title-i18n:
+                    en-US: Observation Part
+                  description: Agent ReAct 模板的 observation 部分
+                  x-description-i18n:
+                    en-US: The observation part of the Agent ReAct template
+                thought2:
+                  type: string
+                  title: 思考部分2
+                  x-title-i18n:
+                    en-US: Thought Part 2
+                  description: Agent ReAct 模板的 thought2 部分
+                  x-description-i18n:
+                    en-US: The thought2 part of the Agent ReAct template        
       example:
         llm:
           apiKey: xxxxxxxxxxxxxxxxxx
