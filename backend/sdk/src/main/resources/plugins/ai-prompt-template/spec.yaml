@@ -21,6 +21,68 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        templates:
+          type: array
+          title: 模板设置
+          x-title-i18n:
+            en-US: Template settings
+          description: 用于配置AI提示词模板
+          x-description-i18n:
+            en-US: Used to configure AI prompt templates
+          items:
+            type: object
+            required: [name, template]
+            properties:
+              name:
+                type: string
+                title: 模板名称
+                x-title-i18n:
+                  en-US: Template name
+                description: 用于标识模板的唯一名称
+                x-description-i18n:
+                  en-US: Unique name to identify the template
+              template:
+                type: object
+                required: [model, messages]
+                properties:
+                  model:
+                    type: string
+                    title: 模型名称
+                    x-title-i18n:
+                      en-US: Model name
+                    description: 使用的大语言模型名称
+                    x-description-i18n:
+                      en-US: Name of the large language model to use
+                  messages:
+                    type: array
+                    title: 大模型输入
+                    x-title-i18n:
+                      en-US: Input for large model
+                    description: 配置发送给大语言模型的消息列表
+                    x-description-i18n:
+                      en-US: Configure the list of messages sent to the large language model
+                    items:
+                      type: object
+                      required: [role, content]
+                      properties:
+                        role:
+                          type: string
+                          title: 角色
+                          x-title-i18n:
+                            en-US: Role
+                          description: 消息的发送角色
+                          x-description-i18n:
+                            en-US: The role sending the message
+                        content:
+                          type: string
+                          title: 消息
+                          x-title-i18n:
+                            en-US: Message
+                          description: 消息的具体内容
+                          x-description-i18n:
+                            en-US: The specific content of the message
+      required: [templates]
       example:
         templates:
         - name: developer-chat
@@ -34,6 +96,68 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        templates:
+          type: array
+          title: 模板设置
+          x-title-i18n:
+            en-US: Template settings
+          description: 用于配置AI提示词模板
+          x-description-i18n:
+            en-US: Used to configure AI prompt templates
+          items:
+            type: object
+            required: [name, template]
+            properties:
+              name:
+                type: string
+                title: 模板名称
+                x-title-i18n:
+                  en-US: Template name
+                description: 用于标识模板的唯一名称
+                x-description-i18n:
+                  en-US: Unique name to identify the template
+              template:
+                type: object
+                required: [model, messages]
+                properties:
+                  model:
+                    type: string
+                    title: 模型名称
+                    x-title-i18n:
+                      en-US: Model name
+                    description: 使用的大语言模型名称
+                    x-description-i18n:
+                      en-US: Name of the large language model to use
+                  messages:
+                    type: array
+                    title: 大模型输入
+                    x-title-i18n:
+                      en-US: Input for large model
+                    description: 配置发送给大语言模型的消息列表
+                    x-description-i18n:
+                      en-US: Configure the list of messages sent to the large language model
+                    items:
+                      type: object
+                      required: [role, content]
+                      properties:
+                        role:
+                          type: string
+                          title: 角色
+                          x-title-i18n:
+                            en-US: Role
+                          description: 消息的发送角色
+                          x-description-i18n:
+                            en-US: The role sending the message
+                        content:
+                          type: string
+                          title: 消息
+                          x-title-i18n:
+                            en-US: Message
+                          description: 消息的具体内容
+                          x-description-i18n:
+                            en-US: The specific content of the message
+      required: [templates]
       example:
         templates:
         - name: developer-chat
