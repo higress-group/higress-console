@@ -958,28 +958,28 @@ public class KubernetesModelConverter {
             return;
         }
 
-        V1IngressRule rule = rules.get(0);
-        V1HTTPIngressRuleValue httpRule = rule.getHttp();
-        if (httpRule == null) {
-            return;
-        }
-        if (CollectionUtils.isNotEmpty(httpRule.getPaths())) {
-            fillPathRoute(route, metadata, httpRule.getPaths().get(0));
-        }
-
-        String host = rule.getHost();
-        if (!Strings.isNullOrEmpty(host)) {
-            route.setDomains(Collections.singletonList(host));
-        } else if (CollectionUtils.isNotEmpty(spec.getTls())) {
-            List<String> tlsHosts = new ArrayList<>();
-            for (V1IngressTLS tlsItem : spec.getTls()) {
-                if (CollectionUtils.isNotEmpty(tlsItem.getHosts())) {
-                    tlsHosts.addAll(tlsItem.getHosts());
-                }
+        route.setDomains(new ArrayList<>());
+        for (V1IngressRule rule : rules) {
+            if (rule.getHttp() == null) {
+                continue;
             }
-            route.setDomains(tlsHosts);
-        } else {
-            route.setDomains(Collections.emptyList());
+            List<V1HTTPIngressPath> paths = rule.getHttp().getPaths();
+            if (CollectionUtils.isNotEmpty(paths)) {
+                // Only one path is supported for now.
+                fillPathRoute(route, metadata, paths.get(0));
+            }
+            String host = rule.getHost();
+            if (!Strings.isNullOrEmpty(host)) {
+                route.getDomains().add(host);
+            } else if (CollectionUtils.isNotEmpty(spec.getTls())) {
+                List<String> tlsHosts = new ArrayList<>();
+                for (V1IngressTLS tlsItem : spec.getTls()) {
+                    if (CollectionUtils.isNotEmpty(tlsItem.getHosts())) {
+                        tlsHosts.addAll(tlsItem.getHosts());
+                    }
+                }
+                route.getDomains().addAll(tlsHosts);
+            }
         }
 
         Map<String, String> annotations = metadata.getAnnotations();
@@ -1488,12 +1488,7 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isEmpty(domains)) {
             domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
-
-        if (domains.size() > 1) {
-            throw new IllegalArgumentException("Only one domain is allowed.");
-        }
-
-        List<V1IngressTLS> tlses = null;
+        Map<String, Domain> httpsDomains = new HashMap<>(domains.size());
         for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
@@ -1521,42 +1516,61 @@ public class KubernetesModelConverter {
                 continue;
             }
 
+            httpsDomains.put(domainName, domain);
+        }
+        // Check if the number of domains with HTTPS enabled matches the original configuration
+        if (!httpsDomains.isEmpty() && httpsDomains.size() != domains.size()) {
+            throw new ValidationException("Currently only supports domains with the same protocol");
+        }
+
+        if (!httpsDomains.isEmpty()
+            && httpsDomains.values().stream().map(Domain::getEnableHttps).distinct().count() != 1) {
+            throw new ValidationException("All domains must use consistent HTTPS configuration");
+        }
+
+        List<V1IngressTLS> tlses = new ArrayList<>();
+
+        httpsDomains.forEach((domainName, domain) -> {
             V1IngressTLS tls = new V1IngressTLS();
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
-            if (tlses == null) {
-                tlses = new ArrayList<>();
-                spec.setTls(tlses);
-            }
             tlses.add(tls);
 
+            // Here we have confirmed that all domain protocols are consistent
             if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
                     KubernetesConstants.Annotation.TRUE_VALUE);
             }
+        });
+
+        if (CollectionUtils.isNotEmpty(tlses)) {
+            spec.setTls(tlses);
         }
     }
 
     private static void fillIngressRules(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
-        V1IngressRule rule = new V1IngressRule();
-        spec.setRules(Collections.singletonList(rule));
+        List<String> domains = route.getDomains();
+        if (CollectionUtils.isEmpty(domains)) {
+            domains = Collections.singletonList(null);
+        }
 
-        if (CollectionUtils.isNotEmpty(route.getDomains())) {
-            if (route.getDomains().size() > 1) {
-                throw new IllegalArgumentException("Only one domain is allowed.");
+        List<V1IngressRule> rules = domains.stream().map(d -> {
+            V1IngressRule rule = new V1IngressRule();
+            rule.setHost(d);
+            V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
+            rule.setHttp(httpRule);
+
+            RoutePredicate pathPredicate = route.getPath();
+            if (pathPredicate != null) {
+                fillHttpPathRule(metadata, httpRule, pathPredicate);
             }
-            rule.setHost(route.getDomains().get(0));
-        }
+            return rule;
+        }).collect(Collectors.toList());
 
-        V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
-        rule.setHttp(httpRule);
+        spec.setRules(rules);
 
-        RoutePredicate pathPredicate = route.getPath();
-        if (pathPredicate != null) {
-            fillHttpPathRule(metadata, httpRule, pathPredicate);
-        }
     }
 
     private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule,
