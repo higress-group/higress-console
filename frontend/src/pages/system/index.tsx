@@ -1,11 +1,11 @@
-import CodeEditor from '@/components/CodeEditor';
+import CodeEditor, { CodeEditorRef } from '@/components/CodeEditor';
 import { Mode } from '@/interfaces/config';
 import { getHigressConfig, updateHigressConfig } from '@/services/system';
 import store from '@/store';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Form, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const SystemSettings: React.FC = () => {
@@ -13,9 +13,9 @@ const SystemSettings: React.FC = () => {
 
   const [loaded, setLoaded] = useState<boolean>(false);
   const [configYaml, setConfigYaml] = useState<string>("");
-  const [configYamlVersion, setConfigYamlVersion] = useState<number>(0);
   const [mode, setMode] = useState<string>(Mode.K8S);
   const [form] = Form.useForm();
+  const codeEditorRef = useRef<CodeEditorRef>();
 
   const [configModel] = store.useModel('config');
   useEffect(() => {
@@ -27,7 +27,6 @@ const SystemSettings: React.FC = () => {
     onSuccess: (result, params) => {
       setLoaded(true);
       setConfigYaml(result);
-      setConfigYamlVersion(configYamlVersion + 1);
     },
   });
 
@@ -35,7 +34,7 @@ const SystemSettings: React.FC = () => {
     try {
       const updatedConfigYaml = await updateHigressConfig(configYaml);
       setConfigYaml(updatedConfigYaml);
-      setConfigYamlVersion(configYamlVersion + 1);
+      codeEditorRef.current?.pushContent(updatedConfigYaml);
       message.success(t('plugins.saveSuccess'));
     } catch (errInfo) {
       console.log('Update higress-config failed.', errInfo);
@@ -57,7 +56,7 @@ const SystemSettings: React.FC = () => {
         >
           <CodeEditor
             defaultValue={configYaml}
-            key={configYamlVersion}
+            ref={codeEditorRef}
             onChange={(val) => {
               setConfigYaml(val);
             }}
