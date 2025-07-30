@@ -17,8 +17,8 @@ description: 请求响应转换插件配置参考
 
 | 名称 | 数据类型 | 填写要求 |  默认值 | 描述 |
 | ------ | ------ | ------ | ------ | -------- |
-|  reqRules |  string  | 选填，reqRules和respRules至少填一个 |   -  |  请求转换器配置，指定转换操作类型以及请求头、请求查询参数、请求体的转换规则  |
-|  respRules |  string  | 选填，reqRules和respRules至少填一个 |   -  |  响应转换器配置，指定转换操作类型以及响应头、响应体的转换规则  |
+|  reqRules |  object  | 选填，reqRules和respRules至少填一个 |   -  |  请求转换器配置，指定转换操作类型以及请求头、请求查询参数、请求体的转换规则  |
+|  respRules |  object  | 选填，reqRules和respRules至少填一个 |   -  |  响应转换器配置，指定转换操作类型以及响应头、响应体的转换规则  |
 
 `reqRules`和`respRules`中每一项的配置字段说明如下：
 

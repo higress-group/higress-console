@@ -21,6 +21,86 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        redis_key_prefix:
+          type: string
+          title: Quota Redis Key前缀
+          x-title-i18n:
+            en-US: Quota Redis Key Prefix
+          description: qutoa redis key 前缀
+          x-description-i18n:
+            en-US: Quota redis key prefix
+          default: "chat_quota:"
+        admin_consumer:
+          type: string
+          title: 管理身份Consumer
+          x-title-i18n:
+            en-US: Admin Consumer
+          description: 管理 quota 管理身份的 consumer 名称
+          x-description-i18n:
+            en-US: Consumer name for managing quota management identity
+        admin_path:
+          type: string
+          title: 管理请求路径
+          x-title-i18n:
+            en-US: Admin Request Path
+          description: 管理 quota 请求 path 前缀
+          x-description-i18n:
+            en-US: Prefix for the path to manage quota requests
+          default: "/quota"
+        redis:
+          type: object
+          title: Redis配置
+          x-title-i18n:
+            en-US: Redis Configuration
+          description: redis相关配置
+          x-description-i18n:
+            en-US: Redis related configuration
+          required: [service_name]
+          properties:
+            service_name:
+              type: string
+              title: Redis服务名称
+              x-title-i18n:
+                en-US: Redis Service Name
+              description: redis 服务名称，带服务类型的完整 FQDN 名称，例如 my-redis.dns、redis.my-ns.svc.cluster.local
+              x-description-i18n:
+                en-US: Redis service name, full FQDN name with service type, e.g., my-redis.dns, redis.my-ns.svc.cluster.local
+            service_port:
+              type: integer
+              title: Redis服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              description: 输入redis服务的服务端口
+              x-description-i18n:
+                en-US: Service port for the redis service
+              default: 6379
+            username:
+              type: string
+              title: Redis用户名
+              x-title-i18n:
+                en-US: Redis Username
+              description: redis用户名
+              x-description-i18n:
+                en-US: Redis username
+            password:
+              type: string
+              title: Redis密码
+              x-title-i18n:
+                en-US: Redis Password
+              description: redis密码
+              x-description-i18n:
+                en-US: Redis password
+            timeout:
+              type: integer
+              title: Redis连接超时
+              x-title-i18n:
+                en-US: Redis Connection Timeout
+              description: redis连接超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Redis connection timeout in milliseconds
+              default: 1000
+      required: [admin_consumer, redis]
       example:
         redis_key_prefix: "chat_quota:"
         admin_consumer: consumer3
@@ -32,6 +112,86 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        redis_key_prefix:
+          type: string
+          title: Quota Redis Key前缀
+          x-title-i18n:
+            en-US: Quota Redis Key Prefix
+          description: qutoa redis key 前缀
+          x-description-i18n:
+            en-US: Quota redis key prefix
+          default: "chat_quota:"
+        admin_consumer:
+          type: string
+          title: 管理身份Consumer
+          x-title-i18n:
+            en-US: Admin Consumer
+          description: 管理 quota 管理身份的 consumer 名称
+          x-description-i18n:
+            en-US: Consumer name for managing quota management identity
+        admin_path:
+          type: string
+          title: 管理请求路径
+          x-title-i18n:
+            en-US: Admin Request Path
+          description: 管理 quota 请求 path 前缀
+          x-description-i18n:
+            en-US: Prefix for the path to manage quota requests
+          default: "/quota"
+        redis:
+          type: object
+          title: Redis配置
+          x-title-i18n:
+            en-US: Redis Configuration
+          description: redis相关配置
+          x-description-i18n:
+            en-US: Redis related configuration
+          required: [service_name]
+          properties:
+            service_name:
+              type: string
+              title: Redis服务名称
+              x-title-i18n:
+                en-US: Redis Service Name
+              description: redis 服务名称，带服务类型的完整 FQDN 名称，例如 my-redis.dns、redis.my-ns.svc.cluster.local
+              x-description-i18n:
+                en-US: Redis service name, full FQDN name with service type, e.g., my-redis.dns, redis.my-ns.svc.cluster.local
+            service_port:
+              type: integer
+              title: Redis服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              description: 输入redis服务的服务端口
+              x-description-i18n:
+                en-US: Service port for the redis service
+              default: 6379
+            username:
+              type: string
+              title: Redis用户名
+              x-title-i18n:
+                en-US: Redis Username
+              description: redis用户名
+              x-description-i18n:
+                en-US: Redis username
+            password:
+              type: string
+              title: Redis密码
+              x-title-i18n:
+                en-US: Redis Password
+              description: redis密码
+              x-description-i18n:
+                en-US: Redis password
+            timeout:
+              type: integer
+              title: Redis连接超时
+              x-title-i18n:
+                en-US: Redis Connection Timeout
+              description: redis连接超时时间，单位毫秒
+              x-description-i18n:
+                en-US: Redis connection timeout in milliseconds
+              default: 1000
+      required: [admin_consumer, redis]
       example:
         redis_key_prefix: "chat_quota:"
         admin_consumer: consumer3

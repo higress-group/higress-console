@@ -23,6 +23,220 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        reqRules:
+          type: array
+          title: 请求转换器配置
+          x-title-i18n:
+            en-US: Request Transformer Configuration
+          description: 请求转换器配置，指定转换操作类型以及请求头、请求查询参数、请求体的转换规则
+          x-description-i18n:
+            en-US: Request transformer configuration, specifying the transformation operation type and rules for transforming request headers, request query parameters, and request body
+          items:
+            type: object
+            properties:
+              operate:
+                type: string
+                title: 转换操作类型
+                x-title-i18n:
+                  en-US: Transformation Operation Type
+                description: 指定转换操作类型，支持的操作类型有删除 (remove)、重命名 (rename)、更新 (replace)、添加 (add)、追加 (append)、映射 (map)、去重 (dedupe)，当存在多项不同类型的转换规则时，按照上述操作类型顺序依次执行
+                x-description-i18n:
+                  en-US: Specifies the transformation operation type. Supported operation types include remove, rename, replace, add, append, map, dedupe. When there are multiple transformation rules of different types, they are executed in the order of the above operation types.
+                enum: [remove, rename, replace, add, append, map, dedupe]
+              mapSource:
+                type: string
+                title: 映射来源
+                x-title-i18n:
+                  en-US: Mapping Source
+                description: 仅在operate为map时有效。指定映射来源，若不填该字段，则默认映射来源为自身
+                x-description-i18n:
+                  en-US: Valid only when operate is map. Specifies the mapping source. If this field is not filled, the default mapping source is itself.
+                enum: [headers, querys, body]
+              headers:
+                type: array
+                title: 请求/响应头转换规则
+                x-title-i18n:
+                  en-US: Request/Response Headers Transformation Rules
+                description: 指定请求/响应头转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request/response headers
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              querys:
+                type: array
+                title: 请求查询参数转换规则
+                x-title-i18n:
+                  en-US: Request Query Parameters Transformation Rules
+                description: 指定请求查询参数转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request query parameters
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              body:
+                type: array
+                title: 请求/响应体参数转换规则
+                x-title-i18n:
+                  en-US: Request/Response Body Parameters Transformation Rules
+                description: 指定请求/响应体参数转换规则，请求体转换允许 content-type 为 application/json, application/x-www-form-urlencoded, multipart/form-data；响应体转换仅允许 content-type 为 application/json
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request/response body parameters. Request body transformations allow content-types of application/json, application/x-www-form-urlencoded, and multipart/form-data while response body transformations only allow content-type of application/json
+                items:
+                  $ref: "#/components/schemas/transformRule"
+        respRules:
+          type: array
+          title: 响应转换器配置
+          x-title-i18n:
+            en-US: Response Transformer Configuration
+          description: 响应转换器配置，指定转换操作类型以及响应头、响应体的转换规则
+          x-description-i18n:
+            en-US: Response transformer configuration, specifying the transformation operation type and rules for transforming response headers and response body
+          items:
+            type: object
+            properties:
+              operate:
+                type: string
+                title: 转换操作类型
+                x-title-i18n:
+                  en-US: Transformation Operation Type
+                description: 指定转换操作类型，支持的操作类型有删除 (remove)、重命名 (rename)、更新 (replace)、添加 (add)、追加 (append)、映射 (map)、去重 (dedupe)，当存在多项不同类型的转换规则时，按照上述操作类型顺序依次执行
+                x-description-i18n:
+                  en-US: Specifies the transformation operation type. Supported operation types include remove, rename, replace, add, append, map, dedupe. When there are multiple transformation rules of different types, they are executed in the order of the above operation types.
+                enum: [remove, rename, replace, add, append, map, dedupe]
+              mapSource:
+                type: string
+                title: 映射来源
+                x-title-i18n:
+                  en-US: Mapping Source
+                description: 仅在operate为map时有效。指定映射来源，若不填该字段，则默认映射来源为自身
+                x-description-i18n:
+                  en-US: Valid only when operate is map. Specifies the mapping source. If this field is not filled, the default mapping source is itself.
+                enum: [headers, querys, body]
+              headers:
+                type: array
+                title: 响应头转换规则
+                x-title-i18n:
+                  en-US: Response Headers Transformation Rules
+                description: 指定响应头转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for response headers
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              body:
+                type: array
+                title: 响应体参数转换规则
+                x-title-i18n:
+                  en-US: Response Body Parameters Transformation Rules
+                description: 指定响应体参数转换规则，响应体转换仅允许 content-type 为 application/json
+                x-description-i18n:
+                  en-US: Specifies transformation rules for response body parameters. Response body transformations only allow content-type of application/json
+                items:
+                  $ref: "#/components/schemas/transformRule"
+      components:
+        schemas:
+          transformRule:
+            type: object
+            properties:
+              key:
+                type: string
+                title: 目标键名
+                x-title-i18n:
+                  en-US: Target Key
+                description: 在不同操作类型下表示不同含义，详见转换操作类型说明
+                x-description-i18n:
+                  en-US: Has different meanings under different operation types, see transformation operation types for details
+              oldKey:
+                type: string
+                title: 原键名
+                x-title-i18n:
+                  en-US: Original Key
+                description: 在 rename 操作时使用，表示要重命名的原键名
+                x-description-i18n:
+                  en-US: Used in rename operation, represents the original key name to be renamed
+              newKey:
+                type: string
+                title: 新键名
+                x-title-i18n:
+                  en-US: New Key
+                description: 在 rename 操作时使用，表示重命名后的新键名
+                x-description-i18n:
+                  en-US: Used in rename operation, represents the new key name after renaming
+              newValue:
+                type: string
+                title: 新值
+                x-title-i18n:
+                  en-US: New Value
+                description: 在 replace 操作时使用，表示要替换的新值
+                x-description-i18n:
+                  en-US: Used in replace operation, represents the new value to replace with
+              value:
+                type: string
+                title: 值
+                x-title-i18n:
+                  en-US: Value
+                description: 在 add 操作时使用，表示要添加的值
+                x-description-i18n:
+                  en-US: Used in add operation, represents the value to be added
+              appendValue:
+                type: string
+                title: 追加值
+                x-title-i18n:
+                  en-US: Append Value
+                description: 在 append 操作时使用，表示要追加的值
+                x-description-i18n:
+                  en-US: Used in append operation, represents the value to be appended
+              fromKey:
+                type: string
+                title: 映射来源键名
+                x-title-i18n:
+                  en-US: Mapping Source Key
+                description: 在 map 操作时使用，表示映射的来源键名
+                x-description-i18n:
+                  en-US: Used in map operation, represents the source key name for mapping
+              toKey:
+                type: string
+                title: 映射目标键名
+                x-title-i18n:
+                  en-US: Mapping Target Key
+                description: 在 map 操作时使用，表示映射的目标键名
+                x-description-i18n:
+                  en-US: Used in map operation, represents the target key name for mapping
+              strategy:
+                type: string
+                title: 去重策略
+                x-title-i18n:
+                  en-US: Deduplication Strategy
+                description: 在 dedupe 操作时使用，表示去重策略，可选值为 RETAIN_UNIQUE（保留所有唯一值）、RETAIN_LAST（保留最后一个值）、RETAIN_FIRST（保留第一个值，默认）
+                x-description-i18n:
+                  en-US: Used in dedupe operation, represents the deduplication strategy. Optional values are RETAIN_UNIQUE (retain all unique values), RETAIN_LAST (retain the last value), RETAIN_FIRST (retain the first value, default)
+                enum: [RETAIN_UNIQUE, RETAIN_LAST, RETAIN_FIRST]
+                default: RETAIN_FIRST
+              value_type:
+                type: string
+                title: 值类型
+                x-title-i18n:
+                  en-US: Value Type
+                description: 当 content-type 为 application/json 时，该字段指定请求/响应体参数的值类型
+                x-description-i18n:
+                  en-US: When content-type is application/json, this field specifies the value type of request/response body parameters
+                enum: [object, boolean, number, string]
+                default: string
+              host_pattern:
+                type: string
+                title: 主机名匹配规则
+                x-title-i18n:
+                  en-US: Hostname Matching Rule
+                description: 指定请求主机名匹配规则，当转换操作类型为 replace, add, append 时有效
+                x-description-i18n:
+                  en-US: Specifies the request hostname matching rule. Valid when transformation operation type is replace, add, append
+              path_pattern:
+                type: string
+                title: 路径匹配规则
+                x-title-i18n:
+                  en-US: Path Matching Rule
+                description: 指定请求路径匹配规则，当转换操作类型为 replace, add, append 时有效
+                x-description-i18n:
+                  en-US: Specifies the request path matching rule. Valid when transformation operation type is replace, add, append
       example:
         reqRules:
         - operate: remove
@@ -36,6 +250,220 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        reqRules:
+          type: array
+          title: 请求转换器配置
+          x-title-i18n:
+            en-US: Request Transformer Configuration
+          description: 请求转换器配置，指定转换操作类型以及请求头、请求查询参数、请求体的转换规则
+          x-description-i18n:
+            en-US: Request transformer configuration, specifying the transformation operation type and rules for transforming request headers, request query parameters, and request body
+          items:
+            type: object
+            properties:
+              operate:
+                type: string
+                title: 转换操作类型
+                x-title-i18n:
+                  en-US: Transformation Operation Type
+                description: 指定转换操作类型，支持的操作类型有删除 (remove)、重命名 (rename)、更新 (replace)、添加 (add)、追加 (append)、映射 (map)、去重 (dedupe)，当存在多项不同类型的转换规则时，按照上述操作类型顺序依次执行
+                x-description-i18n:
+                  en-US: Specifies the transformation operation type. Supported operation types include remove, rename, replace, add, append, map, dedupe. When there are multiple transformation rules of different types, they are executed in the order of the above operation types.
+                enum: [remove, rename, replace, add, append, map, dedupe]
+              mapSource:
+                type: string
+                title: 映射来源
+                x-title-i18n:
+                  en-US: Mapping Source
+                description: 仅在operate为map时有效。指定映射来源，若不填该字段，则默认映射来源为自身
+                x-description-i18n:
+                  en-US: Valid only when operate is map. Specifies the mapping source. If this field is not filled, the default mapping source is itself.
+                enum: [headers, querys, body]
+              headers:
+                type: array
+                title: 请求/响应头转换规则
+                x-title-i18n:
+                  en-US: Request/Response Headers Transformation Rules
+                description: 指定请求/响应头转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request/response headers
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              querys:
+                type: array
+                title: 请求查询参数转换规则
+                x-title-i18n:
+                  en-US: Request Query Parameters Transformation Rules
+                description: 指定请求查询参数转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request query parameters
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              body:
+                type: array
+                title: 请求/响应体参数转换规则
+                x-title-i18n:
+                  en-US: Request/Response Body Parameters Transformation Rules
+                description: 指定请求/响应体参数转换规则，请求体转换允许 content-type 为 application/json, application/x-www-form-urlencoded, multipart/form-data；响应体转换仅允许 content-type 为 application/json
+                x-description-i18n:
+                  en-US: Specifies transformation rules for request/response body parameters. Request body transformations allow content-types of application/json, application/x-www-form-urlencoded, and multipart/form-data while response body transformations only allow content-type of application/json
+                items:
+                  $ref: "#/components/schemas/transformRule"
+        respRules:
+          type: array
+          title: 响应转换器配置
+          x-title-i18n:
+            en-US: Response Transformer Configuration
+          description: 响应转换器配置，指定转换操作类型以及响应头、响应体的转换规则
+          x-description-i18n:
+            en-US: Response transformer configuration, specifying the transformation operation type and rules for transforming response headers and response body
+          items:
+            type: object
+            properties:
+              operate:
+                type: string
+                title: 转换操作类型
+                x-title-i18n:
+                  en-US: Transformation Operation Type
+                description: 指定转换操作类型，支持的操作类型有删除 (remove)、重命名 (rename)、更新 (replace)、添加 (add)、追加 (append)、映射 (map)、去重 (dedupe)，当存在多项不同类型的转换规则时，按照上述操作类型顺序依次执行
+                x-description-i18n:
+                  en-US: Specifies the transformation operation type. Supported operation types include remove, rename, replace, add, append, map, dedupe. When there are multiple transformation rules of different types, they are executed in the order of the above operation types.
+                enum: [remove, rename, replace, add, append, map, dedupe]
+              mapSource:
+                type: string
+                title: 映射来源
+                x-title-i18n:
+                  en-US: Mapping Source
+                description: 仅在operate为map时有效。指定映射来源，若不填该字段，则默认映射来源为自身
+                x-description-i18n:
+                  en-US: Valid only when operate is map. Specifies the mapping source. If this field is not filled, the default mapping source is itself.
+                enum: [headers, querys, body]
+              headers:
+                type: array
+                title: 响应头转换规则
+                x-title-i18n:
+                  en-US: Response Headers Transformation Rules
+                description: 指定响应头转换规则
+                x-description-i18n:
+                  en-US: Specifies transformation rules for response headers
+                items:
+                  $ref: "#/components/schemas/transformRule"
+              body:
+                type: array
+                title: 响应体参数转换规则
+                x-title-i18n:
+                  en-US: Response Body Parameters Transformation Rules
+                description: 指定响应体参数转换规则，响应体转换仅允许 content-type 为 application/json
+                x-description-i18n:
+                  en-US: Specifies transformation rules for response body parameters. Response body transformations only allow content-type of application/json
+                items:
+                  $ref: "#/components/schemas/transformRule"
+      components:
+        schemas:
+          transformRule:
+            type: object
+            properties:
+              key:
+                type: string
+                title: 目标键名
+                x-title-i18n:
+                  en-US: Target Key
+                description: 在不同操作类型下表示不同含义，详见转换操作类型说明
+                x-description-i18n:
+                  en-US: Has different meanings under different operation types, see transformation operation types for details
+              oldKey:
+                type: string
+                title: 原键名
+                x-title-i18n:
+                  en-US: Original Key
+                description: 在 rename 操作时使用，表示要重命名的原键名
+                x-description-i18n:
+                  en-US: Used in rename operation, represents the original key name to be renamed
+              newKey:
+                type: string
+                title: 新键名
+                x-title-i18n:
+                  en-US: New Key
+                description: 在 rename 操作时使用，表示重命名后的新键名
+                x-description-i18n:
+                  en-US: Used in rename operation, represents the new key name after renaming
+              newValue:
+                type: string
+                title: 新值
+                x-title-i18n:
+                  en-US: New Value
+                description: 在 replace 操作时使用，表示要替换的新值
+                x-description-i18n:
+                  en-US: Used in replace operation, represents the new value to replace with
+              value:
+                type: string
+                title: 值
+                x-title-i18n:
+                  en-US: Value
+                description: 在 add 操作时使用，表示要添加的值
+                x-description-i18n:
+                  en-US: Used in add operation, represents the value to be added
+              appendValue:
+                type: string
+                title: 追加值
+                x-title-i18n:
+                  en-US: Append Value
+                description: 在 append 操作时使用，表示要追加的值
+                x-description-i18n:
+                  en-US: Used in append operation, represents the value to be appended
+              fromKey:
+                type: string
+                title: 映射来源键名
+                x-title-i18n:
+                  en-US: Mapping Source Key
+                description: 在 map 操作时使用，表示映射的来源键名
+                x-description-i18n:
+                  en-US: Used in map operation, represents the source key name for mapping
+              toKey:
+                type: string
+                title: 映射目标键名
+                x-title-i18n:
+                  en-US: Mapping Target Key
+                description: 在 map 操作时使用，表示映射的目标键名
+                x-description-i18n:
+                  en-US: Used in map operation, represents the target key name for mapping
+              strategy:
+                type: string
+                title: 去重策略
+                x-title-i18n:
+                  en-US: Deduplication Strategy
+                description: 在 dedupe 操作时使用，表示去重策略，可选值为 RETAIN_UNIQUE（保留所有唯一值）、RETAIN_LAST（保留最后一个值）、RETAIN_FIRST（保留第一个值，默认）
+                x-description-i18n:
+                  en-US: Used in dedupe operation, represents the deduplication strategy. Optional values are RETAIN_UNIQUE (retain all unique values), RETAIN_LAST (retain the last value), RETAIN_FIRST (retain the first value, default)
+                enum: [RETAIN_UNIQUE, RETAIN_LAST, RETAIN_FIRST]
+                default: RETAIN_FIRST
+              value_type:
+                type: string
+                title: 值类型
+                x-title-i18n:
+                  en-US: Value Type
+                description: 当 content-type 为 application/json 时，该字段指定请求/响应体参数的值类型
+                x-description-i18n:
+                  en-US: When content-type is application/json, this field specifies the value type of request/response body parameters
+                enum: [object, boolean, number, string]
+                default: string
+              host_pattern:
+                type: string
+                title: 主机名匹配规则
+                x-title-i18n:
+                  en-US: Hostname Matching Rule
+                description: 指定请求主机名匹配规则，当转换操作类型为 replace, add, append 时有效
+                x-description-i18n:
+                  en-US: Specifies the request hostname matching rule. Valid when transformation operation type is replace, add, append
+              path_pattern:
+                type: string
+                title: 路径匹配规则
+                x-title-i18n:
+                  en-US: Path Matching Rule
+                description: 指定请求路径匹配规则，当转换操作类型为 replace, add, append 时有效
+                x-description-i18n:
+                  en-US: Specifies the request path matching rule. Valid when transformation operation type is replace, add, append
       example:
         reqRules:
         - operate: remove

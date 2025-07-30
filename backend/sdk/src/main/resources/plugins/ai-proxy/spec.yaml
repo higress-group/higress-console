@@ -24,7 +24,7 @@ spec:
     openAPIV3Schema:
       type: object
       required:
-        - providerConfig
+        - provider
       properties:
         provider:
           type: object
@@ -148,7 +148,7 @@ spec:
     openAPIV3Schema:
       type: object
       required:
-        - providerConfig
+        - provider
       properties:
         provider:
           type: object

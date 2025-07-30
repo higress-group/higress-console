@@ -21,6 +21,187 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        grayKey:
+          type: string
+          title: 用户ID的唯一标识
+          x-title-i18n:
+            en-US: User ID Unique Identifier
+          description: 用户ID的唯一标识，可以来自Cookie或者Header中，比如 userid，如果没有填写则使用`rules[].grayTagKey`和`rules[].grayTagValue`过滤灰度规则
+          x-description-i18n:
+            en-US: The unique identifier of the user ID, which can be from Cookie or Header, such as userid. If not provided, uses `rules[].grayTagKey` and `rules[].grayTagValue` to filter gray release rules.
+        graySubKey:
+          type: string
+          title: 用户身份信息子键
+          x-title-i18n:
+            en-US: User Identity Sub Key
+          description: 用户身份信息可能以JSON形式透出，比如：`userInfo:{ userCode:"001" }`,当前例子`graySubKey`取值为`userCode`
+          x-description-i18n:
+            en-US: "User identity information may be output in JSON format, for example: `userInfo:{ userCode:001 }`, in the current example, `graySubKey` is `userCode`."
+        rules:
+          type: array
+          title: 灰度规则
+          x-title-i18n:
+            en-US: Gray Release Rules
+          description: 用户定义不同的灰度规则，适配不同的灰度场景
+          x-description-i18n:
+            en-US: User-defined different gray release rules, adapted to different gray release scenarios.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 规则名称
+                x-title-i18n:
+                  en-US: Rule Name
+                description: 规则名称唯一标识，和`deploy.gray[].name`进行关联生效
+                x-description-i18n:
+                  en-US: Unique identifier for the rule name, associated with `deploy.gray[].name` for effectiveness.
+              grayKeyValue:
+                type: array
+                title: 用户ID白名单
+                x-title-i18n:
+                  en-US: User ID Whitelist
+                description: 用户ID 白名单列表
+                x-description-i18n:
+                  en-US: Whitelist of user IDs.
+                items:
+                  type: string
+              grayTagKey:
+                type: string
+                title: 用户分类标签键
+                x-title-i18n:
+                  en-US: User Classification Tag Key
+                description: 用户分类打标的标签key值，来自Cookie
+                x-description-i18n:
+                  en-US: Label key for user classification tagging, derived from Cookie.
+              grayTagValue:
+                type: array
+                title: 用户分类标签值
+                x-title-i18n:
+                  en-US: User Classification Tag Values
+                description: 用户分类打标的标签value值，来自Cookie
+                x-description-i18n:
+                  en-US: Label value for user classification tagging, derived from Cookie.
+                items:
+                  type: string
+            required:
+              - name
+        rewrite:
+          type: object
+          title: 重写配置
+          x-title-i18n:
+            en-US: Rewrite Configuration
+          description: 重写配置，一般用于OSS/CDN前端部署的重写配置
+          x-description-i18n:
+            en-US: Rewrite configuration, generally used for OSS/CDN frontend deployment rewrite configurations.
+          properties:
+            host:
+              type: string
+              title: 主机地址
+              x-title-i18n:
+                en-US: Host Address
+              description: host地址，如果是OSS则设置为 VPC 内网访问地址
+              x-description-i18n:
+                en-US: Host address, if OSS set to the VPC internal access address.
+            notFoundUri:
+              type: string
+              title: 404页面配置
+              x-title-i18n:
+                en-US: 404 Page Configuration
+              description: 404 页面配置
+              x-description-i18n:
+                en-US: 404 page configuration.
+            indexRouting:
+              type: object
+              title: 首页路由配置
+              x-title-i18n:
+                en-US: Homepage Route Configuration
+              description: 用于定义首页重写路由规则。每个键 (Key) 表示首页的路由路径，值 (Value) 则指向重定向的目标文件。例如，键为 `/app1` 对应的值为 `/mfe/app1/{version}/index.html`。生效version为`0.0.1`， 访问路径为 `/app1`，则重定向到 `/mfe/app1/0.0.1/index.html`。
+              x-description-i18n:
+                en-US: Defines the homepage rewrite routing rules. Each key represents the homepage routing path, and the value points to the redirect target file. For example, the key `/app1` corresponds to the value `/mfe/app1/{version}/index.html`. If the effective version is `0.0.1`, the access path is `/app1`, it redirects to `/mfe/app1/0.0.1/index.html`.
+              additionalProperties:
+                type: string
+            fileRouting:
+              type: object
+              title: 文件路由配置
+              x-title-i18n:
+                en-US: File Route Configuration
+              description: 用于定义资源文件重写路由规则。每个键 (Key) 表示资源访问路径，值 (Value) 则指向重定向的目标文件。例如，键为 `/app1/` 对应的值为 `/mfe/app1/{version}`。生效version为`0.0.1`，访问路径为 `/app1/js/a.js`，则重定向到 `/mfe/app1/0.0.1/js/a.js`。
+              x-description-i18n:
+                en-US: Defines resource file rewrite routing rules. Each key represents the resource access path, and the value points to the redirect target file. For example, the key `/app1/` corresponds to the value `/mfe/app1/{version}`. If the effective version is `0.0.1`, the access path is `/app1/js/a.js`, it redirects to `/mfe/app1/0.0.1/js/a.js`.
+              additionalProperties:
+                type: string
+        baseDeployment:
+          type: object
+          title: 基线配置
+          x-title-i18n:
+            en-US: Baseline Configuration
+          description: 配置Base基线规则的配置
+          x-description-i18n:
+            en-US: Configuration of the Base baseline rules.
+          properties:
+            version:
+              type: string
+              title: 版本号
+              x-title-i18n:
+                en-US: Version Number
+              description: Base版本的版本号，作为兜底的版本
+              x-description-i18n:
+                en-US: The version number of the Base version, as a fallback version.
+          required:
+            - version
+        grayDeployments:
+          type: array
+          title: 灰度部署配置
+          x-title-i18n:
+            en-US: Gray Deployment Configuration
+          description: 配置Gray灰度的生效规则，以及生效版本
+          x-description-i18n:
+            en-US: Configuration of the effective rules for gray release, as well as the effective versions.
+          items:
+            type: object
+            properties:
+              version:
+                type: string
+                title: 版本号
+                x-title-i18n:
+                  en-US: Version Number
+                description: Gray版本的版本号，如果命中灰度规则，则使用此版本。如果是非CDN部署，在header添加`x-higress-tag`
+                x-description-i18n:
+                  en-US: Version number of the Gray version, if the gray rules are hit, this version will be used. If it is a non-CDN deployment, add `x-higress-tag` to the header.
+              backendVersion:
+                type: string
+                title: 后端版本号
+                x-title-i18n:
+                  en-US: Backend Version Number
+                description: 后端灰度版本，会在`XHR/Fetch`请求的header头添加 `x-mse-tag`到后端
+                x-description-i18n:
+                  en-US: Gray version for the backend, which will add `x-mse-tag` to the header of `XHR/Fetch` requests.
+              name:
+                type: string
+                title: 规则名称
+                x-title-i18n:
+                  en-US: Rule Name
+                description: 规则名称和`rules[].name`关联
+                x-description-i18n:
+                  en-US: Rule name associated with `rules[].name`.
+              enabled:
+                type: boolean
+                title: 是否启用
+                x-title-i18n:
+                  en-US: Enable Status
+                description: 是否启动当前灰度规则
+                x-description-i18n:
+                  en-US: Whether to activate the current gray release rule.
+            required:
+              - version
+              - name
+              - enabled
+              - backendVersion
+      required:
+        - rules
+        - rewrite
       example:
         grayKey: userid
         rules:
@@ -45,6 +226,187 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        grayKey:
+          type: string
+          title: 用户ID的唯一标识
+          x-title-i18n:
+            en-US: User ID Unique Identifier
+          description: 用户ID的唯一标识，可以来自Cookie或者Header中，比如 userid，如果没有填写则使用`rules[].grayTagKey`和`rules[].grayTagValue`过滤灰度规则
+          x-description-i18n:
+            en-US: The unique identifier of the user ID, which can be from Cookie or Header, such as userid. If not provided, uses `rules[].grayTagKey` and `rules[].grayTagValue` to filter gray release rules.
+        graySubKey:
+          type: string
+          title: 用户身份信息子键
+          x-title-i18n:
+            en-US: User Identity Sub Key
+          description: 用户身份信息可能以JSON形式透出，比如：`userInfo:{ userCode:"001" }`,当前例子`graySubKey`取值为`userCode`
+          x-description-i18n:
+            en-US: "User identity information may be output in JSON format, for example: `userInfo:{ userCode:001 }`, in the current example, `graySubKey` is `userCode`."
+        rules:
+          type: array
+          title: 灰度规则
+          x-title-i18n:
+            en-US: Gray Release Rules
+          description: 用户定义不同的灰度规则，适配不同的灰度场景
+          x-description-i18n:
+            en-US: User-defined different gray release rules, adapted to different gray release scenarios.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 规则名称
+                x-title-i18n:
+                  en-US: Rule Name
+                description: 规则名称唯一标识，和`deploy.gray[].name`进行关联生效
+                x-description-i18n:
+                  en-US: Unique identifier for the rule name, associated with `deploy.gray[].name` for effectiveness.
+              grayKeyValue:
+                type: array
+                title: 用户ID白名单
+                x-title-i18n:
+                  en-US: User ID Whitelist
+                description: 用户ID 白名单列表
+                x-description-i18n:
+                  en-US: Whitelist of user IDs.
+                items:
+                  type: string
+              grayTagKey:
+                type: string
+                title: 用户分类标签键
+                x-title-i18n:
+                  en-US: User Classification Tag Key
+                description: 用户分类打标的标签key值，来自Cookie
+                x-description-i18n:
+                  en-US: Label key for user classification tagging, derived from Cookie.
+              grayTagValue:
+                type: array
+                title: 用户分类标签值
+                x-title-i18n:
+                  en-US: User Classification Tag Values
+                description: 用户分类打标的标签value值，来自Cookie
+                x-description-i18n:
+                  en-US: Label value for user classification tagging, derived from Cookie.
+                items:
+                  type: string
+            required:
+              - name
+        rewrite:
+          type: object
+          title: 重写配置
+          x-title-i18n:
+            en-US: Rewrite Configuration
+          description: 重写配置，一般用于OSS/CDN前端部署的重写配置
+          x-description-i18n:
+            en-US: Rewrite configuration, generally used for OSS/CDN frontend deployment rewrite configurations.
+          properties:
+            host:
+              type: string
+              title: 主机地址
+              x-title-i18n:
+                en-US: Host Address
+              description: host地址，如果是OSS则设置为 VPC 内网访问地址
+              x-description-i18n:
+                en-US: Host address, if OSS set to the VPC internal access address.
+            notFoundUri:
+              type: string
+              title: 404页面配置
+              x-title-i18n:
+                en-US: 404 Page Configuration
+              description: 404 页面配置
+              x-description-i18n:
+                en-US: 404 page configuration.
+            indexRouting:
+              type: object
+              title: 首页路由配置
+              x-title-i18n:
+                en-US: Homepage Route Configuration
+              description: 用于定义首页重写路由规则。每个键 (Key) 表示首页的路由路径，值 (Value) 则指向重定向的目标文件。例如，键为 `/app1` 对应的值为 `/mfe/app1/{version}/index.html`。生效version为`0.0.1`， 访问路径为 `/app1`，则重定向到 `/mfe/app1/0.0.1/index.html`。
+              x-description-i18n:
+                en-US: Defines the homepage rewrite routing rules. Each key represents the homepage routing path, and the value points to the redirect target file. For example, the key `/app1` corresponds to the value `/mfe/app1/{version}/index.html`. If the effective version is `0.0.1`, the access path is `/app1`, it redirects to `/mfe/app1/0.0.1/index.html`.
+              additionalProperties:
+                type: string
+            fileRouting:
+              type: object
+              title: 文件路由配置
+              x-title-i18n:
+                en-US: File Route Configuration
+              description: 用于定义资源文件重写路由规则。每个键 (Key) 表示资源访问路径，值 (Value) 则指向重定向的目标文件。例如，键为 `/app1/` 对应的值为 `/mfe/app1/{version}`。生效version为`0.0.1`，访问路径为 `/app1/js/a.js`，则重定向到 `/mfe/app1/0.0.1/js/a.js`。
+              x-description-i18n:
+                en-US: Defines resource file rewrite routing rules. Each key represents the resource access path, and the value points to the redirect target file. For example, the key `/app1/` corresponds to the value `/mfe/app1/{version}`. If the effective version is `0.0.1`, the access path is `/app1/js/a.js`, it redirects to `/mfe/app1/0.0.1/js/a.js`.
+              additionalProperties:
+                type: string
+        baseDeployment:
+          type: object
+          title: 基线配置
+          x-title-i18n:
+            en-US: Baseline Configuration
+          description: 配置Base基线规则的配置
+          x-description-i18n:
+            en-US: Configuration of the Base baseline rules.
+          properties:
+            version:
+              type: string
+              title: 版本号
+              x-title-i18n:
+                en-US: Version Number
+              description: Base版本的版本号，作为兜底的版本
+              x-description-i18n:
+                en-US: The version number of the Base version, as a fallback version.
+          required:
+            - version
+        grayDeployments:
+          type: array
+          title: 灰度部署配置
+          x-title-i18n:
+            en-US: Gray Deployment Configuration
+          description: 配置Gray灰度的生效规则，以及生效版本
+          x-description-i18n:
+            en-US: Configuration of the effective rules for gray release, as well as the effective versions.
+          items:
+            type: object
+            properties:
+              version:
+                type: string
+                title: 版本号
+                x-title-i18n:
+                  en-US: Version Number
+                description: Gray版本的版本号，如果命中灰度规则，则使用此版本。如果是非CDN部署，在header添加`x-higress-tag`
+                x-description-i18n:
+                  en-US: Version number of the Gray version, if the gray rules are hit, this version will be used. If it is a non-CDN deployment, add `x-higress-tag` to the header.
+              backendVersion:
+                type: string
+                title: 后端版本号
+                x-title-i18n:
+                  en-US: Backend Version Number
+                description: 后端灰度版本，会在`XHR/Fetch`请求的header头添加 `x-mse-tag`到后端
+                x-description-i18n:
+                  en-US: Gray version for the backend, which will add `x-mse-tag` to the header of `XHR/Fetch` requests.
+              name:
+                type: string
+                title: 规则名称
+                x-title-i18n:
+                  en-US: Rule Name
+                description: 规则名称和`rules[].name`关联
+                x-description-i18n:
+                  en-US: Rule name associated with `rules[].name`.
+              enabled:
+                type: boolean
+                title: 是否启用
+                x-title-i18n:
+                  en-US: Enable Status
+                description: 是否启动当前灰度规则
+                x-description-i18n:
+                  en-US: Whether to activate the current gray release rule.
+            required:
+              - version
+              - name
+              - enabled
+              - backendVersion
+      required:
+        - rules
+        - rewrite
       example:
         grayKey: userid
         rules:
