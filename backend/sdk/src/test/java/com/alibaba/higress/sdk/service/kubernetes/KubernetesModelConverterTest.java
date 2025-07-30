@@ -13,6 +13,7 @@
 
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +64,7 @@ import com.alibaba.higress.sdk.util.TypeUtil;
 import com.google.common.collect.Lists;
 
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
@@ -81,19 +84,40 @@ public class KubernetesModelConverterTest {
 
     private KubernetesModelConverter converter;
 
+    private final String httpsDomain = "higress.ai";
+
+
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ApiException {
         final Predicate<V1ObjectMeta> isDefinedByConsole = metadata -> metadata != null
-            && DEFAULT_NAMESPACE.equals(metadata.getNamespace()) && KubernetesConstants.Label.RESOURCE_DEFINER_VALUE
+                && DEFAULT_NAMESPACE.equals(metadata.getNamespace()) && KubernetesConstants.Label.RESOURCE_DEFINER_VALUE
                 .equals(KubernetesUtil.getLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY));
 
         KubernetesClientService service = mock(KubernetesClientService.class);
-        when(service.isDefinedByConsole(any(KubernetesObject.class))).thenAnswer((Answer<Boolean>)invocation -> {
+        when(service.isDefinedByConsole(any(KubernetesObject.class))).thenAnswer((Answer<Boolean>) invocation -> {
             KubernetesObject object = invocation.getArgument(0);
             return object != null && isDefinedByConsole.test(object.getMetadata());
         });
         when(service.isDefinedByConsole(any(V1ObjectMeta.class)))
-            .thenAnswer((Answer<Boolean>)invocation -> isDefinedByConsole.test(invocation.getArgument(0)));
+                .thenAnswer((Answer<Boolean>) invocation -> isDefinedByConsole.test(invocation.getArgument(0)));
+        V1ConfigMap httpsForceConfigmap = mock(V1ConfigMap.class);
+        Map<String, String> httpsForceData = new HashMap<>();
+        httpsForceData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "force");
+        httpsForceData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsForceConfigmap.getData())
+                .thenReturn(httpsForceData);
+        when(service.readConfigMap(eq("domain-" + httpsDomain)))
+                .thenReturn(httpsForceConfigmap);
+
+        V1ConfigMap httpsOnConfigMap = mock(V1ConfigMap.class);
+        Map<String, String> httpsOnData = new HashMap<>();
+        httpsOnData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "on");
+        httpsOnData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsOnConfigMap.getData())
+            .thenReturn(httpsOnData);
+        when(service.readConfigMap(eq("domain-" + httpsDomain +"-on")))
+            .thenReturn(httpsOnConfigMap);
+
         converter = new KubernetesModelConverter(service);
     }
 
@@ -208,7 +232,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local");
+                "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -234,7 +258,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "10% hello.default.svc.cluster.local");
+                "10% hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -260,7 +284,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080");
+                "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -286,7 +310,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080 v1");
+                "hello.default.svc.cluster.local:8080 v1");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -312,8 +336,8 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "20% hello1.default.svc.cluster.local:8080\n"
-                + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
+                "20% hello1.default.svc.cluster.local:8080\n"
+                        + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -341,7 +365,7 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local");
+                "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.EXACT);
@@ -367,9 +391,9 @@ public class KubernetesModelConverterTest {
         V1ObjectMeta metadata = ingress.getMetadata();
         metadata.setName("test");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local");
+                "hello.default.svc.cluster.local");
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
-            KubernetesConstants.Annotation.TRUE_VALUE);
+                KubernetesConstants.Annotation.TRUE_VALUE);
 
         V1HTTPIngressPath path = ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         path.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -389,16 +413,6 @@ public class KubernetesModelConverterTest {
     }
 
     @Test
-    void route2IngressTestMultipleDomainsThrowsException() {
-        Route route = new Route();
-        route.setDomains(Collections.singletonList("higress.cn"));
-        route.setPath(RoutePredicate.builder().matchType("exact").matchValue("/test").build());
-        route.setServices(Collections.singletonList(new UpstreamService()));
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
-    }
-
-    @Test
     void route2IngressTestInvalidPathMatchTypeThrowsException() {
         Route route = new Route();
         route.setDomains(Collections.singletonList("higress.cn"));
@@ -406,6 +420,50 @@ public class KubernetesModelConverterTest {
         route.setServices(Collections.singletonList(new UpstreamService()));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
+    }
+
+    @Test
+    void route2IngressTestMultipleDomains() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add("higress.cn");
+        domains.add("higress.com");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        V1Ingress ingress = converter.route2Ingress(route);
+        Assertions.assertEquals(2, ingress.getSpec().getRules().size());
+        Assertions.assertNull(ingress.getSpec().getTls());
+    }
+
+    @Test
+    void route2IngressTestMultipleDomainsWithDifferentProtocol() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add("higress.cn");
+        domains.add(httpsDomain);
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        ValidationException exception = Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("Currently only supports domains with the same protocol", exception.getMessage());
+    }
+
+    @Test
+    void route2IngressTestMultipleDomainsWithDifferentHttpsConfiguration() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add(httpsDomain);
+        domains.add(httpsDomain + "-on");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        ValidationException exception =
+            Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("All domains must use consistent HTTPS configuration", exception.getMessage());
     }
 
     @Test
@@ -437,12 +495,12 @@ public class KubernetesModelConverterTest {
         route.setName("test-route");
         route.setDomains(Collections.singletonList("higress.cn"));
         route.setCors(new CorsConfig(true, // enabled (Boolean)
-            Collections.singletonList("https://higress.cn"), // allowOrigins (List<String>)
-            Collections.singletonList("GET"), // allowMethods (List<String>)
-            Collections.singletonList("Content-Type"), // allowHeaders (List<String>)
-            Collections.singletonList("Content-Length"), // exposeHeaders (List<String>)
-            3600, // maxAge (Integer)
-            true // allowCredentials (Boolean)
+                Collections.singletonList("https://higress.cn"), // allowOrigins (List<String>)
+                Collections.singletonList("GET"), // allowMethods (List<String>)
+                Collections.singletonList("Content-Type"), // allowHeaders (List<String>)
+                Collections.singletonList("Content-Length"), // exposeHeaders (List<String>)
+                3600, // maxAge (Integer)
+                true // allowCredentials (Boolean)
         ));
 
         V1Ingress ingress = converter.route2Ingress(route);
@@ -450,19 +508,19 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals("test-route", ingress.getMetadata().getName());
         Assertions.assertTrue(Boolean
-            .parseBoolean(ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ENABLED_KEY)));
+                .parseBoolean(ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ENABLED_KEY)));
         Assertions.assertEquals("3600",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_MAX_AGE_KEY));
         Assertions.assertTrue(Boolean.parseBoolean(
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY)));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_CREDENTIALS_KEY)));
         Assertions.assertEquals("https://higress.cn",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_ORIGIN_KEY));
         Assertions.assertEquals("Content-Type",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_HEADERS_KEY));
         Assertions.assertEquals("GET",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_ALLOW_METHODS_KEY));
         Assertions.assertEquals("Content-Length",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.CORS_EXPOSE_HEADERS_KEY));
     }
 
     @Test
@@ -477,7 +535,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals("test-route", Objects.requireNonNull(ingress.getMetadata()).getName());
         Assertions.assertEquals("GET", Objects.requireNonNull(ingress.getMetadata().getAnnotations())
-            .get(KubernetesConstants.Annotation.METHOD_KEY));
+                .get(KubernetesConstants.Annotation.METHOD_KEY));
     }
 
     @Test
@@ -492,11 +550,11 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals("test-route", ingress.getMetadata().getName());
         Assertions.assertTrue(Boolean.parseBoolean(
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY)));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY)));
         Assertions.assertEquals("/new-path",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_PATH_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_PATH_KEY));
         Assertions.assertEquals("new-host",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
     }
 
     @Test
@@ -504,20 +562,20 @@ public class KubernetesModelConverterTest {
         Route route = new Route();
         route.setName("test-route");
         route.setDomains(Collections.singletonList("higress.cn"));
-        route.setProxyNextUpstream(new ProxyNextUpstreamConfig(true, 2, 10, new String[] {"$http_4xx"}));
+        route.setProxyNextUpstream(new ProxyNextUpstreamConfig(true, 2, 10, new String[]{"$http_4xx"}));
 
         V1Ingress ingress = converter.route2Ingress(route);
 
         Assertions.assertNotNull(ingress);
         Assertions.assertEquals("test-route", ingress.getMetadata().getName());
         Assertions.assertTrue(Boolean.parseBoolean(ingress.getMetadata().getAnnotations()
-            .get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_ENABLED_KEY)));
+                .get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_ENABLED_KEY)));
         Assertions.assertEquals("2",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TRIES_KEY));
         Assertions.assertEquals("10",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_TIMEOUT_KEY));
         Assertions.assertEquals("$http_4xx",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY));
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.PROXY_NEXT_UPSTREAM_KEY));
     }
 
     @Test
@@ -539,7 +597,7 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local");
+                "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -567,7 +625,7 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local");
+                "hello.default.svc.cluster.local");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -595,7 +653,7 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080");
+                "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -623,7 +681,7 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080");
+                "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -653,8 +711,8 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "20% hello1.default.svc.cluster.local:8080\n"
-                + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
+                "20% hello1.default.svc.cluster.local:8080\n"
+                        + "30% hello2.default.svc.cluster.local:18080 v1\n50% hello3.default.svc.cluster.local v2");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -682,7 +740,7 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080");
+                "hello.default.svc.cluster.local:8080");
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.EXACT);
@@ -710,9 +768,9 @@ public class KubernetesModelConverterTest {
         expectedMetadata.setName(route.getName());
         expectedMetadata.setNamespace(null);
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.DESTINATION_KEY,
-            "hello.default.svc.cluster.local:8080");
+                "hello.default.svc.cluster.local:8080");
         KubernetesUtil.setAnnotation(expectedMetadata, KubernetesConstants.Annotation.USE_REGEX_KEY,
-            KubernetesConstants.Annotation.TRUE_VALUE);
+                KubernetesConstants.Annotation.TRUE_VALUE);
 
         V1HTTPIngressPath expectedPath = expectedIngress.getSpec().getRules().get(0).getHttp().getPaths().get(0);
         expectedPath.setPathType(KubernetesConstants.IngressPathType.PREFIX);
@@ -728,7 +786,7 @@ public class KubernetesModelConverterTest {
         metadata.setName(converter.domainName2ConfigMapName("domain-name"));
         metadata.setResourceVersion("0.0.1");
         metadata.setLabels(MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
-            KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
+                KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_DOMAIN));
         Map<String, String> configMap = new HashMap<>();
         configMap.put(CommonKey.DOMAIN, "domain-name");
         configMap.put(KubernetesConstants.K8S_CERT, "domain-cert");
@@ -814,7 +872,7 @@ public class KubernetesModelConverterTest {
     @Test
     void tlsCertificate2SecretTestValidCertificateWithoutDomainsShouldNotSetLabels() {
         TlsCertificate certificate = TlsCertificate.builder().cert("dummyCert").key("dummyKey").name("test-certificate")
-            .version("1").domains(Collections.emptyList()).build();
+                .version("1").domains(Collections.emptyList()).build();
 
         V1Secret secret = converter.tlsCertificate2Secret(certificate);
 
@@ -827,9 +885,9 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(data);
         Assertions.assertEquals(2, data.size());
         Assertions.assertArrayEquals(TypeUtil.string2Bytes("dummyCert"),
-            data.get(KubernetesConstants.SECRET_TLS_CRT_FIELD));
+                data.get(KubernetesConstants.SECRET_TLS_CRT_FIELD));
         Assertions.assertArrayEquals(TypeUtil.string2Bytes("dummyKey"),
-            data.get(KubernetesConstants.SECRET_TLS_KEY_FIELD));
+                data.get(KubernetesConstants.SECRET_TLS_KEY_FIELD));
 
         Map<String, String> labels = secret.getMetadata().getLabels();
         Assertions.assertNull(labels);
@@ -950,9 +1008,9 @@ public class KubernetesModelConverterTest {
     @Test
     void wasmPluginToCrTestValidInput_ShouldConvertCorrectly() {
         WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
-            .category("test-category").title("Test Plugin").description("A test plugin").icon("test-icon").builtIn(true)
-            .imageRepository("test-repository").imageVersion("test-version").phase(PluginPhase.AUTHN.getName())
-            .priority(10).imagePullPolicy(ImagePullPolicy.ALWAYS.getName()).imagePullSecret("test-secret").build();
+                .category("test-category").title("Test Plugin").description("A test plugin").icon("test-icon").builtIn(true)
+                .imageRepository("test-repository").imageVersion("test-version").phase(PluginPhase.AUTHN.getName())
+                .priority(10).imagePullPolicy(ImagePullPolicy.ALWAYS.getName()).imagePullSecret("test-secret").build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -962,20 +1020,20 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals("1", cr.getMetadata().getResourceVersion());
 
         Assertions.assertEquals("test-plugin",
-            cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY));
+                cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_NAME_KEY));
         Assertions.assertEquals("1.0.0",
-            cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
+                cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
         Assertions.assertEquals("test-category",
-            cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY));
+                cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_CATEGORY_KEY));
         Assertions.assertEquals("true",
-            cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_BUILT_IN_KEY));
+                cr.getMetadata().getLabels().get(KubernetesConstants.Label.WASM_PLUGIN_BUILT_IN_KEY));
 
         Assertions.assertEquals("Test Plugin",
-            cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_TITLE_KEY));
+                cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_TITLE_KEY));
         Assertions.assertEquals("A test plugin",
-            cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_DESCRIPTION_KEY));
+                cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_DESCRIPTION_KEY));
         Assertions.assertEquals("test-icon",
-            cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_ICON_KEY));
+                cr.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.WASM_PLUGIN_ICON_KEY));
 
         Assertions.assertNotNull(cr.getSpec());
         Assertions.assertEquals(plugin.getPhase(), cr.getSpec().getPhase());
@@ -988,7 +1046,7 @@ public class KubernetesModelConverterTest {
     @Test
     void wasmPluginToCrTestNullImageRepositoryShouldHandleCorrectly() {
         WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
-            .imageRepository(null).imageVersion("test-version").build();
+                .imageRepository(null).imageVersion("test-version").build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -1000,7 +1058,7 @@ public class KubernetesModelConverterTest {
     @Test
     void wasmPluginToCrTestEmptyImageVersionShouldHandleCorrectly() {
         WasmPlugin plugin = WasmPlugin.builder().name("test-plugin").pluginVersion("1.0.0").version("1")
-            .imageRepository("test-repository").imageVersion("").build();
+                .imageRepository("test-repository").imageVersion("").build();
 
         V1alpha1WasmPlugin cr = converter.wasmPluginToCr(plugin);
 
@@ -1146,7 +1204,7 @@ public class KubernetesModelConverterTest {
         plugin.setSpec(createSpecWithGlobalConfig());
 
         WasmPluginInstance instance =
-            converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.GLOBAL, null);
+                converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.GLOBAL, null);
         Assertions.assertNotNull(instance);
         Assertions.assertEquals("v1", instance.getPluginVersion());
         Assertions.assertEquals(WasmPluginInstanceScope.GLOBAL, instance.getScope());
@@ -1162,7 +1220,7 @@ public class KubernetesModelConverterTest {
         plugin.setSpec(createSpecWithDomainConfig("higress.cn"));
 
         WasmPluginInstance instance =
-            converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.DOMAIN, "higress.cn");
+                converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.DOMAIN, "higress.cn");
         Assertions.assertNotNull(instance);
         Assertions.assertEquals("v1", instance.getPluginVersion());
         Assertions.assertEquals(WasmPluginInstanceScope.DOMAIN, instance.getScope());
@@ -1171,7 +1229,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals("value", instance.getConfigurations().get("key"));
 
         WasmPluginInstance instanceNotConfigured =
-            converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.DOMAIN, "nonexistent.com");
+                converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.DOMAIN, "nonexistent.com");
         Assertions.assertNull(instanceNotConfigured);
     }
 
@@ -1182,7 +1240,7 @@ public class KubernetesModelConverterTest {
         plugin.setSpec(createSpecWithRouteConfig("test-route"));
 
         WasmPluginInstance instance =
-            converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.ROUTE, "test-route");
+                converter.getWasmPluginInstanceFromCr(plugin, WasmPluginInstanceScope.ROUTE, "test-route");
         Assertions.assertNotNull(instance);
         Assertions.assertEquals("v1", instance.getPluginVersion());
         Assertions.assertEquals(WasmPluginInstanceScope.ROUTE, instance.getScope());
@@ -1195,7 +1253,7 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestGlobalScopeShouldSetDefaultConfig() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
+                WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setGlobalTarget();
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1210,7 +1268,7 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestDomainScopeShouldAddOrUpdateDomainRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
+                WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1231,11 +1289,11 @@ public class KubernetesModelConverterTest {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         V1alpha1WasmPluginSpec spec = new V1alpha1WasmPluginSpec();
         spec.setMatchRules(Lists.newArrayList(new MatchRule(false, MapUtil.of("key", "original"),
-            Lists.newArrayList("higress.cn"), Lists.newArrayList(), Lists.newArrayList())));
+                Lists.newArrayList("higress.cn"), Lists.newArrayList(), Lists.newArrayList())));
         cr.setSpec(spec);
 
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "updated")).build();
+                WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "updated")).build();
         instance.setTarget(WasmPluginInstanceScope.DOMAIN, "higress.cn");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1253,7 +1311,7 @@ public class KubernetesModelConverterTest {
     void setWasmPluginInstanceToCrTestRouteScopeShouldAddOrUpdateRouteRule() {
         V1alpha1WasmPlugin cr = new V1alpha1WasmPlugin();
         WasmPluginInstance instance =
-            WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
+                WasmPluginInstance.builder().enabled(true).configurations(MapUtil.of("key", "value")).build();
         instance.setTarget(WasmPluginInstanceScope.ROUTE, "route-1");
 
         converter.setWasmPluginInstanceToCr(cr, instance);
@@ -1388,7 +1446,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(properties);
         Assertions.assertEquals("testNamespaceId", properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_NAMESPACE_ID));
         Assertions.assertEquals(Lists.newArrayList("testGroup1", "testGroup2"),
-            properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS));
+                properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS));
     }
 
     @Test
@@ -1410,7 +1468,7 @@ public class KubernetesModelConverterTest {
         Map<String, Object> properties = serviceSource.getProperties();
         Assertions.assertNotNull(properties);
         Assertions.assertEquals(Lists.newArrayList("testPath1", "testPath2"),
-            properties.get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH));
+                properties.get(V1McpBridge.REGISTRY_TYPE_ZK_SERVICES_PATH));
     }
 
     @Test
@@ -1454,7 +1512,7 @@ public class KubernetesModelConverterTest {
         String authSecretName = converter.generateAuthSecretName(serviceSourceName);
 
         Assertions.assertTrue(authSecretName.matches(expectedPattern),
-            "Auth secret name should match the expected pattern");
+                "Auth secret name should match the expected pattern");
     }
 
     @Test
@@ -1465,7 +1523,7 @@ public class KubernetesModelConverterTest {
         String authSecretName = converter.generateAuthSecretName(serviceSourceName);
 
         Assertions.assertTrue(authSecretName.matches(expectedPattern),
-            "Auth secret name should match the expected pattern");
+                "Auth secret name should match the expected pattern");
     }
 
     @Test
@@ -1476,7 +1534,7 @@ public class KubernetesModelConverterTest {
         String authSecretName = converter.generateAuthSecretName(serviceSourceName);
 
         Assertions.assertTrue(authSecretName.matches(expectedPattern),
-            "Auth secret name should match the expected pattern");
+                "Auth secret name should match the expected pattern");
     }
 
     @Test
@@ -1487,11 +1545,11 @@ public class KubernetesModelConverterTest {
 
         Assertions.assertNotNull(v1McpBridge.getMetadata(), "Metadata should not be null");
         Assertions.assertEquals(V1McpBridge.DEFAULT_NAME, v1McpBridge.getMetadata().getName(),
-            "Metadata name should be set to default");
+                "Metadata name should be set to default");
         Assertions.assertNotNull(v1McpBridge.getSpec(), "Spec should not be null");
         Assertions.assertNotNull(v1McpBridge.getSpec().getRegistries(), "Spec registries should not be null");
         Assertions.assertEquals(0, v1McpBridge.getSpec().getRegistries().size(),
-            "Spec registries should be initialized as empty list");
+                "Spec registries should be initialized as empty list");
     }
 
     @Test
@@ -1504,7 +1562,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+                new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1529,7 +1587,7 @@ public class KubernetesModelConverterTest {
         spec.setRegistries(registries);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+                new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1560,7 +1618,7 @@ public class KubernetesModelConverterTest {
         V1McpBridge v1McpBridge = new V1McpBridge();
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+                new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1577,7 +1635,7 @@ public class KubernetesModelConverterTest {
         v1McpBridge.setSpec(spec);
 
         ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+                new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1657,7 +1715,7 @@ public class KubernetesModelConverterTest {
         metadata.setName("test-ingress");
         metadata.setNamespace(DEFAULT_NAMESPACE);
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
 
         metadata.setResourceVersion("1");
 
@@ -1700,7 +1758,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(route);
         Assertions.assertEquals("test-ingress", route.getName());
         Assertions.assertEquals("1", route.getVersion());
-        Assertions.assertEquals(null, route.getDomains());
+        Assertions.assertTrue(CollectionUtils.isEmpty(route.getDomains()));
     }
 
     @Test
@@ -1769,7 +1827,7 @@ public class KubernetesModelConverterTest {
         metadata.setNamespace(DEFAULT_NAMESPACE);
         metadata.setResourceVersion("1");
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
 
         Route route = converter.ingress2Route(ingress);
 
@@ -1786,7 +1844,7 @@ public class KubernetesModelConverterTest {
         metadata.setNamespace("test-ns");
         metadata.setResourceVersion("1");
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
 
         Route route = converter.ingress2Route(ingress);
 
@@ -1866,7 +1924,7 @@ public class KubernetesModelConverterTest {
         String actualConfigMapName = converter.domainName2ConfigMapName(domainName);
 
         Assertions.assertEquals(expectedConfigMapName, actualConfigMapName,
-            "ConfigMap name should be 'domain-www.higress.cn'");
+                "ConfigMap name should be 'domain-www.higress.cn'");
     }
 
     @Test
@@ -1876,7 +1934,7 @@ public class KubernetesModelConverterTest {
         String actualConfigMapName = converter.domainName2ConfigMapName(domainName);
 
         Assertions.assertEquals(expectedConfigMapName, actualConfigMapName,
-            "ConfigMap name should be 'domain-wildcard.higress.cn'");
+                "ConfigMap name should be 'domain-wildcard.higress.cn'");
     }
 
     private V1Ingress buildBasicSupportedIngress() {
@@ -1886,7 +1944,7 @@ public class KubernetesModelConverterTest {
         metadata.setNamespace(DEFAULT_NAMESPACE);
         KubernetesUtil.setLabel(metadata, "higress.io/domain_higress-default-domain", "true");
         KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
         ingress.setMetadata(metadata);
 
         V1IngressSpec spec = new V1IngressSpec();
@@ -1928,9 +1986,9 @@ public class KubernetesModelConverterTest {
         route.setCors(new CorsConfig());
         route.setCustomConfigs(new HashMap<>());
         route.setCustomLabels(
-            MapUtil.of(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE,
-                KubernetesConstants.Label.DOMAIN_KEY_PREFIX + HigressConstants.DEFAULT_DOMAIN,
-                KubernetesConstants.Label.DOMAIN_VALUE_DUMMY));
+                MapUtil.of(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE,
+                        KubernetesConstants.Label.DOMAIN_KEY_PREFIX + HigressConstants.DEFAULT_DOMAIN,
+                        KubernetesConstants.Label.DOMAIN_VALUE_DUMMY));
         route.setReadonly(false);
         return route;
     }

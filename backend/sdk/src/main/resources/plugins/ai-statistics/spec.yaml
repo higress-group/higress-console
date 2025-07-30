@@ -21,30 +21,172 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        attributes:
+          type: array
+          title: 可观测属性
+          x-title-i18n:
+            en-US: Observable Attributes
+          description: 用户希望记录在log/span中的信息
+          x-description-i18n:
+            en-US: Information that the user wants to record in log/span
+          items:
+            type: object
+            required: [key, value_source, value]
+            properties:
+              key:
+                type: string
+                title: 属性名称
+                x-title-i18n:
+                  en-US: Attribute Key
+                description: attribute 名称
+                x-description-i18n:
+                  en-US: Attribute key
+              value_source:
+                type: string
+                title: 取值来源
+                x-title-i18n:
+                  en-US: Value Source
+                description: attribute 取值来源
+                x-description-i18n:
+                  en-US: Attribute value source
+                enum: [fixed_value, request_header, request_body, response_header, response_body, response_streaming_body]
+              value:
+                type: string
+                title: 取值路径
+                x-title-i18n:
+                  en-US: Value Path
+                description: attribute 取值 key value/path
+                x-description-i18n:
+                  en-US: How to get attribute value
+              rule:
+                type: string
+                title: 提取规则
+                x-title-i18n:
+                  en-US: Extract Rule
+                description: 从流式响应中提取 attribute 的规则
+                x-description-i18n:
+                  en-US: Rule to extract attribute from streaming response
+                enum: [first, replace, append]
+              apply_to_log:
+                type: boolean
+                title: 记录到日志
+                x-title-i18n:
+                  en-US: Apply to Log
+                description: 是否将提取的信息记录在日志中
+                x-description-i18n:
+                  en-US: Whether to record the extracted information in the log
+                default: false
+              apply_to_span:
+                type: boolean
+                title: 记录到追踪
+                x-title-i18n:
+                  en-US: Apply to Span
+                description: 是否将提取的信息记录在链路追踪span中
+                x-description-i18n:
+                  en-US: Whether to record the extracted information in the link tracking span
+                default: false
       example:
+        attributes:
+        - key: consumer
+          value_source: request_header
+          value: x-mse-consumer
+          apply_to_log: true
+          apply_to_span: false
+        - key: question
+          value_source: request_body
+          value: messages.@reverse.0.content
+          apply_to_log: true
+          apply_to_span: false
+        - key: answer
+          value_source: response_streaming_body
+          value: choices.0.delta.content
+          rule: append
+          apply_to_log: true
+          apply_to_span: false
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        attributes:
+          type: array
+          title: 可观测属性
+          x-title-i18n:
+            en-US: Observable Attributes
+          description: 用户希望记录在log/span中的信息
+          x-description-i18n:
+            en-US: Information that the user wants to record in log/span
+          items:
+            type: object
+            required: [key, value_source, value]
+            properties:
+              key:
+                type: string
+                title: 属性名称
+                x-title-i18n:
+                  en-US: Attribute Key
+                description: attribute 名称
+                x-description-i18n:
+                  en-US: Attribute key
+              value_source:
+                type: string
+                title: 取值来源
+                x-title-i18n:
+                  en-US: Value Source
+                description: attribute 取值来源
+                x-description-i18n:
+                  en-US: Attribute value source
+                enum: [fixed_value, request_header, request_body, response_header, response_body, response_streaming_body]
+              value:
+                type: string
+                title: 取值路径
+                x-title-i18n:
+                  en-US: Value Path
+                description: attribute 取值 key value/path
+                x-description-i18n:
+                  en-US: How to get attribute value
+              rule:
+                type: string
+                title: 提取规则
+                x-title-i18n:
+                  en-US: Extract Rule
+                description: 从流式响应中提取 attribute 的规则
+                x-description-i18n:
+                  en-US: Rule to extract attribute from streaming response
+                enum: [first, replace, append]
+              apply_to_log:
+                type: boolean
+                title: 记录到日志
+                x-title-i18n:
+                  en-US: Apply to Log
+                description: 是否将提取的信息记录在日志中
+                x-description-i18n:
+                  en-US: Whether to record the extracted information in the log
+                default: false
+              apply_to_span:
+                type: boolean
+                title: 记录到追踪
+                x-title-i18n:
+                  en-US: Apply to Span
+                description: 是否将提取的信息记录在链路追踪span中
+                x-description-i18n:
+                  en-US: Whether to record the extracted information in the link tracking span
+                default: false
       example:
-        # attributes:
-        # - key: consumer # 配合认证鉴权记录consumer
-        #   value_source: request_header
-        #   value: x-mse-consumer
-        #   apply_to_log: true   # 是否将信息添加到日志中
-        #   apply_to_span: false # 是否将信息添加到链路追踪span attribute中
-        # - key: question # 记录问题
-        #   value_source: request_body
-        #   value: messages.@reverse.0.content
-        #   apply_to_log: true
-        #   apply_to_span: false
-        # - key: answer   # 在流式响应中提取大模型的回答
-        #   value_source: response_streaming_body
-        #   value: choices.0.delta.content
-        #   rule: append
-        #   apply_to_log: true
-        #   apply_to_span: false
-        # - key: answer   # 在非流式响应中提取大模型的回答
-        #   value_source: response_body
-        #   value: choices.0.message.content
-        #   apply_to_log: true
-        #   apply_to_span: false
+        attributes:
+        - key: consumer
+          value_source: request_header
+          value: x-mse-consumer
+          apply_to_log: true
+          apply_to_span: false
+        - key: question
+          value_source: request_body
+          value: messages.@reverse.0.content
+          apply_to_log: true
+          apply_to_span: false
+        - key: answer
+          value_source: response_streaming_body
+          value: choices.0.delta.content
+          rule: append
+          apply_to_log: true
+          apply_to_span: false

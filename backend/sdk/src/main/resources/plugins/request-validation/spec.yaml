@@ -23,6 +23,58 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        header_schema:
+          type: object
+          title: 请求头验证规则
+          x-title-i18n:
+            en-US: Header Validation Rules
+          description: 配置用于验证请求header的JSON Schema
+          x-description-i18n:
+            en-US: Configuration for JSON Schema to validate request headers
+        body_schema:
+          type: object
+          title: 请求体验证规则
+          x-title-i18n:
+            en-US: Body Validation Rules
+          description: 配置用于验证请求body的JSON Schema
+          x-description-i18n:
+            en-US: Configuration for JSON Schema to validate request body
+        rejected_code:
+          type: number
+          title: 拒绝状态码
+          x-title-i18n:
+            en-US: Rejection Status Code
+          description: 配置请求被拒绝时返回的HTTP状态码
+          x-description-i18n:
+            en-US: HTTP status code returned when the request is rejected
+          default: 403
+        rejected_msg:
+          type: string
+          title: 拒绝信息
+          x-title-i18n:
+            en-US: Rejection Message
+          description: 配置请求被拒绝时返回的HTTP应答Body
+          x-description-i18n:
+            en-US: HTTP response body returned when the request is rejected
+        enable_swagger:
+          type: boolean
+          title: 启用Swagger验证
+          x-title-i18n:
+            en-US: Enable Swagger Validation
+          description: 配置是否开启swagger文档验证
+          x-description-i18n:
+            en-US: Configuration to enable Swagger documentation validation
+          default: false
+        enable_oas3:
+          type: boolean
+          title: 启用OAS3验证
+          x-title-i18n:
+            en-US: Enable OAS3 Validation
+          description: 配置是否开启OAS3文档验证
+          x-description-i18n:
+            en-US: Configuration to enable OAS3 documentation validation
+          default: false
       example:
         body_schema:
           type: object
@@ -36,6 +88,58 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        header_schema:
+          type: object
+          title: 请求头验证规则
+          x-title-i18n:
+            en-US: Header Validation Rules
+          description: 配置用于验证请求header的JSON Schema
+          x-description-i18n:
+            en-US: Configuration for JSON Schema to validate request headers
+        body_schema:
+          type: object
+          title: 请求体验证规则
+          x-title-i18n:
+            en-US: Body Validation Rules
+          description: 配置用于验证请求body的JSON Schema
+          x-description-i18n:
+            en-US: Configuration for JSON Schema to validate request body
+        rejected_code:
+          type: number
+          title: 拒绝状态码
+          x-title-i18n:
+            en-US: Rejection Status Code
+          description: 配置请求被拒绝时返回的HTTP状态码
+          x-description-i18n:
+            en-US: HTTP status code returned when the request is rejected
+          default: 403
+        rejected_msg:
+          type: string
+          title: 拒绝信息
+          x-title-i18n:
+            en-US: Rejection Message
+          description: 配置请求被拒绝时返回的HTTP应答Body
+          x-description-i18n:
+            en-US: HTTP response body returned when the request is rejected
+        enable_swagger:
+          type: boolean
+          title: 启用Swagger验证
+          x-title-i18n:
+            en-US: Enable Swagger Validation
+          description: 配置是否开启swagger文档验证
+          x-description-i18n:
+            en-US: Configuration to enable Swagger documentation validation
+          default: false
+        enable_oas3:
+          type: boolean
+          title: 启用OAS3验证
+          x-title-i18n:
+            en-US: Enable OAS3 Validation
+          description: 配置是否开启OAS3文档验证
+          x-description-i18n:
+            en-US: Configuration to enable OAS3 documentation validation
+          default: false
       example:
         body_schema:
           type: object

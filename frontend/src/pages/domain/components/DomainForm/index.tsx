@@ -76,7 +76,7 @@ const DomainForm: React.FC = forwardRef((props, ref) => {
             rules={[
               {
                 required: true,
-                pattern: /^(\*\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,6}$/,
+                pattern: /^(\*\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/,
                 message: t('domain.domainForm.nameRequired'),
               },
             ]}

@@ -21,6 +21,96 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        identityHeader:
+          type: string
+          title: 身份解析对应的请求头
+          description: 身份解析对应的请求头,可用 Authorization,X-Mse-Consumer等
+          x-title-i18n:
+            en-US: Identity Resolution Request Header
+          x-description-i18n:
+            en-US: The request header for identity resolution, can be Authorization, X-Mse-Consumer, etc.
+          default: "Authorization"
+        fillHistoryCnt:
+          type: integer
+          title: 默认填充历史对话轮次
+          description: 默认填充历史对话轮次
+          x-title-i18n:
+            en-US: Default Number of Historical Dialogues
+          x-description-i18n:
+            en-US: Default number of historical dialogues to be filled.
+          default: 3
+        cacheKeyPrefix:
+          type: string
+          title: Redis缓存Key的前缀
+          description: Redis缓存Key的前缀
+          x-title-i18n:
+            en-US: Redis Cache Key Prefix
+          x-description-i18n:
+            en-US: Prefix for Redis cache key.
+          default: "higress-ai-history:"
+        cacheTTL:
+          type: integer
+          title: 缓存过期时间
+          description: 缓存的过期时间，单位是秒，默认值为0，即永不过期
+          x-title-i18n:
+            en-US: Cache Expiration Time
+          x-description-i18n:
+            en-US: Cache expiration time in seconds, default value is 0, meaning it never expires.
+          default: 0
+        redis:
+          type: object
+          title: Redis配置
+          description: Redis服务配置信息
+          x-title-i18n:
+            en-US: Redis Configuration
+          x-description-i18n:
+            en-US: Redis service configuration information.
+          required:
+            - serviceName
+          properties:
+            serviceName:
+              type: string
+              title: Redis服务名称
+              description: redis 服务名称，带服务类型的完整 FQDN 名称，例如 my-redis.dns、redis.my-ns.svc.cluster.local
+              x-title-i18n:
+                en-US: Redis Service Name
+              x-description-i18n:
+                en-US: Redis service name, full FQDN name with service type, e.g., my-redis.dns, redis.my-ns.svc.cluster.local
+            servicePort:
+              type: integer
+              title: Redis服务端口
+              description: redis 服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              x-description-i18n:
+                en-US: Redis service port.
+              default: 6379
+            timeout:
+              type: integer
+              title: Redis超时时间
+              description: 请求 redis 的超时时间，单位为毫秒
+              x-title-i18n:
+                en-US: Redis Timeout
+              x-description-i18n:
+                en-US: Timeout for requests to Redis, in milliseconds.
+              default: 1000
+            username:
+              type: string
+              title: Redis用户名
+              description: 登陆 redis 的用户名
+              x-title-i18n:
+                en-US: Redis Username
+              x-description-i18n:
+                en-US: Username for logging into Redis.
+            password:
+              type: string
+              title: Redis密码
+              description: 登陆 redis 的密码
+              x-title-i18n:
+                en-US: Redis Password
+              x-description-i18n:
+                en-US: Password for logging into Redis.
       example:
         redis:
           serviceName: my-redis.dns
@@ -30,6 +120,96 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        identityHeader:
+          type: string
+          title: 身份解析对应的请求头
+          description: 身份解析对应的请求头,可用 Authorization,X-Mse-Consumer等
+          x-title-i18n:
+            en-US: Identity Resolution Request Header
+          x-description-i18n:
+            en-US: The request header for identity resolution, can be Authorization, X-Mse-Consumer, etc.
+          default: "Authorization"
+        fillHistoryCnt:
+          type: integer
+          title: 默认填充历史对话轮次
+          description: 默认填充历史对话轮次
+          x-title-i18n:
+            en-US: Default Number of Historical Dialogues
+          x-description-i18n:
+            en-US: Default number of historical dialogues to be filled.
+          default: 3
+        cacheKeyPrefix:
+          type: string
+          title: Redis缓存Key的前缀
+          description: Redis缓存Key的前缀
+          x-title-i18n:
+            en-US: Redis Cache Key Prefix
+          x-description-i18n:
+            en-US: Prefix for Redis cache key.
+          default: "higress-ai-history:"
+        cacheTTL:
+          type: integer
+          title: 缓存过期时间
+          description: 缓存的过期时间，单位是秒，默认值为0，即永不过期
+          x-title-i18n:
+            en-US: Cache Expiration Time
+          x-description-i18n:
+            en-US: Cache expiration time in seconds, default value is 0, meaning it never expires.
+          default: 0
+        redis:
+          type: object
+          title: Redis配置
+          description: Redis服务配置信息
+          x-title-i18n:
+            en-US: Redis Configuration
+          x-description-i18n:
+            en-US: Redis service configuration information.
+          required:
+            - serviceName
+          properties:
+            serviceName:
+              type: string
+              title: Redis服务名称
+              description: redis 服务名称，带服务类型的完整 FQDN 名称，例如 my-redis.dns、redis.my-ns.svc.cluster.local
+              x-title-i18n:
+                en-US: Redis Service Name
+              x-description-i18n:
+                en-US: Redis service name, full FQDN name with service type, e.g., my-redis.dns, redis.my-ns.svc.cluster.local
+            servicePort:
+              type: integer
+              title: Redis服务端口
+              description: redis 服务端口
+              x-title-i18n:
+                en-US: Redis Service Port
+              x-description-i18n:
+                en-US: Redis service port.
+              default: 6379
+            timeout:
+              type: integer
+              title: Redis超时时间
+              description: 请求 redis 的超时时间，单位为毫秒
+              x-title-i18n:
+                en-US: Redis Timeout
+              x-description-i18n:
+                en-US: Timeout for requests to Redis, in milliseconds.
+              default: 1000
+            username:
+              type: string
+              title: Redis用户名
+              description: 登陆 redis 的用户名
+              x-title-i18n:
+                en-US: Redis Username
+              x-description-i18n:
+                en-US: Username for logging into Redis.
+            password:
+              type: string
+              title: Redis密码
+              description: 登陆 redis 的密码
+              x-title-i18n:
+                en-US: Redis Password
+              x-description-i18n:
+                en-US: Password for logging into Redis.
       example:
         redis:
           serviceName: my-redis.dns

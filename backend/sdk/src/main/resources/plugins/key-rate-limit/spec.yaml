@@ -23,6 +23,78 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      required:
+        - limit_keys
+      properties:
+        limit_by_header:
+          type: string
+          title: 获取限流键值的来源 http 请求头名称
+          x-title-i18n:
+            en-US: Configuration for the source of the rate limiting key value (HTTP request header name)
+          description: 配置获取限流键值的来源 http 请求头名称
+          x-description-i18n:
+            en-US: Configuration for the source of the rate limiting key value (HTTP request header name)
+        limit_by_param:
+          type: string
+          title: 获取限流键值的来源 URL 参数名称
+          x-title-i18n:
+            en-US: Configuration for the source of the rate limiting key value (URL parameter name)
+          description: 配置获取限流键值的来源 URL 参数名称
+          x-description-i18n:
+            en-US: Configuration for the source of the rate limiting key value (URL parameter name)
+        limit_keys:
+          type: array
+          title: 限流键值列表
+          x-title-i18n:
+            en-US: Rate Limiting Key List
+          description: 配置匹配键值后的限流次数
+          x-description-i18n:
+            en-US: Configuration for the rate limiting frequency based on matched key values
+          items:
+            type: object
+            required:
+              - key
+            properties:
+              key:
+                type: string
+                title: 匹配的键值
+                x-title-i18n:
+                  en-US: Matched key value
+                description: 匹配的键值
+                x-description-i18n:
+                  en-US: Matched key value
+              query_per_second:
+                type: number
+                title: 每秒请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per second
+                description: 允许每秒请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per second
+              query_per_minute:
+                type: number
+                title: 每分钟请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per minute
+                description: 允许每分钟请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per minute
+              query_per_hour:
+                type: number
+                title: 每小时请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per hour
+                description: 允许每小时请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per hour
+              query_per_day:
+                type: number
+                title: 每天请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per day
+                description: 允许每天请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per day
       example:
         limit_by_header: x-api-key
         limit_keys:
@@ -33,6 +105,78 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      required:
+        - limit_keys
+      properties:
+        limit_by_header:
+          type: string
+          title: 获取限流键值的来源 http 请求头名称
+          x-title-i18n:
+            en-US: Configuration for the source of the rate limiting key value (HTTP request header name)
+          description: 配置获取限流键值的来源 http 请求头名称
+          x-description-i18n:
+            en-US: Configuration for the source of the rate limiting key value (HTTP request header name)
+        limit_by_param:
+          type: string
+          title: 获取限流键值的来源 URL 参数名称
+          x-title-i18n:
+            en-US: Configuration for the source of the rate limiting key value (URL parameter name)
+          description: 配置获取限流键值的来源 URL 参数名称
+          x-description-i18n:
+            en-US: Configuration for the source of the rate limiting key value (URL parameter name)
+        limit_keys:
+          type: array
+          title: 限流键值列表
+          x-title-i18n:
+            en-US: Rate Limiting Key List
+          description: 配置匹配键值后的限流次数
+          x-description-i18n:
+            en-US: Configuration for the rate limiting frequency based on matched key values
+          items:
+            type: object
+            required:
+              - key
+            properties:
+              key:
+                type: string
+                title: 匹配的键值
+                x-title-i18n:
+                  en-US: Matched key value
+                description: 匹配的键值
+                x-description-i18n:
+                  en-US: Matched key value
+              query_per_second:
+                type: number
+                title: 每秒请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per second
+                description: 允许每秒请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per second
+              query_per_minute:
+                type: number
+                title: 每分钟请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per minute
+                description: 允许每分钟请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per minute
+              query_per_hour:
+                type: number
+                title: 每小时请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per hour
+                description: 允许每小时请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per hour
+              query_per_day:
+                type: number
+                title: 每天请求次数
+                x-title-i18n:
+                  en-US: Allowed number of requests per day
+                description: 允许每天请求次数
+                x-description-i18n:
+                  en-US: Allowed number of requests per day
       example:
         limit_by_header: x-api-key
         limit_keys:
