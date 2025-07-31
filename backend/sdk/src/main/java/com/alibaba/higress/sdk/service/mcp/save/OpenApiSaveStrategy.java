@@ -20,10 +20,13 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
+import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
@@ -32,7 +35,12 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -43,9 +51,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
 
+    private static final String REDIS_PLACEHOLDER_ADDRESS = "your.redis.host:6379";
+
+    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
+            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+    
+    static {
+        YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
     public OpenApiSaveStrategy(KubernetesClientService kubernetesClientService,
-        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
+            KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
+            RouteService routeService) {
         super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
     }
 
@@ -56,13 +74,69 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
 
     @Override
     protected void saveMcpServerConfig(McpServer mcpInstance) {
+        // validate Redis config
+        validateRedisConfiguration();
+
         WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
         wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
     }
 
+    /**
+     * Validate Redis configuration in higress-config
+     * If Redis address is still a placeholder, prompt user to configure correct
+     * Redis address
+     */
+    private void validateRedisConfiguration() {
+        try {
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
+            if (configMap == null || configMap.getData() == null) {
+                throw new ValidationException(
+                        "Unable to read higress-config ConfigMap, please ensure configuration is correct");
+            }
+
+            String higressConfigYaml = configMap.getData().get("higress");
+            if (StringUtils.isBlank(higressConfigYaml)) {
+                throw new ValidationException("Missing higress configuration item in higress-config");
+            }
+
+            Map<String, Object> higressConfig = YAML_MAPPER.readValue(higressConfigYaml, Map.class);
+            Object mcpServerObj = higressConfig.get("mcpServer");
+
+            if (mcpServerObj == null) {
+                throw new ValidationException("Missing mcpServer configuration item in higress-config");
+            }
+
+            McpServerConfigMap mcpConfig = YAML_MAPPER.readValue(
+                    YAML_MAPPER.writeValueAsString(mcpServerObj), McpServerConfigMap.class);
+
+            if (mcpConfig.getRedis() == null) {
+                throw new ValidationException(
+                        "MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise MCP functionality will be unavailable.");
+            }
+
+            McpServerConfigMap.RedisConfig redisConfig = mcpConfig.getRedis();
+            String address = redisConfig.getAddress();
+
+            // Only check if address is a placeholder
+            if (StringUtils.isBlank(address) || REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
+                throw new ValidationException(
+                        "Redis configuration is still a placeholder, please configure correct Redis address. Current configuration: address="
+                                +
+                                (StringUtils.isBlank(address) ? "not configured" : address) +
+                                ". Please modify Redis configuration in higress-config, otherwise MCP functionality will be unavailable.");
+            }
+
+        } catch (ValidationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error occurred while validating Redis configuration", e);
+            throw new ValidationException("Error occurred while validating Redis configuration: " + e.getMessage());
+        }
+    }
+
     private WasmPluginInstance buildWasmPluginInstanceRequest(McpServer mcpInstance) {
-        WasmPluginInstance pluginInstance =
-            WasmPluginInstance.builder().pluginName(DEFAULT_MCP_PLUGIN).internal(true).build();
+        WasmPluginInstance pluginInstance = WasmPluginInstance.builder().pluginName(DEFAULT_MCP_PLUGIN).internal(true)
+                .build();
         String routeName = McpServerHelper.mcpServerName2RouteName(mcpInstance.getName());
         pluginInstance.setTargets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName));
         if (StringUtils.isNotBlank(mcpInstance.getRawConfigurations())) {
@@ -75,7 +149,7 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
             Map<String, Object> rootMap = new HashMap<>();
             rootMap.put("server", serverMap);
             try {
-                String yamlString = YAML.writeValueAsString(rootMap);
+                String yamlString = YAML_MAPPER.writeValueAsString(rootMap);
                 pluginInstance.setRawConfigurations(yamlString);
                 pluginInstance.setEnabled(false);
             } catch (JsonProcessingException e) {
