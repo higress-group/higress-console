@@ -25,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = () => {
       },
       {
         name: t("navbar.commercial"),
-        link: `https://www.aliyun.com/product/aliware/mse?spm=higress-website.topbar.0.0.0`,
+        link: `https://www.aliyun.com/product/apigateway?spm=higress-console.topbar.0.0.0`,
       },
       {
         name: t("navbar.developers"),
