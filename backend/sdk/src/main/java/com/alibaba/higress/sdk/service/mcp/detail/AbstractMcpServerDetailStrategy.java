@@ -98,10 +98,7 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
                 routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
             } else {
                 List<?> allowList = (List<?>) allowObj;
-                List<String> collectList = allowList.stream()
-                        .filter(Objects::nonNull)
-                        .filter(a -> a instanceof String)
-                        .map(a -> (String) a)
+                List<String> collectList = allowList.stream().filter(a -> a instanceof String).map(a -> (String) a)
                         .collect(Collectors.toList());
                 routeAuthConfig.setAllowedConsumers(collectList);
             }

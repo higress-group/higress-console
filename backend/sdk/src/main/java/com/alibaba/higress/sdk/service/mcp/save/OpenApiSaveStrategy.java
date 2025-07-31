@@ -56,6 +56,10 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
             .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
             .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+    
+    static {
+        YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     public OpenApiSaveStrategy(KubernetesClientService kubernetesClientService,
             KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
@@ -94,8 +98,6 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
             if (StringUtils.isBlank(higressConfigYaml)) {
                 throw new ValidationException("Missing higress configuration item in higress-config");
             }
-
-            YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             Map<String, Object> higressConfig = YAML_MAPPER.readValue(higressConfigYaml, Map.class);
             Object mcpServerObj = higressConfig.get("mcpServer");
