@@ -477,7 +477,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   useEffect(() => {
     resetForm();
-    getData(isGlobalPlugin ? pluginName : { name: queryName, pluginName });
+    pluginName && getData(isGlobalPlugin ? pluginName : { name: queryName, pluginName });
   }, [pluginName, queryName]);
 
   const resetForm = () => {
