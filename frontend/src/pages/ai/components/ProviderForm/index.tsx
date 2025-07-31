@@ -18,6 +18,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [secretRefModalVisible, setSecretRefModalVisible] = useState(false);
   const [providerType, setProviderType] = useState<string | null>();
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
+  const [qwenServerType, setQwenServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
 
   const resetForm = () => {
@@ -27,7 +28,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     onProviderTypeChanged(null);
     setProviderConfig(null);
     setOpenaiServerType(null);
-    onOpenaiServerTypeChanged(null)
+    onOpenaiServerTypeChanged(null);
+    onQwenServerTypeChanged(null)
   };
 
   useEffect(() => {
@@ -69,12 +71,22 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             rawConfigs.openaiCustomUrls.push(...rawConfigs.openaiExtraCustomUrls);
           }
         }
-        if (rawConfigs.openaiCustomUrl.length === 0) {
+        if (rawConfigs && (!rawConfigs.openaiCustomUrl || rawConfigs.openaiCustomUrl.length === 0)) {
           rawConfigs.openaiCustomUrls.push('');
         }
 
         form.setFieldValue('openaiServerType', openaiServerTypeValue);
         onOpenaiServerTypeChanged(openaiServerTypeValue)
+      }
+
+      if (type === 'qwen') {
+        let qwenServerTypeValue = 'official';
+
+        if (rawConfigs && (rawConfigs.qwenEnableSearch || rawConfigs.qwenEnableCompatible || rawConfigs.qwenDomain)) qwenServerTypeValue = 'custom';
+        if (rawConfigs && rawConfigs.qwenFileIds && rawConfigs.qwenFileIds.length > 0) qwenServerTypeValue = 'custom';
+
+        form.setFieldValue('qwenServerType', qwenServerTypeValue);
+        onQwenServerTypeChanged(qwenServerTypeValue);
       }
 
       onProviderTypeChanged(type);
@@ -133,6 +145,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   function onOpenaiServerTypeChanged(value: string | null) {
     setOpenaiServerType(value);
+  }
+
+  function onQwenServerTypeChanged(value: string | null) {
+    setQwenServerType(value);
   }
 
   function onProviderTypeChanged(value: string | null) {
@@ -416,6 +432,113 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                     </>
                   )}
                 </Form.List>
+              )
+            }
+          </>
+        )
+      }
+
+      {
+        providerType === 'qwen' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.qwenServerType')}
+              required
+              name="qwenServerType"
+              initialValue="official"
+            >
+              <Select
+                onChange={onQwenServerTypeChanged}
+              >
+                <Select.Option value="official">{t("llmProvider.providerForm.qwenServerType.official")}</Select.Option>
+                <Select.Option value="custom">{t("llmProvider.providerForm.qwenServerType.custom")}</Select.Option>
+              </Select>
+            </Form.Item>
+            {
+              qwenServerType === "custom" && (
+                <>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.qwenEnableSearch')}
+                    name={["rawConfigs", "qwenEnableSearch"]}
+                    valuePropName="checked"
+                  >
+                    <Switch />
+                  </Form.Item>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.qwenEnableCompatible')}
+                    name={["rawConfigs", "qwenEnableCompatible"]}
+                    valuePropName="checked"
+                  >
+                    <Switch />
+                  </Form.Item>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.qwenDomain')}
+                    name={["rawConfigs", "qwenDomain"]}
+                  >
+                    <Input
+                      allowClear
+                      maxLength={256}
+                      placeholder={t('llmProvider.providerForm.placeholder.qwenDomainPlaceholder') || ''}
+                    ></Input>
+                  </Form.Item>
+                  <Form.List
+                    name={["rawConfigs", "qwenFileIds"]}
+                    initialValue={[]}
+                  >
+                  {(fields, { add, remove }, { errors }) => (
+                    <>
+                      {!fields.length ?
+                        <div
+                          style={{ marginBottom: '8px' }}
+                        >
+                          {t('llmProvider.providerForm.label.qwenFileIds')}
+                        </div> : null
+                      }
+                      {fields.map((field, index) => (
+                        <Form.Item
+                          label={index === 0 ? t('llmProvider.providerForm.label.qwenFileIds') : ''}
+                          key={index}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          <Form.Item
+                            {...field}
+                            noStyle
+                            rules={[
+                              {
+                                required: true,
+                                message: t('llmProvider.providerForm.rules.qwenFileIdRequired') || '',
+                              },
+                            ]}
+                          >
+                            <Input
+                              allowClear
+                              maxLength={256}
+                              style={{ width: '94%' }}
+                              placeholder={t('llmProvider.providerForm.placeholder.qwenFileIdsPlaceholder') + (index + 1) || ''}
+                            />
+                          </Form.Item>
+                          <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                            <Button
+                              type="dashed"
+                              disabled={!(fields.length > 0)}
+                              onClick={() => remove(field.name)}
+                              icon={<MinusCircleOutlined />}
+                            />
+                          </div>
+                        </Form.Item>
+                      ))}
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          icon={<PlusOutlined />}
+                        />
+                        <Form.ErrorList errors={errors} />
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
+                </>
               )
             }
           </>
