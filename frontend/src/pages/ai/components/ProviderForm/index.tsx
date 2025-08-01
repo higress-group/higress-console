@@ -69,7 +69,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             rawConfigs.openaiCustomUrls.push(...rawConfigs.openaiExtraCustomUrls);
           }
         }
-        if (rawConfigs.openaiCustomUrl.length === 0) {
+        if (rawConfigs.openaiCustomUrls.length === 0) {
           rawConfigs.openaiCustomUrls.push('');
         }
 
