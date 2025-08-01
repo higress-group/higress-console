@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Drawer, Button, Space, message, Card } from 'antd';
 import { useTranslation } from 'react-i18next';
-import MonacoEditor from '@monaco-editor/react';
 import StepTitle from './StepTitle';
 import YamlUtil from './yamlUtil';
 import { swaggerToMcpConfig } from '@/services/mcp';
+import MonacoEditor, { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
+
+loader.config({ monaco });
 
 interface EditToolDrawerProps {
   visible: boolean;
