@@ -27,7 +27,10 @@ import DeleteConfirm from './components/DeleteConfirm';
 import McpServerCommand from './components/McpServerCommand';
 import AddConsumerAuth from './components/AddConsumerAuth';
 import YamlUtil from './components/yamlUtil';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+
+loader.config({ monaco });
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
