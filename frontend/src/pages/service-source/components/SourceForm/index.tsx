@@ -1,7 +1,9 @@
 import { OptionItem } from '@/interfaces/common';
+import { ProxyServer } from '@/interfaces/proxy-server';
 import { Route } from '@/interfaces/route';
 import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
 import { getGatewayRoutes } from '@/services';
+import { getProxyServers } from '@/services/proxy-server';
 import { Form, Input, Select } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { useRequest } from 'ice';
@@ -19,6 +21,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
   const [mcpEnabled, setMcpEnabled] = useState<boolean>();
+  const [protocol, setProtocol] = useState<string | null>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>();
@@ -31,6 +34,17 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         domains && domains.forEach(domain => domainsWithRoute.add(domain));
       });
       setDomainOptions([...domainsWithRoute.values()].map(domain => ({ label: domain, value: domain })));
+    },
+  });
+  const [proxyServerOptions, setProxyServerOptions] = useState<OptionItem[]>();
+  const proxyServersResult = useRequest(getProxyServers, {
+    manual: true,
+    onSuccess: (proxyServers: ProxyServer[]) => {
+      proxyServers = proxyServers || [];
+      const options = [{ label: t('serviceSource.serviceSourceForm.proxyServerNone'), value: '' }];
+      proxyServers.sort((a, b) => a.name.localeCompare(b.name));
+      options.push(...proxyServers.map(proxyServer => ({ label: proxyServer.name, value: proxyServer.name })));
+      setProxyServerOptions(options);
     },
   });
 
@@ -48,12 +62,14 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setAuthEnabled(authEnabledLocal);
       const mcpEnabledLocal = !!value.properties.enableMCPServer;
       setMcpEnabled(mcpEnabledLocal);
+      setProtocol(value.protocol);
     } else {
       setSourceType(null);
       setSourceTypeConfig(null)
       setInitAuthEnabled(false);
       setAuthEnabled(false);
       setUsingTlsProtocol(false);
+      setProtocol(null);
       setMcpEnabled(false);
     }
 
@@ -64,7 +80,8 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     valueToSet.properties.enableMCPServer = valueToSet.properties.enableMCPServer || false;
     valueToSet.properties.mcpServerBaseUrl = valueToSet.properties.mcpServerBaseUrl || '/mcp';
     valueToSet.protocol = valueToSet.protocol || ServiceProtocols.unspecified.key;
-    updateUsingTlsProtocol(valueToSet.protocol);
+    valueToSet.proxyName = valueToSet.proxyName || '';
+    updateProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
   };
 
@@ -72,6 +89,9 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     resetFields();
     if (domainOptions == null) {
       domainsResult.run();
+    }
+    if (proxyServerOptions == null) {
+      proxyServersResult.run();
     }
   }, [value]);
 
@@ -94,8 +114,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       } else {
         values.protocol = null;
       }
-      updateUsingTlsProtocol(values.protocol);
-      if (!usingTlsProtocol) {
+      if (!isTlsProtocol(values.protocol)) {
         values.sni = null;
       }
       return values;
@@ -116,17 +135,38 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         form.setFieldValue(["properties", "consulDatacenter"], "dc1");
       }
     }
-    let protocol: string | null = null;
+    let newProtocol: string | null = null;
     if ([ServiceSourceTypes.static.key, ServiceSourceTypes.dns.key].indexOf(type) !== -1) {
-      protocol = form.getFieldValue("protocol") || ServiceProtocols.unspecified.key;
+      newProtocol = form.getFieldValue("protocol") || ServiceProtocols.unspecified.key;
     }
-    form.setFieldValue("protocol", protocol);
-    updateUsingTlsProtocol(protocol);
+    form.setFieldValue("protocol", newProtocol);
+    updateProtocol(newProtocol);
   }
 
-  function updateUsingTlsProtocol(protocol: string | null) {
-    const protocolObj = protocol && ServiceProtocols[protocol];
-    setUsingTlsProtocol(protocolObj && protocolObj.tlsEnabled);
+  function updateProtocol(newProtocol: string | null) {
+    setProtocol(newProtocol);
+    setUsingTlsProtocol(isTlsProtocol(newProtocol));
+  }
+
+  function isTlsProtocol(newProtocol: string | null) {
+    const protocolObj = newProtocol && ServiceProtocols[newProtocol];
+    return protocolObj && protocolObj.tlsEnabled;
+  }
+
+  function isProxyApplicable(serviceSourceType: string | null, serviceProtocol: string | null) {
+    switch (serviceSourceType) {
+      case ServiceSourceTypes.dns.key:
+        break;
+      default:
+        return false;
+    }
+    switch (serviceProtocol) {
+      case ServiceProtocols.https.key:
+        break;
+      default:
+        return false;
+    }
+    return true;
   }
 
   return (
@@ -199,7 +239,6 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
             <Form.Item
               label={t('serviceSource.serviceSourceForm.port')}
               required
-              name="port"
               rules={[
                 {
                   required: true,
@@ -491,7 +530,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
             name="protocol"
           >
             <Select
-              onChange={(v) => updateUsingTlsProtocol(v)}
+              onChange={(v) => updateProtocol(v)}
             >
               {
                 // eslint-disable-next-line @iceworks/best-practices/recommend-polyfill
@@ -514,6 +553,21 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
               placeholder={form.getFieldValue('type') === ServiceSourceTypes.dns.key
                 && t('serviceSource.serviceSourceForm.sniPlaceholderForDns') || ''}
             />
+          </Form.Item>
+        )
+      }
+      {
+        isProxyApplicable(sourceType, protocol) && (
+          <Form.Item
+            label={t('serviceSource.serviceSourceForm.proxyName')}
+            style={{ flex: 1, marginRight: '8px' }}
+          >
+            <Form.Item name="proxyName" noStyle>
+              <Select
+                options={proxyServerOptions || []}
+              />
+            </Form.Item>
+            <div>{t('serviceSource.serviceSourceForm.proxyServerLimitations')}</div>
           </Form.Item>
         )
       }
@@ -594,7 +648,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
           }
         </>
       }
-    </Form >
+    </Form>
   );
 });
 

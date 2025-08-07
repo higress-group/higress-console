@@ -104,4 +104,8 @@ public class V1RegistryConfig {
     public static final String SERIALIZED_NAME_METADATA_NAME = "metadata";
     @SerializedName(SERIALIZED_NAME_METADATA_NAME)
     private Map<String, V1RegistryConfigMetadata> metadata;
+
+    public static final String SERIALIZED_NAME_PROXY_NAME = "proxyName";
+    @SerializedName(SERIALIZED_NAME_PROXY_NAME)
+    private String proxyName;
 }

@@ -18,6 +18,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVI
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,11 +156,13 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
+        serviceSource.setProxyName(provider.getProxyName());
 
         List<ServiceSource> extraServiceSources =
             handler.getExtraServiceSources(provider.getName(), providerConfig, false);
         if (CollectionUtils.isNotEmpty(extraServiceSources)) {
             for (ServiceSource extraSource : extraServiceSources) {
+                extraSource.setProxyName(provider.getProxyName());
                 serviceSourceService.addOrUpdate(extraSource);
             }
         }
@@ -328,6 +331,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             }
             providers.put(provider.getName(), provider);
         }
+        fillProxyInfo(providers.values());
         return providers;
     }
 
@@ -348,6 +352,30 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             return null;
         }
         return provider;
+    }
+
+    private void fillProxyInfo(Collection<LlmProvider> providers) {
+        if (CollectionUtils.isEmpty(providers)) {
+            return;
+        }
+        PaginatedResult<ServiceSource> serviceSources = serviceSourceService.list(null);
+        if (serviceSources == null || CollectionUtils.isEmpty(serviceSources.getData())) {
+            return;
+        }
+
+        Map<String, ServiceSource> serviceSourceMap =
+            serviceSources.getData().stream().collect(Collectors.toMap(ServiceSource::getName, s -> s));
+        for (LlmProvider provider : providers) {
+            LlmProviderHandler handler = PROVIDER_HANDLERS.get(provider.getType());
+            if (handler == null) {
+                continue;
+            }
+            String serviceSourceName = handler.getServiceSourceName(provider.getName());
+            ServiceSource serviceSource = serviceSourceMap.get(serviceSourceName);
+            if (serviceSource != null) {
+                provider.setProxyName(serviceSource.getProxyName());
+            }
+        }
     }
 
     private static void fillDefaultValues(LlmProvider provider) {

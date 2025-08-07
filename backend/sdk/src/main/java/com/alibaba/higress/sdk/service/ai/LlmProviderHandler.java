@@ -38,6 +38,8 @@ interface LlmProviderHandler {
      */
     void normalizeConfigs(Map<String, Object> configurations);
 
+    String getServiceSourceName(String providerName);
+
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
 
     default List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig,

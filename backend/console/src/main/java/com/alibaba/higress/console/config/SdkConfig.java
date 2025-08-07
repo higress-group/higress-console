@@ -26,6 +26,7 @@ import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import com.alibaba.higress.sdk.service.DomainService;
 import com.alibaba.higress.sdk.service.HigressServiceProvider;
+import com.alibaba.higress.sdk.service.ProxyServerService;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.ServiceService;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
@@ -122,6 +123,11 @@ public class SdkConfig {
     }
 
     @Bean
+    public ProxyServerService proxyServerService() {
+        return serviceProvider.proxyServerService();
+    }
+
+    @Bean
     public TlsCertificateService tlsCertificateService() {
         return serviceProvider.tlsCertificateService();
     }
@@ -160,5 +166,4 @@ public class SdkConfig {
     public McpServerHelper mcpServerHelper() {
         return new McpServerHelper();
     }
-
 }

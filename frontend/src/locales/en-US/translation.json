@@ -476,10 +476,12 @@
       "domain": "Source Domain",
       "port": "Source Port",
       "protocol": "Service Protocol",
+      "proxyName": "Proxy Server",
       "action": "Action"
     },
     "createServiceSource": "Create Service Source",
     "editServiceSource": "Edit Service Source",
+    "manageProxyServers": "Manage Proxy Servers",
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentServiceSourceName}}</1>?",
     "serviceSourceForm": {
       "type": "Type",
@@ -541,7 +543,27 @@
       "mcpServerNacos3McpServerName": "MCP Server Name in Nacos",
       "mcpServerNacos3McpServerPath": "MCP Server Access Path in Nacos",
       "mcpServerNacos3NoteSse": "When accessing using SSE transport, a /sse suffix needs to be appended to the pattern above.",
-      "mcpServerNacos3NoteRoute": "Note: These MCP server routes won't be listed in the Route Management page."
+      "mcpServerNacos3NoteRoute": "Note: These MCP server routes won't be listed in the Route Management page.",
+      "proxyName": "Proxy Server",
+      "proxyServerNone": "No",
+      "proxyServerLimitations": "Note: Proxy server configuration only supports HTTPS backends with a single endpoint."
+    },
+    "proxyServerModal": {
+      "createProxyServer": "Create Proxy Server",
+      "editProxyServer": "Edit Eroxy Server",
+      "name": "Name",
+      "type": "Type",
+      "server": "Server Info",
+      "serverAddress": "Server Address",
+      "serverPort": "Server Port",
+      "connectTimeout": "Connect Timeout",
+      "typeRequired": "Please choose a type",
+      "nameRequired": "Please input a valid name",
+      "namePlaceholder": "Only following inputs are allowed: lower-case letters, numbers, dash (-) and underscore (_). Must start with a letter. No longer than 63 characters.",
+      "serverAddressRequired": "Please input a valid server address",
+      "serverPortRequired": "Please input a valid server port",
+      "connectTimeoutRequired": "Please input connect timeout",
+      "deleteConfirmation": "Are you sure you want to delete this server?"
     }
   },
   "route": {

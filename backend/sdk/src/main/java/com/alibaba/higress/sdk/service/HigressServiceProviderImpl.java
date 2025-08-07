@@ -39,6 +39,7 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     private final RouteService routeService;
     private final ServiceService serviceService;
     private final ServiceSourceService serviceSourceService;
+    private final ProxyServerService proxyServerService;
     private final TlsCertificateService tlsCertificateService;
     private final WasmPluginService wasmPluginService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
@@ -56,6 +57,7 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             serviceService = new ServiceServiceByApiServerImpl(kubernetesClientService, kubernetesModelConverter);
         }
         serviceSourceService = new ServiceSourceServiceImpl(kubernetesClientService, kubernetesModelConverter);
+        proxyServerService = new ProxyServerServiceImpl(kubernetesClientService, kubernetesModelConverter);
         tlsCertificateService = new TlsCertificateServiceImpl(kubernetesClientService, kubernetesModelConverter);
         wasmPluginService = new WasmPluginServiceImpl(kubernetesClientService, kubernetesModelConverter,
             config.getWasmPluginServiceConfig());
@@ -102,6 +104,11 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
     @Override
     public ServiceSourceService serviceSourceService() {
         return serviceSourceService;
+    }
+
+    @Override
+    public ProxyServerService proxyServerService() {
+        return proxyServerService;
     }
 
     @Override

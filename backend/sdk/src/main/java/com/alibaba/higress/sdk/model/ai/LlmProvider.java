@@ -36,6 +36,8 @@ public class LlmProvider {
     private String type;
     @Schema(description = "Provider protocol", ref = "LlmProviderProtocol")
     private String protocol;
+    @Schema(description = "Proxy server name")
+    private String proxyName;
     @Schema(description = "Tokens used to request the provider")
     private List<String> tokens;
     @Schema(description = "Token fail-over configuration")
