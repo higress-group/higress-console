@@ -12,6 +12,13 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -22,25 +29,21 @@ import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.RoutePageQuery;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
+
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 class RouteServiceImpl implements RouteService {
 
     private static final RoutePageQuery DEFAULT_QUERY = new RoutePageQuery();
+    private static final RouteAuthConfig DEFAULT_AUTH_CONFIG = new RouteAuthConfig(false, null, null);
 
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
@@ -162,10 +165,13 @@ class RouteServiceImpl implements RouteService {
     }
 
     private void writeAuthConfigResources(String routeName, RouteAuthConfig authConfig) {
-        List<String> allowedConsumers = authConfig != null && Boolean.TRUE.equals(authConfig.getEnabled())
-            ? authConfig.getAllowedConsumers() : Lists.newArrayList();
-        AllowList allowList = new AllowList(WasmPluginInstanceScope.ROUTE, routeName, allowedConsumers);
-        consumerService.updateAllowList(allowList);
+        if (authConfig == null) {
+            authConfig = DEFAULT_AUTH_CONFIG;
+        }
+        AllowList allowList = AllowList.forTarget(WasmPluginInstanceScope.ROUTE, routeName)
+            .authEnabled(authConfig.getEnabled()).credentialTypes(authConfig.getAllowedCredentialTypes())
+            .consumerNames(authConfig.getAllowedConsumers()).build();
+        consumerService.updateAllowList(AllowListOperation.REPLACE, allowList);
     }
 
     private Route ingress2Route(V1Ingress ingress, AllowList allowList) {
@@ -174,7 +180,8 @@ class RouteServiceImpl implements RouteService {
         if (allowList == null) {
             authConfig.setEnabled(false);
         } else {
-            authConfig.setEnabled(true);
+            authConfig.setEnabled(allowList.getAuthEnabled());
+            authConfig.setAllowedCredentialTypes(allowList.getCredentialTypes());
             authConfig.setAllowedConsumers(allowList.getConsumerNames());
         }
         route.setAuthConfig(authConfig);

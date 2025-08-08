@@ -1,34 +1,23 @@
 /* eslint-disable max-lines */
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'ice';
-import { PageContainer } from '@ant-design/pro-layout';
-import {
-  Card,
-  Tabs,
-  Button,
-  Descriptions,
-  Space,
-  message,
-  Switch,
-  Tooltip,
-  Table,
-  Empty,
-  Modal,
-} from 'antd';
-import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer, listMcpConsumers } from '@/services/mcp';
+import { CredentialType } from '@/interfaces/consumer';
 import { getGatewayDomains } from '@/services/domain';
-import EditToolDrawer from './components/EditToolDrawer';
-import ConsumerTable from './components/ConsumerTable';
-import McpFormDrawer from './components/McpFormDrawer';
-import { getServiceTypeMap, SERVICE_TYPE } from './constant';
-import DeleteConfirm from './components/DeleteConfirm';
-import McpServerCommand from './components/McpServerCommand';
-import AddConsumerAuth from './components/AddConsumerAuth';
-import YamlUtil from './components/yamlUtil';
+import { createOrUpdateMcpServer, deleteMcpServer, getMcpServer } from '@/services/mcp';
+import { DeleteOutlined, EditOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-layout';
 import MonacoEditor, { loader } from '@monaco-editor/react';
+import { Button, Card, Descriptions, Empty, message, Modal, Space, Table, Tabs, Tooltip } from 'antd';
+import { useNavigate, useSearchParams } from 'ice';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AddConsumerAuth from './components/AddConsumerAuth';
+import ConsumerTable from './components/ConsumerTable';
+import DeleteConfirm from './components/DeleteConfirm';
+import EditToolDrawer from './components/EditToolDrawer';
+import McpFormDrawer from './components/McpFormDrawer';
+import McpServerCommand from './components/McpServerCommand';
+import YamlUtil from './components/yamlUtil';
+import { getServiceTypeMap, SERVICE_TYPE } from './constant';
 
 loader.config({ monaco });
 
@@ -95,7 +84,7 @@ const MCPDetailPage: React.FC = () => {
         mcpServerName: name,
         consumerAuthInfo: {
           enable: checked,
-          type: 'API_KEY',
+          type: CredentialType.KEY_AUTH,
           allowedConsumers: mcpData.consumerAuthInfo?.allowedConsumers || [],
         },
       });

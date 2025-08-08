@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.service.consumer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,14 +35,18 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.Credential;
+import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConsumerServiceImpl implements ConsumerService {
+
+    private static final List<String> DEFAULT_CREDENTIAL_TYPES = Collections.singletonList(CredentialType.KEY_AUTH);
 
     private static final Map<String, CredentialHandler> CREDENTIAL_HANDLERS;
 
@@ -132,13 +137,18 @@ public class ConsumerServiceImpl implements ConsumerService {
                 }
                 AllowList allowList = allowLists.stream()
                     .filter(a -> Objects.equals(instance.getTargets(), a.getTargets())).findFirst().orElseGet(() -> {
-                        AllowList newAllowList = new AllowList(instance.getTargets(), new ArrayList<>());
+                        AllowList newAllowList =
+                            AllowList.builder().targets(instance.getTargets()).authEnabled(instance.getEnabled())
+                                .credentialTypes(new ArrayList<>()).consumerNames(new ArrayList<>()).build();
                         allowLists.add(newAllowList);
                         return newAllowList;
                     });
                 List<String> consumerNames = handler.getAllowList(instance);
                 if (CollectionUtils.isEmpty(consumerNames)) {
                     continue;
+                }
+                if (!allowList.getCredentialTypes().contains(handler.getType())) {
+                    allowList.getCredentialTypes().add(handler.getType());
                 }
                 for (String consumerName : consumerNames) {
                     if (!allowList.getConsumerNames().contains(consumerName)) {
@@ -159,7 +169,9 @@ public class ConsumerServiceImpl implements ConsumerService {
             throw new IllegalArgumentException("targets cannot contain GLOBAL scope.");
         }
 
+        List<String> credentialTypes = null;
         Set<String> allConsumerNames = null;
+        boolean authEnabled = false;
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
             WasmPluginInstance instance = wasmPluginInstanceService.query(targets, handler.getPluginName(), true);
             if (instance == null) {
@@ -169,6 +181,13 @@ public class ConsumerServiceImpl implements ConsumerService {
             if (CollectionUtils.isEmpty(consumerNames)) {
                 continue;
             }
+            if (Boolean.TRUE.equals(instance.getEnabled())) {
+                authEnabled = true;
+            }
+            if (credentialTypes == null) {
+                credentialTypes = new ArrayList<>();
+            }
+            credentialTypes.add(handler.getType());
             if (allConsumerNames == null) {
                 allConsumerNames = new LinkedHashSet<>();
             }
@@ -177,11 +196,15 @@ public class ConsumerServiceImpl implements ConsumerService {
         if (allConsumerNames == null) {
             return null;
         }
-        return new AllowList(targets, new ArrayList<>(allConsumerNames));
+        return AllowList.builder().targets(targets).authEnabled(authEnabled).credentialTypes(credentialTypes)
+            .consumerNames(new ArrayList<>(allConsumerNames)).build();
     }
 
     @Override
-    public void updateAllowList(AllowList allowList) {
+    public void updateAllowList(AllowListOperation operation, AllowList allowList) {
+        if (operation == null) {
+            throw new IllegalArgumentException("operation cannot be null.");
+        }
         if (allowList == null) {
             throw new IllegalArgumentException("allowList cannot be null.");
         }
@@ -196,21 +219,52 @@ public class ConsumerServiceImpl implements ConsumerService {
             throw new IllegalArgumentException("targets cannot contain GLOBAL scope.");
         }
 
-        for (CredentialHandler config : CREDENTIAL_HANDLERS.values()) {
-            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, config.getPluginName(), true);
-            if (CollectionUtils.isEmpty(consumerNames)) {
-                if (instance != null) {
-                    wasmPluginInstanceService.delete(targets, config.getPluginName());
+        List<String> credentialTypes = allowList.getCredentialTypes();
+        if (CollectionUtils.isEmpty(credentialTypes)) {
+            credentialTypes = DEFAULT_CREDENTIAL_TYPES;
+        } else {
+            credentialTypes = credentialTypes.stream().distinct().collect(Collectors.toList());
+        }
+
+        switch (operation) {
+            case ADD:
+            case REMOVE:
+                if (CollectionUtils.isEmpty(allowList.getConsumerNames()) && allowList.getAuthEnabled() == null) {
+                    // Nothing to do.
+                    return;
                 }
-                continue;
+                break;
+            case TOGGLE_ONLY:
+                if (allowList.getAuthEnabled() == null) {
+                    // Nothing to do.
+                    return;
+                }
+                break;
+            case REPLACE:
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported operation: " + operation);
+        }
+
+        for (String credentialType : credentialTypes) {
+            CredentialHandler config = CREDENTIAL_HANDLERS.get(credentialType);
+            if (config == null) {
+                throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
             }
+
+            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, config.getPluginName(), true);
 
             if (instance == null) {
                 instance = wasmPluginInstanceService.createEmptyInstance(config.getPluginName());
                 instance.setInternal(true);
                 instance.setTargets(targets);
             }
-            config.updateAllowList(instance, consumerNames);
+
+            if (allowList.getAuthEnabled() != null) {
+                instance.setEnabled(allowList.getAuthEnabled());
+            }
+
+            config.updateAllowList(operation, instance, consumerNames);
             wasmPluginInstanceService.addOrUpdate(instance);
         }
     }

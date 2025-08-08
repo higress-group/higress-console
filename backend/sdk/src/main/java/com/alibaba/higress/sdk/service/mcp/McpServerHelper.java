@@ -17,12 +17,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,6 +33,7 @@ import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
@@ -51,7 +54,6 @@ public class McpServerHelper {
         if (!tempFile.exists()) {
             tempFile.mkdirs();
         }
-
     }
 
     /**
@@ -61,7 +63,6 @@ public class McpServerHelper {
      * @return mcp-config.yaml content
      */
     public String swaggerToMcpConfig(String swaggerContent) {
-
         try {
 
             long timeMillis = System.currentTimeMillis();
@@ -194,11 +195,21 @@ public class McpServerHelper {
             Optional.ofNullable(mcpServerTypeStr).ifPresent(s -> result.setType(McpServerTypeEnum.fromName(s)));
         }
 
-        if (Objects.nonNull(route.getAuthConfig())) {
+        RouteAuthConfig routeAuthConfig = route.getAuthConfig();
+        if (routeAuthConfig != null) {
             ConsumerAuthInfo consumerAuthInfo = new ConsumerAuthInfo();
-            consumerAuthInfo.setType("API_KEY");
-            consumerAuthInfo.setAllowedConsumers(route.getAuthConfig().getAllowedConsumers());
-            consumerAuthInfo.setEnable(route.getAuthConfig().getEnabled());
+            List<String> allowedCredentialTypes = routeAuthConfig.getAllowedCredentialTypes();
+            if (CollectionUtils.isEmpty(allowedCredentialTypes)) {
+                log.warn("Unexpected empty allowedCredentialTypes found in Route {}", route.getName());
+            } else {
+                if (allowedCredentialTypes.size() != 1) {
+                    log.warn("Unexpected multiple allowedCredentialTypes found in Route {}: {}", route.getName(),
+                        String.join(",", allowedCredentialTypes));
+                }
+                consumerAuthInfo.setType(allowedCredentialTypes.get(0));
+            }
+            consumerAuthInfo.setAllowedConsumers(routeAuthConfig.getAllowedConsumers());
+            consumerAuthInfo.setEnable(routeAuthConfig.getEnabled());
             result.setConsumerAuthInfo(consumerAuthInfo);
         }
 

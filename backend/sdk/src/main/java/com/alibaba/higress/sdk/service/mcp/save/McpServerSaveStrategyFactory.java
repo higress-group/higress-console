@@ -20,6 +20,7 @@ import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.google.common.collect.Lists;
@@ -36,16 +37,16 @@ public class McpServerSaveStrategyFactory {
 
     public McpServerSaveStrategyFactory(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
+        ConsumerService consumerService, RouteService routeService) {
 
         final McpServerSaveStrategy mcpServerOfOpenApiService = new OpenApiSaveStrategy(kubernetesClientService,
-            kubernetesModelConverter, wasmPluginInstanceService, routeService);
+            kubernetesModelConverter, wasmPluginInstanceService, consumerService, routeService);
 
-        final McpServerSaveStrategy mcpServerOfDatabaseService = new DatabaseSaveStrategy(kubernetesClientService,
-            kubernetesModelConverter, wasmPluginInstanceService, routeService);
+        final McpServerSaveStrategy mcpServerOfDatabaseService =
+            new DatabaseSaveStrategy(kubernetesClientService, kubernetesModelConverter, consumerService, routeService);
 
         final McpServerSaveStrategy mcpServerOfDirectRoutingService = new DirectRoutingSaveStrategy(
-            kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+            kubernetesClientService, kubernetesModelConverter, consumerService, routeService);
 
         mcpServerServiceList.add(mcpServerOfOpenApiService);
         mcpServerServiceList.add(mcpServerOfDatabaseService);
