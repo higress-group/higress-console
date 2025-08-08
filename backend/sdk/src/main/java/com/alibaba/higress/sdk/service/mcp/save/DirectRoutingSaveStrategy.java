@@ -15,7 +15,7 @@ package com.alibaba.higress.sdk.service.mcp.save;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
-import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 
@@ -27,9 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
     public DirectRoutingSaveStrategy(KubernetesClientService kubernetesClientService,
-        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
-        super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+        KubernetesModelConverter kubernetesModelConverter, ConsumerService consumerService, RouteService routeService) {
+        super(kubernetesClientService, kubernetesModelConverter, consumerService, routeService);
     }
 
     @Override
@@ -38,7 +37,7 @@ public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
+    protected void doSaveMcpServerConfig(McpServer mcpInstance) {
         // nothing to do!
     }
 }

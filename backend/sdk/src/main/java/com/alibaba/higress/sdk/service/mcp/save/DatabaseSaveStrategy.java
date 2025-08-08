@@ -14,7 +14,6 @@ package com.alibaba.higress.sdk.service.mcp.save;
 
 import java.util.Objects;
 
-import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -23,9 +22,10 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
-import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,9 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DatabaseSaveStrategy extends AbstractMcpServerSaveStrategy {
 
     public DatabaseSaveStrategy(KubernetesClientService kubernetesClientService,
-        KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
-        super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+        KubernetesModelConverter kubernetesModelConverter, ConsumerService consumerService, RouteService routeService) {
+        super(kubernetesClientService, kubernetesModelConverter, consumerService, routeService);
     }
 
     @Override
@@ -47,7 +46,7 @@ public class DatabaseSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
+    protected void doSaveMcpServerConfig(McpServer mcpInstance) {
         addOrUpdateServersConfig(mcpInstance);
     }
 

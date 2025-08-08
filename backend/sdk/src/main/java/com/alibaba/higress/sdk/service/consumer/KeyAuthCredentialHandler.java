@@ -23,22 +23,24 @@ import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QU
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 
 class KeyAuthCredentialHandler implements CredentialHandler {
@@ -67,7 +69,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
             Object allowObj = configurations.get(ALLOW);
             if (allowObj instanceof List<?>) {
-                List<?> allowList = (List<?>) allowObj;
+                List<?> allowList = (List<?>)allowObj;
                 if (allowList.contains(consumerName)) {
                     return true;
                 }
@@ -86,7 +88,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (!(consumersObj instanceof List<?>)) {
             return Lists.newArrayList();
         }
-        List<?> consumerList= (List<?>) consumersObj;
+        List<?> consumerList = (List<?>)consumersObj;
         List<Consumer> consumers = new ArrayList<>(consumerList.size());
         for (Object consumerObj : consumerList) {
             if (!(consumerObj instanceof Map<?, ?>)) {
@@ -236,12 +238,12 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (!(allowObj instanceof List<?>)) {
             return Lists.newArrayList();
         }
-        List<?> allowList= (List<?>)allowObj;
+        List<?> allowList = (List<?>)allowObj;
         return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).collect(Collectors.toList());
     }
 
     @Override
-    public void updateAllowList(WasmPluginInstance instance, List<String> consumerNames) {
+    public void updateAllowList(AllowListOperation operation, WasmPluginInstance instance, List<String> consumerNames) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
             configurations = new HashMap<>();
@@ -249,9 +251,29 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         }
 
         if (CollectionUtils.isEmpty(consumerNames)) {
-            configurations.remove(ALLOW);
+            configurations.put(ALLOW, Collections.emptyList());
         } else {
-            configurations.put(ALLOW, new ArrayList<>(consumerNames));
+            List<String> newAllowList = getAllowList(instance);
+            switch (operation) {
+                case ADD:
+                    for (String consumerName : consumerNames) {
+                        if (!newAllowList.contains(consumerName)) {
+                            newAllowList.add(consumerName);
+                        }
+                    }
+                    break;
+                case REMOVE:
+                    for (String consumerName : consumerNames) {
+                        newAllowList.remove(consumerName);
+                    }
+                    break;
+                case REPLACE:
+                    newAllowList = consumerNames;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported operation: " + operation);
+            }
+            configurations.put(ALLOW, newAllowList);
         }
     }
 
@@ -276,7 +298,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return null;
         }
 
-        List<?> keyList = (List<?>) keyObj;
+        List<?> keyList = (List<?>)keyObj;
         if (keyList.isEmpty()) {
             return null;
         }
@@ -286,7 +308,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             if (!(keyItemObj instanceof String)) {
                 continue;
             }
-            String keyItem = (String) keyItemObj;
+            String keyItem = (String)keyItemObj;
             if (StringUtils.isNotBlank(keyItem)) {
                 key = keyItem;
             }
@@ -301,10 +323,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         List<String> credentials = new ArrayList<>();
         Object credentialsObj = consumerMap.get(CONSUMER_CREDENTIALS);
         if (credentialsObj instanceof List<?>) {
-            List<?> credentialsList = (List<?>) credentialsObj;
+            List<?> credentialsList = (List<?>)credentialsObj;
             for (Object credentialObj : credentialsList) {
                 if (credentialObj instanceof String) {
-                    credentials.add((String) credentialObj);
+                    credentials.add((String)credentialObj);
                 }
             }
         }
