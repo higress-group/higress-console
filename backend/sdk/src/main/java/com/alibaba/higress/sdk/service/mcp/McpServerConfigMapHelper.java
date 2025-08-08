@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.sdk.exception.ValidationException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -97,6 +98,24 @@ public class McpServerConfigMapHelper {
         }
     }
 
+    /**
+     * Get Redis configuration from higress-config configmap
+     * If Redis address is a placeholder, throw ValidationException
+     *
+     * @return RedisConfig if configured, otherwise throw ValidationException
+     */
+    public McpServerConfigMap.RedisConfig getRedisConfig() {
+        try {
+            
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
+            McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
+            
+            return mcpConfig.getRedis();
+        } catch (Exception e) {
+            throw new ValidationException("Error occurred while validating Redis configuration: ", e);
+        }
+    }
+    
     /**
      * get mcp config from higress-config configmap
      *

@@ -46,7 +46,7 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
     }
 
     public DatabaseDetailStrategy(KubernetesClientService kubernetesClientService,
-            WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
+        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
         super(kubernetesClientService, wasmPluginInstanceService, routeService);
     }
 
@@ -63,8 +63,8 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
             log.error("Failed to get mcp server list", e);
         }
         McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
-        Optional<McpServerConfigMap.Server> first = mcpConfig.getServers().stream()
-                .filter(i -> StringUtils.equals(i.getName(), name)).findFirst();
+        Optional<McpServerConfigMap.Server> first =
+            mcpConfig.getServers().stream().filter(i -> StringUtils.equals(i.getName(), name)).findFirst();
         if (first.isPresent()) {
             McpServerConfigMap.Server server = first.get();
             result.setDsn(server.getConfig().getDsn());
@@ -74,11 +74,10 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
     }
 
     /**
-     * build DB tools config, DB MCP server tools parameters are currently
-     * hardcoded, keep it consistent
+     * build DB tools config, DB MCP server tools parameters are currently hardcoded, keep it consistent
      *
      * @param serverName mcp server name
-     * @param dbType     db type
+     * @param dbType db type
      * @return db tools config YAML
      */
     private String buildDatabaseToolsConfig(String serverName, String dbType) {
@@ -101,7 +100,6 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         private boolean required;
         private String position;
     }
-
     @Data
     @Builder
     static class ToolsSchemaConfig {
@@ -109,7 +107,6 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         private String description;
         private List<ToolArgsSchemaConfig> args;
     }
-
     @Data
     @Builder
     static class SchemaConfig {
@@ -123,17 +120,17 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
 
         List<ToolsSchemaConfig> tools = new ArrayList<>();
         tools.add(buildToolsConfig("query",
-                String.format("Run a read-only SQL query %s", descriptionSuffix),
-                buildQueryToolsConfig()));
+                                   String.format("Run a read-only SQL query %s", descriptionSuffix),
+                                   buildQueryToolsConfig()));
         tools.add(buildToolsConfig("execute",
-                String.format("Execute an insert, update, or delete SQL %s", descriptionSuffix),
-                buildExecuteToolsConfig()));
+                                   String.format("Execute an insert, update, or delete SQL %s", descriptionSuffix),
+                                   buildExecuteToolsConfig()));
         tools.add(buildToolsConfig("list tables",
-                String.format("List all tables %s", descriptionSuffix),
-                Collections.emptyList()));
+                                   String.format("List all tables %s", descriptionSuffix),
+                                   Collections.emptyList()));
         tools.add(buildToolsConfig("describe table",
-                String.format("Get the structure of a specific table %s", descriptionSuffix),
-                buildDescribeTableToolsConfig()));
+                                   String.format("Get the structure of a specific table %s", descriptionSuffix),
+                                   buildDescribeTableToolsConfig()));
 
         return SchemaConfig.builder()
                 .server(server)

@@ -165,7 +165,7 @@ public class SystemServiceImpl implements SystemService {
         this.capabilities = capabilities;
 
         Map<String, Object> configs = MapUtil.of(UserConfigKey.SYSTEM_INITIALIZED, sessionService.isAdminInitialized(),
-                UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
+            UserConfigKey.DASHBOARD_BUILTIN, dashboardService.isBuiltIn());
         configService.setConfigs(configs);
 
         initDefaultRoutes();
@@ -210,16 +210,15 @@ public class SystemServiceImpl implements SystemService {
         try {
             KeyPair keyPair = CertificateUtil.generateRsaKeyPair(4096);
             X509CertificateHolder certificateHolder = CertificateUtil.generateSelfSignedCertificate(keyPair,
-                    DEFAULT_TLS_CERTIFICATE_HOST, DEFAULT_TLS_CERTIFICATE_DURATION);
+                DEFAULT_TLS_CERTIFICATE_HOST, DEFAULT_TLS_CERTIFICATE_DURATION);
 
             TlsCertificate defaultCertificate = new TlsCertificate();
             defaultCertificate.setName(DEFAULT_TLS_CERTIFICATE_NAME);
             defaultCertificate.setDomains(Lists.newArrayList(DEFAULT_TLS_CERTIFICATE_HOST));
             defaultCertificate.setKey(
-                    CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
+                CertificateUtil.toPem(CertificateUtil.RSA_PRIVATE_KEY_PEM_TYPE, keyPair.getPrivate().getEncoded()));
             defaultCertificate
-                    .setCert(CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE,
-                            certificateHolder.getEncoded()));
+                .setCert(CertificateUtil.toPem(CertificateUtil.CERTIFICATE_PEM_TYPE, certificateHolder.getEncoded()));
             tlsCertificateService.add(defaultCertificate);
 
             Domain domain = new Domain();
@@ -236,11 +235,11 @@ public class SystemServiceImpl implements SystemService {
         try {
             Route route = new Route();
             route.setName(DEFAULT_ROUTE_NAME);
-            RoutePredicate routePredicate = RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name())
-                    .matchValue("/").build();
+            RoutePredicate routePredicate =
+                RoutePredicate.builder().matchType(RoutePredicateTypeEnum.EQUAL.name()).matchValue("/").build();
             route.setPath(routePredicate);
             route.setServices(
-                    Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
+                Lists.newArrayList(new UpstreamService(consoleServiceHost, consoleServicePort, null, null)));
             route.setRewrite(new RewriteConfig(true, "/landing", null));
             routeService.add(route);
 
@@ -300,8 +299,7 @@ public class SystemServiceImpl implements SystemService {
             if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
-            throw new BusinessException(
-                    "Error occurs when replacing the " + KubernetesConstants.HIGRESS_CONFIG + " ConfigMap.", e);
+            throw new BusinessException("Error occurs when replacing the " + KubernetesConstants.HIGRESS_CONFIG + " ConfigMap.", e);
         }
 
         cleanUpConfigMap(updatedConfigMap);
@@ -321,8 +319,7 @@ public class SystemServiceImpl implements SystemService {
         }
         if (REQUIRED_HIGRESS_CONFIG_KEYS.stream().anyMatch(key -> !newConfigMap.getData().containsKey(key))) {
             throw new ValidationException(
-                    "ConfigMap data must contain all required keys: "
-                            + String.join(", ", REQUIRED_HIGRESS_CONFIG_KEYS));
+                "ConfigMap data must contain all required keys: " + String.join(", ", REQUIRED_HIGRESS_CONFIG_KEYS));
         }
         for (String key : REQUIRED_HIGRESS_CONFIG_KEYS) {
             String value = newConfigMap.getData().get(key);
