@@ -30,6 +30,7 @@ const MCPDetailPage: React.FC = () => {
   const [mcpData, setMcpData] = useState<any>(null);
   const [apiGatewayUrl, setApiGatewayUrl] = useState('http://<higress-gateway-ip>');
   const [authEnabled, setAuthEnabled] = useState(false);
+  const [authType, setAuthType] = useState<string | null>(null);
   const [tools, setTools] = useState<any[]>([]);
   const [editToolVisible, setEditToolVisible] = useState(false);
   const [editDrawerVisible, setEditDrawerVisible] = useState(false);
@@ -45,6 +46,7 @@ const MCPDetailPage: React.FC = () => {
       if (res) {
         setMcpData(res);
         setAuthEnabled(res.consumerAuthInfo?.enable || false);
+        setAuthType(res.consumerAuthInfo?.type || null);
 
         // 解析工具配置
         if (res.rawConfigurations) {
@@ -84,7 +86,7 @@ const MCPDetailPage: React.FC = () => {
         mcpServerName: name,
         consumerAuthInfo: {
           enable: checked,
-          type: CredentialType.KEY_AUTH,
+          type: CredentialType.KEY_AUTH.key,
           allowedConsumers: mcpData.consumerAuthInfo?.allowedConsumers || [],
         },
       });
@@ -175,6 +177,9 @@ const MCPDetailPage: React.FC = () => {
     if (apiGatewayUrl && name) {
       setHttpJson(generateJson('http'));
       setSseJson(generateJson('sse'));
+    } else {
+      setHttpJson('');
+      setSseJson('');
     }
   }, [apiGatewayUrl, name]);
 
@@ -469,7 +474,10 @@ const MCPDetailPage: React.FC = () => {
                     {authEnabled && (
                       <Descriptions.Item label={t('misc.authType')}>
                         <Space>
-                          <span>API Key</span>
+                          <span>
+                            {(Object.values(CredentialType).find(ct => ct.key === authType)
+                              || { displayName: authType }).displayName}
+                          </span>
                           <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
                             <QuestionCircleOutlined style={{ color: '#888' }} />
                           </Tooltip>

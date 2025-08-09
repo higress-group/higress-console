@@ -187,7 +187,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         : {}),
       consumerAuthInfo: {
         enable: values.consumerAuth,
-        type: CredentialType.KEY_AUTH,
+        type: CredentialType.KEY_AUTH.key,
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
         allowedConsumers: values.allowedConsumers || [],
       },
@@ -377,7 +377,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             onChange={(value) => {
               form.setFieldsValue({
                 consumerAuth: value,
-                authType: value ? 'key-auth' : undefined,
+                authType: value ? CredentialType.KEY_AUTH.key : undefined,
                 allowedConsumers: value ? form.getFieldValue('allowedConsumers') : undefined,
               });
             }}
@@ -389,11 +389,15 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             <Form.Item
               label={t('misc.authType')}
               name="authType"
-              initialValue="key-auth"
+              initialValue={CredentialType.KEY_AUTH.key}
               extra={t('misc.keyAuthOnlyTip')}
             >
               <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
+                {
+                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+                  ))
+                }
               </Select>
             </Form.Item>
             <Form.Item

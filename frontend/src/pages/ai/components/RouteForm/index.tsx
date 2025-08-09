@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Consumer } from '@/interfaces/consumer';
+import { Consumer, CredentialType } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import FactorGroup from '@/pages/route/components/FactorGroup';
@@ -556,7 +556,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        // style={authConfig_enabled ? { marginBottom: 0 } : {}}
+      // style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
@@ -567,9 +567,13 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       {
         authConfig_enabled ? // 允许请求本路由的消费者名称列表
           <>
-            <Form.Item label={t('misc.authType')} name="authType" initialValue="key-auth" extra={t('misc.keyAuthOnlyTip')}>
+            <Form.Item label={t('misc.authType')} name="authType" initialValue={CredentialType.KEY_AUTH.key} extra={t('misc.keyAuthOnlyTip')}>
               <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
+                {
+                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+                  ))
+                }
               </Select>
             </Form.Item>
             <Form.Item

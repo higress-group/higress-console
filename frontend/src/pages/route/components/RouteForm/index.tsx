@@ -1,6 +1,6 @@
 import i18n, { lngs } from '@/i18n';
 import { OptionItem } from '@/interfaces/common';
-import { Consumer } from '@/interfaces/consumer';
+import { Consumer, CredentialType } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
 import { getGatewayDomains, getGatewayServices } from '@/services';
@@ -274,11 +274,15 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             <Form.Item
               label={t('misc.authType')}
               name="authType"
-              initialValue="key-auth"
+              initialValue={CredentialType.KEY_AUTH.key}
               extra={t('misc.keyAuthOnlyTip')}
             >
               <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
+                {
+                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+                  ))
+                }
               </Select>
             </Form.Item>
             <Form.Item
