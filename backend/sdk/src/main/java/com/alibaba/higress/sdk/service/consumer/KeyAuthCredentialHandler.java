@@ -96,21 +96,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
 
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-
-            String name = MapUtils.getString(consumerMap, CONSUMER_NAME);
-            if (StringUtils.isBlank(name)) {
-                continue;
+            Consumer consumer = extractConsumer(consumerMap);
+            if (consumer != null) {
+                consumers.add(consumer);
             }
-
-            KeyAuthCredential credential = parseCredential(consumerMap);
-            if (credential == null) {
-                continue;
-            }
-
-            Consumer consumer = new Consumer();
-            consumer.setName(name);
-            consumer.setCredentials(Lists.newArrayList(credential));
-            consumers.add(consumer);
         }
         return consumers;
     }
@@ -145,15 +134,22 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         } else {
             consumers = new ArrayList<>();
         }
+
         Map<String, Object> consumerConfig = null;
         for (Object consumerObj : consumers) {
             if (!(consumerObj instanceof Map<?, ?>)) {
                 continue;
             }
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-            if (consumer.getName().equals(consumerMap.get(CONSUMER_NAME))) {
+            Consumer existedConsumer = extractConsumer(consumerMap);
+            if (existedConsumer == null) {
+                continue;
+            }
+            if (consumer.getName().equals(existedConsumer.getName())) {
                 consumerConfig = consumerMap;
-                break;
+            } else if (hasSameCredential(existedConsumer, keyAuthCredential)) {
+                throw new IllegalArgumentException(
+                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
             }
         }
 
@@ -277,6 +273,53 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         }
     }
 
+    private Consumer extractConsumer(Map<String, Object> consumerMap) {
+        if (MapUtils.isEmpty(consumerMap)) {
+            return null;
+        }
+
+        String name = MapUtils.getString(consumerMap, CONSUMER_NAME);
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+
+        KeyAuthCredential credential = parseCredential(consumerMap);
+        if (credential == null) {
+            return null;
+        }
+
+        Consumer consumer = new Consumer();
+        consumer.setName(name);
+        consumer.setCredentials(Lists.newArrayList(credential));
+        return consumer;
+    }
+
+    private boolean hasSameCredential(Consumer existedConsumer, KeyAuthCredential credential) {
+        if (credential == null || existedConsumer == null) {
+            return false;
+        }
+        KeyAuthCredential existedCredential = (KeyAuthCredential)existedConsumer.getCredentials().stream()
+            .filter(c -> CredentialType.KEY_AUTH.equals(c.getType())).findFirst().orElse(null);
+        if (existedCredential == null) {
+            return false;
+        }
+        if (!StringUtils.equalsIgnoreCase(credential.getSource(), existedCredential.getSource())) {
+            return false;
+        }
+        if (!StringUtils.equals(credential.getKey(), existedCredential.getKey())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(credential.getValues()) || CollectionUtils.isEmpty(existedCredential.getValues())) {
+            return false;
+        }
+        for (String value : credential.getValues()) {
+            if (existedCredential.getValues().contains(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private KeyAuthCredential mergeExistedConfig(KeyAuthCredential keyAuthCredential,
         Map<String, Object> consumerConfig) {
         KeyAuthCredential existedCredential = parseCredential(consumerConfig);
@@ -292,7 +335,6 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {
-
         Object keyObj = MapUtils.getObject(consumerMap, KEYS);
         if (!(keyObj instanceof List<?>)) {
             return null;
