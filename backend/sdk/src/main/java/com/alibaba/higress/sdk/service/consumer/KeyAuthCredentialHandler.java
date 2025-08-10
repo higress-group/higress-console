@@ -65,7 +65,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         for (WasmPluginInstance instance : instances) {
             Map<String, Object> configurations = instance.getConfigurations();
             if (MapUtils.isEmpty(configurations)) {
-                return false;
+                continue;
             }
             Object allowObj = configurations.get(ALLOW);
             if (allowObj instanceof List<?>) {
