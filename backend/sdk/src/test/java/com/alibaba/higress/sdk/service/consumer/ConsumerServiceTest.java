@@ -434,6 +434,105 @@ public class ConsumerServiceTest {
         verify(wasmPluginInstanceService, never()).addOrUpdate(any());
     }
 
+    @Test
+    void testUpdateAllowList_EnableAuthWithoutConsumers() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.ROUTE, "test-route");
+
+        AllowList allowList = AllowList.builder()
+            .targets(targets)
+            .authEnabled(true)
+            .credentialTypes(Lists.newArrayList(CredentialType.KEY_AUTH))
+            .build();
+
+        WasmPluginInstance instance = createTestInstance();
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+            .thenReturn(instance);
+
+        // When & Then
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> consumerService.updateAllowList(AllowListOperation.TOGGLE_ONLY, allowList));
+
+        assertEquals("It is not allowed to enable authentication without any allowed consumers.",
+            exception.getMessage());
+    }
+
+    @Test
+    void testUpdateAllowList_EnableAuthWithEmptyConsumerList() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        AllowList allowList = AllowList.builder()
+            .targets(targets)
+            .authEnabled(true)
+            .credentialTypes(Lists.newArrayList(CredentialType.KEY_AUTH))
+            .consumerNames(new ArrayList<>())  // Empty consumer list
+            .build();
+
+        WasmPluginInstance instance = createTestInstance();
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+            .thenReturn(instance);
+
+        // When & Then
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> consumerService.updateAllowList(AllowListOperation.REPLACE, allowList));
+
+        assertEquals("It is not allowed to enable authentication without any allowed consumers.",
+            exception.getMessage());
+    }
+
+    @Test
+    void testUpdateAllowList_DisableAuthWithoutConsumers() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        AllowList allowList = AllowList.builder()
+            .targets(targets)
+            .authEnabled(false)  // Disabled auth should not throw exception
+            .credentialTypes(Lists.newArrayList(CredentialType.KEY_AUTH))
+            .consumerNames(new ArrayList<>())
+            .build();
+
+        WasmPluginInstance instance = createTestInstance();
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+            .thenReturn(instance);
+
+        // When
+        consumerService.updateAllowList(AllowListOperation.REPLACE, allowList);
+
+        // Then - should not throw exception
+        verify(wasmPluginInstanceService).addOrUpdate(instance);
+    }
+
+    @Test
+    void testUpdateAllowList_RemoveAllConsumersButKeepAuthEnabled() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        AllowList allowList = AllowList.builder()
+            .targets(targets)
+            .authEnabled(true)
+            .credentialTypes(Lists.newArrayList(CredentialType.KEY_AUTH))
+            .consumerNames(Lists.newArrayList("user1"))  // This will be removed by handler
+            .build();
+
+        WasmPluginInstance instance = createTestInstance();
+        instance.setEnabled(true);
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+            .thenReturn(instance);
+
+        // When & Then
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> consumerService.updateAllowList(AllowListOperation.REMOVE, allowList));
+
+        assertEquals("It is not allowed to enable authentication without any allowed consumers.",
+            exception.getMessage());
+    }
+
     private Consumer createTestConsumer(String name) {
         KeyAuthCredential credential = new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "Authorization",
             Lists.newArrayList("test-key"));

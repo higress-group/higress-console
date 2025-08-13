@@ -224,7 +224,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     @Override
-    public List<String> getAllowList(WasmPluginInstance instance) {
+    public List<String> getAllowedConsumers(WasmPluginInstance instance) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
             return Lists.newArrayList();
@@ -249,7 +249,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (CollectionUtils.isEmpty(consumerNames)) {
             configurations.put(ALLOW, Collections.emptyList());
         } else {
-            List<String> newAllowList = getAllowList(instance);
+            List<String> newAllowList = getAllowedConsumers(instance);
             switch (operation) {
                 case ADD:
                     for (String consumerName : consumerNames) {

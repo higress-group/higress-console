@@ -392,28 +392,28 @@ public class KeyAuthCredentialHandlerTest {
     }
 
     @Test
-    public void testGetAllowList_AllBranches() {
+    public void testGetAllowedConsumers_AllBranches() {
         WasmPluginInstance instance = new WasmPluginInstance();
         // 1. 配置为null
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 2. 配置为空map
         instance.setConfigurations(new HashMap<>());
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 3. ALLOW字段不存在
         instance.setConfigurations(MapUtil.of("other", Lists.newArrayList("a")));
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 4. ALLOW字段不是List
         instance.setConfigurations(MapUtil.of("allow", "notalist"));
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 5. ALLOW字段为List但内容为空
         instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList()));
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 6. ALLOW字段为List但内容为非字符串
         instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList(123, true)));
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 7. ALLOW字段为List且内容为字符串
         instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList("a", "b")));
-        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowedConsumers(instance));
     }
 
     @Test
@@ -421,24 +421,24 @@ public class KeyAuthCredentialHandlerTest {
         WasmPluginInstance instance = new WasmPluginInstance();
         // 1. 配置为null，ADD
         handler.updateAllowList(AllowListOperation.ADD, instance, Lists.newArrayList("a"));
-        Assertions.assertEquals(Lists.newArrayList("a"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("a"), handler.getAllowedConsumers(instance));
         // 2. ADD已存在的
         handler.updateAllowList(AllowListOperation.ADD, instance, Lists.newArrayList("a", "b"));
-        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowedConsumers(instance));
         // 3. REMOVE存在的
         handler.updateAllowList(AllowListOperation.REMOVE, instance, Lists.newArrayList("a"));
-        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowedConsumers(instance));
         // 4. REMOVE不存在的
         handler.updateAllowList(AllowListOperation.REMOVE, instance, Lists.newArrayList("notfound"));
-        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowedConsumers(instance));
         // 5. REPLACE
         handler.updateAllowList(AllowListOperation.REPLACE, instance, Lists.newArrayList("x", "y"));
-        Assertions.assertEquals(Lists.newArrayList("x", "y"), handler.getAllowList(instance));
+        Assertions.assertEquals(Lists.newArrayList("x", "y"), handler.getAllowedConsumers(instance));
         // 6. consumerNames为空
         handler.updateAllowList(AllowListOperation.REPLACE, instance, null);
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         handler.updateAllowList(AllowListOperation.REPLACE, instance, Lists.newArrayList());
-        Assertions.assertTrue(handler.getAllowList(instance).isEmpty());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
         // 7. 不支持的operation
         try {
             handler.updateAllowList(null, instance, Lists.newArrayList("a"));

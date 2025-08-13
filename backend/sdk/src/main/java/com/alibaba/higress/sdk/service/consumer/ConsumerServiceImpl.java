@@ -143,7 +143,7 @@ public class ConsumerServiceImpl implements ConsumerService {
                         allowLists.add(newAllowList);
                         return newAllowList;
                     });
-                List<String> consumerNames = handler.getAllowList(instance);
+                List<String> consumerNames = handler.getAllowedConsumers(instance);
                 if (CollectionUtils.isEmpty(consumerNames)) {
                     continue;
                 }
@@ -177,7 +177,7 @@ public class ConsumerServiceImpl implements ConsumerService {
             if (instance == null) {
                 continue;
             }
-            List<String> consumerNames = handler.getAllowList(instance);
+            List<String> consumerNames = handler.getAllowedConsumers(instance);
             if (CollectionUtils.isEmpty(consumerNames)) {
                 continue;
             }
@@ -229,7 +229,7 @@ public class ConsumerServiceImpl implements ConsumerService {
         switch (operation) {
             case ADD:
             case REMOVE:
-                if (CollectionUtils.isEmpty(allowList.getConsumerNames()) && allowList.getAuthEnabled() == null) {
+                if (CollectionUtils.isEmpty(consumerNames) && allowList.getAuthEnabled() == null) {
                     // Nothing to do.
                     return;
                 }
@@ -247,15 +247,15 @@ public class ConsumerServiceImpl implements ConsumerService {
         }
 
         for (String credentialType : credentialTypes) {
-            CredentialHandler config = CREDENTIAL_HANDLERS.get(credentialType);
-            if (config == null) {
+            CredentialHandler handler = CREDENTIAL_HANDLERS.get(credentialType);
+            if (handler == null) {
                 throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
             }
 
-            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, config.getPluginName(), true);
+            WasmPluginInstance instance = wasmPluginInstanceService.query(targets, handler.getPluginName(), true);
 
             if (instance == null) {
-                instance = wasmPluginInstanceService.createEmptyInstance(config.getPluginName());
+                instance = wasmPluginInstanceService.createEmptyInstance(handler.getPluginName());
                 instance.setInternal(true);
                 instance.setTargets(targets);
             }
@@ -264,7 +264,14 @@ public class ConsumerServiceImpl implements ConsumerService {
                 instance.setEnabled(allowList.getAuthEnabled());
             }
 
-            config.updateAllowList(operation, instance, consumerNames);
+            handler.updateAllowList(operation, instance, consumerNames);
+
+            List<String> newAllowedConsumers = handler.getAllowedConsumers(instance);
+            if (Boolean.TRUE.equals(instance.getEnabled()) && CollectionUtils.isEmpty(newAllowedConsumers)) {
+                throw new BusinessException(
+                    "It is not allowed to enable authentication without any allowed consumers.");
+            }
+
             wasmPluginInstanceService.addOrUpdate(instance);
         }
     }
