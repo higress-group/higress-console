@@ -13,7 +13,6 @@
 package com.alibaba.higress.sdk.service.consumer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +22,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.Credential;
+import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
 import com.alibaba.higress.sdk.util.MapUtil;
@@ -388,6 +391,328 @@ public class KeyAuthCredentialHandlerTest {
         Assertions.assertEquals(Lists.newArrayList("Bearer sk-123456"), consumerMap.get("credentials"));
     }
 
+    @Test
+    public void testGetAllowedConsumers_AllBranches() {
+        WasmPluginInstance instance = new WasmPluginInstance();
+        // 1. 配置为null
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 2. 配置为空map
+        instance.setConfigurations(new HashMap<>());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 3. ALLOW字段不存在
+        instance.setConfigurations(MapUtil.of("other", Lists.newArrayList("a")));
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 4. ALLOW字段不是List
+        instance.setConfigurations(MapUtil.of("allow", "notalist"));
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 5. ALLOW字段为List但内容为空
+        instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList()));
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 6. ALLOW字段为List但内容为非字符串
+        instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList(123, true)));
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 7. ALLOW字段为List且内容为字符串
+        instance.setConfigurations(MapUtil.of("allow", Lists.newArrayList("a", "b")));
+        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowedConsumers(instance));
+    }
+
+    @Test
+    public void testUpdateAllowList_AllBranches() {
+        WasmPluginInstance instance = new WasmPluginInstance();
+        // 1. 配置为null，ADD
+        handler.updateAllowList(AllowListOperation.ADD, instance, Lists.newArrayList("a"));
+        Assertions.assertEquals(Lists.newArrayList("a"), handler.getAllowedConsumers(instance));
+        // 2. ADD已存在的
+        handler.updateAllowList(AllowListOperation.ADD, instance, Lists.newArrayList("a", "b"));
+        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowedConsumers(instance));
+        // 3. REMOVE存在的
+        handler.updateAllowList(AllowListOperation.REMOVE, instance, Lists.newArrayList("a"));
+        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowedConsumers(instance));
+        // 4. REMOVE不存在的
+        handler.updateAllowList(AllowListOperation.REMOVE, instance, Lists.newArrayList("notfound"));
+        Assertions.assertEquals(Lists.newArrayList("b"), handler.getAllowedConsumers(instance));
+        // 5. REPLACE
+        handler.updateAllowList(AllowListOperation.REPLACE, instance, Lists.newArrayList("x", "y"));
+        Assertions.assertEquals(Lists.newArrayList("x", "y"), handler.getAllowedConsumers(instance));
+        // 6. consumerNames为空
+        handler.updateAllowList(AllowListOperation.REPLACE, instance, null);
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        handler.updateAllowList(AllowListOperation.REPLACE, instance, Lists.newArrayList());
+        Assertions.assertTrue(handler.getAllowedConsumers(instance).isEmpty());
+        // 7. 不支持的operation
+        try {
+            handler.updateAllowList(null, instance, Lists.newArrayList("a"));
+            Assertions.fail("Should throw exception");
+        } catch (Exception e) {
+            Assertions.assertTrue(e instanceof UnsupportedOperationException || e instanceof NullPointerException);
+        }
+    }
+
+    @Test
+    public void extractConsumersTestMixedConsumerTypes() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Map<String, Object> configurations = new HashMap<>();
+        List<Object> consumers = new ArrayList<>();
+
+        // 添加有效的consumer
+        Map<String, Object> validConsumer = new HashMap<>();
+        validConsumer.put("name", "valid");
+        validConsumer.put("keys", Lists.newArrayList("Authorization"));
+        validConsumer.put("in_header", true);
+        validConsumer.put("credentials", Lists.newArrayList("Bearer token1"));
+        consumers.add(validConsumer);
+
+        // 添加无效的consumer (非Map类型)
+        consumers.add("invalid_consumer");
+
+        // 添加空名称的consumer
+        Map<String, Object> emptyNameConsumer = new HashMap<>();
+        emptyNameConsumer.put("name", "");
+        emptyNameConsumer.put("keys", Lists.newArrayList("X-API-KEY"));
+        consumers.add(emptyNameConsumer);
+
+        // 添加null名称的consumer
+        Map<String, Object> nullNameConsumer = new HashMap<>();
+        nullNameConsumer.put("keys", Lists.newArrayList("X-API-KEY"));
+        consumers.add(nullNameConsumer);
+
+        // 添加无keys的consumer
+        Map<String, Object> noKeysConsumer = new HashMap<>();
+        noKeysConsumer.put("name", "nokeys");
+        consumers.add(noKeysConsumer);
+
+        configurations.put("consumers", consumers);
+        instance.setConfigurations(configurations);
+
+        List<Consumer> result = handler.extractConsumers(instance);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals("valid", result.get(0).getName());
+    }
+
+    @Test
+    public void saveConsumerTestInvalidCredentialSource() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Consumer consumer = new Consumer("testuser",
+            Lists.newArrayList(new KeyAuthCredential("INVALID_SOURCE", "X-API-KEY", Lists.newArrayList("test-key"))));
+
+        Assertions.assertThrows(ValidationException.class, () -> {
+            handler.saveConsumer(instance, consumer);
+        });
+    }
+
+    @Test
+    public void saveConsumerTestDuplicateCredential() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+
+        // 先添加一个consumer
+        Consumer consumer1 = new Consumer("user1", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("same-key"))));
+        handler.saveConsumer(instance, consumer1);
+
+        // 尝试添加具有相同凭证的另一个consumer
+        Consumer consumer2 = new Consumer("user2", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("same-key"))));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            handler.saveConsumer(instance, consumer2);
+        });
+    }
+
+    @Test
+    public void saveConsumerTestValidationFailure() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+
+        // 创建一个无效的凭证（空values）
+        KeyAuthCredential invalidCredential =
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", null);
+        Consumer consumer = new Consumer("testuser", Lists.newArrayList(invalidCredential));
+
+        Assertions.assertThrows(ValidationException.class, () -> {
+            handler.saveConsumer(instance, consumer);
+        });
+    }
+
+    @Test
+    public void saveConsumerTestNoCredentials() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Consumer consumer = new Consumer("testuser", Lists.newArrayList());
+
+        Assertions.assertFalse(handler.saveConsumer(instance, consumer));
+    }
+
+    @Test
+    public void extractConsumersTestLegacyCredentialFormat() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "legacy_user", true, false, "Authorization", true, "Bearer legacy-token");
+
+        List<Consumer> consumers = handler.extractConsumers(instance);
+        Assertions.assertNotNull(consumers);
+        Assertions.assertEquals(1, consumers.size());
+
+        Consumer consumer = consumers.get(0);
+        Assertions.assertEquals("legacy_user", consumer.getName());
+        KeyAuthCredential credential = (KeyAuthCredential)consumer.getCredentials().get(0);
+        Assertions.assertEquals(KeyAuthCredentialSource.BEARER.name(), credential.getSource());
+        Assertions.assertEquals(Lists.newArrayList("legacy-token"), credential.getValues());
+    }
+
+    @Test
+    public void parseCredentialTestEdgeCases() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Map<String, Object> configurations = new HashMap<>();
+        List<Object> consumers = new ArrayList<>();
+
+        // Consumer with empty keys list
+        Map<String, Object> emptyKeysConsumer = new HashMap<>();
+        emptyKeysConsumer.put("name", "emptykeys");
+        emptyKeysConsumer.put("keys", Lists.newArrayList());
+        emptyKeysConsumer.put("in_header", true);
+        consumers.add(emptyKeysConsumer);
+
+        // Consumer with non-string keys
+        Map<String, Object> nonStringKeysConsumer = new HashMap<>();
+        nonStringKeysConsumer.put("name", "nonstringkeys");
+        nonStringKeysConsumer.put("keys", Lists.newArrayList(123, null, ""));
+        nonStringKeysConsumer.put("in_header", true);
+        consumers.add(nonStringKeysConsumer);
+
+        // Consumer with neither in_header nor in_query set to true
+        Map<String, Object> noLocationConsumer = new HashMap<>();
+        noLocationConsumer.put("name", "nolocation");
+        noLocationConsumer.put("keys", Lists.newArrayList("X-API-KEY"));
+        consumers.add(noLocationConsumer);
+
+        // Consumer with non-list keys
+        Map<String, Object> nonListKeysConsumer = new HashMap<>();
+        nonListKeysConsumer.put("name", "nonlistkeys");
+        nonListKeysConsumer.put("keys", "not-a-list");
+        nonListKeysConsumer.put("in_header", true);
+        consumers.add(nonListKeysConsumer);
+
+        configurations.put("consumers", consumers);
+        instance.setConfigurations(configurations);
+
+        List<Consumer> result = handler.extractConsumers(instance);
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void saveConsumerTestMergeExistingConfig() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+
+        // 先添加一个consumer
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-token");
+
+        // 只更新key，不提供source和values
+        Consumer partialConsumer = new Consumer("testuser",
+            Lists.newArrayList(new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", null)));
+
+        Assertions.assertTrue(handler.saveConsumer(instance, partialConsumer));
+
+        List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
+        Assertions.assertEquals(1, consumers.size());
+        Map<String, Object> consumerMap = consumers.get(0);
+        Assertions.assertEquals("testuser", consumerMap.get("name"));
+        Assertions.assertEquals(Lists.newArrayList("X-API-KEY"), consumerMap.get("keys"));
+        Assertions.assertEquals(Lists.newArrayList("old-token"), consumerMap.get("credentials"));
+        Assertions.assertEquals(true, consumerMap.get("in_header"));
+        Assertions.assertEquals(false, consumerMap.get("in_query"));
+    }
+
+    @Test
+    public void deleteConsumerTestConsumersNotList() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Map<String, Object> configurations = new HashMap<>();
+        configurations.put("consumers", "not-a-list");
+        instance.setConfigurations(configurations);
+
+        Assertions.assertFalse(handler.deleteConsumer(instance, "testuser"));
+    }
+
+    @Test
+    public void deleteConsumerTestNonMapConsumer() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Map<String, Object> configurations = new HashMap<>();
+        List<Object> consumers = new ArrayList<>();
+        consumers.add("not-a-map");
+        consumers.add(123);
+        configurations.put("consumers", consumers);
+        instance.setConfigurations(configurations);
+
+        Assertions.assertFalse(handler.deleteConsumer(instance, "testuser"));
+    }
+
+    @Test
+    public void isConsumerInUseTestEmptyAllowList() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.DOMAIN, "example.com");
+        Map<String, Object> configurations = new HashMap<>();
+        configurations.put("allow", Lists.newArrayList());
+        instance.setConfigurations(configurations);
+
+        Assertions.assertFalse(handler.isConsumerInUse("testuser", Lists.newArrayList(instance)));
+    }
+
+    @Test
+    public void isConsumerInUseTestNonListAllow() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.DOMAIN, "example.com");
+        Map<String, Object> configurations = new HashMap<>();
+        configurations.put("allow", "not-a-list");
+        instance.setConfigurations(configurations);
+
+        Assertions.assertFalse(handler.isConsumerInUse("testuser", Lists.newArrayList(instance)));
+    }
+
+    @Test
+    public void testGetType() {
+        Assertions.assertEquals(CredentialType.KEY_AUTH, handler.getType());
+    }
+
+    @Test
+    public void testGetPluginName() {
+        Assertions.assertEquals(BuiltInPluginName.KEY_AUTH, handler.getPluginName());
+    }
+
+    @Test
+    public void extractConsumersTestWithBothCredentialAndCredentials() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Map<String, Object> configurations = new HashMap<>();
+        List<Object> consumers = new ArrayList<>();
+
+        // Consumer with both legacy credential and new credentials
+        Map<String, Object> consumer = new HashMap<>();
+        consumer.put("name", "testuser");
+        consumer.put("keys", Lists.newArrayList("Authorization"));
+        consumer.put("in_header", true);
+        consumer.put("credential", "Bearer old-token");
+        consumer.put("credentials", Lists.newArrayList("Bearer new-token"));
+        consumers.add(consumer);
+
+        configurations.put("consumers", consumers);
+        instance.setConfigurations(configurations);
+
+        List<Consumer> result = handler.extractConsumers(instance);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.size());
+
+        Consumer extractedConsumer = result.get(0);
+        KeyAuthCredential credential = (KeyAuthCredential)extractedConsumer.getCredentials().get(0);
+        // Should prefer new credentials format over legacy
+        Assertions.assertEquals(Lists.newArrayList("new-token", "old-token"), credential.getValues());
+    }
+
+    @Test
+    public void saveConsumerTestUnsupportedCredentialSource() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+
+        // Mock an unsupported source by using a custom KeyAuthCredential with invalid source
+        Consumer consumer = new Consumer("testuser",
+            Lists.newArrayList(new KeyAuthCredential("UNSUPPORTED", "X-API-KEY", Lists.newArrayList("test-key"))));
+
+        Assertions.assertThrows(ValidationException.class, () -> handler.saveConsumer(instance, consumer));
+    }
+
     private WasmPluginInstance createInstance(WasmPluginInstanceScope scope, String target) {
         WasmPluginInstance instance = new WasmPluginInstance();
         instance.setPluginName(handler.getPluginName());
@@ -417,7 +742,7 @@ public class KeyAuthCredentialHandlerTest {
             assert credentials.length == 1;
             consumer.put("credential", credentials[0]);
         } else {
-            consumer.put("credentials", Arrays.asList(credentials));
+            consumer.put("credentials", Lists.newArrayList(credentials));
         }
         if (inHeader) {
             consumer.put("in_header", true);

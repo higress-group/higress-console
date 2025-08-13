@@ -20,6 +20,7 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 
 /**
@@ -30,11 +31,12 @@ public class McpServerDetailStrategyFactory {
     private final List<McpServerDetailStrategy> strategies = Lists.newArrayList();
 
     public McpServerDetailStrategyFactory(KubernetesClientService kubernetesClientService,
-        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
-        strategies.add(new OpenApiDetailStrategy(kubernetesClientService, wasmPluginInstanceService, routeService));
-        strategies.add(new DatabaseDetailStrategy(kubernetesClientService, wasmPluginInstanceService, routeService));
-        strategies
-            .add(new DirectRoutingDetailStrategy(kubernetesClientService, wasmPluginInstanceService, routeService));
+        WasmPluginInstanceService wasmPluginInstanceService, ConsumerService consumerService,
+        RouteService routeService) {
+        strategies.add(new OpenApiDetailStrategy(kubernetesClientService, consumerService, wasmPluginInstanceService,
+            routeService));
+        strategies.add(new DatabaseDetailStrategy(kubernetesClientService, consumerService, routeService));
+        strategies.add(new DirectRoutingDetailStrategy(kubernetesClientService, consumerService, routeService));
     }
 
     public McpServerDetailStrategy getService(McpServerTypeEnum type) {

@@ -14,8 +14,10 @@ package com.alibaba.higress.console.controller.mcp;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -129,7 +131,9 @@ public class McpServerController {
             @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<McpServerConsumerDetail>>
         listAllowConsumers(@ParameterObject McpServerConsumersPageQuery query) {
+        if (StringUtils.isEmpty(query.getMcpServerName())){
+            throw new ValidationException("mcpServerName is empty");
+        }
         return ControllerUtil.buildResponseEntity(mcpServerService.listAllowConsumers(query));
     }
-
 }

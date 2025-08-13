@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Drawer, Form, Input, Button, Space, Select, Switch } from 'antd';
-import { useTranslation, Trans } from 'react-i18next';
-import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
-import { getGatewayDomains } from '@/services/domain';
-import { getGatewayServices } from '@/services/service';
-import { useWatch } from 'antd/es/form/Form';
-import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
-import { getMcpServer } from '@/services/mcp';
-import { history } from 'ice';
-import { getConsumers } from '@/services/consumer';
+import { CredentialType } from '@/interfaces/consumer';
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
+import { getConsumers } from '@/services/consumer';
+import { getGatewayDomains } from '@/services/domain';
+import { getMcpServer } from '@/services/mcp';
+import { getGatewayServices } from '@/services/service';
 import { RedoOutlined } from '@ant-design/icons';
+import { Button, Drawer, Form, Input, Select, Space, Switch } from 'antd';
+import { useWatch } from 'antd/es/form/Form';
+import React, { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import { getServiceTypeMap, REG_DSN_STRING, SERVICE_TYPE, SERVICE_TYPES } from '../constant';
+import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -187,7 +187,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         : {}),
       consumerAuthInfo: {
         enable: values.consumerAuth,
-        type: 'API_KEY',
+        type: CredentialType.KEY_AUTH.key,
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
         allowedConsumers: values.allowedConsumers || [],
       },
@@ -377,7 +377,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             onChange={(value) => {
               form.setFieldsValue({
                 consumerAuth: value,
-                authType: value ? 'key-auth' : undefined,
+                authType: value ? CredentialType.KEY_AUTH.key : undefined,
                 allowedConsumers: value ? form.getFieldValue('allowedConsumers') : undefined,
               });
             }}
@@ -389,11 +389,15 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             <Form.Item
               label={t('misc.authType')}
               name="authType"
-              initialValue="key-auth"
+              initialValue={CredentialType.KEY_AUTH.key}
               extra={t('misc.keyAuthOnlyTip')}
             >
               <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
+                {
+                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+                  ))
+                }
               </Select>
             </Form.Item>
             <Form.Item

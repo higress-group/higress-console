@@ -23,15 +23,20 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 
 /**
  * @author lvshui
  */
 public class OpenApiDetailStrategy extends AbstractMcpServerDetailStrategy {
-    public OpenApiDetailStrategy(KubernetesClientService kubernetesClientService,
+
+    private final WasmPluginInstanceService wasmPluginInstanceService;
+
+    public OpenApiDetailStrategy(KubernetesClientService kubernetesClientService, ConsumerService consumerService,
         WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
-        super(kubernetesClientService, wasmPluginInstanceService, routeService);
+        super(kubernetesClientService, consumerService, routeService);
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
     @Override

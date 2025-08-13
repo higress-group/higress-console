@@ -8,9 +8,11 @@ export interface Credential {
   [propName: string]: any;
 }
 
-export enum CredentialType {
-  KEY_AUTH = 'key-auth',
-}
+export const CredentialType = {
+  KEY_AUTH: { key: 'key-auth', displayName: 'Key Auth', enabled: true, displayColor: '#4095e5' },
+  OAUTH2: { key: 'oauth2', displayName: 'OAuth2', enabled: false, displayColor: '#4095e5' },
+  JWT_AUTH: { key: 'jwt-auth', displayName: 'JWT', enabled: false, displayColor: '#4095e5' },
+};
 
 export interface KeyAuthCredential extends Credential {
   source: string;

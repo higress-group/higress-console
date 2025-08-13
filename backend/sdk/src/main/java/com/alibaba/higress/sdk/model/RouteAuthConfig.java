@@ -33,6 +33,8 @@ public class RouteAuthConfig {
 
     @Schema(description = "Whether auth is enabled")
     private Boolean enabled;
+    @Schema(description = "Allowed credential types")
+    private List<String> allowedCredentialTypes;
     @Schema(description = "Allowed consumer names")
     private List<String> allowedConsumers;
 

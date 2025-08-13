@@ -19,7 +19,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
-import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 
 /**
@@ -27,9 +27,9 @@ import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
  */
 public class DirectRoutingDetailStrategy extends AbstractMcpServerDetailStrategy {
 
-    public DirectRoutingDetailStrategy(KubernetesClientService kubernetesClientService,
-        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
-        super(kubernetesClientService, wasmPluginInstanceService, routeService);
+    public DirectRoutingDetailStrategy(KubernetesClientService kubernetesClientService, ConsumerService consumerService,
+        RouteService routeService) {
+        super(kubernetesClientService, consumerService, routeService);
     }
 
     @Override
