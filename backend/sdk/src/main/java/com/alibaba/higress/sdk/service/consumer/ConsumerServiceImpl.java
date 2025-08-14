@@ -266,12 +266,6 @@ public class ConsumerServiceImpl implements ConsumerService {
 
             handler.updateAllowList(operation, instance, consumerNames);
 
-            List<String> newAllowedConsumers = handler.getAllowedConsumers(instance);
-            if (Boolean.TRUE.equals(instance.getEnabled()) && CollectionUtils.isEmpty(newAllowedConsumers)) {
-                throw new BusinessException(
-                    "It is not allowed to enable authentication without any allowed consumers.");
-            }
-
             wasmPluginInstanceService.addOrUpdate(instance);
         }
     }
