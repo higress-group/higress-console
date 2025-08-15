@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ValidateUtil {
 
     private static final Pattern SERVICE_NAME_PATTERN = Pattern.compile("^(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]$");
-    private static final Pattern DOMAIN_PATTERN = Pattern.compile("^(?:(?!-)[a-z0-9-]{0,62}[a-z0-9]\\.)+[a-z]{2,6}$");
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile("^(?:(?!-)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$");
     private static final Pattern DOMAIN_WITH_WILDCARD_PATTERN =
         Pattern.compile("^(\\*\\.)?(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,6}$");
     private static final Pattern IPV4_ADDRESS_PATTERN = Pattern
