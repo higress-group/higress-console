@@ -130,6 +130,11 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     public void normalizeConfigs(Map<String, Object> configurations) {}
 
     @Override
+    public final String getServiceSourceName(String providerName) {
+        return generateServiceProviderName(providerName);
+    }
+
+    @Override
     public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {
         ServiceSource serviceSource = new ServiceSource();
         serviceSource.setName(generateServiceProviderName(providerName));
