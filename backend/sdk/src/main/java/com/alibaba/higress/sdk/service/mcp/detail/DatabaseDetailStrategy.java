@@ -24,6 +24,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerDBTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
@@ -57,7 +58,7 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
     private void completeConfigFields(String name, McpServer result) {
         V1ConfigMap configMap = null;
         try {
-            configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+            configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
         } catch (Exception e) {
             log.error("Failed to get mcp server list", e);
         }
