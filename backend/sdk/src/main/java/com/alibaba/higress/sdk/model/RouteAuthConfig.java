@@ -14,10 +14,6 @@ package com.alibaba.higress.sdk.model;
 
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-
-import com.alibaba.higress.sdk.exception.ValidationException;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
