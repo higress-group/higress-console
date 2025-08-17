@@ -28,6 +28,8 @@ interface CredentialHandler {
 
     List<Consumer> extractConsumers(WasmPluginInstance instance);
 
+    void initDefaultGlobalConfigs(WasmPluginInstance instance);
+
     boolean saveConsumer(WasmPluginInstance instance, Consumer consumer);
 
     boolean deleteConsumer(WasmPluginInstance globalInstance, String consumerName);

@@ -25,6 +25,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -105,6 +106,23 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     @Override
+    public void initDefaultGlobalConfigs(WasmPluginInstance instance) {
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            configurations = new LinkedHashMap<>();
+            instance.setConfigurations(configurations);
+        }
+        configurations.putIfAbsent(GLOBAL_AUTH, false);
+        configurations.putIfAbsent(ALLOW, Collections.emptyList());
+
+        // TODO: Remove this after plugin upgrade.
+        // Add a dummy key to the global keys list because the plugin requires at least one global key.
+        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
+
+        configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public boolean saveConsumer(WasmPluginInstance instance, Consumer consumer) {
         if (CollectionUtils.isEmpty(consumer.getCredentials())) {
@@ -119,13 +137,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
-            configurations = new HashMap<>();
-            instance.setConfigurations(configurations);
+            initDefaultGlobalConfigs(instance);
+            configurations = instance.getConfigurations();
+            assert MapUtils.isNotEmpty(configurations);
         }
-
-        // TODO: Remove this after plugin upgrade.
-        // Add a dummy key to the global keys list because the plugin requires at least one global key.
-        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
 
         Object consumersObj = configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
         List<Object> consumers;
