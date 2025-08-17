@@ -223,7 +223,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return false;
         }
         boolean deleted = false;
-        List<Object> consumers = (List<Object>)consumersObj;
+        List<Object> consumers = new ArrayList<>((List<Object>)consumersObj);
         for (int i = consumers.size() - 1; i >= 0; --i) {
             Object consumerObj = consumers.get(i);
             if (!(consumerObj instanceof Map<?, ?>)) {
@@ -234,6 +234,9 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 consumers.remove(i);
                 deleted = true;
             }
+        }
+        if (deleted) {
+            globalConfigurations.put(CONSUMERS, consumers);
         }
         return deleted;
     }

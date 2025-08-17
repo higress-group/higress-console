@@ -296,7 +296,8 @@ public class ConsumerServiceImpl implements ConsumerService {
     }
 
     private List<WasmPluginInstance> getAllPluginInstances(CredentialHandler handler) {
-        return wasmPluginInstanceService.list(handler.getPluginName(), true);
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(handler.getPluginName(), true);
+        return instances != null ? instances : new ArrayList<>();
     }
 
     private WasmPluginInstance getGlobalPluginInstance(CredentialHandler handler) {
