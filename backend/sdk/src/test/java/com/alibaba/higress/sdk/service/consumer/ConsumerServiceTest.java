@@ -337,7 +337,7 @@ public class ConsumerServiceTest {
     }
 
     @Test
-    void testGetAllowList_ValidTargets() {
+    void testGetAllowList_ValidTargets_EnabledNonEmptyConsumers() {
         // Given
         Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
         targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
@@ -359,6 +359,80 @@ public class ConsumerServiceTest {
         assertTrue(result.getAuthEnabled());
         assertEquals(1, result.getConsumerNames().size());
         assertTrue(result.getConsumerNames().contains("user1"));
+    }
+
+    @Test
+    void testGetAllowList_ValidTargets_EnabledEmptyConsumers() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        WasmPluginInstance instance = createTestInstance();
+        instance.setEnabled(true);
+        Map<String, Object> config = new HashMap<>();
+        config.put("allow", Collections.emptyList());
+        instance.setConfigurations(config);
+
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+                .thenReturn(instance);
+
+        // When
+        AllowList result = consumerService.getAllowList(targets);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.getAuthEnabled());
+        assertEquals(0, result.getConsumerNames().size());
+    }
+
+    @Test
+    void testGetAllowList_ValidTargets_DisabledNonEmptyConsumers() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        WasmPluginInstance instance = createTestInstance();
+        instance.setEnabled(false);
+        Map<String, Object> config = new HashMap<>();
+        config.put("allow", Lists.newArrayList("user1", "user2"));
+        instance.setConfigurations(config);
+
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+                .thenReturn(instance);
+
+        // When
+        AllowList result = consumerService.getAllowList(targets);
+
+        // Then
+        assertNotNull(result);
+        assertFalse(result.getAuthEnabled());
+        assertEquals(2, result.getConsumerNames().size());
+        assertTrue(result.getConsumerNames().contains("user1"));
+        assertTrue(result.getConsumerNames().contains("user2"));
+    }
+
+    @Test
+    void testGetAllowList_ValidTargets_DisabledEmptyConsumers() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        WasmPluginInstance instance = createTestInstance();
+        instance.setEnabled(false);
+        Map<String, Object> config = new HashMap<>();
+        config.put("allow", Collections.emptyList());
+        instance.setConfigurations(config);
+
+        when(wasmPluginInstanceService.query(eq(targets), eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+                .thenReturn(instance);
+
+        // When
+        AllowList result = consumerService.getAllowList(targets);
+
+        // Then
+        assertNotNull(result);
+        assertFalse(result.getAuthEnabled());
+        assertEquals(0, result.getConsumerNames().size());
     }
 
     @Test

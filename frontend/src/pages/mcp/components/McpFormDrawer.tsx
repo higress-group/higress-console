@@ -373,66 +373,52 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           name="consumerAuth"
           valuePropName="checked"
         >
-          <Switch
-            onChange={(value) => {
-              form.setFieldsValue({
-                consumerAuth: value,
-                authType: value ? CredentialType.KEY_AUTH.key : undefined,
-                allowedConsumers: value ? form.getFieldValue('allowedConsumers') : undefined,
-              });
-            }}
-          />
+          <Switch />
         </Form.Item>
 
-        {form.getFieldValue('consumerAuth') && (
-          <>
+        <Form.Item
+          label={t('misc.authType')}
+          name="authType"
+          initialValue={CredentialType.KEY_AUTH.key}
+          extra={t('misc.keyAuthOnlyTip')}
+        >
+          <Select disabled>
+            {
+              Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+              ))
+            }
+          </Select>
+        </Form.Item>
+        <Form.Item
+          label={t('mcp.form.allowedConsumers')}
+          extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Form.Item
-              label={t('misc.authType')}
-              name="authType"
-              initialValue={CredentialType.KEY_AUTH.key}
-              extra={t('misc.keyAuthOnlyTip')}
+              name="allowedConsumers"
+              noStyle
             >
-              <Select disabled>
-                {
-                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
-                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
-                  ))
-                }
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('mcp.form.allowedConsumersPlaceholder')}
+                style={{ flex: 1 }}
+              >
+                {consumerList.map((item) => (
+                  <Select.Option key={item.name} value={item.name}>
+                    {item.name}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
-            <Form.Item
-              required
-              label={t('mcp.form.allowedConsumers')}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Form.Item
-                  name="allowedConsumers"
-                  noStyle
-                  rules={[{ required: true, message: t('mcp.form.allowedConsumersRequired') }]}
-                >
-                  <Select
-                    mode="multiple"
-                    allowClear
-                    placeholder={t('mcp.form.allowedConsumersPlaceholder')}
-                    style={{ flex: 1 }}
-                  >
-                    {consumerList.map((item) => (
-                      <Select.Option key={item.name} value={item.name}>
-                        {item.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Button
-                  style={{ marginLeft: 8 }}
-                  onClick={() => getConsumers().then((res) => setConsumerList(res || []))}
-                  icon={<RedoOutlined />}
-                />
-              </div>
-            </Form.Item>
-          </>
-        )}
+            <Button
+              style={{ marginLeft: 8 }}
+              onClick={() => getConsumers().then((res) => setConsumerList(res || []))}
+              icon={<RedoOutlined />}
+            />
+          </div>
+        </Form.Item>
       </Form>
     </Drawer>
   );

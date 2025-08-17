@@ -173,9 +173,6 @@ public class ConsumerServiceImpl implements ConsumerService {
                 continue;
             }
             List<String> consumerNames = handler.getAllowedConsumers(instance);
-            if (CollectionUtils.isEmpty(consumerNames)) {
-                continue;
-            }
             if (Boolean.TRUE.equals(instance.getEnabled())) {
                 authEnabled = true;
             }

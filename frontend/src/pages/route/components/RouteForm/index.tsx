@@ -126,10 +126,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         values.customConfigs = customConfigsObj;
       }
       const authConfig = { enabled: authConfig_enabled, allowedConsumers: null };
-      if (authConfig.enabled) {
-        const allowdConsumers = values.authConfig_allowedConsumers;
-        authConfig.allowedConsumers = allowdConsumers && !Array.isArray(allowdConsumers) ? [allowdConsumers] : allowdConsumers;
-      }
+      const allowdConsumers = values.authConfig_allowedConsumers;
+      authConfig.allowedConsumers = allowdConsumers && !Array.isArray(allowdConsumers) ? [allowdConsumers] : allowdConsumers;
       values.authConfig = authConfig;
       return values;
     },
@@ -268,54 +266,47 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           }}
           />
         </Form.Item>
-        {
-          authConfig_enabled && // 允许请求本路由的消费者名称列表
-          <>
+        <Form.Item
+          label={t('misc.authType')}
+          name="authType"
+          initialValue={CredentialType.KEY_AUTH.key}
+          extra={t('misc.keyAuthOnlyTip')}
+        >
+          <Select disabled>
+            {
+              Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+              ))
+            }
+          </Select>
+        </Form.Item>
+        <Form.Item
+          label={t('aiRoute.routeForm.label.authConfigList')}
+          extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Form.Item
-              label={t('misc.authType')}
-              name="authType"
-              initialValue={CredentialType.KEY_AUTH.key}
-              extra={t('misc.keyAuthOnlyTip')}
+              name="authConfig_allowedConsumers"
+              noStyle
             >
-              <Select disabled>
-                {
-                  Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
-                    <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
-                  ))
-                }
+              <Select
+                allowClear
+                mode="multiple"
+                placeholder={t('aiRoute.routeForm.label.authConfigList')}
+                style={{ flex: 1 }}
+              >
+                {consumerList.map((item) => (
+                  <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+                ))}
               </Select>
             </Form.Item>
-            <Form.Item
-              required
-              label={t('aiRoute.routeForm.label.authConfigList')}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Form.Item
-                  name="authConfig_allowedConsumers"
-                  noStyle
-                  rules={[{ required: true, message: t('aiRoute.routeForm.rule.authConfigListRequired') || '' }]}
-                >
-                  <Select
-                    allowClear
-                    mode="multiple"
-                    placeholder={t('aiRoute.routeForm.label.authConfigList')}
-                    style={{ flex: 1 }}
-                  >
-                    {consumerList.map((item) => (
-                      <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Button
-                  style={{ marginLeft: 8 }}
-                  onClick={() => consumerResult.run()}
-                  icon={<RedoOutlined />}
-                />
-              </div>
-            </Form.Item>
-          </>
-        }
+            <Button
+              style={{ marginLeft: 8 }}
+              onClick={() => consumerResult.run()}
+              icon={<RedoOutlined />}
+            />
+          </div>
+        </Form.Item>
         <Form.Item
           label={
             <>

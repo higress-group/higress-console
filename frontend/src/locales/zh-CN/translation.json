@@ -88,7 +88,6 @@
         "fallbackResponseCodesRequired": "请选择需要降级的响应码",
         "nameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
         "targetServiceRequired": "请选择目标服务",
-        "authConfigListRequired": "请选择允许请求本路由的消费者名称列表",
         "badWeightSum": "所有服务的权重总和必须为100",
         "noUpstreams": "至少要配置一个目标AI服务"
       },

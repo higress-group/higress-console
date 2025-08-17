@@ -39,8 +39,5 @@ public class RouteAuthConfig {
     private List<String> allowedConsumers;
 
     public void validate() {
-        if (Boolean.TRUE.equals(enabled) && CollectionUtils.isEmpty(allowedConsumers)) {
-            throw new ValidationException("allowedConsumers cannot be empty when auth is enabled.");
-        }
     }
 }
