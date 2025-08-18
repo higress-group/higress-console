@@ -15,6 +15,7 @@ package com.alibaba.higress.sdk.service.consumer;
 import java.util.List;
 
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 
 interface CredentialHandler {
@@ -27,11 +28,13 @@ interface CredentialHandler {
 
     List<Consumer> extractConsumers(WasmPluginInstance instance);
 
+    void initDefaultGlobalConfigs(WasmPluginInstance instance);
+
     boolean saveConsumer(WasmPluginInstance instance, Consumer consumer);
 
     boolean deleteConsumer(WasmPluginInstance globalInstance, String consumerName);
 
-    List<String> getAllowList(WasmPluginInstance instance);
+    List<String> getAllowedConsumers(WasmPluginInstance instance);
 
-    void updateAllowList(WasmPluginInstance instance, List<String> consumerNames);
+    void updateAllowList(AllowListOperation operation, WasmPluginInstance instance, List<String> consumerNames);
 }

@@ -16,13 +16,17 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -41,6 +45,7 @@ import com.alibaba.higress.sdk.util.MapUtil;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.swagger.v3.core.util.Yaml;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -139,92 +144,115 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public WasmPluginInstance addOrUpdate(WasmPluginInstance instance) {
-        instance.syncDeprecatedFields();
-
-        Map<WasmPluginInstanceScope, String> targets = instance.getTargets();
-        if (MapUtils.isEmpty(targets)) {
-            throw new IllegalArgumentException("instance.targets cannot be empty.");
+        List<WasmPluginInstance> updatedInstances = addOrUpdateAll(Collections.singletonList(instance));
+        if (CollectionUtils.isEmpty(updatedInstances)) {
+            throw new BusinessException("No instances were updated for plugin: " + instance.getPluginName());
         }
-        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
-            if (targets.size() > 1) {
-                throw new IllegalArgumentException(
-                    "instance.targets cannot contain GLOBAL and other scopes at the same time.");
-            }
-            String target = targets.get(WasmPluginInstanceScope.GLOBAL);
-            if (target != null) {
-                throw new IllegalArgumentException("instance.target must be empty when scope is GLOBAL.");
-            }
-        } else {
-            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
-                if (StringUtils.isEmpty(entry.getValue())) {
-                    throw new IllegalArgumentException(
-                        "instance.target must not be null or empty when scope is not GLOBAL.");
-                }
-            }
-        }
-
-        String name = instance.getPluginName();
-
-        WasmPlugin plugin = wasmPluginService.query(name, null);
-        if (plugin == null) {
-            throw new IllegalArgumentException("Unknown plugin: " + name);
-        }
-
-        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getPluginVersion());
-        V1alpha1WasmPlugin existedCr = null;
-        try {
-            List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
-            if (CollectionUtils.isNotEmpty(existedCrs)) {
-                existedCr =
-                    existedCrs.stream().filter(cr -> instance.isInternal() == KubernetesUtil.isInternalResource(cr))
-                        .findFirst().orElse(null);
-            }
-        } catch (ApiException e) {
-            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
-        }
-
-        if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
-            try {
-                Map<String, Object> configurations = (Map<String, Object>)Yaml.mapper()
-                    .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
-                instance.setConfigurations(configurations);
-            } catch (IOException e) {
-                throw new ValidationException(
-                    "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
-            }
-        }
-
-        Map<String, Object> configurations = instance.getConfigurations();
-        WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
-        if (pluginConfig != null) {
-            configurations = pluginConfig.validateAndCleanUp(configurations);
-        }
-        instance.setConfigurations(configurations);
-
-        V1alpha1WasmPlugin result;
-        try {
-            if (existedCr == null) {
-                if (!version.equals(plugin.getPluginVersion())) {
-                    throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
-                }
-                result = kubernetesModelConverter.wasmPluginToCr(plugin, instance.getInternal());
-                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
-                result = kubernetesClientService.createWasmPlugin(result);
-            } else {
-                result = existedCr;
-                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
-                result = kubernetesClientService.replaceWasmPlugin(result);
-            }
-        } catch (ApiException e) {
-            if (e.getCode() == HttpStatus.CONFLICT) {
-                throw new ResourceConflictException();
-            }
+        if (updatedInstances.size() > 1) {
             throw new BusinessException(
-                "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
+                "Expected only one instance to be updated, but got: " + updatedInstances.size());
         }
-        return kubernetesModelConverter.getWasmPluginInstanceFromCr(result, targets);
+        return updatedInstances.get(0);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<WasmPluginInstance> addOrUpdateAll(List<WasmPluginInstance> instances) {
+        Map<String, WasmPlugin> pluginsToUpdate = new HashMap<>();
+        ListValuedMap<WasmPluginInstanceGroupKey, WasmPluginInstance> groupedInstances = new ArrayListValuedHashMap<>();
+        for (WasmPluginInstance instance : instances) {
+            instance.syncDeprecatedFields();
+            instance.validate();
+
+            String pluginName = instance.getPluginName();
+            WasmPlugin plugin =
+                pluginsToUpdate.computeIfAbsent(pluginName, name -> wasmPluginService.query(name, null));
+            if (plugin == null) {
+                throw new IllegalArgumentException("Unknown plugin: " + instance.getPluginName());
+            }
+
+            String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getPluginVersion());
+            WasmPluginInstanceGroupKey key = new WasmPluginInstanceGroupKey(pluginName, version, instance.isInternal());
+            groupedInstances.put(key, instance);
+        }
+
+        IdentityHashMap<WasmPluginInstance, WasmPluginInstance> beforeToAfterMap = new IdentityHashMap<>();
+
+        for (WasmPluginInstanceGroupKey key : groupedInstances.keySet()) {
+            String name = key.getPluginName();
+            String version = key.getPluginVersion();
+            boolean internal = key.isInternal();
+
+            WasmPlugin plugin = pluginsToUpdate.get(name);
+
+            List<WasmPluginInstance> instancesToUpdate = groupedInstances.get(key);
+            if (CollectionUtils.isEmpty(instancesToUpdate)) {
+                continue;
+            }
+
+            V1alpha1WasmPlugin existedCr = null;
+            try {
+                List<V1alpha1WasmPlugin> existedCrs = kubernetesClientService.listWasmPlugin(name, version);
+                if (CollectionUtils.isNotEmpty(existedCrs)) {
+                    existedCr = existedCrs.stream().filter(cr -> internal == KubernetesUtil.isInternalResource(cr))
+                        .findFirst().orElse(null);
+                }
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
+            }
+
+            V1alpha1WasmPlugin result;
+            if (existedCr != null) {
+                result = existedCr;
+            } else if (version.equals(plugin.getPluginVersion())) {
+                result = kubernetesModelConverter.wasmPluginToCr(plugin, internal);
+            } else {
+                throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
+            }
+
+            for (WasmPluginInstance instance : instancesToUpdate) {
+                if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
+                    try {
+                        Map<String, Object> configurations = (Map<String, Object>)Yaml.mapper()
+                            .readValue(new StringReader(instance.getRawConfigurations()), Map.class);
+                        instance.setConfigurations(configurations);
+                    } catch (IOException e) {
+                        throw new ValidationException(
+                            "Error occurs when parsing raw configurations: " + instance.getRawConfigurations(), e);
+                    }
+                }
+
+                Map<String, Object> configurations = instance.getConfigurations();
+                WasmPluginConfig pluginConfig = wasmPluginService.queryConfig(name, null);
+                if (pluginConfig != null) {
+                    configurations = pluginConfig.validateAndCleanUp(configurations);
+                }
+                instance.setConfigurations(configurations);
+                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
+            }
+
+            try {
+                if (existedCr == null) {
+                    result = kubernetesClientService.createWasmPlugin(result);
+                } else {
+                    result = kubernetesClientService.replaceWasmPlugin(result);
+                }
+            } catch (ApiException e) {
+                if (e.getCode() == HttpStatus.CONFLICT) {
+                    throw new ResourceConflictException();
+                }
+                throw new BusinessException(
+                    "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
+            }
+
+            for (WasmPluginInstance instance : instancesToUpdate) {
+                beforeToAfterMap.put(instance,
+                    kubernetesModelConverter.getWasmPluginInstanceFromCr(result, instance.getTargets()));
+            }
+        }
+
+        return instances.stream().map(beforeToAfterMap::get).collect(Collectors.toList());
     }
 
     @Override
@@ -280,5 +308,12 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 }
             }
         }
+    }
+
+    @Value
+    private static class WasmPluginInstanceGroupKey {
+        String pluginName;
+        String pluginVersion;
+        boolean internal;
     }
 }

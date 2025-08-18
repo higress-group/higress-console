@@ -14,10 +14,6 @@ package com.alibaba.higress.sdk.model;
 
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-
-import com.alibaba.higress.sdk.exception.ValidationException;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,12 +29,11 @@ public class RouteAuthConfig {
 
     @Schema(description = "Whether auth is enabled")
     private Boolean enabled;
+    @Schema(description = "Allowed credential types")
+    private List<String> allowedCredentialTypes;
     @Schema(description = "Allowed consumer names")
     private List<String> allowedConsumers;
 
     public void validate() {
-        if (Boolean.TRUE.equals(enabled) && CollectionUtils.isEmpty(allowedConsumers)) {
-            throw new ValidationException("allowedConsumers cannot be empty when auth is enabled.");
-        }
     }
 }

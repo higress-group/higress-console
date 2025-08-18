@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import { Consumer, ServiceSourceFormProps as FormProps } from '@/interfaces/consumer';
+import { Consumer, CredentialType, ServiceSourceFormProps as FormProps } from '@/interfaces/consumer';
 import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/services/consumer';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
@@ -9,21 +9,6 @@ import { Button, Col, Drawer, Form, message, Modal, Row, Space, Table, Tag } fro
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ConsumerForm from './components/ConsumerForm';
-
-const credentialTypeDisplaySettings = {
-  'key-auth': {
-    name: 'Key Auth',
-    color: '#4095e5',
-  },
-  'oauth2': {
-    name: 'OAuth2',
-    color: '#4095e5',
-  },
-  'jwt-auth': {
-    name: 'JWT',
-    color: '#4095e5',
-  },
-};
 
 interface FormRef {
   reset: () => void;
@@ -61,8 +46,9 @@ const ConsumerList: React.FC = () => {
           <>
             {
               supportedCredentialTypes.map(function (type) {
-                const setting = credentialTypeDisplaySettings[type] || { name: type, color: '' };
-                return (<Tag color={setting.color} key={type}>{setting.name}</Tag>);
+                const credentialType = Object.values(CredentialType).find(t => t.enabled && t.key === type)
+                  || { key: type, displayName: type, displayColor: 'black' };
+                return (<Tag color={credentialType.displayColor} key={credentialType.key}>{credentialType.displayName}</Tag>);
               })
             }
           </>
@@ -96,7 +82,6 @@ const ConsumerList: React.FC = () => {
     manual: true,
     onSuccess: (result) => {
       const consumers = (result || []) as Consumer[];
-      // consumers.push({ name: 'test', credentials: [{ type: 'key-auth' }, { type: 'oauth' }] });
       consumers.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
