@@ -83,14 +83,15 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     public List<WasmPluginInstance> list(String pluginName, Boolean internal) {
         List<V1alpha1WasmPlugin> plugins;
         try {
-            plugins = kubernetesClientService.listWasmPlugin(pluginName, null, internal);
+            plugins = kubernetesClientService.listWasmPlugin(pluginName, null);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing WasmPlugin.", e);
         }
         if (CollectionUtils.isEmpty(plugins)) {
             return Collections.emptyList();
         }
-        return plugins.stream().map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
+        return plugins.stream().filter(p -> internal == null || internal == KubernetesUtil.isInternalResource(p))
+            .map(kubernetesModelConverter::getWasmPluginInstancesFromCr).filter(Objects::nonNull)
             .flatMap(Collection::stream).collect(Collectors.toList());
     }
 

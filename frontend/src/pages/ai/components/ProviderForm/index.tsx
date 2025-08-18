@@ -1,5 +1,9 @@
+import { OptionItem } from '@/interfaces/common';
+import { ProxyServer } from '@/interfaces/proxy-server';
+import { getProxyServers } from '@/services/proxy-server';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
+import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
@@ -19,9 +23,24 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [providerType, setProviderType] = useState<string | null>();
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
+  const [proxyServerOptions, setProxyServerOptions] = useState<OptionItem[] | null>();
+  const proxyServersResult = useRequest(getProxyServers, {
+    manual: true,
+    onSuccess: (proxyServers: ProxyServer[]) => {
+      proxyServers = proxyServers || [];
+      const options = [{ label: t('serviceSource.serviceSourceForm.proxyServerNone'), value: '' }];
+      proxyServers.sort((a, b) => a.name.localeCompare(b.name));
+      options.push(...proxyServers.map(proxyServer => ({ label: proxyServer.name, value: proxyServer.name })));
+      setProxyServerOptions(options);
+    },
+  });
 
   const resetForm = () => {
     form.resetFields();
+    form.setFieldsValue({
+      tokens: [""],
+      proxyName: '',
+    });
     setFailoverEnabled(false);
     setProviderType(null);
     onProviderTypeChanged(null);
@@ -32,6 +51,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   useEffect(() => {
     form.resetFields();
+    if (proxyServerOptions == null) {
+      proxyServersResult.run();
+    }
     if (props.value) {
       const {
         name,
@@ -39,6 +61,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         protocol,
         tokens,
         tokenFailoverConfig = {},
+        proxyName = '',
         rawConfigs = {},
       } = props.value;
       const {
@@ -90,6 +113,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckInterval: healthCheckInterval || 5000,
         healthCheckTimeout: healthCheckTimeout || 10000,
         healthCheckModel,
+        proxyName: proxyName || '',
         rawConfigs,
       });
     }
@@ -124,6 +148,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           healthCheckTimeout: values.healthCheckTimeout,
           healthCheckModel: values.healthCheckModel,
         },
+        proxyName: values.proxyName,
         rawConfigs: values.rawConfigs,
       };
 
@@ -813,6 +838,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           </>
           : null
       }
+
+      <Form.Item
+        label={t('serviceSource.serviceSourceForm.proxyName')}
+        initialValue={''}
+        style={{ flex: 1, marginRight: '8px' }}
+      >
+        <Form.Item name="proxyName" noStyle>
+          <Select
+            options={proxyServerOptions || []}
+          />
+        </Form.Item>
+        <div>{t('serviceSource.serviceSourceForm.proxyServerLimitations')}</div>
+      </Form.Item>
 
       <Modal
         title={t("llmProvider.providerForm.secretRefModal.title")}

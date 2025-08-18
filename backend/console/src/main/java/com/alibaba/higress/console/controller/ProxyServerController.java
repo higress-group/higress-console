@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package com.alibaba.higress.console.controller;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotBlank;
+
+import org.springdoc.api.annotations.ParameterObject;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.alibaba.higress.console.controller.dto.PaginatedResponse;
+import com.alibaba.higress.console.controller.dto.Response;
+import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.CommonPageQuery;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.ProxyServer;
+import com.alibaba.higress.sdk.service.ProxyServerService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@RestController("ProxyServerController")
+@RequestMapping("/v1/proxy-servers")
+@Tag(name = "Proxy Server APIs")
+public class ProxyServerController {
+
+    @Resource
+    private ProxyServerService proxyServerService;
+
+    @GetMapping
+    @Operation(summary = "List proxy servers")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Proxy servers listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<PaginatedResponse<ProxyServer>> list(@ParameterObject CommonPageQuery query) {
+        PaginatedResult<ProxyServer> result = proxyServerService.list(query);
+        return ControllerUtil.buildResponseEntity(result);
+    }
+
+    @PostMapping
+    @Operation(summary = "Add a new proxy server")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Proxy server added successfully"),
+        @ApiResponse(responseCode = "400", description = "Proxy server data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Proxy server already existed with the same name."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<ProxyServer>> add(@RequestBody ProxyServer proxyServer) {
+        if (!proxyServer.isValid()) {
+            throw new ValidationException("proxyServer body is not valid.");
+        }
+        if (proxyServer.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Adding an internal proxy server is not allowed.");
+        }
+        ProxyServer finalProxyServer = proxyServerService.add(proxyServer);
+        return ControllerUtil.buildResponseEntity(finalProxyServer);
+    }
+
+    @PutMapping("/{name}")
+    @Operation(summary = "Update an existed proxy server")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Proxy server updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Proxy server data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Proxy server trying to add already existed"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<ProxyServer>> addOrUpdate(@PathVariable("name") @NotBlank String name,
+        @RequestBody ProxyServer proxyServer) {
+        proxyServer.setName(name);
+        if (!proxyServer.isValid()) {
+            throw new ValidationException("proxyServer body is not valid.");
+        }
+        if (proxyServer.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Updating an internal proxy server is not allowed.");
+        }
+        ProxyServer finalProxyServer = proxyServerService.addOrUpdate(proxyServer);
+        return ControllerUtil.buildResponseEntity(finalProxyServer);
+    }
+
+    @DeleteMapping("/{name}")
+    @Operation(summary = "Delete a proxy server")
+    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Proxy server deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "Deleting an internal proxy server is not allowed."),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<ProxyServer>> delete(@PathVariable("name") @NotBlank String name) {
+        if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
+            throw new ValidationException("Deleting an internal proxy server is not allowed.");
+        }
+        proxyServerService.delete(name);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{name}")
+    @Operation(summary = "Get proxy server by name")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Proxy server found"),
+        @ApiResponse(responseCode = "404", description = "Proxy server not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<ProxyServer>> query(@PathVariable("name") @NotBlank String name) {
+        ProxyServer server = proxyServerService.query(name);
+        return ControllerUtil.buildResponseEntity(server);
+    }
+}

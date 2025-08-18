@@ -106,6 +106,14 @@ const LlmProviderList: React.FC = () => {
       },
     },
     {
+      title: t('serviceSource.columns.proxyName'),
+      dataIndex: 'proxyName',
+      key: 'proxyName',
+      render: (value, record) => {
+        return value || '-';
+      },
+    },
+    {
       title: t('misc.actions'),
       dataIndex: 'action',
       key: 'action',
