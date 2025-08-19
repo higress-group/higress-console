@@ -13,11 +13,10 @@ export function getServiceTypeMap(directRouteText: string) {
     [SERVICE_TYPE.DIRECT_ROUTE]: directRouteText,
   };
 }
-// MYSQL/PostgreSQL/Sqlite/Clickhouse
+// MYSQL/PostgreSQL/Clickhouse
 export const DB_TYPE_OPTIONS = [
   { label: 'MySQL', value: 'MYSQL' },
   { label: 'PostgreSQL', value: 'PostgreSQL' },
-  { label: 'SQLite', value: 'Sqlite' },
   { label: 'ClickHouse', value: 'Clickhouse' },
 ];
 
@@ -28,11 +27,12 @@ export const DOMAIN_PROTOCOL_MAP = {
 
 // 数据库连接字符串正则 eg: mysql:user:pass@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
 export const REG_DSN_STRING = {
-  MYSQL: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
-  POSTGRESQL: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
-  SQLITE: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
-  CLICKHOUSE: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
-  DEFAULT: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
+  // username:password@tcp(host:port)/dbname?param1=value1&param2=value2
+  MYSQL: /^([^:]+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)(?:\?(.+))?$/i,
+  // postgres://username:password@host:port/dbname
+  PostgreSQL: /^postgres:\/\/([^:]+):([^@]+)@([^:/]+):(\d+)\/([^?/#]+)(?:\?(.+))?$/i,
+  // tcp://localhost:9000?database=default&username=default&password=
+  Clickhouse: /^tcp:\/\/([^:/]+):(\d+)(?:\?(.+))?$/i,
 };
 
 
