@@ -12,6 +12,14 @@
  */
 package com.alibaba.higress.sdk.service.mcp.save;
 
+import static com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName.DEFAULT_MCP_PLUGIN;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -31,14 +39,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName.DEFAULT_MCP_PLUGIN;
 
 /**
  * open api mcp server
@@ -49,12 +51,10 @@ import static com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName.DEFAULT_
 public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
 
     private static final String REDIS_PLACEHOLDER_ADDRESS = "your.redis.host:6379";
-    
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
-            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
-            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
-    
+        .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+
     static {
         YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -82,27 +82,25 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     /**
-     * Validate Redis configuration in higress-config
-     * If Redis address is still a placeholder, prompt user to configure correct
-     * Redis address
+     * Validate Redis configuration in higress-config If Redis address is still a placeholder, prompt user to configure
+     * correct Redis address
      */
     private void validateRedisConfiguration() {
         try {
-            
+
             McpServerConfigMap.RedisConfig redisConfig = mcpServerConfigMapHelper.getRedisConfig();
             if (redisConfig == null) {
                 throw new ValidationException(
-                        "MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise MCP functionality will be unavailable.");
+                    "MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise MCP functionality will be unavailable.");
             }
             String address = redisConfig.getAddress();
 
             // Only check if address is a placeholder
             if (StringUtils.isBlank(address) || REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
                 throw new ValidationException(
-                        "Redis configuration is still a placeholder, please configure correct Redis address. Current configuration: address="
-                                +
-                                (StringUtils.isBlank(address) ? "not configured" : address) +
-                                ". Please modify Redis configuration in higress-config, otherwise MCP functionality will be unavailable.");
+                    "Redis configuration is still a placeholder, please configure correct Redis address. Current configuration: address="
+                        + (StringUtils.isBlank(address) ? "not configured" : address)
+                        + ". Please modify Redis configuration in higress-config, otherwise MCP functionality will be unavailable.");
             }
 
         } catch (ValidationException e) {
