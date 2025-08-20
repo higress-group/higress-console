@@ -60,12 +60,12 @@ export const computeDSN = (values: any) => {
   const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
   if (!db_type || !db_user_name || !db_password || !db_server_host || !db_server_port) return '';
   // PostgreSQL: postgres://username:password@host:port/dbname
-  if (db_type === 'PostgreSQL') {
+  if (db_type === 'POSTGRESQL') {
     if (!db_database) return '';
     return `postgres://${db_user_name}:${db_password}@${db_server_host}:${db_server_port}/${db_database}`;
   }
   // ClickHouse: tcp://host:port?database=xxx&username=xxx&password=xxx
-  if (db_type === 'Clickhouse') {
+  if (db_type === 'CLICKHOUSE') {
     const query = new URLSearchParams({
       database: db_database || '',
       username: db_user_name,

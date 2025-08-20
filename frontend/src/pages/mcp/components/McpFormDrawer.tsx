@@ -76,8 +76,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 db_database: m[5],
               });
             }
-          } else if (type === 'PostgreSQL') {
-            m = record.dsn.match(REG_DSN_STRING.PostgreSQL);
+          } else if (type === 'POSTGRESQL') {
+            m = record.dsn.match(REG_DSN_STRING.POSTGRESQL);
             if (m) {
               form.setFieldsValue({
                 db_user_name: m[1],
@@ -85,14 +85,13 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 db_database: m[5],
               });
             }
-          } else if (type === 'Clickhouse') {
-            m = record.dsn.match(REG_DSN_STRING.Clickhouse);
+          } else if (type === 'CLICKHOUSE') {
+            m = record.dsn.match(REG_DSN_STRING.CLICKHOUSE);
             if (m) {
-              const search = new URLSearchParams(m[3] || '');
               form.setFieldsValue({
-                db_user_name: search.get('username') || '',
-                db_password: search.get('password') || '',
-                db_database: search.get('database') || '',
+                db_user_name: m[4],
+                db_password: m[5],
+                db_database: m[3],
               });
             }
           }
@@ -362,10 +361,10 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                   let valid = false;
                   if (type === 'MYSQL') {
                     valid = REG_DSN_STRING.MYSQL.test(value);
-                  } else if (type === 'PostgreSQL') {
-                    valid = REG_DSN_STRING.PostgreSQL.test(value);
-                  } else if (type === 'Clickhouse') {
-                    valid = REG_DSN_STRING.Clickhouse.test(value);
+                  } else if (type === 'POSTGRESQL') {
+                    valid = REG_DSN_STRING.POSTGRESQL.test(value);
+                  } else if (type === 'CLICKHOUSE') {
+                    valid = REG_DSN_STRING.CLICKHOUSE.test(value);
                   }
                   if (!valid) {
                     return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
