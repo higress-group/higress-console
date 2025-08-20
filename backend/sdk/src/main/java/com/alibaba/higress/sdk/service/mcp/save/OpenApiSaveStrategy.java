@@ -21,6 +21,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
@@ -58,10 +59,13 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
         YAML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    private final WasmPluginInstanceService wasmPluginInstanceService;
+
     public OpenApiSaveStrategy(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
-        super(kubernetesClientService, kubernetesModelConverter, wasmPluginInstanceService, routeService);
+        ConsumerService consumerService, RouteService routeService) {
+        super(kubernetesClientService, kubernetesModelConverter, consumerService, routeService);
+        this.wasmPluginInstanceService = wasmPluginInstanceService;
     }
 
     @Override
@@ -70,10 +74,9 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     @Override
-    protected void saveMcpServerConfig(McpServer mcpInstance) {
+    protected void doSaveMcpServerConfig(McpServer mcpInstance) {
         // validate Redis config
         validateRedisConfiguration();
-
         WasmPluginInstance wasmPluginInstanceRequest = buildWasmPluginInstanceRequest(mcpInstance);
         wasmPluginInstanceService.addOrUpdate(wasmPluginInstanceRequest);
     }

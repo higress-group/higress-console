@@ -12,30 +12,19 @@
  */
 package com.alibaba.higress.sdk.service.mcp.detail;
 
-import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.ALLOW;
-
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.RouteAuthConfig;
-import com.alibaba.higress.sdk.model.WasmPluginInstance;
-import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.service.RouteService;
-import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.mcp.McpServerHelper;
-import com.alibaba.higress.sdk.util.MapUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.google.common.collect.Lists;
 
 /**
  * @author lvshui
@@ -50,13 +39,13 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
     }
 
     protected final KubernetesClientService kubernetesClientService;
-    protected final WasmPluginInstanceService wasmPluginInstanceService;
+    protected final ConsumerService consumerService;
     protected final RouteService routeService;
 
     public AbstractMcpServerDetailStrategy(KubernetesClientService kubernetesClientService,
-        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
+        ConsumerService consumerService, RouteService routeService) {
         this.kubernetesClientService = kubernetesClientService;
-        this.wasmPluginInstanceService = wasmPluginInstanceService;
+        this.consumerService = consumerService;
         this.routeService = routeService;
     }
 
@@ -67,42 +56,11 @@ public abstract class AbstractMcpServerDetailStrategy implements McpServerDetail
         if (Objects.isNull(route)) {
             throw new NotFoundException("can't found the bound route by name: " + routeName);
         }
-        McpServer result = routeToMcpServerWithAuth(route);
+        McpServer result = McpServerHelper.routeToMcpServer(route);
         completeInfo(route, result);
 
         return result;
     }
 
     protected abstract void completeInfo(Route route, McpServer result);
-
-    protected McpServer routeToMcpServerWithAuth(Route route) {
-        WasmPluginInstance instance = wasmPluginInstanceService
-            .query(MapUtil.of(WasmPluginInstanceScope.ROUTE, route.getName()), BuiltInPluginName.KEY_AUTH, true);
-        route.setAuthConfig(RouteAuthConfig.builder().enabled(false).build());
-        if (Objects.nonNull(instance)) {
-            route.setAuthConfig(generateAuthConfig(instance));
-        }
-        return McpServerHelper.routeToMcpServer(route);
-    }
-
-    private RouteAuthConfig generateAuthConfig(WasmPluginInstance instance) {
-        RouteAuthConfig routeAuthConfig = new RouteAuthConfig();
-        routeAuthConfig.setEnabled(instance.getEnabled());
-
-        Map<String, Object> configurations = instance.getConfigurations();
-        if (Objects.isNull(configurations)) {
-            routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
-        } else {
-            Object allowObj = instance.getConfigurations().get(ALLOW);
-            if (!(allowObj instanceof List<?>)) {
-                routeAuthConfig.setAllowedConsumers(Lists.newArrayList());
-            } else {
-                List<?> allowList = (List<?>)allowObj;
-                List<String> collectList = allowList.stream().filter(a -> a instanceof String).map(a -> (String)a)
-                    .collect(Collectors.toList());
-                routeAuthConfig.setAllowedConsumers(collectList);
-            }
-        }
-        return routeAuthConfig;
-    }
 }

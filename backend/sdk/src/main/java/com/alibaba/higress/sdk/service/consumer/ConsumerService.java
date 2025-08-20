@@ -19,6 +19,7 @@ import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 
 public interface ConsumerService {
@@ -35,5 +36,5 @@ public interface ConsumerService {
 
     AllowList getAllowList(Map<WasmPluginInstanceScope, String> targets);
 
-    void updateAllowList(AllowList allowList);
+    void updateAllowList(AllowListOperation operation, AllowList allowList);
 }

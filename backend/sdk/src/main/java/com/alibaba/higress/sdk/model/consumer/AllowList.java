@@ -30,13 +30,11 @@ import lombok.NoArgsConstructor;
 public class AllowList {
 
     private Map<WasmPluginInstanceScope, String> targets;
+    private Boolean authEnabled;
+    private List<String> credentialTypes;
     private List<String> consumerNames;
 
-    public AllowList(WasmPluginInstanceScope scope, String target) {
-        this(scope, target, null);
-    }
-
-    public AllowList(WasmPluginInstanceScope scope, String target, List<String> consumerNames) {
-        this(MapUtil.of(scope, target), consumerNames);
+    public static AllowListBuilder forTarget(WasmPluginInstanceScope scope, String target) {
+        return new AllowListBuilder().targets(MapUtil.of(scope, target));
     }
 }

@@ -36,6 +36,8 @@ public interface WasmPluginInstanceService {
 
     WasmPluginInstance addOrUpdate(WasmPluginInstance instance);
 
+    List<WasmPluginInstance> addOrUpdateAll(List<WasmPluginInstance> instances);
+
     void delete(WasmPluginInstanceScope scope, String target, String pluginName);
 
     void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName);

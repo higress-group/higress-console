@@ -26,7 +26,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerDBTypeEnum;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.service.RouteService;
-import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 
@@ -45,9 +45,9 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         return McpServerTypeEnum.DATABASE.equals(type);
     }
 
-    public DatabaseDetailStrategy(KubernetesClientService kubernetesClientService,
-        WasmPluginInstanceService wasmPluginInstanceService, RouteService routeService) {
-        super(kubernetesClientService, wasmPluginInstanceService, routeService);
+    public DatabaseDetailStrategy(KubernetesClientService kubernetesClientService, ConsumerService consumerService,
+        RouteService routeService) {
+        super(kubernetesClientService, consumerService, routeService);
     }
 
     @Override
@@ -100,6 +100,7 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         private boolean required;
         private String position;
     }
+
     @Data
     @Builder
     static class ToolsSchemaConfig {
@@ -107,6 +108,7 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         private String description;
         private List<ToolArgsSchemaConfig> args;
     }
+
     @Data
     @Builder
     static class SchemaConfig {
@@ -119,67 +121,43 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
         String descriptionSuffix = String.format("in database %s.", dbType);
 
         List<ToolsSchemaConfig> tools = new ArrayList<>();
-        tools.add(buildToolsConfig("query",
-                                   String.format("Run a read-only SQL query %s", descriptionSuffix),
-                                   buildQueryToolsConfig()));
-        tools.add(buildToolsConfig("execute",
-                                   String.format("Execute an insert, update, or delete SQL %s", descriptionSuffix),
-                                   buildExecuteToolsConfig()));
-        tools.add(buildToolsConfig("list tables",
-                                   String.format("List all tables %s", descriptionSuffix),
-                                   Collections.emptyList()));
+        tools.add(buildToolsConfig("query", String.format("Run a read-only SQL query %s", descriptionSuffix),
+            buildQueryToolsConfig()));
+        tools.add(
+            buildToolsConfig("execute", String.format("Execute an insert, update, or delete SQL %s", descriptionSuffix),
+                buildExecuteToolsConfig()));
+        tools.add(buildToolsConfig("list tables", String.format("List all tables %s", descriptionSuffix),
+            Collections.emptyList()));
         tools.add(buildToolsConfig("describe table",
-                                   String.format("Get the structure of a specific table %s", descriptionSuffix),
-                                   buildDescribeTableToolsConfig()));
+            String.format("Get the structure of a specific table %s", descriptionSuffix),
+            buildDescribeTableToolsConfig()));
 
-        return SchemaConfig.builder()
-                .server(server)
-                .tools(tools)
-                .build();
+        return SchemaConfig.builder().server(server).tools(tools).build();
     }
 
     private List<ToolArgsSchemaConfig> buildQueryToolsConfig() {
-        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
-                .name("sql")
-                .type("string")
-                .description("The sql query to execute")
-                .required(true)
-                .position("body")
-                .build();
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder().name("sql").type("string")
+            .description("The sql query to execute").required(true).position("body").build();
 
         return Collections.singletonList(build);
     }
 
     private List<ToolArgsSchemaConfig> buildExecuteToolsConfig() {
-        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
-                .name("sql")
-                .type("string")
-                .description("The sql to execute")
-                .required(true)
-                .position("body")
-                .build();
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder().name("sql").type("string")
+            .description("The sql to execute").required(true).position("body").build();
 
         return Collections.singletonList(build);
     }
 
     private List<ToolArgsSchemaConfig> buildDescribeTableToolsConfig() {
-        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder()
-                .name("table")
-                .type("string")
-                .description("table name")
-                .required(true)
-                .position("body")
-                .build();
+        ToolArgsSchemaConfig build = ToolArgsSchemaConfig.builder().name("table").type("string")
+            .description("table name").required(true).position("body").build();
 
         return Collections.singletonList(build);
     }
 
     private ToolsSchemaConfig buildToolsConfig(String name, String desc, List<ToolArgsSchemaConfig> args) {
-        return ToolsSchemaConfig.builder()
-                .name(name)
-                .description(desc)
-                .args(args)
-                .build();
+        return ToolsSchemaConfig.builder().name(name).description(desc).args(args).build();
     }
 
 }

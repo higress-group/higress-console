@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import org.apache.commons.compress.utils.Sets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,7 +123,7 @@ public class McpServerServiceTest {
                 routeService = new RouteServiceImpl(kubernetesClientService, kubernetesModelConverter,
                                 wasmPluginInstanceService, consumerService);
                 mcpServerService = new McpServiceContextImpl(kubernetesClientService, kubernetesModelConverter,
-                                wasmPluginInstanceService, routeService);
+                                wasmPluginInstanceService, consumerService, routeService);
         }
 
         @Test
@@ -209,7 +208,7 @@ public class McpServerServiceTest {
                 mcpServerService.addOrUpdate(instance);
 
                 ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
-                verify(kubernetesClientService, times(3)).replaceWasmPlugin(pluginCaptor.capture());
+                verify(kubernetesClientService, times(1)).replaceWasmPlugin(pluginCaptor.capture());
                 List<V1alpha1WasmPlugin> capturedValues = pluginCaptor.getAllValues();
                 Assertions.assertNotNull(capturedValues);
                 String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
@@ -368,9 +367,15 @@ public class McpServerServiceTest {
                 V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
                 Assertions.assertNotNull(capturedValue);
                 Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
-                Assertions.assertEquals(Sets.newHashSet("consumerC", "consumerB", "consumerA"),
-                                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
-        }
+                Object allowObj =
+                                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow");
+        Assertions.assertInstanceOf(List.class, allowObj);
+        List<?> allowList = (List<?>)allowObj;
+        Assertions.assertEquals(3, allowList.size());
+        Assertions.assertTrue(allowList.contains("consumerA"));
+        Assertions.assertTrue(allowList.contains("consumerB"));
+        Assertions.assertTrue(allowList.contains("consumerC"));
+    }
 
         @Test
         public void deleteConsumerTest() throws Exception {
@@ -411,9 +416,13 @@ public class McpServerServiceTest {
                 V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
                 Assertions.assertNotNull(capturedValue);
                 Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
-                Assertions.assertEquals(Collections.singleton("consumerB"),
-                                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow"));
-        }
+                Object allowObj =
+                                capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow");
+        Assertions.assertInstanceOf(List.class, allowObj);
+        List<?> allowList = (List<?>)allowObj;
+        Assertions.assertEquals(1, allowList.size());
+        Assertions.assertTrue(allowList.contains("consumerB"));
+    }
 
         private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
                 WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn)

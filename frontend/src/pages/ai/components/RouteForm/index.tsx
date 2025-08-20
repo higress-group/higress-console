@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { Consumer } from '@/interfaces/consumer';
+import { Consumer, CredentialType } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import FactorGroup from '@/pages/route/components/FactorGroup';
@@ -111,7 +111,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       urlParamPredicates,
       upstreams,
       authConfig_enabled: _authConfig_enabled,
-      authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || "",
+      authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || [],
       ...fallbackInitValues,
     };
 
@@ -164,7 +164,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         headerPredicates,
         urlParamPredicates,
         fallbackConfig_upstreams = '',
-        authConfig_allowedConsumers = '',
+        authConfig_allowedConsumers = [],
         fallbackConfig_modelNames = '',
         fallbackConfig_responseCodes = [],
         modelPredicates = [],
@@ -199,10 +199,8 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         payload['fallbackConfig']['strategy'] = "SEQ";
         payload['fallbackConfig']['responseCodes'] = fallbackConfig_responseCodes;
       }
-      if (authConfig_enabled) {
-        payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers && !Array.isArray(authConfig_allowedConsumers)
-          ? [authConfig_allowedConsumers] : authConfig_allowedConsumers;
-      }
+      payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers && !Array.isArray(authConfig_allowedConsumers)
+        ? [authConfig_allowedConsumers] : authConfig_allowedConsumers;
       return payload;
     },
   }));
@@ -498,7 +496,6 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.fallbackConfigExtra')}
-        noStyle={fallbackConfig_enabled ? { marginBottom: 0 } : null}
       >
         <Switch onChange={e => {
           setFallbackConfigEnabled(e)
@@ -556,54 +553,48 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         valuePropName="checked"
         initialValue={false}
         extra={t('aiRoute.routeForm.label.authConfigExtra')}
-        // style={authConfig_enabled ? { marginBottom: 0 } : {}}
       >
         <Switch onChange={e => {
           setAuthConfigEnabled(e)
-          form.resetFields(["authConfig_allowedConsumers"])
         }}
         />
       </Form.Item>
-      {
-        authConfig_enabled ? // 允许请求本路由的消费者名称列表
-          <>
-            <Form.Item label={t('misc.authType')} name="authType" initialValue="key-auth" extra={t('misc.keyAuthOnlyTip')}>
-              <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item
-              required
-              label={t('aiRoute.routeForm.label.authConfigList')}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+      <Form.Item label={t('misc.authType')} name="authType" initialValue={CredentialType.KEY_AUTH.key} extra={t('misc.keyAuthOnlyTip')}>
+        <Select disabled>
+          {
+            Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+              <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+            ))
+          }
+        </Select>
+      </Form.Item>
+      <Form.Item
+        label={t('aiRoute.routeForm.label.authConfigList')}
+        extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Form.Item
+            name="authConfig_allowedConsumers"
+            noStyle
+          >
+            <Select
+              allowClear
+              mode="multiple"
+              placeholder={t('aiRoute.routeForm.label.authConfigList')}
+              style={{ flex: 1 }}
             >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Form.Item
-                  name="authConfig_allowedConsumers"
-                  noStyle
-                  rules={[{ required: true, message: t('aiRoute.routeForm.rule.authConfigListRequired') }]}
-                >
-                  <Select
-                    allowClear
-                    mode="multiple"
-                    placeholder={t('aiRoute.routeForm.label.authConfigList')}
-                    style={{ flex: 1 }}
-                  >
-                    {consumerList.map((item) => (
-                      <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Button
-                  style={{ marginLeft: 8 }}
-                  onClick={() => consumerResult.run()}
-                  icon={<RedoOutlined />}
-                />
-              </div>
-            </Form.Item>
-          </>
-          : null
-      }
+              {consumerList.map((item) => (
+                <Select.Option key={String(item.name)} value={item.name}>{item.name}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Button
+            style={{ marginLeft: 8 }}
+            onClick={() => consumerResult.run()}
+            icon={<RedoOutlined />}
+          />
+        </div>
+      </Form.Item>
     </Form>
   );
 });
