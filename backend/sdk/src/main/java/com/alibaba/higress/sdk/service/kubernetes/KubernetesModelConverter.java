@@ -53,6 +53,7 @@ import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Domain;
+import com.alibaba.higress.sdk.model.ProxyServer;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.Service;
 import com.alibaba.higress.sdk.model.ServiceSource;
@@ -73,6 +74,7 @@ import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1ProxyConfig;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.FailStrategy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
@@ -958,28 +960,28 @@ public class KubernetesModelConverter {
             return;
         }
 
-        V1IngressRule rule = rules.get(0);
-        V1HTTPIngressRuleValue httpRule = rule.getHttp();
-        if (httpRule == null) {
-            return;
-        }
-        if (CollectionUtils.isNotEmpty(httpRule.getPaths())) {
-            fillPathRoute(route, metadata, httpRule.getPaths().get(0));
-        }
-
-        String host = rule.getHost();
-        if (!Strings.isNullOrEmpty(host)) {
-            route.setDomains(Collections.singletonList(host));
-        } else if (CollectionUtils.isNotEmpty(spec.getTls())) {
-            List<String> tlsHosts = new ArrayList<>();
-            for (V1IngressTLS tlsItem : spec.getTls()) {
-                if (CollectionUtils.isNotEmpty(tlsItem.getHosts())) {
-                    tlsHosts.addAll(tlsItem.getHosts());
-                }
+        route.setDomains(new ArrayList<>());
+        for (V1IngressRule rule : rules) {
+            if (rule.getHttp() == null) {
+                continue;
             }
-            route.setDomains(tlsHosts);
-        } else {
-            route.setDomains(Collections.emptyList());
+            List<V1HTTPIngressPath> paths = rule.getHttp().getPaths();
+            if (CollectionUtils.isNotEmpty(paths)) {
+                // Only one path is supported for now.
+                fillPathRoute(route, metadata, paths.get(0));
+            }
+            String host = rule.getHost();
+            if (!Strings.isNullOrEmpty(host)) {
+                route.getDomains().add(host);
+            } else if (CollectionUtils.isNotEmpty(spec.getTls())) {
+                List<String> tlsHosts = new ArrayList<>();
+                for (V1IngressTLS tlsItem : spec.getTls()) {
+                    if (CollectionUtils.isNotEmpty(tlsItem.getHosts())) {
+                        tlsHosts.addAll(tlsItem.getHosts());
+                    }
+                }
+                route.getDomains().addAll(tlsHosts);
+            }
         }
 
         Map<String, String> annotations = metadata.getAnnotations();
@@ -1488,12 +1490,7 @@ public class KubernetesModelConverter {
         if (CollectionUtils.isEmpty(domains)) {
             domains = Collections.singletonList(HigressConstants.DEFAULT_DOMAIN);
         }
-
-        if (domains.size() > 1) {
-            throw new IllegalArgumentException("Only one domain is allowed.");
-        }
-
-        List<V1IngressTLS> tlses = null;
+        Map<String, Domain> httpsDomains = new HashMap<>(domains.size());
         for (String domainName : domains) {
             if (Strings.isNullOrEmpty(domainName)) {
                 continue;
@@ -1521,42 +1518,61 @@ public class KubernetesModelConverter {
                 continue;
             }
 
+            httpsDomains.put(domainName, domain);
+        }
+        // Check if the number of domains with HTTPS enabled matches the original configuration
+        if (!httpsDomains.isEmpty() && httpsDomains.size() != domains.size()) {
+            throw new ValidationException("Currently only supports domains with the same protocol");
+        }
+
+        if (!httpsDomains.isEmpty()
+            && httpsDomains.values().stream().map(Domain::getEnableHttps).distinct().count() != 1) {
+            throw new ValidationException("All domains must use consistent HTTPS configuration");
+        }
+
+        List<V1IngressTLS> tlses = new ArrayList<>();
+
+        httpsDomains.forEach((domainName, domain) -> {
             V1IngressTLS tls = new V1IngressTLS();
             if (!HigressConstants.DEFAULT_DOMAIN.equals(domainName)) {
                 tls.setHosts(Collections.singletonList(domainName));
             }
             tls.setSecretName(domain.getCertIdentifier());
-            if (tlses == null) {
-                tlses = new ArrayList<>();
-                spec.setTls(tlses);
-            }
             tlses.add(tls);
 
+            // Here we have confirmed that all domain protocols are consistent
             if (Domain.EnableHttps.FORCE.equals(domain.getEnableHttps())) {
                 KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.SSL_REDIRECT_KEY,
                     KubernetesConstants.Annotation.TRUE_VALUE);
             }
+        });
+
+        if (CollectionUtils.isNotEmpty(tlses)) {
+            spec.setTls(tlses);
         }
     }
 
     private static void fillIngressRules(V1ObjectMeta metadata, V1IngressSpec spec, Route route) {
-        V1IngressRule rule = new V1IngressRule();
-        spec.setRules(Collections.singletonList(rule));
+        List<String> domains = route.getDomains();
+        if (CollectionUtils.isEmpty(domains)) {
+            domains = Collections.singletonList(null);
+        }
 
-        if (CollectionUtils.isNotEmpty(route.getDomains())) {
-            if (route.getDomains().size() > 1) {
-                throw new IllegalArgumentException("Only one domain is allowed.");
+        List<V1IngressRule> rules = domains.stream().map(d -> {
+            V1IngressRule rule = new V1IngressRule();
+            rule.setHost(d);
+            V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
+            rule.setHttp(httpRule);
+
+            RoutePredicate pathPredicate = route.getPath();
+            if (pathPredicate != null) {
+                fillHttpPathRule(metadata, httpRule, pathPredicate);
             }
-            rule.setHost(route.getDomains().get(0));
-        }
+            return rule;
+        }).collect(Collectors.toList());
 
-        V1HTTPIngressRuleValue httpRule = new V1HTTPIngressRuleValue();
-        rule.setHttp(httpRule);
+        spec.setRules(rules);
 
-        RoutePredicate pathPredicate = route.getPath();
-        if (pathPredicate != null) {
-            fillHttpPathRule(metadata, httpRule, pathPredicate);
-        }
     }
 
     private static void fillHttpPathRule(V1ObjectMeta metadata, V1HTTPIngressRuleValue httpRule,
@@ -1649,6 +1665,12 @@ public class KubernetesModelConverter {
         return serviceSource;
     }
 
+    public ProxyServer v1ProxyConfig2ProxyServer(V1ProxyConfig v1ProxyConfig) {
+        ProxyServer proxyServer = new ProxyServer();
+        fillProxyServerInfo(proxyServer, v1ProxyConfig);
+        return proxyServer;
+    }
+
     public String generateAuthSecretName(String serviceSourceName) {
         return serviceSourceName + "-auth-" + RandomStringUtils.randomAlphanumeric(5).toLowerCase(Locale.ROOT);
     }
@@ -1656,9 +1678,9 @@ public class KubernetesModelConverter {
     public void initV1McpBridge(V1McpBridge v1McpBridge) {
         v1McpBridge.setMetadata(new V1ObjectMeta());
         v1McpBridge.getMetadata().setName(V1McpBridge.DEFAULT_NAME);
-        List<V1RegistryConfig> registries = new ArrayList<>();
         v1McpBridge.setSpec(new V1McpBridgeSpec());
-        v1McpBridge.getSpec().setRegistries(registries);
+        v1McpBridge.getSpec().setRegistries(new ArrayList<>());
+        v1McpBridge.getSpec().setProxies(new ArrayList<>());
     }
 
     public V1RegistryConfig addV1McpBridgeRegistry(V1McpBridge v1McpBridge, ServiceSource serviceSource) {
@@ -1702,6 +1724,46 @@ public class KubernetesModelConverter {
         return target;
     }
 
+    public V1ProxyConfig addV1McpBridgeProxy(V1McpBridge v1McpBridge, ProxyServer proxyServer) {
+        V1McpBridgeSpec spec = v1McpBridge.getSpec();
+        if (spec == null) {
+            spec = new V1McpBridgeSpec();
+            v1McpBridge.setSpec(spec);
+        }
+        List<V1ProxyConfig> proxies = spec.getProxies();
+        if (proxies == null) {
+            proxies = new ArrayList<>();
+            spec.setProxies(proxies);
+        }
+        Optional<V1ProxyConfig> op = proxies.stream()
+            .filter(r -> StringUtils.isNotBlank(r.getName()) && r.getName().equals(proxyServer.getName())).findFirst();
+        if (op.isPresent()) {
+            fillV1ProxyConfig(op.get(), proxyServer);
+            return op.get();
+        } else {
+            V1ProxyConfig proxy = proxyServer2V1ProxyConfig(proxyServer);
+            proxies.add(proxy);
+            return proxy;
+        }
+    }
+
+    public V1ProxyConfig removeV1McpBridgeProxy(V1McpBridge v1McpBridge, String name) {
+        V1McpBridgeSpec spec = v1McpBridge.getSpec();
+        if (spec == null || CollectionUtils.isEmpty(spec.getProxies())) {
+            return null;
+        }
+        V1ProxyConfig target = null;
+        for (Iterator<V1ProxyConfig> it = spec.getProxies().iterator(); it.hasNext();) {
+            V1ProxyConfig proxyConfig = it.next();
+            if (proxyConfig.getName().equals(name)) {
+                it.remove();
+                target = proxyConfig;
+                // Normally, names should be unique. But we don't break here just in case they aren't.
+            }
+        }
+        return target;
+    }
+
     private void fillServiceSourceInfo(ServiceSource serviceSource, V1RegistryConfig v1RegistryConfig) {
         if (v1RegistryConfig == null) {
             return;
@@ -1712,6 +1774,7 @@ public class KubernetesModelConverter {
         serviceSource.setName(v1RegistryConfig.getName());
         serviceSource.setProtocol(v1RegistryConfig.getProtocol());
         serviceSource.setSni(v1RegistryConfig.getSni());
+        serviceSource.setProxyName(v1RegistryConfig.getProxyName());
         serviceSource.setProperties(new HashMap<>());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())
@@ -1761,6 +1824,7 @@ public class KubernetesModelConverter {
         v1RegistryConfig.setName(serviceSource.getName());
         v1RegistryConfig.setProtocol(StringUtils.firstNonBlank(serviceSource.getProtocol()));
         v1RegistryConfig.setSni(serviceSource.getSni());
+        v1RegistryConfig.setProxyName(serviceSource.getProxyName());
         Map<String, Object> properties =
             Optional.ofNullable(serviceSource.getProperties()).orElse(Collections.emptyMap());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
@@ -1790,6 +1854,37 @@ public class KubernetesModelConverter {
             v1RegistryConfig.setMcpServerExportDomains((List<String>)Optional
                 .ofNullable(properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS)).orElse(new ArrayList<>()));
         }
+    }
+
+    private void fillProxyServerInfo(ProxyServer proxyServer, V1ProxyConfig v1ProxyConfig) {
+        if (v1ProxyConfig == null) {
+            return;
+        }
+        proxyServer.setType(v1ProxyConfig.getType());
+        proxyServer.setName(v1ProxyConfig.getName());
+        proxyServer.setServerAddress(v1ProxyConfig.getServerAddress());
+        proxyServer.setServerPort(v1ProxyConfig.getServerPort());
+        proxyServer.setConnectTimeout(v1ProxyConfig.getConnectTimeout());
+    }
+
+    private static V1ProxyConfig proxyServer2V1ProxyConfig(ProxyServer proxyServer) {
+        if (proxyServer == null) {
+            return null;
+        }
+        V1ProxyConfig v1ProxyConfig = new V1ProxyConfig();
+        fillV1ProxyConfig(v1ProxyConfig, proxyServer);
+        return v1ProxyConfig;
+    }
+
+    private static void fillV1ProxyConfig(V1ProxyConfig v1ProxyConfig, ProxyServer proxyServer) {
+        if (proxyServer == null) {
+            return;
+        }
+        v1ProxyConfig.setType(proxyServer.getType());
+        v1ProxyConfig.setName(proxyServer.getName());
+        v1ProxyConfig.setServerAddress(proxyServer.getServerAddress());
+        v1ProxyConfig.setServerPort(proxyServer.getServerPort());
+        v1ProxyConfig.setConnectTimeout(proxyServer.getConnectTimeout());
     }
 
     private static void fillTlsCertificateDetails(TlsCertificate tlsCertificate) {

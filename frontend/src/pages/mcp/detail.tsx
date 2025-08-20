@@ -1,33 +1,25 @@
 /* eslint-disable max-lines */
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'ice';
-import { PageContainer } from '@ant-design/pro-layout';
-import {
-  Card,
-  Tabs,
-  Button,
-  Descriptions,
-  Space,
-  message,
-  Switch,
-  Tooltip,
-  Table,
-  Empty,
-  Modal,
-} from 'antd';
-import { EditOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
-import { getMcpServer, createOrUpdateMcpServer, deleteMcpServer, listMcpConsumers } from '@/services/mcp';
+import { CredentialType } from '@/interfaces/consumer';
 import { getGatewayDomains } from '@/services/domain';
-import EditToolDrawer from './components/EditToolDrawer';
-import ConsumerTable from './components/ConsumerTable';
-import McpFormDrawer from './components/McpFormDrawer';
-import { getServiceTypeMap, SERVICE_TYPE } from './constant';
-import DeleteConfirm from './components/DeleteConfirm';
-import McpServerCommand from './components/McpServerCommand';
+import { createOrUpdateMcpServer, deleteMcpServer, getMcpServer } from '@/services/mcp';
+import { DeleteOutlined, EditOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-layout';
+import MonacoEditor, { loader } from '@monaco-editor/react';
+import { Button, Card, Descriptions, Empty, message, Modal, Space, Table, Tabs, Tooltip } from 'antd';
+import { useNavigate, useSearchParams } from 'ice';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AddConsumerAuth from './components/AddConsumerAuth';
+import ConsumerTable from './components/ConsumerTable';
+import DeleteConfirm from './components/DeleteConfirm';
+import EditToolDrawer from './components/EditToolDrawer';
+import McpFormDrawer from './components/McpFormDrawer';
+import McpServerCommand from './components/McpServerCommand';
 import YamlUtil from './components/yamlUtil';
-import MonacoEditor from '@monaco-editor/react';
+import { getServiceTypeMap, SERVICE_TYPE } from './constant';
+
+loader.config({ monaco });
 
 const MCPDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -36,8 +28,9 @@ const MCPDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('config');
   const [mcpData, setMcpData] = useState<any>(null);
-  const [apiGatewayUrl, setApiGatewayUrl] = useState('https://<higress-gateway-ip>');
+  const [apiGatewayUrl, setApiGatewayUrl] = useState('http://<higress-gateway-ip>');
   const [authEnabled, setAuthEnabled] = useState(false);
+  const [authType, setAuthType] = useState<string | null>(null);
   const [tools, setTools] = useState<any[]>([]);
   const [editToolVisible, setEditToolVisible] = useState(false);
   const [editDrawerVisible, setEditDrawerVisible] = useState(false);
@@ -53,6 +46,7 @@ const MCPDetailPage: React.FC = () => {
       if (res) {
         setMcpData(res);
         setAuthEnabled(res.consumerAuthInfo?.enable || false);
+        setAuthType(res.consumerAuthInfo?.type || null);
 
         // 解析工具配置
         if (res.rawConfigurations) {
@@ -73,7 +67,7 @@ const MCPDetailPage: React.FC = () => {
           const domainProtocol = domain?.enableHttps === 'off' ? 'http' : 'https';
           setApiGatewayUrl(`${domainProtocol}://${domain?.name}`);
         } else {
-          setApiGatewayUrl('https://<higress-gateway-ip>');
+          setApiGatewayUrl('http://<higress-gateway-ip>');
         }
       }
     } catch (error) {
@@ -92,7 +86,7 @@ const MCPDetailPage: React.FC = () => {
         mcpServerName: name,
         consumerAuthInfo: {
           enable: checked,
-          type: 'API_KEY',
+          type: CredentialType.KEY_AUTH.key,
           allowedConsumers: mcpData.consumerAuthInfo?.allowedConsumers || [],
         },
       });
@@ -183,6 +177,9 @@ const MCPDetailPage: React.FC = () => {
     if (apiGatewayUrl && name) {
       setHttpJson(generateJson('http'));
       setSseJson(generateJson('sse'));
+    } else {
+      setHttpJson('');
+      setSseJson('');
     }
   }, [apiGatewayUrl, name]);
 
@@ -265,10 +262,10 @@ const MCPDetailPage: React.FC = () => {
                 <Card title={t('mcp.detail.endpointInfo')} bordered style={{ marginTop: 16 }}>
                   <Descriptions column={2}>
                     <Descriptions.Item label={t('mcp.detail.sseEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}/sse`}
+                      {`${apiGatewayUrl || 'http://<higress-gateway-ip>'}/mcp-servers/${name}/sse`}
                     </Descriptions.Item>
                     <Descriptions.Item label={t('mcp.detail.httpEndpoint')}>
-                      {`${apiGatewayUrl || 'https://<higress-gateway-ip>'}/mcp-servers/${name}`}
+                      {`${apiGatewayUrl || 'http://<higress-gateway-ip>'}/mcp-servers/${name}`}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -413,7 +410,7 @@ const MCPDetailPage: React.FC = () => {
                     />
                   </div>
 
-                  {apiGatewayUrl !== 'https://<higress-gateway-ip>' && (
+                  {apiGatewayUrl !== 'http://<higress-gateway-ip>' && (
                     <div>
                       <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{t('mcp.detail.step2')}</div>
                       <div style={{ background: '#f7f9fa', padding: 16, borderRadius: 4 }}>
@@ -477,7 +474,10 @@ const MCPDetailPage: React.FC = () => {
                     {authEnabled && (
                       <Descriptions.Item label={t('misc.authType')}>
                         <Space>
-                          <span>API Key</span>
+                          <span>
+                            {(Object.values(CredentialType).find(ct => ct.key === authType)
+                              || { displayName: authType }).displayName}
+                          </span>
                           <Tooltip title={t('mcp.detail.apiKeyTooltip')}>
                             <QuestionCircleOutlined style={{ color: '#888' }} />
                           </Tooltip>

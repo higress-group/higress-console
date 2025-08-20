@@ -475,10 +475,12 @@
       "domain": "来源地址",
       "port": "来源端口",
       "protocol": "服务协议",
+      "proxyName": "代理服务器",
       "action": "操作"
     },
     "createServiceSource": "创建服务来源",
     "editServiceSource": "编辑服务来源",
+    "manageProxyServers": "管理代理服务器",
     "deleteConfirmation": "确定删除 <1>{{currentServiceSourceName}}</1> 吗？",
     "serviceSourceForm": {
       "type": "类型",
@@ -540,7 +542,27 @@
       "mcpServerNacos3McpServerName": "Nacos中MCP Server的名称",
       "mcpServerNacos3McpServerPath": "Nacos中MCP Server的访问路径",
       "mcpServerNacos3NoteSse": "如需使用 SSE 协议，则需要在后面额外添加 /sse 后缀",
-      "mcpServerNacos3NoteRoute": "注意：相关路由信息并不会显示在路由配置列表中。"
+      "mcpServerNacos3NoteRoute": "注意：相关路由信息并不会显示在路由配置列表中。",
+      "proxyName": "代理服务器",
+      "proxyServerNone": "不使用代理服务器",
+      "proxyServerLimitations": "注意：目前代理服务器配置仅支持使用 HTTPS 协议访问后端地址唯一的服务。"
+    },
+    "proxyServerModal": {
+      "createProxyServer": "创建代理服务器",
+      "editProxyServer": "编辑代理服务器",
+      "name": "名称",
+      "type": "类型",
+      "server": "服务器信息",
+      "serverAddress": "服务器地址",
+      "serverPort": "服务器端口",
+      "connectTimeout": "连接超时时间",
+      "typeRequired": "请选择类型",
+      "nameRequired": "请输入一个合法的名称",
+      "namePlaceholder": "支持小写字母、数字、短划线（-）和下划线（_），并以字母开头。长度不超过63个字符。",
+      "serverAddressRequired": "请输入正确的服务器地址",
+      "serverPortRequired": "请输入正确服务器端口",
+      "connectTimeoutRequired": "请输入连接超时时间",
+      "deleteConfirmation": "确定删除吗？"
     }
   },
   "route": {

@@ -43,6 +43,8 @@ public interface HigressServiceProvider {
 
     ServiceSourceService serviceSourceService();
 
+    ProxyServerService proxyServerService();
+
     TlsCertificateService tlsCertificateService();
 
     WasmPluginService wasmPluginService();
@@ -56,5 +58,4 @@ public interface HigressServiceProvider {
     LlmProviderService llmProviderService();
 
     McpServerService mcpServerService();
-
 }

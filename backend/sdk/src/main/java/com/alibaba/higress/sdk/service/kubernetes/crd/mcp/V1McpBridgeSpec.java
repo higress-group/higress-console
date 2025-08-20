@@ -25,4 +25,7 @@ public class V1McpBridgeSpec {
     @SerializedName(SERIALIZED_NAME_REGISTRIES)
     private List<V1RegistryConfig> registries;
 
+    public static final String SERIALIZED_NAME_PROXIES = "proxies";
+    @SerializedName(SERIALIZED_NAME_PROXIES)
+    private List<V1ProxyConfig> proxies;
 }

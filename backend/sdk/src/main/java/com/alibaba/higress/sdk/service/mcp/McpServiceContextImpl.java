@@ -21,18 +21,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
-import com.alibaba.higress.sdk.model.authorization.CredentialTypeEnum;
+import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.consumer.AllowList;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.mcp.McpServerConsumerDetail;
@@ -42,9 +46,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerPageQuery;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
-import com.alibaba.higress.sdk.service.authorization.AuthorizationService;
-import com.alibaba.higress.sdk.service.authorization.AuthorizationServiceFactory;
-import com.alibaba.higress.sdk.service.authorization.RelationshipConverter;
+import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.detail.McpServerDetailStrategyFactory;
@@ -65,25 +67,25 @@ import lombok.extern.slf4j.Slf4j;
 public class McpServiceContextImpl implements McpServerService {
 
     private final McpServerSaveStrategyFactory saveStrategyFactory;
-    private final AuthorizationServiceFactory authorizationServiceFactory;
     private final KubernetesClientService kubernetesClientService;
     private final KubernetesModelConverter kubernetesModelConverter;
+    private final ConsumerService consumerService;
     private final RouteService routeService;
     private final McpServerConfigMapHelper configMapHelper;
     private final McpServerDetailStrategyFactory detailStrategyFactory;
 
     public McpServiceContextImpl(KubernetesClientService kubernetesClientService,
         KubernetesModelConverter kubernetesModelConverter, WasmPluginInstanceService wasmPluginInstanceService,
-        RouteService routeService) {
+        ConsumerService consumerService, RouteService routeService) {
         this.kubernetesClientService = kubernetesClientService;
         this.kubernetesModelConverter = kubernetesModelConverter;
+        this.consumerService = consumerService;
         this.routeService = routeService;
         this.configMapHelper = new McpServerConfigMapHelper(kubernetesClientService);
-        this.authorizationServiceFactory = new AuthorizationServiceFactory(wasmPluginInstanceService);
         this.saveStrategyFactory = new McpServerSaveStrategyFactory(kubernetesClientService, kubernetesModelConverter,
-            wasmPluginInstanceService, routeService);
-        this.detailStrategyFactory =
-            new McpServerDetailStrategyFactory(kubernetesClientService, wasmPluginInstanceService, routeService);
+            wasmPluginInstanceService, consumerService, routeService);
+        this.detailStrategyFactory = new McpServerDetailStrategyFactory(kubernetesClientService,
+            wasmPluginInstanceService, consumerService, routeService);
     }
 
     @Override
@@ -137,45 +139,43 @@ public class McpServiceContextImpl implements McpServerService {
 
     @Override
     public void addAllowConsumers(McpServerConsumers consumers) {
-        String routeName = McpServerHelper.mcpServerName2RouteName(consumers.getMcpServerName());
-        Route route = routeService.query(routeName);
-        if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
-        }
-        AuthorizationService authorizationService = authorizationServiceFactory.getService(CredentialTypeEnum.KEY_AUTH);
-        authorizationService.bindList(RelationshipConverter.convert(consumers));
+        Route route = getMcpServerBoundRoute(consumers.getMcpServerName());
+        AllowList allowList = AllowList.forTarget(WasmPluginInstanceScope.ROUTE, route.getName())
+            .consumerNames(consumers.getConsumers()).build();
+        consumerService.updateAllowList(AllowListOperation.ADD, allowList);
     }
 
     @Override
     public void deleteAllowConsumers(McpServerConsumers consumers) {
-        String routeName = McpServerHelper.mcpServerName2RouteName(consumers.getMcpServerName());
-        Route route = routeService.query(routeName);
-        if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
-        }
-        AuthorizationService authorizationService = authorizationServiceFactory.getService(CredentialTypeEnum.KEY_AUTH);
-        authorizationService.unbindList(RelationshipConverter.convert(consumers));
+        Route route = getMcpServerBoundRoute(consumers.getMcpServerName());
+        AllowList allowList = AllowList.forTarget(WasmPluginInstanceScope.ROUTE, route.getName())
+            .consumerNames(consumers.getConsumers()).build();
+        consumerService.updateAllowList(AllowListOperation.REMOVE, allowList);
     }
 
     @Override
     public PaginatedResult<McpServerConsumerDetail> listAllowConsumers(McpServerConsumersPageQuery query) {
-        String routeName = McpServerHelper.mcpServerName2RouteName(query.getMcpServerName());
-        Route route = routeService.query(routeName);
-        if (Objects.isNull(route)) {
-            throw new BusinessException("bound route not found!");
-        }
+        Route route = getMcpServerBoundRoute(query.getMcpServerName());
         List<String> allowedConsumers =
             Optional.ofNullable(route.getAuthConfig().getAllowedConsumers()).orElse(new ArrayList<>());
-        List<McpServerConsumerDetail> resultList = allowedConsumers.stream().filter(consumer -> {
-            String searchTerm = query.getConsumerName();
-            if (StringUtils.isBlank(searchTerm)) {
-                return true;
-            }
-            return consumer.contains(searchTerm);
-        }).map(consumer -> McpServerConsumerDetail.builder().mcpServerName(route.getName()).consumerName(consumer)
-            .type(CredentialTypeEnum.KEY_AUTH.getType()).build()).collect(Collectors.toList());
-
+        Predicate<String> consumerFilter = c -> true;
+        if (StringUtils.isNotBlank(query.getConsumerName())) {
+            consumerFilter = c -> c.contains(query.getConsumerName());
+        }
+        List<McpServerConsumerDetail> resultList = allowedConsumers.stream().filter(consumerFilter).map(
+            consumer -> McpServerConsumerDetail.builder().mcpServerName(route.getName()).consumerName(consumer).build())
+            .collect(Collectors.toList());
         return PaginatedResult.createFromFullList(resultList, query);
+    }
+
+    private @NotNull Route getMcpServerBoundRoute(String serverName) {
+        String routeName = McpServerHelper.mcpServerName2RouteName(serverName);
+        Route route = routeService.query(routeName);
+        if (Objects.isNull(route)) {
+            throw new BusinessException(String
+                .format("No MCP-bound route is found. McpServerName=%s ExpectedRouteName=%s", serverName, routeName));
+        }
+        return route;
     }
 
     private void deleteMatchRulePath(String name) {

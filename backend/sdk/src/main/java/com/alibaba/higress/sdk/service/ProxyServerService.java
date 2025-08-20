@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
+ * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,14 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.model.authorization;
+package com.alibaba.higress.sdk.service;
 
-/**
- * @author lvshui
- */
-public enum AuthorizationResourceTypeEnum {
-    /**
-     * authorization resource is route
-     */
-    ROUTE,;
+import com.alibaba.higress.sdk.model.CommonPageQuery;
+import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.model.ProxyServer;
+
+public interface ProxyServerService {
+
+    PaginatedResult<ProxyServer> list(CommonPageQuery query);
+
+    ProxyServer addOrUpdate(ProxyServer serviceSource);
+
+    ProxyServer add(ProxyServer serviceSource);
+
+    void delete(String name);
+
+    ProxyServer query(String name);
 }

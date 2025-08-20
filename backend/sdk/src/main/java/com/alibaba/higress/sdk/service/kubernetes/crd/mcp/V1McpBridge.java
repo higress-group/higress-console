@@ -90,6 +90,8 @@ public class V1McpBridge implements io.kubernetes.client.common.KubernetesObject
 
     public static final String PROTOCOL_GRPCS = "grpcs";
 
+    public static final String PROXY_TYPE_HTTP = "http";
+
     public static final int STATIC_PORT = 80;
 
     public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";

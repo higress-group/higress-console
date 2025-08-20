@@ -58,6 +58,11 @@ public class OllamaLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
+    public boolean needSyncRouteAfterUpdate() {
+        return true;
+    }
+
+    @Override
     protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         return Collections.singletonList(new LlmProviderEndpoint(getServiceProtocol(providerConfig),
             getServiceDomain(providerConfig), getServicePort(providerConfig), "/"));

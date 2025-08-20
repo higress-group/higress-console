@@ -23,22 +23,25 @@ import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.IN_QU
 import static com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig.KEYS;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
+import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 
 class KeyAuthCredentialHandler implements CredentialHandler {
@@ -63,11 +66,11 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         for (WasmPluginInstance instance : instances) {
             Map<String, Object> configurations = instance.getConfigurations();
             if (MapUtils.isEmpty(configurations)) {
-                return false;
+                continue;
             }
             Object allowObj = configurations.get(ALLOW);
             if (allowObj instanceof List<?>) {
-                List<?> allowList = (List<?>) allowObj;
+                List<?> allowList = (List<?>)allowObj;
                 if (allowList.contains(consumerName)) {
                     return true;
                 }
@@ -86,7 +89,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (!(consumersObj instanceof List<?>)) {
             return Lists.newArrayList();
         }
-        List<?> consumerList= (List<?>) consumersObj;
+        List<?> consumerList = (List<?>)consumersObj;
         List<Consumer> consumers = new ArrayList<>(consumerList.size());
         for (Object consumerObj : consumerList) {
             if (!(consumerObj instanceof Map<?, ?>)) {
@@ -94,23 +97,29 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
 
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-
-            String name = MapUtils.getString(consumerMap, CONSUMER_NAME);
-            if (StringUtils.isBlank(name)) {
-                continue;
+            Consumer consumer = extractConsumer(consumerMap);
+            if (consumer != null) {
+                consumers.add(consumer);
             }
-
-            KeyAuthCredential credential = parseCredential(consumerMap);
-            if (credential == null) {
-                continue;
-            }
-
-            Consumer consumer = new Consumer();
-            consumer.setName(name);
-            consumer.setCredentials(Lists.newArrayList(credential));
-            consumers.add(consumer);
         }
         return consumers;
+    }
+
+    @Override
+    public void initDefaultGlobalConfigs(WasmPluginInstance instance) {
+        Map<String, Object> configurations = instance.getConfigurations();
+        if (MapUtils.isEmpty(configurations)) {
+            configurations = new LinkedHashMap<>();
+            instance.setConfigurations(configurations);
+        }
+        configurations.putIfAbsent(GLOBAL_AUTH, false);
+        configurations.putIfAbsent(ALLOW, Collections.emptyList());
+
+        // TODO: Remove this after plugin upgrade.
+        // Add a dummy key to the global keys list because the plugin requires at least one global key.
+        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
+
+        configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
     }
 
     @Override
@@ -128,13 +137,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
 
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
-            configurations = new HashMap<>();
-            instance.setConfigurations(configurations);
+            initDefaultGlobalConfigs(instance);
+            configurations = instance.getConfigurations();
+            assert MapUtils.isNotEmpty(configurations);
         }
-
-        // TODO: Remove this after plugin upgrade.
-        // Add a dummy key to the global keys list because the plugin requires at least one global key.
-        configurations.put(KEYS, Lists.newArrayList("x-higress-dummy-key"));
 
         Object consumersObj = configurations.computeIfAbsent(CONSUMERS, k -> new ArrayList<>());
         List<Object> consumers;
@@ -143,15 +149,22 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         } else {
             consumers = new ArrayList<>();
         }
+
         Map<String, Object> consumerConfig = null;
         for (Object consumerObj : consumers) {
             if (!(consumerObj instanceof Map<?, ?>)) {
                 continue;
             }
             Map<String, Object> consumerMap = (Map<String, Object>)consumerObj;
-            if (consumer.getName().equals(consumerMap.get(CONSUMER_NAME))) {
+            Consumer existedConsumer = extractConsumer(consumerMap);
+            if (existedConsumer == null) {
+                continue;
+            }
+            if (consumer.getName().equals(existedConsumer.getName())) {
                 consumerConfig = consumerMap;
-                break;
+            } else if (hasSameCredential(existedConsumer, keyAuthCredential)) {
+                throw new IllegalArgumentException(
+                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
             }
         }
 
@@ -210,7 +223,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return false;
         }
         boolean deleted = false;
-        List<Object> consumers = (List<Object>)consumersObj;
+        List<Object> consumers = new ArrayList<>((List<Object>)consumersObj);
         for (int i = consumers.size() - 1; i >= 0; --i) {
             Object consumerObj = consumers.get(i);
             if (!(consumerObj instanceof Map<?, ?>)) {
@@ -222,11 +235,14 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 deleted = true;
             }
         }
+        if (deleted) {
+            globalConfigurations.put(CONSUMERS, consumers);
+        }
         return deleted;
     }
 
     @Override
-    public List<String> getAllowList(WasmPluginInstance instance) {
+    public List<String> getAllowedConsumers(WasmPluginInstance instance) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
             return Lists.newArrayList();
@@ -236,12 +252,12 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         if (!(allowObj instanceof List<?>)) {
             return Lists.newArrayList();
         }
-        List<?> allowList= (List<?>)allowObj;
+        List<?> allowList = (List<?>)allowObj;
         return allowList.stream().filter(a -> a instanceof String).map(a -> (String)a).collect(Collectors.toList());
     }
 
     @Override
-    public void updateAllowList(WasmPluginInstance instance, List<String> consumerNames) {
+    public void updateAllowList(AllowListOperation operation, WasmPluginInstance instance, List<String> consumerNames) {
         Map<String, Object> configurations = instance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
             configurations = new HashMap<>();
@@ -249,10 +265,77 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         }
 
         if (CollectionUtils.isEmpty(consumerNames)) {
-            configurations.remove(ALLOW);
+            configurations.put(ALLOW, Collections.emptyList());
         } else {
-            configurations.put(ALLOW, new ArrayList<>(consumerNames));
+            List<String> newAllowList = getAllowedConsumers(instance);
+            switch (operation) {
+                case ADD:
+                    for (String consumerName : consumerNames) {
+                        if (!newAllowList.contains(consumerName)) {
+                            newAllowList.add(consumerName);
+                        }
+                    }
+                    break;
+                case REMOVE:
+                    for (String consumerName : consumerNames) {
+                        newAllowList.remove(consumerName);
+                    }
+                    break;
+                case REPLACE:
+                    newAllowList = consumerNames;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported operation: " + operation);
+            }
+            configurations.put(ALLOW, newAllowList);
         }
+    }
+
+    private Consumer extractConsumer(Map<String, Object> consumerMap) {
+        if (MapUtils.isEmpty(consumerMap)) {
+            return null;
+        }
+
+        String name = MapUtils.getString(consumerMap, CONSUMER_NAME);
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+
+        KeyAuthCredential credential = parseCredential(consumerMap);
+        if (credential == null) {
+            return null;
+        }
+
+        Consumer consumer = new Consumer();
+        consumer.setName(name);
+        consumer.setCredentials(Lists.newArrayList(credential));
+        return consumer;
+    }
+
+    private boolean hasSameCredential(Consumer existedConsumer, KeyAuthCredential credential) {
+        if (credential == null || existedConsumer == null) {
+            return false;
+        }
+        KeyAuthCredential existedCredential = (KeyAuthCredential)existedConsumer.getCredentials().stream()
+            .filter(c -> CredentialType.KEY_AUTH.equals(c.getType())).findFirst().orElse(null);
+        if (existedCredential == null) {
+            return false;
+        }
+        if (!StringUtils.equalsIgnoreCase(credential.getSource(), existedCredential.getSource())) {
+            return false;
+        }
+        if (!StringUtils.equals(credential.getKey(), existedCredential.getKey())) {
+            return false;
+        }
+        if (CollectionUtils.isEmpty(credential.getValues()) || CollectionUtils.isEmpty(existedCredential.getValues())) {
+            return false;
+        }
+        for (String value : credential.getValues()) {
+            if (existedCredential.getValues().contains(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private KeyAuthCredential mergeExistedConfig(KeyAuthCredential keyAuthCredential,
@@ -270,13 +353,12 @@ class KeyAuthCredentialHandler implements CredentialHandler {
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {
-
         Object keyObj = MapUtils.getObject(consumerMap, KEYS);
         if (!(keyObj instanceof List<?>)) {
             return null;
         }
 
-        List<?> keyList = (List<?>) keyObj;
+        List<?> keyList = (List<?>)keyObj;
         if (keyList.isEmpty()) {
             return null;
         }
@@ -286,7 +368,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             if (!(keyItemObj instanceof String)) {
                 continue;
             }
-            String keyItem = (String) keyItemObj;
+            String keyItem = (String)keyItemObj;
             if (StringUtils.isNotBlank(keyItem)) {
                 key = keyItem;
             }
@@ -301,10 +383,10 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         List<String> credentials = new ArrayList<>();
         Object credentialsObj = consumerMap.get(CONSUMER_CREDENTIALS);
         if (credentialsObj instanceof List<?>) {
-            List<?> credentialsList = (List<?>) credentialsObj;
+            List<?> credentialsList = (List<?>)credentialsObj;
             for (Object credentialObj : credentialsList) {
                 if (credentialObj instanceof String) {
-                    credentials.add((String) credentialObj);
+                    credentials.add((String)credentialObj);
                 }
             }
         }

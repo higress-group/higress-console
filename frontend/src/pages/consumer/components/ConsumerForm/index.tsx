@@ -1,6 +1,6 @@
 import { CredentialType } from '@/interfaces/consumer';
 import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select, Space, Tabs } from 'antd';
+import { Button, Form, Input, Select, Tabs } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const [keyAuthCredentialSource, setKeyAuthCredentialSource] = useState();
 
   const credentialEnabledCheckers = {};
-  credentialEnabledCheckers[CredentialType.KEY_AUTH] = c => true;
+  credentialEnabledCheckers[CredentialType.KEY_AUTH.key] = () => true;
 
   useEffect(() => {
     let formValues: object | null = null
@@ -28,8 +28,8 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       formValues = Object.assign({}, value, { credentials });
     }
     formValues ? form.setFieldsValue(formValues) : form.resetFields();
-    setActiveTabKey(activeTabKey_ || 'key-auth');
-    setKeyAuthCredentialSource(form.getFieldValue(['credentials', CredentialType.KEY_AUTH, 'source']) || 'BEARER');
+    setActiveTabKey(activeTabKey_ || CredentialType.KEY_AUTH.key);
+    setKeyAuthCredentialSource(form.getFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'source']) || 'BEARER');
   }, [value]);
 
   useImperativeHandle(ref, () => ({
@@ -39,14 +39,13 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
     handleSubmit: async () => {
       const values = await form.validateFields();
       const credentials: any[] = [];
-      for (const key in CredentialType) {
-        const type = CredentialType[key];
-        const credential = values.credentials[type];
+      for (const { key } of Object.values(CredentialType)) {
+        const credential = values.credentials[key];
         if (!credential) {
           continue;
         }
-        credential.type = type;
-        const checker = credentialEnabledCheckers[type];
+        credential.type = key;
+        const checker = credentialEnabledCheckers[key];
         if (!checker || checker(credential)) {
           credentials.push(credential);
         }
@@ -68,7 +67,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
 
   const randomizeKeyAuthToken = (i) => {
     const uuid = generateUUID();
-    form.setFieldValue(['credentials', CredentialType.KEY_AUTH, 'values', i], uuid);
+    form.setFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'values', i], uuid);
   }
 
   return (
@@ -101,13 +100,12 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         size="small"
         items={[
           {
-            label: 'Key Auth',
-            key: 'key-auth',
+            label: CredentialType.KEY_AUTH.displayName,
+            key: CredentialType.KEY_AUTH.key,
             children: (
               <>
                 <Form.List
-                  label={t("consumer.authToken") || ''} // "认证令牌"
-                  name={['credentials', CredentialType.KEY_AUTH, 'values']}
+                  name={['credentials', CredentialType.KEY_AUTH.key, 'values']}
                   initialValue={[null]}
                 >
                   {(fields, { add, remove }, { errors }) => (
@@ -159,7 +157,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                 {/* 令牌来源 */}
                 <Form.Item
                   label={t("consumer.tokenSource")}
-                  name={['credentials', CredentialType.KEY_AUTH, 'source']}
+                  name={['credentials', CredentialType.KEY_AUTH.key, 'source']}
                   rules={[{ required: true, message: t("consumer.consumerForm.tokenSourceRequired") || '' }]}
                 >
                   <Select
@@ -181,7 +179,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                     <Form.Item
                       key="HEADER_key"
                       label={t("consumer.headerName")}
-                      name={['credentials', CredentialType.KEY_AUTH, 'key']}
+                      name={['credentials', CredentialType.KEY_AUTH.key, 'key']}
                       rules={[{ required: true, message: t("consumer.consumerForm.headerNameRequired") || '' }]}
                     >
                       <Input.TextArea rows={1} style={{ width: "100%" }} />
@@ -195,7 +193,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                     <Form.Item
                       key="QUERY_key"
                       label={t("consumer.paramName")}
-                      name={['credentials', CredentialType.KEY_AUTH, 'key']}
+                      name={['credentials', CredentialType.KEY_AUTH.key, 'key']}
                       rules={[{ required: true, message: t("consumer.consumerForm.paramNameRequired") || '' }]}
                     >
                       <Input.TextArea rows={1} style={{ width: "100%" }} />
@@ -206,15 +204,15 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             ),
           },
           {
-            label: 'OAuth2',
-            key: 'oauth2',
+            label: CredentialType.OAUTH2.displayName,
+            key: CredentialType.OAUTH2.key,
             children: (
               <>{t("misc.tbd")}</>
             ),
           },
           {
-            label: 'JWT',
-            key: 'jwt-auth',
+            label: CredentialType.JWT_AUTH.displayName,
+            key: CredentialType.JWT_AUTH.key,
             children: (
               <>{t("misc.tbd")}</>
             ),
