@@ -86,28 +86,22 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
      * correct Redis address
      */
     private void validateRedisConfiguration() {
-        try {
+        McpServerConfigMap.RedisConfig redisConfig = mcpServerConfigMapHelper.getRedisConfig();
+        if (redisConfig == null) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise OpenAI to MCP functionality will be unavailable.");
+        }
+        String address = redisConfig.getAddress();
 
-            McpServerConfigMap.RedisConfig redisConfig = mcpServerConfigMapHelper.getRedisConfig();
-            if (redisConfig == null) {
-                throw new ValidationException(
-                    "MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise MCP functionality will be unavailable.");
-            }
-            String address = redisConfig.getAddress();
-
-            // Only check if address is a placeholder
-            if (StringUtils.isBlank(address) || REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
-                throw new ValidationException(
-                    "Redis configuration is still a placeholder, please configure correct Redis address. Current configuration: address="
-                        + (StringUtils.isBlank(address) ? "not configured" : address)
-                        + ". Please modify Redis configuration in higress-config, otherwise MCP functionality will be unavailable.");
-            }
-
-        } catch (ValidationException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error occurred while validating Redis configuration", e);
-            throw new ValidationException("Error occurred while validating Redis configuration: ", e);
+        // Check if address is null or empty
+        if (StringUtils.isBlank(address)) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis address is not configured. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
+        }
+        // Check if address is the placeholder value
+        if (REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis address is still a placeholder. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
         }
     }
 
