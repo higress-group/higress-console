@@ -62,8 +62,8 @@ public class KubernetesConstants {
         public static final String HEADER_MATCH_KEYWORD = "-match-header-";
         public static final String HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + HEADER_MATCH_KEYWORD + "%s";
         public static final String PSEUDO_HEADER_MATCH_KEYWORD = "-match-pseudo-header-";
-        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT = "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD
-                + "%s";
+        public static final String PSEUDO_HEADER_MATCH_KEY_FORMAT =
+            "higress.io/%s" + PSEUDO_HEADER_MATCH_KEYWORD + "%s";
         public static final String METHOD_KEY = "higress.io/match-method";
 
         public static final String IGNORE_PATH_CASE_KEY = "higress.io/ignore-path-case";
