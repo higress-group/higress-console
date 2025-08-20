@@ -31,7 +31,6 @@ import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
@@ -95,24 +94,6 @@ public class McpServerConfigMapHelper {
             updateMcpConfig2ConfigMap(configMap, mcpConfig);
         } catch (Exception e) {
             throw new BusinessException("Failed to update " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
-        }
-    }
-
-    /**
-     * Get Redis configuration from higress-config configmap If Redis address is a placeholder, throw
-     * ValidationException
-     *
-     * @return RedisConfig if configured, otherwise throw ValidationException
-     */
-    public McpServerConfigMap.RedisConfig getRedisConfig() {
-        try {
-
-            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
-            McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
-
-            return mcpConfig.getRedis();
-        } catch (Exception e) {
-            throw new ValidationException("Error occurred while validating Redis configuration: ", e);
         }
     }
 
