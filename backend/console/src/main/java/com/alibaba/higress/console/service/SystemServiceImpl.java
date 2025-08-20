@@ -299,7 +299,8 @@ public class SystemServiceImpl implements SystemService {
             if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
-            throw new BusinessException("Error occurs when replacing the " + KubernetesConstants.HIGRESS_CONFIG + " ConfigMap.", e);
+            throw new BusinessException(
+                "Error occurs when replacing the " + KubernetesConstants.HIGRESS_CONFIG + " ConfigMap.", e);
         }
 
         cleanUpConfigMap(updatedConfigMap);
