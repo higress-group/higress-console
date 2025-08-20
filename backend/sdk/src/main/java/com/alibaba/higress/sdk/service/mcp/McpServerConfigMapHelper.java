@@ -23,15 +23,15 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.alibaba.higress.sdk.exception.ValidationException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
+import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
@@ -59,7 +59,7 @@ public class McpServerConfigMapHelper {
     private static final String SERVERS_NAME_KEY = "name";
 
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
-            .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+        .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
 
     static {
         YAML.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -99,23 +99,23 @@ public class McpServerConfigMapHelper {
     }
 
     /**
-     * Get Redis configuration from higress-config configmap
-     * If Redis address is a placeholder, throw ValidationException
+     * Get Redis configuration from higress-config configmap If Redis address is a placeholder, throw
+     * ValidationException
      *
      * @return RedisConfig if configured, otherwise throw ValidationException
      */
     public McpServerConfigMap.RedisConfig getRedisConfig() {
         try {
-            
+
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
             McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
-            
+
             return mcpConfig.getRedis();
         } catch (Exception e) {
             throw new ValidationException("Error occurred while validating Redis configuration: ", e);
         }
     }
-    
+
     /**
      * get mcp config from higress-config configmap
      *
@@ -126,15 +126,13 @@ public class McpServerConfigMapHelper {
         try {
             if (configMap != null && configMap.getData() != null) {
                 String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
-                Map<String, Object> higressConfig = YAML.readValue(higressConfigYaml,
-                        new TypeReference<Map<String, Object>>() {
-                        });
+                Map<String, Object> higressConfig =
+                    YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
 
                 McpServerConfigMap mcpConfig = new McpServerConfigMap();
                 if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
                     mcpConfig = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
-                            new TypeReference<McpServerConfigMap>() {
-                            });
+                        new TypeReference<McpServerConfigMap>() {});
                 }
 
                 return mcpConfig;
@@ -147,8 +145,7 @@ public class McpServerConfigMapHelper {
     }
 
     /**
-     * update mcp config to higress-config configmap, Only update the match list and
-     * servers in mcp config.
+     * update mcp config to higress-config configmap, Only update the match list and servers in mcp config.
      *
      * @param configMap higress-config configmap
      * @param mcpConfig mcp config
@@ -159,27 +156,24 @@ public class McpServerConfigMapHelper {
             // to prevent manually configured fields from being cleared
 
             String higressConfigYaml = Objects.requireNonNull(configMap.getData()).get(MCP_CONFIG_KEY);
-            Map<String, Object> higressConfig = YAML.readValue(higressConfigYaml,
-                    new TypeReference<Map<String, Object>>() {
-                    });
+            Map<String, Object> higressConfig =
+                YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
 
             Map<String, Object> mcpConfigFromK8s = new HashMap<>();
             if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
                 mcpConfigFromK8s = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
-                        new TypeReference<Map<String, Object>>() {
-                        });
+                    new TypeReference<Map<String, Object>>() {});
             }
 
             // update match list
             List<Map<String, Object>> matchListsFromK8s = new LinkedList<>();
             if (Objects.nonNull(mcpConfigFromK8s.get(MATCH_LIST_KEY))) {
                 matchListsFromK8s = YAML.readValue(YAML.writeValueAsString(mcpConfigFromK8s.get(MATCH_LIST_KEY)),
-                        new TypeReference<List<Map<String, Object>>>() {
-                        });
+                    new TypeReference<List<Map<String, Object>>>() {});
             }
             boolean matchListUpdated = false;
             Map<String, Map<String, Object>> matchListsMapFromK8s = matchListsFromK8s.stream()
-                    .collect(Collectors.toMap(rule -> (String) rule.get(MATCH_RULE_PATH_KEY), v -> v));
+                .collect(Collectors.toMap(rule -> (String)rule.get(MATCH_RULE_PATH_KEY), v -> v));
             // add, update
             for (McpServerConfigMap.MatchList obj : mcpConfig.getMatchList()) {
                 Map<String, Object> matchListMapFromK8s = matchListsMapFromK8s.get(obj.getMatchRulePath());
@@ -189,10 +183,9 @@ public class McpServerConfigMapHelper {
             }
             // delete
             Set<String> matchListPathSet = mcpConfig.getMatchList().stream()
-                    .map(McpServerConfigMap.MatchList::getMatchRulePath).collect(Collectors.toSet());
+                .map(McpServerConfigMap.MatchList::getMatchRulePath).collect(Collectors.toSet());
             boolean matchListRemoved = matchListsFromK8s
-                    .removeIf(matchList -> !matchListPathSet
-                            .contains(String.valueOf(matchList.get(MATCH_RULE_PATH_KEY))));
+                .removeIf(matchList -> !matchListPathSet.contains(String.valueOf(matchList.get(MATCH_RULE_PATH_KEY))));
             if (matchListUpdated || matchListRemoved) {
                 mcpConfigFromK8s.put(MATCH_LIST_KEY, matchListsFromK8s);
             }
@@ -201,12 +194,11 @@ public class McpServerConfigMapHelper {
             List<Map<String, Object>> serversFromK8s = new LinkedList<>();
             if (Objects.nonNull(mcpConfigFromK8s.get(SERVERS_KEY))) {
                 serversFromK8s = YAML.readValue(YAML.writeValueAsString(mcpConfigFromK8s.get(SERVERS_KEY)),
-                        new TypeReference<List<Map<String, Object>>>() {
-                        });
+                    new TypeReference<List<Map<String, Object>>>() {});
             }
             // add, update
-            Map<String, Map<String, Object>> serversMapFromK8s = serversFromK8s.stream()
-                    .collect(Collectors.toMap(rule -> (String) rule.get(SERVERS_NAME_KEY), v -> v));
+            Map<String, Map<String, Object>> serversMapFromK8s =
+                serversFromK8s.stream().collect(Collectors.toMap(rule -> (String)rule.get(SERVERS_NAME_KEY), v -> v));
             boolean serversUpdated = false;
             for (McpServerConfigMap.Server obj : mcpConfig.getServers()) {
                 Map<String, Object> serverFromK8s = serversMapFromK8s.get(obj.getName());
@@ -215,10 +207,10 @@ public class McpServerConfigMapHelper {
                 serversUpdated = true;
             }
             // delete
-            Set<String> serversNameSet = mcpConfig.getServers().stream().map(McpServerConfigMap.Server::getName)
-                    .collect(Collectors.toSet());
+            Set<String> serversNameSet =
+                mcpConfig.getServers().stream().map(McpServerConfigMap.Server::getName).collect(Collectors.toSet());
             boolean serversRemoved = serversFromK8s
-                    .removeIf(server -> !serversNameSet.contains(String.valueOf(server.get(SERVERS_NAME_KEY))));
+                .removeIf(server -> !serversNameSet.contains(String.valueOf(server.get(SERVERS_NAME_KEY))));
             if (serversUpdated || serversRemoved) {
                 mcpConfigFromK8s.put(SERVERS_KEY, serversFromK8s);
             }
@@ -238,8 +230,7 @@ public class McpServerConfigMapHelper {
             matchList.removeIf(rule -> matchItem.getMatchRulePath().equals(rule.get(MATCH_RULE_PATH_KEY)));
             try {
                 String matchItemString = YAML.writeValueAsString(matchItem);
-                Map<String, Object> map = YAML.readValue(matchItemString, new TypeReference<Map<String, Object>>() {
-                });
+                Map<String, Object> map = YAML.readValue(matchItemString, new TypeReference<Map<String, Object>>() {});
                 matchList.add(map);
             } catch (JsonProcessingException e) {
                 throw new BusinessException("Error occurs when converting object to map: " + e.getMessage(), e);
@@ -252,14 +243,12 @@ public class McpServerConfigMapHelper {
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
             if (configMap != null && configMap.getData() != null) {
                 String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
-                Map<String, Object> higressConfig = YAML.readValue(higressConfigYaml,
-                        new TypeReference<Map<String, Object>>() {
-                        });
+                Map<String, Object> higressConfig =
+                    YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
                 Map<String, Object> mcpConfig = new HashMap<>();
                 if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
                     mcpConfig = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
-                            new TypeReference<Map<String, Object>>() {
-                            });
+                        new TypeReference<Map<String, Object>>() {});
                 }
                 List<Map<String, Object>> matchList = getExistMatchListValue(mcpConfig);
                 updateFunction.accept(matchList);
@@ -280,8 +269,7 @@ public class McpServerConfigMapHelper {
         if (Objects.nonNull(mcpConfig.get(MATCH_LIST_KEY))) {
             try {
                 return YAML.readValue(YAML.writeValueAsString(mcpConfig.get(MATCH_LIST_KEY)),
-                        new TypeReference<List<Map<String, Object>>>() {
-                        });
+                    new TypeReference<List<Map<String, Object>>>() {});
             } catch (JsonProcessingException e) {
                 throw new BusinessException("parse configMap:higress-config match_list failed!");
             }
@@ -297,13 +285,12 @@ public class McpServerConfigMapHelper {
             }
 
             String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
-            Map<String, Object> higressConfig = YAML.readValue(higressConfigYaml,
-                    new TypeReference<Map<String, Object>>() {
-                    });
+            Map<String, Object> higressConfig =
+                YAML.readValue(higressConfigYaml, new TypeReference<Map<String, Object>>() {});
             McpServerConfigMap mcpConfig;
             if (Objects.nonNull(higressConfig.get(MCP_SERVER_KEY))) {
                 mcpConfig = YAML.readValue(YAML.writeValueAsString(higressConfig.get(MCP_SERVER_KEY)),
-                        McpServerConfigMap.class);
+                    McpServerConfigMap.class);
             } else {
                 mcpConfig = new McpServerConfigMap();
             }
