@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.model.mcp;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class McpServerConfigMap {
     @JsonProperty("match_list")
     private List<MatchList> matchList;
 
-    private List<Server> servers;
+    private List<Server> servers = Collections.emptyList();
 
     @Data
     public static class RedisConfig {
