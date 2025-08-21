@@ -37,7 +37,7 @@ public enum McpServerDBTypeEnum {
     /**
      * PostgreSQL
      */
-    POSTGRESQL("postgresql"),
+    POSTGRESQL("postgres"),
 
     /**
      * SQLite
