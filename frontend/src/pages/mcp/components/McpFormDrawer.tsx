@@ -65,13 +65,35 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         form.resetFields();
       } else {
         if (record && record.dsn) {
-          const match = record.dsn.match(REG_DSN_STRING.DEFAULT);
-          if (match) {
-            form.setFieldsValue({
-              db_user_name: match[1],
-              db_password: match[2],
-              db_database: match[5],
-            });
+          const type = record?.dbType;
+          let m: RegExpMatchArray | null = null;
+          if (type === 'MYSQL') {
+            m = record.dsn.match(REG_DSN_STRING.MYSQL);
+            if (m) {
+              form.setFieldsValue({
+                db_user_name: m[1],
+                db_password: m[2],
+                db_database: m[5],
+              });
+            }
+          } else if (type === 'POSTGRESQL') {
+            m = record.dsn.match(REG_DSN_STRING.POSTGRESQL);
+            if (m) {
+              form.setFieldsValue({
+                db_user_name: m[1],
+                db_password: m[2],
+                db_database: m[5],
+              });
+            }
+          } else if (type === 'CLICKHOUSE') {
+            m = record.dsn.match(REG_DSN_STRING.CLICKHOUSE);
+            if (m) {
+              form.setFieldsValue({
+                db_user_name: m[4],
+                db_password: m[5],
+                db_database: m[3],
+              });
+            }
           }
         }
         form.setFieldsValue({
@@ -331,7 +353,20 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
               {
                 required: true,
                 validator: (_, value) => {
-                  if (!value || !value.match(REG_DSN_STRING.DEFAULT)) {
+                  const values = form.getFieldsValue();
+                  const type = values?.db_type;
+                  if (!value) {
+                    return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
+                  }
+                  let valid = false;
+                  if (type === 'MYSQL') {
+                    valid = REG_DSN_STRING.MYSQL.test(value);
+                  } else if (type === 'POSTGRESQL') {
+                    valid = REG_DSN_STRING.POSTGRESQL.test(value);
+                  } else if (type === 'CLICKHOUSE') {
+                    valid = REG_DSN_STRING.CLICKHOUSE.test(value);
+                  }
+                  if (!valid) {
                     return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
                   }
                   return Promise.resolve();
