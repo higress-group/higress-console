@@ -12,9 +12,11 @@
  */
 package com.alibaba.higress.sdk.model;
 
+import java.beans.Transient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -24,6 +26,7 @@ import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -39,6 +42,9 @@ import lombok.NoArgsConstructor;
 public class ServiceSource implements VersionedDto {
 
     private static final Map<String, ServiceSourceValidator> VALIDATORS = new HashMap<>();
+
+    private static final Set<String> PROXY_SUPPORTED_REGISTRY_TYPES =
+        ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
 
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
@@ -78,6 +84,9 @@ public class ServiceSource implements VersionedDto {
     @Schema(description = "Service source SNI. Used in static and dns types when TLS is enabled.")
     private String sni;
 
+    @Schema(description = "Proxy server name. Only supported in static and dns types.")
+    private String proxyName;
+
     @Schema(description = "Service source extra properties, depending on the type.\n"
         + "For nacos/nacos2/nacos3: nacosGroups, nacosNamespaceId\n"
         + "For MCP supported types (e.g. nacos3): enableMCPServer, mcpServerBaseUrl, mcpServerExportDomains\n"
@@ -87,6 +96,7 @@ public class ServiceSource implements VersionedDto {
     @Schema(description = "Service source authentication config")
     private ServiceSourceAuthN authN;
 
+    @Transient
     public boolean isValid() {
         if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
             return false;
@@ -106,6 +116,10 @@ public class ServiceSource implements VersionedDto {
 
         ServiceSourceValidator validator = VALIDATORS.get(this.getType());
         if (validator != null && !validator.validate(this)) {
+            return false;
+        }
+
+        if (StringUtils.isNotEmpty(proxyName) && !PROXY_SUPPORTED_REGISTRY_TYPES.contains(this.getType())) {
             return false;
         }
 
@@ -138,12 +152,12 @@ public class ServiceSource implements VersionedDto {
             if (!(rawExportDomains instanceof List)) {
                 return false;
             }
-            List<?> exportDomains = (List<?>) rawExportDomains;
+            List<?> exportDomains = (List<?>)rawExportDomains;
             for (Object rawExportDomain : exportDomains) {
                 if (!(rawExportDomain instanceof String)) {
                     return false;
                 }
-                String exportDomain = (String) rawExportDomain;
+                String exportDomain = (String)rawExportDomain;
                 if (!ValidateUtil.checkDomain(exportDomain)) {
                     return false;
                 }
@@ -154,7 +168,7 @@ public class ServiceSource implements VersionedDto {
         if (!(rawServerBaseUrl instanceof String)) {
             return false;
         }
-        String serverBaseUrl= (String) rawServerBaseUrl;
+        String serverBaseUrl = (String)rawServerBaseUrl;
         if (!ValidateUtil.checkUrlPath(serverBaseUrl)) {
             return false;
         }

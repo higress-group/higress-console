@@ -13,6 +13,7 @@
 
 package com.alibaba.higress.sdk.service.kubernetes;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +64,7 @@ import com.alibaba.higress.sdk.util.TypeUtil;
 import com.google.common.collect.Lists;
 
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
@@ -81,8 +84,10 @@ public class KubernetesModelConverterTest {
 
     private KubernetesModelConverter converter;
 
+    private final String httpsDomain = "higress.ai";
+
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ApiException {
         final Predicate<V1ObjectMeta> isDefinedByConsole = metadata -> metadata != null
             && DEFAULT_NAMESPACE.equals(metadata.getNamespace()) && KubernetesConstants.Label.RESOURCE_DEFINER_VALUE
                 .equals(KubernetesUtil.getLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY));
@@ -94,6 +99,20 @@ public class KubernetesModelConverterTest {
         });
         when(service.isDefinedByConsole(any(V1ObjectMeta.class)))
             .thenAnswer((Answer<Boolean>)invocation -> isDefinedByConsole.test(invocation.getArgument(0)));
+        V1ConfigMap httpsForceConfigmap = mock(V1ConfigMap.class);
+        Map<String, String> httpsForceData = new HashMap<>();
+        httpsForceData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "force");
+        httpsForceData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsForceConfigmap.getData()).thenReturn(httpsForceData);
+        when(service.readConfigMap(eq("domain-" + httpsDomain))).thenReturn(httpsForceConfigmap);
+
+        V1ConfigMap httpsOnConfigMap = mock(V1ConfigMap.class);
+        Map<String, String> httpsOnData = new HashMap<>();
+        httpsOnData.put(KubernetesConstants.K8S_ENABLE_HTTPS, "on");
+        httpsOnData.put(KubernetesConstants.K8S_CERT, "cert");
+        when(httpsOnConfigMap.getData()).thenReturn(httpsOnData);
+        when(service.readConfigMap(eq("domain-" + httpsDomain + "-on"))).thenReturn(httpsOnConfigMap);
+
         converter = new KubernetesModelConverter(service);
     }
 
@@ -389,16 +408,6 @@ public class KubernetesModelConverterTest {
     }
 
     @Test
-    void route2IngressTestMultipleDomainsThrowsException() {
-        Route route = new Route();
-        route.setDomains(Collections.singletonList("higress.cn"));
-        route.setPath(RoutePredicate.builder().matchType("exact").matchValue("/test").build());
-        route.setServices(Collections.singletonList(new UpstreamService()));
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
-    }
-
-    @Test
     void route2IngressTestInvalidPathMatchTypeThrowsException() {
         Route route = new Route();
         route.setDomains(Collections.singletonList("higress.cn"));
@@ -406,6 +415,51 @@ public class KubernetesModelConverterTest {
         route.setServices(Collections.singletonList(new UpstreamService()));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> converter.route2Ingress(route));
+    }
+
+    @Test
+    void route2IngressTestMultipleDomains() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add("higress.cn");
+        domains.add("higress.com");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        V1Ingress ingress = converter.route2Ingress(route);
+        Assertions.assertEquals(2, ingress.getSpec().getRules().size());
+        Assertions.assertNull(ingress.getSpec().getTls());
+    }
+
+    @Test
+    void route2IngressTestMultipleDomainsWithDifferentProtocol() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add("higress.cn");
+        domains.add(httpsDomain);
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        ValidationException exception =
+            Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("Currently only supports domains with the same protocol", exception.getMessage());
+    }
+
+    @Test
+    void route2IngressTestMultipleDomainsWithDifferentHttpsConfiguration() {
+        Route route = new Route();
+        List<String> domains = new ArrayList<>();
+        domains.add(httpsDomain);
+        domains.add(httpsDomain + "-on");
+        route.setDomains(domains);
+        route.setPath(RoutePredicate.builder().matchType("EQUAL").matchValue("/test").build());
+        route.setServices(Collections.singletonList(new UpstreamService()));
+
+        ValidationException exception =
+            Assertions.assertThrows(ValidationException.class, () -> converter.route2Ingress(route));
+        Assertions.assertEquals("All domains must use consistent HTTPS configuration", exception.getMessage());
     }
 
     @Test
@@ -1503,8 +1557,8 @@ public class KubernetesModelConverterTest {
         List<V1RegistryConfig> registries = new ArrayList<>();
         spec.setRegistries(registries);
 
-        ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
+            null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1528,8 +1582,8 @@ public class KubernetesModelConverterTest {
         registries.add(existingRegistry);
         spec.setRegistries(registries);
 
-        ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
+            null, "", new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1559,8 +1613,8 @@ public class KubernetesModelConverterTest {
     public void addV1McpBridgeRegistryTestNullSpecShouldCreateSpecAndAddRegistry() {
         V1McpBridge v1McpBridge = new V1McpBridge();
 
-        ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
+            null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1576,8 +1630,8 @@ public class KubernetesModelConverterTest {
         V1McpBridgeSpec spec = new V1McpBridgeSpec();
         v1McpBridge.setSpec(spec);
 
-        ServiceSource serviceSource =
-            new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
+            null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1700,7 +1754,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertNotNull(route);
         Assertions.assertEquals("test-ingress", route.getName());
         Assertions.assertEquals("1", route.getVersion());
-        Assertions.assertEquals(null, route.getDomains());
+        Assertions.assertTrue(CollectionUtils.isEmpty(route.getDomains()));
     }
 
     @Test

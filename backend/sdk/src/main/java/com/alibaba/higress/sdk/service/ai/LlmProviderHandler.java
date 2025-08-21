@@ -38,11 +38,24 @@ interface LlmProviderHandler {
      */
     void normalizeConfigs(Map<String, Object> configurations);
 
+    String getServiceSourceName(String providerName);
+
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
 
-    default List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig, boolean forDelete) {
+    default List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig,
+        boolean forDelete) {
         return null;
     }
 
     UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig);
+
+    /**
+     * For some LLM providers, the upstream service name may change after an update. So we need to sync the
+     * configuration of related AI routes after updating a provider.
+     * 
+     * @return true if a sync is required.
+     */
+    default boolean needSyncRouteAfterUpdate() {
+        return false;
+    }
 }

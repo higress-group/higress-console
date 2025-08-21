@@ -3,7 +3,10 @@ import { Select, message, Button } from 'antd';
 import { useSearchParams } from 'ice';
 import { CLIENT_MAP } from '../constant';
 import { useTranslation, Trans } from 'react-i18next';
-import MonacoEditor from '@monaco-editor/react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
+
+loader.config({ monaco });
 
 interface McpServerCommandProps {
   mode: 'streamableHttp' | 'sse';

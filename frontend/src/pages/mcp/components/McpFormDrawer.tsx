@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Drawer, Form, Input, Button, Space, Select, Switch } from 'antd';
-import { useTranslation, Trans } from 'react-i18next';
-import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, REG_DSN_STRING } from '../constant';
-import { getGatewayDomains } from '@/services/domain';
-import { getGatewayServices } from '@/services/service';
-import { useWatch } from 'antd/es/form/Form';
-import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
-import { getMcpServer } from '@/services/mcp';
-import { history } from 'ice';
-import { getConsumers } from '@/services/consumer';
+import { CredentialType } from '@/interfaces/consumer';
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
+import { getConsumers } from '@/services/consumer';
+import { getGatewayDomains } from '@/services/domain';
+import { getMcpServer } from '@/services/mcp';
+import { getGatewayServices } from '@/services/service';
 import { RedoOutlined } from '@ant-design/icons';
+import { Button, Drawer, Form, Input, Select, Space, Switch } from 'antd';
+import { useWatch } from 'antd/es/form/Form';
+import React, { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import { getServiceTypeMap, REG_DSN_STRING, SERVICE_TYPE, SERVICE_TYPES } from '../constant';
+import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -187,7 +187,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         : {}),
       consumerAuthInfo: {
         enable: values.consumerAuth,
-        type: 'API_KEY',
+        type: CredentialType.KEY_AUTH.key,
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
         allowedConsumers: values.allowedConsumers || [],
       },
@@ -373,62 +373,52 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           name="consumerAuth"
           valuePropName="checked"
         >
-          <Switch
-            onChange={(value) => {
-              form.setFieldsValue({
-                consumerAuth: value,
-                authType: value ? 'key-auth' : undefined,
-                allowedConsumers: value ? form.getFieldValue('allowedConsumers') : undefined,
-              });
-            }}
-          />
+          <Switch />
         </Form.Item>
 
-        {form.getFieldValue('consumerAuth') && (
-          <>
+        <Form.Item
+          label={t('misc.authType')}
+          name="authType"
+          initialValue={CredentialType.KEY_AUTH.key}
+          extra={t('misc.keyAuthOnlyTip')}
+        >
+          <Select disabled>
+            {
+              Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+                <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
+              ))
+            }
+          </Select>
+        </Form.Item>
+        <Form.Item
+          label={t('mcp.form.allowedConsumers')}
+          extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Form.Item
-              label={t('misc.authType')}
-              name="authType"
-              initialValue="key-auth"
-              extra={t('misc.keyAuthOnlyTip')}
+              name="allowedConsumers"
+              noStyle
             >
-              <Select disabled>
-                <Select.Option value="key-auth">Key Auth</Select.Option>
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('mcp.form.allowedConsumersPlaceholder')}
+                style={{ flex: 1 }}
+              >
+                {consumerList.map((item) => (
+                  <Select.Option key={item.name} value={item.name}>
+                    {item.name}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
-            <Form.Item
-              required
-              label={t('mcp.form.allowedConsumers')}
-              extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Form.Item
-                  name="allowedConsumers"
-                  noStyle
-                  rules={[{ required: true, message: t('mcp.form.allowedConsumersRequired') }]}
-                >
-                  <Select
-                    mode="multiple"
-                    allowClear
-                    placeholder={t('mcp.form.allowedConsumersPlaceholder')}
-                    style={{ flex: 1 }}
-                  >
-                    {consumerList.map((item) => (
-                      <Select.Option key={item.name} value={item.name}>
-                        {item.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Button
-                  style={{ marginLeft: 8 }}
-                  onClick={() => getConsumers().then((res) => setConsumerList(res || []))}
-                  icon={<RedoOutlined />}
-                />
-              </div>
-            </Form.Item>
-          </>
-        )}
+            <Button
+              style={{ marginLeft: 8 }}
+              onClick={() => getConsumers().then((res) => setConsumerList(res || []))}
+              icon={<RedoOutlined />}
+            />
+          </div>
+        </Form.Item>
       </Form>
     </Drawer>
   );

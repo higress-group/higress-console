@@ -26,6 +26,4 @@ public class McpServerConsumerDetail {
     private String mcpServerName;
     @Schema(description = "Consumer name")
     private String consumerName;
-    @Schema(description = "Consumer type")
-    private String type;
 }

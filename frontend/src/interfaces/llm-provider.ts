@@ -3,6 +3,7 @@ export interface LlmProvider {
   name: string;
   type: string;
   protocol?: string;
+  proxyName?: string;
   tokens: string[];
   tokenFailoverConfig?: TokeFailoverConfig;
 }

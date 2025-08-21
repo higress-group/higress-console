@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.util.MapUtil;
 
@@ -107,5 +108,28 @@ public class WasmPluginInstance implements VersionedDto {
         }
         targets.put(scope, target);
         syncDeprecatedFields();
+    }
+
+    public void validate() {
+        if (MapUtils.isEmpty(targets)) {
+            throw new IllegalArgumentException("instance.targets cannot be empty.");
+        }
+        if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
+            if (targets.size() > 1) {
+                throw new IllegalArgumentException(
+                        "instance.targets cannot contain GLOBAL and other scopes at the same time.");
+            }
+            String target = targets.get(WasmPluginInstanceScope.GLOBAL);
+            if (target != null) {
+                throw new IllegalArgumentException("instance.target must be empty when scope is GLOBAL.");
+            }
+        } else {
+            for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
+                if (StringUtils.isEmpty(entry.getValue())) {
+                    throw new IllegalArgumentException(
+                            "instance.target must not be null or empty when scope is not GLOBAL.");
+                }
+            }
+        }
     }
 }

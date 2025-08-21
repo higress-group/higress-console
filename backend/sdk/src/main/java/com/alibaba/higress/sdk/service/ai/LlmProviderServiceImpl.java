@@ -18,6 +18,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVI
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
+import com.alibaba.higress.sdk.model.ai.AiRoute;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
@@ -45,6 +47,8 @@ import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.util.MapUtil;
+
+import lombok.Setter;
 
 @SuppressWarnings("unchecked")
 public class LlmProviderServiceImpl implements LlmProviderService {
@@ -86,6 +90,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     private final ServiceSourceService serviceSourceService;
     private final WasmPluginInstanceService wasmPluginInstanceService;
+    @Setter
+    private AiRouteService aiRouteService;
 
     public LlmProviderServiceImpl(ServiceSourceService serviceSourceService,
         WasmPluginInstanceService wasmPluginInstanceService) {
@@ -150,11 +156,13 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
+        serviceSource.setProxyName(provider.getProxyName());
 
         List<ServiceSource> extraServiceSources =
             handler.getExtraServiceSources(provider.getName(), providerConfig, false);
         if (CollectionUtils.isNotEmpty(extraServiceSources)) {
             for (ServiceSource extraSource : extraServiceSources) {
+                extraSource.setProxyName(provider.getProxyName());
                 serviceSourceService.addOrUpdate(extraSource);
             }
         }
@@ -172,6 +180,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         wasmPluginInstanceService.addOrUpdate(instance);
         serviceSourceService.addOrUpdate(serviceSource);
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
+
+        if (handler.needSyncRouteAfterUpdate()) {
+            syncRelatedAiRoutes(provider);
+        }
 
         return query(provider.getName());
     }
@@ -272,6 +284,28 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         return handler.buildUpstreamService(provider.getName(), provider.getRawConfigs());
     }
 
+    private void syncRelatedAiRoutes(LlmProvider provider) {
+        AiRouteService aiRouteService = this.aiRouteService;
+        if (aiRouteService == null) {
+            return;
+        }
+
+        PaginatedResult<AiRoute> aiRoutes = aiRouteService.list(null);
+        if (aiRoutes == null || CollectionUtils.isEmpty(aiRoutes.getData())) {
+            return;
+        }
+
+        String providerName = provider.getName();
+        for (AiRoute aiRoute : aiRoutes.getData()) {
+            if (CollectionUtils.isEmpty(aiRoute.getUpstreams())) {
+                continue;
+            }
+            if (aiRoute.getUpstreams().stream().anyMatch(u -> providerName.equals(u.getProvider()))) {
+                aiRouteService.update(aiRoute);
+            }
+        }
+    }
+
     private SortedMap<String, LlmProvider> getProviders() {
         WasmPluginInstance instance =
             wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.AI_PROXY, true);
@@ -297,6 +331,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             }
             providers.put(provider.getName(), provider);
         }
+        fillProxyInfo(providers.values());
         return providers;
     }
 
@@ -317,6 +352,30 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             return null;
         }
         return provider;
+    }
+
+    private void fillProxyInfo(Collection<LlmProvider> providers) {
+        if (CollectionUtils.isEmpty(providers)) {
+            return;
+        }
+        PaginatedResult<ServiceSource> serviceSources = serviceSourceService.list(null);
+        if (serviceSources == null || CollectionUtils.isEmpty(serviceSources.getData())) {
+            return;
+        }
+
+        Map<String, ServiceSource> serviceSourceMap =
+            serviceSources.getData().stream().collect(Collectors.toMap(ServiceSource::getName, s -> s));
+        for (LlmProvider provider : providers) {
+            LlmProviderHandler handler = PROVIDER_HANDLERS.get(provider.getType());
+            if (handler == null) {
+                continue;
+            }
+            String serviceSourceName = handler.getServiceSourceName(provider.getName());
+            ServiceSource serviceSource = serviceSourceMap.get(serviceSourceName);
+            if (serviceSource != null) {
+                provider.setProxyName(serviceSource.getProxyName());
+            }
+        }
     }
 
     private static void fillDefaultValues(LlmProvider provider) {

@@ -21,6 +21,105 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        scene:
+          type: object
+          title: 场景配置
+          description: 意图识别场景相关配置
+          x-title-i18n:
+            en-US: Scene Configuration
+          x-description-i18n:
+            en-US: Intent recognition scene related configuration
+          required:
+            - category
+          properties:
+            category:
+              type: string
+              title: 预设场景类别
+              description: 预设场景类别，以'|'分割，如：'金融|电商|法律|Higress'
+              x-title-i18n:
+                en-US: Preset Scene Categories
+              x-description-i18n:
+                en-US: "Preset scene categories, separated by |, e.g.: Finance|E-commerce|Law|Higress"
+            prompt:
+              type: string
+              title: LLM请求prompt模板
+              description: llm请求prompt模板
+              x-title-i18n:
+                en-US: LLM Request Prompt Template
+              x-description-i18n:
+                en-US: llm request prompt template
+              default: "你是一个智能类别识别助手，负责根据用户提出的问题和预设的类别，确定问题属于哪个预设的类别，并给出相应的类别。用户提出的问题为:%s,预设的类别为%s，直接返回一种具体类别，如果没有找到就返回'NotFound'。"
+        llm:
+          type: object
+          title: 大模型配置
+          description: 大模型服务相关配置
+          x-title-i18n:
+            en-US: Large Model Configuration
+          x-description-i18n:
+            en-US: Large model service related configuration
+          required:
+            - proxyServiceName
+            - proxyUrl
+          properties:
+            proxyServiceName:
+              type: string
+              title: 大模型服务名称
+              description: 新建的higress服务，指向大模型 (取higress中的 FQDN 值)
+              x-title-i18n:
+                en-US: Large Model Service Name
+              x-description-i18n:
+                en-US: Newly created Higress service pointing to the large model (use the FQDN value from Higress)
+            proxyUrl:
+              type: string
+              title: 大模型路由地址
+              description: 大模型路由请求地址全路径，可以是网关自身的地址，也可以是其他大模型的地址（openai协议），例如：http://127.0.0.1:80/intent/compatible-mode/v1/chat/completions
+              x-title-i18n:
+                en-US: Large Model Route Address
+              x-description-i18n:
+                en-US: The full path to the large model route request address, which can be the gateway's own address or the address of another large model (OpenAI protocol)
+            proxyDomain:
+              type: string
+              title: 大模型服务域名
+              description: 大模型服务的domain
+              x-title-i18n:
+                en-US: Large Model Service Domain
+              x-description-i18n:
+                en-US: Domain of the large model service
+            proxyPort:
+              type: string
+              title: 大模型服务端口
+              description: 大模型服务端口号
+              x-title-i18n:
+                en-US: Large Model Service Port
+              x-description-i18n:
+                en-US: Port number of the large model service
+            proxyApiKey:
+              type: string
+              title: 大模型API密钥
+              description: 当使用外部大模型服务时需配置对应大模型的 API_KEY
+              x-title-i18n:
+                en-US: Large Model API Key
+              x-description-i18n:
+                en-US: API_KEY corresponding to the external large model service when using it
+            proxyModel:
+              type: string
+              title: 大模型类型
+              description: 大模型类型
+              x-title-i18n:
+                en-US: Large Model Type
+              x-description-i18n:
+                en-US: Type of the large model
+              default: "qwen-long"
+            proxyTimeout:
+              type: number
+              title: 大模型调用超时时间
+              description: 调用大模型超时时间，单位ms
+              x-title-i18n:
+                en-US: Large Model Call Timeout
+              x-description-i18n:
+                en-US: Timeout for calling the large model, unit ms
+              default: 10000
       example:
         scene:
           category: "金融|电商|法律|Higress"
@@ -36,6 +135,105 @@ spec:
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        scene:
+          type: object
+          title: 场景配置
+          description: 意图识别场景相关配置
+          x-title-i18n:
+            en-US: Scene Configuration
+          x-description-i18n:
+            en-US: Intent recognition scene related configuration
+          required:
+            - category
+          properties:
+            category:
+              type: string
+              title: 预设场景类别
+              description: 预设场景类别，以'|'分割，如：'金融|电商|法律|Higress'
+              x-title-i18n:
+                en-US: Preset Scene Categories
+              x-description-i18n:
+                en-US: "Preset scene categories, separated by |, e.g.: Finance|E-commerce|Law|Higress"
+            prompt:
+              type: string
+              title: LLM请求prompt模板
+              description: llm请求prompt模板
+              x-title-i18n:
+                en-US: LLM Request Prompt Template
+              x-description-i18n:
+                en-US: llm request prompt template
+              default: "你是一个智能类别识别助手，负责根据用户提出的问题和预设的类别，确定问题属于哪个预设的类别，并给出相应的类别。用户提出的问题为:%s,预设的类别为%s，直接返回一种具体类别，如果没有找到就返回'NotFound'。"
+        llm:
+          type: object
+          title: 大模型配置
+          description: 大模型服务相关配置
+          x-title-i18n:
+            en-US: Large Model Configuration
+          x-description-i18n:
+            en-US: Large model service related configuration
+          required:
+            - proxyServiceName
+            - proxyUrl
+          properties:
+            proxyServiceName:
+              type: string
+              title: 大模型服务名称
+              description: 新建的higress服务，指向大模型 (取higress中的 FQDN 值)
+              x-title-i18n:
+                en-US: Large Model Service Name
+              x-description-i18n:
+                en-US: Newly created Higress service pointing to the large model (use the FQDN value from Higress)
+            proxyUrl:
+              type: string
+              title: 大模型路由地址
+              description: 大模型路由请求地址全路径，可以是网关自身的地址，也可以是其他大模型的地址（openai协议），例如：http://127.0.0.1:80/intent/compatible-mode/v1/chat/completions
+              x-title-i18n:
+                en-US: Large Model Route Address
+              x-description-i18n:
+                en-US: The full path to the large model route request address, which can be the gateway's own address or the address of another large model (OpenAI protocol)
+            proxyDomain:
+              type: string
+              title: 大模型服务域名
+              description: 大模型服务的domain
+              x-title-i18n:
+                en-US: Large Model Service Domain
+              x-description-i18n:
+                en-US: Domain of the large model service
+            proxyPort:
+              type: string
+              title: 大模型服务端口
+              description: 大模型服务端口号
+              x-title-i18n:
+                en-US: Large Model Service Port
+              x-description-i18n:
+                en-US: Port number of the large model service
+            proxyApiKey:
+              type: string
+              title: 大模型API密钥
+              description: 当使用外部大模型服务时需配置对应大模型的 API_KEY
+              x-title-i18n:
+                en-US: Large Model API Key
+              x-description-i18n:
+                en-US: API_KEY corresponding to the external large model service when using it
+            proxyModel:
+              type: string
+              title: 大模型类型
+              description: 大模型类型
+              x-title-i18n:
+                en-US: Large Model Type
+              x-description-i18n:
+                en-US: Type of the large model
+              default: "qwen-long"
+            proxyTimeout:
+              type: number
+              title: 大模型调用超时时间
+              description: 调用大模型超时时间，单位ms
+              x-title-i18n:
+                en-US: Large Model Call Timeout
+              x-description-i18n:
+                en-US: Timeout for calling the large model, unit ms
+              default: 10000
       example:
         scene:
           category: "金融|电商|法律|Higress"

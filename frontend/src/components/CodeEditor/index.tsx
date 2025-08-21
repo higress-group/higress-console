@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import * as monaco from 'monaco-editor';
 import Editor, { loader } from '@monaco-editor/react';
 
@@ -10,7 +10,11 @@ export interface IProps {
   defaultLanguage?: string;
 }
 
-const CodeEditor: React.FC<IProps> = (props) => {
+export interface CodeEditorRef {
+  pushContent: (content: string) => void;
+}
+
+const CodeEditor = forwardRef((props: IProps, ref) => {
   const { defaultValue, onChange, extraOptions, editorHeight, defaultLanguage } = props;
   loader.config({ monaco });
 
@@ -35,6 +39,23 @@ const CodeEditor: React.FC<IProps> = (props) => {
     }
   }, [defaultValue]);
 
+  useImperativeHandle(ref, () => {
+    return {
+      pushContent: (content: string) => {
+        const editor = editorRef.current;
+        if (!editor) {
+          console.warn("Editor instance is not available.");
+          return;
+        }
+        console.log("Pushing content to editor:", content);
+        editor.executeEdits('', [{
+          range: editor.getModel().getFullModelRange(),
+          text: content,
+        }]);
+      },
+    };
+  });
+
   return (
     <div className="editor-container">
       <Editor
@@ -54,6 +75,6 @@ const CodeEditor: React.FC<IProps> = (props) => {
       />
     </div>
   );
-};
+});
 
 export default CodeEditor;

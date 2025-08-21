@@ -23,12 +23,50 @@ spec:
   configSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        suffix:
+          type: string
+          title: File Extensions
+          x-title-i18n:
+            zh-CN: 文件后缀
+          description: The file extensions to match, such as jpg, png, etc. If multiple extensions are needed, separate them with |, for example png|jpg. If not specified, it matches all extensions.
+          x-description-i18n:
+            zh-CN: 配置用于匹配的请求文件后缀，例如 jpg、png 等。如果需要匹配多种后缀，需要用 | 进行分割，例如 png|jpg。如果不填写，表示匹配所有后缀。
+        expires:
+          type: string
+          title: Cache Duration
+          x-title-i18n:
+            zh-CN: 缓存时间
+          description: The maximum caching time. When the input string is a number, the unit is seconds; for example, if you want to cache for 1 hour, enter 3600. You can also enter epoch or max, with the same semantics as in nginx.
+          x-description-i18n:
+            zh-CN: 配置缓存的最大时间。当填入的字符串为数字时，单位为秒，例如需要缓存1小时，需填写 3600。另外，还可以填写 epoch 或 max，与 nginx 中语义相同。
+      required:
+        - expires
       example:
         suffix: jpg|png|jpeg
         expires: 3600
   routeConfigSchema:
     openAPIV3Schema:
       type: object
+      properties:
+        suffix:
+          type: string
+          title: File Extensions
+          x-title-i18n:
+            zh-CN: 文件后缀
+          description: The file extensions to match, such as jpg, png, etc. If multiple extensions are needed, separate them with |, for example png|jpg. If not specified, it matches all extensions.
+          x-description-i18n:
+            zh-CN: 配置用于匹配的请求文件后缀，例如 jpg、png 等。如果需要匹配多种后缀，需要用 | 进行分割，例如 png|jpg。如果不填写，表示匹配所有后缀。
+        expires:
+          type: string
+          title: Cache Duration
+          x-title-i18n:
+            zh-CN: 缓存时间
+          description: The maximum caching time. When the input string is a number, the unit is seconds; for example, if you want to cache for 1 hour, enter 3600. You can also enter epoch or max, with the same semantics as in nginx.
+          x-description-i18n:
+            zh-CN: 配置缓存的最大时间。当填入的字符串为数字时，单位为秒，例如需要缓存1小时，需填写 3600。另外，还可以填写 epoch 或 max，与 nginx 中语义相同。
+      required:
+        - expires
       example:
         suffix: jpg|png|jpeg
         expires: 3600

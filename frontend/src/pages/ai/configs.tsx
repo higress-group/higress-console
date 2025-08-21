@@ -667,7 +667,7 @@ export const aiModelProviders = [
     },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.vertexRegion;
-      return region && [`${region}-aiplatform.googleapis.com`] || [];
+      return region && [`https://${region}-aiplatform.googleapis.com`] || [];
     },
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
@@ -45,6 +48,8 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.google.common.collect.Lists;
+
+import io.kubernetes.client.openapi.ApiException;
 
 public class WasmPluginInstanceServiceTest {
 
@@ -370,6 +375,78 @@ public class WasmPluginInstanceServiceTest {
         Assertions.assertNotEquals(instance.getEnabled(), cr.getSpec().getDefaultConfigDisable());
         Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
         Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));
+    }
+
+    @Test
+    public void addOrUpdateAllTestEmptyInput() {
+        List<WasmPluginInstance> result = service.addOrUpdateAll(Collections.emptyList());
+        Assertions.assertTrue(result.isEmpty(), "Result should be empty for empty input.");
+    }
+
+    @Test
+    public void addOrUpdateAllTestMultipleInstances() throws Exception {
+        WasmPluginInstance instance1 = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .configurations(MapUtil.of("k1", "v1")).internal(false).build();
+
+        WasmPluginInstance instance2 = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.DOMAIN, "www.example.com"))
+            .enabled(false).configurations(MapUtil.of("k2", "v2")).internal(false).build();
+
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString()))
+            .thenReturn(Lists.newArrayList(existedCr));
+
+        List<WasmPluginInstance> result = service.addOrUpdateAll(Lists.newArrayList(instance1, instance2));
+
+        Assertions.assertEquals(2, result.size(), "Result should contain two updated instances.");
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(any());
+    }
+
+    @Test
+    public void addOrUpdateAllTestVersionMismatch() {
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion("2.0.0").targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
+
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            service.addOrUpdateAll(Lists.newArrayList(instance));
+        });
+
+        Assertions.assertTrue(
+            exception.getMessage().contains("Add operation is only allowed for the current plugin version."));
+    }
+
+    @Test
+    public void addOrUpdateAllTestConfigurationParsingFailure() throws Exception {
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .rawConfigurations("invalid_yaml").internal(false).build();
+
+        ValidationException exception = Assertions.assertThrows(ValidationException.class, () -> {
+            service.addOrUpdateAll(Lists.newArrayList(instance));
+        });
+
+        Assertions.assertTrue(exception.getMessage().contains("Error occurs when parsing raw configurations"));
+    }
+
+    @Test
+    public void addOrUpdateAllTestUpdateFailure() throws Exception {
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .configurations(MapUtil.of("k", "v")).internal(false).build();
+
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString()))
+            .thenReturn(Lists.newArrayList(existedCr));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenThrow(new ApiException("Update failed"));
+
+        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> {
+            service.addOrUpdateAll(Lists.newArrayList(instance));
+        });
+
+        Assertions
+            .assertTrue(exception.getMessage().contains("Error occurs when adding or updating the WasmPlugin CR"));
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
