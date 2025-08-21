@@ -1,0 +1,41 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: ai
+  image: platform_wasm/ai-load-balancer
+  name: ai-load-balancer
+  title: AI LOAD BALANCER
+  x-title-i18n:
+    zh-CN: AI 负载均衡
+  description: For LLM services, a hot-swapping load balancing strategy is provided. If the plugin is disabled, the load balancing strategy will degenerate into the load balancing strategy of the service itself (such as round-robin, local minimum request count, random, consistent hash, etc.).
+  x-description-i18n:
+    zh-CN: 对LLM服务提供热插拔的负载均衡策略，如果关闭插件，负载均衡策略会退化为服务本身的负载均衡策略（轮训、本地最小请求数、随机、一致性hash等）
+    # 这个 iconUrl 需要替换
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  version: 1.0.0
+  contact:
+    name: johnlanni
+spec:
+  phase: default
+  priority: 50
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        lb_policy: global_least_request
+        lb_config:
+          serviceFQDN: redis.static
+          servicePort: 6379
+          username: default
+          password: '123456'
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      example:
+        lb_policy: global_least_request
+        lb_config:
+          serviceFQDN: redis.static
+          servicePort: 6379
+          username: default
+          password: '123456'
