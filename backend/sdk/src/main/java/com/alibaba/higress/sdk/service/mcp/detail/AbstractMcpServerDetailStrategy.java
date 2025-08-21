@@ -31,8 +31,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
  */
 public abstract class AbstractMcpServerDetailStrategy implements McpServerDetailStrategy {
 
-    protected static final String HIGRESS_CONFIG = "higress-config";
-
     protected static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory()
         .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE).disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
 
