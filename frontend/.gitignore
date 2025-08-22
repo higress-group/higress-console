@@ -1,2 +1,6 @@
 node/
 .eslintcache
+
+# BFF logs
+src/BFF/logs/
+*.log
