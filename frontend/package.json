@@ -49,6 +49,7 @@
     "typescript": "^4.4.4"
   },
   "scripts": {
+    "server": "node src/BFF/server.js",
     "prepare": "cd .. && husky install frontend/.husky",
     "start": "cross-env NODE_ENV=development && ice start",
     "build": "cross-env NODE_ENV=production && ice build",
