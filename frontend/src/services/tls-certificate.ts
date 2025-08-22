@@ -1,5 +1,6 @@
 import { TlsCertificate, TlsCertificateResponse } from '@/interfaces/tls-certificate';
-import request from './request';
+// import request from './request';
+import bffRequest from './bffRequest';
 
 /**
  * Get TLS Certificate List
@@ -7,7 +8,8 @@ import request from './request';
  * @returns
  */
 export const getTlsCertificates = (): Promise<TlsCertificateResponse> => {
-  return request.get<any, TlsCertificateResponse>('/v1/tls-certificates');
+  // return request.get<any, TlsCertificateResponse>('/v1/tls-certificates');
+  return bffRequest.get<any, TlsCertificateResponse>('/bff/v1/tls-certificates');
 };
 
 /**
@@ -16,7 +18,8 @@ export const getTlsCertificates = (): Promise<TlsCertificateResponse> => {
  * @returns
  */
 export const addTlsCertificate = (payload: TlsCertificate): Promise<any> => {
-  return request.post<any, any>(`/v1/tls-certificates`, payload);
+  // return request.post<any, any>(`/v1/tls-certificates`, payload);
+  return bffRequest.post<any, any>(`/bff/v1/tls-certificates`, payload);
 };
 
 /**
@@ -25,7 +28,8 @@ export const addTlsCertificate = (payload: TlsCertificate): Promise<any> => {
  * @returns
  */
 export const deleteTlsCertificate = (name: string): Promise<any> => {
-  return request.delete<any, any>(`/v1/tls-certificates/${name}`);
+  // return request.delete<any, any>(`/v1/tls-certificates/${name}`);
+  return bffRequest.delete<any, any>(`/bff/v1/tls-certificates/${name}`);
 };
 
 /**
@@ -34,5 +38,6 @@ export const deleteTlsCertificate = (name: string): Promise<any> => {
  * @returns
  */
 export const updateTlsCertificate = (payload: TlsCertificate): Promise<any> => {
-  return request.put<any, any>(`/v1/tls-certificates/${payload.name}`, payload);
+  // return request.put<any, any>(`/v1/tls-certificates/${payload.name}`, payload);
+  return bffRequest.put<any, any>(`/bff/v1/tls-certificates/${payload.name}`, payload);
 };

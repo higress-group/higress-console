@@ -1,5 +1,6 @@
 import { ServiceSource, ServiceSourceFormProps } from '@/interfaces/service-source';
-import request from './request';
+// import request from './request';
+import bffRequest from './bffRequest';
 
 /**
  * Get Service Source List
@@ -7,7 +8,8 @@ import request from './request';
  * @returns
  */
 export const getServiceSources = (payload: ServiceSourceFormProps): Promise<ServiceSource[]> => {
-  return request.get<any, ServiceSource[]>('/v1/service-sources');
+  // return request.get<any, ServiceSource[]>('/v1/service-sources');
+  return bffRequest.get<any, ServiceSource[]>('/bff/v1/service-sources');
 };
 
 /**
@@ -16,7 +18,8 @@ export const getServiceSources = (payload: ServiceSourceFormProps): Promise<Serv
  * @returns
  */
 export const addServiceSource = (payload: ServiceSource): Promise<any> => {
-  return request.post<any, any>(`/v1/service-sources`, payload);
+  // return request.post<any, any>(`/v1/service-sources`, payload);
+  return bffRequest.post<any, any>(`/bff/v1/service-sources`, payload);
 };
 
 /**
@@ -25,7 +28,8 @@ export const addServiceSource = (payload: ServiceSource): Promise<any> => {
  * @returns
  */
 export const deleteServiceSource = (name: string): Promise<any> => {
-  return request.delete<any, any>(`/v1/service-sources/${name}`);
+  // return request.delete<any, any>(`/v1/service-sources/${name}`);
+  return bffRequest.delete<any, any>(`/bff/v1/service-sources/${name}`);
 };
 
 /**
@@ -34,5 +38,6 @@ export const deleteServiceSource = (name: string): Promise<any> => {
  * @returns
  */
 export const updateServiceSource = (payload: ServiceSource): Promise<any> => {
-  return request.put<any, any>(`/v1/service-sources/${payload.name}`, payload);
+  // return request.put<any, any>(`/v1/service-sources/${payload.name}`, payload);
+  return bffRequest.put<any, any>(`/bff/v1/service-sources/${payload.name}`, payload);
 };
