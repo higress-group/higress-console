@@ -446,6 +446,10 @@ public class KeyAuthCredentialHandlerTest {
         } catch (Exception e) {
             Assertions.assertTrue(e instanceof UnsupportedOperationException || e instanceof NullPointerException);
         }
+        // 8. TOGGLE_ONLY
+        handler.updateAllowList(AllowListOperation.ADD, instance, Lists.newArrayList("a", "b"));
+        handler.updateAllowList(AllowListOperation.TOGGLE_ONLY, instance, null);
+        Assertions.assertEquals(Lists.newArrayList("a", "b"), handler.getAllowedConsumers(instance));
     }
 
     @Test

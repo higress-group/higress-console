@@ -566,7 +566,7 @@ public class KubernetesModelConverter {
                 }
             }
         }
-        instances.removeIf(i -> MapUtils.isEmpty(i.getConfigurations()));
+        instances.removeIf(i -> Boolean.FALSE.equals(i.getEnabled()) && MapUtils.isEmpty(i.getConfigurations()));
         instances.forEach(i -> {
             i.setPluginName(name);
             i.setPluginVersion(version);

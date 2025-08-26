@@ -264,31 +264,32 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             instance.setConfigurations(configurations);
         }
 
-        if (CollectionUtils.isEmpty(consumerNames)) {
-            configurations.put(ALLOW, Collections.emptyList());
-        } else {
-            List<String> newAllowList = getAllowedConsumers(instance);
-            switch (operation) {
-                case ADD:
-                    for (String consumerName : consumerNames) {
-                        if (!newAllowList.contains(consumerName)) {
-                            newAllowList.add(consumerName);
-                        }
+        List<String> newAllowList = getAllowedConsumers(instance);
+        switch (operation) {
+            case ADD:
+                for (String consumerName : consumerNames) {
+                    if (!newAllowList.contains(consumerName)) {
+                        newAllowList.add(consumerName);
                     }
-                    break;
-                case REMOVE:
-                    for (String consumerName : consumerNames) {
-                        newAllowList.remove(consumerName);
-                    }
-                    break;
-                case REPLACE:
-                    newAllowList = consumerNames;
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unsupported operation: " + operation);
-            }
-            configurations.put(ALLOW, newAllowList);
+                }
+                break;
+            case REMOVE:
+                for (String consumerName : consumerNames) {
+                    newAllowList.remove(consumerName);
+                }
+                break;
+            case REPLACE:
+                newAllowList = consumerNames;
+                break;
+            case TOGGLE_ONLY:
+                if (CollectionUtils.isEmpty(newAllowList)) {
+                    newAllowList = new ArrayList<>();
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported operation: " + operation);
         }
+        configurations.put(ALLOW, newAllowList);
     }
 
     private Consumer extractConsumer(Map<String, Object> consumerMap) {

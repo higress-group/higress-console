@@ -732,6 +732,44 @@ public class ConsumerServiceTest {
         verify(wasmPluginInstanceService, never()).addOrUpdate(any());
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void testUpdateAllowList_DefaultDisableAuth() {
+        // Given
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.DOMAIN, "example.com");
+
+        AllowList allowList = AllowList.builder()
+            .targets(targets)
+            .authEnabled(null) // Explicitly set authEnabled to null
+            .credentialTypes(Lists.newArrayList(CredentialType.KEY_AUTH))
+            .consumerNames(Collections.singletonList("user1"))
+            .build();
+
+        WasmPluginInstance globalInstance = createTestInstance();
+        globalInstance.setGlobalTarget();
+
+        when(wasmPluginInstanceService.list(eq(BuiltInPluginName.KEY_AUTH), eq(true)))
+            .thenReturn(Collections.singletonList(globalInstance));
+        when(wasmPluginInstanceService.createEmptyInstance(eq(BuiltInPluginName.KEY_AUTH)))
+            .thenAnswer(a -> createTestInstance());
+
+        // When
+        consumerService.updateAllowList(AllowListOperation.ADD, allowList);
+
+        // Then
+        ArgumentCaptor<List<WasmPluginInstance>> captor = ArgumentCaptor.forClass(List.class);
+        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture());
+        List<WasmPluginInstance> actualInstances = captor.getValue();
+        assertNotNull(actualInstances);
+        assertEquals(1, actualInstances.size());
+
+        WasmPluginInstance targetInstance = actualInstances.get(0);
+        assertNotNull(targetInstance);
+        assertEquals(targets, targetInstance.getTargets());
+        assertFalse(targetInstance.getEnabled(), "Auth should be disabled by default when not explicitly set");
+    }
+
     private static Consumer createTestConsumer(String name) {
         KeyAuthCredential credential = new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "Authorization",
             Lists.newArrayList("test-key"));
