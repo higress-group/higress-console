@@ -22,8 +22,21 @@ import com.alibaba.higress.sdk.util.EnvReadUtil;
  * @author fuyang
  */
 public class McpConstants {
-    public static final String MCP_SERVER_PATH_PRE = "/mcp-servers";
 
+    /**
+     * streamable
+     */
+    public static final String MCP_TRANSPORT_STREAMABLE = "streamable";
+    /**
+     * sse
+     */
+    public static final String MCP_TRANSPORT_SSE = "sse";
+
+    /**
+     * hard code with higress mcp-server filter
+     */
+    public static final String UPSTREAM_MCP_SERVER_TYPE = "sse";
+    public static final String MCP_SERVER_PATH_PRE = "/mcp-servers";
 
     /**
      * mcp temp file dir

@@ -34,7 +34,6 @@ import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.mcp.ConsumerAuthInfo;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
-import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.service.RouteService;
@@ -173,7 +172,7 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         return route;
     }
 
-    private void setDefaultConfigs(Route route, McpServer mcpInstance) {
+    protected void setDefaultConfigs(Route route, McpServer mcpInstance) {
         Map<String, String> annotationsMap = new TreeMap<>();
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_DESCRIPTION_KEY, mcpInstance.getDescription());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_KEY, Boolean.TRUE.toString());
@@ -190,16 +189,6 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
 
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_MATCH_RULE_VALUE_KEY,
             route.getPath().getMatchValue());
-        if (StringUtils.isNotBlank(mcpInstance.getUpstreamPathPrefix())) {
-            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY, "sse");
-            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY,
-                Boolean.TRUE.toString());
-            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY,
-                mcpInstance.getUpstreamPathPrefix());
-            RewriteConfig rewriteConfig =
-                RewriteConfig.builder().path(mcpInstance.getUpstreamPathPrefix()).enabled(Boolean.TRUE).build();
-            route.setRewrite(rewriteConfig);
-        }
 
         route.setCustomConfigs(annotationsMap);
     }

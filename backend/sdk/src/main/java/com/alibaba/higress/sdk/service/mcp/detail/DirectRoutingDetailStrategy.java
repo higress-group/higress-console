@@ -12,24 +12,31 @@
  */
 package com.alibaba.higress.sdk.service.mcp.detail;
 
-import java.util.Objects;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
+import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
+import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
+import com.alibaba.higress.sdk.model.mcp.McpServerDirectRouteConfig;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
-import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
 
 /**
  * @author lvshui
  */
 public class DirectRoutingDetailStrategy extends AbstractMcpServerDetailStrategy {
+    private final McpServerConfigMapHelper mcpServerConfigMapHelper;
 
     public DirectRoutingDetailStrategy(KubernetesClientService kubernetesClientService, ConsumerService consumerService,
         RouteService routeService) {
         super(kubernetesClientService, consumerService, routeService);
+        this.mcpServerConfigMapHelper = new McpServerConfigMapHelper(kubernetesClientService);
     }
 
     @Override
@@ -39,12 +46,24 @@ public class DirectRoutingDetailStrategy extends AbstractMcpServerDetailStrategy
 
     @Override
     protected void completeInfo(Route route, McpServer result) {
-        completeUpstreamPathPrefix(route.getRewrite(), result);
+        completeUpstreamPathPrefix(route, result);
     }
 
-    private void completeUpstreamPathPrefix(RewriteConfig rewrite, McpServer mcpServer) {
-        if (Objects.nonNull(rewrite)) {
-            mcpServer.setUpstreamPathPrefix(rewrite.getPath());
+    private void completeUpstreamPathPrefix(Route route, McpServer mcpServer) {
+        McpServerDirectRouteConfig config = new McpServerDirectRouteConfig();
+        String transportType = MapUtils.getString(route.getCustomConfigs(),
+            McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TRANSPORT_TYPE_KEY);
+        config.setTransportType(transportType);
+        mcpServer.setDirectRouteConfig(config);
+        String path = route.getRewrite().getPath();
+        if (StringUtils.equals(transportType, McpConstants.MCP_TRANSPORT_SSE)) {
+            path = StringUtils.join(path, generateUpstreamPathPrefix());
         }
+        config.setPath(path);
+    }
+
+    private String generateUpstreamPathPrefix() {
+        McpServerConfigMap mcpServerConfig = mcpServerConfigMapHelper.getMcpConfig();
+        return mcpServerConfig.getSsePathSuffix();
     }
 }
