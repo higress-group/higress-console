@@ -139,15 +139,14 @@ public class ConsumerServiceImpl implements ConsumerService {
                         return newAllowList;
                     });
                 List<String> consumerNames = handler.getAllowedConsumers(instance);
-                if (CollectionUtils.isEmpty(consumerNames)) {
-                    continue;
-                }
                 if (!allowList.getCredentialTypes().contains(handler.getType())) {
                     allowList.getCredentialTypes().add(handler.getType());
                 }
-                for (String consumerName : consumerNames) {
-                    if (!allowList.getConsumerNames().contains(consumerName)) {
-                        allowList.getConsumerNames().add(consumerName);
+                if (CollectionUtils.isNotEmpty(consumerNames)) {
+                    for (String consumerName : consumerNames) {
+                        if (!allowList.getConsumerNames().contains(consumerName)) {
+                            allowList.getConsumerNames().add(consumerName);
+                        }
                     }
                 }
             }
@@ -260,6 +259,8 @@ public class ConsumerServiceImpl implements ConsumerService {
             if (targetInstance == null) {
                 targetInstance = wasmPluginInstanceService.createEmptyInstance(handler.getPluginName());
                 targetInstance.setInternal(true);
+                // Default to disabled.
+                targetInstance.setEnabled(false);
                 targetInstance.setTargets(targets);
             }
             if (allowList.getAuthEnabled() != null) {
