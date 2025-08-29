@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "LLM Service Provider Types", type = "string",
     allowableValues = {"qwen", "openai", "moonshot", "azure", "ai360", "github", "groq", "baichuan", "yi", "deepseek",
         "zhipuai", "ollama", "claude", "baidu", "hunyuan", "stepfun", "minimax", "cloudflare", "spark", "gemini",
-        "deepl", "mistral", "cohere", "doubao", "coze", "together-ai"})
+        "deepl", "mistral", "cohere", "doubao", "coze", "together-ai", "openrouter", "grok"})
 public final class LlmProviderType {
 
     private LlmProviderType() {}
@@ -77,4 +77,8 @@ public final class LlmProviderType {
     public static final String BEDROCK = "bedrock";
 
     public static final String VERTEX = "vertex";
+
+    public static final String OPENROUTER = "openrouter";
+
+    public static final String GROK = "grok";
 }

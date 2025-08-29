@@ -19,7 +19,7 @@ info:
     email: admin@higress.io
 spec:
   phase: default          # 执行阶段：默认阶段
-  priority: 30            # 优先级
+  priority: 999           # 优先级
   configSchema:
     openAPIV3Schema:      # 全局配置结构
       type: object
