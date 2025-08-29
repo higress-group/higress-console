@@ -70,7 +70,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.YI, "api.lingyiwanwu.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.DEEPSEEK, "api.deepseek.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443,
+                V1McpBridge.PROTOCOL_HTTPS),
             new OllamaLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443,
@@ -84,6 +85,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.DOUBAO, "ark.cn-beijing.volces.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.OPENROUTER, "openrouter.ai", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.GROK, "api.x.ai", 443, V1McpBridge.PROTOCOL_HTTPS),
             new BedrockLlmProviderHandler(), new VertexLlmProviderHandler())
             .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
     }

@@ -58,8 +58,23 @@ export const DB_FIXED_FIELDS = [
 
 export const computeDSN = (values: any) => {
   const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
-  if (!db_type || !db_user_name || !db_password || !db_server_host || !db_database) return '';
-  // eslint-disable-next-line max-len
+  if (!db_type || !db_user_name || !db_password || !db_server_host || !db_server_port) return '';
+  // PostgreSQL: postgres://username:password@host:port/dbname
+  if (db_type === 'POSTGRESQL') {
+    if (!db_database) return '';
+    return `postgres://${db_user_name}:${db_password}@${db_server_host}:${db_server_port}/${db_database}`;
+  }
+  // ClickHouse: tcp://host:port?database=xxx&username=xxx&password=xxx
+  if (db_type === 'CLICKHOUSE') {
+    const query = new URLSearchParams({
+      database: db_database || '',
+      username: db_user_name,
+      password: db_password,
+    }).toString();
+    return `tcp://${db_server_host}:${db_server_port}?${query}`;
+  }
+  // MySQL (默认): username:password@tcp(host:port)/dbname?...
+  if (!db_database) return '';
   return `${db_user_name}:${db_password}@tcp(${db_server_host}:${db_server_port})/${db_database}?charset=utf8mb4&parseTime=True&loc=Local`;
 };
 

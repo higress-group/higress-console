@@ -141,16 +141,24 @@ export const aiModelProviders = [
     modelNamePattern: 'claude-*',
     targetModelList: [
       {
-        label: 'claude-3-5-sonnet-latest',
-        value: 'claude-3-5-sonnet-latest',
+        label: 'claude-opus-4-1',
+        value: 'claude-opus-4-1',
+      },
+      {
+        label: 'claude-opus-4-0',
+        value: 'claude-opus-4-0',
+      },
+      {
+        label: 'claude-sonnet-4-0',
+        value: 'claude-sonnet-4-0',
+      },
+      {
+        label: 'claude-3-7-sonnet-latest',
+        value: 'claude-3-7-sonnet-latest',
       },
       {
         label: 'claude-3-5-haiku-latest',
         value: 'claude-3-5-haiku-latest',
-      },
-      {
-        label: 'claude-3-opus-latest',
-        value: 'claude-3-opus-latest',
       },
     ],
   },
@@ -705,6 +713,94 @@ export const aiModelProviders = [
       }
     },
     targetModelList: [],
+  },
+  {
+    label: 'OpenRouter',
+    value: 'openrouter',
+    serviceAddress: 'https://openrouter.ai',
+    modelNamePattern: '*',
+    targetModelList: [
+      {
+        label: 'anthropic/claude-sonnet-4',
+        value: 'anthropic/claude-sonnet-4',
+      },
+      {
+        label: 'google/gemini-2.5-flash',
+        value: 'google/gemini-2.5-flash',
+      },
+      {
+        label: 'google/gemini-2.0-flash-001',
+        value: 'google/gemini-2.0-flash-001',
+      },
+      {
+        label: 'deepseek/deepseek-chat-v3.1',
+        value: 'deepseek/deepseek-chat-v3.1',
+      },
+      {
+        label: 'deepseek/deepseek-chat-v3-0324',
+        value: 'deepseek/deepseek-chat-v3-0324',
+      },
+      {
+        label: 'google/gemini-2.5-pro',
+        value: 'google/gemini-2.5-pro',
+      },
+      {
+        label: 'qwen/qwen3-coder',
+        value: 'qwen/qwen3-coder',
+      },
+      {
+        label: 'anthropic/claude-3.7-sonnet',
+        value: 'anthropic/claude-3.7-sonnet',
+      },
+      {
+        label: 'x-ai/grok-code-fast-1',
+        value: 'x-ai/grok-code-fast-1',
+      },
+      {
+        label: 'x-ai/grok-4',
+        value: 'x-ai/grok-4',
+      },
+      {
+        label: 'deepseek/deepseek-r1-0528:free',
+        value: 'deepseek/deepseek-r1-0528:free',
+      },
+      {
+        label: 'google/gemini-2.5-flash-lite',
+        value: 'google/gemini-2.5-flash-lite',
+      },
+      {
+        label: 'openai/gpt-5',
+        value: 'openai/gpt-5',
+      },
+    ],
+  },
+  {
+    label: 'Grok',
+    value: 'grok',
+    serviceAddress: 'https://api.x.ai',
+    modelNamePattern: 'grok-*',
+    targetModelList: [
+      {
+        label: 'grok-code-fast-1',
+        value: 'grok-code-fast-1',
+      },
+      {
+        label: 'grok-4-0709',
+        value: 'grok-4-0709',
+      },
+      {
+        label: 'grok-3',
+        value: 'grok-3',
+      },
+      {
+        label: 'grok-3-mini',
+        value: 'grok-3-mini',
+      },
+      {
+        label: 'grok-2-image-1212',
+        value: 'grok-2-image-1212',
+      },
+    ],
   },
 ];
 
