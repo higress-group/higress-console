@@ -182,7 +182,17 @@ public class McpServerServiceTest {
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), anyString()))
             .thenReturn(keyAuthPluginCrs);
         when(kubernetesClientService.readIngress(anyString())).thenReturn(null);
-        V1ConfigMap systemConfigMap = buildSystemConfigMap(null);
+
+        // Create config map with valid Redis configuration for OpenAPI MCP server
+        McpServerConfigMap mcpConfig = new McpServerConfigMap();
+        mcpConfig.setEnable(true);
+        McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
+        redisConfig.setAddress("redis.test.svc.cluster.local:6379");
+        redisConfig.setPassword("test_password");
+        redisConfig.setUsername("test_username");
+        redisConfig.setDb(0);
+        mcpConfig.setRedis(redisConfig);
+        V1ConfigMap systemConfigMap = buildSystemConfigMap(mcpConfig);
         when(kubernetesClientService.readConfigMap(anyString())).thenReturn(systemConfigMap);
         McpServer instance = new McpServer();
         instance.setName(mcpServerName);
