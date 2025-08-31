@@ -41,6 +41,7 @@ import com.alibaba.higress.console.model.SystemInfo;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.util.CertificateUtil;
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -77,7 +78,6 @@ public class SystemServiceImpl implements SystemService {
     private static final String DEFAULT_ROUTE_NAME = "default";
     private static final String UNKNOWN = "unknown";
     private static final String COMMIT_ID;
-    private static final String HIGRESS_CONFIG = "higress-config";
     private static final Set<String> REQUIRED_HIGRESS_CONFIG_KEYS = Sets.newHashSet("higress", "mesh", "meshNetworks");
 
     static {
@@ -267,9 +267,9 @@ public class SystemServiceImpl implements SystemService {
     public String getHigressConfig() {
         V1ConfigMap configMap;
         try {
-            configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+            configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
         } catch (ApiException e) {
-            throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to load " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
         }
         cleanUpConfigMap(configMap);
         return kubernetesClientService.saveToYaml(configMap);
@@ -283,9 +283,9 @@ public class SystemServiceImpl implements SystemService {
 
         V1ConfigMap currentConfigMap;
         try {
-            currentConfigMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+            currentConfigMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
         } catch (ApiException e) {
-            throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to load " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
         }
 
         String resourceVersion = Objects.requireNonNull(newConfigMap.getMetadata()).getResourceVersion();
@@ -299,7 +299,8 @@ public class SystemServiceImpl implements SystemService {
             if (e.getCode() == HttpStatus.CONFLICT) {
                 throw new ResourceConflictException();
             }
-            throw new BusinessException("Error occurs when replacing the " + HIGRESS_CONFIG + " ConfigMap.", e);
+            throw new BusinessException(
+                "Error occurs when replacing the " + KubernetesConstants.HIGRESS_CONFIG + " ConfigMap.", e);
         }
 
         cleanUpConfigMap(updatedConfigMap);

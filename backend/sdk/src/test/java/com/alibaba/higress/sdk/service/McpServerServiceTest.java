@@ -38,6 +38,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.NotFoundException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -87,6 +88,7 @@ public class McpServerServiceTest {
     private static final String DEFAULT_CONFIG_NAME = "higress-config";
     private static final String DEFAULT_CONFIG_NAME_HIGRESS_KEY = "higress";
     private static final String DEFAULT_CONFIG_NAME_MCP_KEY = "mcpServer";
+    private static final String REDIS_PLACEHOLDER_ADDRESS = "your.redis.host:6379";
 
     private KubernetesClientService kubernetesClientService;
     private KubernetesModelConverter kubernetesModelConverter;
@@ -180,7 +182,17 @@ public class McpServerServiceTest {
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME), anyString()))
             .thenReturn(keyAuthPluginCrs);
         when(kubernetesClientService.readIngress(anyString())).thenReturn(null);
-        V1ConfigMap systemConfigMap = buildSystemConfigMap(null);
+
+        // Create config map with valid Redis configuration for OpenAPI MCP server
+        McpServerConfigMap mcpConfig = new McpServerConfigMap();
+        mcpConfig.setEnable(true);
+        McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
+        redisConfig.setAddress("redis.test.svc.cluster.local:6379");
+        redisConfig.setPassword("test_password");
+        redisConfig.setUsername("test_username");
+        redisConfig.setDb(0);
+        mcpConfig.setRedis(redisConfig);
+        V1ConfigMap systemConfigMap = buildSystemConfigMap(mcpConfig);
         when(kubernetesClientService.readConfigMap(anyString())).thenReturn(systemConfigMap);
         McpServer instance = new McpServer();
         instance.setName(mcpServerName);
@@ -434,5 +446,34 @@ public class McpServerServiceTest {
         String rawConfigurations = KubernetesUtil.toYaml(configurations);
         configMap.setData(MapUtil.of(DEFAULT_CONFIG_NAME_HIGRESS_KEY, rawConfigurations));
         return configMap;
+    }
+
+    @Test
+    public void testRedisConfigurationValidation() throws Exception {
+        // Test case where Redis configuration is a placeholder
+        McpServerConfigMap mcpConfig = new McpServerConfigMap();
+        mcpConfig.setEnable(true);
+
+        // Only set address as placeholder, use real values for username and password
+        McpServerConfigMap.RedisConfig redisConfig = new McpServerConfigMap.RedisConfig();
+        redisConfig.setAddress(REDIS_PLACEHOLDER_ADDRESS);
+        redisConfig.setPassword("real_password");
+        redisConfig.setUsername("real_username");
+        redisConfig.setDb(0);
+        mcpConfig.setRedis(redisConfig);
+
+        V1ConfigMap configMap = buildSystemConfigMap(mcpConfig);
+        when(kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG)).thenReturn(configMap);
+
+        // Create OpenAPI type MCP Server
+        McpServer mcpServer = new McpServer();
+        mcpServer.setName("test-openapi-server");
+        mcpServer.setType(McpServerTypeEnum.OPEN_API);
+        mcpServer.setDescription("Test OpenAPI Server");
+
+        // Verify that ValidationException is thrown
+        Assertions.assertThrows(ValidationException.class, () -> {
+            mcpServerService.addOrUpdate(mcpServer);
+        });
     }
 }

@@ -26,6 +26,8 @@ public class KubernetesConstants {
     public static final String SECRET_TLS_KEY_FIELD = "tls.key";
     public static final String YAML_SEPARATOR = "---\n";
 
+    public static final String HIGRESS_CONFIG = "higress-config";
+
     public static class Annotation {
         public static final String KEY_PREFIX = "higress.io/";
         public static final String NGINX_INGRESS_KEY_PREFIX = "nginx.ingress.kubernetes.io/";
