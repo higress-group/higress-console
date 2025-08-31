@@ -89,34 +89,36 @@ public class OpenApiSaveStrategy extends AbstractMcpServerSaveStrategy {
      * correct Redis address
      */
     private void validateRedisConfiguration() {
+        McpServerConfigMap.RedisConfig redisConfig = null;
         try {
+
             V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
 
             McpServerConfigMap mcpConfig = McpServerConfigMapHelper.getMcpConfig(configMap);
 
-            McpServerConfigMap.RedisConfig redisConfig = mcpConfig.getRedis();
-
-            if (redisConfig == null) {
-                throw new ValidationException(
-                    "OpenAI to MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise OpenAI to MCP functionality will be unavailable.");
-            }
-            String address = redisConfig.getAddress();
-
-            // Check if address is null or empty
-            if (StringUtils.isBlank(address)) {
-                throw new ValidationException(
-                    "OpenAI to MCP functionality requires Redis configuration, but Redis address is not configured. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
-            }
-            // Check if address is the placeholder value
-            if (REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
-                throw new ValidationException(
-                    "OpenAI to MCP functionality requires Redis configuration, but Redis address is still a placeholder. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
-            }
+            redisConfig = mcpConfig.getRedis();
 
         } catch (Exception e) {
             log.error("Error reading higress-config ConfigMap", e);
             throw new ValidationException(
                 "OpenAI to MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise OpenAI to MCP functionality will be unavailable.");
+        }
+
+        if (redisConfig == null) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis configuration is missing in higress-config. Please configure correct Redis address first, otherwise OpenAI to MCP functionality will be unavailable.");
+        }
+        String address = redisConfig.getAddress();
+
+        // Check if address is null or empty
+        if (StringUtils.isBlank(address)) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis address is not configured. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
+        }
+        // Check if address is the placeholder value
+        if (REDIS_PLACEHOLDER_ADDRESS.equals(address)) {
+            throw new ValidationException(
+                "OpenAI to MCP functionality requires Redis configuration, but Redis address is still a placeholder. Please modify Redis configuration in higress-config, otherwise OpenAI to MCP functionality will be unavailable.");
         }
 
     }
