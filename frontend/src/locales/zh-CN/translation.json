@@ -254,6 +254,11 @@
         "ollamaServerPort": "Ollama 服务端口",
         "openaiServerType": "OpenAI 服务类型",
         "openaiCustomUrl": "自定义 OpenAI 服务 BaseURL",
+        "qwenServerType": "通义千问服务类型",
+        "qwenEnableSearch": "开启通义千问互联网搜索功能",
+        "qwenEnableCompatible": "开启通义千问兼容模式",
+        "qwenDomain": "自定义通义千问域名",
+        "qwenFileIds": "上传通义千问文件 ID",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
         "awsSecretKey": "AWS Secret Access Key",
@@ -283,6 +288,7 @@
         "openaiCustomUrlMultipleValuesWithIpOnly": "仅支持指定多个使用 IP 和端口的自定义 OpenAI 服务 BaseURL",
         "openaiCustomUrlInconsistentProtocols": "各个自定义 OpenAI 服务 BaseURL 所使用的协议不一致",
         "openaiCustomUrlInconsistentContextPaths": "各个自定义 OpenAI 服务 BaseURL 所使用的路径不一致",
+        "qwenFileIdRequired": "通义千问文件 ID 不可为空",
         "awsRegionRequired": "请输入 AWS Region",
         "awsAccessKeyRequired": "请输入 AWS Access Key ID",
         "awsSecretKeyRequired": "请输入 AWS Secret Access Key",
@@ -301,10 +307,16 @@
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
         "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
-        "openaiCustomUrlPlaceholder": "示例：https://api.openai.com/v1"
+        "openaiCustomUrlPlaceholder": "示例：https://api.openai.com/v1",
+        "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
+        "qwenFileIdsPlaceholder": "示例：file-fe-xxx"
       },
       "openaiServerType": {
         "official": "OpenAI 官方服务",
+        "custom": "自定义服务"
+      },
+      "qwenServerType": {
+        "official": "通义千问官方服务",
         "custom": "自定义服务"
       },
       "secretRefModal": {

@@ -254,6 +254,11 @@
         "ollamaServerPort": "Ollama Service Port",
         "openaiServerType": "OpenAI Service Type",
         "openaiCustomUrl": "Custom OpenAI Service Base URL",
+        "qwenServerType": "Tongyi Qianwen Service Type",
+        "qwenEnableSearch": "Enable Tongyi Qianwen Internet search function",
+        "qwenEnableCompatible": "Enable Tongyi Qianwen compatibility mode",
+        "qwenDomain": "Custom Tongyi Qianwen Domain",
+        "qwenFileIds": "Upload Tongyi Qianwen file IDs",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
         "awsSecretKey": "AWS Secret Access Key",
@@ -283,6 +288,7 @@
         "openaiCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom OpenAI service base URLs",
         "openaiCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom OpenAI service base URLs",
         "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
+        "qwenFileIdRequired": "Tongyi Qianwen File ID must not be empty",
         "awsRegionRequired": "Please input AWS Region",
         "awsAccessKeyRequired": "Please input AWS Access Key ID",
         "awsSecretKeyRequired": "Please input AWS Secret Access Key",
@@ -301,10 +307,16 @@
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
         "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address",
-        "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1"
+        "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1",
+        "qwenDomainPlaceholder": "Sample: dashscope-finance.aliyuncs.com",
+        "qwenFileIdsPlaceholder": "Sample: file-fe-xxx"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
+        "custom": "Custom Service"
+      },
+      "qwenServerType": {
+        "official": "Tongyi Qianwen Official Service",
         "custom": "Custom Service"
       },
       "secretRefModal": {
