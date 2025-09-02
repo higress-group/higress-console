@@ -70,8 +70,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.YI, "api.lingyiwanwu.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.DEEPSEEK, "api.deepseek.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443,
-                V1McpBridge.PROTOCOL_HTTPS),
+            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new OllamaLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443,
@@ -158,15 +157,16 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             providers.add(providerConfig);
         }
 
-        ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
-        serviceSource.setProxyName(provider.getProxyName());
-
-        List<ServiceSource> extraServiceSources =
-            handler.getExtraServiceSources(provider.getName(), providerConfig, false);
-        if (CollectionUtils.isNotEmpty(extraServiceSources)) {
-            for (ServiceSource extraSource : extraServiceSources) {
-                extraSource.setProxyName(provider.getProxyName());
-                serviceSourceService.addOrUpdate(extraSource);
+        List<ServiceSource> serviceSources = new ArrayList<>();
+        {
+            ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
+            if (serviceSource != null) {
+                serviceSources.add(serviceSource);
+            }
+            List<ServiceSource> extraServiceSources =
+                handler.getExtraServiceSources(provider.getName(), providerConfig, false);
+            if (CollectionUtils.isNotEmpty(extraServiceSources)) {
+                serviceSources.addAll(extraServiceSources);
             }
         }
 
@@ -180,8 +180,13 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         serviceInstance.setConfigurations(MapUtil.of(ACTIVE_PROVIDER_ID, provider.getName()));
 
         // Perform all the updates here just to avoid possible errors in resource building.
+        if (!serviceSources.isEmpty()) {
+            for (ServiceSource serviceSource : serviceSources) {
+                serviceSource.setProxyName(provider.getProxyName());
+                serviceSourceService.addOrUpdate(serviceSource);
+            }
+        }
         wasmPluginInstanceService.addOrUpdate(instance);
-        serviceSourceService.addOrUpdate(serviceSource);
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
 
         if (handler.needSyncRouteAfterUpdate()) {
@@ -253,9 +258,12 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             if (handler != null) {
                 UpstreamService upstreamService = handler.buildUpstreamService(providerName, deletedProvider);
                 wasmPluginInstanceService.delete(WasmPluginInstanceScope.SERVICE, upstreamService.getName(),
-                    BuiltInPluginName.AI_PROXY);
+                    BuiltInPluginName.AI_PROXY, true);
+
                 ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
-                serviceSourceService.delete(serviceSource.getName());
+                if (serviceSource != null) {
+                    serviceSourceService.delete(serviceSource.getName());
+                }
 
                 List<ServiceSource> extraServiceSources =
                     handler.getExtraServiceSources(providerName, deletedProvider, true);

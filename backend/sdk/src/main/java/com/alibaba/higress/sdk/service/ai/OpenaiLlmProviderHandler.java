@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.alibaba.higress.sdk.model.ServiceSource;
+import com.alibaba.higress.sdk.model.route.UpstreamService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,8 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
 
     private static final String CUSTOM_URL_KEY = "openaiCustomUrl";
     private static final String EXTRA_CUSTOM_URLS_KEY = "openaiExtraCustomUrls";
+    private static final String CUSTOM_SERVICE_NAME_KEY = "openaiCustomServiceName";
+    private static final String CUSTOM_SERVICE_PORT_KEY = "openaiCustomServicePort";
 
     private static final String DEFAULT_SERVICE_DOMAIN = "api.openai.com";
     private static final int DEFAULT_SERVICE_PORT = 443;
@@ -73,12 +77,49 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
+    public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {
+        UpstreamService upstreamService = getCustomUpstreamService(providerConfig);
+        if (upstreamService != null) {
+            // User has specified a custom upstream service, use it directly.
+            // We don't need to create a service source in this case.
+            return null;
+        }
+        return super.buildServiceSource(providerName, providerConfig);
+    }
+
+    @Override
+    public UpstreamService buildUpstreamService(String providerName, Map<String, Object> providerConfig) {
+        UpstreamService upstreamService = getCustomUpstreamService(providerConfig);
+        if (upstreamService != null) {
+            // User has specified a custom upstream service, use it directly.
+            return upstreamService;
+        }
+        return super.buildUpstreamService(providerName, providerConfig);
+    }
+
+    @Override
     protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         List<URI> customUris = getCustomUris(providerConfig);
         if (CollectionUtils.isEmpty(customUris)) {
             return DEFAULT_ENDPOINTS;
         }
         return customUris.stream().map(LlmProviderEndpoint::fromUri).collect(Collectors.toList());
+    }
+
+    private UpstreamService getCustomUpstreamService(Map<String, Object> providerConfig) {
+        if (MapUtils.isEmpty(providerConfig)) {
+            return null;
+        }
+        Object rawCustomServiceNameObject = providerConfig.get(CUSTOM_SERVICE_NAME_KEY);
+        if (!(rawCustomServiceNameObject instanceof String)) {
+            return null;
+        }
+        Object rawCustomServicePortObject = providerConfig.get(CUSTOM_SERVICE_PORT_KEY);
+        if (!(rawCustomServicePortObject instanceof Integer)) {
+            return null;
+        }
+        return UpstreamService.builder().name((String)rawCustomServiceNameObject)
+            .port((Integer)rawCustomServicePortObject).build();
     }
 
     private List<URI> getCustomUris(Map<String, Object> providerConfig) {
