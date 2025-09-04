@@ -106,7 +106,6 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         let qwenServerTypeValue = 'official';
 
         if (rawConfigs && rawConfigs.qwenDomain) qwenServerTypeValue = 'custom';
-        if (rawConfigs && rawConfigs.qwenFileIds && rawConfigs.qwenFileIds.length > 0) qwenServerTypeValue = 'custom';
 
         form.setFieldValue('qwenServerType', qwenServerTypeValue);
         onQwenServerTypeChanged(qwenServerTypeValue);
@@ -480,33 +479,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             >
               <Switch />
             </Form.Item>
-            <Form.Item
-              label={t('llmProvider.providerForm.label.qwenServerType')}
-              required
-              name="qwenServerType"
-              initialValue="official"
-            >
-              <Select
-                onChange={onQwenServerTypeChanged}
-              >
-                <Select.Option value="official">{t("llmProvider.providerForm.qwenServerType.official")}</Select.Option>
-                <Select.Option value="custom">{t("llmProvider.providerForm.qwenServerType.custom")}</Select.Option>
-              </Select>
-            </Form.Item>
-            {
-              qwenServerType === "custom" && (
-                <>
-                  <Form.Item
-                    label={t('llmProvider.providerForm.label.qwenDomain')}
-                    name={["rawConfigs", "qwenDomain"]}
-                  >
-                    <Input
-                      allowClear
-                      maxLength={256}
-                      placeholder={t('llmProvider.providerForm.placeholder.qwenDomainPlaceholder') || ''}
-                    ></Input>
-                  </Form.Item>
-                  <Form.List
+            <Form.List
                     name={["rawConfigs", "qwenFileIds"]}
                     initialValue={[]}
                   >
@@ -552,17 +525,43 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                             </div>
                           </Form.Item>
                         ))}
-                        <Form.Item>
-                          <Button
-                            type="dashed"
-                            onClick={() => add()}
-                            icon={<PlusOutlined />}
-                          />
-                          <Form.ErrorList errors={errors} />
-                        </Form.Item>
-                      </>
-                    )}
-                  </Form.List>
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        icon={<PlusOutlined />}
+                      />
+                      <Form.ErrorList errors={errors} />
+                    </Form.Item>
+                  </>
+                )}
+            </Form.List>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.qwenServerType')}
+              required
+              name="qwenServerType"
+              initialValue="official"
+            >
+              <Select
+                onChange={onQwenServerTypeChanged}
+              >
+                <Select.Option value="official">{t("llmProvider.providerForm.qwenServerType.official")}</Select.Option>
+                <Select.Option value="custom">{t("llmProvider.providerForm.qwenServerType.custom")}</Select.Option>
+              </Select>
+            </Form.Item>
+            {
+              qwenServerType === "custom" && (
+                <>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.qwenDomain')}
+                    name={["rawConfigs", "qwenDomain"]}
+                  >
+                    <Input
+                      allowClear
+                      maxLength={256}
+                      placeholder={t('llmProvider.providerForm.placeholder.qwenDomainPlaceholder') || ''}
+                    ></Input>
+                  </Form.Item>
                 </>
               )
             }
