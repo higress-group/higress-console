@@ -102,6 +102,7 @@ class ServiceServiceImpl implements ServiceService {
                         service.setPort(port.getPort());
                         service.setNamespace(namespace);
                         service.setEndpoints(endpoints);
+                        service.setProtocol(port.getProtocol());
                         services.add(service);
                     }
                 }

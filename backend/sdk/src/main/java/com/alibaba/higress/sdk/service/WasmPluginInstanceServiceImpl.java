@@ -257,19 +257,33 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
 
     @Override
     public void delete(WasmPluginInstanceScope scope, String target, String pluginName) {
-        delete(MapUtil.of(scope, target), pluginName);
+        delete(MapUtil.of(scope, target), pluginName, null);
     }
 
     @Override
     public void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName) {
+        delete(targets, pluginName, null);
+    }
+
+    @Override
+    public void delete(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal) {
+        delete(MapUtil.of(scope, target), pluginName, internal);
+    }
+
+    @Override
+    public void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName, Boolean internal) {
         if (MapUtils.isEmpty(targets)) {
             return;
         }
         List<V1alpha1WasmPlugin> existedCrs;
         try {
-            existedCrs = kubernetesClientService.listWasmPlugin(pluginName);
+            existedCrs = kubernetesClientService.listWasmPlugin(pluginName, null);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when getting WasmPlugin.", e);
+        }
+        if (internal != null) {
+            existedCrs = existedCrs.stream().filter(cr -> internal == KubernetesUtil.isInternalResource(cr))
+                .collect(Collectors.toList());
         }
         deletePluginInstances(existedCrs, targets);
     }
