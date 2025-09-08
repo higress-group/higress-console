@@ -168,6 +168,9 @@ public class KubernetesModelConverter {
                 log.error("Failed to get label key from field: {}", field.getName(), e);
             }
         }
+        // To be compatible with com.alibaba.higress.sdk.service.mcp.McpServiceContextImpl.isMcpServerRoute
+        // TODO: Remove after refactoring com.alibaba.higress.sdk.service.mcp.McpServiceContextImpl.isMcpServerRoute
+        builtInLabels.remove(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY);
         BUILT_IN_LABELS = Collections.unmodifiableSet(builtInLabels);
     }
 
