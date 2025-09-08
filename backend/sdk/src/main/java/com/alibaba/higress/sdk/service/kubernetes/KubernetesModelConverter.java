@@ -117,6 +117,7 @@ public class KubernetesModelConverter {
     private static final Splitter FIELD_SPLITTER = Splitter.on(Pattern.compile(" +")).trimResults().omitEmptyStrings();
     private static final V1IngressBackend DEFAULT_MCP_BRIDGE_BACKEND = new V1IngressBackend();
     private static final Set<String> SUPPORTED_ANNOTATIONS;
+    private static final Set<String> BUILT_IN_LABELS;
     private static final Integer DEFAULT_WEIGHT = 100;
     private static final String SERVICE_FQDN_TEMPLATE = "%s.%s.svc.%s";
 
@@ -149,6 +150,25 @@ public class KubernetesModelConverter {
             }
         }
         SUPPORTED_ANNOTATIONS = Collections.unmodifiableSet(supportedAnnotations);
+
+        Set<String> builtInLabels = new HashSet<>();
+        for (Field field : KubernetesConstants.Label.class.getFields()) {
+            if ((field.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL)) == 0) {
+                continue;
+            }
+            if (field.getType() != String.class) {
+                continue;
+            }
+            if (!field.getName().endsWith("_KEY")) {
+                continue;
+            }
+            try {
+                builtInLabels.add((String)field.get(null));
+            } catch (IllegalAccessException e) {
+                log.error("Failed to get label key from field: {}", field.getName(), e);
+            }
+        }
+        BUILT_IN_LABELS = Collections.unmodifiableSet(builtInLabels);
     }
 
     public KubernetesModelConverter(KubernetesClientService kubernetesClientService) {
@@ -1012,7 +1032,13 @@ public class KubernetesModelConverter {
         if (metadata == null || MapUtils.isEmpty(metadata.getLabels())) {
             return;
         }
-        route.setCustomLabels(metadata.getLabels());
+        Map<String, String> customLabels = new HashMap<>();
+        for (Map.Entry<String, String> label : metadata.getLabels().entrySet()) {
+            if (isCustomLabel(label.getKey())) {
+                customLabels.put(label.getKey(), label.getValue());
+            }
+        }
+        route.setCustomLabels(customLabels);
     }
 
     private static void fillPathRoute(Route route, V1ObjectMeta metadata, V1HTTPIngressPath path) {
@@ -2047,5 +2073,12 @@ public class KubernetesModelConverter {
             return false;
         }
         return true;
+    }
+
+    private static boolean isCustomLabel(String key) {
+        if (key.startsWith(KubernetesConstants.Label.DOMAIN_KEY_PREFIX)) {
+            return false;
+        }
+        return !BUILT_IN_LABELS.contains(key);
     }
 }
