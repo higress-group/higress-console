@@ -587,7 +587,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -615,7 +615,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -643,7 +643,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -671,7 +671,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -701,7 +701,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -730,7 +730,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -758,7 +758,7 @@ public class KubernetesModelConverterTest {
 
         V1Ingress ingress = converter.route2Ingress(route);
 
-        V1Ingress expectedIngress = buildBasicSupportedIngress();
+        V1Ingress expectedIngress = buildBasicSupportedIngress(false);
 
         V1ObjectMeta expectedMetadata = expectedIngress.getMetadata();
         expectedMetadata.setName(route.getName());
@@ -1934,13 +1934,19 @@ public class KubernetesModelConverterTest {
     }
 
     private V1Ingress buildBasicSupportedIngress() {
+        return buildBasicSupportedIngress(true);
+    }
+
+    private V1Ingress buildBasicSupportedIngress(boolean setDefinerLabel) {
         V1Ingress ingress = new V1Ingress();
 
         V1ObjectMeta metadata = new V1ObjectMeta();
         metadata.setNamespace(DEFAULT_NAMESPACE);
         KubernetesUtil.setLabel(metadata, "higress.io/domain_higress-default-domain", "true");
-        KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
-            KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+        if (setDefinerLabel) {
+            KubernetesUtil.setLabel(metadata, KubernetesConstants.Label.RESOURCE_DEFINER_KEY,
+                KubernetesConstants.Label.RESOURCE_DEFINER_VALUE);
+        }
         ingress.setMetadata(metadata);
 
         V1IngressSpec spec = new V1IngressSpec();
@@ -1981,10 +1987,7 @@ public class KubernetesModelConverterTest {
         route.setPath(new RoutePredicate());
         route.setCors(new CorsConfig());
         route.setCustomConfigs(new HashMap<>());
-        route.setCustomLabels(
-            MapUtil.of(KubernetesConstants.Label.RESOURCE_DEFINER_KEY, KubernetesConstants.Label.RESOURCE_DEFINER_VALUE,
-                KubernetesConstants.Label.DOMAIN_KEY_PREFIX + HigressConstants.DEFAULT_DOMAIN,
-                KubernetesConstants.Label.DOMAIN_VALUE_DUMMY));
+        route.setCustomLabels(new HashMap<>());
         route.setReadonly(false);
         return route;
     }
