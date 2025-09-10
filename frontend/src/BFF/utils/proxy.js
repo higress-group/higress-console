@@ -14,8 +14,9 @@ const { URL } = require('url');
 
 // 定义proxyRequest函数
 const proxyRequest = (path, method, headers, body) => {
-  // 设置后端URL
-  const backendBaseUrl = process.env.BACKEND_BASE_URL || 'https://localhost:8081';
+  // 设置后端URL(自己服务器地址)
+  const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://10.44.159.114:8081';
+  // const backendBaseUrl = process.env.BACKEND_BASE_URL || 'http://localhost:8081';
 
   // 返回一个Promise对象，用于await
   return new Promise((resolve, reject) => {
