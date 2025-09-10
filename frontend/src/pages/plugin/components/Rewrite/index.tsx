@@ -35,7 +35,7 @@ const Rewrite = forwardRef((props, ref) => {
     const formData = form.getFieldsValue();
     const { enabled, host, new: newPath } = formData;
 
-    if (!host && !newPath.path) {
+    if (enabled && !host && !newPath.path) {
       message.error(t('plugins.builtIns.rewrite.missingParamError'));
       return;
     }
