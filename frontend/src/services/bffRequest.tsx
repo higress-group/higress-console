@@ -29,6 +29,10 @@ bffRequest.interceptors.response.use(
     // console.log("response====", response);
     const statusCategory = Math.floor(status / 100);
     if (statusCategory === 2) {
+      // 对于批量导入等需要完整响应的接口，返回完整的 data 对象
+      if (data && data.data && (config.url?.includes('/batch-import') || config.url?.includes('/batch-export'))) {
+        return Promise.resolve(data);
+      }
       if (data && data.data) {
         return Promise.resolve(data.data);
       }
