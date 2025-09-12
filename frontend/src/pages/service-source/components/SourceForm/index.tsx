@@ -1,10 +1,12 @@
+/* eslint-disable max-lines */
 import { OptionItem } from '@/interfaces/common';
 import { ProxyServer } from '@/interfaces/proxy-server';
 import { Route } from '@/interfaces/route';
 import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
 import { getGatewayRoutes } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
-import { Form, Input, Select } from 'antd';
+import { DeleteOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Tooltip } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
@@ -23,6 +25,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
   const [authEnabled, setAuthEnabled] = useState<boolean>();
   const [initAuthEnabled, setInitAuthEnabled] = useState<boolean>();
   const [mcpEnabled, setMcpEnabled] = useState<boolean>();
+  const [vportEnabled, setVportEnabled] = useState<boolean>();
   const [protocol, setProtocol] = useState<string | null>();
   const [usingTlsProtocol, setUsingTlsProtocol] = useState<boolean>();
 
@@ -64,6 +67,13 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setAuthEnabled(authEnabledLocal);
       const mcpEnabledLocal = !!value.properties.enableMCPServer;
       setMcpEnabled(mcpEnabledLocal);
+      const vportEnabledLocal = !!(value.vport && (
+        value.vport.defaultValue
+        || value.vport.default
+        || (value.vport.servicesVport && value.vport.servicesVport.length > 0)
+        || (value.vport.vportServices && value.vport.vportServices.length > 0)
+      ));
+      setVportEnabled(vportEnabledLocal);
       setProtocol(value.protocol);
     } else {
       setSourceType(null);
@@ -73,9 +83,34 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       setUsingTlsProtocol(false);
       setProtocol(null);
       setMcpEnabled(false);
+      setVportEnabled(false);
     }
 
     const valueToSet = value || {};
+    // normalize vport structure for edit mode
+    const existingVport = valueToSet.vport || {};
+    if (existingVport) {
+      // Normalize legacy shapes to { servicesVport: [{ name, value }] }
+      const legacyArray = existingVport.servicesVport || existingVport.vportServices || existingVport.services;
+      if (Array.isArray(legacyArray) && legacyArray.length > 0) {
+        const first = legacyArray[0];
+        if (first && typeof first === 'object' && !('name' in first) && Object.keys(first).length === 1) {
+          const normalized = legacyArray
+            .map((obj) => Object.entries(obj)[0])
+            .filter(Boolean)
+            .map(([name, port]) => ({ name, value: Number(port as any) }));
+          existingVport.servicesVport = normalized;
+        } else if (first && typeof first === 'object' && 'name' in first && 'value' in first) {
+          existingVport.servicesVport = legacyArray;
+        }
+      }
+      if ('default' in existingVport && !('defaultValue' in existingVport)) {
+        existingVport.defaultValue = existingVport.default;
+        delete existingVport.default;
+      }
+      // Build helper list for form list
+      valueToSet.vportFormServices = (existingVport.servicesVport || []).map((s) => ({ name: s.name, port: s.value }));
+    }
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
     valueToSet.authN.enabled = valueToSet.authN.enabled || false;
     valueToSet.properties = Object.assign({ enableMCPServer: false }, valueToSet.properties);
@@ -83,6 +118,17 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     valueToSet.properties.mcpServerBaseUrl = valueToSet.properties.mcpServerBaseUrl || '/mcp';
     valueToSet.protocol = valueToSet.protocol || ServiceProtocols.unspecified.key;
     valueToSet.proxyName = valueToSet.proxyName || '';
+    // Set vportEnabled based on whether vport configuration exists
+    const hasVportConfig = !!(
+      existingVport
+      && (
+        existingVport.defaultValue
+        || existingVport.default
+        || (existingVport.servicesVport && existingVport.servicesVport.length > 0)
+        || (existingVport.vportServices && existingVport.vportServices.length > 0)
+      )
+    );
+    valueToSet.vportEnabled = hasVportConfig;
     updateProtocol(valueToSet.protocol);
     form.setFieldsValue(valueToSet);
   };
@@ -118,6 +164,32 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       }
       if (!isTlsProtocol(values.protocol)) {
         values.sni = null;
+      }
+      // Build vport payload only for nacos/eureka and when vport is enabled
+      if ((isNacosType(values.type) || values.type === ServiceSourceTypes.eureka.key) && vportEnabled) {
+        const defaultVport = values.vport && (values.vport.defaultValue ?? values.vport.default);
+        const servicePairs = values.vportFormServices || [];
+        const servicesArray = (servicePairs || [])
+          .filter((p) => p && p.name && p.port)
+          .map((p) => ({ name: p.name, value: Number(p.port) }));
+        const parsedDefault = Number(defaultVport);
+        const hasDefault = Number.isFinite(parsedDefault) && parsedDefault >= 1 && parsedDefault <= 65535;
+        const hasServices = servicesArray && servicesArray.length > 0;
+        if (hasDefault || hasServices) {
+          values.vport = Object.assign({}, values.vport, {
+            defaultValue: hasDefault ? parsedDefault : undefined,
+            servicesVport: hasServices ? servicesArray : undefined,
+          });
+          // Ensure keys are removed if any existed
+          delete values.vport.default;
+          delete values.vport.services;
+        } else {
+          delete values.vport;
+        }
+        delete values.vportFormServices;
+      } else {
+        delete values.vport;
+        delete values.vportFormServices;
       }
       return values;
     },
@@ -264,6 +336,303 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 )
               }
             </Form.Item>
+            {
+              sourceTypeConfig && sourceTypeConfig.customVportSupported && (
+                <>
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.vportEnabled')}
+                    tooltip={t('serviceSource.serviceSourceForm.vportTooltip')}
+                    name="vportEnabled"
+                  >
+                    <Select
+                      onChange={(v) => setVportEnabled(v)}
+                    >
+                      {/* eslint-disable-next-line react/jsx-boolean-value */}
+                      <Option key={0} value={false}>{t('misc.no')}</Option>
+                      {/* eslint-disable-next-line react/jsx-boolean-value */}
+                      <Option key={1} value={true}>{t('misc.yes')}</Option>
+                    </Select>
+                  </Form.Item>
+                  {
+                    vportEnabled && (
+                      <>
+                        <Form.Item
+                          name={['vport', 'defaultValue']}
+                          label={t('serviceSource.serviceSourceForm.vport')}
+                          tooltip={t('serviceSource.serviceSourceForm.vportDefaultTooltip')}
+                          rules={[
+                            {
+                              validator: (_, val) => {
+                                if (val) {
+                                  const port = parseInt(val);
+                                  if (isNaN(port) || port <= 0 || port > 65535) {
+                                    return Promise.reject(t('serviceSource.serviceSourceForm.vportServicePortInvalid'));
+                                  }
+                                }
+                                return Promise.resolve();
+                              },
+                            },
+                          ]}
+                        >
+                          <Input
+                            allowClear
+                            type="number"
+                            min={1}
+                            max={65535}
+                            placeholder={t('serviceSource.serviceSourceForm.vportDefaultPlaceholder')}
+                          />
+                        </Form.Item>
+                        <Form.List name="vportFormServices">
+                          {(fields, { add, remove }) => (
+                            <div style={{ marginBottom: 24 }}>
+                              <div style={{
+                                border: 'none',
+                                borderRadius: '0',
+                                backgroundColor: 'transparent',
+                              }}
+                              >
+                                {/* Table Header */}
+                                <div style={{
+                                  display: 'flex',
+                                  padding: '12px 0',
+                                  borderBottom: '1px solid #f0f0f0',
+                                  backgroundColor: 'transparent',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#262626',
+                                }}
+                                >
+                                  <div style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    borderRight: '1px solid #f0f0f0',
+                                    paddingRight: '16px',
+                                  }}
+                                  >
+                                    <label>{t('serviceSource.serviceSourceForm.vportServiceName')}</label>
+                                    <Tooltip title={t('serviceSource.serviceSourceForm.vportServiceNamePlaceholder')}>
+                                      <Button
+                                        type="text"
+                                        size="small"
+                                        icon={<QuestionCircleOutlined />}
+                                        style={{
+                                          color: '#8c8c8c',
+                                          minWidth: 'auto',
+                                          width: '16px',
+                                          height: '16px',
+                                          marginLeft: '4px',
+                                        }}
+                                      />
+                                    </Tooltip>
+                                  </div>
+                                  <div style={{
+                                    width: '150px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    borderRight: '1px solid #f0f0f0',
+                                    paddingLeft: '16px',
+                                    paddingRight: '16px',
+                                  }}
+                                  >
+                                    <label>{t('serviceSource.serviceSourceForm.vportServicePort')}</label>
+                                    <Tooltip title="1-65535">
+                                      <Button
+                                        type="text"
+                                        size="small"
+                                        icon={<QuestionCircleOutlined />}
+                                        style={{
+                                          color: '#8c8c8c',
+                                          minWidth: 'auto',
+                                          width: '16px',
+                                          height: '16px',
+                                          marginLeft: '4px',
+                                        }}
+                                      />
+                                    </Tooltip>
+                                  </div>
+                                  <div style={{
+                                    width: '60px',
+                                    textAlign: 'center',
+                                    paddingLeft: '16px',
+                                  }}
+                                  >
+                                    <label>{t('serviceSource.serviceSourceForm.vportServiceAction')}</label>
+                                  </div>
+                                </div>
+
+                                {/* Table Content */}
+                                {fields.length > 0 ? (
+                                  fields.map((field, fieldIndex) => (
+                                    <div
+                                      key={`serviceLevelVportEntry_${field.name}`}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        borderBottom: fieldIndex === fields.length - 1 ? 'none' : '1px solid #f0f0f0',
+                                      }}
+                                    >
+                                      <Form.Item
+                                        {...field}
+                                        name={[field.name, 'name']}
+                                        key={`serviceLevelVportEntry_${field.name}_name`}
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: t('serviceSource.serviceSourceForm.vportServiceNameRequired'),
+                                          },
+                                          {
+                                            validator: (_, val) => {
+                                              if (!val) {
+                                                return Promise.resolve();
+                                              }
+                                              const currentFormValues = form.getFieldsValue();
+                                              const vportFormServices = currentFormValues.vportFormServices || [];
+                                              const duplicateCount = vportFormServices.filter(
+                                                (service, serviceIndex) => {
+                                                  return service && service.name === val && serviceIndex !== field.name;
+                                                },
+                                              ).length;
+                                              if (duplicateCount > 0) {
+                                                return Promise.reject(new Error('该服务端口配置已存在'));
+                                              }
+                                              return Promise.resolve();
+                                            },
+                                          },
+                                        ]}
+                                        style={{
+                                          flex: 1,
+                                          margin: 0,
+                                          paddingRight: '16px',
+                                        }}
+                                      >
+                                        <Input
+                                          placeholder={t('serviceSource.serviceSourceForm.vportServiceNamePlaceholder')}
+                                        />
+                                      </Form.Item>
+                                      <Form.Item
+                                        {...field}
+                                        key={`serviceLevelVportEntry_${field.name}_port`}
+                                        name={[field.name, 'port']}
+                                        style={{
+                                          width: '150px',
+                                          margin: 0,
+                                          paddingLeft: '16px',
+                                          paddingRight: '16px',
+                                        }}
+                                        rules={[
+                                          {
+                                            validator: (_, val) => {
+                                              if (!val) {
+                                                return Promise.reject(t('serviceSource.serviceSourceForm.vportServicePortRequired'));
+                                              }
+                                              const port = parseInt(val);
+                                              if (isNaN(port) || port <= 0 || port > 65535) {
+                                                return Promise.reject(t('serviceSource.serviceSourceForm.vportServicePortInvalid'));
+                                              }
+                                              return Promise.resolve();
+                                            },
+                                          },
+                                        ]}
+                                      >
+                                        <Input
+                                          type="number"
+                                          min={1}
+                                          max={65535}
+                                          placeholder={t('serviceSource.serviceSourceForm.vportServicePortPlaceholder')}
+                                        />
+                                      </Form.Item>
+                                      <div
+                                        key={`serviceLevelVportEntry_${field.name}_operations`}
+                                        style={{
+                                          width: '60px',
+                                          textAlign: 'center',
+                                          paddingLeft: '16px',
+                                        }}
+                                      >
+                                        <Tooltip title={t('serviceSource.serviceSourceForm.vportRemove')}>
+                                          <Button
+                                            type="text"
+                                            onClick={() => remove(field.name)}
+                                            icon={<DeleteOutlined />}
+                                            style={{ color: '#000000' }}
+                                          />
+                                        </Tooltip>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div style={{
+                                    padding: '20px 0',
+                                    textAlign: 'center',
+                                    color: '#8c8c8c',
+                                    borderLeft: 'none',
+                                    borderRight: 'none',
+                                  }}
+                                  >
+                                    <div style={{ marginBottom: '4px' }}>
+                                      <svg
+                                        width="32"
+                                        height="20"
+                                        viewBox="0 0 64 41"
+                                        xmlns="https://www.w3.org/2000/svg"
+                                      >
+                                        <g transform="translate(0 1)" fill="none" fillRule="evenodd">
+                                          <ellipse
+                                            fill="#f5f5f5"
+                                            cx="32"
+                                            cy="33"
+                                            rx="32"
+                                            ry="7"
+                                          />
+                                          <g fillRule="nonzero" stroke="#d9d9d9">
+                                            <path
+                                              d={
+                                                "M55 12.76L44.854 1.258C44.367.474 43.656 0 42.907 0H21.093" +
+                                                "c-.749 0-1.46.474-1.947 1.257L9 12.761V22h46v-9.24z"
+                                              }
+                                            />
+                                            <path
+                                              d={
+                                                "M41.613 15.931c0-1.605.994-2.93 2.227-2.931H55v18.137C55 33.26 53.68 35 52.05 35h-40.1" +
+                                                "C10.32 35 9 33.259 9 31.137V13h11.16" +
+                                                "c1.233 0 2.227 1.323 2.227 2.928v.022c0 1.605 1.005 2.901 2.237 2.901h14.752" +
+                                                "c1.232 0 2.237-1.308 2.237-2.913v-.007z"
+                                              }
+                                              fill="#fafafa"
+                                            />
+                                          </g>
+                                        </g>
+                                      </svg>
+                                    </div>
+                                    暂无数据
+                                  </div>
+                                )}
+                              </div>
+
+                              <Button
+                                type="link"
+                                onClick={() => add()}
+                                icon={<PlusOutlined />}
+                                style={{
+                                  color: '#1890ff',
+                                  padding: '4px 0',
+                                  height: 'auto',
+                                  fontSize: '14px',
+                                  marginTop: '8px',
+                                }}
+                              >
+                                {t('serviceSource.serviceSourceForm.vportAdd')}
+                              </Button>
+                            </div>
+                          )}
+                        </Form.List>
+                      </>
+                    )
+                  }
+                </>
+              )
+            }
           </>
         )
       }
