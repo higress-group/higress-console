@@ -696,6 +696,12 @@
       "key": "Certificate Key",
       "keyRequired": "Please enter certificate key",
       "keyPlaceholder": "Please enter certificate key"
+    },
+    "validation": {
+      "success": "Certificate validation passed",
+      "failed": "Certificate validation failed",
+      "error": "Error occurred during certificate validation",
+      "validating": "Validating certificate..."
     }
   },
   "exception": {

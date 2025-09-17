@@ -2,9 +2,9 @@ import request from './request';
 import { RouteResponse, Route } from '@/interfaces/route';
 import bffRequest from './bffRequest';
 
-export const getGatewayRoutes = (): Promise<RouteResponse> => {
+export const getGatewayRoutes = (): Promise<Route[]> => {
   // return request.get<any, RouteResponse>('/v1/routes');
-  return bffRequest.get<any, RouteResponse>('/bff/v1/routes');
+  return bffRequest.get<any, Route[]>('/bff/v1/routes');
 };
 
 // 获取指定路由策略
@@ -32,4 +32,29 @@ export const updateGatewayRoute = (payload: Route): Promise<any> => {
 // 不知道是啥（后面再改）
 export const updateRouteConfig = (name, params): Promise<any> => {
   return request.put<any, any>(`/v1/routes/${name}`, params);
+};
+
+// 批量导入路由
+export const batchImportRoutes = (file: File): Promise<any> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return bffRequest.post<any, any>('/bff/v1/routes/batch-import', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+// 批量导出路由
+export const batchExportRoutes = (): Promise<Blob> => {
+  return bffRequest.get<any, Blob>('/bff/v1/routes/batch-export', {
+    responseType: 'blob',
+  });
+};
+
+// 导出路由模板
+export const exportRouteTemplate = (): Promise<Blob> => {
+  return bffRequest.get<any, Blob>('/bff/v1/routes/export-template', {
+    responseType: 'blob',
+  });
 };
