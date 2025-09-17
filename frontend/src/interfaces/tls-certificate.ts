@@ -15,3 +15,13 @@ export interface TlsCertificateResponse {
   pageSize: number;
   total: number;
 }
+
+export interface TlsCertificateValidationRequest {
+  cert: string;
+  key: string;
+}
+
+export interface TlsCertificateValidationResponse {
+  valid: boolean;
+  errors: string[];
+}

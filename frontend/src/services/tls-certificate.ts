@@ -1,4 +1,5 @@
-import { TlsCertificate, TlsCertificateResponse } from '@/interfaces/tls-certificate';
+import { TlsCertificate, TlsCertificateResponse, TlsCertificateValidationRequest, TlsResponse } from '@/interfaces/tls-certificate';
+
 // import request from './request';
 import bffRequest from './bffRequest';
 
@@ -41,3 +42,13 @@ export const updateTlsCertificate = (payload: TlsCertificate): Promise<any> => {
   // return request.put<any, any>(`/v1/tls-certificates/${payload.name}`, payload);
   return bffRequest.put<any, any>(`/bff/v1/tls-certificates/${payload.name}`, payload);
 };
+
+/**
+ * Validate TLS Certificate
+ * @param payload
+ * @returns
+ */
+export const validateTlsCertificate = (payload: TlsCertificateValidationRequest): Promise<TlsResponse> => {
+  return bffRequest.post<TlsCertificateValidationRequest, TlsResponse>(`/bff/v1/tls-certificates/validate`, payload);
+};
+
