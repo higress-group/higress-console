@@ -6,7 +6,7 @@
     "timestamp": {
       "question_time": "2025-09-10T09:00:00+08:00",
       "response_time": "2025-09-10T09:15:00+08:00",
-      "duration_ms": 900000
+      "duration_ms": 90000
     },
     "user_info": {
       "query": "证书链完整性验证需求修改：1.证书中至少包含leaf和Intermediate（不强制要求root）+文件/顺序 2.leaf不是自己签发的，而是由Intermediate签发的。可以模仿test.cjs中的程序",

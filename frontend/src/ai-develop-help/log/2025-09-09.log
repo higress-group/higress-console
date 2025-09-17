@@ -6,7 +6,7 @@
     "timestamp": {
       "question_time": "2025-09-09T11:15:00+08:00",
       "response_time": "2025-09-09T11:20:00+08:00",
-      "duration_ms": 300000
+      "duration_ms": 30000
     },
     "user_info": {
       "query": "按照需求设计并创建提示词模板文件",

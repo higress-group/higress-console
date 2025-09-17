@@ -20,5 +20,8 @@ router.delete('/v1/tls-certificates/:name', tlsCertificateController.deleteTlsCe
 // 更新TLS证书
 router.put('/v1/tls-certificates/:name', tlsCertificateController.updateTlsCertificate);
 
+// 校验TLS证书
+router.post('/v1/tls-certificates/validate', tlsCertificateController.validateTlsCertificate);
+
 // 导出路由
 module.exports = router;
