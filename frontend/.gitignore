@@ -3,4 +3,3 @@ node/
 
 # BFF logs
 src/BFF/logs/
-*.log
