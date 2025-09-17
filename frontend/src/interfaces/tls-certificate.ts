@@ -21,7 +21,7 @@ export interface TlsCertificateValidationRequest {
   key: string;
 }
 
-export interface TlsCertificateValidationResponse {
+export interface TlsResponse {
   valid: boolean;
   errors: string[];
 }
