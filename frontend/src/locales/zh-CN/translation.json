@@ -562,6 +562,19 @@
     "deleteConfirmation": "确定删除 <1>{{currentRouteName}}</1> 吗？",
     "noCustomIngresses": "注：列表中仅包含通过控制台页面创建的路由配置。",
     "routeSearchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由",
+    "batchImport": "批量导入",
+    "batchExport": "批量导出",
+    "exportTemplate": "导出模板",
+    "batchImportSuccess": "批量导入成功",
+    "batchImportFailed": "批量导入失败",
+    "batchExportSuccess": "批量导出成功",
+    "batchExportFailed": "批量导出失败",
+    "templateExportSuccess": "模板导出成功",
+    "templateExportFailed": "模板导出失败",
+    "selectFile": "选择文件",
+    "uploadFile": "上传文件",
+    "fileFormatError": "文件格式错误，请上传JSON格式文件",
+    "importProgress": "导入进度",
     "factorGroup": {
       "columns": {
         "key": "Key",
@@ -645,6 +658,12 @@
       "key": "私钥数据",
       "keyRequired": "请输入私钥数据",
       "keyPlaceholder": "请输入私钥数据"
+    },
+    "validation": {
+      "success": "证书校验通过",
+      "failed": "证书校验失败",
+      "error": "证书校验过程中发生错误",
+      "validating": "正在校验证书..."
     }
   },
   "exception": {
