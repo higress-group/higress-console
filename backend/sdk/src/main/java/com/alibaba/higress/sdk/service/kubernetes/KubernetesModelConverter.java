@@ -1776,6 +1776,7 @@ public class KubernetesModelConverter {
         serviceSource.setSni(v1RegistryConfig.getSni());
         serviceSource.setProxyName(v1RegistryConfig.getProxyName());
         serviceSource.setProperties(new HashMap<>());
+        serviceSource.setVport(v1RegistryConfig.getVport());
         if (V1McpBridge.REGISTRY_TYPE_NACOS.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS2.equals(v1RegistryConfig.getType())
             || V1McpBridge.REGISTRY_TYPE_NACOS3.equals(v1RegistryConfig.getType())) {
