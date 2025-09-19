@@ -258,7 +258,7 @@
         "qwenEnableSearch": "Enable Tongyi Qianwen Internet search function",
         "qwenEnableCompatible": "Enable Tongyi Qianwen compatibility mode",
         "qwenDomain": "Custom Tongyi Qianwen Domain",
-        "qwenFileIds": "Upload Tongyi Qianwen file IDs",
+        "qwenFileIds": "Tongyi Qianwen file IDs",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
         "awsSecretKey": "AWS Secret Access Key",
@@ -302,6 +302,8 @@
         "geminiSafetyThresholdRequired": "Please input block threshold"
       },
       "tooltips": {
+        "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",
+        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen’s OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
         "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired."
       },
       "placeholder": {

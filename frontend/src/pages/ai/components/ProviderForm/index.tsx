@@ -474,6 +474,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             </Form.Item>
             <Form.Item
               label={t('llmProvider.providerForm.label.qwenEnableCompatible')}
+              tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
               name={["rawConfigs", "qwenEnableCompatible"]}
               valuePropName="checked"
             >
@@ -495,6 +496,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                         {fields.map((field, index) => (
                           <Form.Item
                             label={index === 0 ? t('llmProvider.providerForm.label.qwenFileIds') : ''}
+                            tooltip={t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip')}
                             key={index}
                             style={{ marginBottom: '0.5rem' }}
                           >
