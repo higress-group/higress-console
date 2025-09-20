@@ -21,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
@@ -41,25 +43,25 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
 
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
-
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Qwen specific configurations.");
         }
 
-        Object searchVal = configurations.get(ENABLE_SEARCH_KEY);
-        if (!configurations.containsKey(ENABLE_SEARCH_KEY) || !(searchVal instanceof Boolean)) {
-            throw new ValidationException("Missing or invalid configuration: " + ENABLE_SEARCH_KEY);
-        }
-        Object compatibleVal = configurations.get(ENABLE_COMPATIBLE_KEY);
-        if (!configurations.containsKey(ENABLE_COMPATIBLE_KEY) || !(compatibleVal instanceof Boolean)) {
-            throw new ValidationException("Missing or invalid configuration: " + ENABLE_COMPATIBLE_KEY);
-        }
-        Object fileIdsVal = configurations.get(FILE_IDS_KEY);
-        if (!configurations.containsKey(FILE_IDS_KEY) || !(fileIdsVal instanceof List)) {
-            throw new ValidationException("Missing or invalid configuration: " + FILE_IDS_KEY);
-        }
+        Boolean searchVal = MapUtils.getBoolean(configurations, ENABLE_SEARCH_KEY, Boolean.FALSE);
+        configurations.put(ENABLE_SEARCH_KEY, searchVal);
 
+        Boolean compatibleVal = MapUtils.getBoolean(configurations, ENABLE_COMPATIBLE_KEY, Boolean.FALSE);
+        configurations.put(ENABLE_COMPATIBLE_KEY, compatibleVal);
+
+        if (configurations.containsKey(FILE_IDS_KEY)) {
+            Object fileIdsVal = configurations.get(FILE_IDS_KEY);
+            if (!(fileIdsVal instanceof List)) {
+                throw new ValidationException("Invalid configuration: " + FILE_IDS_KEY);
+            }
+        }
     }
+
+
     @Override
     public String getType() {
         return LlmProviderType.QWEN;
@@ -89,7 +91,7 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
         try {
             return new URI(scheme, rawCustomDomain, path, null);
         } catch (URISyntaxException e) {
-            throw new ValidationException(CUSTOM_DOMAIN_KEY + " contains an invalid URL: " + rawCustomDomain, e);
+            throw new ValidationException(CUSTOM_DOMAIN_KEY + " contains an invalid domain name: " + rawCustomDomain, e);
         }
     }
 
