@@ -469,6 +469,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               label={t('llmProvider.providerForm.label.qwenEnableSearch')}
               name={["rawConfigs", "qwenEnableSearch"]}
               valuePropName="checked"
+              initialValue={ false }
             >
               <Switch />
             </Form.Item>
@@ -477,6 +478,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
               name={["rawConfigs", "qwenEnableCompatible"]}
               valuePropName="checked"
+              initialValue={ false }
             >
               <Switch />
             </Form.Item>
