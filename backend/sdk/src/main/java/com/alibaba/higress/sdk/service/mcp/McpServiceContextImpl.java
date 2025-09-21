@@ -216,6 +216,7 @@ public class McpServiceContextImpl implements McpServerService {
         }
     }
 
+    // TODO: Use another way instead of customLabels to determine whether the route is bound to mcpServer
     private boolean isMcpServerRoute(Map<String, String> customLabels) {
         if (MapUtils.isEmpty(customLabels)) {
             return false;
