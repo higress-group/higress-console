@@ -330,7 +330,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
         if (CollectionUtils.isEmpty(upstreams)) {
-            wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER);
+            wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER, true);
             return;
         }
 
@@ -342,7 +342,7 @@ public class AiRouteServiceImpl implements AiRouteService {
                 WasmPluginInstanceScope.SERVICE, upstreamService.getName());
 
             if (MapUtils.isEmpty(upstream.getModelMapping())) {
-                wasmPluginInstanceService.delete(targets, pluginName);
+                wasmPluginInstanceService.delete(targets, pluginName, true);
                 continue;
             }
 

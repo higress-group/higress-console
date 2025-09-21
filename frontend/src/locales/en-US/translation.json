@@ -263,7 +263,11 @@
         "vertexTokenRefreshAhead": "Lead time of rereshing Google Cloud Access Token (sec)",
         "geminiSafetySettings": "Gemini API Safety Settings",
         "geminiSafetyCategory": "Harm Category",
-        "geminiSafetyThreshold": "Block Threshold"
+        "geminiSafetyThreshold": "Block Threshold",
+        "openaiCustomServerType": "Custom OpenAI Service Config Method",
+        "openaiCustomService": "Custom OpenAI Service",
+        "openaiCustomServiceHost": "Custom OpenAI Service Host",
+        "openaiCustomServicePath": "Custom OpenAI Service Path"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -283,6 +287,8 @@
         "openaiCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom OpenAI service base URLs",
         "openaiCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom OpenAI service base URLs",
         "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
+        "openaiCustomServiceRequired": "Please select custom OpenAI service",
+        "openaiCustomServicePathRequired": "Please select custom OpenAI service path",
         "awsRegionRequired": "Please input AWS Region",
         "awsAccessKeyRequired": "Please input AWS Access Key ID",
         "awsSecretKeyRequired": "Please input AWS Secret Access Key",
@@ -301,11 +307,17 @@
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
         "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address",
-        "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1"
+        "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1",
+        "openaiCustomServiceHostPlaceholder": "Sample: api.openai.com",
+        "openaiCustomServicePathPlaceholder": "Sample: /v1"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
         "custom": "Custom Service"
+      },
+      "openaiCustomServerType": {
+        "service": "Select a service",
+        "url": "Input URL(s)"
       },
       "secretRefModal": {
         "entry": "I'd like to use token info stored in a Secret resource.",

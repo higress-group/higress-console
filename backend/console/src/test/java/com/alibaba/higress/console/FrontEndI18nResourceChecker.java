@@ -45,7 +45,8 @@ public class FrontEndI18nResourceChecker {
 
     private static final Set<String> IMPLICITLY_USED_RESOURCE_KEYS = Sets.newHashSet("index.title", "init.title",
         "login" + ".title", "aiRoute.edit", "tlsCertificate.editTlsCertificate", "serviceSource.editServiceSource",
-        "llmProvider.edit", "plugins.editPlugin", "route.editRoute", "domain.editDomain", "consumer.edit");
+        "llmProvider.edit", "plugins.editPlugin", "route.editRoute", "domain.editDomain", "consumer.edit",
+        "serviceSource.proxyServerModal.editProxyServer", "serviceSource.proxyServerModal.createProxyServer");
     private static final List<String> IMPLICITLY_USED_RESOURCE_KEY_PREFIXES =
         Arrays.asList("menu.", "request.error.", "serviceSource.types.", "llmProvider.providerTypes.",
             "route.factorGroup.required.", "route.keyValueGroup.required.", "plugins.configForm.", "plugins.subTitle.");
@@ -53,8 +54,9 @@ public class FrontEndI18nResourceChecker {
     private static final String LANG_CN = "zh-CN";
     private static final String LANG_EN = "en-US";
 
-    private static final List<Pattern> RESOURCE_USAGE_PATTERNS = Arrays.asList(Pattern.compile("\\bt\\('([^']+)'\\)"),
-        Pattern.compile("t\\(\"([^\"]+)\"\\)"), Pattern.compile("\\bi18nKey=\"([^\"]+)\""));
+    private static final List<Pattern> RESOURCE_USAGE_PATTERNS =
+        Arrays.asList(Pattern.compile("\\bt\\('([^']+)'(,.+)?\\)"), Pattern.compile("t\\(\"([^\"]+)\"\\)"),
+            Pattern.compile("\\bi18nKey=\"([^\"]+)\""));
     private static final Pattern BAD_RESOURCE_CONTENT = Pattern.compile("^[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+$");
 
     @Test
