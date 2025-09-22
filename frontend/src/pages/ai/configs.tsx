@@ -1,3 +1,5 @@
+import { serviceToString } from "@/interfaces/service";
+
 export const aiModelProviders = [
   {
     label: 'OpenAI',
@@ -38,18 +40,47 @@ export const aiModelProviders = [
       if (!record.rawConfigs) {
         return null;
       }
-      const customUrl = record.rawConfigs.openaiCustomUrl;
+      const rawConfigs = record.rawConfigs;
+      const customUrl = rawConfigs.openaiCustomUrl;
       if (!customUrl) {
         return null;
       }
+      if (rawConfigs.openaiCustomServiceName) {
+        const schemeEndIndex = customUrl.indexOf('://');
+        const hostEndIndex = customUrl.indexOf('/', schemeEndIndex + '://'.length);
+        const scheme = schemeEndIndex !== -1 ? customUrl.substring(0, schemeEndIndex) : 'http';
+        const path = hostEndIndex !== -1 ? customUrl.substring(hostEndIndex) : '';
+        const portSegment = rawConfigs.openaiCustomServicePort ? `:${rawConfigs.openaiCustomServicePort}` : '';
+        return [`${scheme}://${rawConfigs.openaiCustomServiceName}${portSegment}${path}`]
+      }
       const customUrls = [customUrl];
-      if (Array.isArray(record.rawConfigs.openaiExtraCustomUrls)) {
-        customUrls.push(...record.rawConfigs.openaiExtraCustomUrls)
+      if (Array.isArray(rawConfigs.openaiExtraCustomUrls)) {
+        customUrls.push(...rawConfigs.openaiExtraCustomUrls)
       }
       return customUrls;
     },
     normalizeRawConfigs: (rawConfigs) => {
-      if (rawConfigs && Array.isArray(rawConfigs.openaiCustomUrls)) {
+      if (!rawConfigs) {
+        return;
+      }
+      if (typeof rawConfigs.openaiCustomServiceObj === 'object') {
+        const customService = rawConfigs.openaiCustomServiceObj;
+        const host = rawConfigs.openaiCustomServiceHost || (customService.port ? `${customService.name}:${customService.port}` : customService.name);
+        const protocol = customService.protocol && customService.protocol.toUpperCase() === 'HTTPS' ? 'https' : 'http';
+        let path = rawConfigs.openaiCustomServicePath || ''
+        if (!path.startsWith('/')) {
+          path = '/' + path;
+        }
+
+        rawConfigs.openaiCustomUrl = `${protocol}://${host}${path}`;
+        rawConfigs.openaiCustomServiceName = customService.name;
+        rawConfigs.openaiCustomServicePort = customService.port || 80;
+
+        delete rawConfigs.openaiCustomServiceObj;
+        delete rawConfigs.openaiCustomServiceHost;
+        delete rawConfigs.openaiCustomServicePath;
+        delete rawConfigs.openaiCustomUrls;
+      } else if (Array.isArray(rawConfigs.openaiCustomUrls)) {
         rawConfigs.openaiExtraCustomUrls = [...rawConfigs.openaiCustomUrls];
         rawConfigs.openaiCustomUrl = rawConfigs.openaiExtraCustomUrls.shift();
         delete rawConfigs.openaiCustomUrls;
@@ -79,6 +110,21 @@ export const aiModelProviders = [
         value: 'qwen-long',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const rawConfigs = record.rawConfigs;
+      const customDomain = rawConfigs.qwenDomain;
+      const compatible = rawConfigs.qwenEnableCompatible;
+      if (customDomain && customDomain !== '') {
+        return [customDomain];
+      }
+      if (rawConfigs.qwenEnableCompatible) {
+        return ['https://dashscope.aliyuncs.com/compatible-mode/v1'];
+      }
+      return null
+    }
   },
   {
     label: 'Moonshot',
