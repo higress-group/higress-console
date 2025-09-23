@@ -42,6 +42,10 @@ public interface WasmPluginInstanceService {
 
     void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName);
 
+    void delete(WasmPluginInstanceScope scope, String target, String pluginName, Boolean internal);
+
+    void delete(Map<WasmPluginInstanceScope, String> targets, String pluginName, Boolean internal);
+
     void deleteAll(WasmPluginInstanceScope scope, String target);
 
     void deleteAll(Map<WasmPluginInstanceScope, String> targets);
