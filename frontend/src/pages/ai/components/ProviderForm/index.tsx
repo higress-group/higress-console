@@ -1,10 +1,9 @@
-/* eslint-disable max-lines */
 import { OptionItem } from '@/interfaces/common';
 import { ProxyServer } from '@/interfaces/proxy-server';
 import { Service, serviceToString } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
-import { InfoCircleOutlined, MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Tooltip, Typography } from 'antd';
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
