@@ -1,10 +1,11 @@
+/* eslint-disable max-lines */
 import { OptionItem } from '@/interfaces/common';
 import { ProxyServer } from '@/interfaces/proxy-server';
 import { Service, serviceToString } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
+import { InfoCircleOutlined, MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Tooltip, Typography } from 'antd';
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -602,7 +603,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               label={t('llmProvider.providerForm.label.qwenEnableSearch')}
               name={["rawConfigs", "qwenEnableSearch"]}
               valuePropName="checked"
-              initialValue={ false }
+              initialValue={false}
             >
               <Switch />
             </Form.Item>
@@ -611,67 +612,75 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
               name={["rawConfigs", "qwenEnableCompatible"]}
               valuePropName="checked"
-              initialValue={ false }
+              initialValue={false}
             >
               <Switch />
             </Form.Item>
             <Form.List
-                    name={["rawConfigs", "qwenFileIds"]}
-                    initialValue={[]}
-                  >
-                    {(fields, { add, remove }, { errors }) => (
-                      <>
-                        {!fields.length ?
-                          <div
-                            style={{ marginBottom: '8px' }}
-                          >
-                            {t('llmProvider.providerForm.label.qwenFileIds')}
-                          </div> : null
-                        }
-                        {fields.map((field, index) => (
-                          <Form.Item
-                            label={index === 0 ? t('llmProvider.providerForm.label.qwenFileIds') : ''}
-                            tooltip={t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip')}
-                            key={index}
-                            style={{ marginBottom: '0.5rem' }}
-                          >
-                            <Form.Item
-                              {...field}
-                              noStyle
-                              rules={[
-                                {
-                                  required: true,
-                                  message: t('llmProvider.providerForm.rules.qwenFileIdRequired') || '',
-                                },
-                              ]}
-                            >
-                              <Input
-                                allowClear
-                                maxLength={256}
-                                style={{ width: '94%' }}
-                                placeholder={t('llmProvider.providerForm.placeholder.qwenFileIdsPlaceholder') + (index + 1) || ''}
-                              />
-                            </Form.Item>
-                            <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
-                              <Button
-                                type="dashed"
-                                disabled={!(fields.length > 0)}
-                                onClick={() => remove(field.name)}
-                                icon={<MinusCircleOutlined />}
-                              />
-                            </div>
-                          </Form.Item>
-                        ))}
-                    <Form.Item>
-                      <Button
-                        type="dashed"
-                        onClick={() => add()}
-                        icon={<PlusOutlined />}
-                      />
-                      <Form.ErrorList errors={errors} />
+              name={["rawConfigs", "qwenFileIds"]}
+              initialValue={[]}
+            >
+              {(fields, { add, remove }, { errors }) => (
+                <>
+                  {
+                    !fields.length ? (
+                      <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                          {t('llmProvider.providerForm.label.qwenFileIds')}
+                        </span>
+                        <Tooltip
+                          title={t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip')}
+                          placement="top"
+                        >
+                          <QuestionCircleOutlined style={{ marginLeft: 4, color: 'rgba(0, 0, 0, 0.45)', cursor: 'help' }} />
+                        </Tooltip>
+                      </div>
+                    ) : null
+                  }
+                  {fields.map((field, index) => (
+                    <Form.Item
+                      label={index === 0 ? t('llmProvider.providerForm.label.qwenFileIds') : ''}
+                      tooltip={index === 0 ? t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip') : ''}
+                      key={index}
+                      style={{ marginBottom: '0.5rem' }}
+                    >
+                      <Form.Item
+                        {...field}
+                        noStyle
+                        rules={[
+                          {
+                            required: true,
+                            message: t('llmProvider.providerForm.rules.qwenFileIdRequired') || '',
+                          },
+                        ]}
+                      >
+                        <Input
+                          allowClear
+                          maxLength={256}
+                          style={{ width: '94%' }}
+                          placeholder={t('llmProvider.providerForm.placeholder.qwenFileIdsPlaceholder') + (index + 1).toString() || ''}
+                        />
+                      </Form.Item>
+                      <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                        <Button
+                          type="dashed"
+                          disabled={!(fields.length > 0)}
+                          onClick={() => remove(field.name)}
+                          icon={<MinusCircleOutlined />}
+                        />
+                      </div>
                     </Form.Item>
-                  </>
-                )}
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      icon={<PlusOutlined />}
+                    />
+                    <Form.ErrorList errors={errors} />
+                  </Form.Item>
+                </>
+              )}
             </Form.List>
             <Form.Item
               label={t('llmProvider.providerForm.label.qwenServerType')}
@@ -693,18 +702,18 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                     label={t('llmProvider.providerForm.label.qwenDomain')}
                     name={["rawConfigs", "qwenDomain"]}
                     rules={[
-                        {
-                          required: true,
-                          pattern: /^.+\..+$/,
-                          message: t('llmProvider.providerForm.rules.qwenDomainRequired') || '',
-                        },
-                      ]}
+                      {
+                        required: true,
+                        pattern: /^.+\..+$/,
+                        message: t('llmProvider.providerForm.rules.qwenDomainRequired') || '',
+                      },
+                    ]}
                   >
                     <Input
                       allowClear
                       maxLength={256}
                       placeholder={t('llmProvider.providerForm.placeholder.qwenDomainPlaceholder') || ''}
-                    ></Input>
+                    />
                   </Form.Item>
                 </>
               )
