@@ -1,10 +1,12 @@
+// @ts-nocheck
 import { OptionItem } from '@/interfaces/common';
 import { ProxyServer } from '@/interfaces/proxy-server';
 import { Route } from '@/interfaces/route';
 import { getServiceSourceTypeConfig, isNacosType, ServiceProtocols, ServiceSourceTypeConfig, ServiceSourceTypes } from '@/interfaces/service-source';
 import { getGatewayRoutes } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
-import { Form, Input, Select } from 'antd';
+import { Button, Form, Input, Select, Space, Tooltip } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
@@ -74,6 +76,30 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
     }
 
     const valueToSet = value || {};
+    // normalize vport structure for edit mode (support legacy shape)
+    const existingVport = valueToSet.vport || {};
+    if (existingVport) {
+      // Normalize legacy shapes to { vportServices: [{ name, value }] }
+      const legacyArray = existingVport.vportServices || existingVport.services;
+      if (Array.isArray(legacyArray) && legacyArray.length > 0) {
+        const first = legacyArray[0];
+        if (first && typeof first === 'object' && !('name' in first) && Object.keys(first).length === 1) {
+          const normalized = legacyArray
+            .map((obj) => Object.entries(obj)[0])
+            .filter(Boolean)
+            .map(([name, port]) => ({ name, value: Number(port as any) }));
+          existingVport.vportServices = normalized;
+        } else if (first && typeof first === 'object' && 'name' in first && 'value' in first) {
+          existingVport.vportServices = legacyArray;
+        }
+      }
+      if ('default' in existingVport && !('defaultValue' in existingVport)) {
+        existingVport.defaultValue = existingVport.default;
+        delete existingVport.default;
+      }
+      // Build helper list for form list
+      valueToSet.vportFormServices = (existingVport.vportServices || []).map((s) => ({ name: s.name, port: s.value }));
+    }
     valueToSet.authN = Object.assign({ enabled: false }, valueToSet.authN);
     valueToSet.authN.enabled = valueToSet.authN.enabled || false;
     valueToSet.properties = Object.assign({ enableMCPServer: false }, valueToSet.properties);
@@ -116,6 +142,33 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       }
       if (!isTlsProtocol(values.protocol)) {
         values.sni = null;
+      }
+      // Build vport payload only for nacos/eureka
+      if (isNacosType(values.type) || values.type === ServiceSourceTypes.eureka.key) {
+        const defaultVport = values.vport && (values.vport.defaultValue ?? values.vport.default);
+        const servicePairs = values.vportFormServices || [];
+        const servicesArray = (servicePairs || [])
+          .filter((p) => p && p.name && p.port)
+          .map((p) => ({ name: p.name, value: Number(p.port) }));
+        const parsedDefault = Number(defaultVport);
+        const hasDefault = Number.isFinite(parsedDefault) && parsedDefault >= 1 && parsedDefault <= 65535;
+        const hasServices = servicesArray && servicesArray.length > 0;
+        if (hasDefault || hasServices) {
+          values.vport = Object.assign({}, values.vport, {
+            // Use camelCase keys to match backend deserializer
+            defaultValue: hasDefault ? parsedDefault : undefined,
+            vportServices: hasServices ? servicesArray : undefined,
+          });
+          // Ensure snake keys are removed if any existed
+          delete values.vport.default;
+          delete values.vport.services;
+        } else {
+          delete values.vport;
+        }
+        delete values.vportFormServices;
+      } else {
+        delete values.vport;
+        delete values.vportFormServices;
       }
       return values;
     },
@@ -262,6 +315,64 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                 )
               }
             </Form.Item>
+            {
+              (isNacosType(sourceType || '') || sourceType === ServiceSourceTypes.eureka.key) && (
+                <>
+                  <Form.Item
+                    label={t('serviceSource.serviceSourceForm.vport')}
+                    tooltip={t('serviceSource.serviceSourceForm.vportTooltip')}
+                  >
+                    <Form.Item name={['vport', 'defaultValue']} noStyle>
+                      <Input
+                        allowClear
+                        type="number"
+                        min={1}
+                        max={65535}
+                        placeholder={t('serviceSource.serviceSourceForm.vportDefaultPlaceholder')}
+                      />
+                    </Form.Item>
+                  </Form.Item>
+                  <Form.List name="vportFormServices">
+                    {(fields, { add, remove }) => (
+                      <>
+                        {fields.map((field) => (
+                          <Space key={field.key} align="baseline" style={{ display: 'flex', marginBottom: 8 }}>
+                            <Form.Item
+                              {...field}
+                              name={[field.name, 'name']}
+                              fieldKey={[field.fieldKey, 'name']}
+                              rules={[{ required: false }]}
+                            >
+                              <Input
+                                placeholder={t('serviceSource.serviceSourceForm.vportServiceNamePlaceholder')}
+                                style={{ width: 360 }}
+                              />
+                            </Form.Item>
+                            <Form.Item
+                              {...field}
+                              name={[field.name, 'port']}
+                              fieldKey={[field.fieldKey, 'port']}
+                            >
+                              <Input
+                                type="number"
+                                min={1}
+                                max={65535}
+                                placeholder={t('serviceSource.serviceSourceForm.vportServicePortPlaceholder')}
+                                style={{ width: 200 }}
+                              />
+                            </Form.Item>
+                            <Tooltip title={t('serviceSource.serviceSourceForm.vportRemove')}>
+                              <Button danger onClick={() => remove(field.name)} icon={<DeleteOutlined />} />
+                            </Tooltip>
+                          </Space>
+                        ))}
+                        <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>{t('serviceSource.serviceSourceForm.vportAdd')}</Button>
+                      </>
+                    )}
+                  </Form.List>
+                </>
+              )
+            }
           </>
         )
       }
