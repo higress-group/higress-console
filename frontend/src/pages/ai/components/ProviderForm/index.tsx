@@ -3,8 +3,8 @@ import { ProxyServer } from '@/interfaces/proxy-server';
 import { Service, serviceToString } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Typography } from 'antd';
+import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Tooltip, Typography } from 'antd';
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [providerType, setProviderType] = useState<string | null>();
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [openaiCustomServerType, setOpenaiCustomServerType] = useState<string | null>();
+  const [qwenServerType, setQwenServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
   const [proxyServerOptions, setProxyServerOptions] = useState<OptionItem[] | null>();
   const proxyServersResult = useRequest(getProxyServers, {
@@ -72,7 +73,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     setProviderConfig(null);
     setOpenaiServerType(null);
     setOpenaiCustomServerType(null);
-    onOpenaiServerTypeChanged(null)
+    onOpenaiServerTypeChanged(null);
+    onQwenServerTypeChanged(null);
   };
 
   useEffect(() => {
@@ -151,6 +153,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         onOpenaiCustomServerTypeChanged(openaiCustomServerTypeValue);
       }
 
+      if (type === 'qwen') {
+        let qwenServerTypeValue = 'official';
+
+        if (rawConfigs && rawConfigs.qwenDomain) qwenServerTypeValue = 'custom';
+
+        form.setFieldValue('qwenServerType', qwenServerTypeValue);
+        onQwenServerTypeChanged(qwenServerTypeValue);
+      }
+
       form.setFieldsValue({
         name,
         type,
@@ -216,6 +227,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   function onOpenaiCustomServerTypeChanged(value: string | null) {
     setOpenaiCustomServerType(value);
+  }
+
+  function onQwenServerTypeChanged(value: string | null) {
+    setQwenServerType(value);
   }
 
   function onProviderTypeChanged(value: string | null) {
@@ -573,6 +588,132 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                       </>
                     )
                   }
+                </>
+              )
+            }
+          </>
+        )
+      }
+
+      {
+        providerType === 'qwen' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.qwenEnableSearch')}
+              name={["rawConfigs", "qwenEnableSearch"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.qwenEnableCompatible')}
+              tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
+              name={["rawConfigs", "qwenEnableCompatible"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+            <Form.List
+              name={["rawConfigs", "qwenFileIds"]}
+              initialValue={[]}
+            >
+              {(fields, { add, remove }, { errors }) => (
+                <>
+                  {
+                    !fields.length ? (
+                      <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                          {t('llmProvider.providerForm.label.qwenFileIds')}
+                        </span>
+                        <Tooltip
+                          title={t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip')}
+                          placement="top"
+                        >
+                          <QuestionCircleOutlined style={{ marginLeft: 4, color: 'rgba(0, 0, 0, 0.45)', cursor: 'help' }} />
+                        </Tooltip>
+                      </div>
+                    ) : null
+                  }
+                  {fields.map((field, index) => (
+                    <Form.Item
+                      label={index === 0 ? t('llmProvider.providerForm.label.qwenFileIds') : ''}
+                      tooltip={index === 0 ? t('llmProvider.providerForm.tooltips.qwenFileIdsTooltip') : ''}
+                      key={index}
+                      style={{ marginBottom: '0.5rem' }}
+                    >
+                      <Form.Item
+                        {...field}
+                        noStyle
+                        rules={[
+                          {
+                            required: true,
+                            message: t('llmProvider.providerForm.rules.qwenFileIdRequired') || '',
+                          },
+                        ]}
+                      >
+                        <Input
+                          allowClear
+                          maxLength={256}
+                          style={{ width: '94%' }}
+                          placeholder={t('llmProvider.providerForm.placeholder.qwenFileIdsPlaceholder') + (index + 1).toString() || ''}
+                        />
+                      </Form.Item>
+                      <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                        <Button
+                          type="dashed"
+                          disabled={!(fields.length > 0)}
+                          onClick={() => remove(field.name)}
+                          icon={<MinusCircleOutlined />}
+                        />
+                      </div>
+                    </Form.Item>
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      icon={<PlusOutlined />}
+                    />
+                    <Form.ErrorList errors={errors} />
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.qwenServerType')}
+              required
+              name="qwenServerType"
+              initialValue="official"
+            >
+              <Select
+                onChange={onQwenServerTypeChanged}
+              >
+                <Select.Option value="official">{t("llmProvider.providerForm.qwenServerType.official")}</Select.Option>
+                <Select.Option value="custom">{t("llmProvider.providerForm.qwenServerType.custom")}</Select.Option>
+              </Select>
+            </Form.Item>
+            {
+              qwenServerType === "custom" && (
+                <>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.qwenDomain')}
+                    name={["rawConfigs", "qwenDomain"]}
+                    rules={[
+                      {
+                        required: true,
+                        pattern: /^.+\..+$/,
+                        message: t('llmProvider.providerForm.rules.qwenDomainRequired') || '',
+                      },
+                    ]}
+                  >
+                    <Input
+                      allowClear
+                      maxLength={256}
+                      placeholder={t('llmProvider.providerForm.placeholder.qwenDomainPlaceholder') || ''}
+                    />
+                  </Form.Item>
                 </>
               )
             }

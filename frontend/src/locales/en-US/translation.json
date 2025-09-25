@@ -254,6 +254,11 @@
         "ollamaServerPort": "Ollama Service Port",
         "openaiServerType": "OpenAI Service Type",
         "openaiCustomUrl": "Custom OpenAI Service Base URL",
+        "qwenServerType": "Tongyi Qianwen Service Type",
+        "qwenEnableSearch": "Enable Tongyi Qianwen Internet search function",
+        "qwenEnableCompatible": "Enable Tongyi Qianwen compatibility mode",
+        "qwenDomain": "Custom Tongyi Qianwen Domain",
+        "qwenFileIds": "Tongyi Qianwen file IDs",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
         "awsSecretKey": "AWS Secret Access Key",
@@ -289,6 +294,8 @@
         "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
         "openaiCustomServiceRequired": "Please select custom OpenAI service",
         "openaiCustomServicePathRequired": "Please select custom OpenAI service path",
+        "qwenFileIdRequired": "Please input Tongyi Qianwen file ID",
+        "qwenDomainRequired": "Please input a valid custom Tongyi Qianwen domain",
         "awsRegionRequired": "Please input AWS Region",
         "awsAccessKeyRequired": "Please input AWS Access Key ID",
         "awsSecretKeyRequired": "Please input AWS Secret Access Key",
@@ -302,6 +309,8 @@
         "geminiSafetyThresholdRequired": "Please input block threshold"
       },
       "tooltips": {
+        "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",
+        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen’s OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
         "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired."
       },
       "placeholder": {
@@ -309,7 +318,9 @@
         "ollamaServerHostPlaceholder": "Please input a hostname, domain name or IP address",
         "openaiCustomUrlPlaceholder": "Sample: https://api.openai.com/v1",
         "openaiCustomServiceHostPlaceholder": "Sample: api.openai.com",
-        "openaiCustomServicePathPlaceholder": "Sample: /v1"
+        "openaiCustomServicePathPlaceholder": "Sample: /v1",
+        "qwenDomainPlaceholder": "Sample: dashscope-finance.aliyuncs.com",
+        "qwenFileIdsPlaceholder": "Sample: file-fe-xxx"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
@@ -318,6 +329,10 @@
       "openaiCustomServerType": {
         "service": "Select a service",
         "url": "Input URL(s)"
+      },
+      "qwenServerType": {
+        "official": "Tongyi Qianwen Official Service",
+        "custom": "Custom Service"
       },
       "secretRefModal": {
         "entry": "I'd like to use token info stored in a Secret resource.",

@@ -110,6 +110,16 @@ export const aiModelProviders = [
         value: 'qwen-long',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const { rawConfigs } = record;
+      const { qwenDomain, qwenEnableCompatible } = rawConfigs;
+      const customDomain = (qwenDomain && qwenDomain !== '') ? rawConfigs.qwenDomain.trim() : 'dashscope.aliyuncs.com';
+      const servicePath = qwenEnableCompatible ? 'compatible-mode/v1' : 'api/v1/services/aigc';
+      return [`https://${customDomain}/${servicePath}`]
+    },
   },
   {
     label: 'Moonshot',

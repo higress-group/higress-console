@@ -254,6 +254,11 @@
         "ollamaServerPort": "Ollama 服务端口",
         "openaiServerType": "OpenAI 服务类型",
         "openaiCustomUrl": "自定义 OpenAI 服务 BaseURL",
+        "qwenServerType": "通义千问服务类型",
+        "qwenEnableSearch": "开启通义千问互联网搜索功能",
+        "qwenEnableCompatible": "开启通义千问兼容模式",
+        "qwenDomain": "自定义通义千问域名",
+        "qwenFileIds": "通义千问文件 ID",
         "awsRegion": "AWS Region",
         "awsAccessKey": "AWS Access Key ID",
         "awsSecretKey": "AWS Secret Access Key",
@@ -289,6 +294,8 @@
         "openaiCustomUrlInconsistentContextPaths": "各个自定义 OpenAI 服务 BaseURL 所使用的路径不一致",
         "openaiCustomServiceRequired": "请选择自定义 OpenAI 服务",
         "openaiCustomServicePathRequired": "请输入定义 OpenAI 服务路径",
+        "qwenFileIdRequired": "请输入通义千问文件 ID",
+        "qwenDomainRequired": "请输入合法的自定义通义千问域名",
         "awsRegionRequired": "请输入 AWS Region",
         "awsAccessKeyRequired": "请输入 AWS Access Key ID",
         "awsSecretKeyRequired": "请输入 AWS Secret Access Key",
@@ -302,6 +309,8 @@
         "geminiSafetyThresholdRequired": "请输入屏蔽阈值"
       },
       "tooltips": {
+        "qwenFileIdsTooltip": "通过文件接口上传至 Dashscope 的文件 ID，其内容将被用做 AI 对话的上下文。",
+        "qwenEnableCompatibleTooltip": "启用通义千问兼容模式后，将调用通义千问的 OpenAI 兼容接口，同时对请求/响应不做修改。",
         "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。"
       },
       "placeholder": {
@@ -309,7 +318,9 @@
         "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
         "openaiCustomUrlPlaceholder": "示例：https://api.openai.com/v1",
         "openaiCustomServiceHostPlaceholder": "示例：api.openai.com",
-        "openaiCustomServicePathPlaceholder": "示例：/v1"
+        "openaiCustomServicePathPlaceholder": "示例：/v1",
+        "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
+        "qwenFileIdsPlaceholder": "示例：file-fe-xxx"
       },
       "openaiServerType": {
         "official": "OpenAI 官方服务",
@@ -318,6 +329,10 @@
       "openaiCustomServerType": {
         "service": "选择服务",
         "url": "输入 URL"
+      },
+      "qwenServerType": {
+        "official": "通义千问官方服务",
+        "custom": "自定义服务"
       },
       "secretRefModal": {
         "entry": "我想引用保存在 Secret 中的凭证信息",

@@ -58,8 +58,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     static {
         PROVIDER_HANDLERS = Stream.of(new OpenaiLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.QWEN, "dashscope.aliyuncs.com", 443,
-                V1McpBridge.PROTOCOL_HTTPS),
+            new QwenLlmProviderHandler(),
             new AzureLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.AI360, "api.360.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GITHUB, "models.inference.ai.azure.com", 443,
