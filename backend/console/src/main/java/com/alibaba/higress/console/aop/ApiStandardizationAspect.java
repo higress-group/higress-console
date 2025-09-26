@@ -80,6 +80,7 @@ public class ApiStandardizationAspect {
                 if (user == null) {
                     throw new AuthException("Login required.");
                 }
+                sessionService.renewSession(requestAttributes.getRequest());
                 SessionUserHelper.setCurrentUser(user);
             }
             Object result = point.proceed();
