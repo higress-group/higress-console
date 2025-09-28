@@ -33,4 +33,4 @@
 ## 补充内容
 1. 记录日志到src\ai-develop-help\log文件夹中今天的日期文件（每一次交互都要记录日志）
 2. 代码规范：请按照 ICE 配置的 ESLint 文件（通过 getESLintConfig('react-ts') 获取）来修改和规范我的代码，遵循 ICE 默认的规则配置，同时保留下面的自定义规则。eslint文件位于（frontend\.eslintrc.js），需要规范代码的文件位于（frontend\src\app\xxx\xxx.tsx）
-3. 若有bff层相关错误，可以读取 src\BFF\summary.md 文件中记录的错误
+3. 若有bff层相关错误，可以读取 src\BFF\Error-summary.md 文件中记录的错误

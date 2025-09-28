@@ -73,7 +73,7 @@ BFF/utils/ (工具函数)
 2. **BFF开发流程**：
    - `BFF/routes/` → 定义路由
    - `BFF/controllers/` → 实现业务逻辑
-   - `summary.md` → 错误案例与解决方法
+   - `Error-summary.md` → 错误案例与解决方法
    - `BFF/utils/` → 添加工具函数
    - `demos/` → 测试相关文件夹`
 

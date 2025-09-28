@@ -137,13 +137,13 @@
       "request_status": "completed",
       "error_code": "0",
       "reference_resources": [
-        "src/BFF/summary.md",
+        "src/BFF/Error-summary.md",
         "src/BFF/routes/route.js",
         "src/services/route.ts"
       ],
-      "additional_notes": "成功修复了Express路由匹配顺序问题。根据BFF/summary.md中的错误案例记录，将具体路径放在参数化路径之前，确保Express能正确匹配到批量导出和模板导出接口。现在这两个接口应该能正常工作，不再返回404错误。"
+      "additional_notes": "成功修复了Express路由匹配顺序问题。根据BFF/Error-summary.md中的错误案例记录，将具体路径放在参数化路径之前，确保Express能正确匹配到批量导出和模板导出接口。现在这两个接口应该能正常工作，不再返回404错误。"
     }
-  },
+  },  
   {
     "Title": "模板导出逻辑优化",
     "today-times": 4,
