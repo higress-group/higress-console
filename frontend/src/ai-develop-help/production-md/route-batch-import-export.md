@@ -68,7 +68,7 @@
 - 每一次交互都要记录日志
 
 ### 其他补充：
-- 当在bff层创建get请求时，注意 `src/BFF/summary.md` 文件中记录的错误，并修改代码。
+- 当在bff层创建get请求时，注意 `src/BFF/Error-summary.md` 文件中记录的错误，并修改代码。
 
 ---
 
