@@ -1,15 +1,9 @@
-import React, { useEffect } from 'react';
-import { Form, Select, Input, Space, Typography } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { SERVICE_TYPE, DB_TYPE_OPTIONS, REG_DSN_STRING } from '../constant';
+import React from 'react';
+import { Form, Select, Input } from 'antd';
+import { DB_TYPE_OPTIONS } from '../constant';
 import './DatabaseConfig.css';
 
 interface DatabaseConfigProps {
-  dsn?: string;
-  dbType?: string;
-  dbUrl?: string;
-  dbPort?: string | number;
-  onChange?: (dsn: string, dbType: string) => void;
   form: any;
 }
 
@@ -56,37 +50,7 @@ export const DB_FIXED_FIELDS = [
   },
 ];
 
-export const computeDSN = (values: any) => {
-  const { db_type, db_user_name, db_password, db_server_host, db_database, db_server_port } = values;
-  if (!db_type || !db_user_name || !db_password || !db_server_host || !db_server_port) return '';
-  // PostgreSQL: postgres://username:password@host:port/dbname
-  if (db_type === 'POSTGRESQL') {
-    if (!db_database) return '';
-    return `postgres://${db_user_name}:${db_password}@${db_server_host}:${db_server_port}/${db_database}`;
-  }
-  // ClickHouse: tcp://host:port?database=xxx&username=xxx&password=xxx
-  if (db_type === 'CLICKHOUSE') {
-    const query = new URLSearchParams({
-      database: db_database || '',
-      username: db_user_name,
-      password: db_password,
-    }).toString();
-    return `tcp://${db_server_host}:${db_server_port}?${query}`;
-  }
-  // MySQL (默认): username:password@tcp(host:port)/dbname?...
-  if (!db_database) return '';
-  return `${db_user_name}:${db_password}@tcp(${db_server_host}:${db_server_port})/${db_database}?charset=utf8mb4&parseTime=True&loc=Local`;
-};
-
-const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbPort, onChange, form }) => {
-  // 监听表单字段变化
-  useEffect(() => {
-    const values = form.getFieldsValue();
-    const newDsn = computeDSN(values);
-    if (onChange && newDsn) {
-      onChange(newDsn, values.db_type);
-    }
-  }, [form.getFieldsValue()]);
+const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ form }) => {
 
   return (
     <div style={{ background: '#f7f8fa', borderRadius: 8, padding: 16, marginBottom: 16 }}>
@@ -111,6 +75,7 @@ const DatabaseConfig: React.FC<DatabaseConfigProps> = ({ dsn, dbType, dbUrl, dbP
                 key={item.id}
                 style={{ width: 180 }}
                 type={item.type === 'db_password' ? 'password' : 'text'}
+                disabled={item.type === 'db_server_host' || item.type === 'db_server_port'}
               />
             )}
           </Form.Item>

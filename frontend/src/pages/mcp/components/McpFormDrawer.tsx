@@ -9,8 +9,19 @@ import { Button, Drawer, Form, Input, Select, Space, Switch } from 'antd';
 import { useWatch } from 'antd/es/form/Form';
 import React, { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { getServiceTypeMap, REG_DSN_STRING, SERVICE_TYPE, SERVICE_TYPES } from '../constant';
-import DatabaseConfig, { computeDSN, DB_FIXED_FIELDS } from './DatabaseConfig';
+import { getServiceTypeMap, SERVICE_TYPE, SERVICE_TYPES, DB_TYPE_OPTIONS } from '../constant';
+import DatabaseConfig from './DatabaseConfig';
+
+// MCP传输类型常量
+const MCP_TRANSPORT_TYPE = {
+  STREAMABLE_HTTP: 'streamable',
+  SSE: 'sse',
+};
+
+const MCP_TRANSPORT_OPTIONS = [
+  { label: 'Streamable HTTP', value: MCP_TRANSPORT_TYPE.STREAMABLE_HTTP },
+  { label: 'SSE', value: MCP_TRANSPORT_TYPE.SSE },
+];
 
 interface McpFormDrawerProps {
   visible: boolean;
@@ -32,6 +43,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   const selectedService = useWatch('service', form);
   const serviceType = useWatch('type', form);
   const mcpServerName = useWatch('name', form);
+  const transportType = useWatch(['directRouteConfig', 'transportType'], form);
   const [record, setRecord] = useState<any>(null);
   const [allDomainList, setAllDomainList] = useState<string[]>([]);
   const [allBackendServiceList, setAllBackendServiceList] = useState<any[]>([]);
@@ -45,15 +57,15 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     }
   }, [visible]);
 
-  // 计算 dbUrl 和 dbPort
+  // 设置服务的主机和端口到数据库配置字段
   useEffect(() => {
     if (!selectedService) return;
     const serviceName = selectedService.split(':')[0];
     const service = originalBackendServiceList.find((item) => item.name === serviceName);
     if (service) {
       form.setFieldsValue({
-        [DB_FIXED_FIELDS[0].id]: service.endpoints?.[0] || '-',
-        [DB_FIXED_FIELDS[1].id]: service.port || '-',
+        db_server_host: service.endpoints?.[0] || '-',
+        db_server_port: service.port || '-',
       });
     }
   }, [originalBackendServiceList, selectedService]);
@@ -64,45 +76,22 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       if (mode === 'create') {
         form.resetFields();
       } else {
-        if (record && record.dsn) {
-          const type = record?.dbType;
-          let m: RegExpMatchArray | null = null;
-          if (type === 'MYSQL') {
-            m = record.dsn.match(REG_DSN_STRING.MYSQL);
-            if (m) {
-              form.setFieldsValue({
-                db_user_name: m[1],
-                db_password: m[2],
-                db_database: m[5],
-              });
-            }
-          } else if (type === 'POSTGRESQL') {
-            m = record.dsn.match(REG_DSN_STRING.POSTGRESQL);
-            if (m) {
-              form.setFieldsValue({
-                db_user_name: m[1],
-                db_password: m[2],
-                db_database: m[5],
-              });
-            }
-          } else if (type === 'CLICKHOUSE') {
-            m = record.dsn.match(REG_DSN_STRING.CLICKHOUSE);
-            if (m) {
-              form.setFieldsValue({
-                db_user_name: m[4],
-                db_password: m[5],
-                db_database: m[3],
-              });
-            }
-          }
-        }
         form.setFieldsValue({
           ...record,
           service: record?.services?.[0]?.name,
           consumerAuth: record?.consumerAuthInfo?.enable || false,
-          domains: record?.domains?.[0],
+          domains: record?.domains?.[0] || '',
           db_type: record?.dbType,
           allowedConsumers: record?.consumerAuthInfo?.allowedConsumers || [],
+          serviceProtocol: 'MCP',
+          directRouteConfig: {
+            path: record?.directRouteConfig?.path || '',
+            transportType: record?.directRouteConfig?.transportType || '',
+          },
+          // 数据库配置字段 - 后端直接返回分离的字段
+          db_user_name: record?.dbConfig?.username || '',
+          db_password: record?.dbConfig?.password || '',
+          db_database: record?.dbConfig?.dbname || '',
         });
       }
     }
@@ -203,25 +192,32 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       ],
       ...(values.type === SERVICE_TYPE.DB
         ? {
-          dsn: computeDSN(values),
           dbType: values.db_type,
+          dbConfig: {
+            host: service.endpoints?.[0],
+            port: service.port,
+            username: values.db_user_name,
+            password: values.db_password,
+            dbname: values.db_database,
+          },
         }
         : {}),
+      ...(values.type === SERVICE_TYPE.DIRECT_ROUTE
+        ? {
+          directRouteConfig: {
+            transportType: values.directRouteConfig?.transportType,
+            path: values.directRouteConfig?.path,
+          },
+        }
+        : {}),
+      serviceProtocol: 'MCP',
       consumerAuthInfo: {
         enable: values.consumerAuth,
         type: CredentialType.KEY_AUTH.key,
         strategyConfigId: values.consumerAuthInfo?.strategyConfigId,
         allowedConsumers: values.allowedConsumers || [],
       },
-      domains: (() => {
-        if (Array.isArray(values.domains)) {
-          return values.domains;
-        } else if (values.domains) {
-          return [values.domains];
-        } else {
-          return [];
-        }
-      })(),
+      domains: values.domains ? [values.domains] : [],
     };
 
     onSubmit(submitData);
@@ -268,14 +264,13 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           <Input.TextArea placeholder={t('mcp.form.descriptionRequired')!} rows={3} maxLength={255} />
         </Form.Item>
 
-        <Form.Item
-          label={t('mcp.form.domains')}
-          name="domains"
-        >
+        <Form.Item label={t('mcp.form.domains')} name="domains">
           <Select
             showSearch
             loading={domainLoading}
-            options={domainList.filter((domain) => domain !== 'higress-default-domain').map((domain) => ({ label: domain, value: domain }))}
+            options={domainList
+              .filter((domain) => domain !== 'higress-default-domain')
+              .map((domain) => ({ label: domain, value: domain }))}
             onSearch={handleDomainSearch}
             filterOption={false}
             placeholder={t('mcp.form.domainsRequired')!}
@@ -294,7 +289,11 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          <Trans t={t} i18nKey="mcp.form.ssePathRule" values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}>
+          <Trans
+            t={t}
+            i18nKey="mcp.form.ssePathRule"
+            values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}
+          >
             {/* SSE 路径规则：/mcp/{currentMcpServerName}/sse */}
           </Trans>
         </div>
@@ -310,7 +309,11 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
             lineHeight: '22px',
           }}
         >
-          <Trans t={t} i18nKey="mcp.form.httpPathRule" values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}>
+          <Trans
+            t={t}
+            i18nKey="mcp.form.httpPathRule"
+            values={{ currentMcpServerName: name || mcpServerName || t('mcp.form.nameDefault') }}
+          >
             {/* HTTP 路径规则：/mcp/{currentMcpServerName} */}
           </Trans>
         </div>
@@ -346,68 +349,58 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         </Form.Item>
 
         {serviceType === SERVICE_TYPE.DB && (
-          <Form.Item
-            label={t('mcp.form.databaseConfig')}
-            name="dsn"
-            rules={[
-              {
-                required: true,
-                validator: (_, value) => {
-                  const values = form.getFieldsValue();
-                  const type = values?.db_type;
-                  if (!value) {
-                    return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
-                  }
-                  let valid = false;
-                  if (type === 'MYSQL') {
-                    valid = REG_DSN_STRING.MYSQL.test(value);
-                  } else if (type === 'POSTGRESQL') {
-                    valid = REG_DSN_STRING.POSTGRESQL.test(value);
-                  } else if (type === 'CLICKHOUSE') {
-                    valid = REG_DSN_STRING.CLICKHOUSE.test(value);
-                  }
-                  if (!valid) {
-                    return Promise.reject(new Error(t('mcp.form.databaseConfigInvalid')!));
-                  }
-                  return Promise.resolve();
-                },
-              },
-            ]}
-          >
-            <DatabaseConfig
-              form={form}
-              onChange={(dsn, dbType) => {
-                form.setFieldsValue({
-                  dsn,
-                  dbType,
-                });
-              }}
-            />
+          <Form.Item label={t('mcp.form.databaseConfig')} name="dbConfig">
+            <DatabaseConfig form={form} />
           </Form.Item>
         )}
 
         {serviceType === SERVICE_TYPE.DIRECT_ROUTE && (
-          <Form.Item
-            label={t('mcp.form.upstreamPathPrefixLabel') || '后端服务前缀匹配路径'}
-            name="upstreamPathPrefix"
-            rules={[
-              { required: true, message: t('mcp.form.upstreamPathPrefixRequired') },
-              {
-                pattern: /^\/.*/,
-                message: t('mcp.form.upstreamPathPrefixPattern'),
-              },
-            ]}
-            extra={t('mcp.form.upstreamPathPrefixExtra') || '后端服务需支持 SSE 或 Streamable 协议'}
-          >
-            <Input />
-          </Form.Item>
+          <>
+            <Form.Item label="服务协议" name="serviceProtocol" initialValue="MCP">
+              <Input value="MCP" disabled />
+            </Form.Item>
+            <Form.Item
+              label={t('mcp.form.transportType')}
+              name={['directRouteConfig', 'transportType']}
+              rules={[{ required: true, message: '请选择 MCP Transport 类型' }]}
+            >
+              <Select style={{ width: 200 }} options={MCP_TRANSPORT_OPTIONS} />
+            </Form.Item>
+
+            <Form.Item
+              label={t('mcp.form.upstreamPathPrefix')}
+              name={['directRouteConfig', 'path']}
+              rules={[
+                { required: true, message: '请输入路径' },
+                {
+                  pattern: /^\/.*/,
+                  message: '路径必须以 / 开头',
+                },
+                {
+                  validator: (_, value) => {
+                    if (transportType === 'sse' && !value.endsWith('/sse')) {
+                      return Promise.reject(new Error('SSE 传输类型路径必须以 /sse 结尾'));
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+              extra={
+                transportType === 'sse' && (
+                  <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>SSE 传输类型路径必须以 /sse 结尾</div>
+                )
+              }
+            >
+              <Input placeholder="请输入路径，如 /api/v1" />
+            </Form.Item>
+
+            {/* {transportType === 'sse' && (
+              <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>SSE 传输类型路径必须以 /sse 结尾</div>
+            )} */}
+          </>
         )}
 
-        <Form.Item
-          label={t('mcp.form.consumerAuth')}
-          name="consumerAuth"
-          valuePropName="checked"
-        >
+        <Form.Item label={t('mcp.form.consumerAuth')} name="consumerAuth" valuePropName="checked">
           <Switch />
         </Form.Item>
 
@@ -418,22 +411,21 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           extra={t('misc.keyAuthOnlyTip')}
         >
           <Select disabled>
-            {
-              Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
-                <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
-              ))
-            }
+            {Object.values(CredentialType)
+              .filter((ct) => !!ct.enabled)
+              .map((ct) => (
+                <Select.Option key={ct.key} value={ct.key}>
+                  {ct.displayName}
+                </Select.Option>
+              ))}
           </Select>
         </Form.Item>
         <Form.Item
           label={t('mcp.form.allowedConsumers')}
-          extra={(<HistoryButton text={t('consumer.create')} path={"/consumer"} />)}
+          extra={<HistoryButton text={t('consumer.create')} path={'/consumer'} />}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Form.Item
-              name="allowedConsumers"
-              noStyle
-            >
+            <Form.Item name="allowedConsumers" noStyle>
               <Select
                 mode="multiple"
                 allowClear
