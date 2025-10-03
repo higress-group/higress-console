@@ -434,6 +434,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                       rules={[{ required: true, message: t('aiRoute.routeForm.rule.targetServiceRequired') }]}
                     >{/* 服务名称 */}
                       <Select
+                        showSearch
                         style={{ ...baseStyle }}
                       >
                         {llmList.map((item) => {
@@ -526,7 +527,9 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 label={t('aiRoute.routeForm.label.fallbackUpstream')} // {/* 降级服务列表 */}
                 rules={[{ required: true, message: t('aiRoute.routeForm.rule.fallbackUpstreamRequired') }]}
               >
-                <Select>
+                <Select
+                  showSearch
+                >
                   {llmList.map((item) =>
                     (<Select.Option key={item.name} value={item.name} disabled={!canUseAsFallback(item)}>{item.name}</Select.Option>))}
                 </Select>
