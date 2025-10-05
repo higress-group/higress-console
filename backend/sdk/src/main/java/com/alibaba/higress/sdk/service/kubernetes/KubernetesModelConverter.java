@@ -1227,6 +1227,10 @@ public class KubernetesModelConverter {
         boolean enabled = StringUtils.isEmpty(rawEnabled) || Boolean.parseBoolean(rawEnabled);
         String pathRewrite =
             getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.REWRITE_PATH_KEY, enabled);
+        if (StringUtils.isEmpty(pathRewrite)) {
+            pathRewrite =
+                getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.REWRITE_TARGET_KEY, enabled);
+        }
         String hostRewrite =
             getFunctionalAnnotation(annotations, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY, enabled);
 
@@ -1417,7 +1421,7 @@ public class KubernetesModelConverter {
             setMethodAnnotation(metadata, route.getMethods());
         }
 
-        fillIngressRewriteConfig(metadata, route.getRewrite());
+        fillIngressRewriteConfig(metadata, route.getPath(), route.getRewrite());
         fillIngressProxyNextUpstreamConfig(metadata, route.getProxyNextUpstream());
         if (route.getHeaderControl() != null) {
             boolean enabled = !Boolean.FALSE.equals(route.getHeaderControl().getEnabled());
@@ -1434,7 +1438,7 @@ public class KubernetesModelConverter {
         }
     }
 
-    private void fillIngressRewriteConfig(V1ObjectMeta metadata, RewriteConfig rewrite) {
+    private void fillIngressRewriteConfig(V1ObjectMeta metadata, RoutePredicate pathPredicate, RewriteConfig rewrite) {
         if (rewrite == null) {
             return;
         }
@@ -1442,8 +1446,11 @@ public class KubernetesModelConverter {
         KubernetesUtil.setAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_ENABLED_KEY,
             Boolean.toString(enabled));
         if (StringUtils.isNotEmpty(rewrite.getPath())) {
-            setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.REWRITE_PATH_KEY, rewrite.getPath(),
-                enabled);
+            String rewriteAnnotation = KubernetesConstants.Annotation.REWRITE_PATH_KEY;
+            if (pathPredicate.getPredicateType() == RoutePredicateTypeEnum.REGULAR) {
+                rewriteAnnotation = KubernetesConstants.Annotation.REWRITE_TARGET_KEY;
+            }
+            setFunctionalAnnotation(metadata, rewriteAnnotation, rewrite.getPath(), enabled);
         }
         if (StringUtils.isNotEmpty(rewrite.getHost())) {
             setFunctionalAnnotation(metadata, KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY, rewrite.getHost(),
