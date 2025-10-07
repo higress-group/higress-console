@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 
+const STATIC_SERVICE_PORT = 80;
+
 const SourceForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
   const { value } = props;
@@ -109,7 +111,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
         }
 
         if (values.type === ServiceSourceTypes.static.key) {
-          values.port = 80;
+          values.port = STATIC_SERVICE_PORT;
         }
       } else {
         values.protocol = null;
@@ -459,6 +461,11 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
       {
         sourceType === ServiceSourceTypes.static.key && (
           <>
+            <Form.Item
+              label={t('serviceSource.serviceSourceForm.servicePort')}
+            >
+              <span className="ant-form-text">{STATIC_SERVICE_PORT}</span>
+            </Form.Item>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.serviceStaticAddresses')}
               name={['domainForEdit']}
