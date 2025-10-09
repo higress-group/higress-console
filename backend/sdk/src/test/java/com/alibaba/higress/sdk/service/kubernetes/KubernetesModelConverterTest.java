@@ -535,9 +535,50 @@ public class KubernetesModelConverterTest {
     }
 
     @Test
-    void route2IngressTestRewriteConfig() {
+    void route2IngressTestRewriteConfigPrefix() {
         Route route = new Route();
         route.setName("test-route");
+        route.setPath(new RoutePredicate(RoutePredicateTypeEnum.PRE.toString(), "/old-path", null));
+        route.setDomains(Collections.singletonList("higress.cn"));
+        route.setRewrite(new RewriteConfig(true, "/new-path", "new-host"));
+
+        V1Ingress ingress = converter.route2Ingress(route);
+
+        Assertions.assertNotNull(ingress);
+        Assertions.assertEquals("test-route", ingress.getMetadata().getName());
+        Assertions.assertTrue(Boolean.parseBoolean(
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY)));
+        Assertions.assertEquals("/new-path",
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_PATH_KEY));
+        Assertions.assertEquals("new-host",
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+    }
+
+    @Test
+    void route2IngressTestRewriteConfigEqual() {
+        Route route = new Route();
+        route.setName("test-route");
+        route.setPath(new RoutePredicate(RoutePredicateTypeEnum.EQUAL.toString(), "/old-path", null));
+        route.setDomains(Collections.singletonList("higress.cn"));
+        route.setRewrite(new RewriteConfig(true, "/new-path", "new-host"));
+
+        V1Ingress ingress = converter.route2Ingress(route);
+
+        Assertions.assertNotNull(ingress);
+        Assertions.assertEquals("test-route", ingress.getMetadata().getName());
+        Assertions.assertTrue(Boolean.parseBoolean(
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY)));
+        Assertions.assertEquals("/new-path",
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_PATH_KEY));
+        Assertions.assertEquals("new-host",
+                ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
+    }
+
+    @Test
+    void route2IngressTestRewriteConfigRegex() {
+        Route route = new Route();
+        route.setName("test-route");
+        route.setPath(new RoutePredicate(RoutePredicateTypeEnum.REGULAR.toString(), "/old-path($|/|\\?)", null));
         route.setDomains(Collections.singletonList("higress.cn"));
         route.setRewrite(new RewriteConfig(true, "/new-path", "new-host"));
 
@@ -548,7 +589,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertTrue(Boolean.parseBoolean(
             ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_ENABLED_KEY)));
         Assertions.assertEquals("/new-path",
-            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_PATH_KEY));
+            ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.REWRITE_TARGET_KEY));
         Assertions.assertEquals("new-host",
             ingress.getMetadata().getAnnotations().get(KubernetesConstants.Annotation.UPSTREAM_VHOST_KEY));
     }
