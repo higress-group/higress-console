@@ -239,7 +239,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         rules={[
           {
             required: true,
-            pattern: /^(?!-)[A-Za-z0-9-]{0,63}[A-Za-z0-9]$/,
+            pattern: /^[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?$/,
             message: t('aiRoute.routeForm.rule.nameRequired'),
           },
         ]}

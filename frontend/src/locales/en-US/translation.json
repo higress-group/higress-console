@@ -86,7 +86,7 @@
         "serviceWeightRequired": "Please input the weight value",
         "fallbackUpstreamRequired": "Please select the fallback service",
         "fallbackResponseCodesRequired": "Please select the response codes that need fallback",
-        "nameRequired": "Shall only contain upper-and lower-case letters, digits, dashes (-) and dots (.). And cannot end with a dash (-) or dot (.).",
+        "nameRequired": "Shall only contain lower-case letters, digits, dashes (-) and dots (.), and must begin and end with a letter or digit.",
         "targetServiceRequired": "Please select a target service",
         "badWeightSum": "The sum of all service weights must be 100.",
         "noUpstreams": "At least one target service is required."
