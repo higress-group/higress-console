@@ -86,7 +86,7 @@
         "serviceWeightRequired": "请输入请求比例",
         "fallbackUpstreamRequired": "请选择降级服务",
         "fallbackResponseCodesRequired": "请选择需要降级的响应码",
-        "nameRequired": "包含小写字母、数字和以及特殊字符(- .)，且不能以特殊字符开头和结尾",
+        "nameRequired": "包含小写字母、数字以及特殊字符(- .)，且不能以特殊字符开头和结尾",
         "targetServiceRequired": "请选择目标服务",
         "badWeightSum": "所有服务的权重总和必须为100",
         "noUpstreams": "至少要配置一个目标AI服务"
