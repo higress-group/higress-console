@@ -8,6 +8,10 @@ export interface ServiceSource {
   builtIn?: boolean;
   domain?: string;
   port?: number;
+  vport?: {
+    defaultValue?: number;
+    vportServices?: Array<{ name: string; value: number }>;
+  };
   properties?: ServiceSourceProperties;
   [propName: string]: any;
 }
@@ -26,6 +30,10 @@ export interface ServiceSourceFormProps {
   type: string;
   domain: string;
   port: number;
+  vport?: {
+    defaultValue?: number;
+    vportServices?: Array<{ name: string; value: number }>;
+  };
   [propName: string]: any;
 }
 

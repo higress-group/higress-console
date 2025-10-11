@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.model;
 
 import java.beans.Transient;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.VPort;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
@@ -57,6 +59,10 @@ public class ServiceSource implements VersionedDto {
 
     @Schema(description = "Service source name")
     private String name;
+
+    @Schema(description = "Register vport configuration with default and service-specific values. Optional.",
+            example = "{\"default\": 8080, \"services\": [{\"name\": \"svc1\", \"value\": 9090}]}")
+    private VPort vport;
 
     @Schema(description = "Service source version. Required when updating.")
     private String version;
@@ -121,6 +127,24 @@ public class ServiceSource implements VersionedDto {
 
         if (StringUtils.isNotEmpty(proxyName) && !PROXY_SUPPORTED_REGISTRY_TYPES.contains(this.getType())) {
             return false;
+        }
+
+        if (this.vport != null) {
+            if (this.vport.getDefaultValue() != null && !ValidateUtil.checkPort(this.vport.getDefaultValue())) {
+                return false;
+            }
+
+            if (this.vport.getServicesVport() != null) {
+                Set<String> serviceNames = new HashSet<>();
+                for (VPort.ServiceVport serviceVport : this.vport.getServicesVport()) {
+                    if (!ValidateUtil.checkPort(serviceVport.getValue())) {
+                        return false;
+                    }
+                    if (!serviceNames.add(serviceVport.getName())) {
+                        return false; // Service names cannot be duplicate
+                    }
+                }
+            }
         }
 
         return true;

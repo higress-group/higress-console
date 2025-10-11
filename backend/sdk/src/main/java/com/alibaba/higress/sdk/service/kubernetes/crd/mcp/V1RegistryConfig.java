@@ -108,4 +108,8 @@ public class V1RegistryConfig {
     public static final String SERIALIZED_NAME_PROXY_NAME = "proxyName";
     @SerializedName(SERIALIZED_NAME_PROXY_NAME)
     private String proxyName;
+
+    public static final String SERIALIZED_NAME_VPORT = "vport";
+    @SerializedName(SERIALIZED_NAME_VPORT)
+    private VPort vport;
 }
