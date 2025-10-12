@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.console.controller.mcp;
 
 import javax.annotation.Resource;
@@ -48,6 +36,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
+ * MCP服务器管理控制器
+ * 提供对MCP（Multi-Cluster Plane）服务器实例的管理功能，包括增删改查、消费者管理等
+ *
  * @author HecarimV
  */
 @RestController("McpServerController")
@@ -56,81 +47,151 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Mcp APIs")
 public class McpServerController {
 
+    /**
+     * MCP服务器服务实例
+     * 用于处理MCP服务器的核心业务逻辑
+     */
     @Resource
     private McpServerService mcpServerService;
 
+    /**
+     * MCP服务器辅助工具实例
+     * 提供MCP服务器相关的辅助功能，如Swagger转MCP配置等
+     */
     @Resource
     private McpServerHelper mcpServerHelper;
 
+    /**
+     * 将Swagger内容转换为MCP配置
+     *
+     * @param swaggerContent 包含Swagger定义内容的请求对象
+     * @return 转换后的MCP配置字符串响应实体
+     */
     @PostMapping("/swaggerToMcpConfig")
     @Operation(summary = "swagger to mcp config")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "swagger convert successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "swagger convert successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Response<String>> swaggerToMcpConfig(@Valid @RequestBody SwaggerContent swaggerContent) {
         return ResponseEntity.ok(Response.success(mcpServerHelper.swaggerToMcpConfig(swaggerContent.getContent())));
     }
 
+    /**
+     * 添加或更新MCP服务器实例
+     *
+     * @param instance 待添加或更新的MCP服务器实例
+     * @return 添加或更新后的MCP服务器实例响应实体
+     */
     @PutMapping
     @Operation(summary = "Add or update a mcp server instance")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances saved successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Instances saved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Response<McpServer>> addOrUpdateMcpInstance(@RequestBody McpServer instance) {
         instance = mcpServerService.addOrUpdateWithAuthorization(instance);
         return ControllerUtil.buildResponseEntity(instance);
     }
 
+    /**
+     * 列出所有MCP服务器实例
+     *
+     * @param query MCP服务器分页查询参数
+     * @return 包含MCP服务器实例分页结果的响应实体
+     */
     @GetMapping
     @Operation(summary = "List mcp server")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "McpServers listed successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "McpServers listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<PaginatedResponse<McpServer>> list(@ParameterObject McpServerPageQuery query) {
         return ControllerUtil.buildResponseEntity(mcpServerService.list(query));
     }
 
+    /**
+     * 根据名称查询MCP服务器实例详情
+     *
+     * @param name MCP服务器实例名称
+     * @return 指定MCP服务器实例的详细信息响应实体
+     */
     @GetMapping("/{name}")
     @Operation(summary = "Get detail for mcp server")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "McpServer detail query successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "McpServer detail query successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Response<McpServer>> query(@PathVariable("name") @NotBlank String name) {
         return ControllerUtil.buildResponseEntity(mcpServerService.query(name));
     }
 
+    /**
+     * 删除指定名称的MCP服务器实例
+     *
+     * @param name 待删除的MCP服务器实例名称
+     * @return 删除成功的响应实体
+     */
     @DeleteMapping("/{name}")
     @Operation(summary = "Delete a mcp server")
-    @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Route deleted successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Route deleted successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Void> delete(@PathVariable("name") @NotBlank String name) {
         mcpServerService.delete(name);
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 为MCP服务器添加允许的消费者
+     *
+     * @param consumers 包含MCP服务器和消费者信息的对象
+     * @return 添加成功的响应实体
+     */
     @PutMapping("/consumers")
     @Operation(summary = "Add mcp server allow consumers")
-    @ApiResponses(
-        value = {@ApiResponse(responseCode = "204", description = "Add mcp server allow consumers successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Add mcp server allow consumers successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Void> addAllowConsumers(@RequestBody McpServerConsumers consumers) {
         mcpServerService.addAllowConsumers(consumers);
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 删除MCP服务器允许的消费者
+     *
+     * @param consumers 包含MCP服务器和消费者信息的对象
+     * @return 删除成功的响应实体
+     */
     @DeleteMapping("/consumers")
     @Operation(summary = "Delete mcp server allow consumers")
-    @ApiResponses(
-        value = {@ApiResponse(responseCode = "204", description = "Delete mcp server allow consumers successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Delete mcp server allow consumers successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Void> deleteAllowConsumers(@RequestBody McpServerConsumers consumers) {
         mcpServerService.deleteAllowConsumers(consumers);
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 列出MCP服务器允许的消费者列表
+     *
+     * @param query MCP服务器消费者分页查询参数
+     * @return 包含消费者详情分页结果的响应实体
+     */
     @GetMapping("/consumers")
     @Operation(summary = "List mcp server allow consumers")
-    @ApiResponses(
-        value = {@ApiResponse(responseCode = "200", description = "List mcp server allow consumers successfully"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<McpServerConsumerDetail>>
-        listAllowConsumers(@ParameterObject McpServerConsumersPageQuery query) {
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List mcp server allow consumers successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<PaginatedResponse<McpServerConsumerDetail>> listAllowConsumers(
+            @ParameterObject McpServerConsumersPageQuery query) {
+        // 验证MCP服务器名称不能为空
         if (StringUtils.isEmpty(query.getMcpServerName())){
             throw new ValidationException("mcpServerName is empty");
         }

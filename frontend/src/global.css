@@ -1,18 +1,40 @@
+/**
+ * Higress 控制台全局样式文件
+ * 定义了应用的全局样式规则，覆盖 Ant Design 和 Pro Components 的默认样式
+ * 确保整个应用的一致视觉效果
+ */
+
+/* 导入 Ant Design 的 CSS 样式文件，提供基础组件样式 */
 @import 'antd/dist/antd.css';
 
+/**
+ * 页面容器头部样式
+ * 设置页面头部背景为白色，确保与内容区域区分
+ */
 .ant-pro-page-container .ant-page-header {
-  background: white;
+  background: white;  /* 白色背景，提供清晰的视觉分隔 */
 }
 
+/**
+ * 布局内容区域样式
+ * 设置内容区域的背景色和最小高度
+ * 计算最小高度：视口高度 - 顶部导航栏高度(56px) - 底部边距(124px)
+ * 确保内容区域至少占满可视区域
+ */
 .ant-pro .ant-pro-layout .ant-pro-layout-container .ant-pro-layout-content {
-  background: #f0f2f5;
-  min-height: calc(100vh - 56px - 124px);
+  background: #f0f2f5;                    /* 浅灰色背景，提供良好的阅读体验 */
+  min-height: calc(100vh - 56px - 124px); /* 动态计算最小高度，适配不同屏幕 */
 }
 
+/**
+ * 页面内容内边距样式
+ * 为页面内容区域添加上下内边距
+ * 提供内容与边界的适当间距，提升可读性
+ */
 .ant-pro-layout 
 .ant-pro-layout-container
 .ant-pro-layout-content 
 .ant-pro-page-container 
 .ant-pro-page-container-children-content {
-  padding-block: 24px;
+  padding-block: 24px;  /* 上下内边距 24px，左右内边距保持默认 */
 }

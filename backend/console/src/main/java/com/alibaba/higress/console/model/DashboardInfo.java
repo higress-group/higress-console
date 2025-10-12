@@ -1,29 +1,33 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.console.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 仪表板信息数据模型
+ * 用于封装仪表板的基本信息，包括是否为内置仪表板、唯一标识符和访问URL
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardInfo {
 
+    /**
+     * 是否为内置仪表板
+     * true表示使用系统内置的仪表板，false表示使用自定义仪表板
+     */
     private Boolean builtIn;
 
+    /**
+     * 仪表板唯一标识符
+     * 通常用于Grafana等监控系统中标识特定仪表板
+     */
     private String uid;
 
+    /**
+     * 仪表板访问URL
+     * 用户可以直接访问此URL来查看仪表板内容
+     */
     private String url;
 }

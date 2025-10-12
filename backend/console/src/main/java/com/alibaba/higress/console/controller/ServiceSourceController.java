@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
@@ -42,26 +30,46 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * 服务来源控制器，用于管理服务来源（Service Source）的CRUD操作
+ * 提供服务来源的增删改查接口
+ */
 @RestController("ServiceSourceController")
 @RequestMapping("/v1/service-sources")
 @Tag(name = "Service Source APIs")
 public class ServiceSourceController {
 
+    /**
+     * 服务来源服务类，用于处理业务逻辑
+     */
     @Resource
-    private ServiceSourceService serviceSourceService;
+     ServiceSourceService serviceSourceService;
 
+    /**
+     * 获取服务来源列表
+     * @param query 分页查询参数
+     * @return 分页的服务来源列表响应
+     */
     @GetMapping
     @Operation(summary = "List service sources")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service sources listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<ServiceSource>> list(@ParameterObject CommonPageQuery query) {
+        // 调用服务获取服务来源列表
         PaginatedResult<ServiceSource> result = serviceSourceService.list(query);
+        // 清除敏感信息
         if (CollectionUtils.isNotEmpty(result.getData())) {
             result.getData().forEach(this::stripSensitiveInfo);
         }
+        // 构建响应实体
         return ControllerUtil.buildResponseEntity(result);
     }
 
+    /**
+     * 添加新的服务来源
+     * @param serviceSource 服务来源对象
+     * @return 添加后的服务来源响应
+     */
     @PostMapping
     @Operation(summary = "Add a new service source")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source added successfully"),
@@ -69,17 +77,28 @@ public class ServiceSourceController {
         @ApiResponse(responseCode = "409", description = "Service source already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> add(@RequestBody ServiceSource serviceSource) {
+        // 验证服务来源数据有效性
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
+        // 禁止添加内部服务来源
         if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Adding an internal service source is not allowed.");
         }
+        // 调用服务添加服务来源
         ServiceSource finalServiceSource = serviceSourceService.add(serviceSource);
+        // 清除敏感信息
         stripSensitiveInfo(finalServiceSource);
+        // 构建响应实体
         return ControllerUtil.buildResponseEntity(finalServiceSource);
     }
 
+    /**
+     * 更新已存在的服务来源
+     * @param name 服务来源名称
+     * @param serviceSource 服务来源对象
+     * @return 更新后的服务来源响应
+     */
     @PutMapping("/{name}")
     @Operation(summary = "Update an existed service source")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source updated successfully"),
@@ -88,46 +107,74 @@ public class ServiceSourceController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
         @RequestBody ServiceSource serviceSource) {
+        // 设置服务来源名称
         serviceSource.setName(name);
+        // 验证服务来源数据有效性
         if (!serviceSource.isValid()) {
             throw new ValidationException("serviceSource body is not valid.");
         }
+        // 禁止更新内部服务来源
         if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Updating an internal service source is not allowed.");
         }
+        // 调用服务更新服务来源
         ServiceSource finalServiceSource = serviceSourceService.addOrUpdate(serviceSource);
+        // 清除敏感信息
         stripSensitiveInfo(finalServiceSource);
+        // 构建响应实体
         return ControllerUtil.buildResponseEntity(finalServiceSource);
     }
 
+    /**
+     * 删除服务来源
+     * @param name 服务来源名称
+     * @return 删除响应
+     */
     @DeleteMapping("/{name}")
     @Operation(summary = "Delete a service source")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "Service source deleted successfully"),
         @ApiResponse(responseCode = "400", description = "Deleting an internal service source is not allowed."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> delete(@PathVariable("name") @NotBlank String name) {
+        // 禁止删除内部服务来源
         if (name.endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Deleting an internal service source is not allowed.");
         }
+        // 调用服务删除服务来源
         serviceSourceService.delete(name);
+        // 返回无内容响应
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 根据名称查询服务来源
+     * @param name 服务来源名称
+     * @return 服务来源响应
+     */
     @GetMapping("/{name}")
     @Operation(summary = "Get service source by name")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Service source found"),
         @ApiResponse(responseCode = "404", description = "Service source not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> query(@PathVariable("name") @NotBlank String name) {
+        // 调用服务查询服务来源
         ServiceSource source = serviceSourceService.query(name);
+        // 清除敏感信息
         stripSensitiveInfo(source);
+        // 构建响应实体
         return ControllerUtil.buildResponseEntity(source);
     }
 
+    /**
+     * 清除服务来源中的敏感信息
+     * @param source 服务来源对象
+     */
     private void stripSensitiveInfo(ServiceSource source) {
+        // 如果服务来源或认证信息为空，则直接返回
         if (source == null || source.getAuthN() == null) {
             return;
         }
+        // 清除认证属性中的敏感信息
         source.getAuthN().setProperties(null);
     }
 }

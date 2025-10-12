@@ -1,32 +1,73 @@
+/**
+ * AI 路由列表页面组件
+ * 提供 AI 路由的管理功能，包括创建、编辑、删除、搜索等操作
+ * 支持路由配置的详细设置和 curl 命令生成
+ */
+
+// 导入 AI 路由相关的类型定义
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
 import { RoutePredicate } from '@/interfaces/route';
+
+// 导入 AI 路由服务
 import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
+
+// 导入 Ant Design 图标
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
+
+// 导入 Ant Design Pro 布局组件
 import { PageContainer } from '@ant-design/pro-layout';
+
+// 导入数据请求 Hook
 import { useRequest } from 'ahooks';
+
+// 导入 Ant Design 组件
 import { Button, Col, Drawer, Form, FormProps, Input, Modal, Row, Space, Table } from 'antd';
+
+// 导入路由管理
 import { history } from 'ice';
+
+// 导入 React Hook
 import React, { useEffect, useRef, useState } from 'react';
+
+// 导入国际化
 import { Trans, useTranslation } from 'react-i18next';
+
+// 导入语法高亮组件
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+
+// 导入路由表单组件
 import RouteForm from './components/RouteForm';
 
+/**
+ * 表单引用接口
+ * 定义了表单组件暴露给父组件的方法
+ */
 interface FormRef {
-  reset: () => void;
-  handleSubmit: () => Promise<FormProps>;
+  reset: () => void;                                    // 重置表单
+  handleSubmit: () => Promise<FormProps>;              // 提交表单并返回数据
 }
 
+/**
+ * AI 路由列表页面组件
+ * 提供完整的 AI 路由管理功能
+ */
 const AiRouteList: React.FC = () => {
+  // 获取国际化翻译函数
   const { t } = useTranslation();
+
+  /**
+   * 表格列配置
+   * 定义了 AI 路由列表的显示列
+   */
   const columns = [
     {
-      title: t('aiRoute.columns.name'),
+      title: t('aiRoute.columns.name'),      // 路由名称
       dataIndex: 'name',
       key: 'name',
-      ellipsis: true,
+      ellipsis: true,                        // 超出部分省略
     },
     {
-      title: t('aiRoute.columns.domains'),
+      title: t('aiRoute.columns.domains'),   // 域名列表
       dataIndex: 'domains',
       key: 'domains',
       render: (value) => {
@@ -37,7 +78,7 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('aiRoute.columns.pathPredicate'),
+      title: t('aiRoute.columns.pathPredicate'), // 路径匹配规则
       dataIndex: 'pathPredicate',
       key: 'pathPredicate',
       render: (value: RoutePredicate, record: AiRoute) => {
@@ -45,7 +86,7 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('aiRoute.columns.modelPredicates'),
+      title: t('aiRoute.columns.modelPredicates'), // 模型匹配规则
       dataIndex: 'modelPredicates',
       key: 'modelPredicates',
       render: (value: RoutePredicate[], record: AiRoute) => {
@@ -63,7 +104,7 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('aiRoute.columns.upstreams'),
+      title: t('aiRoute.columns.upstreams'), // 上游服务
       dataIndex: 'upstreams',
       key: 'upstreams',
       render: (value: AiUpstream[], record: AiRoute) => {
@@ -90,7 +131,7 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('aiRoute.columns.auth'),
+      title: t('aiRoute.columns.auth'), // 认证配置
       dataIndex: ['authConfig', 'allowedConsumers'],
       key: 'authConfig.allowedConsumers',
       render: (value, record) => {
@@ -105,7 +146,7 @@ const AiRouteList: React.FC = () => {
       },
     },
     {
-      title: t('misc.actions'),
+      title: t('misc.actions'), // 操作列
       dataIndex: 'action',
       key: 'action',
       width: 240,
@@ -121,6 +162,7 @@ const AiRouteList: React.FC = () => {
     },
   ];
 
+  // 表单相关状态
   const [form] = Form.useForm();
   const formRef = useRef<FormRef>(null);
   const routesRef = useRef<AiRoute[] | null>(null);
@@ -134,23 +176,42 @@ const AiRouteList: React.FC = () => {
   const [usageDrawer, setUsageDrawer] = useState(false)
   const [usageCommand, setUsageCommand] = useState('')
 
+  /**
+   * 获取 AI 路由列表数据
+   * 使用 ahooks 的 useRequest 管理数据请求状态
+   */
   const { loading, run, refresh } = useRequest(getAiRoutes, {
-    manual: true,
+    manual: true, // 手动触发请求
     onSuccess: (result) => {
       const aiRoutes = (result || []) as AiRoute[];
+      
+      // 为每个路由添加 key 属性，用于表格渲染
       aiRoutes.forEach(r => { r.key = r.name; });
+      
+      // 按名称排序
       aiRoutes.sort((i1, i2) => {
         return i1.name.localeCompare(i2.name);
       })
+      
       routesRef.current = aiRoutes;
-      onSearch();
+      onSearch(); // 执行搜索过滤
     },
   });
 
+  /**
+   * 组件挂载时加载数据
+   */
   useEffect(() => {
     run();
   }, []);
 
+  /**
+   * 生成 curl 使用命令
+   * 根据 AI 路由配置生成测试用的 curl 命令
+   * 
+   * @param aiRoute - AI 路由配置
+   * @returns 返回 curl 命令字符串
+   */
   const buildUsageCommand = (aiRoute: AiRoute): string => {
     let command = `curl -sv http://<higress-gateway-ip>/v1/chat/completions \\
     -X POST \\
@@ -173,30 +234,53 @@ const AiRouteList: React.FC = () => {
     return command;
   };
 
+  /**
+   * 显示使用说明抽屉
+   * 生成并显示 curl 命令示例
+   */
   const onUsageDrawer = (aiRoute: AiRoute) => {
     setUsageCommand(buildUsageCommand(aiRoute));
     setUsageDrawer(true);
   };
 
+  /**
+   * 关闭使用说明
+   */
   const closeUsage = () => {
     setUsageCommand(null);
     setUsageDrawer(false);
   }
 
+  /**
+   * 编辑路由配置
+   * 跳转到配置编辑页面
+   */
   const onEditConfig = (aiRoute: AiRoute) => {
     history?.push(`/ai/route/config?type=aiRoute&name=${aiRoute.name}`);
   };
 
+  /**
+   * 编辑路由
+   * 打开编辑抽屉
+   */
   const onEditDrawer = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);
     setOpenDrawer(true);
   };
 
+  /**
+   * 创建新路由
+   * 打开创建抽屉
+   */
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentAiRoute(null);
   };
 
+  /**
+   * 搜索过滤功能
+   * 根据搜索关键词过滤路由列表
+   */
   const onSearch = () => {
     setIsLoading(true);
     let _dataSource: AiRoute[] = routesRef.current as AiRoute[];
@@ -214,10 +298,18 @@ const AiRouteList: React.FC = () => {
     setIsLoading(false);
   };
 
+  /**
+   * 标准化路由谓词
+   * 处理路由匹配规则的大小写敏感设置
+   */
   const normalizeRoutePredicate = (predicate: RoutePredicate) => {
     predicate.caseSensitive = !predicate.ignoreCase || !predicate.ignoreCase.length;
   };
 
+  /**
+   * 处理抽屉确认按钮
+   * 提交表单数据，创建或更新路由
+   */
   const handleDrawerOK = async () => {
     setLoading(true);
     try {
@@ -226,37 +318,49 @@ const AiRouteList: React.FC = () => {
         return false;
       }
 
+      // 标准化路由谓词
       const { pathPredicate, headerPredicates, urlParamPredicates } = values as AiRoute;
       pathPredicate && normalizeRoutePredicate(pathPredicate);
       headerPredicates && headerPredicates.forEach((h) => normalizeRoutePredicate(h));
       urlParamPredicates && urlParamPredicates.forEach((h) => normalizeRoutePredicate(h));
 
       if (currentAiRoute) {
+        // 更新现有路由
         const params: AiRoute = { version: currentAiRoute.version, ...values };
         await updateAiRoute(params);
       } else {
+        // 创建新路由
         await addAiRoute(values as AiRoute);
       }
 
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
-      refresh();
+      refresh(); // 刷新数据
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * 处理抽屉取消按钮
+   */
   const handleDrawerCancel = () => {
     setOpenDrawer(false);
     formRef.current && formRef.current.reset();
     setCurrentAiRoute(null);
   };
 
+  /**
+   * 显示删除确认对话框
+   */
   const onShowModal = (aiRoute: AiRoute) => {
     setCurrentAiRoute(aiRoute);
     setOpenModal(true);
   };
 
+  /**
+   * 处理删除确认
+   */
   const handleModalOk = async () => {
     setConfirmLoading(true);
     try {
@@ -273,6 +377,9 @@ const AiRouteList: React.FC = () => {
     refresh();
   };
 
+  /**
+   * 处理删除取消
+   */
   const handleModalCancel = () => {
     setConfirmLoading(false);
     setOpenModal(false);
@@ -281,6 +388,7 @@ const AiRouteList: React.FC = () => {
 
   return (
     <PageContainer>
+      {/* 搜索表单 */}
       <Form
         form={form}
         style={{
@@ -315,12 +423,16 @@ const AiRouteList: React.FC = () => {
           </Col>
         </Row>
       </Form>
+      
+      {/* 路由列表表格 */}
       <Table
         loading={loading || isLoading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}
       />
+      
+      {/* 编辑/创建抽屉 */}
       <Drawer
         title={t(currentAiRoute ? "aiRoute.edit" : "aiRoute.create")}
         placement="right"
@@ -339,6 +451,8 @@ const AiRouteList: React.FC = () => {
       >
         <RouteForm ref={formRef} value={currentAiRoute} />
       </Drawer>
+      
+      {/* 使用说明模态框 */}
       <Modal
         title={t("aiRoute.aiRouteUsage")}
         open={usageDrawer}
@@ -355,6 +469,8 @@ const AiRouteList: React.FC = () => {
           {usageCommand}
         </SyntaxHighlighter>
       </Modal>
+      
+      {/* 删除确认模态框 */}
       <Modal
         title={<div><ExclamationCircleOutlined style={{ color: '#ffde5c', marginRight: 8 }} />{t('misc.delete')}</div>}
         open={openModal}

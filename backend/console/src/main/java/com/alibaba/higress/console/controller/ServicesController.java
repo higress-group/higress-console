@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
@@ -32,20 +20,34 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * 服务管理控制器
+ * 提供服务发现和管理的RESTful API接口
+ */
 @RestController("ServicesController")
 @RequestMapping("/v1/services")
 @Validated
 @Tag(name = "Service APIs")
 public class ServicesController {
 
+    // 注入服务服务层实例，用于处理服务相关的业务逻辑
     @Resource
     private ServiceService serviceService;
 
+    /**
+     * 获取服务列表
+     *
+     * @param query 通用分页查询参数，包含分页和排序信息
+     * @return 服务分页结果响应，包含服务列表和分页信息
+     */
     @GetMapping
     @Operation(summary = "List services")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Services listed successfully"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Services listed successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<PaginatedResponse<Service>> list(@ParameterObject CommonPageQuery query) {
+        // 调用服务层获取服务列表，并使用ControllerUtil工具类构建标准响应实体
         return ControllerUtil.buildResponseEntity(serviceService.list(query));
     }
 }
