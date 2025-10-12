@@ -344,7 +344,14 @@ public class SystemServiceImpl implements SystemService {
         metadata.setManagedFields(null);
     }
 
+        /**
+     * 加载Git提交ID
+     *
+     * @return 返回Git提交ID的前7位字符，如果加载失败则返回null
+     * @throws IOException 当读取git.properties文件时发生IO异常
+     */
     private static String loadGitCommitId() throws IOException {
+        // 从classpath中读取git.properties文件
         try (InputStream input = SystemServiceImpl.class.getResourceAsStream("/git.properties")) {
             if (input == null) {
                 log.warn("git.properties not found.");
@@ -353,10 +360,12 @@ public class SystemServiceImpl implements SystemService {
             Properties properties = new Properties();
             properties.load(input);
             String commitId = properties.getProperty("git.commit.id");
+            // 截取提交ID的前7位字符
             if (commitId != null && commitId.length() > 7) {
                 commitId = commitId.substring(0, 7);
             }
             return commitId;
         }
     }
+
 }

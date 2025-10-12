@@ -23,56 +23,92 @@ import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import lombok.Data;
 
 /**
+ * 配置类，用于存储 Higress 服务的相关配置信息。
+ * 使用 Lombok 的 @Data 注解自动生成 getter、setter、toString 等方法。
+ *
  * @author CH3CHO
  */
 @Data
 public class HigressServiceConfig {
 
+    // Kubernetes 配置文件路径
     private final String kubeConfigPath;
+
+    // Kubernetes 配置内容（优先级高于 kubeConfigPath）
     private final String kubeConfigContent;
+
+    // 控制器所在的命名空间
     private final String controllerNamespace;
+
+    // 控制器监听的命名空间
     private final String controllerWatchedNamespace;
+
+    // 控制器监听的 Ingress Class 名称
     private final String controllerWatchedIngressClassName;
+
+    // 控制器服务名称
     private final String controllerServiceName;
+
+    // 控制器服务主机地址
     private final String controllerServiceHost;
+
+    // 控制器服务端口
     private final Integer controllerServicePort;
+
+    // 控制器 JWT 策略
     private final String controllerJwtPolicy;
+
+    // 控制器访问令牌
     private final String controllerAccessToken;
+
+    // WASM 插件服务配置
     private final WasmPluginServiceConfig wasmPluginServiceConfig;
+
     /**
-     * Does the service list interface support registry?
+     * 服务列表接口是否支持注册中心。
      *
      * <p>
-     * If null, use the default value. {@link HigressConstants#SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT}
+     * 如果为 null，则使用默认值 {@link HigressConstants#SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT}。
      * </p>
      * <p>
-     * If true, the service list interface will support registry and depend on the controller API.
-     * {@link com.alibaba.higress.sdk.service.ServiceServiceImpl}
+     * 如果为 true，服务列表接口将支持注册中心，并依赖控制器 API。
+     * 实现类参考 {@link com.alibaba.higress.sdk.service.ServiceServiceImpl}
      * </p>
      * <p>
-     * If false, the service list implementation will not support registry and will interact with the API server
-     * directly. {@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl} Under the current configuration,
-     * there is no need for the capability of service discovery. The sources related to the registry in the service
-     * sources will be disabled
+     * 如果为 false，服务列表实现将不支持注册中心，直接与 API 服务器交互。
+     * 实现类参考 {@link com.alibaba.higress.sdk.service.ServiceServiceByApiServerImpl}。
+     * 在这种配置下，不需要服务发现能力，注册中心相关功能将被禁用。
      * </p>
-     * 
      */
     private final Boolean serviceListSupportRegistry;
+
+    // 集群域名后缀
     private final String clusterDomainSuffix;
 
     /**
-     * @deprecated use {@link #getControllerWatchedIngressClassName()} instead
+     * 获取 Ingress Class 名称的旧方法（已废弃）。
+     *
+     * @deprecated 使用 {@link #getControllerWatchedIngressClassName()} 替代
      */
     @Deprecated
     public String getIngressClassName() {
         return controllerWatchedIngressClassName;
     }
 
+    /**
+     * 创建 Builder 实例。
+     *
+     * @return Builder 实例
+     */
     public static HigressServiceConfig.Builder builder() {
         return new Builder();
     }
 
+    /**
+     * 内部静态 Builder 类，用于构建 HigressServiceConfig 实例。
+     */
     public static final class Builder {
+        // 各种配置项字段
         private String kubeConfigPath;
         private String kubeConfigContent;
         private String controllerWatchedNamespace;
@@ -87,7 +123,10 @@ public class HigressServiceConfig {
         private Boolean serviceListSupportRegistry;
         private String clusterDomainSuffix;
 
+        // 私有构造函数，防止外部直接实例化
         private Builder() {}
+
+        // 各种 with 方法用于设置配置项
 
         public Builder withWasmPluginServiceConfig(WasmPluginServiceConfig wasmPluginServiceConfig) {
             this.wasmPluginServiceConfig = wasmPluginServiceConfig;
@@ -120,7 +159,9 @@ public class HigressServiceConfig {
         }
 
         /**
-         * @deprecated use {@link #withControllerWatchedIngressClassName(String)} instead
+         * 设置 Ingress Class 名称的旧方法（已废弃）。
+         *
+         * @deprecated 使用 {@link #withControllerWatchedIngressClassName(String)} 替代
          */
         @Deprecated
         public Builder withIngressClassName(String ingressClassName) {
@@ -162,19 +203,32 @@ public class HigressServiceConfig {
             return this;
         }
 
+        /**
+         * 构建 HigressServiceConfig 实例。
+         *
+         * @return HigressServiceConfig 实例
+         */
         public HigressServiceConfig build() {
-            return new HigressServiceConfig(kubeConfigPath, kubeConfigContent,
-                StringUtils.firstNonEmpty(controllerNamespace, HigressConstants.NS_DEFAULT), controllerWatchedNamespace,
-                controllerWatchedIngressClassName,
-                StringUtils.firstNonEmpty(controllerServiceName, HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT),
-                StringUtils.firstNonEmpty(controllerServiceHost, HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT),
-                Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),
-                StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
-                controllerAccessToken,
-                Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
-                Optional.ofNullable(serviceListSupportRegistry)
-                    .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT),
-                StringUtils.firstNonEmpty(clusterDomainSuffix, HigressConstants.CLUSTER_DOMAIN_SUFFIX_DEFAULT));
+            return new HigressServiceConfig(
+                    kubeConfigPath,
+                    kubeConfigContent,
+                    // 使用 StringUtils.firstNonEmpty 确保有默认值
+                    StringUtils.firstNonEmpty(controllerNamespace, HigressConstants.NS_DEFAULT),
+                    controllerWatchedNamespace,
+                    controllerWatchedIngressClassName,
+                    StringUtils.firstNonEmpty(controllerServiceName, HigressConstants.CONTROLLER_SERVICE_NAME_DEFAULT),
+                    StringUtils.firstNonEmpty(controllerServiceHost, HigressConstants.CONTROLLER_SERVICE_HOST_DEFAULT),
+                    // 使用 Optional.ofNullable 设置默认端口
+                    Optional.ofNullable(controllerServicePort).orElse(HigressConstants.CONTROLLER_SERVICE_PORT_DEFAULT),
+                    StringUtils.firstNonEmpty(controllerJwtPolicy, HigressConstants.CONTROLLER_JWT_POLICY_DEFAULT),
+                    controllerAccessToken,
+                    // 如果 wasmPluginServiceConfig 为 null，则创建新实例
+                    Objects.isNull(wasmPluginServiceConfig) ? new WasmPluginServiceConfig() : wasmPluginServiceConfig,
+                    // serviceListSupportRegistry 默认值处理
+                    Optional.ofNullable(serviceListSupportRegistry)
+                            .orElse(HigressConstants.SERVICE_LIST_SUPPORT_REGISTRY_DEFAULT),
+                    StringUtils.firstNonEmpty(clusterDomainSuffix, HigressConstants.CLUSTER_DOMAIN_SUFFIX_DEFAULT)
+            );
         }
     }
 }

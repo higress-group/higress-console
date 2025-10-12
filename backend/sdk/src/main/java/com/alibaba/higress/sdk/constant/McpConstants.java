@@ -51,13 +51,21 @@ public class McpConstants {
         return Paths.get(getMcpWorkDir(), "temp").toString();
     }
 
+        /**
+     * 获取MCP工作目录路径
+     *
+     * @return 返回MCP工作目录路径，如果环境变量中未配置则返回默认工作目录
+     */
     public static String getMcpWorkDir() {
+        // 从环境变量中加载自定义配置的工作目录
         String workDir = EnvReadUtil.loadCustomConfFromEnv(MCP_WORK_DIR_KEY, MCP_WORK_DIR_ENV_KEY);
+        // 如果未配置工作目录，则使用默认工作目录
         if (StringUtils.isBlank(workDir)) {
             workDir = DEFAULT_MCP_WORK_DIR;
         }
         return workDir;
     }
+
 
     public static String getOpenApiToMcpserverScriptPath() {
         String path = EnvReadUtil.loadCustomConfFromEnv(OPENAPI_TO_MCPSERVER_SCRIPT_PATH_KEY,
