@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import java.time.LocalDateTime;
@@ -23,33 +11,67 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * TLS 证书配置类，用于管理网关的 TLS 证书信息。
+ * 使用 Lombok 注解自动生成 getter、setter、toString 等方法。
+ * 使用 Swagger 注解生成 API 文档。
+ * 实现 VersionedDto 接口，支持版本控制。
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "TLS Certificate")
+@Schema(description = "TLS 证书配置类，用于管理网关的 TLS 证书信息。")
 public class TlsCertificate implements VersionedDto {
 
-    @Schema(description = "Certificate name")
+    /**
+     * 证书名称。
+     * 用于唯一标识一个证书。
+     */
+    @Schema(description = "证书名称")
     private String name;
 
-    @Schema(description = "Certificate version. Required when updating.")
+    /**
+     * 证书版本。
+     * 更新时必需，用于实现乐观锁机制。
+     */
+    @Schema(description = "证书版本。更新时必需。")
     private String version;
 
-    @Schema(description = "Certificate content in PEM format")
+    /**
+     * PEM 格式的证书内容。
+     * 包含证书的公钥信息。
+     */
+    @Schema(description = "PEM 格式的证书内容")
     private String cert;
 
-    @Schema(description = "Private key content in PEM format")
+    /**
+     * PEM 格式的私钥内容。
+     * 包含证书的私钥信息。
+     */
+    @Schema(description = "PEM 格式的私钥内容")
     private String key;
 
-    @Schema(description = "Domains (SAN inluded) that the certificate applies to")
+    /**
+     * 证书适用的域名（包括 SAN）。
+     * 列出该证书可以用于哪些域名。
+     */
+    @Schema(description = "证书适用的域名（包括 SAN）")
     private List<String> domains;
 
-    @Schema(description = "Validity start time")
+    /**
+     * 证书有效期开始时间。
+     * 证书从该时间开始生效。
+     */
+    @Schema(description = "有效期开始时间")
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss'Z'")
     private LocalDateTime validityStart;
 
-    @Schema(description = "Validity end time")
+    /**
+     * 证书有效期结束时间。
+     * 证书在该时间之后失效。
+     */
+    @Schema(description = "有效期结束时间")
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss'Z'")
     private LocalDateTime validityEnd;
 }

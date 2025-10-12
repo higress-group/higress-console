@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import java.util.HashMap;
@@ -26,13 +14,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 网关服务源认证配置类，用于管理网关服务源的认证信息。
+ * 使用 Lombok 注解自动生成 getter、setter、toString 等方法。
+ * 使用 Swagger 注解生成 API 文档。
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Gateway Service Source Authentication Config")
+@Schema(description = "网关服务源认证配置类，用于管理网关服务源的认证信息。")
 public class ServiceSourceAuthN {
 
+    /**
+     * 认证验证器映射表。
+     * 根据不同的注册中心类型，使用相应的验证器来验证认证配置的有效性。
+     */
     private static final Map<String, AuthNValidator> VALIDATORS = new HashMap<>();
 
     static {
@@ -42,44 +39,77 @@ public class ServiceSourceAuthN {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_CONSUL, new ConsulAuthValidator());
     }
 
-    @Schema(description = "Enable authentication when accessing the service source")
+    /**
+     * 是否启用访问服务源时的身份验证。
+     * 如果设置为 true，则在访问服务源时需要进行身份验证。
+     */
+    @Schema(description = "启用访问服务源时的身份验证")
     private Boolean enabled;
 
-    @Schema(description = "Authentication properties, depending on the type.\n"
-        + "For nacos/nacos2: nacosUsername, nacosPassword\n" + "For consul: consulToken\n")
+    /**
+     * 认证属性，根据注册中心类型而定。
+     * 对于 nacos/nacos2: nacosUsername, nacosPassword
+     * 对于 consul: consulToken
+     */
+    @Schema(description = "认证属性，根据类型而定。\n"
+        + "对于 nacos/nacos2: nacosUsername, nacosPassword\n" + "对于 consul: consulToken\n")
     private Map<String, String> properties;
 
+    /**
+     * 验证服务源认证配置的有效性。
+     * @param registryType 注册中心类型
+     * @return 如果配置有效返回 true，否则返回 false
+     */
     public boolean validate(String registryType) {
+        // 如果未启用认证，则认为配置有效
         if (enabled == null || !enabled) {
             return true;
         }
+        // 检查认证属性是否为空
         if (MapUtils.isEmpty(properties)) {
             return false;
         }
+        // 根据注册中心类型获取相应的验证器并进行验证
         AuthNValidator validator = VALIDATORS.get(registryType);
         return validator == null || validator.validate(this);
     }
 
+    /**
+     * 认证验证器接口。
+     * 定义了认证验证的方法。
+     */
     private interface AuthNValidator {
 
+        /**
+         * 验证认证配置的有效性。
+         * @param authN 认证配置对象
+         * @return 如果配置有效返回 true，否则返回 false
+         */
         default boolean validate(ServiceSourceAuthN authN) {
             return true;
         }
     }
 
+    /**
+     * Nacos 认证验证器。
+     * 用于验证 Nacos 类型服务源的认证配置。
+     */
     private static class NacosAuthNValidator implements AuthNValidator {
 
         @Override
         public boolean validate(ServiceSourceAuthN authN) {
             Map<String, String> properties = authN.getProperties();
+            // 检查认证属性是否为空
             if (MapUtils.isEmpty(properties)) {
                 return false;
             }
 
+            // 检查用户名是否为空
             String username = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_USERNAME);
             if (StringUtils.isBlank(username)) {
                 return false;
             }
+            // 检查密码是否为空
             String password = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_PASSWORD);
             if (StringUtils.isBlank(password)) {
                 return false;
@@ -89,15 +119,21 @@ public class ServiceSourceAuthN {
         }
     }
 
+    /**
+     * Consul 认证验证器。
+     * 用于验证 Consul 类型服务源的认证配置。
+     */
     private static class ConsulAuthValidator implements AuthNValidator {
 
         @Override
         public boolean validate(ServiceSourceAuthN authN) {
             Map<String, String> properties = authN.getProperties();
+            // 检查认证属性是否为空
             if (MapUtils.isEmpty(properties)) {
                 return false;
             }
 
+            // 检查 Token 是否为空
             String token = properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_TOKEN);
             if (StringUtils.isBlank(token)) {
                 return false;

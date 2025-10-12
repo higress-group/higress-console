@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,12 +6,23 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * WASM 插件分页查询参数类，用于封装 WASM 插件的分页查询条件。
+ * 继承自 CommonPageQuery，复用通用分页查询功能。
+ * 使用 Lombok 注解自动生成 getter、setter、toString 等方法。
+ * 使用 Swagger 注解生成 API 文档。
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "WASM 插件分页查询参数类，用于封装 WASM 插件的分页查询条件。")
 public class WasmPluginPageQuery extends CommonPageQuery {
 
-    @Schema(description = "Plugin data language", allowableValues = {"zh-CN", "en-US"})
+    /**
+     * 插件语言，用于过滤不同语言的插件。
+     * 例如：zh-CN、en-US 等。
+     */
+    @Schema(description = "插件语言，用于过滤不同语言的插件。", allowableValues = {"zh-CN", "en-US"})
     private String lang;
 }

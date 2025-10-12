@@ -1,23 +1,24 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 /**
- * Interface used to mark DTOs which support optimistic-locking by version when updating.
+ * DTO 接口，用于标记在更新时支持通过版本号实现乐观锁的 DTO。
+ * 乐观锁是一种并发控制机制，通过版本号来确保数据的一致性。
  */
 public interface VersionedDto {
 
+    /**
+     * 获取当前 DTO 的版本号。
+     * 版本号用于实现乐观锁机制。
+     *
+     * @return 当前 DTO 的版本号。
+     */
     String getVersion();
 
+    /**
+     * 设置当前 DTO 的版本号。
+     * 版本号用于实现乐观锁机制。
+     *
+     * @param version 要设置的版本号。
+     */
     void setVersion(String version);
 }

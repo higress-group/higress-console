@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,49 +17,49 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Wasm Plugin")
+@Schema(description = "WASM 插件配置类，用于管理网关的 WASM 插件信息。")
 public class WasmPlugin implements VersionedDto {
 
-    @Schema(description = "Plugin name")
+    @Schema(description = "插件名称")
     private String name;
 
-    @Schema(description = "Plugin version. Fixed to 1.0.0")
+    @Schema(description = "插件版本。固定为 1.0.0")
     private String pluginVersion;
 
-    @Schema(description = "Plugin resource version. Required when updating.")
+    @Schema(description = "插件资源版本。更新时必需。")
     private String version;
 
-    @Schema(description = "Plugin category")
+    @Schema(description = "插件类别")
     private String category;
 
-    @Schema(description = "Plugin title for display")
+    @Schema(description = "插件显示标题")
     private String title;
 
-    @Schema(description = "Plugin description for display")
+    @Schema(description = "插件显示描述")
     private String description;
 
-    @Schema(description = "Whether the plugin is built-in")
+    @Schema(description = "插件是否为内置插件")
     private Boolean builtIn;
 
-    @Schema(description = "Plugin icon URL")
+    @Schema(description = "插件图标 URL")
     private String icon;
 
-    @Schema(description = "Plugin image repository")
+    @Schema(description = "插件镜像仓库")
     private String imageRepository;
 
-    @Schema(description = "Plugin image tag")
+    @Schema(description = "插件镜像标签")
     private String imageVersion;
 
-    @Schema(description = "Plugin image pull policy")
+    @Schema(description = "插件镜像拉取策略")
     private String imagePullPolicy;
 
-    @Schema(description = "Plugin image pull secret")
+    @Schema(description = "插件镜像拉取密钥")
     private String imagePullSecret;
 
-    @Schema(description = "Plugin execution phase", ref = "PluginPhase")
+    @Schema(description = "插件执行阶段", ref = "PluginPhase")
     private String phase;
 
-    @Schema(description = "Plugin execution priority in the given phase", minimum = "0", maximum = "1000")
+    @Schema(description = "插件在给定阶段的执行优先级", minimum = "0", maximum = "1000")
     private Integer priority;
 
     public void validate() {

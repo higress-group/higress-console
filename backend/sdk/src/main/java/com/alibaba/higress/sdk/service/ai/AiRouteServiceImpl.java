@@ -1,14 +1,14 @@
-/*
- * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+/**
+ * AI路由服务实现类
+ * 
+ * 实现了AiRouteService接口，负责AI路由的完整生命周期管理，包括：
+ * - AI路由的创建、更新、删除和查询操作
+ * - 相关Kubernetes资源的管理（ConfigMap、EnvoyFilter等）
+ * - WASM插件实例的配置和管理
+ * - 模型路由和映射功能的实现
+ * - 故障转移机制的支持
+ * 
+ * 该类协调多个服务组件，确保AI路由配置的正确性和一致性。
  */
 package com.alibaba.higress.sdk.service.ai;
 
@@ -69,15 +69,39 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import static com.alibaba.higress.sdk.constant.HigressConstants.VALID_FALLBACK_RESPONSE_CODES;
 
+/**
+ * AI路由服务实现类
+ * 
+ * 使用SLF4J日志框架记录操作日志，实现了AI路由服务的所有核心业务逻辑。
+ * 负责协调Kubernetes资源管理、WASM插件配置、路由规则构建等复杂操作。
+ */
 @Slf4j
 public class AiRouteServiceImpl implements AiRouteService {
 
+/**
+     * 路由故障转移EnvoyFilter配置文件路径
+     * 
+     * 定义了用于生成路由故障转移功能的EnvoyFilter配置的YAML模板文件路径。
+     * 该模板用于在请求失败时自动切换到备用路由。
+     */
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
+    /**
+     * AI路由ConfigMap标签选择器
+     * 
+     * 用于在Kubernetes中标识和查询AI路由相关的ConfigMap资源。
+     * 通过特定的标签键值对来筛选AI路由配置。
+     */
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
         MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
                 KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
+    /**
+     * 默认路径谓词
+     * 
+     * 当AI路由没有指定路径匹配条件时使用的默认谓词。
+     * 配置为前缀匹配根路径"/"，不区分大小写。
+     */
     private static final RoutePredicate DEFAULT_PATH_PREDICATE =
         new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
 
@@ -95,6 +119,26 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private final Template routeFallbackEnvoyFilterConfigTemplate;
 
+/**
+     * AI路由服务构造函数
+     * 
+     * 初始化AI路由服务所需的所有依赖组件：
+     * - Kubernetes模型转换器：用于对象转换
+     * - Kubernetes客户端服务：用于操作K8s资源
+     * - 路由服务：用于管理标准路由
+     * - LLM提供者服务：用于管理AI提供者
+     * - WASM插件实例服务：用于管理插件配置
+     * 
+     * 同时初始化Velocity模板引擎，用于生成EnvoyFilter配置，
+     * 并预加载路由故障转移配置模板进行验证。
+     * 
+     * @param kubernetesModelConverter Kubernetes模型转换器
+     * @param kubernetesClientService Kubernetes客户端服务
+     * @param routeService 路由服务
+     * @param llmProviderService LLM提供者服务
+     * @param wasmPluginInstanceService WASM插件实例服务
+     * @throws IllegalStateException 如果模板加载失败
+     */
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
         KubernetesClientService kubernetesClientService, RouteService routeService,
         LlmProviderService llmProviderService, WasmPluginInstanceService wasmPluginInstanceService) {
@@ -103,14 +147,19 @@ public class AiRouteServiceImpl implements AiRouteService {
         this.routeService = routeService;
         this.llmProviderService = llmProviderService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
+        
+        // 初始化Velocity模板引擎
         this.velocityEngine = new VelocityEngine();
         velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
         velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
         velocityEngine.init();
 
         try {
+            // 加载路由故障转移配置模板
             this.routeFallbackEnvoyFilterConfigTemplate =
                 velocityEngine.getTemplate(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8.name());
+            
+            // 预加载和验证模板
             String routeFallbackEnvoyFilterConfig = getRouteFallbackEnvoyFilterConfig(new ArrayList<>(
                     VALID_FALLBACK_RESPONSE_CODES));
             V1alpha3EnvoyFilter filter =
@@ -121,13 +170,30 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
     }
 
+/**
+     * 添加AI路由
+     * 
+     * 创建新的AI路由配置，执行以下操作：
+     * 1. 填充默认值：为路由配置设置默认参数
+     * 2. 写入AI路由资源：创建相关的Kubernetes资源（路由、插件配置等）
+     * 3. 写入故障转移资源：如果配置了故障转移，创建相应的EnvoyFilter
+     * 4. 创建ConfigMap：将AI路由配置持久化到Kubernetes ConfigMap
+     * 
+     * @param route AI路由对象，包含要创建的路由配置
+     * @return 创建成功的AI路由对象
+     * @throws ResourceConflictException 如果路由名称已存在
+     * @throws BusinessException 如果创建过程中发生其他错误
+     */
     @Override
     public AiRoute add(AiRoute route) {
+        // 填充默认值
         fillDefaultValues(route);
 
+        // 写入相关资源
         writeAiRouteResources(route);
         writeAiRouteFallbackResources(route);
 
+        // 创建ConfigMap
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap newConfigMap;
         try {
@@ -142,33 +208,75 @@ public class AiRouteServiceImpl implements AiRouteService {
         return configMap2AiRoute(newConfigMap);
     }
 
+/**
+     * 查询AI路由列表
+     * 
+     * 分页查询AI路由配置列表，执行以下步骤：
+     * 1. 查询Kubernetes ConfigMap：使用标签选择器获取所有AI路由配置
+     * 2. 转换为AI路由对象：将ConfigMap列表转换为AI路由对象列表
+     * 3. 应用分页逻辑：根据查询条件进行分页处理
+     * 
+     * @param query 分页查询条件，包含页码、每页大小等信息
+     * @return 分页查询结果，包含AI路由列表和分页信息
+     * @throws BusinessException 如果查询过程中发生错误
+     */
     @Override
     public PaginatedResult<AiRoute> list(CommonPageQuery query) {
         List<V1ConfigMap> configMaps;
         try {
+            // 查询所有AI路由ConfigMap
             configMaps = kubernetesClientService.listConfigMap(AI_ROUTE_LABEL_SELECTORS);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing ConfigMap.", e);
         }
+        
+        // 转换为分页结果
         return PaginatedResult.createFromFullList(configMaps, query, this::configMap2AiRoute);
     }
 
+/**
+     * 查询单个AI路由
+     * 
+     * 根据路由名称查询特定的AI路由配置，执行以下步骤：
+     * 1. 转换ConfigMap名称：将AI路由名称转换为对应的ConfigMap名称
+     * 2. 读取ConfigMap：从Kubernetes读取对应的ConfigMap资源
+     * 3. 转换为AI路由：将ConfigMap转换为AI路由对象
+     * 
+     * @param routeName 路由名称
+     * @return 查询到的AI路由对象，如果不存在则返回null
+     * @throws BusinessException 如果查询过程中发生错误
+     */
     @Override
     public AiRoute query(String routeName) {
         V1ConfigMap configMap;
         String configMapName = kubernetesModelConverter.aiRouteName2ConfigMapName(routeName);
         try {
+            // 读取ConfigMap
             configMap = kubernetesClientService.readConfigMap(configMapName);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when reading the ConfigMap with name: " + configMapName, e);
         }
+        
+        // 转换为AI路由对象，如果不存在则返回null
         return Optional.ofNullable(configMap).map(this::configMap2AiRoute).orElse(null);
     }
 
+/**
+     * 删除AI路由
+     * 
+     * 删除指定名称的AI路由配置，执行以下步骤：
+     * 1. 删除相关资源：清理与该AI路由相关的所有Kubernetes资源（路由、插件、EnvoyFilter等）
+     * 2. 删除ConfigMap：从Kubernetes删除存储AI路由配置的ConfigMap
+     * 
+     * @param routeName 要删除的路由名称
+     * @throws BusinessException 如果删除过程中发生错误
+     */
     @Override
     public void delete(String routeName) {
+        // 删除相关资源
         deleteAiRouteResources(routeName);
 
+        // 删除ConfigMap
         String configMapName = kubernetesModelConverter.aiRouteName2ConfigMapName(routeName);
         try {
             kubernetesClientService.deleteConfigMap(configMapName);
@@ -177,13 +285,30 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
     }
 
+/**
+     * 更新AI路由
+     * 
+     * 修改现有的AI路由配置，执行以下步骤：
+     * 1. 填充默认值：确保路由配置包含所有必需的默认参数
+     * 2. 重写AI路由资源：更新相关的Kubernetes资源（路由、插件配置等）
+     * 3. 重写故障转移资源：根据新的配置更新故障转移相关的EnvoyFilter
+     * 4. 更新ConfigMap：将更新后的AI路由配置保存到Kubernetes ConfigMap
+     * 
+     * @param route 包含更新信息的AI路由对象
+     * @return 更新后的AI路由对象
+     * @throws ResourceConflictException 如果更新过程中发生资源冲突
+     * @throws BusinessException 如果更新过程中发生其他错误
+     */
     @Override
     public AiRoute update(AiRoute route) {
+        // 填充默认值
         fillDefaultValues(route);
 
+        // 重写相关资源
         writeAiRouteResources(route);
         writeAiRouteFallbackResources(route);
 
+        // 更新ConfigMap
         V1ConfigMap configMap = kubernetesModelConverter.aiRoute2ConfigMap(route);
         V1ConfigMap updatedConfigMap;
         try {
