@@ -1,36 +1,35 @@
-/*
- * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.consumer;
 
+/**
+ * 允许列表操作枚举类
+ * 定义了对允许列表进行操作的几种方式
+ */
 public enum AllowListOperation {
 
     /**
-     * Add provided consumers into the current allow list.
-     * The auth switch is updated if not null.
+     * 添加操作
+     * 将提供的消费者添加到当前允许列表中
+     * 如果认证开关不为空，则更新认证开关状态
      */
     ADD,
+    
     /**
-     * Remove provided consumers from the current allow list.
-     * The auth switch is updated if not null.
+     * 移除操作
+     * 从当前允许列表中移除提供的消费者
+     * 如果认证开关不为空，则更新认证开关状态
      */
     REMOVE,
+    
     /**
-     * Replace the current allow list with provided consumers.
-     * The auth switch is updated if not null.
+     * 替换操作
+     * 使用提供的消费者替换当前允许列表
+     * 如果认证开关不为空，则更新认证开关状态
      */
     REPLACE,
+    
     /**
-     * Only update the auth switch state and leave the allow list as it is.
+     * 切换操作
+     * 仅更新认证开关状态，保持允许列表不变
      */
     TOGGLE_ONLY
 }

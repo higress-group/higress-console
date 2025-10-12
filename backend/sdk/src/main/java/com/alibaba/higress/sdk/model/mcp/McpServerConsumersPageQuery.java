@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.mcp;
 
 import com.alibaba.higress.sdk.model.CommonPageQuery;
@@ -21,19 +9,28 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * @author HecarimV
+ * MCP服务器消费者分页查询类
+ * 用于MCP服务器消费者列表的查询条件
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Schema(description = "Query criteria for mcpServer consumers listing.")
+@Schema(description = "MCP服务器消费者分页查询条件")
 public class McpServerConsumersPageQuery extends CommonPageQuery {
 
-    @Schema(description = "McpServer name associated with route.")
+    /**
+     * MCP服务器名称
+     * 与路由关联的MCP服务器名称
+     */
+    @Schema(description = "MCP服务器名称")
     private String mcpServerName;
 
-    @Schema(description = "Consumer name for search.")
+    /**
+     * 消费者名称
+     * 用于搜索的消费者名称
+     */
+    @Schema(description = "消费者名称")
     private String consumerName;
 
 }

@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.mcp;
 
 import java.util.List;
@@ -20,43 +8,84 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * @author lvshui
+ * MCP服务器配置类
+ * 用于定义MCP服务器的相关配置，包括基本信息、域名、上游服务、认证信息等
  */
 @Data
 public class McpServer {
+    /**
+     * 服务器ID（已弃用）
+     * 旧版本标识符，新版本中不再使用
+     */
     @Deprecated
     private String id;
+    
+    /**
+     * 服务器名称
+     * MCP服务器的唯一标识名称
+     */
     @Schema(description = "Mcp server name")
     private String name;
+    
+    /**
+     * 服务器描述
+     * 对MCP服务器的详细描述信息
+     */
     @Schema(description = "Mcp server description")
     private String description;
+    
+    /**
+     * 域名列表
+     * 定义该MCP服务器适用的域名集合
+     */
     @Schema(description = "Domains that the mcp server applies to.")
     private List<String> domains;
+    
+    /**
+     * 上游服务列表
+     * 定义MCP服务器的上游服务配置
+     */
     @Schema(description = "Mcp server upstream services")
     private List<UpstreamService> services;
+    
+    /**
+     * 服务器类型
+     * 定义MCP服务器的类型，可选值包括OPEN_API、DATABASE、DIRECT_ROUTE
+     */
     @Schema(description = "Mcp server type", allowableValues = {"OPEN_API", "DATABASE", "DIRECT_ROUTE"})
     private McpServerTypeEnum type;
 
+    /**
+     * 消费者认证信息
+     * 定义MCP服务器的消费者认证配置
+     */
     @Schema(description = "Mcp server consumer auth info")
     private ConsumerAuthInfo consumerAuthInfo;
 
     /**
-     * type = "OPEN_API"
+     * 原始配置（OPEN_API类型）
+     * 以YAML格式存储的原始配置信息
      */
     @Schema(description = "Raw configurations in YAML format")
     private String rawConfigurations;
 
     /**
-     * type= "DATABASE"
+     * 数据源名称（DATABASE类型）
+     * 对于数据库类型服务器，此字段为必需项
      */
     @Schema(description = "Data Source Name. For DB type server, it is required")
     private String dsn;
 
+    /**
+     * 数据库类型
+     * 定义数据库类型，可选值包括MYSQL、POSTGRESQL、SQLITE、CLICKHOUSE
+     */
     @Schema(description = "Database type",allowableValues = {"MYSQL", "POSTGRESQL", "SQLITE", "CLICKHOUSE"})
     private McpServerDBTypeEnum dbType;
 
     /**
-     * type= "DIRECT_ROUTE"
+     * 上游路径前缀（DIRECT_ROUTE类型）
+     * 上游MCP服务器将根据此路径前缀重定向请求
      */
     @Schema(description = "The upstream MCP server will redirect requests based on the path prefix.")
     private String upstreamPathPrefix;

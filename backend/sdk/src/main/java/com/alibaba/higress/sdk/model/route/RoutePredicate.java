@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.route;
 
 import java.beans.Transient;
@@ -22,6 +10,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 路由谓词类
+ * 用于定义路由匹配的条件，包括匹配类型、匹配值和大小写敏感性设置
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -30,22 +22,41 @@ import lombok.NoArgsConstructor;
 public class RoutePredicate {
 
     /**
+     * 匹配类型
+     * 指定用于匹配请求的谓词类型
      * @see RoutePredicateTypeEnum
      */
     @Schema(description = "Match type", ref = "RoutePredicateTypeEnum")
     private String matchType;
 
+    /**
+     * 匹配值
+     * 用于与请求进行匹配的具体值
+     */
     @Schema(description = "The value to match against")
     private String matchValue;
 
+    /**
+     * 大小写敏感性
+     * 指示匹配过程是否区分大小写
+     */
     @Schema(description = "Whether to match the value case-sensitively")
     private Boolean caseSensitive;
 
+    /**
+     * 获取谓词类型枚举
+     * 根据匹配类型名称获取对应的枚举值
+     * @return 路由谓词类型枚举
+     */
     @Transient
     public RoutePredicateTypeEnum getPredicateType() {
         return RoutePredicateTypeEnum.fromName(this.getMatchType());
     }
 
+    /**
+     * 验证路由谓词配置
+     * 检查必需字段是否已设置，并验证匹配类型的合法性
+     */
     public void validate() {
         if (this.getMatchType() == null) {
             throw new ValidationException("matchType is required");

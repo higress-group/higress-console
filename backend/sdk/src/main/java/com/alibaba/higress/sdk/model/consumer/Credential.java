@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.consumer;
 
 import java.util.HashMap;
@@ -27,6 +15,10 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 消费者凭据基类
+ * 定义了消费者凭据的基本结构和通用方法
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,17 +28,37 @@ import lombok.NoArgsConstructor;
 @JsonSubTypes({@JsonSubTypes.Type(value = KeyAuthCredential.class, name = CredentialType.KEY_AUTH),})
 public class Credential {
 
+    /**
+     * 凭据类型
+     */
     @Schema(description = "Credential type", ref = "CredentialType")
     private String type;
 
+    /**
+     * 凭据属性映射
+     * 存储凭据的具体属性值
+     */
     @JsonIgnore
     @Getter(onMethod_ = @JsonAnyGetter)
     private Map<String, Object> properties;
 
+    /**
+     * 构造函数
+     * 初始化凭据类型
+     *
+     * @param type 凭据类型
+     */
     public Credential(String type) {
         this.type = type;
     }
 
+    /**
+     * 设置凭据属性
+     * 向凭据属性映射中添加或更新属性值
+     *
+     * @param name  属性名称
+     * @param value 属性值
+     */
     @JsonAnySetter
     public void setProperty(String name, Object value) {
         if (this.properties == null) {
@@ -55,5 +67,11 @@ public class Credential {
         this.properties.put(name, value);
     }
 
+    /**
+     * 验证凭据信息
+     * 子类可以重写此方法以实现具体的验证逻辑
+     *
+     * @param forUpdate 是否为更新操作
+     */
     public void validate(boolean forUpdate) {}
 }

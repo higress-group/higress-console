@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.wasmplugin;
 
 import com.alibaba.higress.sdk.util.EnvReadUtil;
@@ -17,17 +5,51 @@ import com.alibaba.higress.sdk.util.EnvReadUtil;
 import lombok.Data;
 
 /**
- * @author lvshui
+ * WASM插件服务配置类
+ * 用于存储和管理WASM插件服务的相关配置
  */
 @Data
 public class WasmPluginServiceConfig {
+    /**
+     * 自定义镜像URL模式环境变量名
+     * 用于指定自定义WASM插件镜像的URL模式
+     */
     private static final String CUSTOM_IMAGE_URL_PATTERN_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN";
+    
+    /**
+     * 自定义镜像URL模式属性名
+     * 用于指定自定义WASM插件镜像的URL模式
+     */
     private static final String CUSTOM_IMAGE_URL_PATTERN_PROPERTY = "higress-admin.wasmplugin.custom-image-url-pattern";
+    
+    /**
+     * 自定义镜像拉取密钥环境变量名
+     * 用于指定拉取自定义WASM插件镜像所需的密钥
+     */
     private static final String CUSTOM_IMAGE_PULL_SECRET_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_SECRET";
+    
+    /**
+     * 自定义镜像拉取策略环境变量名
+     * 用于指定拉取自定义WASM插件镜像的策略
+     */
     private static final String CUSTOM_IMAGE_PULL_POLICY_ENV = "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_PULL_POLICY";
+    
+    /**
+     * 自定义镜像拉取密钥属性名
+     * 用于指定拉取自定义WASM插件镜像所需的密钥
+     */
     private static final String CUSTOM_IMAGE_PULL_SECRET_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-secret";
+    
+    /**
+     * 自定义镜像拉取策略属性名
+     * 用于指定拉取自定义WASM插件镜像的策略
+     */
     private static final String CUSTOM_IMAGE_PULL_POLICY_PROPERTY = "higress-admin.wasmplugin.custom-image-pull-policy";
 
+    /**
+     * 从环境变量构建配置对象
+     * @return WasmPluginServiceConfig 配置对象
+     */
     public static WasmPluginServiceConfig buildFromEnv() {
         WasmPluginServiceConfig result = new WasmPluginServiceConfig();
         result.customImageUrlPattern =
@@ -39,7 +61,21 @@ public class WasmPluginServiceConfig {
         return result;
     }
 
+    /**
+     * 自定义镜像URL模式
+     * 用于指定自定义WASM插件镜像的URL模式
+     */
     private String customImageUrlPattern;
+    
+    /**
+     * 镜像拉取密钥
+     * 用于指定拉取WASM插件镜像所需的密钥
+     */
     private String imagePullSecret;
+    
+    /**
+     * 镜像拉取策略
+     * 用于指定拉取WASM插件镜像的策略
+     */
     private String imagePullPolicy;
 }

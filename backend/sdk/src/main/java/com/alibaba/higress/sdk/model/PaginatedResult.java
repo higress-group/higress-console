@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import lombok.AllArgsConstructor;
@@ -29,22 +17,54 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * 分页结果类，用于封装分页查询的结果。
+ * @param <T> 数据类型
+ */
 public class PaginatedResult<T> implements Serializable {
 
     public static final int DEFAULT_PAGE_SIZE = 10;
 
+    /**
+     * 当前页码
+     */
     private Integer pageNum;
 
+    /**
+     * 每页大小
+     */
     private Integer pageSize;
 
+    /**
+     * 总记录数
+     */
     private Integer total;
 
+    /**
+     * 当前页数据
+     */
     private List<T> data;
 
+    /**
+     * 从完整列表创建分页结果
+     * @param list 完整列表
+     * @param query 分页查询条件
+     * @param <T> 数据类型
+     * @return 分页结果
+     */
     public static <T> PaginatedResult<T> createFromFullList(List<T> list, CommonPageQuery query) {
         return createFromFullList(list, query, Function.identity());
     }
 
+    /**
+     * 从完整列表创建分页结果，并支持数据转换
+     * @param list 完整列表
+     * @param query 分页查询条件
+     * @param converter 数据转换函数
+     * @param <T> 原始数据类型
+     * @param <V> 转换后的数据类型
+     * @return 分页结果
+     */
     @SuppressWarnings("unchecked")
     public static <T, V> PaginatedResult<V> createFromFullList(List<T> list, CommonPageQuery query,
                                                                Function<T, V> converter) {

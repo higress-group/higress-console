@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.route;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +6,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * 带键的路由谓词类
+ * 继承自RoutePredicate，增加了一个键属性用于标识特定的路由谓词
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,5 +17,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Route Predicate with a Key")
 public class KeyedRoutePredicate extends RoutePredicate {
 
+    /**
+     * 路由谓词的键
+     * 用于唯一标识一个路由谓词
+     */
     private String key;
 }

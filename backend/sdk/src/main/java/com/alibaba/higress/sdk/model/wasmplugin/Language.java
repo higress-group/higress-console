@@ -1,37 +1,36 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.wasmplugin;
 
 import lombok.Getter;
 
 /**
- * @author CH3CHO
+ * 语言枚举类
+ * 定义了系统支持的语言类型及其对应的代码
  */
 
 @Getter
 public enum Language {
 
     /**
-     * English (United States)
+     * 英语 (美国)
+     * 美国英语语言代码
      */
     EN_US("en-US"),
     /**
-     * Chinese Simplified
+     * 中文 (简体)
+     * 简体中文语言代码
      */
     ZH_CN("zh-CN");
 
+    /**
+     * 语言代码
+     * ISO语言代码标识符
+     */
     private final String code;
 
+    /**
+     * 构造函数
+     * @param code 语言代码
+     */
     Language(String code) {
         this.code = code;
     }

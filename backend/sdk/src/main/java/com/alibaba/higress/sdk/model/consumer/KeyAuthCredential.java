@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.consumer;
 
 import java.util.ArrayList;
@@ -28,6 +16,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Key-Auth凭据类
+ * 实现了基于API密钥的认证凭据
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -35,16 +27,41 @@ import lombok.NoArgsConstructor;
 @Schema(description = "KeyAuth Credential")
 public class KeyAuthCredential extends Credential {
 
+    /**
+     * 有效凭据来源集合
+     * 定义了系统支持的凭据来源类型
+     */
     private static final Set<String> VALID_SOURCES = Sets.newHashSet(KeyAuthCredentialSource.BEARER.name(),
         KeyAuthCredentialSource.HEADER.name(), KeyAuthCredentialSource.QUERY.name());
 
+    /**
+     * 凭据来源
+     */
     @Schema(description = "Credential source", ref = "KeyAuthCredentialSource")
     private String source;
+    
+    /**
+     * 凭据键
+     * 当来源为HEADER或QUERY时为必填项
+     */
     @Schema(description = "Credential Key. Required when source is HEADER or QUERY")
     private String key;
+    
+    /**
+     * 凭据值列表
+     */
     @Schema(description = "Credential Values")
     private List<String> values;
 
+    /**
+     * 构造函数
+     * 初始化Key-Auth凭据
+     *
+     * @param type   凭据类型
+     * @param source 凭据来源
+     * @param key    凭据键
+     * @param values 凭据值列表
+     */
     public KeyAuthCredential(String type, String source, String key, List<String> values) {
         super(type);
         this.source = source;
@@ -52,11 +69,23 @@ public class KeyAuthCredential extends Credential {
         this.values = values != null ? new ArrayList<>(values) : null;
     }
 
+    /**
+     * 获取凭据类型
+     *
+     * @return 凭据类型，固定为KEY_AUTH
+     */
     @Override
     public String getType() {
         return CredentialType.KEY_AUTH;
     }
 
+    /**
+     * 设置凭据类型
+     * 由于Key-Auth凭据类型固定，此方法会验证传入的类型是否正确
+     *
+     * @param type 凭据类型
+     * @throws IllegalArgumentException 当传入的类型不是KEY_AUTH时抛出异常
+     */
     @Override
     public void setType(String type) {
         if (!CredentialType.KEY_AUTH.equals(type)) {
@@ -64,6 +93,13 @@ public class KeyAuthCredential extends Credential {
         }
     }
 
+    /**
+     * 验证凭据信息
+     * 检查凭据来源、键和值是否有效
+     *
+     * @param forUpdate 是否为更新操作
+     * @throws ValidationException 当验证失败时抛出异常
+     */
     @Override
     public void validate(boolean forUpdate) {
         super.validate(forUpdate);

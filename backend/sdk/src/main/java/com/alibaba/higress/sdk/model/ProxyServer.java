@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import java.beans.Transient;
@@ -30,27 +18,27 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Proxy Server")
+@Schema(description = "代理服务器配置类，用于管理代理服务器的信息。")
 public class ProxyServer {
 
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-z][a-z0-9-_.]{0,62}$");
 
-    @Schema(description = "Proxy server type", allowableValues = {V1McpBridge.PROXY_TYPE_HTTP})
+    @Schema(description = "代理服务器类型", allowableValues = {V1McpBridge.PROXY_TYPE_HTTP})
     private String type;
 
-    @Schema(description = "Proxy server name")
+    @Schema(description = "代理服务器名称")
     private String name;
 
-    @Schema(description = "Proxy server version. Required when updating.")
+    @Schema(description = "代理服务器版本。更新时必需。")
     private String version;
 
-    @Schema(description = "Proxy server address, can be IP or domain name")
+    @Schema(description = "代理服务器地址，可以是IP或域名")
     private String serverAddress;
 
-    @Schema(description = "Proxy server port")
+    @Schema(description = "代理服务器端口")
     private Integer serverPort;
 
-    @Schema(description = "Proxy server connect timeout in milliseconds, default is 1200")
+    @Schema(description = "代理服务器连接超时时间（毫秒），默认为1200")
     private Integer connectTimeout;
 
     @Transient

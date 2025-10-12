@@ -1,11 +1,19 @@
+// AI模型提供商配置文件
+// 该文件定义了各种AI模型提供商的配置信息，包括服务地址、模型名称模式、目标模型列表等
+
 import { serviceToString } from "@/interfaces/service";
 
+// AI模型提供商配置数组
 export const aiModelProviders = [
   {
+    // OpenAI提供商配置
     label: 'OpenAI',
     value: 'openai',
+    // OpenAI服务地址
     serviceAddress: 'https://api.openai.com/v1',
+    // 模型名称模式
     modelNamePattern: 'gpt-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'gpt-3',
@@ -28,14 +36,16 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
+    // 判断是否需要Token
     isTokenRequired: record => {
       if (record.openaiServerType) {
-        // For form validation
+        // 表单验证
         return record.openaiServerType === 'official';
       }
-      // For generic logic
+      // 通用逻辑
       return !record.rawConfigs || !record.rawConfigs.openaiCustomUrl;
     },
+    // 获取提供商端点
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
         return null;
@@ -59,6 +69,7 @@ export const aiModelProviders = [
       }
       return customUrls;
     },
+    // 标准化原始配置
     normalizeRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
         return;
@@ -88,10 +99,14 @@ export const aiModelProviders = [
     },
   },
   {
+    // Qwen提供商配置
     label: 'Qwen',
     value: 'qwen',
+    // Qwen服务地址
     serviceAddress: 'https://dashscope.aliyuncs.com/api/v1/services/aigc',
+    // 模型名称模式
     modelNamePattern: 'qwen-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'qwen-max',
@@ -110,6 +125,7 @@ export const aiModelProviders = [
         value: 'qwen-long',
       },
     ],
+    // 获取提供商端点
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
         return null;
@@ -122,10 +138,14 @@ export const aiModelProviders = [
     },
   },
   {
+    // Moonshot提供商配置
     label: 'Moonshot',
     value: 'moonshot',
+    // Moonshot服务地址
     serviceAddress: 'https://api.moonshot.cn/v1',
+    // 模型名称模式
     modelNamePattern: 'moonshot-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'moonshot-v1-8k',
@@ -142,10 +162,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Azure提供商配置
     label: 'Azure',
     value: 'azure',
+    // Azure服务地址
     serviceAddress: '',
+    // 模型名称模式
     modelNamePattern: 'gpt-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'gpt-3',
@@ -168,6 +192,7 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
+    // 获取提供商端点
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
         return null;
@@ -176,10 +201,14 @@ export const aiModelProviders = [
     },
   },
   {
+    // Claude提供商配置
     label: 'Claude',
     value: 'claude',
+    // Claude服务地址
     serviceAddress: 'https://api.anthropic.com',
+    // 模型名称模式
     modelNamePattern: 'claude-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'claude-opus-4-1',
@@ -204,10 +233,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Baichuan提供商配置
     label: 'Baichuan',
     value: 'baichuan',
+    // Baichuan服务地址
     serviceAddress: 'https://api.baichuan-ai.com/v1',
+    // 模型名称模式
     modelNamePattern: 'Baichuan*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'Baichuan4-Turbo',
@@ -236,10 +269,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Yi提供商配置
     label: 'Yi',
     value: 'yi',
+    // Yi服务地址
     serviceAddress: 'https://api.lingyiwanwu.com',
+    // 模型名称模式
     modelNamePattern: 'yi-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'yi-lightning',
@@ -276,10 +313,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Zhipuai提供商配置
     label: 'Zhipuai',
     value: 'zhipuai',
+    // Zhipuai服务地址
     serviceAddress: 'https://open.bigmodel.cn',
+    // 模型名称模式
     modelNamePattern: 'GLM-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'GLM-4-Plus',
@@ -320,15 +361,21 @@ export const aiModelProviders = [
     ],
   },
   {
+    // 360智脑提供商配置
     label: '360智脑',
     value: 'ai360',
+    // 360智脑服务地址
     serviceAddress: 'https://api.360.cn',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // 文心一言提供商配置
     label: '文心一言',
     value: 'baidu',
+    // 文心一言服务地址
     serviceAddress: 'https://aip.baidubce.com',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'ERNIE-4.0-8K',
@@ -353,11 +400,16 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Hunyuan提供商配置
     label: 'Hunyuan',
     value: 'hunyuan',
+    // 是否启用
     enabled: false,
+    // Hunyuan服务地址
     serviceAddress: 'https://hunyuan.tencentcloudapi.com',
+    // 模型名称模式
     modelNamePattern: 'hunyuan-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'hunyuan-turbo-latest',
@@ -390,10 +442,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Stepfun提供商配置
     label: 'Stepfun',
     value: 'stepfun',
+    // Stepfun服务地址
     serviceAddress: 'https://api.stepfun.com',
+    // 模型名称模式
     modelNamePattern: 'step-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'step-1-8k',
@@ -422,10 +478,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Spark提供商配置
     label: 'Spark',
     value: 'spark',
+    // 是否启用
     enabled: false,
+    // Spark服务地址
     serviceAddress: 'https://spark-api-open.xf-yun.com',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'lite',
@@ -454,10 +514,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Doubao提供商配置
     label: 'Doubao',
     value: 'doubao',
+    // Doubao服务地址
     serviceAddress: 'https://ark.cn-beijing.volces.com',
+    // 模型名称模式
     modelNamePattern: 'doubao-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'doubao-pro-32k',
@@ -474,10 +538,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // MiniMax提供商配置
     label: 'MiniMax',
     value: 'minimax',
+    // MiniMax服务地址
     serviceAddress: 'https://api.minimax.chat',
+    // 模型名称模式
     modelNamePattern: 'abab*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'abab6.5s',
@@ -498,10 +566,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Gemini提供商配置
     label: 'Gemini',
     value: 'gemini',
+    // Gemini服务地址
     serviceAddress: 'https://generativelanguage.googleapis.com',
+    // 模型名称模式
     modelNamePattern: 'gemini-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'gemini-1.5-flash',
@@ -514,40 +586,59 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Cohere提供商配置
     label: 'Cohere',
     value: 'cohere',
+    // Cohere服务地址
     serviceAddress: 'https://api.cohere.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Coze提供商配置
     label: 'Coze',
     value: 'coze',
+    // Coze服务地址
     serviceAddress: 'https://api.coze.cn',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // DeepSeek提供商配置
     label: 'DeepSeek',
     value: 'deepseek',
+    // DeepSeek服务地址
     serviceAddress: 'https://api.deepseek.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // GitHub Models提供商配置
     label: 'GitHub Models',
     value: 'github',
+    // GitHub Models服务地址
     serviceAddress: 'https://models.inference.ai.azure.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Groq提供商配置
     label: 'Groq',
     value: 'groq',
+    // Groq服务地址
     serviceAddress: 'https://api.groq.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Ollama提供商配置
     label: 'Ollama',
     value: 'ollama',
+    // 是否需要Token
     tokenRequired: false,
+    // 目标模型列表
     targetModelList: [],
+    // 获取提供商端点
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
         return null;
@@ -558,35 +649,52 @@ export const aiModelProviders = [
     },
   },
   {
+    // Mistral提供商配置
     label: 'Mistral',
     value: 'mistral',
+    // Mistral服务地址
     serviceAddress: 'https://api.mistral.ai',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Cloudflare提供商配置
     label: 'Cloudflare',
     value: 'cloudflare',
+    // 是否启用
     enabled: false,
+    // Cloudflare服务地址
     serviceAddress: 'https://api.cloudflare.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // DeepL提供商配置
     label: 'DeepL',
     value: 'deepl',
+    // 是否启用
     enabled: false,
+    // DeepL服务地址
     serviceAddress: 'https://api.deepl.com',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Together AI提供商配置
     label: 'Together AI',
     value: 'together-ai',
+    // 是否启用
     enabled: false,
+    // Together AI服务地址
     serviceAddress: 'https://api.together.xyz',
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // AWS Bedrock提供商配置
     label: 'AWS Bedrock',
     value: 'bedrock',
+    // 可用区域列表
     availableRegions: [
       'af-south-1',
       'ap-east-1',
@@ -621,7 +729,9 @@ export const aiModelProviders = [
       'us-west-1',
       'us-west-2',
     ],
+    // 是否使用自定义凭证
     useCustomCredentials: true,
+    // 获取用于显示的凭证
     getCredentialsForDisplay: (record): string[] => {
       if (!record.rawConfigs) {
         return [];
@@ -630,15 +740,19 @@ export const aiModelProviders = [
       const secretKey = record.rawConfigs.awsSecretKey;
       return accessKey && secretKey ? [`${accessKey}:${secretKey}`] : [];
     },
+    // 获取提供商端点
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.awsRegion;
       return region && [`https://bedrock-runtime.${region}.amazonaws.com`] || [];
     },
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // Google Vertex提供商配置
     label: 'Google Vertex',
     value: 'vertex',
+    // 可用区域列表
     availableRegions: [
       'africa-south1',
       'asia-east1',
@@ -679,13 +793,16 @@ export const aiModelProviders = [
       'us-west4',
       'us-east5',
     ],
+    // 安全设置
     safetySettings: {
+      // 类别
       categories: [
         'HARM_CATEGORY_HATE_SPEECH',
         'HARM_CATEGORY_DANGEROUS_CONTENT',
         'HARM_CATEGORY_HARASSMENT',
         'HARM_CATEGORY_SEXUALLY_EXPLICIT',
       ],
+      // 阈值
       thresholds: [
         'HARM_BLOCK_THRESHOLD_UNSPECIFIED',
         'OFF',
@@ -695,7 +812,9 @@ export const aiModelProviders = [
         'BLOCK_ONLY_HIGH',
       ],
     },
+    // 是否使用自定义凭证
     useCustomCredentials: true,
+    // 获取用于显示的凭证
     getCredentialsForDisplay: (record): string[] => {
       if (!record.rawConfigs) {
         return [];
@@ -714,10 +833,12 @@ export const aiModelProviders = [
         return [];
       }
     },
+    // 获取提供商端点
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.vertexRegion;
       return region && [`https://${region}-aiplatform.googleapis.com`] || [];
     },
+    // 解析原始配置
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
         return;
@@ -735,6 +856,7 @@ export const aiModelProviders = [
       }
       rawConfigs.parsed = { geminiSafetySettings: parsedSafetySettings };
     },
+    // 标准化原始配置
     normalizeRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
         return;
@@ -753,13 +875,18 @@ export const aiModelProviders = [
         rawConfigs.geminiSafetySettings[setting.category] = setting.threshold;
       }
     },
+    // 目标模型列表
     targetModelList: [],
   },
   {
+    // OpenRouter提供商配置
     label: 'OpenRouter',
     value: 'openrouter',
+    // OpenRouter服务地址
     serviceAddress: 'https://openrouter.ai',
+    // 模型名称模式
     modelNamePattern: '*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'anthropic/claude-sonnet-4',
@@ -816,10 +943,14 @@ export const aiModelProviders = [
     ],
   },
   {
+    // Grok提供商配置
     label: 'Grok',
     value: 'grok',
+    // Grok服务地址
     serviceAddress: 'https://api.x.ai',
+    // 模型名称模式
     modelNamePattern: 'grok-*',
+    // 目标模型列表
     targetModelList: [
       {
         label: 'grok-code-fast-1',
@@ -845,6 +976,7 @@ export const aiModelProviders = [
   },
 ];
 
+// 为每个提供商排序可用区域
 for (const provider of aiModelProviders) {
   if (Array.isArray(provider.availableRegions)) {
     provider.availableRegions.sort();

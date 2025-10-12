@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,13 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Schema(description = "Query criteria for route listing.")
+@Schema(description = "路由分页查询类，用于路由列表的查询条件。")
 public class RoutePageQuery extends CommonPageQuery {
 
-    @Schema(description = "Domain name associated with route.")
+    @Schema(description = "与路由关联的域名。")
     private String domainName;
 
-    @Schema(description = "true to list routes in all K8s namespaces, "
-        + "false to list only routes in the higress namespace.")
+    @Schema(description = "true 列出所有K8s命名空间中的路由，false 仅列出higress命名空间中的路由。")
     private Boolean all;
 }

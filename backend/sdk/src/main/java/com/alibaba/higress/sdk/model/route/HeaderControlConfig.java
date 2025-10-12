@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.route;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 请求头控制配置类
+ * 用于配置请求和响应头的控制策略
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,12 +17,24 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Header Control Configuration")
 public class HeaderControlConfig {
 
+    /**
+     * 头部控制功能启用状态
+     * 指示是否启用请求头控制功能
+     */
     @Schema(description = "Whether to enable the header control feature.")
     private Boolean enabled;
 
+    /**
+     * 请求头控制配置
+     * 定义请求阶段的头部控制策略
+     */
     @Schema(description = "Request header control configuration")
     private HeaderControlStageConfig request;
 
+    /**
+     * 响应头控制配置
+     * 定义响应阶段的头部控制策略
+     */
     @Schema(description = "Response header control configuration")
     private HeaderControlStageConfig response;
 }

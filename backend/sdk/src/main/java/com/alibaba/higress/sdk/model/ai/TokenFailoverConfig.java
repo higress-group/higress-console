@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.ai;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 令牌故障转移配置模型类
+ * 用于定义访问令牌的故障转移策略和相关配置参数
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,10 +17,39 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Token Failover Config")
 public class TokenFailoverConfig {
 
+    /**
+     * 是否启用故障转移
+     * 控制是否启用访问令牌的故障转移机制
+     */
     private Boolean enabled;
+    
+    /**
+     * 故障阈值
+     * 定义触发故障转移的连续失败次数
+     */
     private Integer failureThreshold;
+    
+    /**
+     * 成功阈值
+     * 定义确认令牌恢复健康的连续成功次数
+     */
     private Integer successThreshold;
+    
+    /**
+     * 健康检查间隔
+     * 定义执行健康检查的时间间隔（秒）
+     */
     private Integer healthCheckInterval;
+    
+    /**
+     * 健康检查超时
+     * 定义健康检查的超时时间（秒）
+     */
     private Integer healthCheckTimeout;
+    
+    /**
+     * 健康检查模型
+     * 定义用于健康检查的模型名称
+     */
     private String healthCheckModel;
 }

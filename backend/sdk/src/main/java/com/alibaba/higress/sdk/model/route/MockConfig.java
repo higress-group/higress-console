@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.route;
 
 import lombok.AllArgsConstructor;
@@ -17,17 +5,37 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Mock配置类
+ * 用于配置路由的Mock响应，以便在开发或测试时模拟后端服务
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class MockConfig {
 
+    /**
+     * 默认HTTP状态码
+     * 当未指定状态码时使用的默认值
+     */
     public static final int DEFAULT_STATUS = 200;
 
+    /**
+     * Mock功能启用状态
+     * 指示是否启用Mock功能
+     */
     private Boolean enabled;
 
+    /**
+     * HTTP状态码
+     * Mock响应返回的HTTP状态码
+     */
     private Integer status;
 
+    /**
+     * Mock响应内容
+     * 返回给客户端的模拟响应体
+     */
     private String content;
 }

@@ -1,15 +1,3 @@
-/*
- * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
 package com.alibaba.higress.sdk.model.authorization;
 
 import java.util.Arrays;
@@ -24,28 +12,48 @@ import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 
 /**
- * @author lvshui
+ * 凭据类型枚举类
+ * 定义了系统支持的凭据类型及其别名
  */
 @Getter
 public enum CredentialTypeEnum {
     /**
-     * credential type is key-auth
+     * Key-Auth凭据类型
+     * 基于API密钥的认证方式
      */
     KEY_AUTH("key-auth", "API_KEY");
 
-    private final String type;
     /**
-     * aliases for credential type. ignore case
+     * 凭据类型名称
+     */
+    private final String type;
+    
+    /**
+     * 凭据类型的别名列表
+     * 用于匹配不同形式的凭据类型名称，忽略大小写
      */
     private final List<String> typeAliases;
 
+    /**
+     * 构造函数
+     * 初始化凭据类型枚举值
+     *
+     * @param type 凭据类型名称
+     * @param aliases 凭据类型的别名
+     */
     CredentialTypeEnum(String type, String... aliases) {
         this.type = type;
         this.typeAliases = Arrays.asList(aliases);
     }
 
+    /**
+     * 凭据类型缓存
+     * 用于快速查找凭据类型枚举值
+     */
     private static final Map<String, CredentialTypeEnum> CACHE = new HashMap<>();
+    
     static {
+        // 初始化凭据类型缓存
         for (CredentialTypeEnum value : CredentialTypeEnum.values()) {
             CACHE.put(value.getType().toUpperCase(), value);
 
@@ -59,6 +67,13 @@ public enum CredentialTypeEnum {
         }
     }
 
+    /**
+     * 根据类型名称获取凭据类型枚举
+     *
+     * @param type 凭据类型名称
+     * @return 对应的凭据类型枚举
+     * @throws IllegalArgumentException 当类型名称为空或未知时抛出非法参数异常
+     */
     public static CredentialTypeEnum fromType(String type) {
         if (StringUtils.isBlank(type)) {
             throw new IllegalArgumentException("type cannot be blank.");
