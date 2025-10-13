@@ -535,7 +535,6 @@
       "vportServiceName": "Service Name",
       "vportServiceNamePlaceholder": "Follow the naming format in the Service List.",
       "vportServiceNameRequired": "Please input service name.",
-      "vportServiceNull": "No data",
       "vportServicePort": "Service Port",
       "vportServicePortPlaceholder": "1-65535",
       "vportServicePortRequired": "Please input service port",

@@ -535,7 +535,6 @@
       "vportServiceName": "服务名",
       "vportServiceNamePlaceholder": "请直接使用服务列表中列出的服务名称",
       "vportServiceNameRequired": "请输入服务名称",
-      "vportServiceNull": "暂无数据",
       "vportServicePort": "服务端口",
       "vportServicePortPlaceholder": "1-65535",
       "vportServicePortRequired": "请输入服务端口",
