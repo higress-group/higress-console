@@ -494,7 +494,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                                                 },
                                               ).length;
                                               if (duplicateCount > 0) {
-                                                return Promise.reject(new Error('该服务端口配置已存在'));
+                                                return Promise.reject(t('serviceSource.serviceSourceForm.vportServiceDupError'));
                                               }
                                               return Promise.resolve();
                                             },
@@ -605,7 +605,7 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                                         </g>
                                       </svg>
                                     </div>
-                                    暂无数据
+                                    <label>{t('serviceSource.serviceSourceForm.vportServiceNull')}</label>
                                   </div>
                                 )}
                               </div>
