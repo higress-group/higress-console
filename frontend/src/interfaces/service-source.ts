@@ -8,6 +8,10 @@ export interface ServiceSource {
   builtIn?: boolean;
   domain?: string;
   port?: number;
+  vport?: {
+    defaultValue?: number;
+    vportServices?: Array<{ name: string; value: number }>;
+  };
   properties?: ServiceSourceProperties;
   [propName: string]: any;
 }
@@ -26,6 +30,10 @@ export interface ServiceSourceFormProps {
   type: string;
   domain: string;
   port: number;
+  vport?: {
+    defaultValue?: number;
+    vportServices?: Array<{ name: string; value: number }>;
+  };
   [propName: string]: any;
 }
 
@@ -45,15 +53,16 @@ export interface ServiceSourceTypeConfig {
   enabled?: boolean;
   i18n?: boolean;
   mcpSupported?: boolean;
+  customVportSupported?: boolean;
 }
 
 export const ServiceSourceTypes = {
-  nacos3: { key: 'nacos3', name: 'Nacos 3.x', enabled: true, mcpSupported: true },
-  nacos2: { key: 'nacos2', name: 'Nacos 2.x', enabled: true },
-  nacos: { key: 'nacos', name: 'Nacos 1.x', enabled: true },
+  nacos3: { key: 'nacos3', name: 'Nacos 3.x', enabled: true, mcpSupported: true, customVportSupported: true },
+  nacos2: { key: 'nacos2', name: 'Nacos 2.x', enabled: true, customVportSupported: true },
+  nacos: { key: 'nacos', name: 'Nacos 1.x', enabled: true, customVportSupported: true },
   zookeeper: { key: 'zookeeper', name: 'Zookeeper', enabled: true },
   consul: { key: 'consul', name: 'Consul', enabled: true },
-  eureka: { key: 'eureka', name: 'Eureka', enabled: true },
+  eureka: { key: 'eureka', name: 'Eureka', enabled: true, customVportSupported: true },
   static: { key: 'static', name: 'serviceSource.types.static.name', i18n: true, enabled: true },
   dns: { key: 'dns', name: 'serviceSource.types.dns.name', i18n: true, enabled: true },
 };
