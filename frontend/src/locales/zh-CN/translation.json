@@ -391,7 +391,8 @@
         "rewritePathPlaceholder": "例如：/a",
         "rewriteType": {
           "PRE": "前缀重写",
-          "EQUAL": "精确重写"
+          "EQUAL": "精确重写",
+          "REGULAR": "正则重写"
         },
         "host": "主机域（Host）",
         "originalHost": "原主机域（Host）",
