@@ -173,9 +173,14 @@ const RouteList: React.FC = () => {
   useEffect(() => {
     run({});
     loadWasmPlugins();
-  }, []);
 
-  i18n.on('languageChanged', () => loadWasmPlugins());
+    const handleLanguageChange = () => loadWasmPlugins();
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);

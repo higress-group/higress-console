@@ -189,9 +189,14 @@ const AiRouteList: React.FC = () => {
   useEffect(() => {
     run();
     loadWasmPlugins();
-  }, []);
 
-  i18n.on('languageChanged', () => loadWasmPlugins());
+    const handleLanguageChange = () => loadWasmPlugins();
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const buildUsageCommand = (aiRoute: AiRoute): string => {
     let command = `curl -sv http://<higress-gateway-ip>/v1/chat/completions \\
