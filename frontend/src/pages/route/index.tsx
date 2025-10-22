@@ -173,9 +173,14 @@ const RouteList: React.FC = () => {
   useEffect(() => {
     run({});
     loadWasmPlugins();
-  }, []);
 
-  i18n.on('languageChanged', () => loadWasmPlugins());
+    const handleLanguageChange = () => loadWasmPlugins();
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const onEditDrawer = (route: Route) => {
     setCurrentRoute(route);
@@ -280,9 +285,6 @@ const RouteList: React.FC = () => {
           ...prev,
           [record.name]: mergedPlugins,
         }));
-        if (plugins.some(plugin => plugin.enabled)) {
-          setExpandedKeys((prev) => [...prev, record.name]);
-        }
       } catch (error) {
         message.error('Failed to fetch strategies, error:', error);
         setExpandedKeys((prev) => prev.filter((key) => key !== record.name));

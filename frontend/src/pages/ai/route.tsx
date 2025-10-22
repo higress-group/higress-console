@@ -1,10 +1,14 @@
+import i18n from "@/i18n";
 import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
-import { RoutePredicate } from '@/interfaces/route';
+import { fetchPluginsByRoute, RoutePredicate } from '@/interfaces/route';
+import { WasmPluginData } from '@/interfaces/wasm-plugin';
+import { getI18nValue } from "@/pages/plugin/utils";
 import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
+import { getWasmPlugins } from '@/services';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, FormProps, Input, Modal, Row, Space, Table } from 'antd';
+import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Row, Space, Table } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -33,7 +37,14 @@ const AiRouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        const elements: React.ReactNode[] = [];
+        value.forEach((token, index) => {
+          if (index > 0) {
+            elements.push(<br key={`br-${index}`} />);
+          }
+          elements.push(<span key={`span-${index}`}>{token}</span>);
+        });
+        return elements;
       },
     },
     {
@@ -78,15 +89,23 @@ const AiRouteList: React.FC = () => {
             elements.push(`${upstream.provider}: ${upstream.weight}%`);
           });
         }
-        if (record.fallbackUpstream?.provider) {
+        if (record.fallbackConfig?.enabled && record.fallbackConfig.upstreams && record.fallbackConfig.upstreams.length > 0) {
+          const fallbackProviders = record.fallbackConfig.upstreams.map(u => u.provider).join(', ');
           elements.push((
             <>
               <ArrowRightOutlined style={{ marginRight: '5px' }} />
-              {record.fallbackUpstream.provider}
+              {fallbackProviders}
             </>
-          ))
+          ));
         }
-        return elements.map((ele) => <span>{ele}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        const result: React.ReactNode[] = [];
+        elements.forEach((ele, index) => {
+          if (index > 0) {
+            result.push(<br key={`br-${index}`} />);
+          }
+          result.push(<span key={`span-${index}`}>{ele}</span>);
+        });
+        return result;
       },
     },
     {
@@ -96,12 +115,19 @@ const AiRouteList: React.FC = () => {
       render: (value, record) => {
         const { authConfig } = record;
         if (!authConfig || !authConfig.enabled) {
-          return t('aiRoute.authNotEnabled')
+          return t('aiRoute.authNotEnabled');
         }
         if (!Array.isArray(value) || !value.length) {
-          return t('aiRoute.authEnabledWithoutConsumer')
+          return t('aiRoute.authEnabledWithoutConsumer');
         }
-        return value.map((consumer) => <span>{consumer}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        const result: React.ReactNode[] = [];
+        value.forEach((consumer, index) => {
+          if (index > 0) {
+            result.push(<br key={`br-${index}`} />);
+          }
+          result.push(<span key={`span-${index}`}>{consumer}</span>);
+        });
+        return result;
       },
     },
     {
@@ -109,7 +135,7 @@ const AiRouteList: React.FC = () => {
       dataIndex: 'action',
       key: 'action',
       width: 240,
-      align: 'center',
+      align: 'center' as const,
       render: (_, record) => (
         <Space size="small">
           <a onClick={() => onUsageDrawer(record)}>{t('aiRoute.usage')}</a>
@@ -132,7 +158,20 @@ const AiRouteList: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [usageDrawer, setUsageDrawer] = useState(false)
-  const [usageCommand, setUsageCommand] = useState('')
+  const [usageCommand, setUsageCommand] = useState<string>('')
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
+  const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+
+  const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
+    return getWasmPlugins(i18n.language)
+  }, {
+    manual: true,
+    onSuccess: (result = []) => {
+      let plugins = result || [];
+      setPluginInfoList(plugins);
+    },
+  });
 
   const { loading, run, refresh } = useRequest(getAiRoutes, {
     manual: true,
@@ -149,6 +188,14 @@ const AiRouteList: React.FC = () => {
 
   useEffect(() => {
     run();
+    loadWasmPlugins();
+
+    const handleLanguageChange = () => loadWasmPlugins();
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
   }, []);
 
   const buildUsageCommand = (aiRoute: AiRoute): string => {
@@ -179,7 +226,7 @@ const AiRouteList: React.FC = () => {
   };
 
   const closeUsage = () => {
-    setUsageCommand(null);
+    setUsageCommand('');
     setUsageDrawer(false);
   }
 
@@ -258,6 +305,9 @@ const AiRouteList: React.FC = () => {
   };
 
   const handleModalOk = async () => {
+    if (!currentAiRoute) {
+      return;
+    }
     setConfirmLoading(true);
     try {
       await deleteAiRoute(currentAiRoute.name);
@@ -277,6 +327,35 @@ const AiRouteList: React.FC = () => {
     setConfirmLoading(false);
     setOpenModal(false);
     setCurrentAiRoute(null);
+  };
+
+  const onShowStrategyList = async (record: AiRoute, expanded: boolean) => {
+    if (expanded) {
+      try {
+        const routeResourceName = `ai-route-${record.name}.internal`;
+        const plugins = await fetchPluginsByRoute({ name: routeResourceName } as any);
+        const mergedPlugins = plugins.map((plugin) => {
+          const pluginInfo = pluginInfoList.find(
+            info => info.name === plugin.name && !plugin.internal,
+          );
+          return {
+            ...plugin,
+            title: pluginInfo?.title || plugin.title || '',
+            description: pluginInfo?.description || plugin.description || '',
+          };
+        })
+        setPluginsData((prev) => ({
+          ...prev,
+          [record.name]: mergedPlugins,
+        }));
+      } catch (error) {
+        message.error('Failed to fetch strategies, error:', error);
+        setExpandedKeys((prev) => prev.filter((key) => key !== record.name));
+      }
+    } else {
+      setExpandedKeys((prev) =>
+        prev.filter((key) => key !== record.name));
+    }
   };
 
   return (
@@ -320,6 +399,43 @@ const AiRouteList: React.FC = () => {
         dataSource={dataSource}
         columns={columns}
         pagination={false}
+        expandable={{
+          expandedRowKeys: expandedKeys,
+          onExpand: async (expanded, record) => {
+            if (expanded) {
+              setExpandedKeys([...expandedKeys, record.name]);
+            } else {
+              setExpandedKeys(expandedKeys.filter(key => key !== record.name));
+            }
+            await onShowStrategyList(record, expanded);
+          },
+          expandedRowRender: (record) => {
+            const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
+            return (
+              <Table
+                dataSource={plugins}
+                columns={[
+                  {
+                    title: t('plugins.title'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'title');
+                    },
+                    key: 'title',
+                  },
+                  {
+                    title: t('plugins.description'),
+                    render: (_, plugin) => {
+                      return getI18nValue(plugin, 'description');
+                    },
+                    key: 'description',
+                  },
+                ]}
+                pagination={false}
+                rowKey={(plugin) => `${plugin.name}-${plugin.internal}`}
+              />
+            );
+          },
+        }}
       />
       <Drawer
         title={t(currentAiRoute ? "aiRoute.edit" : "aiRoute.create")}

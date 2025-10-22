@@ -92,6 +92,19 @@ const PluginList = forwardRef((props: Props, ref) => {
             };
           });
         }
+      } else if (type === QueryType.AI_ROUTE) {
+        const aiRouteName = searchParams.get('name');
+        if (aiRouteName) {
+          const routeResourceName = `ai-route-${aiRouteName}.internal`;
+          const pluginByRoutes = await fetchPluginsByRoute({ name: routeResourceName } as any);
+          plugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+        }
       }
       setPluginList(plugins);
     },
@@ -158,7 +171,7 @@ const PluginList = forwardRef((props: Props, ref) => {
   // Render a single plugin card
   const renderPluginItem = (item: WasmPluginData) => {
     const key = item.key || `${item.name}:${item.imageVersion}`;
-    const showTag = type === QueryType.ROUTE || type === QueryType.DOMAIN;
+    const showTag = type === QueryType.ROUTE || type === QueryType.DOMAIN || type === QueryType.AI_ROUTE;
     return (
       <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
         <Card
