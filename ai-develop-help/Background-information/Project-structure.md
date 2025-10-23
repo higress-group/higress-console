@@ -1,13 +1,15 @@
-# Project Structure（项目结构）
+# 项目结构
 <!-- AI_CONTEXT: 项目结构文档 -->
 <!-- AI_PURPOSE: 为AI提供项目架构理解 -->
 <!-- AI_LAST_UPDATED: 2025-09-06 -->
 ---
 
-## 开发者须知 (AI无需阅读)
+## 开发者须知（AI无需阅读）
+
 1.本文为项目结构文件
 
 ## 📋 目录索引
+
 - [模块依赖关系](#模块依赖关系)
 - [基础项目结构](#基础项目结构)
 - [src目录结构](#src目录结构)
@@ -15,7 +17,6 @@
 - [核心配置文件说明](#核心配置文件说明)
 - [src目录配置说明](#src目录配置说明)
 - [补充说明](#补充说明)
----
 
 ## 模块依赖关系
 
@@ -67,6 +68,7 @@ BFF/utils/ (工具函数)
 ```
 
 ### 开发流程依赖
+
 1. **新增功能流程**：
    - `interfaces/` → 定义接口类型
    - `services/` → 实现API调用
@@ -80,9 +82,8 @@ BFF/utils/ (工具函数)
    - `BFF/utils/` → 添加工具函数
    - `demos/` → 测试相关文件夹`
 
----
-
 ## 基础项目结构
+
 ```
 higress-console-frontend/
 ├── .husky/                          # Git hooks 配置
@@ -127,9 +128,8 @@ higress-console-frontend/
 ├── yarn.lock                        # Yarn 依赖锁定文件
 └── README.md                        # 项目说明文档
 ```
----
-
 ## src目录结构（注意：ai-develop-help 已移至项目根目录）
+
 ```
 src/
 ├── （ai-develop-help 已移动到项目根目录）
@@ -217,9 +217,8 @@ src/
 ├── switches.ts                       # 功能开关配置
 └── typings.d.ts                      # 全局类型声明
 ```
----
-
 ## BFF项目结构
+
 ```
 src/BFF/
 ├── controllers/                      # 控制器层（业务逻辑）
@@ -270,10 +269,10 @@ src/BFF/
 ├── README.md                         # 项目说明
 └── tsconfig.json                     # TypeScript配置
 ```
----
-
 ## 核心配置文件说明
+
 ### 1. ice.config.mts - Ice.js 主配置
+
 - **SSR/SSG配置**：启用SSR，禁用SSG
 - **代理配置**：自动识别前缀，并自动分发请求到真实后台接口或BFF接口
   - `/api` → 后端服务（默认：http://10.44.159.114:8081/）
@@ -282,21 +281,25 @@ src/BFF/
 - **Webpack配置**：Monaco Editor静态资源复制
 
 ### 2. .husky/pre-commit - Git钩子
+
 - 提交前自动运行代码规范检查
 - 执行 `npm run lint:lint-staged` 命令
 
 ### 3. .ice/ - Ice.js运行时文件
+
 - **路由系统**：routes.ts、routes-config.ts、route-manifest.json
 - **数据加载**：data-loader.ts、dataloader-config.ts
 - **环境配置**：env.ts、env.server.ts
 - **入口文件**：entry.client.tsx、entry.server.ts
 
 ### 4. public/template.md - 路由批量导入模板
+
 - 提供标准化的路由配置JSON模板
 - 包含详细的字段说明和约束条件
 - 支持批量导入多个路由配置
 
 ### 5. 代码规范配置文件
+
 - **.editorconfig** - 编辑器统一配置（缩进、编码、换行符等）
 - **.eslintrc.js** - ESLint代码规范配置（基于@iceworks/spec）
 - **.eslintignore** - ESLint忽略文件配置
@@ -310,19 +313,21 @@ src/BFF/
 ## src目录配置说明
 
 ### 1. interfaces - 接口相关的TypeScript定义
+
 - **TypeScript定义**：该文件夹中的文件与services文件夹中的接口对应，用于定义接口的参数和返回值类型
 - **使用范围**：不仅用于接口，也用于其他地方，如store
 
 ### 2. services - 接口函数定义
+
 - **接口函数使用**：该文件夹中的文件与pages文件夹中文件对应，用于定义接口请求函数
 - **接口函数定义**：该文件夹中的文件与interfaces文件夹中的接口对应，用于定义接口的实现
 
 ### 3. BFF - BFF服务层
+
 - **代理设置**：BFF服务层的代理设置在 src\BFF\utils\proxy.js 文件中，BFF层相关配置在 src\BFF\server.js 文件中
----
 
+## 补充说明
 
-## **补充说明**
 1. AI日志记录：每一次与AI交互都要记录在 ai-develop-help\log 文件夹下面对应日期的文件中
 
 ---

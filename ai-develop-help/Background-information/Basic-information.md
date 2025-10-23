@@ -1,58 +1,51 @@
-## Technology stack（技术栈）
+# 项目技术栈
 
-## 开发者须知 (AI无需阅读)
-1.本文为项目背景文件
+## 开发者须知（AI无需阅读此部分）
+
+1.本文为项目背景文件的中文版本
 
 ### 前端：
 
 **1.主要框架：**
 
 - React 18.2.0 - 主要前端框架（react-18!!!）
-
 - TypeScript 4.4.4 - 类型安全的 JavaScript 超集
-
 - Ice.js 3.0.0 - 阿里巴巴开源的 React 应用框架
-
-
 
 **2.UI 组件库：**
 
 - Ant Design 4.24.0 - 企业级 UI 设计语言和 React 组件库
-
 - @ant-design/pro-components 2.3.51 - Ant Design Pro 组件库
-
-
 
 **3.状态管理：**
 
 - @ice/plugin-store: Ice.js 的状态管理插件
 
-
-
 **4.HTTP 请求：**
 
-- servers：
+- **servers：**
+
     request.tsx：真实后台接口请求封装，会在封装阶段给路由添加/api前缀
     bffRequest.tsx：BFF接口请求封装，不会在封装阶段给路由添加/bff前缀，需要在写接口时自己添加/bff前缀
     ice.config.mts：配置请求代理，会自动识别前缀，并自动分发请求到真实后台接口或BFF接口
-  
 - **BFF-Express 技术栈**
-  - **Express 4.18.2** - Node.js Web应用框架
-  - **CORS 2.8.5** - 跨域请求处理中间件
-  - **Axios 1.2.1** - HTTP客户端库
-  - **Helmet 7.0.0** - 安全头设置中间件
-  - **Compression 1.7.4** - 响应压缩中间件
-  - **Express-rate-limit 6.7.0** - 请求限流中间件
-  - **PM2 5.3.0** - 进程管理和集群部署
-  - **Nodemon 3.0.1** - 开发环境热重载
-  - **Nginx** - 反向代理和负载均衡
-  - **Docker** - 容器化部署支持
-   
+
+    - **Express 4.18.2** - Node.js Web应用框架
+    - **CORS 2.8.5** - 跨域请求处理中间件
+    - **Axios 1.2.1** - HTTP客户端库
+    - **Helmet 7.0.0** - 安全头设置中间件
+    - **Compression 1.7.4** - 响应压缩中间件
+    - **Express-rate-limit 6.7.0** - 请求限流中间件
+    - **PM2 5.3.0** - 进程管理和集群部署
+    - **Nodemon 3.0.1** - 开发环境热重载
+    - **Nginx** - 反向代理和负载均衡
+    - **Docker** - 容器化部署支持
 
 
-## Project structure（项目结构）
+## 项目结构
 
 ### 基础项目结构（src文件夹单独展示）
+
 ```
 higress-console-frontend/
 ├── .husky/                          # Git hooks 配置
@@ -160,15 +153,20 @@ src/
 ├── switches.ts                       # 功能开关配置
 └── typings.d.ts                      # 全局类型声明
 ```
+
 #### src配置说明
+
 **1. interfaces - 接口相关的TypeScript定义**
+
 - **TypeScript定义** 该文件夹中的文件与services文件夹中的接口对应，用于定义接口的参数和返回值类型。（但是不仅用于接口，也用于其他地方，如store）
 
 **2. services - 接口函数定义**
+
 - **接口函数使用** 该文件夹中的文件与pages文件夹中文件对应，用于定义接口请求函数。
 - **接口函数定义** 该文件夹中的文件与interfaces文件夹中的接口对应，用于定义接口的实现。
 
 **3. BFF - 接口转接层服务**
+
 ```
 BFF-Express 项目结构
 bff-express/
@@ -190,30 +188,36 @@ bff-express/
 ```
 
 ### 其他核心配置文件说明
+
 **1. ice.config.mts - Ice.js 主配置**
+
 - **SSR/SSG配置**：启用SSR，禁用SSG
 - **代理配置**：自动识别前缀，并自动分发请求到真实后台接口或BFF接口
-  - `/api` → 后端服务（默认：http://10.44.159.114:8081/）
-  - `/bff` → BFF服务（默认：http://localhost:3001/）
+    - `/api` → 后端服务（默认：http://10.44.159.114:8081/）
+    - `/bff` → BFF服务（默认：http://localhost:3001/）
 - **插件配置**：request、store、auth插件
 - **Webpack配置**：Monaco Editor静态资源复制
 
 **2. .husky/pre-commit - Git钩子**
+
 - 提交前自动运行代码规范检查
 - 执行 `npm run lint:lint-staged` 命令
 
 **3. .ice/ - Ice.js运行时文件**
+
 - **路由系统**：routes.ts、routes-config.ts、route-manifest.json
 - **数据加载**：data-loader.ts、dataloader-config.ts
 - **环境配置**：env.ts、env.server.ts
 - **入口文件**：entry.client.tsx、entry.server.ts
 
 **4. public/template.md - 路由批量导入模板**
+
 - 提供标准化的路由配置JSON模板
 - 包含详细的字段说明和约束条件
 - 支持批量导入多个路由配置
 
 **5. 代码规范配置文件**
+
 - **.editorconfig** - 编辑器统一配置（缩进、编码、换行符等）
 - **.eslintrc.js** - ESLint代码规范配置（基于@iceworks/spec）
 - **.eslintignore** - ESLint忽略文件配置
@@ -225,9 +229,3 @@ bff-express/
 - **.gitignore** - Git版本控制忽略文件配置
 
 ------
-
-✅ **使用方法（开发者须知）**
-
-1. 复制本模版到 AI 工具（Cursor / 通义灵码 / Claude 等）
-2. 在 **Task 部分** 填写具体需求内容
-3. 提交给 AI，获得代码实现与说明
