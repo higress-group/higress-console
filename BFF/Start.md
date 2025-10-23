@@ -14,7 +14,7 @@
 #### 系统要求
 
 - **操作系统**: Linux/Unix/macOS/Windows
-- **Node.js**: 版本 16+ (已在项目中配置)
+- **Node.js**: 版本 16+（已在项目中配置）
 - **内存**: 建议至少 512MB 可用内存
 - **磁盘空间**: 至少 100MB 用于日志和进程管理
 
@@ -104,8 +104,6 @@ pm2 stop higress-console-bff
 pm2 delete higress-console-bff
 ```
 
-
-
 ## Node启动
 
 ### 1. Node 直接启动方式
@@ -120,8 +118,6 @@ npm run server
 cd src/BFF
 node server.js
 ```
-
-
 
 ## Docker部署
 
@@ -179,3 +175,5 @@ docker rm bff-service
 # 删除镜像
 docker rmi higress-console-bff
 ```
+
+---

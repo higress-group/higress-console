@@ -78,8 +78,7 @@ docker run -d -p 3001:3001 --name bff-service higress-console-bff
 - `BFF_HOST`：服务地址（默认 `localhost` 或容器内为 `0.0.0.0`）
 - `BACKEND_BASE_URL`：后端服务地址（默认见 `utils/proxy.js` 内设置）
 
-
-# 生产部署相关文件说明
+## 生产部署相关文件说明
 
 以下列表根据当前仓库实际文件更新：
 
@@ -92,16 +91,15 @@ docker run -d -p 3001:3001 --name bff-service higress-console-bff
 | `logs/`               | 日志目录（PM2、应用输出），建议结合 `pm2-logrotate` 清理 |
 | `Start.md`            | 启动与部署指引（PM2/Node/Docker 的完整说明与命令）       |
 
----
-
 **温馨提示：**
 
 - 生产部署推荐使用PM2集群模式，日志建议配合`pm2-logrotate`插件自动清理。
 - 详细步骤、常见问题、环境变量示例等请参考 `Start.md`。
 - 其它如 Nginx、Docker 相关配置可根据实际生产环境需求选择使用。
 
+## 未配置bff层接口
 
-# 未配置bff层接口
+1. dashboard.ts文件：initDashboard函数（不知道怎么触发）
+2. mcp.ts文件：listMcpConsumers+removeMcpConsumers函数（实在解决不了）
 
-1.dashboard.ts文件：initDashboard函数（不知道怎么触发）
-2.mcp.ts文件：listMcpConsumers+removeMcpConsumers函数（实在解决不了）
+---
