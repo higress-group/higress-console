@@ -54,9 +54,9 @@ spec:
                 title: 规则名称
                 x-title-i18n:
                   en-US: Rule Name
-                description: 规则名称唯一标识，和`deploy.gray[].name`进行关联生效
+                description: 规则名称唯一标识，和`grayDeployments[].name`进行关联生效
                 x-description-i18n:
-                  en-US: Unique identifier for the rule name, associated with `deploy.gray[].name` for effectiveness.
+                  en-US: Unique identifier for the rule name, associated with `grayDeployments[].name` for effectiveness.
               grayKeyValue:
                 type: array
                 title: 用户ID白名单
@@ -183,9 +183,9 @@ spec:
                 title: 规则名称
                 x-title-i18n:
                   en-US: Rule Name
-                description: 规则名称和`rules[].name`关联
+                description: 规则名称和`grayDeployments[].name`关联
                 x-description-i18n:
-                  en-US: Rule name associated with `rules[].name`.
+                  en-US: Rule name associated with `grayDeployments[].name`.
               enabled:
                 type: boolean
                 title: 是否启用
@@ -197,11 +197,8 @@ spec:
             required:
               - version
               - name
-              - enabled
-              - backendVersion
       required:
         - rules
-        - rewrite
       example:
         grayKey: userid
         rules:
@@ -259,9 +256,9 @@ spec:
                 title: 规则名称
                 x-title-i18n:
                   en-US: Rule Name
-                description: 规则名称唯一标识，和`deploy.gray[].name`进行关联生效
+                description: 规则名称唯一标识，和`grayDeployments[].name`进行关联生效
                 x-description-i18n:
-                  en-US: Unique identifier for the rule name, associated with `deploy.gray[].name` for effectiveness.
+                  en-US: Unique identifier for the rule name, associated with `grayDeployments[].name` for effectiveness.
               grayKeyValue:
                 type: array
                 title: 用户ID白名单
@@ -388,9 +385,9 @@ spec:
                 title: 规则名称
                 x-title-i18n:
                   en-US: Rule Name
-                description: 规则名称和`rules[].name`关联
+                description: 规则名称和`grayDeployments[].name`关联
                 x-description-i18n:
-                  en-US: Rule name associated with `rules[].name`.
+                  en-US: Rule name associated with `grayDeployments[].name`.
               enabled:
                 type: boolean
                 title: 是否启用
@@ -402,11 +399,8 @@ spec:
             required:
               - version
               - name
-              - enabled
-              - backendVersion
       required:
         - rules
-        - rewrite
       example:
         grayKey: userid
         rules:
