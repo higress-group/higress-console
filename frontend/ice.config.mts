@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 
 // The project config, see https://v3.ice.work/docs/guide/basic/config
 export default defineConfig(() => ({
-  ssr: true,
+  ssr: false,
   ssg: false,
   hash: 'contenthash',
   routes: {
