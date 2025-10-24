@@ -10,14 +10,22 @@ import {
 } from '@/interfaces/route';
 import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { getI18nValue } from "@/pages/plugin/utils";
-import { addGatewayRoute, deleteGatewayRoute, getGatewayRoutes, getWasmPlugins, updateGatewayRoute } from '@/services';
+import {
+  addGatewayRoute,
+  deleteGatewayRoute,
+  getGatewayRoutes,
+  getWasmPlugins,
+  updateGatewayRoute,
+  batchImportRoutes,
+  batchExportRoutes,
+} from '@/services';
 import store from '@/store';
 import switches from '@/switches';
 import { isInternalResource } from '@/utils';
-import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined, UploadOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Typography, Upload, Progress } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -42,7 +50,11 @@ const RouteList: React.FC = () => {
   const { t } = useTranslation();
 
   const [systemState] = store.useModel('system');
-  const routeManagementSupported = !(systemState && systemState.capabilities && systemState.capabilities.indexOf('config.ingress.v1') === -1);
+  const routeManagementSupported = !(
+    systemState &&
+    systemState.capabilities &&
+    systemState.capabilities.indexOf('config.ingress.v1') === -1
+  );
 
   const columns = [
     {
@@ -55,11 +67,11 @@ const RouteList: React.FC = () => {
       title: t('route.columns.domains'),
       dataIndex: 'domains',
       key: 'domains',
-      render: (value) => {
+      render: (value): React.ReactNode => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.join(', ');
       },
     },
     {
@@ -94,7 +106,7 @@ const RouteList: React.FC = () => {
       title: t('aiRoute.columns.auth'),
       dataIndex: ['authConfig', 'allowedConsumers'],
       key: 'authConfig.allowedConsumers',
-      render: (value, record) => {
+      render: (value, record): React.ReactNode => {
         const { authConfig } = record;
         if (!authConfig || !authConfig.enabled) {
           return t('aiRoute.authNotEnabled')
@@ -102,7 +114,7 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer')
         }
-        return value.map((consumer) => <span>{consumer}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.join(', ');
       },
     },
     {
@@ -110,7 +122,7 @@ const RouteList: React.FC = () => {
       dataIndex: 'action',
       key: 'action',
       width: 200,
-      align: 'center',
+      align: 'center' as const,
       render: (_, record) => {
         return !record.internal && routeManagementSupported && (
           <Space size="small">
@@ -135,8 +147,10 @@ const RouteList: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
+  const [importProgress, setImportProgress] = useState<number>(0);
+  const [importModalVisible, setImportModalVisible] = useState<boolean>(false);
 
-  const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
+  const getRouteList = async (): Promise<Route[]> => getGatewayRoutes();
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
   const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
     return getWasmPlugins(i18n.language)
@@ -151,27 +165,28 @@ const RouteList: React.FC = () => {
   const { loading, run, refresh } = useRequest(getRouteList, {
     manual: true,
     onSuccess: (result: Route[], params) => {
-      result = result || [];
-      result.forEach((i) => {
+      const routes = result || [];
+      routes.forEach((i) => {
         i.key || (i.key = i.id ? `${i.id}` : i.name);
         i.internal = isInternalResource(i.name);
       });
+      let filteredRoutes = routes;
       if (!switches.SHOW_INTERNAL_ROUTES) {
-        result = result.filter(r => !r.internal);
+        filteredRoutes = routes.filter(r => !r.internal);
       }
-      result.sort((i1, i2) => {
+      filteredRoutes.sort((i1, i2) => {
         if (i1.internal !== i2.internal) {
           return i1.internal ? 1 : -1
         }
         return i1.name.localeCompare(i2.name);
       })
-      setOriginalDataSource(result);
-      handleSearch(searchValue, result);
+      setOriginalDataSource(filteredRoutes);
+      handleSearch(searchValue, filteredRoutes);
     },
   });
 
   useEffect(() => {
-    run({});
+    run();
     loadWasmPlugins();
   }, []);
 
@@ -197,8 +212,8 @@ const RouteList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: RouteFormProps = formRef.current && (await formRef.current.handleSubmit());
-      const { name, domains, headers, methods, urlParams, path, services, customConfigs, authConfig } = values;
+      const values: RouteFormProps = formRef.current ? (await (formRef.current as any).handleSubmit()) : {};
+      const { name, domains, headers, methods, urlParams, path, services, customConfigs } = values;
       path && normalizeRoutePredicate(path);
       headers && headers.forEach((h) => normalizeRoutePredicate(h));
       urlParams && urlParams.forEach((h) => normalizeRoutePredicate(h));
@@ -210,7 +225,6 @@ const RouteList: React.FC = () => {
         path,
         urlParams,
         customConfigs,
-        authConfig,
         services: services.map((service) => {
           return {
             name: service,
@@ -228,10 +242,10 @@ const RouteList: React.FC = () => {
       }
       setOpenDrawer(false);
       refresh();
-      currentRoute ? setCurrentRoute(null) : formRef.current.reset();
+      currentRoute ? setCurrentRoute(null) : (formRef.current as any)?.reset();
     } catch (errInfo) {
       // eslint-disable-next-line no-console
-      console.log('Save failed:', errInfo);
+      // console.log('Save failed:', errInfo);
     }
   };
 
@@ -318,6 +332,88 @@ const RouteList: React.FC = () => {
     handleSearch(value, originalDataSource);
   };
 
+  // 批量导入处理
+  const handleBatchImport = async (file: File) => {
+    try {
+      setImportProgress(0);
+      setImportModalVisible(true);
+
+      const result = await batchImportRoutes(file);
+      // console.log('result', result);
+
+      if (result.code === 200) {
+        const { data } = result;
+        message.success(`${t('route.batchImportSuccess')}，成功：${data.success}，失败：${data.failed}`);
+
+        if (data.errors && data.errors.length > 0) {
+          // console.error('导入错误详情:', data.errors);
+        }
+
+        // 刷新路由列表
+        refresh();
+      } else {
+        message.error(result.msg || t('route.batchImportFailed'));
+      }
+    } catch (error) {
+      // console.error('批量导入错误:', error);
+      message.error(t('route.batchImportFailed'));
+    } finally {
+      setImportModalVisible(false);
+      setImportProgress(0);
+    }
+  };
+
+  // 批量导出处理
+  const handleBatchExport = async () => {
+    try {
+      const blob = await batchExportRoutes();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `routes-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      message.success(t('route.batchExportSuccess'));
+    } catch (error) {
+      // console.error('批量导出错误:', error);
+      message.error(t('route.batchExportFailed'));
+    }
+  };
+
+  // 导出模板处理
+  const handleExportTemplate = () => {
+    try {
+      // 直接下载public目录下的模板文件
+      const link = document.createElement('a');
+      link.href = '/template.md';
+      link.download = 'route-template.md';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      message.success(t('route.templateExportSuccess'));
+    } catch (error) {
+      // console.error('导出模板错误:', error);
+      message.error(t('route.templateExportFailed'));
+    }
+  };
+
+  // 文件上传配置
+  const uploadProps = {
+    beforeUpload: (file: File) => {
+      const isJson = file.type === 'application/json' || file.name.endsWith('.json');
+      if (!isJson) {
+        message.error(t('route.fileFormatError'));
+        return false;
+      }
+      handleBatchImport(file);
+      return false; // 阻止自动上传
+    },
+    showUploadList: false,
+  };
+
   return (
     <PageContainer>
       {
@@ -355,15 +451,38 @@ const RouteList: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={10} style={{ textAlign: 'right' }}>
-            <Button
-              style={{ margin: '0 8px' }}
-              type="primary"
-              onClick={onShowDrawer}
-              disabled={!routeManagementSupported}
-            >
-              {t('route.createRoute')}
-            </Button>
-            <Button icon={<RedoOutlined />} onClick={refresh} />
+            <Space>
+              <Upload {...uploadProps}>
+                <Button
+                  icon={<UploadOutlined />}
+                  disabled={!routeManagementSupported}
+                >
+                  {t('route.batchImport')}
+                </Button>
+              </Upload>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleBatchExport}
+                disabled={!routeManagementSupported}
+              >
+                {t('route.batchExport')}
+              </Button>
+              <Button
+                icon={<FileTextOutlined />}
+                onClick={handleExportTemplate}
+                disabled={!routeManagementSupported}
+              >
+                {t('route.exportTemplate')}
+              </Button>
+              <Button
+                type="primary"
+                onClick={onShowDrawer}
+                disabled={!routeManagementSupported}
+              >
+                {t('route.createRoute')}
+              </Button>
+              <Button icon={<RedoOutlined />} onClick={refresh} />
+            </Space>
           </Col>
         </Row>
       </Form>
@@ -430,7 +549,7 @@ const RouteList: React.FC = () => {
         <p>
           <Trans t={t} i18nKey="route.deleteConfirmation">
             确定删除
-            <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentRoute && currentRoute.name) || '' }}</span>
+            <span style={{ color: '#0070cc' }}>{currentRoute?.name || ''}</span>
             吗？
           </Trans>
         </p>
@@ -452,6 +571,20 @@ const RouteList: React.FC = () => {
       >
         <RouteForm ref={formRef} value={currentRoute} />
       </Drawer>
+
+      {/* 导入进度模态框 */}
+      <Modal
+        title={t('route.importProgress')}
+        open={importModalVisible}
+        footer={null}
+        closable={false}
+        maskClosable={false}
+      >
+        <Progress percent={importProgress} status="active" />
+        <p style={{ textAlign: 'center', marginTop: 16 }}>
+          {t('route.importProgress')}...
+        </p>
+      </Modal>
     </PageContainer>
   );
 };

@@ -1,7 +1,7 @@
-import { defineConfig } from "@ice/app";
-import request from "@ice/plugin-request";
-import store from "@ice/plugin-store";
-import auth from "@ice/plugin-auth";
+import { defineConfig } from '@ice/app';
+import request from '@ice/plugin-request';
+import store from '@ice/plugin-store';
+import auth from '@ice/plugin-auth';
 import path from 'path';
 import CopyPlugin from 'copy-webpack-plugin';
 import { fileURLToPath } from 'url';
@@ -10,24 +10,25 @@ import { fileURLToPath } from 'url';
 export default defineConfig(() => ({
   ssr: false,
   ssg: false,
-  hash: "contenthash",
+  hash: 'contenthash',
   routes: {
     defineRoutes: (route) => {
       // route("*", "404.tsx");
     },
   },
   proxy: {
-    "/api": {
-      target: "http://demo.higress.io/",
+    '/api': {
+      target: process.env.BACKEND_URL || 'http://localhost:8081/',
       changeOrigin: true,
-      pathRewrite: { "^/api": "" },
+      pathRewrite: { '^/api': '' },
+    },
+    '/bff': {
+      target: process.env.BFF_URL || 'http://localhost:3001/',
+      changeOrigin: true,
+      pathRewrite: { '^/bff': '' },
     },
   },
-  plugins: [
-    request(),
-    store(),
-    auth(),
-  ],
+  plugins: [request(), store(), auth()],
   webpack: (config) => {
     config.plugins = config.plugins || [];
     const __dirname = path.dirname(fileURLToPath(import.meta.url));

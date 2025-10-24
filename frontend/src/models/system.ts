@@ -3,6 +3,7 @@ import { createModel } from 'ice';
 
 interface ModelState {
   version: string;
+  capabilities?: string[];
 }
 
 export default createModel({
