@@ -1,12 +1,10 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// 登录接口逻辑
+// Login interface logic
 exports.login = async (req, res) => {
-  // 这里需要调用后端服务，并返回后端服务的结果
   try {
     const body = JSON.stringify(req.body);
     const { headers } = req;
-    // 只保留必要的头部，主要转发Cookie
     const forwardHeaders = {
       Cookie: headers['cookie'] || '',
       'Content-Type': 'application/json',
@@ -18,24 +16,23 @@ exports.login = async (req, res) => {
       body,
     );
 
-    // 设置后端返回的所有响应头（将后端响应头直接设置到BFF响应头）
+    // Set all response headers returned by backend (set backend response headers directly to BFF response headers)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 登录接口错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Login interface error:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 登出接口逻辑
+// Logout interface logic
 exports.logout = async (req, res) => {
   try {
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -45,24 +42,23 @@ exports.logout = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 登出接口错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Logout interface error:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取用户信息接口逻辑
+// Get user information interface logic
 exports.getUserInfo = async (req, res) => {
   try {
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -72,26 +68,25 @@ exports.getUserInfo = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取用户信息接口错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get user info:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
 
-// 修改密码接口逻辑
+// Change password interface logic
 exports.changePassword = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
     };
@@ -103,13 +98,13 @@ exports.changePassword = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 修改密码接口错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to change password:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };

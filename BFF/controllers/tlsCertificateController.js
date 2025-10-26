@@ -1,15 +1,13 @@
 const { proxyRequest } = require('../utils/proxy');
 const crypto = require('crypto');
 
-// 获取TLS证书列表
+// Get TLS certificates list
 exports.getTlsCertificates = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -19,29 +17,27 @@ exports.getTlsCertificates = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取TLS证书列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get TLS certificates list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 添加TLS证书
+// Add TLS certificate
 exports.addTlsCertificate = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -51,28 +47,26 @@ exports.addTlsCertificate = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 添加TLS证书错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to add TLS certificate:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 删除TLS证书
+// Delete TLS certificate
 exports.deleteTlsCertificate = async (req, res) => {
   try {
     // 获取对应证书的name
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -82,31 +76,29 @@ exports.deleteTlsCertificate = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 删除TLS证书错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to delete TLS certificate:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 更新TLS证书
+// Update TLS certificate
 exports.updateTlsCertificate = async (req, res) => {
   try {
     // 获取对应证书的name
     const { name } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -116,38 +108,38 @@ exports.updateTlsCertificate = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新TLS证书错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update TLS certificate:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 证书校验工具函数
+// Validate certificate function
 const validateCertificate = (cert, key) => {
   const errors = [];
   const warnings = [];
   const info = [];
 
   try {
-    // ========== 基础校验 ==========
-    // 1. 验证证书格式合法性
+    // ========== Basic validation ==========
+    // 1. Validate certificate format validity
     if (!cert || typeof cert !== 'string') {
-      errors.push('证书内容不能为空，请检查证书数据是否已正确输入');
+      errors.push('Certificate content cannot be empty, please check if the certificate data has been correctly input');
       return { valid: false, errors, warnings, info };
     }
 
-    // 检查PEM格式
+    // Check PEM format
     if (!cert.includes('-----BEGIN CERTIFICATE-----') || !cert.includes('-----END CERTIFICATE-----')) {
-      errors.push('证书格式不正确，请确保使用标准的PEM格式（以-----BEGIN CERTIFICATE-----开头，以-----END CERTIFICATE-----结尾）');
+      errors.push('Certificate format is incorrect, please ensure that the standard PEM format is used (starting with -----BEGIN CERTIFICATE----- and ending with -----END CERTIFICATE-----');
       return { valid: false, errors, warnings, info };
     }
 
-    // 2. 验证私钥格式合法性
+    // 2. Validate private key format validity
     if (!key || typeof key !== 'string') {
       errors.push('私钥内容不能为空，请检查私钥数据是否已正确输入');
       return { valid: false, errors, warnings, info };
@@ -158,7 +150,7 @@ const validateCertificate = (cert, key) => {
       return { valid: false, errors, warnings, info };
     }
 
-    // 3. 解析证书和私钥，验证密钥完整性
+    // 3. Parse certificate and private key, validate key completeness
     let certificate;
     let privateKey;
     let x509Cert;
@@ -166,213 +158,213 @@ const validateCertificate = (cert, key) => {
     try {
       certificate = crypto.createPublicKey(cert);
       x509Cert = new crypto.X509Certificate(cert);
-      info.push('证书格式验证通过');
+      info.push('Certificate format validation passed');
     } catch (err) {
-      errors.push(`证书解析失败: ${err.message}，请检查证书内容是否完整且格式正确`);
+      errors.push(`Certificate parsing failed: ${err.message}, please check if the certificate content is complete and formatted correctly`);
       return { valid: false, errors, warnings, info };
     }
 
     try {
       privateKey = crypto.createPrivateKey(key);
-      info.push('私钥格式验证通过');
+      info.push('Private key format validation passed');
     } catch (err) {
-      errors.push(`私钥解析失败: ${err.message}，请检查私钥内容是否完整且格式正确`);
+      errors.push(`Private key parsing failed: ${err.message}, please check if the private key content is complete and formatted correctly`);
       return { valid: false, errors, warnings, info };
     }
 
-    // 4. 算法类型和密钥长度验证
+    // 4. Validate algorithm type and key length
     try {
       const keyType = privateKey.asymmetricKeyType;
       const keyDetails = privateKey.asymmetricKeyDetails;
       switch (keyType) {
         case 'rsa':
-          info.push('算法类型: RSA');
+          info.push('Algorithm type: RSA');
           if (keyDetails && keyDetails.modulusLength) {
-            info.push(`RSA密钥长度: ${keyDetails.modulusLength}位`);
+            info.push(`RSA key length: ${keyDetails.modulusLength} bits`);
             if (keyDetails.modulusLength < 2048) {
-              warnings.push('RSA密钥长度小于2048位，建议使用更长的密钥以确保安全性');
+              warnings.push('RSA key length is less than 2048 bits, it is recommended to use a longer key to ensure security');
             }
           }
           break;
         case 'ec':
-          info.push('算法类型: 椭圆曲线 (EC)');
+          info.push('Algorithm type: Elliptic Curve (EC)');
           if (keyDetails && keyDetails.namedCurve) {
-            info.push(`椭圆曲线: ${keyDetails.namedCurve}`);
-            // 检查曲线安全性
+            info.push(`Elliptic curve: ${keyDetails.namedCurve}`);
+            // Check curve security
             const secureCurves = ['P-256', 'P-384', 'P-521', 'secp256r1', 'secp384r1', 'secp521r1'];
             if (!secureCurves.includes(keyDetails.namedCurve)) {
-              warnings.push(`椭圆曲线 ${keyDetails.namedCurve} 可能不够安全，建议使用P-256、P-384或P-521`);
+              warnings.push(`Elliptic curve ${keyDetails.namedCurve} may not be secure enough, it is recommended to use P-256, P-384 or P-521`);
             }
           }
           break;
         case 'ed25519':
-          info.push('算法类型: Ed25519');
-          info.push('Ed25519密钥长度: 256位');
+          info.push('Algorithm type: Ed25519');
+          info.push('Ed25519 key length: 256 bits');
           break;
         case 'ed448':
-          info.push('算法类型: Ed448');
-          info.push('Ed448密钥长度: 448位');
+          info.push('Algorithm type: Ed448');
+          info.push('Ed448 key length: 448 bits');
           break;
         case 'dsa':
-          info.push('算法类型: DSA');
-          warnings.push('DSA算法已过时，建议使用RSA或椭圆曲线算法');
+          info.push('Algorithm type: DSA');
+          warnings.push('DSA algorithm is deprecated, it is recommended to use RSA or elliptic curve algorithm');
           break;
         default:
-          warnings.push(`未知的密钥类型: ${keyType}`);
+          warnings.push(`Unknown key type: ${keyType}`);
       }
     } catch (err) {
-      warnings.push(`无法获取密钥详细信息: ${err.message}`);
+      warnings.push(`Failed to get key details: ${err.message}`);
     }
 
-    // ========== 进阶校验 ==========
+    // ========== Advanced validation ==========
 
-    // 5. 证书链完整性检验
+    // 5. Certificate chain integrity verification
     try {
       const certsPEM = cert.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
       if (!certsPEM || certsPEM.length === 0) {
-        errors.push('未找到有效的证书数据');
+        errors.push('No valid certificate data found');
         return { valid: false, errors, warnings, info };
       }
 
-      info.push(`证书链包含 ${certsPEM.length} 个证书`);
+      info.push(`Certificate chain contains ${certsPEM.length} certificates`);
 
-      // 验证每个证书的格式
+      // Validate the format of each certificate
       for (let i = 0; i < certsPEM.length; i++) {
         try {
           crypto.createPublicKey(certsPEM[i]);
         } catch (err) {
-          errors.push(`证书链中第${i + 1}个证书格式错误: ${err.message}`);
+          errors.push(`Certificate chain error: the ${i + 1}th certificate format is incorrect: ${err.message}`);
           return { valid: false, errors, warnings, info };
         }
       }
 
-      // 检查证书链完整性要求：需要至少2个证书（Leaf + Intermediate）
+      // Check certificate chain integrity requirements: at least 2 certificates (Leaf + Intermediate)
       if (certsPEM.length < 2) {
-        errors.push(`证书链不完整：需要至少包含Leaf和Intermediate证书（2个以上），当前只有${certsPEM.length}个证书`);
+        errors.push(`Certificate chain is incomplete: at least 2 certificates (Leaf + Intermediate) are required, currently only ${certsPEM.length} certificates`);
         return { valid: false, errors, warnings, info };
       }
 
-      // 转成 Node.js X509Certificate 对象
+      // Convert to Node.js X509Certificate object
       const certs = certsPEM.map(pem => new crypto.X509Certificate(pem));
 
       let chainOk = true;
       const chainInfo = [];
 
-      // 显示证书链信息
+      // Display certificate chain information
       for (let i = 0; i < certs.length; i++) {
-        chainInfo.push(`证书${i + 1}: 主体=${certs[i].subject}, 颁发者=${certs[i].issuer}`);
+        chainInfo.push(`Certificate ${i + 1}: subject=${certs[i].subject}, issuer=${certs[i].issuer}`);
       }
 
-      // 检查 Leaf 不是自签证书
+      // Check if Leaf is a self-signed certificate
       const leaf = certs[0];
       if (leaf.subject === leaf.issuer) {
-        errors.push('Leaf证书是自签名的（不允许），Leaf证书必须由Intermediate证书签发');
+        errors.push('Leaf certificate is self-signed (not allowed), Leaf certificate must be issued by Intermediate certificate');
         chainOk = false;
       } else {
-        info.push('Leaf证书不是自签名的');
+        info.push('Leaf certificate is not self-signed');
       }
 
-      // 遍历 Leaf -> Intermediate(s)，检查 issuer / subject 关系
+      // Traverse Leaf -> Intermediate(s), check issuer / subject relationship
       for (let i = 0; i < certs.length - 1; i++) {
         const child = certs[i];
         const parent = certs[i + 1];
 
         if (child.issuer !== parent.subject) {
-          errors.push(`证书链错误：第${i + 1}个证书的颁发者(${child.issuer})与第${i + 2}个证书的主体(${parent.subject})不匹配`);
+          errors.push(`Certificate chain error: the ${i + 1}th certificate issuer (${child.issuer}) does not match the ${i + 2}th certificate subject (${parent.subject})`);
           chainOk = false;
         } else {
-          info.push(`证书${i + 1}的颁发者与证书${i + 2}的主体匹配`);
+          info.push(`The issuer of certificate ${i + 1} matches the subject of certificate ${i + 2}`);
         }
       }
 
-      // 最后的证书（通常是 Root 或 Intermediate CA）
+      // The last certificate (usually Root or Intermediate CA)
       const last = certs[certs.length - 1];
       if (last.subject === last.issuer) {
-        info.push('最后一个证书是自签名的（Root CA）');
+        info.push('The last certificate is self-signed (Root CA)');
       } else {
-        info.push('最后一个证书不是自签名的（可能缺少 Root CA）');
+        info.push('The last certificate is not self-signed (possibly missing Root CA)');
       }
 
       if (chainOk) {
-        info.push('证书链完整性验证通过');
+        info.push('Certificate chain integrity validation passed');
         info.push(...chainInfo);
       } else {
         return { valid: false, errors, warnings, info };
       }
     } catch (err) {
-      errors.push(`证书链验证失败: ${err.message}，请检查证书链格式是否正确`);
+      errors.push(`Certificate chain validation failed: ${err.message}, please check if the certificate chain format is correct`);
       return { valid: false, errors, warnings, info };
     }
 
-    // 6. 可行性检测（签名-验签）
+    // 6. Feasibility detection (signature-verification)
     try {
       const testData = Buffer.from('TLS证书校验测试数据');
       const signature = crypto.sign('sha256', testData, privateKey);
       const pubKeyFromCert = x509Cert.publicKey;
       const verified = crypto.verify('sha256', testData, pubKeyFromCert, signature);
       if (verified) {
-        info.push('签名-验签测试通过，证书与私钥匹配');
+        info.push('Signature-verification test passed, certificate matches private key');
       } else {
-        errors.push('签名-验签测试失败，证书与私钥不匹配');
+        errors.push('Signature-verification test failed, certificate does not match private key');
         return { valid: false, errors, warnings, info };
       }
     } catch (err) {
-      errors.push(`签名-验签测试失败: ${err.message}，请检查证书和私钥是否匹配`);
+      errors.push(`Signature-verification test failed: ${err.message}, please check if the certificate and private key match`);
       return { valid: false, errors, warnings, info };
     }
 
-    // 7. 证书有效期验证（可选）
+    // 7. Certificate validity period validation (optional)
     try {
       const now = new Date();
       const notBefore = x509Cert.validFrom;
       const notAfter = x509Cert.validTo;
 
       if (notBefore > now) {
-        warnings.push(`证书尚未生效，生效时间：${notBefore.toISOString()}`);
+        warnings.push(`Certificate not yet生效，生效时间：${notBefore.toISOString()}`);
       }
 
       if (notAfter < now) {
-        errors.push(`证书已过期，过期时间：${notAfter.toISOString()}`);
+        errors.push(`Certificate has expired, expiration time: ${notAfter.toISOString()}`);
         return { valid: false, errors, warnings, info };
       }
 
       // 检查证书是否即将过期（30天内）
       const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       if (notAfter < thirtyDaysFromNow) {
-        warnings.push(`证书将在30天内过期，过期时间：${notAfter.toISOString()}`);
+        warnings.push(`Certificate will expire in 30 days, expiration time: ${notAfter.toISOString()}`);
       }
 
-      info.push(`证书有效期: ${notBefore.toISOString()} 至 ${notAfter.toISOString()}`);
+      info.push(`Certificate validity period: ${notBefore.toISOString()} to ${notAfter.toISOString()}`);
     } catch (err) {
-      warnings.push(`无法验证证书有效期: ${err.message}`);
+      warnings.push(`Failed to verify certificate validity period: ${err.message}`);
     }
 
     // 8. 证书基本信息
     try {
-      info.push(`证书主体: ${x509Cert.subject}`);
-      info.push(`证书颁发者: ${x509Cert.issuer}`);
-      info.push(`证书序列号: ${x509Cert.serialNumber}`);
+      info.push(`Certificate subject: ${x509Cert.subject}`);
+      info.push(`Certificate issuer: ${x509Cert.issuer}`);
+      info.push(`Certificate serial number: ${x509Cert.serialNumber}`);
     } catch (err) {
-      warnings.push(`无法获取证书基本信息: ${err.message}`);
+      warnings.push(`Failed to get certificate basic information: ${err.message}`);
     }
 
     return {
       valid: errors.length === 0,
       errors: errors.length > 0 ? errors : [],
       warnings: warnings.length > 0 ? warnings : [],
-      info: info.length > 0 ? info : ['证书校验通过：所有验证项目均通过'],
+      info: info.length > 0 ? info : ['Certificate validation passed: all validation items passed'],
     };
   } catch (err) {
     return {
       valid: false,
-      errors: [`证书校验过程中发生未知错误: ${err.message}，请检查证书和私钥数据是否完整`],
+      errors: [`Certificate validation unknown error: ${err.message}, please check if the certificate and private key data is complete`],
       warnings: [],
       info: [],
     };
   }
 };
 
-// 校验TLS证书
+// Validate TLS certificate
 exports.validateTlsCertificate = async (req, res) => {
   try {
     const { cert, key } = req.body;
@@ -380,10 +372,10 @@ exports.validateTlsCertificate = async (req, res) => {
     if (!cert || !key) {
       return res.status(400).json({
         code: 400,
-        msg: '证书和私钥内容不能为空',
+        msg: 'Certificate and private key content cannot be empty',
         data: {
           valid: false,
-          errors: ['证书和私钥内容不能为空'],
+          errors: ['Certificate and private key content cannot be empty'],
           warnings: [],
           info: [],
         },
@@ -395,24 +387,24 @@ exports.validateTlsCertificate = async (req, res) => {
     if (validationResult.valid) {
       res.status(200).json({
         code: 200,
-        msg: '证书校验通过',
+        msg: 'Certificate validation passed',
         data: validationResult,
       });
     } else {
       res.status(400).json({
         code: 400,
-        msg: '证书校验失败',
+        msg: 'Certificate validation failed',
         data: validationResult,
       });
     }
   } catch (err) {
-    console.error('[BFF] 证书校验错误:', err);
+    console.error('[BFF] Certificate validation error:', err);
     res.status(500).json({
       code: 500,
-      msg: '证书校验服务异常',
+      msg: 'Certificate validation service error',
       data: {
         valid: false,
-        errors: ['服务器内部错误'],
+        errors: ['Server internal error'],
         warnings: [],
         info: [],
       },

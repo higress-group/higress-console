@@ -1,14 +1,12 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// 获取系统配置信息
+// Get system configuration information
 exports.getSystemInfo = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -18,26 +16,24 @@ exports.getSystemInfo = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取系统信息错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get system info:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取系统配置
+// Get system configuration
 exports.getConfig = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -47,26 +43,24 @@ exports.getConfig = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取系统配置错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get system config:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取higress配置
+// Get higress configuration
 exports.getHigressConfig = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
     const result = await proxyRequest(
       '/system/higress-config',
@@ -75,30 +69,28 @@ exports.getHigressConfig = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取higress配置错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get higress config:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 更新higress配置
+// Update higress configuration
 exports.updateHigressConfig = async (req, res) => {
   console.log('Content-Length', req.body);
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -108,30 +100,28 @@ exports.updateHigressConfig = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新higress配置错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update higress config:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
 
-// 初始化系统
+// Initialize system
 exports.initialize = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -141,13 +131,13 @@ exports.initialize = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 初始化系统错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to initialize system:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };

@@ -103,7 +103,7 @@ function handleRequest(req, res) {
 
   // 路由分发
   switch (path) {
-  // case '/bff/session/login':
+    // case '/bff/session/login':
     case '/session/login':
       handleLogin(req, res);
       break;

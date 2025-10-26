@@ -1,17 +1,15 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// ==================== WASM插件管理 ====================
+// ==================== WASM Plugin Management ====================
 
-// 获取全局的插件配置列表
+// Get global plugin configuration list
 exports.getWasmPlugins = async (req, res) => {
   try {
     const { lang } = req.query;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const queryString = lang ? `?lang=${lang}` : '';
@@ -22,27 +20,25 @@ exports.getWasmPlugins = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取WASM插件列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get WASM plugins list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取全局的指定插件配置
+// Get global specified plugin configuration
 exports.getPluginsDetail = async (req, res) => {
   try {
     const { pluginName } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -52,29 +48,27 @@ exports.getPluginsDetail = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取插件详情错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get plugin details:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 创建WASM插件
+// Create WASM plugin
 exports.createWasmPlugin = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -84,30 +78,28 @@ exports.createWasmPlugin = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 创建WASM插件错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to create WASM plugin:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 更新WASM插件
+// Update WASM plugin
 exports.updateWasmPlugin = async (req, res) => {
   try {
     const { name } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -117,27 +109,25 @@ exports.updateWasmPlugin = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新WASM插件错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update WASM plugin:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 删除WASM插件
+// Delete WASM plugin
 exports.deleteWasmPlugin = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -147,27 +137,25 @@ exports.deleteWasmPlugin = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 删除WASM插件错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to delete WASM plugin:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取指定插件的运行时配置数据格式
+// Get WASM plugin config
 exports.getWasmPluginsConfig = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -177,29 +165,27 @@ exports.getWasmPluginsConfig = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取WASM插件配置错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get WASM plugin config:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// ==================== 全局插件配置 ====================
+// ==================== Global plugin configuration ====================
 
-// 获取全局的指定插件配置
+// Get global specified plugin configuration
 exports.getGlobalPluginInstance = async (req, res) => {
   try {
     const { pluginName } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -209,30 +195,28 @@ exports.getGlobalPluginInstance = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取全局插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get global plugin instances:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 修改全局的指定插件配置
+// Update global plugin instance
 exports.updateGlobalPluginInstance = async (req, res) => {
   try {
     const { pluginName } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -242,29 +226,27 @@ exports.updateGlobalPluginInstance = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新全局插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update global plugin instance:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// ==================== 路由插件配置 ====================
+// ==================== Route plugin configuration ====================
 
-// 获取指定路由的插件配置列表
+// Get route plugin instances list
 exports.getRoutePluginInstances = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -274,27 +256,25 @@ exports.getRoutePluginInstances = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取路由插件实例列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get route plugin instances list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取指定路由的指定插件配置
+// Get route plugin instance
 exports.getRoutePluginInstance = async (req, res) => {
   try {
     const { name, pluginName } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -304,30 +284,28 @@ exports.getRoutePluginInstance = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取路由插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get route plugin instance:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 修改指定路由的指定插件配置
+// Update route plugin instance
 exports.updateRoutePluginInstance = async (req, res) => {
   try {
     const { name, pluginName } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -337,29 +315,27 @@ exports.updateRoutePluginInstance = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新路由插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update route plugin instance:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// ==================== 域名插件配置 ====================
+// ==================== Domain plugin configuration ====================
 
-// 获取指定域名的插件配置列表
+// Get domain plugin instances list
 exports.getDomainPluginInstances = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -369,27 +345,25 @@ exports.getDomainPluginInstances = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取域名插件实例列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get domain plugin instances list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取指定域名的指定插件配置
+// Get domain plugin instance
 exports.getDomainPluginInstance = async (req, res) => {
   try {
     const { name, pluginName } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -399,30 +373,28 @@ exports.getDomainPluginInstance = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取域名插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get domain plugin instance:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 修改指定域名的指定插件配置
+// Update domain plugin instance
 exports.updateDomainPluginInstance = async (req, res) => {
   try {
     const { name, pluginName } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -432,13 +404,13 @@ exports.updateDomainPluginInstance = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新域名插件实例错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update domain plugin instance:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };

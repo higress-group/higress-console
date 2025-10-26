@@ -1,14 +1,12 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// 获取消费者列表
+// Get consumers list
 exports.getConsumers = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -18,29 +16,27 @@ exports.getConsumers = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取消费者列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get consumers list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 添加消费者
+// Add consumer
 exports.addConsumer = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -50,27 +46,25 @@ exports.addConsumer = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 添加消费者错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to add consumer:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 删除消费者
+// Delete consumer
 exports.deleteConsumer = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -80,30 +74,28 @@ exports.deleteConsumer = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 删除消费者错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to delete consumer:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 更新消费者
+// Update consumer
 exports.updateConsumer = async (req, res) => {
   try {
     const { name } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -113,13 +105,13 @@ exports.updateConsumer = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新消费者错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update consumer:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };

@@ -1,14 +1,12 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// 获取服务源列表
+// Get service sources list
 exports.getServiceSources = async (req, res) => {
   try {
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -18,29 +16,27 @@ exports.getServiceSources = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取服务源列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get service sources list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 添加服务源
+// Add service source
 exports.addServiceSource = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -50,27 +46,25 @@ exports.addServiceSource = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 添加服务源错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to add service source:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 删除服务源
+// Delete service source
 exports.deleteServiceSource = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -80,30 +74,28 @@ exports.deleteServiceSource = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 删除服务源错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to delete service source:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 更新服务源
+// Update service source
 exports.updateServiceSource = async (req, res) => {
   try {
     const { name } = req.params;
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
       'Content-Length': body.length,
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -113,13 +105,13 @@ exports.updateServiceSource = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 更新服务源错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to update service source:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };

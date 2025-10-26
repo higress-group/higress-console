@@ -1,23 +1,18 @@
 const { proxyRequest } = require('../utils/proxy');
 
-// ==================== MCP服务器管理 ====================
-
-// 获取MCP服务器列表
+// Get MCP server list
 exports.listMcpServers = async (req, res) => {
   try {
-    // 构建查询字符串
     const queryParams = [];
     Object.keys(req.query).forEach(key => {
       queryParams.push(`${key}=${encodeURIComponent(req.query[key])}`);
     });
     const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -27,27 +22,25 @@ exports.listMcpServers = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取MCP服务器列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get MCP server list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取指定MCP服务器
+// Get specified MCP server
 exports.getMcpServer = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -57,59 +50,55 @@ exports.getMcpServer = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取MCP服务器错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get MCP server:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 创建或更新MCP服务器
+// Create or update MCP server
 exports.createOrUpdateMcpServer = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
       '/v1/mcpServer',
-      req.method, // 使用原始请求方法（POST或PUT）
+      req.method, // Use original request method (POST or PUT)
       forwardHeaders,
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 创建或更新MCP服务器错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to create or update MCP server:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 删除MCP服务器
+// Delete MCP server
 exports.deleteMcpServer = async (req, res) => {
   try {
     const { name } = req.params;
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -119,32 +108,30 @@ exports.deleteMcpServer = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 删除MCP服务器错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to delete MCP server:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// ==================== MCP消费者管理 ====================
+// ==================== MCP Consumer Management ====================
 
-// 添加MCP消费者
+// Add MCP consumers
 exports.addMcpConsumers = async (req, res) => {
   try {
     console.log(777);
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -154,30 +141,28 @@ exports.addMcpConsumers = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 添加MCP消费者错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to add MCP consumers:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 移除MCP消费者
+// Remove MCP consumers
 exports.removeMcpConsumers = async (req, res) => {
   try {
     console.log(666);
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -187,34 +172,31 @@ exports.removeMcpConsumers = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 移除MCP消费者错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to remove MCP consumers:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// 获取MCP消费者列表
+// Get MCP consumers list
 exports.listMcpConsumers = async (req, res) => {
   console.log(888);
   try {
-    // 构建查询字符串
     const queryParams = [];
     Object.keys(req.query).forEach(key => {
       queryParams.push(`${key}=${encodeURIComponent(req.query[key])}`);
     });
     const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      Cookie: headers['cookie'] || '',
     };
     const result = await proxyRequest(
       `/v1/mcpServer/consumers${queryString}`,
@@ -223,31 +205,29 @@ exports.listMcpConsumers = async (req, res) => {
       '',
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] 获取MCP消费者列表错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to get MCP consumers list:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
 
-// ==================== Swagger转换 ====================
+// ==================== Swagger Conversion ====================
 
-// Swagger转MCP配置
+// Swagger to MCP configuration
 exports.swaggerToMcpConfig = async (req, res) => {
   try {
     const body = JSON.stringify(req.body);
-    // 只保留必要的头部（Cookie）
     const { headers } = req;
-    // 只保留必要的头部（Cookie）
     const forwardHeaders = {
       Connection: 'keep-alive',
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(body), // 使用Buffer.byteLength更准确
-      Cookie: headers['cookie'] || '', // 直接转发浏览器的Cookie头
+      'Content-Length': Buffer.byteLength(body),
+      Cookie: headers['cookie'] || '',
     };
 
     const result = await proxyRequest(
@@ -257,13 +237,13 @@ exports.swaggerToMcpConfig = async (req, res) => {
       body,
     );
 
-    // 直接返回后端返回的数据，不做任何处理（包括响应头和数据）
+    // Directly return the data returned by the backend without any processing (including response headers and data)
     Object.keys(result.headers).forEach(headerName => {
       res.setHeader(headerName, result.headers[headerName]);
     });
     res.status(result.statusCode).end(result.data);
   } catch (err) {
-    console.error('[BFF] Swagger转MCP配置错误:', err);
-    res.status(502).json({ code: 502, msg: '后端服务不可用' });
+    console.error('[BFF] Failed to convert Swagger to MCP config:', err);
+    res.status(502).json({ code: 502, msg: 'Backend service unavailable' });
   }
 };
