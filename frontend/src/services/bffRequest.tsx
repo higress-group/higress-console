@@ -2,6 +2,7 @@ import { Modal } from "antd";
 import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
+import request from './request';
 
 const bffRequest = axios.create({
   timeout: 5 * 1000,
@@ -36,9 +37,30 @@ bffRequest.interceptors.response.use(
     }
     return Promise.resolve(response);
   },
-  (error) => {
+  async (error) => {
     // console.log("error====", error);
     let { message, config, code } = error;
+
+    // Fallback logic: If the BFF request fails, try to directly access the backend.
+    if (error.response && error.response.status >= 500 && config.url && config.url.startsWith('/bff/')) {
+      try {
+        // Convert the BFF path to the direct backend path.
+        const backendUrl = config.url.replace('/bff', '/api');
+        const fallbackConfig = {
+          ...config,
+          url: backendUrl,
+          withCredentials: false,
+        };
+
+        // Use request to directly access the backend.
+        const fallbackResponse = await request(fallbackConfig);
+        return Promise.resolve(fallbackResponse);
+      } catch (fallbackError) {
+        console.error('[BFF Fallback] Fallback request also failed:', fallbackError);
+        // If the fallback also fails, continue the existing error processing logic.
+      }
+    }
+
     if (error.response) {
       const { status, data } = error.response;
 
