@@ -339,21 +339,14 @@ const RouteList: React.FC = () => {
       setImportModalVisible(true);
 
       const result = await batchImportRoutes(file);
-      // console.log('result', result);
+      message.success(`${t('route.batchImportSuccess')}，成功：${result.success}，失败：${result.failed}`);
 
-      if (result.code === 200) {
-        const { data } = result;
-        message.success(`${t('route.batchImportSuccess')}，成功：${data.success}，失败：${data.failed}`);
-
-        if (data.errors && data.errors.length > 0) {
-          // console.error('导入错误详情:', data.errors);
-        }
-
-        // 刷新路由列表
-        refresh();
-      } else {
-        message.error(result.msg || t('route.batchImportFailed'));
+      if (result.errors && result.errors.length > 0) {
+        // console.error('导入错误详情:', data.errors);
       }
+
+      // 刷新路由列表
+      refresh();
     } catch (error) {
       // console.error('批量导入错误:', error);
       message.error(t('route.batchImportFailed'));
