@@ -220,7 +220,7 @@ src/
 ## BFF项目结构
 
 ```
-src/BFF/
+BFF/
 ├── controllers/                      # 控制器层（业务逻辑）
 │   ├── authController.js             # 认证控制器
 │   ├── routeController.js            # 路由控制器
@@ -236,6 +236,7 @@ src/BFF/
 │   ├── tlsCertificateController.js   # TLS证书控制器
 │   └── serviceSourceController.js    # 服务源控制器
 ├── routes/                           # 路由定义
+│   ├── index.js                      # 路由入口文件（统一管理所有子路由）
 │   ├── auth.js                       # 认证路由
 │   ├── route.js                      # 路由管理
 │   ├── service.js                    # 服务管理
@@ -256,14 +257,16 @@ src/BFF/
 ├── demo/                             # 演示和测试文件
 │   ├── loginServer.js                # 登录服务演示
 │   └── test.js                       # 测试文件
+├── Production-deployment/            # 生产环境部署配置
+│   └── nginx.conf                    # Nginx 反向代理配置
 ├── node_modules/                     # 依赖包目录
 ├── .eslintrc.js                      # ESLint 临时配置文件
 ├── app.js                            # 初始化 Express 应用（加载中间件 + 路由）
 ├── server.js                         # 服务器设置（地址+端口，启动，监测，关闭）
-├── deploy.sh                         # 部署脚本
-├── DEPLOYMENT.md                     # 部署文档
-├── ecosystem.config.js               # PM2集群配置
-├── nginx.conf                        # Nginx配置
+├── ecosystem.config.js               # PM2 进程管理配置
+├── Dockerfile                        # Docker 容器化配置
+├── Error-summary.md                  # 错误案例与解决方法文档
+├── Start.md                          # 启动说明文档
 ├── package.json                      # 依赖配置
 ├── package-lock.json                 # 依赖锁定文件
 ├── README.md                         # 项目说明

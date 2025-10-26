@@ -169,14 +169,44 @@ src/
 
 ```
 BFF-Express 项目结构
-bff-express/
+BFF/
 ├── app.js                   # 初始化 Express 应用（加载中间件 + 路由）
 ├── server.js                # 服务器设置（地址+端口，启动，监测，关闭）
 ├── .eslintrc.js             # ESLint 临时配置文件
+├── tsconfig.json            # TypeScript 配置文件
+├── Dockerfile               # Docker 容器化配置
+├── ecosystem.config.js      # PM2 进程管理配置
+├── Error-summary.md         # 错误案例与解决方法文档
+├── Start.md                 # 启动说明文档
 ├── routes/                  # 接口路由文件夹
-│   └── auth.js              # 登录接口模块（/session/login）
+│   ├── index.js             # 路由入口文件（统一管理所有子路由）
+│   ├── auth.js              # 认证路由模块
+│   ├── system.js            # 系统管理路由
+│   ├── tls-certificate.js   # TLS证书路由
+│   ├── service.js           # 服务管理路由
+│   ├── service-source.js    # 服务源管理路由
+│   ├── route.js             # 路由管理路由
+│   ├── plugin.js            # 插件管理路由
+│   ├── consumer.js          # 消费者管理路由
+│   ├── dashboard.js         # 仪表板路由
+│   ├── domain.js            # 域名管理路由
+│   ├── mcp.js               # MCP管理路由
+│   ├── llm-provider.js      # LLM提供商路由
+│   └── ai-route.js          # AI路由管理路由
 ├── controllers/             # 接口逻辑函数文件夹
-│   └── authController.js    # 登录接口逻辑函数
+│   ├── authController.js    # 认证控制器
+│   ├── systemController.js  # 系统控制器
+│   ├── tlsCertificateController.js # TLS证书控制器
+│   ├── serviceController.js # 服务控制器
+│   ├── serviceSourceController.js # 服务源控制器
+│   ├── routeController.js   # 路由控制器
+│   ├── pluginController.js  # 插件控制器
+│   ├── consumerController.js # 消费者控制器
+│   ├── dashboardController.js # 仪表板控制器
+│   ├── domainController.js  # 域名控制器
+│   ├── mcpController.js     # MCP控制器
+│   ├── llmProviderController.js # LLM提供商控制器
+│   └── aiRouteController.js # AI路由控制器
 ├── middleware/              # 中间件
 │   └── cors.js              # CORS 中间件（支持 Cookie）
 ├── utils/                   # 工具函数
@@ -184,7 +214,11 @@ bff-express/
 ├── demo/                    # 演示和测试文件
 │   ├── loginServer.js       # 登录服务演示
 │   └── test.js              # 测试文件
-└── README.md                # 介绍文档
+├── Production-deployment/   # 生产环境部署配置
+│   └── nginx.conf           # Nginx 反向代理配置
+├── package.json             # 项目依赖配置
+├── package-lock.json        # 依赖锁定文件
+└── README.md                # 项目说明文档
 ```
 
 ### 其他核心配置文件说明
