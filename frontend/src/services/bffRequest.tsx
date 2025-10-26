@@ -5,17 +5,17 @@ import { ErrorComp } from './exception';
 
 const bffRequest = axios.create({
   timeout: 5 * 1000,
-  // 明确设置baseURL为空字符串，避免undefined
+  // Explicitly set the baseURL to an empty string to avoid undefined.
   baseURL: "",
   headers: {
     "Content-Type": "application/json",
   },
-  // 支持发送和接收Cookie
+  // Support sending and receiving cookies.
   withCredentials: true,
 });
 
 bffRequest.interceptors.request.use((config) => {
-  // 使用Cookie认证，不需要手动设置Authorization头
+  // Use Cookie authentication, no need to manually set the Authorization header.
   if (config.method && config.method.toUpperCase() === 'GET' && config.url) {
     config.url = `${config.url}${config.url.indexOf('?') === -1 ? '?' : '&'}ts=${Date.now()}`;
   }
@@ -29,10 +29,6 @@ bffRequest.interceptors.response.use(
     // console.log("response====", response);
     const statusCategory = Math.floor(status / 100);
     if (statusCategory === 2) {
-      // 对于批量导入等需要完整响应的接口，返回完整的 data 对象
-      if (data && data.data && (config.url?.includes('/batch-import') || config.url?.includes('/batch-export'))) {
-        return Promise.resolve(data);
-      }
       if (data && data.data) {
         return Promise.resolve(data.data);
       }
