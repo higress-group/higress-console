@@ -65,7 +65,7 @@ public class LlmProvidersController {
     }
 
     @PostMapping
-    @Operation(summary = "Add a new route")
+    @Operation(summary = "Add a new LLM provider")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Route added successfully"),
         @ApiResponse(responseCode = "400", description = "Route data is not valid"),
         @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
