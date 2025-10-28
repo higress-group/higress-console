@@ -18,6 +18,9 @@ import {
   updateGatewayRoute,
   batchImportRoutes,
   batchExportRoutes,
+  createDubboConfig,
+  updateDubboConfig,
+  deleteDubboConfig,
 } from '@/services';
 import store from '@/store';
 import switches from '@/switches';
@@ -212,8 +215,8 @@ const RouteList: React.FC = () => {
 
   const handleDrawerOK = async () => {
     try {
-      const values: RouteFormProps & { authConfig?: any } = formRef.current ? (await (formRef.current as any).handleSubmit()) : {};
-      const { name, domains, headers, methods, urlParams, path, services, customConfigs, authConfig } = values;
+      const values: RouteFormProps & { authConfig?: any; dubboConfig?: any } = formRef.current ? (await (formRef.current as any).handleSubmit()) : {};
+      const { name, domains, headers, methods, urlParams, path, services, customConfigs, authConfig, dubboConfig } = values;
       path && normalizeRoutePredicate(path);
       headers && headers.forEach((h) => normalizeRoutePredicate(h));
       urlParams && urlParams.forEach((h) => normalizeRoutePredicate(h));
@@ -241,6 +244,29 @@ const RouteList: React.FC = () => {
       } else {
         await addGatewayRoute(route);
       }
+
+      // 处理Dubbo配置
+      if (dubboConfig && dubboConfig.enabled) {
+        try {
+          if (currentRoute) {
+            await updateDubboConfig(name, dubboConfig);
+          } else {
+            await createDubboConfig(name, dubboConfig);
+          }
+        } catch (dubboError) {
+          // console.error('Dubbo config deployment failed:', dubboError);
+          message.error('Dubbo配置部署失败，请检查配置是否正确');
+        }
+      } else if (currentRoute && currentRoute.dubboConfig?.enabled) {
+        // 如果之前启用了Dubbo配置，现在禁用了，则删除配置
+        try {
+          await deleteDubboConfig(name);
+        } catch (dubboError) {
+          // console.error('Dubbo config deletion failed:', dubboError);
+          message.error('Dubbo配置删除失败');
+        }
+      }
+
       setOpenDrawer(false);
       refresh();
       currentRoute ? setCurrentRoute(null) : (formRef.current as any)?.reset();

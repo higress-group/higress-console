@@ -1,5 +1,5 @@
 import request from './request';
-import { RouteResponse, Route } from '@/interfaces/route';
+import { RouteResponse, Route, DubboConfig, ServiceSource } from '@/interfaces/route';
 import bffRequest from './bffRequest';
 
 export const getGatewayRoutes = (): Promise<Route[]> => {
@@ -57,4 +57,21 @@ export const exportRouteTemplate = (): Promise<Blob> => {
   return bffRequest.get<any, Blob>('/bff/v1/routes/export-template', {
     responseType: 'blob',
   });
+};
+
+// Dubbo协议转换相关API
+export const getServiceSources = (): Promise<ServiceSource[]> => {
+  return bffRequest.get<any, ServiceSource[]>('/bff/v1/service-sources');
+};
+
+export const createDubboConfig = (routeName: string, dubboConfig: DubboConfig): Promise<any> => {
+  return bffRequest.post<any, any>(`/bff/v1/routes/${routeName}/dubbo-config`, dubboConfig);
+};
+
+export const updateDubboConfig = (routeName: string, dubboConfig: DubboConfig): Promise<any> => {
+  return bffRequest.put<any, any>(`/bff/v1/routes/${routeName}/dubbo-config`, dubboConfig);
+};
+
+export const deleteDubboConfig = (routeName: string): Promise<any> => {
+  return bffRequest.delete<any, any>(`/bff/v1/routes/${routeName}/dubbo-config`);
 };

@@ -94,6 +94,7 @@ export interface Route {
   cors?: CorsConfig;
   headerModify?: HeaderModifyConfig;
   authConfig?: AuthConfig;
+  dubboConfig?: DubboConfig;
   [propName: string]: any;
 }
 
@@ -162,4 +163,39 @@ export enum MatchType {
   EQUAL = "EQUAL", // 精确匹配
   PRE = "PRE", // 前缀匹配
   REGULAR = "REGULAR", // 正则匹配
+}
+
+// Dubbo协议转换相关接口
+export interface DubboMethodConfig {
+  httpMethod: string;
+  serviceMethod: string;
+  httpPath: string;
+  paramType: 'params' | 'paramFromEntireBody';
+  paramKey?: string;
+  paramSource?: string;
+  paramTypeValue?: string;
+  headersAttach?: string;
+}
+
+export interface DubboConfig {
+  enabled: boolean;
+  serviceSource: string;
+  serviceInterface: string;
+  serviceGroup: string;
+  methods: DubboMethodConfig[];
+}
+
+export interface ServiceSource {
+  name: string;
+  version?: string;
+  type: string;
+  builtIn?: boolean;
+  domain?: string;
+  port?: number;
+  properties?: {
+    nacosNamespaceId?: string;
+    nacosGroups?: string[];
+    zkServicesPath?: string[];
+  };
+  [propName: string]: any;
 }

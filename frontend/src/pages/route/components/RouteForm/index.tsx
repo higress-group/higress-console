@@ -7,13 +7,14 @@ import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Switch, Tooltip, Button } from 'antd';
+import { Checkbox, Form, Input, Select, Switch, Tooltip, Button, Modal } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 import KeyValueGroup from '../KeyValueGroup';
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
+import DubboConfigForm from '../DubboConfigForm';
 
 const { Option } = Select;
 
@@ -37,6 +38,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [serviceOptions, setServiceOptions] = useState<OptionItem[]>([]);
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
+  const [dubboConfig_enabled, setDubboConfigEnabled] = useState(false);
+  const [dubboConfigModalVisible, setDubboConfigModalVisible] = useState(false);
+  const [dubboConfig, setDubboConfig] = useState<DubboConfig | undefined>();
   const servicesRef = useRef(new Map());
   const { data: _services = [] } = useRequest(getGatewayServices);
   const { data: _domains = [] } = useRequest(getGatewayDomains);
@@ -74,7 +78,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
     if (value) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      const { name, domains, path, headers, methods, urlParams, services, customConfigs, authConfig } = value;
+      const { name, domains, path, headers, methods, urlParams, services, customConfigs, authConfig, dubboConfig } = value;
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
@@ -86,6 +90,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       }) : [];
       const _authConfig_enabled = !!authConfig?.enabled;
       const _authConfig_allowedConsumers = authConfig?.allowedConsumers || [];
+      const _dubboConfig_enabled = !!dubboConfig?.enabled;
       form.setFieldsValue({
         name,
         domains: (Array.isArray(domains) ? domains : [domains]).filter(d => !!d),
@@ -96,9 +101,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         services: services ? services.map(upstreamServiceToString) : null,
         authConfig_enabled: _authConfig_enabled,
         authConfig_allowedConsumers: _authConfig_allowedConsumers,
+        dubboConfig_enabled: _dubboConfig_enabled,
         customConfigs: customConfigArray,
       });
       setAuthConfigEnabled(_authConfig_enabled);
+      setDubboConfigEnabled(_dubboConfig_enabled);
+      setDubboConfig(dubboConfig);
       // form.setFieldsValue({
       //   authConfig_allowedConsumers: _authConfig_allowedConsumers,
       // })
@@ -106,6 +114,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
     return () => {
       setAuthConfigEnabled(false);
+      setDubboConfigEnabled(false);
     }
   }, [_services, _domains, value]);
 
@@ -129,6 +138,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const allowdConsumers = values.authConfig_allowedConsumers;
       authConfig.allowedConsumers = allowdConsumers && !Array.isArray(allowdConsumers) ? [allowdConsumers] : allowdConsumers;
       values.authConfig = authConfig;
+
+      const finalDubboConfig = { enabled: dubboConfig_enabled, ...dubboConfig };
+      values.dubboConfig = finalDubboConfig;
+
       return values;
     },
   }));
@@ -322,6 +335,35 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         >
           <KeyValueGroup />
         </Form.Item>
+
+        <Form.Item
+          name="dubboConfig_enabled"
+          label={t('dubbo.protocolConversion')}
+          valuePropName="checked"
+          initialValue={false}
+          extra={t('dubbo.protocolConversionExtra')}
+        >
+          {<Switch onChange={(e) => {
+            setDubboConfigEnabled(e);
+            if (e) {
+              setDubboConfigModalVisible(true);
+            }
+          }}
+          />
+          }
+        </Form.Item>
+
+        {dubboConfig_enabled && (
+          <Form.Item>
+            <Button
+              type="link"
+              onClick={() => setDubboConfigModalVisible(true)}
+            >
+              {t('dubbo.configureDubbo')}
+            </Button>
+          </Form.Item>
+        )}
+
         <Form.Item
           label={t('route.routeForm.targetService')}
           required
@@ -342,6 +384,19 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           />
         </Form.Item>
       </Form.Item>
+
+      <Modal
+        title={t('dubbo.configTitle')}
+        open={dubboConfigModalVisible}
+        onOk={() => setDubboConfigModalVisible(false)}
+        onCancel={() => setDubboConfigModalVisible(false)}
+        width={1000}
+      >
+        <DubboConfigForm
+          value={dubboConfig}
+          onChange={(config) => setDubboConfig(config)}
+        />
+      </Modal>
     </Form>
   );
 });

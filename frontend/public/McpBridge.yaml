@@ -1,0 +1,13 @@
+apiVersion: networking.higress.io/v1
+kind: McpBridge
+metadata:
+  name: default                        # 自定义 - McpBridge的默认名称default
+  namespace: higress-system         # Higress 系统命名空间（默认 higress-system）
+spec:
+  registries:
+    - name: nacos-service-resource
+      type: nacos2
+      domain: 10.33.99.207         # 自定义 - 您的 Nacos 服务器 IP（需要根据实际情况填写）
+      port: 8848                      # 自定义 - Nacos 默认端口（在nacos\conf\application.properties下面可以查看）
+      nacosGroups:
+        - DEFAULT_GROUP               # 自定义 - Nacos 注册中心的服务分组

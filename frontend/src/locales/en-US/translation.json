@@ -666,6 +666,32 @@
       "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
     }
   },
+  "dubbo": {
+    "protocolConversion": "Dubbo Protocol Conversion",
+    "protocolConversionExtra": "Enable to expose Dubbo services as HTTP interfaces",
+    "configureDubbo": "Configure Dubbo Protocol Conversion",
+    "configTitle": "Dubbo Protocol Conversion Configuration",
+    "serviceSource": "Service Source",
+    "serviceSourceRequired": "Please select a service source",
+    "serviceSourcePlaceholder": "Please select a service source",
+    "serviceInterface": "Service Interface",
+    "serviceInterfaceRequired": "Please enter service interface name",
+    "serviceInterfacePlaceholder": "e.g.: com.alibaba.nacos.example.dubbo.service.DemoService",
+    "serviceGroup": "Service Group",
+    "serviceGroupRequired": "Please select a service group",
+    "serviceGroupPlaceholder": "Please select a service group",
+    "methods": "HTTP Method Mapping",
+    "httpMethod": "HTTP Method",
+    "serviceMethod": "Service Method",
+    "serviceMethodPlaceholder": "e.g.: sayName",
+    "httpPath": "HTTP Request Path",
+    "httpPathPlaceholder": "e.g.: /dubbo/hello",
+    "paramType": "Parameter Type",
+    "paramKey": "Parameter Key",
+    "paramSource": "Parameter Source",
+    "paramTypeValue": "Parameter Type Value",
+    "addMethod": "Add Method Mapping"
+  },
   "system": {
     "higress-config": {
       "title": "Edit Global Configuration: higress-config",

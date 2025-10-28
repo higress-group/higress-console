@@ -35,5 +35,10 @@ router.put('/v1/routes/:name', routeController.updateGatewayRoute);
 // 更新路由配置
 router.put('/v1/routes/:name/config', routeController.updateRouteConfig);
 
+// Dubbo协议转换相关路由
+router.post('/v1/routes/:routeName/dubbo-config', routeController.createDubboConfig);
+router.put('/v1/routes/:routeName/dubbo-config', routeController.updateDubboConfig);
+router.delete('/v1/routes/:routeName/dubbo-config', routeController.deleteDubboConfig);
+
 // 导出路由
 module.exports = router;

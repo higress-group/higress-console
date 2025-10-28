@@ -679,6 +679,32 @@
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
     }
   },
+  "dubbo": {
+    "protocolConversion": "Dubbo协议转换",
+    "protocolConversionExtra": "开启后将Dubbo服务以HTTP接口暴露出来",
+    "configureDubbo": "配置Dubbo协议转换",
+    "configTitle": "Dubbo协议转换配置",
+    "serviceSource": "服务来源",
+    "serviceSourceRequired": "请选择服务来源",
+    "serviceSourcePlaceholder": "请选择服务来源",
+    "serviceInterface": "服务接口名",
+    "serviceInterfaceRequired": "请输入服务接口名",
+    "serviceInterfacePlaceholder": "例如：com.alibaba.nacos.example.dubbo.service.DemoService",
+    "serviceGroup": "服务分组",
+    "serviceGroupRequired": "请选择服务分组",
+    "serviceGroupPlaceholder": "请选择服务分组",
+    "methods": "HTTP方法映射",
+    "httpMethod": "HTTP方法",
+    "serviceMethod": "服务方法名",
+    "serviceMethodPlaceholder": "例如：sayName",
+    "httpPath": "HTTP请求路径",
+    "httpPathPlaceholder": "例如：/dubbo/hello",
+    "paramType": "参数类型",
+    "paramKey": "参数名称",
+    "paramSource": "参数来源",
+    "paramTypeValue": "参数类型值",
+    "addMethod": "添加方法映射"
+  },
   "system": {
     "higress-config": {
       "title": "编辑全局配置：higress-config",
