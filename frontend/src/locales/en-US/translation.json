@@ -690,6 +690,8 @@
     "paramKey": "Parameter Key",
     "paramSource": "Parameter Source",
     "paramTypeValue": "Parameter Type Value",
+    "params": "Parameters",
+    "addParam": "Add Parameter",
     "addMethod": "Add Method Mapping"
   },
   "system": {

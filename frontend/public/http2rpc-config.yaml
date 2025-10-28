@@ -19,6 +19,9 @@ spec:
       - paramKey: p                   # 填 - HTTP 参数名称
         paramSource: QUERY            # 自定义 - 参数来源（QUERY 表示来自 URL 查询参数）
         paramType: "java.lang.String"
+      - paramKey: q
+        paramSource: QUERY            # 自定义 - 参数来源（QUERY 表示来自 URL 查询参数）
+        paramType: "java.lang.String"
     # POST 请求配置
     - serviceMethod: sayName       # 填 - 对应DemoService.java中的服务方法名
       headersAttach: "*"

@@ -703,6 +703,8 @@
     "paramKey": "参数名称",
     "paramSource": "参数来源",
     "paramTypeValue": "参数类型值",
+    "params": "参数列表",
+    "addParam": "添加参数",
     "addMethod": "添加方法映射"
   },
   "system": {

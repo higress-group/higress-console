@@ -457,15 +457,28 @@ function generateHttp2RpcConfig(routeName, dubboConfig) {
       httpPath: "${method.httpPath}"`;
 
     if (method.paramType === 'params') {
-      methodConfig += `
+      // 支持新的多参数结构
+      if (method.params && Array.isArray(method.params) && method.params.length > 0) {
+        const paramsConfig = method.params.map(param => `      - paramKey: ${param.paramKey}
+        paramSource: ${param.paramSource}
+        paramType: "${param.paramType}"`).join('\n');
+        methodConfig += `
+      params:
+${paramsConfig}`;
+      } else if (method.paramKey || method.paramSource || method.paramTypeValue) {
+        // 兼容旧的单参数结构
+        methodConfig += `
       params:
       - paramKey: ${method.paramKey || 'p'}
         paramSource: ${method.paramSource || 'QUERY'}
         paramType: "${method.paramTypeValue || 'java.lang.String'}"`;
+      }
     } else {
+      // paramFromEntireBody 模式
+      const bodyParamType = method.bodyParamType || method.paramTypeValue || 'java.lang.String';
       methodConfig += `
       paramFromEntireBody:
-        paramType: "${method.paramTypeValue || 'java.lang.String'}"`;
+        paramType: "${bodyParamType}"`;
     }
 
     return methodConfig;

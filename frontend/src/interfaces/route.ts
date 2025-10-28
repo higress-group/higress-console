@@ -166,15 +166,28 @@ export enum MatchType {
 }
 
 // Dubbo协议转换相关接口
+// Dubbo 多参数配置项
+export interface DubboParamItem {
+  paramKey: string;
+  paramSource: string; // QUERY | HEADER | BODY
+  paramType: string; // Java 类型，如 java.lang.String
+}
+
 export interface DubboMethodConfig {
   httpMethod: string;
   serviceMethod: string;
   httpPath: string;
+  // params: 多参数模式；paramFromEntireBody: 整体请求体模式
   paramType: 'params' | 'paramFromEntireBody';
+  // 新版：支持多个参数
+  params?: DubboParamItem[];
+  bodyParamType?: string; // 当 paramType === 'paramFromEntireBody' 时使用
+  headersAttach?: string;
+
+  // 兼容旧版（单参数配置），后续可移除
   paramKey?: string;
   paramSource?: string;
   paramTypeValue?: string;
-  headersAttach?: string;
 }
 
 export interface DubboConfig {

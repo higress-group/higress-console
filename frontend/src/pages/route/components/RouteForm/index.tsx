@@ -390,7 +390,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         open={dubboConfigModalVisible}
         onOk={() => setDubboConfigModalVisible(false)}
         onCancel={() => setDubboConfigModalVisible(false)}
-        width={1000}
+        width={1100}
       >
         <DubboConfigForm
           value={dubboConfig}
