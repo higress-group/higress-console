@@ -18,7 +18,7 @@ export default defineConfig(() => ({
   },
   proxy: {
     '/api': {
-      target: process.env.BACKEND_URL || 'http://localhost:8081/',
+      target: process.env.BACKEND_URL || 'http://demo.higress.io/',
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
     },
