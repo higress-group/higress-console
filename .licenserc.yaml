@@ -26,6 +26,8 @@ header:
     - 'backend/**/*.yaml'
     - 'backend/.mvn/**'
     - 'frontend/**' # Skip checking the frontend project temporarily.
+    - 'BFF/**'
+    - 'ai-develop-help/**'
 
   comment: on-failure
 dependency:

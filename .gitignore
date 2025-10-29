@@ -37,3 +37,8 @@ build/
 ### VS Code ###
 .vscode/
 /backend/console/src/main/resources/application-local.yml
+
+
+### BFF ###
+bff/node_modules
+bff/logs

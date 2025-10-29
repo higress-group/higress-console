@@ -1,0 +1,274 @@
+/* Dubbo配置表单样式 */
+.dubboConfigForm {
+    padding: 0 8px;
+}
+
+.dubboMethodsTable :global(.ant-table-thead > tr > th) {
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 500;
+    color: #262626;
+}
+
+.dubboMethodsTable :global(.ant-table-tbody > tr > td) {
+    border-bottom: 1px solid #f5f5f5;
+    padding: 8px 12px;
+}
+
+.dubboMethodsTable :global(.ant-table-tbody > tr:hover > td) {
+    background: #f5f5f5;
+}
+
+.dubboMethodsTable :global(.ant-table-tbody > tr:last-child > td) {
+    border-bottom: none;
+}
+
+/* 表格输入框样式优化 */
+.dubboMethodsTable :global(.ant-select-sm .ant-select-selector) {
+    height: 28px !important;
+    font-size: 12px;
+}
+
+.dubboMethodsTable :global(.ant-input-sm) {
+    height: 28px !important;
+    font-size: 12px;
+}
+
+.dubboMethodsTable :global(.ant-select-sm .ant-select-selection-item) {
+    line-height: 26px;
+    font-size: 12px;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.dubboMethodsTable :global(.ant-select-sm .ant-select-selection-placeholder) {
+    line-height: 26px;
+    font-size: 12px;
+}
+
+/* 确保Select选项中的Tag标签垂直居中 */
+.dubboMethodsTable :global(.ant-select-item-option-content) {
+    display: flex !important;
+    align-items: center !important;
+    height: 28px;
+}
+
+.dubboMethodsTable :global(.ant-select-item-option-content .ant-tag) {
+    margin: 0 !important;
+    line-height: 20px;
+}
+
+/* 参数配置区域样式 */
+.paramConfigArea {
+    background: #fafafa;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+}
+
+.paramConfigArea :global(.ant-input-sm) {
+    height: 28px !important;
+    font-size: 12px;
+}
+
+.paramConfigArea :global(.ant-select-sm .ant-select-selector) {
+    height: 28px !important;
+    font-size: 12px;
+}
+
+.paramConfigArea :global(.ant-select-sm .ant-select-selection-item) {
+    line-height: 26px;
+    font-size: 12px;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 确保参数配置区域Select选项中的Tag标签垂直居中 */
+.paramConfigArea :global(.ant-select-item-option-content) {
+    display: flex !important;
+    align-items: center !important;
+    height: 28px;
+}
+
+.paramConfigArea :global(.ant-select-item-option-content .ant-tag) {
+    margin: 0 !important;
+    line-height: 20px;
+}
+
+.paramItem {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+    width: 100%;
+    gap: 8px;
+}
+
+.paramItem:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+/* 空状态样式 */
+.emptyState {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8c8c8c;
+    background: #fafafa;
+    border-radius: 6px;
+    border: 1px dashed #d9d9d9;
+}
+
+.emptyStateIcon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* 卡片标题样式 */
+.cardTitle {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cardTitleIcon {
+    margin-right: 8px;
+}
+
+/* 文档提示卡片样式 */
+.docCard {
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+}
+
+.docCardBody {
+    padding: 12px 16px;
+}
+
+.docCardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.docCardTitleLeft {
+    display: flex;
+    align-items: center;
+}
+
+.docCardIcon {
+    color: #0ea5e9;
+    font-size: 16px;
+    margin-right: 8px;
+}
+
+.docCardText {
+    color: #0c4a6e;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.docCardLink {
+    color: #0ea5e9;
+    padding: 0;
+}
+
+.docCardDesc {
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+    color: #8c8c8c;
+}
+
+/* 服务配置卡片样式 */
+.serviceCard {
+    margin-bottom: 20px;
+}
+
+.serviceCardHead {
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 方法配置卡片样式 */
+.methodCard {
+    margin-bottom: 20px;
+}
+
+.methodCardHead {
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.methodCardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.methodCardTitleLeft {
+    display: flex;
+    align-items: center;
+}
+
+.methodCardIcon {
+    color: #1890ff;
+    margin-right: 8px;
+}
+
+.methodCount {
+    margin-left: 8px;
+}
+
+.addMethodBtn {
+    border-radius: 6px;
+}
+
+/* 表单项标签样式 */
+.formItemLabel {
+    display: flex;
+    align-items: center;
+}
+
+.formItemLabelIcon {
+    margin-right: 4px;
+    font-size: 12px;
+}
+
+.formItemLabelTooltip {
+    color: #8c8c8c;
+    margin-left: 4px;
+    font-size: 12px;
+}
+
+/* 输入框前缀图标样式 */
+.inputPrefix {
+    color: #8c8c8c;
+}
+
+.inputPrefixSmall {
+    color: #8c8c8c;
+    font-size: 12px;
+}
+
+/* 选择器后缀图标样式 */
+.selectSuffix {
+    color: #8c8c8c;
+}
+
+/* 按钮样式 */
+.deleteBtn {
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+.addParamBtn {
+    width: 100%;
+    margin-top: 4px;
+}

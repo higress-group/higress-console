@@ -1,0 +1,32 @@
+apiVersion: networking.higress.io/v1
+kind: Http2Rpc
+metadata:
+  name: httproute-http2rpc        # Http2Rpc 资源名称
+  namespace: higress-system         # Higress 系统命名空间（默认 higress-system）
+spec:
+  dubbo:
+    service: com.alibaba.nacos.example.dubbo.service.DemoService  # 填-对应DemoService.java中的服务名称
+    version: 1.0.0
+    group: DEFAULT_GROUP              # 选择 - 对应DemoService.java中的服务分组
+    methods:
+    # GET 请求配置
+    - serviceMethod: sayName          # 填 - 对应DemoService.java中的服务方法名
+      headersAttach: "*"
+      httpMethods:
+      - "GET"                         # 选择 - 支持的 HTTP 方法（可根据需要调整）
+      httpPath: "/dubbo/hello"        # 填 - HTTP 请求路径（可根据需要调整）
+      params:
+      - paramKey: p                   # 填 - HTTP 参数名称
+        paramSource: QUERY            # 自定义 - 参数来源（QUERY 表示来自 URL 查询参数）
+        paramType: "java.lang.String"
+      - paramKey: q
+        paramSource: QUERY            # 自定义 - 参数来源（QUERY 表示来自 URL 查询参数）
+        paramType: "java.lang.String"
+    # POST 请求配置
+    - serviceMethod: sayName       # 填 - 对应DemoService.java中的服务方法名
+      headersAttach: "*"
+      httpMethods:
+      - "POST"                         # 选择 - 支持的 HTTP 方法（可根据需要调整）
+      httpPath: "/dubbo/hello"        # 填 - HTTP 请求路径（可根据需要调整）
+      paramFromEntireBody:
+        paramType: "java.lang.String" # 填 - 参数类型

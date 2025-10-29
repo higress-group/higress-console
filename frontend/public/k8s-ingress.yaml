@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    higress.io/destination: providers:com.alibaba.nacos.example.dubbo.service.DemoService:1.0.0:DEFAULT_GROUP.DEFAULT-GROUP.public.nacos  # 固定 - 目标服务地址（查higress控制台可得）
+    higress.io/rpc-destination-name: httproute-http2rpc  # 对应Http2Rpc.yaml中的name
+  name: httproute-http2rpc-ingress  # Ingress 资源名称
+  namespace: higress-system         # Higress 系统命名空间（默认 higress-system）
+spec:
+  ingressClassName: higress
+  rules:
+    - http:
+        paths:
+          - backend:
+              resource:
+                apiGroup: networking.higress.io
+                kind: McpBridge
+                name: default                     # 对应McpBridge.yaml中的name
+            path: /dubbo                          # 自定义 - HTTP 路径前缀
+            pathType: Prefix
