@@ -1,23 +1,21 @@
-// auth.js对应user.ts,后面需要修改
-// 引入express
+// auth.js corresponds to user.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入authController
+// Import authController
 const authController = require('../controllers/authController');
 
-// ==================== 会话管理相关接口 ====================
-// 登录接口
+// ==================== Session management related interfaces ====================
+
+// Login interface
 router.post('/session/login', authController.login);
 
-// 登出接口
+// Logout interface
 router.get('/session/logout', authController.logout);
 
-// 获取用户信息接口
+// Get user information interface
 router.get('/user/info', authController.getUserInfo);
 
-// 修改密码接口
+// Change password interface
 router.post('/user/changePassword', authController.changePassword);
 
-// 导出路由
 module.exports = router;

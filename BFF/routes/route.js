@@ -1,44 +1,43 @@
-// route.js对应route.ts
-// 引入express
+// route.js corresponds to route.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入routeController
+// Import routeController
 const routeController = require('../controllers/routeController');
 
-// ==================== 路由管理相关接口 ====================
+// ==================== Interfaces related to route management ====================
 
-// 获取网关路由列表
+// Get gateway route list
 router.get('/v1/routes', routeController.getGatewayRoutes);
 
-// 批量导出路由 - 必须在参数化路径之前
+// Batch export routes - must be before parameterized paths
 router.get('/v1/routes/batch-export', routeController.batchExportRoutes);
 
-// 导出路由模板 - 必须在参数化路径之前
+// Export route template - must be before parameterized paths
 router.get('/v1/routes/export-template', routeController.exportRouteTemplate);
 
-// 获取指定路由详情 - 参数化路径放在具体路径之后
+// Get specified route detail - parameterized paths must be placed after specific paths
 router.get('/v1/routes/:routeName', routeController.getGatewayRouteDetail);
 
-// 添加网关路由
+// Add gateway route
 router.post('/v1/routes', routeController.addGatewayRoute);
 
-// 批量导入路由
+// Batch import routes
 router.post('/v1/routes/batch-import', routeController.batchImportRoutes);
 
-// 删除网关路由
+// Delete gateway route
 router.delete('/v1/routes/:name', routeController.deleteGatewayRoute);
 
-// 编辑网关路由
+// Edit gateway route
 router.put('/v1/routes/:name', routeController.updateGatewayRoute);
 
-// 更新路由配置
+// Update route configuration
 router.put('/v1/routes/:name/config', routeController.updateRouteConfig);
 
-// Dubbo协议转换相关路由
+// Dubbo protocol conversion related routes
 router.post('/v1/routes/:routeName/dubbo-config', routeController.createDubboConfig);
+
 router.put('/v1/routes/:routeName/dubbo-config', routeController.updateDubboConfig);
+
 router.delete('/v1/routes/:routeName/dubbo-config', routeController.deleteDubboConfig);
 
-// 导出路由
 module.exports = router;
