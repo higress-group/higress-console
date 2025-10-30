@@ -1,24 +1,21 @@
-// service-source.js对应service-source.ts
-// 引入express
+// service-source.js corresponds to service-source.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入serviceSourceController
+// Import serviceSourceController
 const serviceSourceController = require('../controllers/serviceSourceController');
 
-// ==================== 服务源管理相关接口 ====================
+// ==================== Interfaces related to service source management ====================
 
-// 获取服务源列表
+// Get service source list
 router.get('/v1/service-sources', serviceSourceController.getServiceSources);
 
-// 添加服务源
+// Add service source
 router.post('/v1/service-sources', serviceSourceController.addServiceSource);
 
-// 删除服务源
+// Delete service source
 router.delete('/v1/service-sources/:name', serviceSourceController.deleteServiceSource);
 
-// 更新服务源
+// Update service source
 router.put('/v1/service-sources/:name', serviceSourceController.updateServiceSource);
 
-// 导出路由
 module.exports = router;

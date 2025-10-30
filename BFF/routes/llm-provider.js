@@ -1,24 +1,21 @@
-// llm-provider.js对应llm-provider.ts
-// 引入express
+// llm-provider.js corresponds to llm-provider.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入llmProviderController
+// Import llmProviderController
 const llmProviderController = require('../controllers/llmProviderController');
 
-// ==================== LLM Provider管理相关接口 ====================
+// ==================== Interfaces related to LLM Provider management ====================
 
-// 获取LLM Provider列表
+// Get LLM Provider list
 router.get('/v1/ai/providers', llmProviderController.getLlmProviders);
 
-// 添加LLM Provider
+// Add LLM Provider
 router.post('/v1/ai/providers', llmProviderController.addLlmProvider);
 
-// 删除LLM Provider
+// Delete LLM Provider
 router.delete('/v1/ai/providers/:name', llmProviderController.deleteLlmProvider);
 
-// 更新LLM Provider
+// Update LLM Provider
 router.put('/v1/ai/providers/:name', llmProviderController.updateLlmProvider);
 
-// 导出路由
 module.exports = router;

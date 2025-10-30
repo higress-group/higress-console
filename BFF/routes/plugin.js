@@ -1,58 +1,55 @@
-// plugin.js对应plugin.ts
-// 引入express
+// plugin.js corresponds to plugin.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入pluginController
+// Import pluginController
 const pluginController = require('../controllers/pluginController');
 
-// ==================== 插件管理相关接口 ====================
+// ==================== Interfaces related to plugin management ====================
 
-// WASM插件管理
-// 获取全局的插件配置列表
+// WASM plugin management
+// Get global plugin configuration list
 router.get('/v1/wasm-plugins', pluginController.getWasmPlugins);
 
-// 获取全局的指定插件配置
+// Get global specified plugin configuration
 router.get('/v1/global/plugin-instances/:pluginName', pluginController.getPluginsDetail);
 
-// 创建WASM插件
+// Create WASM plugin
 router.post('/v1/wasm-plugins', pluginController.createWasmPlugin);
 
-// 更新WASM插件
+// Update WASM plugin
 router.put('/v1/wasm-plugins/:name', pluginController.updateWasmPlugin);
 
-// 删除WASM插件
+// Delete WASM plugin
 router.delete('/v1/wasm-plugins/:name', pluginController.deleteWasmPlugin);
 
-// 获取指定插件的运行时配置数据格式
+// Get runtime configuration data format of specified plugin
 router.get('/v1/wasm-plugins/:name/config', pluginController.getWasmPluginsConfig);
 
-// 全局插件配置
-// 获取全局的指定插件配置
+// Global plugin configuration
+// Get global specified plugin configuration
 router.get('/v1/global/plugin-instances/:pluginName', pluginController.getGlobalPluginInstance);
 
-// 修改全局的指定插件配置
+// Update global specified plugin configuration
 router.put('/v1/global/plugin-instances/:pluginName', pluginController.updateGlobalPluginInstance);
 
-// 路由插件配置
-// 获取指定路由的插件配置列表
+// Route plugin configuration
+// Get specified route plugin configuration list
 router.get('/v1/routes/:name/plugin-instances', pluginController.getRoutePluginInstances);
 
-// 获取指定路由的指定插件配置
+// Get specified route plugin configuration
 router.get('/v1/routes/:name/plugin-instances/:pluginName', pluginController.getRoutePluginInstance);
 
-// 修改指定路由的指定插件配置
+// Update specified route plugin configuration
 router.put('/v1/routes/:name/plugin-instances/:pluginName', pluginController.updateRoutePluginInstance);
 
-// 域名插件配置
-// 获取指定域名的插件配置列表
+// Domain plugin configuration
+// Get specified domain plugin configuration list
 router.get('/v1/domains/:name/plugin-instances', pluginController.getDomainPluginInstances);
 
-// 获取指定域名的指定插件配置
+// Get specified domain plugin configuration
 router.get('/v1/domains/:name/plugin-instances/:pluginName', pluginController.getDomainPluginInstance);
 
-// 修改指定域名的指定插件配置
+// Update specified domain plugin configuration
 router.put('/v1/domains/:name/plugin-instances/:pluginName', pluginController.updateDomainPluginInstance);
 
-// 导出路由
 module.exports = router;

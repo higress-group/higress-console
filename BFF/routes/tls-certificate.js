@@ -1,27 +1,24 @@
-// tls-certificate.js对应tls-certificate.ts
-// 引入express
+// tls-certificate.js corresponds to tls-certificate.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入tlsCertificateController
+// Import tlsCertificateController
 const tlsCertificateController = require('../controllers/tlsCertificateController');
 
-// ==================== TLS证书管理相关接口 ====================
+// ==================== Interfaces related to TLS certificate management ====================
 
-// 获取TLS证书列表
+// Get TLS certificate list
 router.get('/v1/tls-certificates', tlsCertificateController.getTlsCertificates);
 
-// 添加TLS证书
+// Add TLS certificate
 router.post('/v1/tls-certificates', tlsCertificateController.addTlsCertificate);
 
-// 删除TLS证书
+// Delete TLS certificate
 router.delete('/v1/tls-certificates/:name', tlsCertificateController.deleteTlsCertificate);
 
-// 更新TLS证书
+// Update TLS certificate
 router.put('/v1/tls-certificates/:name', tlsCertificateController.updateTlsCertificate);
 
-// 校验TLS证书
+// Validate TLS certificate
 router.post('/v1/tls-certificates/validate', tlsCertificateController.validateTlsCertificate);
 
-// 导出路由
 module.exports = router;

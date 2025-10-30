@@ -7,7 +7,7 @@ import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Switch, Tooltip, Button, Modal } from 'antd';
+import { Checkbox, Form, Input, Select, Switch, Tooltip, Button, Modal, Tabs } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +40,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
   const [dubboConfig_enabled, setDubboConfigEnabled] = useState(false);
   const [dubboConfigModalVisible, setDubboConfigModalVisible] = useState(false);
+  const [dubboQuickStartVisible, setDubboQuickStartVisible] = useState(false);
   const [dubboConfig, setDubboConfig] = useState<DubboConfig | undefined>();
   const servicesRef = useRef(new Map());
   const { data: _services = [] } = useRequest(getGatewayServices);
@@ -338,7 +339,18 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
         <Form.Item
           name="dubboConfig_enabled"
-          label={t('dubbo.protocolConversion')}
+          label={(
+            <>
+              {t('dubbo.protocolConversion')}
+              <a
+                onMouseDown={(e) => { e.preventDefault(); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDubboQuickStartVisible(true); }}
+                style={{ marginLeft: 8 }}
+              >
+                （{t('dubbo.quickStart')}）
+              </a>
+            </>
+          )}
           valuePropName="checked"
           initialValue={false}
           extra={t('dubbo.protocolConversionExtra')}
@@ -395,6 +407,57 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <DubboConfigForm
           value={dubboConfig}
           onChange={(config) => setDubboConfig(config)}
+        />
+      </Modal>
+
+      <Modal
+        title={t('dubbo.quickStartTitle')}
+        open={dubboQuickStartVisible}
+        footer={null}
+        onCancel={() => setDubboQuickStartVisible(false)}
+        width={900}
+        style={{ top: 24 }}
+        bodyStyle={{ maxHeight: '70vh', overflow: 'hidden' }}
+      >
+        <Tabs
+          items={[
+            {
+              key: '1',
+              label: t('dubbo.quickStartStep', { index: 1 }),
+              children: (
+                <>
+                  <div style={{ marginTop: 8, color: '#1890ff' }}>{t('dubbo.quickStartDesc1')}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <img src="/Flowchart-1.png" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }} />
+                  </div>
+                </>
+              ),
+            },
+            {
+              key: '2',
+              label: t('dubbo.quickStartStep', { index: 2 }),
+              children: (
+                <>
+                  <div style={{ marginTop: 8, color: '#1890ff' }}>{t('dubbo.quickStartDesc2')}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <img src="/Flowchart-2.png" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }} />
+                  </div>
+                </>
+              ),
+            },
+            {
+              key: '3',
+              label: t('dubbo.quickStartStep', { index: 3 }),
+              children: (
+                <>
+                  <div style={{ marginTop: 8, color: '#1890ff' }}>{t('dubbo.quickStartDesc3')}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <img src="/Flowchart-3.png" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }} />
+                  </div>
+                </>
+              ),
+            },
+          ]}
         />
       </Modal>
     </Form>
