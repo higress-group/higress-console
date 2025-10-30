@@ -460,7 +460,7 @@ const RouteList: React.FC = () => {
         }}
       >
         <Row gutter={24}>
-          <Col span={14}>
+          <Col span={10}>
             <Form.Item name="searchVal">
               <Input
                 allowClear
@@ -470,7 +470,7 @@ const RouteList: React.FC = () => {
               />
             </Form.Item>
           </Col>
-          <Col span={10} style={{ textAlign: 'right' }}>
+          <Col span={14} style={{ textAlign: 'right' }}>
             <Space>
               <Upload {...uploadProps}>
                 <Button
