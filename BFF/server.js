@@ -1,26 +1,24 @@
-// 引入app.js
 const app = require('./app');
 
-// 端口和地址
+// Set the port and address
 const PORT = process.env.BFF_PORT || 3001;
 const HOST = process.env.BFF_HOST || 'localhost';
 
-// 启动服务器
+// Start the server
 const server = app.listen(PORT, HOST, () => {
-  console.log('[BFF] 服务器启动成功');
-  console.log(`[BFF] 监听地址: http://${HOST}:${PORT}`);
+  console.log('[BFF] Server started successfully');
+  console.log(`[BFF] Listening address: http://${HOST}:${PORT}`);
 });
 
-// 错误处理
 server.on('error', (err) => {
-  console.error('[BFF] 服务器错误:', err);
+  console.error('[BFF] Server error:', err);
 });
 
-// 关闭服务器
+// Close the server
 process.on('SIGINT', () => {
-  console.log('\n[BFF] 正在关闭服务器...');
+  console.log('\n[BFF] Closing the server...');
   server.close(() => {
-    console.log('[BFF] 服务器已关闭');
+    console.log('[BFF] Server closed');
     process.exit(0);
   });
 });

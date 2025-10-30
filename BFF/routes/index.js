@@ -1,3 +1,4 @@
+// index.js corresponds to index.ts
 const express = require('express');
 const router = express.Router();
 

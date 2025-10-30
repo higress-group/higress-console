@@ -1,24 +1,21 @@
-// domain.js对应domain.ts
-// 引入express
+// domain.js corresponds to domain.ts
 const express = require('express');
-// 创建路由
 const router = express.Router();
-// 引入domainController
+// Import domainController
 const domainController = require('../controllers/domainController');
 
-// ==================== 域名管理相关接口 ====================
+// ==================== Interfaces related to domain management ====================
 
-// 获取网关域名列表
+// Get gateway domain list
 router.get('/v1/domains', domainController.getGatewayDomains);
 
-// 添加网关域名
+// Add gateway domain
 router.post('/v1/domains', domainController.addGatewayDomain);
 
-// 删除网关域名
+// Delete gateway domain
 router.delete('/v1/domains/:name', domainController.deleteGatewayDomain);
 
-// 更新网关域名
+// Update gateway domain
 router.put('/v1/domains/:name', domainController.updateGatewayDomain);
 
-// 导出路由
 module.exports = router;
