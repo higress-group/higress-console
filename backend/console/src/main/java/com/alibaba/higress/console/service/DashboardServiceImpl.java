@@ -76,10 +76,16 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class DashboardServiceImpl implements DashboardService {
 
+    /*
+     * ignore hop-to-hop headers.
+     * https://datatracker.ietf.org/doc/html/rfc2616#section-13.5.1
+     */
     private static final Set<String> IGNORE_REQUEST_HEADERS =
-        ImmutableSet.of("connection", "accept-encoding", "content-length");
+            ImmutableSet.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+                    "te", "trailers", "upgrade", "transfer-encoding", "content-length", "accept-encoding");
     private static final Set<String> IGNORE_RESPONSE_HEADERS =
-        ImmutableSet.of("connection", "content-length", "content-encoding", "server", "transfer-encoding");
+            ImmutableSet.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+                    "te", "trailers", "upgrade", "transfer-encoding", "content-length", "content-encoding", "server");
 
     private static final String DATASOURCE_UID_PLACEHOLDER = "${datasource.id}";
     private static final String MAIN_DASHBOARD_DATA_PATH = "/dashboard/main.json";
