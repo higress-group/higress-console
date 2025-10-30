@@ -7,6 +7,21 @@ export default function Document() {
         <meta charSet="utf-8" />
         <link rel="icon" href="/higress.jpg" type="image/x-icon" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        {/* 防止点击劫持攻击 */}
+        <meta httpEquiv="x-Frame-Options" content="DENY" />
+        {/* 内容安全策略 */}
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content={
+            "default-src 'self'; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data:; " +
+            "font-src 'self' data:; " +
+            "connect-src 'self'; " +
+            "frame-ancestors 'none';"
+          }
+        />
         <Meta />
         <Title />
         <Links />
