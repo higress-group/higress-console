@@ -48,6 +48,11 @@ public class ServiceSource implements VersionedDto {
     private static final Set<String> PROXY_SUPPORTED_REGISTRY_TYPES =
         ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
 
+    private static final Set<String> ALLOWABLE_TYPES =
+            ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_NACOS, V1McpBridge.REGISTRY_TYPE_NACOS2,
+                    V1McpBridge.REGISTRY_TYPE_NACOS3, V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL,
+                    V1McpBridge.REGISTRY_TYPE_EUREKA, V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
+
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS2, new NacosServiceSourceValidator());
@@ -109,6 +114,11 @@ public class ServiceSource implements VersionedDto {
         }
 
         if (!ValidateUtil.checkServiceName(this.name)) {
+            return false;
+        }
+
+        // Check if type is within allowable values
+        if (!ALLOWABLE_TYPES.contains(this.type)) {
             return false;
         }
 
