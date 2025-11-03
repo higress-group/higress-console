@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.aop.AllowAnonymous;
 import com.alibaba.higress.console.controller.dto.LoginRequest;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.exception.AuthException;
@@ -42,6 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController("SessionController")
 @RequestMapping("/session")
 @Tag(name = "Session APIs")
+@AllowAnonymous
 public class SessionController {
 
     private SessionService sessionService;

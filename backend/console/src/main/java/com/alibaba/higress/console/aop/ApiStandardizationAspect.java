@@ -12,11 +12,29 @@
  */
 package com.alibaba.higress.console.aop;
 
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+
+import javax.annotation.Resource;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.MDC;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import com.alibaba.higress.console.context.HttpContext;
-import com.alibaba.higress.console.controller.HealthzController;
-import com.alibaba.higress.console.controller.LandingController;
-import com.alibaba.higress.console.controller.SessionController;
-import com.alibaba.higress.console.controller.SystemController;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.exception.AuthException;
 import com.alibaba.higress.console.model.User;
@@ -26,25 +44,9 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.MDC;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.BiConsumer;
 
 /**
  * @author CH3CHO
@@ -53,6 +55,9 @@ import java.util.function.BiConsumer;
 @Component
 @Slf4j
 public class ApiStandardizationAspect {
+
+    private static final ConcurrentHashMap<Class<?>, Boolean> CLASS_ALLOW_ANONYMOUS_FLAGS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Boolean> METHOD_ALLOW_ANONYMOUS_FLAGS = new ConcurrentHashMap<>();
 
     private SessionService sessionService;
 
@@ -67,7 +72,7 @@ public class ApiStandardizationAspect {
             MDC.put("traceId", UUID.randomUUID().toString());
 
             ServletRequestAttributes requestAttributes =
-                (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (requestAttributes != null) {
                 HttpContext.init(requestAttributes.getRequest(), requestAttributes.getResponse());
             }
@@ -84,7 +89,7 @@ public class ApiStandardizationAspect {
             }
             Object result = point.proceed();
             if (requestAttributes != null && requestAttributes.getResponse() != null && HttpMethod.DELETE.name()
-                .equals(requestAttributes.getRequest().getMethod())) {
+                    .equals(requestAttributes.getRequest().getMethod())) {
                 requestAttributes.getResponse().setStatus(HttpStatus.NO_CONTENT.value());
             }
             return result;
@@ -119,24 +124,38 @@ public class ApiStandardizationAspect {
             if (!(t1 instanceof ApiException)) {
                 continue;
             }
-            ApiException apiException = (ApiException)t1;
+            ApiException apiException = (ApiException) t1;
             String message = String.format("Related K8s API response: Code=%s Body=%s", apiException.getCode(),
-                apiException.getResponseBody());
+                    apiException.getResponseBody());
             logFunction.accept(message, null);
         }
     }
 
     private static boolean isLoginRequired(ProceedingJoinPoint point) {
-        if (point.getTarget() instanceof HealthzController) {
+        Class<?> targetClass = point.getTarget().getClass();
+        Boolean classAllowAnonymousFlag = CLASS_ALLOW_ANONYMOUS_FLAGS.computeIfAbsent(targetClass, cls -> {
+            AllowAnonymous classAnnotation = targetClass.getAnnotation(AllowAnonymous.class);
+            return classAnnotation != null;
+        });
+        if (classAllowAnonymousFlag) {
             return false;
         }
-        if (point.getTarget() instanceof LandingController) {
+        Signature signature = point.getSignature();
+        String signatureKey = signature.toShortString();
+        Boolean methodAllowAnonymousFlag = METHOD_ALLOW_ANONYMOUS_FLAGS.computeIfAbsent(signatureKey, key -> {
+            if (signature instanceof MethodSignature) {
+                MethodSignature methodSignature = (MethodSignature) signature;
+                try {
+                    Method method = targetClass.getMethod(signature.getName(), methodSignature.getParameterTypes());
+                    AllowAnonymous methodAnnotation = method.getAnnotation(AllowAnonymous.class);
+                    return methodAnnotation != null;
+                } catch (Exception e) {
+                    log.error("Failed to get method of {}.{} for login check.", targetClass.getName(), signature.getName(), e);
+                }
+            }
             return false;
-        }
-        if (point.getTarget() instanceof SessionController) {
-            return false;
-        }
-        if (point.getTarget() instanceof SystemController) {
+        });
+        if (methodAllowAnonymousFlag) {
             return false;
         }
         return true;
