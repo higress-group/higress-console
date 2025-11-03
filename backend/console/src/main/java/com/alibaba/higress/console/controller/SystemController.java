@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.aop.AllowAnonymous;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
@@ -67,11 +68,12 @@ public class SystemController {
         this.systemService = systemService;
     }
 
+    @AllowAnonymous
     @PostMapping("/init")
     @Operation(summary = "Initialize")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System initialized successfully."),
-        @ApiResponse(responseCode = "400", description = "Incomplete initialization data."),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+            @ApiResponse(responseCode = "400", description = "Incomplete initialization data."),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<?> initialize(@RequestBody SystemInitRequest request) {
         User adminUser = request.getAdminUser();
         if (adminUser == null) {
@@ -86,20 +88,22 @@ public class SystemController {
         return ControllerUtil.buildSuccessResponseEntity();
     }
 
+    @AllowAnonymous
     @GetMapping("/info")
     @Operation(summary = "Get system info")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System info retrieved successfully."),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<SystemInfo> info() {
         SystemInfo info = systemService.getSystemInfo();
         return ResponseEntity.ok(info);
     }
 
+    @AllowAnonymous
     @GetMapping("/config")
     @Operation(summary = "Get system configurations")
     @ApiResponses(
-        value = {@ApiResponse(responseCode = "200", description = "System configurations retrieved successfully."),
-            @ApiResponse(responseCode = "500", description = "Internal server error")})
+            value = {@ApiResponse(responseCode = "200", description = "System configurations retrieved successfully."),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Map<String, Object>>> getConfigs() {
         List<String> keys = configService.getConfigKeys();
         Map<String, Object> configs;
@@ -131,7 +135,7 @@ public class SystemController {
     @GetMapping("/higress-config")
     @Operation(summary = "Get the content of higress-config ConfigMap")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "higress-config retrieved successfully."),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<String>> getHigressConfig() {
         return ResponseEntity.ok(Response.success(systemService.getHigressConfig()));
     }
@@ -139,9 +143,9 @@ public class SystemController {
     @PutMapping("/higress-config")
     @Operation(summary = "Update the content of higress-config ConfigMap")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "higress-config updated successfully."),
-        @ApiResponse(responseCode = "400", description = "Config data is not valid"),
-        @ApiResponse(responseCode = "409", description = "Config data has been updated by someone else."),
-        @ApiResponse(responseCode = "500", description = "Internal server error")})
+            @ApiResponse(responseCode = "400", description = "Config data is not valid"),
+            @ApiResponse(responseCode = "409", description = "Config data has been updated by someone else."),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<String>> updateHigressConfig(@RequestBody UpdateHigressConfigRequest request) {
         String config = request.getConfig();
         if (StringUtils.isEmpty(config)) {
