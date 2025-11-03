@@ -56,6 +56,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApiStandardizationAspect {
 
+    private static final ConcurrentHashMap<Class<?>, Boolean> CLASS_ALLOW_ANONYMOUS_FLAGS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Boolean> METHOD_ALLOW_ANONYMOUS_FLAGS = new ConcurrentHashMap<>();
+
     private SessionService sessionService;
 
     @Resource
@@ -128,12 +131,9 @@ public class ApiStandardizationAspect {
         }
     }
 
-    private static final ConcurrentHashMap<Class<?>, Boolean> classAllowAnonymousFlags = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, Boolean> methodAllowAnonymousFlags = new ConcurrentHashMap<>();
-
     private static boolean isLoginRequired(ProceedingJoinPoint point) {
         Class<?> targetClass = point.getTarget().getClass();
-        Boolean classAllowAnonymousFlag = classAllowAnonymousFlags.computeIfAbsent(targetClass, cls -> {
+        Boolean classAllowAnonymousFlag = CLASS_ALLOW_ANONYMOUS_FLAGS.computeIfAbsent(targetClass, cls -> {
             AllowAnonymous classAnnotation = targetClass.getAnnotation(AllowAnonymous.class);
             return classAnnotation != null;
         });
@@ -142,7 +142,7 @@ public class ApiStandardizationAspect {
         }
         Signature signature = point.getSignature();
         String signatureKey = signature.toShortString();
-        Boolean methodAllowAnonymousFlag = methodAllowAnonymousFlags.computeIfAbsent(signatureKey, key -> {
+        Boolean methodAllowAnonymousFlag = METHOD_ALLOW_ANONYMOUS_FLAGS.computeIfAbsent(signatureKey, key -> {
             if (signature instanceof MethodSignature) {
                 MethodSignature methodSignature = (MethodSignature) signature;
                 try {
