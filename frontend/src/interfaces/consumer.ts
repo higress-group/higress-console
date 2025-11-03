@@ -1,5 +1,5 @@
 export interface Consumer {
-  name: boolean;
+  name: string;
   credentials: Credential[];
 }
 
