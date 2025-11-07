@@ -74,10 +74,10 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
         // DB 类型数据回填
         if (record?.type === SERVICE_TYPE.DB && record.dbConfig) {
-          formValues.db_type = record.dbConfig.type;
+          formValues.db_type = record.dbType;
           formValues.db_user_name = record.dbConfig.username;
           formValues.db_password = record.dbConfig.password;
-          formValues.db_database = record.dbConfig.database;
+          formValues.db_database = record.dbConfig.dbname; // 兼容 dbname 字段
 
           // 将 otherParams 对象转换为字符串格式
           if (record.dbConfig.otherParams && typeof record.dbConfig.otherParams === 'object') {
@@ -516,7 +516,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                     placeholder={t('mcp.form.transportTypeRequired') || '请选择传输类型'}
                     options={[
                       { label: 'SSE', value: 'sse' },
-                      { label: 'HTTP', value: 'http' },
+                      { label: 'HTTP', value: 'streamable' },
                     ]}
                   />
                 </Form.Item>
