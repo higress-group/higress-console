@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.aop.AllowAnonymous;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.dto.SystemInitRequest;
@@ -67,6 +68,7 @@ public class SystemController {
         this.systemService = systemService;
     }
 
+    @AllowAnonymous
     @PostMapping("/init")
     @Operation(summary = "Initialize")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System initialized successfully."),
@@ -86,6 +88,7 @@ public class SystemController {
         return ControllerUtil.buildSuccessResponseEntity();
     }
 
+    @AllowAnonymous
     @GetMapping("/info")
     @Operation(summary = "Get system info")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "System info retrieved successfully."),
@@ -95,6 +98,7 @@ public class SystemController {
         return ResponseEntity.ok(info);
     }
 
+    @AllowAnonymous
     @GetMapping("/config")
     @Operation(summary = "Get system configurations")
     @ApiResponses(

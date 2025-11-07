@@ -22,11 +22,14 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.aop.AllowAnonymous;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
 @RequestMapping("/landing")
+@AllowAnonymous
 public class LandingController {
 
     private static final String BUILTIN_LANDING_PAGE = "landing/index.html";

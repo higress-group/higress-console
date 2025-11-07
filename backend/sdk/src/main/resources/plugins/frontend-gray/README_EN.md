@@ -16,14 +16,14 @@ Plugin execution priority: `450`
 | `grayKey`       | string            | Optional      | -             | The unique identifier of the user ID, which can be from Cookie or Header, such as userid. If not provided, uses `rules[].grayTagKey` and `rules[].grayTagValue` to filter gray release rules. |
 | `graySubKey`    | string            | Optional      | -             | User identity information may be output in JSON format, for example: `userInfo:{ userCode:"001" }`, in the current example, `graySubKey` is `userCode`. |
 | `rules`         | array of object    | Required      | -             | User-defined different gray release rules, adapted to different gray release scenarios.                      |
-| `rewrite`       | object            | Required      | -             | Rewrite configuration, generally used for OSS/CDN frontend deployment rewrite configurations.                |
+| `rewrite`       | object            | Optional      | -             | Rewrite configuration, generally used for OSS/CDN frontend deployment rewrite configurations.                |
 | `baseDeployment`| object            | Optional      | -             | Configuration of the Base baseline rules.                                                                    |
 | `grayDeployments` | array of object   | Optional      | -             | Configuration of the effective rules for gray release, as well as the effective versions.                     |
 
 `rules` field configuration description:
 | Name             | Data Type         | Requirements  | Default Value | Description                                                                                |
 |------------------|-------------------|---------------|---------------|--------------------------------------------------------------------------------------------|
-| `name`           | string            | Required      | -             | Unique identifier for the rule name, associated with `deploy.gray[].name` for effectiveness. |
+| `name`           | string            | Required      | -             | Unique identifier for the rule name, associated with `grayDeployments[].name` for effectiveness. |
 | `grayKeyValue`   | array of string   | Optional      | -             | Whitelist of user IDs.                                                                    |
 | `grayTagKey`     | string            | Optional      | -             | Label key for user classification tagging, derived from Cookie.                               |
 | `grayTagValue`   | array of string   | Optional      | -             | Label value for user classification tagging, derived from Cookie.                             |
@@ -48,9 +48,9 @@ Plugin execution priority: `450`
 | Name             | Data Type         | Requirements  | Default Value | Description                                                                                  |
 |------------------|-------------------|---------------|---------------|----------------------------------------------------------------------------------------------|
 | `version`        | string            | Required      | -             | Version number of the Gray version, if the gray rules are hit, this version will be used. If it is a non-CDN deployment, add `x-higress-tag` to the header. |
-| `backendVersion` | string            | Required      | -             | Gray version for the backend, which will add `x-mse-tag` to the header of `XHR/Fetch` requests. |
+| `backendVersion` | string            | Optional      | -             | Gray version for the backend, which will add `x-mse-tag` to the header of `XHR/Fetch` requests. |
 | `name`           | string            | Required      | -             | Rule name associated with `rules[].name`.                                                  |
-| `enabled`        | boolean           | Required      | -             | Whether to activate the current gray release rule.                                          |
+| `enabled`        | boolean           | Optional      | -             | Whether to activate the current gray release rule.                                          |
 
 ## Configuration Example
 ### Basic Configuration

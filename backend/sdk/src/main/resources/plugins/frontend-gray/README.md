@@ -19,7 +19,7 @@ description: 前端灰度插件配置参考
 | `grayKey`         | string       | 非必填 | -   | 用户ID的唯一标识，可以来自Cookie或者Header中，比如 userid，如果没有填写则使用`rules[].grayTagKey`和`rules[].grayTagValue`过滤灰度规则 |
 | `graySubKey`    | string       | 非必填 | -   | 用户身份信息可能以JSON形式透出，比如：`userInfo:{ userCode:"001" }`,当前例子`graySubKey`取值为`userCode`                   |
 | `rules`      | array of object | 必填 | -   | 用户定义不同的灰度规则，适配不同的灰度场景                                                                              |
-| `rewrite`      | object | 必填 | -   | 重写配置，一般用于OSS/CDN前端部署的重写配置                                                                           |
+| `rewrite`      | object | 非必填 | -   | 重写配置，一般用于OSS/CDN前端部署的重写配置                                                                           |
 | `baseDeployment` | object   | 非必填 | -   | 配置Base基线规则的配置                                                                                      |
 | `grayDeployments` |  array of object   | 非必填 | -   | 配置Gray灰度的生效规则，以及生效版本                                                                               |
 
@@ -27,7 +27,7 @@ description: 前端灰度插件配置参考
 
 | 名称             | 数据类型         | 填写要求 | 默认值 | 描述                                                                                |
 |----------------|--------------|------|-----|-----------------------------------------------------------------------------------|
-| `name`         | string       | 必填   | -   | 规则名称唯一标识，和`deploy.gray[].name`进行关联生效                                          |
+| `name`         | string       | 必填   | -   | 规则名称唯一标识，和`grayDeployments[].name`进行关联生效                                          |
 | `grayKeyValue`    | array of string       | 非必填   | -   | 用户ID 白名单列表 |
 | `grayTagKey`      | string | 非必填  | -   | 用户分类打标的标签key值，来自Cookie                                                             |
 | `grayTagValue` | array of string   | 非必填  | -   | 用户分类打标的标签value值，来自Cookie                                                         |
@@ -56,9 +56,9 @@ description: 前端灰度插件配置参考
 | 名称     | 数据类型   | 填写要求 | 默认值 | 描述                                              |
 |--------|--------|------|-----|-------------------------------------------------|
 | `version`  | string | 必填   | -   | Gray版本的版本号，如果命中灰度规则，则使用此版本。如果是非CDN部署，在header添加`x-higress-tag`                     |
-| `backendVersion`  | string | 必填   | -   | 后端灰度版本，会在`XHR/Fetch`请求的header头添加 `x-mse-tag`到后端 |
+| `backendVersion`  | string | 非必填   | -   | 后端灰度版本，会在`XHR/Fetch`请求的header头添加 `x-mse-tag`到后端 |
 | `name` | string | 必填   | -   | 规则名称和`rules[].name`关联，                          |
-| `enabled`  | boolean   | 必填   | -   | 是否启动当前灰度规则                                      |
+| `enabled`  | boolean   | 非必填   | -   | 是否启动当前灰度规则                                      |
 
 ## 配置示例
 ### 基础配置

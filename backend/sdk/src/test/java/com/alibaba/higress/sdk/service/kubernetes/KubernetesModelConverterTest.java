@@ -54,6 +54,7 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridgeSpec;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1RegistryConfig;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.VPort;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
@@ -1557,8 +1558,7 @@ public class KubernetesModelConverterTest {
         List<V1RegistryConfig> registries = new ArrayList<>();
         spec.setRegistries(registries);
 
-        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
-            null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", new VPort(), "1.0", "http", "test.domain.com", 8080, null, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1582,9 +1582,7 @@ public class KubernetesModelConverterTest {
         registries.add(existingRegistry);
         spec.setRegistries(registries);
 
-        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
-            null, "", new HashMap<>(), null);
-
+        ServiceSource serviceSource = new ServiceSource("testService", new VPort(),"1.0", "http", "test.domain.com", 8080, null, null, null,new HashMap<>(), null);
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
         Assertions.assertNotNull(result);
@@ -1592,6 +1590,7 @@ public class KubernetesModelConverterTest {
         Assertions.assertEquals(serviceSource.getDomain(), result.getDomain());
         Assertions.assertEquals(serviceSource.getType(), result.getType());
         Assertions.assertEquals(serviceSource.getPort(), result.getPort());
+        Assertions.assertEquals(serviceSource.getVport().getDefaultValue(),result.getVport().getDefaultValue());
         Assertions.assertTrue(registries.contains(result));
     }
 
@@ -1613,8 +1612,7 @@ public class KubernetesModelConverterTest {
     public void addV1McpBridgeRegistryTestNullSpecShouldCreateSpecAndAddRegistry() {
         V1McpBridge v1McpBridge = new V1McpBridge();
 
-        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
-            null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService", new VPort(),"1.0", "http", "test.domain.com", 8080, null, null, null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 
@@ -1630,8 +1628,7 @@ public class KubernetesModelConverterTest {
         V1McpBridgeSpec spec = new V1McpBridgeSpec();
         v1McpBridge.setSpec(spec);
 
-        ServiceSource serviceSource = new ServiceSource("testService", "1.0", "http", "test.domain.com", 8080, null,
-            null, null, new HashMap<>(), null);
+        ServiceSource serviceSource = new ServiceSource("testService",new VPort(), "1.0", "http", "test.domain.com", 8080, null, null,null, new HashMap<>(), null);
 
         V1RegistryConfig result = converter.addV1McpBridgeRegistry(v1McpBridge, serviceSource);
 

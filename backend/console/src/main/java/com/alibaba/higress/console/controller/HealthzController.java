@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.aop.AllowAnonymous;
+
 @RestController("HealthzController")
 @RequestMapping("/healthz")
+@AllowAnonymous
 public class HealthzController {
 
     @GetMapping(value = "/ready")
