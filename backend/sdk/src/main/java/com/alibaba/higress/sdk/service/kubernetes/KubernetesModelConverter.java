@@ -327,7 +327,13 @@ public class KubernetesModelConverter {
         metadata.setLabels(MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
             KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE));
 
-        domainConfigMap.data(MapUtil.of(KubernetesConstants.DATA_FIELD, GSON.toJson(route)));
+        String versionBackup = route.getVersion();
+        route.setVersion(null);
+        try {
+            domainConfigMap.data(MapUtil.of(KubernetesConstants.DATA_FIELD, GSON.toJson(route)));
+        } finally {
+            route.setVersion(versionBackup);
+        }
 
         return domainConfigMap;
     }
