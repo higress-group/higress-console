@@ -77,7 +77,16 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           formValues.db_user_name = record.dbConfig.username;
           formValues.db_password = record.dbConfig.password;
           formValues.db_database = record.dbConfig.database;
-          formValues.db_other_params = record.dbConfig.otherParams;
+
+          // 将 otherParams 对象转换为字符串格式
+          if (record.dbConfig.otherParams && typeof record.dbConfig.otherParams === 'object') {
+            const otherParamsStr = Object.entries(record.dbConfig.otherParams)
+              .map(([key, value]) => `${key}=${value}`)
+              .join('&');
+            formValues.db_other_params = otherParamsStr;
+          } else {
+            formValues.db_other_params = record.dbConfig.otherParams || '';
+          }
         }
 
         // 直接路由类型数据回填
@@ -216,13 +225,30 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     // DB 类型特殊处理 - 提交配置对象,不拼接 DSN
     if (values.type === SERVICE_TYPE.DB) {
       const { db_type, db_user_name, db_password, db_database, db_other_params } = values;
+
+      // 将 otherParams 字符串转换为键值对对象
+      let otherParamsObj = {};
+      if (db_other_params && typeof db_other_params === 'string') {
+        // 按照 key1=value1&key2=value2 的格式解析
+        db_other_params.split('&').forEach(param => {
+          const [key, value] = param.split('=');
+          if (key && value !== undefined) {
+            otherParamsObj[key] = value;
+          }
+        });
+      } else if (typeof db_other_params === 'object' && db_other_params !== null) {
+        // 如果已经是对象格式，直接使用
+        otherParamsObj = db_other_params;
+      }
+
       submitData.dbConfig = {
         type: db_type,
         username: db_user_name,
         password: db_password,
         database: db_database,
-        otherParams: db_other_params || '',
+        otherParams: otherParamsObj,
       };
+      submitData.dbType = db_type;
     }
 
     // 直接路由类型特殊处理
