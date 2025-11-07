@@ -870,7 +870,7 @@ public class KubernetesModelConverter {
         return changed;
     }
 
-    private void sortWasmPluginMatchRules(List<MatchRule> matchRules) {
+    private static void sortWasmPluginMatchRules(List<MatchRule> matchRules) {
         if (CollectionUtils.isEmpty(matchRules)) {
             return;
         }
@@ -886,7 +886,7 @@ public class KubernetesModelConverter {
         boolean hasService2 = CollectionUtils.isNotEmpty(r2.getService());
 
         boolean empty1 = !hasDomain1 && !hasIngress1 && !hasService1;
-        boolean empty2 = !hasDomain2 && !hasIngress2 && hasService2;
+        boolean empty2 = !hasDomain2 && !hasIngress2 && !hasService2;
         if (empty1 && empty2) {
             return 0;
         }
@@ -926,7 +926,7 @@ public class KubernetesModelConverter {
 
         int ret = compareStringLists(r1.getIngress(), r2.getIngress());
         if (ret != 0) {
-            return 0;
+            return ret;
         }
         return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
     }
