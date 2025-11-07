@@ -224,7 +224,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
     // DB 类型特殊处理 - 提交配置对象,不拼接 DSN
     if (values.type === SERVICE_TYPE.DB) {
-      const { db_type, db_user_name, db_password, db_database, db_other_params } = values;
+      const { db_type, db_user_name, db_password, db_database, db_other_params, db_server_host, db_server_port } = values;
 
       // 将 otherParams 字符串转换为键值对对象
       let otherParamsObj = {};
@@ -243,7 +243,10 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
       submitData.dbConfig = {
         type: db_type,
+        host: db_server_host,
+        port: db_server_port,
         username: db_user_name,
+        dbname: db_database,
         password: db_password,
         database: db_database,
         otherParams: otherParamsObj,
