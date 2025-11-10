@@ -854,6 +854,33 @@ export const aiModelProviders = [
       },
     ],
   },
+  {
+    label: 'vLLM',
+    value: 'vllm',
+    targetModelList: [],
+    tokenRequired: false,
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const customUrl = record.rawConfigs.vllmCustomUrl;
+      if (!customUrl) {
+        return null;
+      }
+      const customUrls = [customUrl];
+      if (Array.isArray(record.rawConfigs.vllmExtraCustomUrls)) {
+        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls)
+      }
+      return customUrls;
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (rawConfigs && Array.isArray(rawConfigs.vllmCustomUrls)) {
+        rawConfigs.vllmExtraCustomUrls = [...rawConfigs.vllmCustomUrls];
+        rawConfigs.vllmCustomUrl = rawConfigs.vllmExtraCustomUrls.shift();
+        delete rawConfigs.vllmCustomUrls;
+      }
+    },
+  },
 ];
 
 for (const provider of aiModelProviders) {

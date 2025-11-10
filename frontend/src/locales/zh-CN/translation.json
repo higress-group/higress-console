@@ -278,7 +278,8 @@
         "zhipuDomain": "自定义智谱 AI 域名",
         "claudeVersion": "Claude API 版本",
         "claudeCodeMode": "Claude Code 模式（OAuth 令牌）",
-        "zhipuCodePlanMode": "Code Plan 模式"
+        "zhipuCodePlanMode": "Code Plan 模式",
+        "vllmCustomUrl": "自定义 vLLM 服务 BaseURL"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -313,7 +314,12 @@
         "vertexAuthKeyBadRequiredProperty": "Google Cloud 服务账号密钥中缺少必要的属性：{{key}}",
         "geminiSafetyCategoryRequired": "请输入危害类别",
         "geminiSafetyCategoryDuplicated": "存在重复配置的危害类别",
-        "geminiSafetyThresholdRequired": "请输入屏蔽阈值"
+        "geminiSafetyThresholdRequired": "请输入屏蔽阈值",
+        "vllmCustomUrlRequired": "请输入合法的自定义 vLLM 服务 BaseURL",
+        "invalidVllmCustomUrl": "URL 格式不正确：",
+        "vllmCustomUrlMultipleValuesWithIpOnly": "仅支持指定多个使用 IP 和端口的自定义 vLLM 服务 BaseURL",
+        "vllmCustomUrlInconsistentProtocols": "各个自定义 vLLM 服务 BaseURL 所使用的协议不一致",
+        "vllmCustomUrlInconsistentContextPaths": "各个自定义 vLLM 服务 BaseURL 所使用的路径不一致"
       },
       "tooltips": {
         "qwenFileIdsTooltip": "通过文件接口上传至 Dashscope 的文件 ID，其内容将被用做 AI 对话的上下文。",
@@ -332,7 +338,8 @@
         "openaiCustomServicePathPlaceholder": "示例：/v1",
         "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
         "qwenFileIdsPlaceholder": "示例：file-fe-xxx",
-        "zhipuDomainPlaceholder": "示例：api.z.ai（国际版服务）"
+        "zhipuDomainPlaceholder": "示例：api.z.ai（国际版服务）",
+        "vllmCustomUrlPlaceholder": "示例：http://192.168.0.1:8000/v1"
       },
       "openaiServerType": {
         "official": "OpenAI 官方服务",
