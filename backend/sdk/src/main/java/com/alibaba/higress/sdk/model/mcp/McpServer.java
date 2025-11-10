@@ -41,23 +41,23 @@ public class McpServer {
     private ConsumerAuthInfo consumerAuthInfo;
 
     /**
-     * type = "OPEN_API"
+     * tools info for mcp server
      */
     @Schema(description = "Raw configurations in YAML format")
     private String rawConfigurations;
 
     /**
-     * type= "DATABASE"
+     * type = "DATABASE"
      */
-    @Schema(description = "Data Source Name. For DB type server, it is required")
-    private String dsn;
+    @Schema(description = "Database config. For DB type server, it is required")
+    private McpServerDBConfig dbConfig;
 
-    @Schema(description = "Database type",allowableValues = {"MYSQL", "POSTGRESQL", "SQLITE", "CLICKHOUSE"})
+    @Schema(description = "Database type", allowableValues = {"MYSQL", "POSTGRESQL", "SQLITE", "CLICKHOUSE"})
     private McpServerDBTypeEnum dbType;
 
     /**
      * type= "DIRECT_ROUTE"
      */
-    @Schema(description = "The upstream MCP server will redirect requests based on the path prefix.")
-    private String upstreamPathPrefix;
+    @Schema(description = "Direct route config.")
+    private McpServerDirectRouteConfig directRouteConfig;
 }

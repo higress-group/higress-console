@@ -12,12 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.mcp.save;
 
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.alibaba.higress.sdk.exception.BusinessException;
-import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
@@ -26,6 +21,8 @@ import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.mcp.McpServerConfigMapHelper;
+import com.alibaba.higress.sdk.service.mcp.McpServerDBConfigDsnConverter;
+import com.alibaba.higress.sdk.service.mcp.McpServerDBConfigValidator;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,20 +48,16 @@ public class DatabaseSaveStrategy extends AbstractMcpServerSaveStrategy {
     }
 
     private void validate(McpServer mcpInstance) {
-        if (StringUtils.isBlank(mcpInstance.getDsn())) {
-            throw new ValidationException("dsn cannot be blank.");
-        }
-        if (Objects.isNull(mcpInstance.getDbType())) {
-            throw new ValidationException("dbType is null.");
-        }
+        McpServerDBConfigValidator.validate(mcpInstance.getDbConfig(), mcpInstance.getDbType());
     }
 
     private void addOrUpdateServersConfig(McpServer mcpInstance) {
         validate(mcpInstance);
 
+        String dsn = McpServerDBConfigDsnConverter.toDsn(mcpInstance.getDbConfig(), mcpInstance.getDbType());
         try {
             McpServerConfigMap.DBServerConfig dbConfig = new McpServerConfigMap.DBServerConfig();
-            dbConfig.setDsn(mcpInstance.getDsn());
+            dbConfig.setDsn(dsn);
             dbConfig.setDbType(mcpInstance.getDbType().getValue());
 
             mcpServerConfigMapHelper.updateServerConfig(severs -> {

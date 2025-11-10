@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.alibaba.higress.sdk.model.mcp.McpServerDBConfig;
+import com.alibaba.higress.sdk.service.mcp.McpServerDBConfigDsnConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
@@ -67,8 +69,9 @@ public class DatabaseDetailStrategy extends AbstractMcpServerDetailStrategy {
             mcpConfig.getServers().stream().filter(i -> StringUtils.equals(i.getName(), name)).findFirst();
         if (first.isPresent()) {
             McpServerConfigMap.Server server = first.get();
-            result.setDsn(server.getConfig().getDsn());
             result.setDbType(McpServerDBTypeEnum.fromValue(server.getConfig().getDbType()));
+            McpServerDBConfig dbConfig = McpServerDBConfigDsnConverter.fromDsn(server.getConfig().getDsn(), result.getDbType());
+            result.setDbConfig(dbConfig);
             result.setRawConfigurations(buildDatabaseToolsConfig(name, server.getConfig().getDbType()));
         }
     }

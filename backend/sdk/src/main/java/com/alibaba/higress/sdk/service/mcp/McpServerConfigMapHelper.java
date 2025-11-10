@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
+import static com.alibaba.higress.sdk.constant.KubernetesConstants.HIGRESS_CONFIG;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -43,6 +44,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 
 /**
@@ -87,13 +89,13 @@ public class McpServerConfigMapHelper {
 
     public void updateServerConfig(Consumer<List<McpServerConfigMap.Server>> updateFunction) {
         try {
-            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             McpServerConfigMap mcpConfig = getMcpConfig(configMap);
             updateFunction.accept(mcpConfig.getServers());
 
             updateMcpConfig2ConfigMap(configMap, mcpConfig);
         } catch (Exception e) {
-            throw new BusinessException("Failed to update " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
         }
     }
 
@@ -123,6 +125,16 @@ public class McpServerConfigMapHelper {
         } catch (Exception e) {
             throw new BusinessException("Failed to get mcp config.", e);
         }
+    }
+
+    public McpServerConfigMap getMcpConfig() {
+        V1ConfigMap configMap = null;
+        try {
+            configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
+        } catch (ApiException e) {
+            throw new BusinessException("Failed to load " + HIGRESS_CONFIG + " config map.", e);
+        }
+        return getMcpConfig(configMap);
     }
 
     /**
@@ -202,7 +214,7 @@ public class McpServerConfigMapHelper {
 
             kubernetesClientService.replaceConfigMap(configMap);
         } catch (Exception e) {
-            throw new BusinessException("Failed to update " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
         }
     }
 
@@ -221,7 +233,7 @@ public class McpServerConfigMapHelper {
 
     public void updateMatchList(Consumer<List<Map<String, Object>>> updateFunction) {
         try {
-            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             if (configMap != null && configMap.getData() != null) {
                 String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
                 Map<String, Object> higressConfig =
@@ -241,7 +253,7 @@ public class McpServerConfigMapHelper {
                 kubernetesClientService.replaceConfigMap(configMap);
             }
         } catch (Exception e) {
-            throw new BusinessException("Failed to update " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
         }
     }
 
@@ -260,9 +272,9 @@ public class McpServerConfigMapHelper {
 
     public void initMcpServerConfig() {
         try {
-            V1ConfigMap configMap = kubernetesClientService.readConfigMap(KubernetesConstants.HIGRESS_CONFIG);
+            V1ConfigMap configMap = kubernetesClientService.readConfigMap(HIGRESS_CONFIG);
             if (Objects.isNull(configMap) || Objects.isNull(configMap.getData())) {
-                throw new NotFoundException("configMap is empty for name = " + KubernetesConstants.HIGRESS_CONFIG);
+                throw new NotFoundException("configMap is empty for name = " + HIGRESS_CONFIG);
             }
 
             String higressConfigYaml = configMap.getData().get(MCP_CONFIG_KEY);
@@ -307,7 +319,7 @@ public class McpServerConfigMapHelper {
             Objects.requireNonNull(configMap.getData()).put(MCP_CONFIG_KEY, updatedHigressConfigYaml);
             kubernetesClientService.replaceConfigMap(configMap);
         } catch (Exception e) {
-            throw new BusinessException("Failed to update " + KubernetesConstants.HIGRESS_CONFIG + " config map.", e);
+            throw new BusinessException("Failed to update " + HIGRESS_CONFIG + " config map.", e);
         }
     }
 }

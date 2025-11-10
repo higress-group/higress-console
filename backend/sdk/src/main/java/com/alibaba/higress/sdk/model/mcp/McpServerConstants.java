@@ -30,6 +30,9 @@ public class McpServerConstants {
         public static final String RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY = "higress.io/mcp-server-enable-path-rewrite";
         public static final String RESOURCE_MCP_SERVER_PATH_REWRITE_KEY = "higress.io/mcp-server-path-rewrite-prefix";
 
+        public static final String RESOURCE_MCP_SERVER_UPSTREAM_TRANSPORT_TYPE_KEY =
+            "higress.io/mcp-server-upstream-transport-type";
+
     }
 
     public static final class Label {
