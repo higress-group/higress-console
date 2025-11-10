@@ -12,6 +12,8 @@
  */
 package com.alibaba.higress.sdk.service.mcp;
 
+import static com.alibaba.higress.sdk.constant.KubernetesConstants.HIGRESS_CONFIG;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.McpConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -45,8 +46,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-
-import static com.alibaba.higress.sdk.constant.KubernetesConstants.HIGRESS_CONFIG;
 
 /**
  * @author lvshui
