@@ -904,7 +904,10 @@ public class KubernetesModelConverter {
 
         if (hasService1) {
             // Both of them contain services.
-            return compareStringLists(r1.getService(), r2.getService());
+            int ret = compareStringLists(r1.getService(), r2.getService());
+            if (ret != 0) {
+                return ret;
+            }
         }
 
         // None of them contains services, but one contains some Ingresses, and the other one doesn't.
@@ -915,7 +918,10 @@ public class KubernetesModelConverter {
 
         if (!hasIngress1) {
             // None of them contains Ingress, so both of them contain domains.
-            return compareStringLists(r1.getDomain(), r2.getDomain());
+            int ret = compareStringLists(r1.getDomain(), r2.getDomain());
+            if (ret != 0) {
+                return ret;
+            }
         }
 
         // One contains some domains, but the other one doesn't.
