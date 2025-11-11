@@ -916,24 +916,18 @@ public class KubernetesModelConverter {
             return hasIngress1 ? -1 : 1;
         }
 
-        if (!hasIngress1) {
-            // None of them contains Ingress, so both of them contain domains.
-            int ret = compareStringLists(r1.getDomain(), r2.getDomain());
+        if (hasIngress1) {
+            // Both of them contain Ingress.
+            int ret = compareStringLists(r1.getIngress(), r2.getIngress());
             if (ret != 0) {
                 return ret;
             }
         }
 
-        // One contains some domains, but the other one doesn't.
-        // The one without any domain comes first since we need to match all Ingress rules before any domain rules.
         if (hasDomain1 != hasDomain2) {
             return hasDomain1 ? 1 : -1;
         }
 
-        int ret = compareStringLists(r1.getIngress(), r2.getIngress());
-        if (ret != 0) {
-            return ret;
-        }
         return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
     }
 
