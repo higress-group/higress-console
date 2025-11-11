@@ -391,7 +391,8 @@
         "rewritePathPlaceholder": "e.g.: /a",
         "rewriteType": {
           "PRE": "Prefix Rewrite",
-          "EQUAL": "Exact Rewrite"
+          "EQUAL": "Exact Rewrite",
+          "REGULAR": "Regex Rewrite"
         },
         "host": "Host",
         "originalHost": "Original Host",

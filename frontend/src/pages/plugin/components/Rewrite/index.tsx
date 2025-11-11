@@ -10,18 +10,15 @@ const Rewrite = forwardRef((props, ref) => {
 
   const [form] = Form.useForm();
 
-  const { path = {}, rewrite = {}, domains = [] } = data;
   useEffect(() => {
+    const { path = {}, rewrite = {}, domains = [] } = data;
     form.setFieldsValue({
       origin: {
         matchType: path?.matchType || '',
         path: path?.matchValue || '',
       },
       new: {
-        // 精确匹配->精确重写
-        // 正则匹配->精确重写
-        // 前缀匹配->前缀重写
-        matchType: path?.matchType === 'PRE' ? 'PRE' : 'EQUAL',
+        matchType: path?.matchType || '',
         path: rewrite?.path || '',
       },
       origin_host: domains.length ? domains?.join(',') : '',
@@ -92,6 +89,7 @@ const Rewrite = forwardRef((props, ref) => {
                 <Select disabled style={{ width: '40%' }} placeholder={t('route.routeForm.matchType')}>
                   <Option value="PRE">{t('plugins.builtIns.rewrite.rewriteType.PRE')}</Option>
                   <Option value="EQUAL">{t('plugins.builtIns.rewrite.rewriteType.EQUAL')}</Option>
+                  <Option value="REGULAR">{t('plugins.builtIns.rewrite.rewriteType.REGULAR')}</Option>
                 </Select>
               </Form.Item>
               <Form.Item name={['new', 'path']} noStyle>
