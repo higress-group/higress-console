@@ -876,7 +876,7 @@ public class KubernetesModelConverter {
         return changed;
     }
 
-    private void sortWasmPluginMatchRules(List<MatchRule> matchRules) {
+    private static void sortWasmPluginMatchRules(List<MatchRule> matchRules) {
         if (CollectionUtils.isEmpty(matchRules)) {
             return;
         }
@@ -892,7 +892,7 @@ public class KubernetesModelConverter {
         boolean hasService2 = CollectionUtils.isNotEmpty(r2.getService());
 
         boolean empty1 = !hasDomain1 && !hasIngress1 && !hasService1;
-        boolean empty2 = !hasDomain2 && !hasIngress2 && hasService2;
+        boolean empty2 = !hasDomain2 && !hasIngress2 && !hasService2;
         if (empty1 && empty2) {
             return 0;
         }
@@ -910,7 +910,10 @@ public class KubernetesModelConverter {
 
         if (hasService1) {
             // Both of them contain services.
-            return compareStringLists(r1.getService(), r2.getService());
+            int ret = compareStringLists(r1.getService(), r2.getService());
+            if (ret != 0) {
+                return ret;
+            }
         }
 
         // None of them contains services, but one contains some Ingresses, and the other one doesn't.
@@ -919,21 +922,18 @@ public class KubernetesModelConverter {
             return hasIngress1 ? -1 : 1;
         }
 
-        if (!hasIngress1) {
-            // None of them contains Ingress, so both of them contain domains.
-            return compareStringLists(r1.getDomain(), r2.getDomain());
+        if (hasIngress1) {
+            // Both of them contain Ingress.
+            int ret = compareStringLists(r1.getIngress(), r2.getIngress());
+            if (ret != 0) {
+                return ret;
+            }
         }
 
-        // One contains some domains, but the other one doesn't.
-        // The one without any domain comes first since we need to match all Ingress rules before any domain rules.
         if (hasDomain1 != hasDomain2) {
             return hasDomain1 ? 1 : -1;
         }
 
-        int ret = compareStringLists(r1.getIngress(), r2.getIngress());
-        if (ret != 0) {
-            return 0;
-        }
         return hasDomain1 ? compareStringLists(r1.getDomain(), r2.getDomain()) : 0;
     }
 
