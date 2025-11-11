@@ -59,7 +59,14 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <span>{token}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.map((token: string, index: number) => {
+          return (
+            <span key={token}>
+              {index !== 0 && (<br />)}
+              {token}
+            </span>
+          );
+        });
       },
     },
     {
@@ -102,7 +109,14 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer')
         }
-        return value.map((consumer) => <span>{consumer}</span>).reduce((prev, curr) => [prev, <br />, curr]);
+        return value.map((consumer: string, index: number) => {
+          return (
+            <span key={consumer}>
+              {index !== 0 && (<br />)}
+              {consumer}
+            </span>
+          );
+        });
       },
     },
     {
