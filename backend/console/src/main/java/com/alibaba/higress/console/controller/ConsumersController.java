@@ -92,7 +92,7 @@ public class ConsumersController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> put(@PathVariable("name") @NotBlank String name,
         @RequestBody Consumer consumer) {
-        if (StringUtils.isNotEmpty(consumer.getName())) {
+        if (StringUtils.isEmpty(consumer.getName())) {
             consumer.setName(name);
         } else if (!StringUtils.equals(name, consumer.getName())) {
             throw new ValidationException("Consumer name in the URL doesn't match the one in the body.");
