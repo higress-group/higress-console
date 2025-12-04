@@ -122,6 +122,11 @@ public class ServiceSource implements VersionedDto {
             return false;
         }
 
+        // Check domain contains only alphanumeric characters, dashes and asterisks
+        if (!this.getDomain().matches("[a-zA-Z0-9\\-*]+")) {
+            return false;
+        }
+
         if (this.getPort() == null || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }
