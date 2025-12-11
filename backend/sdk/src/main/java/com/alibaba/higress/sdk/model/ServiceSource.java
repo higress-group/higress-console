@@ -122,6 +122,14 @@ public class ServiceSource implements VersionedDto {
             return false;
         }
 
+        // For non-static and non-DNS types,
+        // check that the domain contains only alphanumeric chars, dashes (-), and asterisks (*).
+        if (!V1McpBridge.REGISTRY_TYPE_STATIC.equals(this.type)
+                && !V1McpBridge.REGISTRY_TYPE_DNS.equals(this.type)
+                && !this.getDomain().matches("^[a-zA-Z0-9\\-.*]+$")) {
+            return false;
+        }
+
         if (this.getPort() == null || !ValidateUtil.checkPort(this.getPort())) {
             return false;
         }

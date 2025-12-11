@@ -301,6 +301,10 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                   required: true,
                   message: t('serviceSource.serviceSourceForm.domainRequired'),
                 },
+                {
+                  pattern: /^[a-zA-Z0-9\-.*]+$/,
+                  message: t('serviceSource.serviceSourceForm.domainPlaceholder'),
+                },
               ]}
             >
               <Input
