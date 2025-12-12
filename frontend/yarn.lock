@@ -2379,6 +2379,11 @@
     workbox-routing "6.4.2"
     workbox-strategies "6.4.2"
 
+"@builder/swc-darwin-arm64@^0.1.0":
+  version "0.1.3"
+  resolved "https://registry.npmmirror.com/@builder/swc-darwin-arm64/-/swc-darwin-arm64-0.1.3.tgz"
+  integrity sha512-Sm69HjiM3bTFjWQqxpA6x9cnvK8c/RJfA9uyN5ypxAjEq8F9O1sV8qrzjmELUqdnSDcjG1DE3VFWNeyjgrA2Qg==
+
 "@builder/swc-loader@^1.0.0":
   version "1.0.1"
   resolved "https://registry.npmmirror.com/@builder/swc-loader/-/swc-loader-1.0.1.tgz"
@@ -2386,11 +2391,6 @@
   dependencies:
     "@builder/swc" "^0.1.0"
     loader-utils "^2.0.0"
-
-"@builder/swc-win32-x64-msvc@^0.1.0":
-  version "0.1.3"
-  resolved "https://registry.npmmirror.com/@builder/swc-win32-x64-msvc/-/swc-win32-x64-msvc-0.1.3.tgz"
-  integrity sha512-BAc63zk6gAm9kvG+lpnevDoeVD7l9QLpM9MYZjTN/UnHhh/zl2lVCVj+ivSI3LpJZNVMG6OLQtAYAtmWNT83cQ==
 
 "@builder/swc@^0.1.0":
   version "0.1.3"
@@ -2616,10 +2616,10 @@
   resolved "https://registry.npmmirror.com/@emotion/unitless/-/unitless-0.7.5.tgz"
   integrity sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==
 
-"@esbuild/win32-x64@0.16.17":
+"@esbuild/darwin-arm64@0.16.17":
   version "0.16.17"
-  resolved "https://registry.npmmirror.com/@esbuild/win32-x64/-/win32-x64-0.16.17.tgz"
-  integrity sha512-y+EHuSchhL7FjHgvQL/0fnnFmO4T1bhvWANX6gcnqTjtnKWbTvUMCpGnv2+t+31d7RzyEAYAd4u2fnIhHL6N/Q==
+  resolved "https://registry.npmmirror.com/@esbuild/darwin-arm64/-/darwin-arm64-0.16.17.tgz"
+  integrity sha512-/2agbUEfmxWHi9ARTX6OQ/KgXnOWfsNlTeLcoV7HSuSTv63E4DqtAc+2XqGw1KHxKMHGZgbVCZge7HXWX9Vn+w==
 
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.4.0"
@@ -3564,10 +3564,10 @@
     "@svgr/plugin-svgo" "^5.5.0"
     loader-utils "^2.0.0"
 
-"@swc/core-win32-x64-msvc@1.3.19":
+"@swc/core-darwin-arm64@1.3.19":
   version "1.3.19"
-  resolved "https://registry.npmmirror.com/@swc/core-win32-x64-msvc/-/core-win32-x64-msvc-1.3.19.tgz"
-  integrity sha512-0X5HqFC1wQlheOQDZeF6KNOSURZKkGISNK3aTSmTq9g7dDJ/kTcVjsdKbu2rK4ibCnlC9IS0cLK9FpROnsVPwA==
+  resolved "https://registry.npmmirror.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.3.19.tgz"
+  integrity sha512-6xLtmXzS4nNWGQkajbiAjGXspUJfxS2IWoGQ16J9nfOFdttKyoIG5o5+mxUfKeg5bXw9cI+r675kN/irx3z7MQ==
 
 "@swc/core@1.3.19":
   version "1.3.19"
@@ -7269,10 +7269,10 @@ es6-promise@^4.1.1:
   resolved "https://registry.npmmirror.com/es6-promise/-/es6-promise-4.2.8.tgz"
   integrity sha512-HJDGx5daxeIvxdBxvG2cb9g4tEvwIk3i8+nhX0yGrYmZUzbkdg8QbDevheDB8gd0//uPj4c1EQua8Q+MViT0/w==
 
-esbuild-windows-64@0.14.54:
+esbuild-darwin-arm64@0.14.54:
   version "0.14.54"
-  resolved "https://registry.npmmirror.com/esbuild-windows-64/-/esbuild-windows-64-0.14.54.tgz"
-  integrity sha512-AoHTRBUuYwXtZhjXZbA1pGfTo8cJo3vZIcWGLiUcTNgHpJJMC1rVA44ZereBHMJtotyN71S8Qw0npiCIkW96cQ==
+  resolved "https://registry.npmmirror.com/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.54.tgz"
+  integrity sha512-OPafJHD2oUPyvJMrsCvDGkRrVCar5aVyHfWGQzY1dWnzErjrDuSETxwA2HSsyg2jORLY8yBfzc1MIpUkXlctmw==
 
 esbuild@^0.14.22:
   version "0.14.54"
@@ -8324,6 +8324,11 @@ fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmmirror.com/fs.realpath/-/fs.realpath-1.0.0.tgz"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
+
+fsevents@^2.3.2, fsevents@~2.3.2:
+  version "2.3.2"
+  resolved "https://registry.npmmirror.com/fsevents/-/fsevents-2.3.2.tgz"
+  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
 
 function-bind@^1.1.1:
   version "1.1.1"
