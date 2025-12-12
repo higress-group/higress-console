@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.model.ai;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,6 +30,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "LLM Service Provider")
 public class LlmProvider {
+
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9-.]*$");
 
     @Schema(description = "Provider name")
     private String name;
@@ -48,6 +51,9 @@ public class LlmProvider {
     public void validate(boolean forUpdate) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name cannot be blank.");
+        }
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            throw new IllegalArgumentException("name cannot contain slashes.");
         }
         if (StringUtils.isBlank(type)) {
             throw new IllegalArgumentException("type cannot be blank.");
