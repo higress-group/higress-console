@@ -31,8 +31,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "LLM Service Provider")
 public class LlmProvider {
 
-    private static final Pattern NAME_PATTERN = Pattern.compile("^[^/]*$");
-
     @Schema(description = "Provider name")
     private String name;
     @Schema(description = "Provider type", ref = "LlmProviderType")
