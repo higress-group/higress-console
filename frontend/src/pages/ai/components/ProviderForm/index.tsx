@@ -305,8 +305,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             message: t('llmProvider.providerForm.rules.serviceNameRequired'),
           },
           {
-            pattern: /^[a-zA-Z0-9-.]*$/,
-            message: t('llmProvider.providerForm.rules.serviceNameInvalid'),
+            pattern: /^[^/]*$/,
+            message: t('llmProvider.providerForm.rules.serviceNameNoSlash'),
           },
         ]}
       >
