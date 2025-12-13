@@ -305,8 +305,12 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             message: t('llmProvider.providerForm.rules.serviceNameRequired'),
           },
           {
-            pattern: /^[^/]*$/,
-            message: t('llmProvider.providerForm.rules.serviceNameNoSlash'),
+            validator: (_, value) => {
+              if (value && value.includes('/')) {
+                return Promise.reject('name is invalid: slashes (/) are not allowed.');
+              }
+              return Promise.resolve();
+            },
           },
         ]}
       >

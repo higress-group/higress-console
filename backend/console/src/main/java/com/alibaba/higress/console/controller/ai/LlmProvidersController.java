@@ -70,9 +70,9 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "400", description = "Route data is not valid"),
         @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider certificate) {
-        certificate.validate(false);
-        LlmProvider newProvider = llmProviderService.addOrUpdate(certificate);
+    public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider provider) {
+        provider.validate(false);
+        LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
         return ControllerUtil.buildResponseEntity(newProvider);
     }
 

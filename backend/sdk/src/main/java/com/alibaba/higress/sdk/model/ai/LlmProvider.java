@@ -52,8 +52,8 @@ public class LlmProvider {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name cannot be blank.");
         }
-        if (!NAME_PATTERN.matcher(name).matches()) {
-            throw new IllegalArgumentException("name cannot contain slashes.");
+        if (name.contains("/")) {
+            throw new IllegalArgumentException("slashes (/) are not allowed in name.");
         }
         if (StringUtils.isBlank(type)) {
             throw new IllegalArgumentException("type cannot be blank.");
