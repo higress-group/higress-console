@@ -278,6 +278,7 @@
         "tokenRequired": "请输入凭证",
         "typeRequired": "请选择大模型供应商",
         "serviceNameRequired": "请输入服务名称",
+        "serviceNameNoSlash": "服务名称不能包含斜杠（/）",
         "failureThresholdRequired": "请输入最小连续请求失败次数",
         "healthCheckTimeoutRequired": "请输入健康检测请求超时时间（毫秒）",
         "healthCheckIntervalRequired": "请输入健康检测请求发起间隔（毫秒）",

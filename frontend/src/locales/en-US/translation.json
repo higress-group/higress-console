@@ -278,6 +278,7 @@
         "tokenRequired": "Please input auth token",
         "typeRequired": "Please select a LLM provider",
         "serviceNameRequired": "Please input service name",
+        "serviceNameNoSlash": "Slashes (/) are not allowed in name",
         "failureThresholdRequired": "Please input min consecuitive failures to mark down a token",
         "healthCheckTimeoutRequired": "Please input health check request timeout (ms)",
         "healthCheckIntervalRequired": "Please input health check request interval (ms)",

@@ -304,6 +304,14 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             required: true,
             message: t('llmProvider.providerForm.rules.serviceNameRequired'),
           },
+          {
+            validator: (_, value) => {
+              if (value && value.includes('/')) {
+                return Promise.reject('name is invalid: slashes (/) are not allowed.');
+              }
+              return Promise.resolve();
+            },
+          },
         ]}
       >
         <Input

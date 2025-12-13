@@ -70,8 +70,9 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "400", description = "Route data is not valid"),
         @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider certificate) {
-        LlmProvider newProvider = llmProviderService.addOrUpdate(certificate);
+    public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider provider) {
+        provider.validate(false);
+        LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
         return ControllerUtil.buildResponseEntity(newProvider);
     }
 
@@ -98,6 +99,7 @@ public class LlmProvidersController {
         } else if (!StringUtils.equals(name, provider.getName())) {
             throw new ValidationException("Provider name in the URL doesn't match the one in the body.");
         }
+        provider.validate(false);
         LlmProvider updatedProvider = llmProviderService.addOrUpdate(provider);
         return ControllerUtil.buildResponseEntity(updatedProvider);
     }
