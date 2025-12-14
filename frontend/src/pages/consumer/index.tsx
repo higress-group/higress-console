@@ -186,16 +186,12 @@ const ConsumerList: React.FC = () => {
             <Form.Item name="keyword" label={t('consumer.columns.name')}>
               <Input
                 placeholder={t('consumer.columns.name')}
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
                 allowClear
               />
             </Form.Item>
             <Form.Item name="keySearch" label="Key">
               <Input
                 placeholder="Key"
-                value={keySearch}
-                onChange={(e) => setKeySearch(e.target.value)}
                 allowClear
               />
             </Form.Item>
