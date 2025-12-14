@@ -5,7 +5,7 @@ import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/ser
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Drawer, Form, Input, message, Modal, Space, Table, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ConsumerForm from './components/ConsumerForm';
