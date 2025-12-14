@@ -159,13 +159,31 @@ const ConsumerList: React.FC = () => {
     form.resetFields();
   };
 
+  // Helper function to check if a credential matches the search term
+  function credentialMatchesSearch(credential: any, search: string): boolean {
+    if (!credential || !search) return false;
+    const lowerSearch = search.toLowerCase();
+    // Check common fields for different credential types
+    // Adjust field names as needed based on your credential structure
+    const fieldsToCheck = [
+      'key', 'value', 'username', 'password', 'token', 'secret', 'id', 'client_id', 'client_secret'
+    ];
+    for (const field of fieldsToCheck) {
+      if (credential[field] && String(credential[field]).toLowerCase().includes(lowerSearch)) {
+        return true;
+      }
+    }
+    // Optionally, check nested fields or other structures if needed
+    return false;
+  }
+
   const dataSource = allConsumers.filter((item) => {
     let matches = true;
     if (keyword) {
       matches = item.name.toLowerCase().includes(keyword.toLowerCase());
     }
     if (matches && keySearch) {
-      matches = item.credentials?.some(c => JSON.stringify(c).toLowerCase().includes(keySearch.toLowerCase()));
+      matches = item.credentials?.some(c => credentialMatchesSearch(c, keySearch));
     }
     return matches;
   });
