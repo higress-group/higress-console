@@ -20,7 +20,7 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
   loader.config({ monaco });
 
   const editorRef = useRef<any>(null);
-  const [height, setHeight] = React.useState(editorHeight || '370px');
+  const [height, setHeight] = React.useState(autoHeight ? '0px' : (editorHeight || '370px'));
 
   function handleEditorChange(value) {
     onChange && onChange(value);
