@@ -8,6 +8,7 @@ export interface IProps {
   extraOptions?: any;
   editorHeight?: string;
   defaultLanguage?: string;
+  autoHeight?: boolean;
 }
 
 export interface CodeEditorRef {
@@ -15,10 +16,11 @@ export interface CodeEditorRef {
 }
 
 const CodeEditor = forwardRef((props: IProps, ref) => {
-  const { defaultValue, onChange, extraOptions, editorHeight, defaultLanguage } = props;
+  const { defaultValue, onChange, extraOptions, editorHeight, defaultLanguage, autoHeight } = props;
   loader.config({ monaco });
 
   const editorRef = useRef<any>(null);
+  const [height, setHeight] = React.useState(editorHeight || '370px');
 
   function handleEditorChange(value) {
     onChange && onChange(value);
@@ -27,6 +29,13 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
   // 保存 editor 实例
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
+    if (autoHeight) {
+      editor.onDidContentSizeChange(() => {
+        setHeight(`${editor.getContentHeight()}px`);
+      });
+      // Initialize height
+      setHeight(`${editor.getContentHeight()}px`);
+    }
   };
 
   // defaultValue 变化时，手动 setValue
@@ -59,13 +68,14 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
   return (
     <div className="editor-container">
       <Editor
-        height={editorHeight || '370px'}
+        height={autoHeight ? height : (editorHeight || '370px')}
         defaultLanguage={defaultLanguage || 'yaml'}
         defaultValue={defaultValue}
         options={{
           minimap: {
             enabled: false,
           },
+          scrollBeyondLastLine: !autoHeight,
           ...extraOptions,
         }}
         onMount={handleEditorDidMount}
