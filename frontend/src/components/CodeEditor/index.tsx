@@ -6,8 +6,16 @@ export interface IProps {
   defaultValue: string;
   onChange?: (v: string) => void;
   extraOptions?: any;
+  /**
+   * Height of the editor.
+   * NOTE: If `autoHeight` is true, this prop is ignored as the height will be determined by content.
+   */
   editorHeight?: string;
   defaultLanguage?: string;
+  /**
+   * If true, the editor will automatically resize to fit its content.
+   * This takes precedence over `editorHeight`.
+   */
   autoHeight?: boolean;
 }
 
@@ -26,17 +34,27 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
     onChange && onChange(value);
   }
 
+  const subscriptionRef = useRef<monaco.IDisposable | null>(null);
+
   // 保存 editor 实例
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
     if (autoHeight) {
-      editor.onDidContentSizeChange(() => {
+      subscriptionRef.current = editor.onDidContentSizeChange(() => {
         setHeight(`${editor.getContentHeight()}px`);
       });
       // Initialize height
       setHeight(`${editor.getContentHeight()}px`);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+      }
+    };
+  }, []);
 
   // defaultValue 变化时，手动 setValue
   useEffect(() => {
