@@ -142,7 +142,9 @@
     "randomGeneration": "Generate",
     "headerName": "Header Name",
     "paramName": "Param Name",
-    "deleteSuccess": "Deleted successfully."
+    "deleteSuccess": "Deleted successfully.",
+    "search": "Search",
+    "key": "Key"
   },
   "domain": {
     "columns": {

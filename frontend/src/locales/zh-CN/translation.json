@@ -142,7 +142,9 @@
     "randomGeneration": "随机生成",
     "headerName": "Header 名称",
     "paramName": "参数名称",
-    "deleteSuccess": "删除成功"
+    "deleteSuccess": "删除成功",
+    "search": "查询",
+    "key": "Key"
   },
   "domain": {
     "columns": {
