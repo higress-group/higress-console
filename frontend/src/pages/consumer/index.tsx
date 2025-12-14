@@ -5,7 +5,7 @@ import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/ser
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, message, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ConsumerForm from './components/ConsumerForm';
@@ -72,7 +72,9 @@ const ConsumerList: React.FC = () => {
 
   const [form] = Form.useForm();
   const formRef = useRef<FormRef>(null);
-  const [dataSource, setDataSource] = useState<Consumer[]>([]);
+  const [allConsumers, setAllConsumers] = useState<Consumer[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [keySearch, setKeySearch] = useState('');
   const [currentConsumer, setCurrentConsumer] = useState<Consumer>({} as Consumer);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -86,7 +88,7 @@ const ConsumerList: React.FC = () => {
         return i1.name.localeCompare(i2.name);
       })
       consumers.forEach(c => c.key = c.key || c.name);
-      setDataSource(consumers);
+      setAllConsumers(consumers);
     },
   });
 
@@ -151,41 +153,80 @@ const ConsumerList: React.FC = () => {
     setCurrentConsumer(null);
   };
 
+  const handleReset = () => {
+    setKeyword('');
+    setKeySearch('');
+    form.resetFields();
+  };
+
+  const dataSource = allConsumers.filter((item) => {
+    let matches = true;
+    if (keyword) {
+      matches = item.name.toLowerCase().includes(keyword.toLowerCase());
+    }
+    if (matches && keySearch) {
+      matches = item.credentials?.some(c => JSON.stringify(c).toLowerCase().includes(keySearch.toLowerCase()));
+    }
+    return matches;
+  });
+
   return (
     <PageContainer>
       <Form
         form={form}
         style={{
           background: '#fff',
-          height: 64,
-          paddingTop: 16,
+          padding: '16px 16px 0 16px',
           marginBottom: 16,
-          paddingLeft: 16,
-          paddingRight: 16,
         }}
+        layout="inline"
       >
-        <Row gutter={24}>
-          <Col span={4}>
+        <Space wrap style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space wrap>
+            <Form.Item name="keyword" label={t('consumer.columns.name')}>
+              <Input
+                placeholder={t('consumer.columns.name')}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="keySearch" label="Key">
+              <Input
+                placeholder="Key"
+                value={keySearch}
+                onChange={(e) => setKeySearch(e.target.value)}
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button onClick={handleReset}>{t('misc.reset')}</Button>
+              </Space>
+            </Form.Item>
+          </Space>
+          <Space>
             <Button
               type="primary"
               onClick={onShowDrawer}
             >
               {t('consumer.create')}
             </Button>
-          </Col>
-          <Col span={20} style={{ textAlign: 'right' }}>
             <Button
               icon={<RedoOutlined />}
               onClick={refresh}
             />
-          </Col>
-        </Row>
+          </Space>
+        </Space>
       </Form>
       <Table
         loading={loading}
         dataSource={dataSource}
         columns={columns}
-        pagination={false}
+        pagination={{
+          showSizeChanger: true,
+          showTotal: (total) => `${t('misc.total')} ${total}`,
+        }}
       />
       <Drawer
         title={t(currentConsumer ? "consumer.edit" : "consumer.create")}
