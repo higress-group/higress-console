@@ -363,6 +363,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
               style={{ marginLeft: 8 }}
               onClick={refreshServices}
               icon={<RedoOutlined />}
+              aria-label={t('route.routeForm.refreshServices')}
             />
           </div>
         </Form.Item>
