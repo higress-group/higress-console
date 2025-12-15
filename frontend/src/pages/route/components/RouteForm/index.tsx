@@ -38,8 +38,8 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const [domainOptions, setDomainOptions] = useState<OptionItem[]>([]);
   const [authConfig_enabled, setAuthConfigEnabled] = useState(false);
   const servicesRef = useRef(new Map());
-  const { data: _services = [] } = useRequest(getGatewayServices);
-  const { data: _domains = [] } = useRequest(getGatewayDomains);
+  const { data: _services = [], refresh: refreshServices } = useRequest(getGatewayServices);
+  const { data: _domains = [], refresh: refreshDomains } = useRequest(getGatewayDomains);
 
   const [consumerList, setConsumerList] = useState<Consumer[]>([]);
   const consumerResult = useRequest(getConsumers, {
@@ -165,15 +165,27 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       </Form.Item>
       <Form.Item
         label={t('route.routeForm.domain')}
-        name="domains"
       >
-        <Select
-          showSearch
-          allowClear
-          mode="multiple"
-          placeholder={t('route.routeForm.domainSearchPlaceholder')}
-          options={domainOptions}
-        />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Form.Item
+            name="domains"
+            noStyle
+          >
+            <Select
+              showSearch
+              allowClear
+              mode="multiple"
+              placeholder={t('route.routeForm.domainSearchPlaceholder')}
+              options={domainOptions}
+              style={{ flex: 1 }}
+            />
+          </Form.Item>
+          <Button
+            style={{ marginLeft: 8 }}
+            onClick={refreshDomains}
+            icon={<RedoOutlined />}
+          />
+        </div>
       </Form.Item>
       <Form.Item
         label={t('route.routeForm.matchType')}
@@ -325,21 +337,33 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         <Form.Item
           label={t('route.routeForm.targetService')}
           required
-          name="services"
-          rules={[
-            {
-              required: true,
-              message: t('route.routeForm.targetServiceRequired') || '',
-            },
-          ]}
         >
-          <Select
-            mode="multiple"
-            showSearch
-            allowClear
-            placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
-            options={serviceOptions}
-          />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Form.Item
+              name="services"
+              noStyle
+              rules={[
+                {
+                  required: true,
+                  message: t('route.routeForm.targetServiceRequired') || '',
+                },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                showSearch
+                allowClear
+                placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
+                options={serviceOptions}
+                style={{ flex: 1 }}
+              />
+            </Form.Item>
+            <Button
+              style={{ marginLeft: 8 }}
+              onClick={refreshServices}
+              icon={<RedoOutlined />}
+            />
+          </div>
         </Form.Item>
       </Form.Item>
     </Form>
