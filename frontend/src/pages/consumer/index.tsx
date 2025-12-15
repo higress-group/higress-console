@@ -161,14 +161,13 @@ const ConsumerList: React.FC = () => {
 
   const dataSource = React.useMemo(() => {
     return allConsumers.filter((item) => {
-      let matches = true;
-      if (keyword) {
-        matches = item.name.toLowerCase().includes(keyword.toLowerCase());
+      if (keyword && !item.name.toLowerCase().includes(keyword.toLowerCase())) {
+        return false;
       }
-      if (matches && keySearch) {
-        matches = item.credentials?.some(c => JSON.stringify(c).toLowerCase().includes(keySearch.toLowerCase()));
+      if (keySearch && !item.credentials?.some(c => JSON.stringify(c).toLowerCase().includes(keySearch.toLowerCase()))) {
+        return false;
       }
-      return matches;
+      return true;
     });
   }, [allConsumers, keyword, keySearch]);
 
@@ -178,14 +177,14 @@ const ConsumerList: React.FC = () => {
         form={form}
         style={{
           background: '#fff',
-          padding: '16px 16px 0 16px',
+          padding: '24px',
           marginBottom: 16,
         }}
         layout="inline"
       >
         <Space wrap style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space wrap>
-            <Form.Item name="keyword" label={t('consumer.columns.name')}>
+          <Space wrap size={24}>
+            <Form.Item name="keyword" label={t('consumer.columns.name')} style={{ marginBottom: 0 }}>
               <Input
                 placeholder={t('consumer.columns.name')}
                 value={keyword}
@@ -193,15 +192,15 @@ const ConsumerList: React.FC = () => {
                 allowClear
               />
             </Form.Item>
-            <Form.Item name="keySearch" label={t('consumer.columns.key')}>
+            <Form.Item name="keySearch" label={t('consumer.key')} style={{ marginBottom: 0 }}>
               <Input
-                placeholder={t('consumer.columns.key')}
+                placeholder={t('consumer.key')}
                 value={keySearch}
                 onChange={(e) => setKeySearch(e.target.value)}
                 allowClear
               />
             </Form.Item>
-            <Form.Item>
+            <Form.Item style={{ marginBottom: 0 }}>
               <Space>
                 <Button onClick={handleReset}>{t('misc.reset')}</Button>
               </Space>

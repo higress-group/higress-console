@@ -785,6 +785,7 @@
     "deleteSuccess": "Deleted successfully",
     "saveSuccess": "Saved successfully.",
     "detail": "Detail",
+    "total": "Total",
     "keyAuthOnlyTip": "Currently only Key Auth is supported",
     "authType": "Auth Type"
   },

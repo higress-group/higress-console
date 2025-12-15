@@ -144,7 +144,7 @@
     "paramName": "参数名称",
     "deleteSuccess": "删除成功",
     "search": "查询",
-    "key": "Key"
+    "key": "密钥"
   },
   "domain": {
     "columns": {
@@ -785,6 +785,7 @@
     "deleteSuccess": "删除成功",
     "saveSuccess": "保存成功",
     "detail": "详情",
+    "total": "共",
     "keyAuthOnlyTip": "目前仅支持 Key Auth 认证",
     "authType": "认证方式"
   },
