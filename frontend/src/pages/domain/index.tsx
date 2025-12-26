@@ -12,14 +12,14 @@ import {
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import {Button, Col, Drawer, Form, message, Modal, Row, Space, Table} from 'antd';
+import { Button, Col, Drawer, Form, message, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import DomainForm from './components/DomainForm';
 import { history } from 'ice';
 import { getI18nValue } from "@/pages/plugin/utils";
 import i18n from '@/i18n';
-import {WasmPluginData} from "@/interfaces/wasm-plugin";
+import { WasmPluginData } from "@/interfaces/wasm-plugin";
 
 
 interface DomainFormProps {
@@ -162,8 +162,8 @@ const DomainList: React.FC = () => {
         const pluginInfos = plugins.map((plugin: { pluginName: string; description: string; }) => {
           const isMatchingInfo = (info: WasmPluginData) => info.name === plugin.pluginName;
           const pluginInfo = pluginInfoList.find(isMatchingInfo);
-          const title = pluginInfo?.title?? plugin.pluginName?? '';
-          const description = pluginInfo?.description?? plugin.description?? '';
+          const title = pluginInfo?.title ?? plugin.pluginName ?? '';
+          const description = pluginInfo?.description ?? plugin.description ?? '';
           return {
             ...plugin,
             title,
@@ -273,16 +273,16 @@ const DomainList: React.FC = () => {
             if (expanded) {
               setExpandedKeys([...expandedKeys, record.name]);
             } else {
-              setExpandedKeys(expandedKeys.filter(key => key!== record.name));
+              setExpandedKeys(expandedKeys.filter(key => key !== record.name));
             }
             await onShowStrategyList(record, expanded);
           },
           rowExpandable: (record) => {
-            return record.name!== DEFAULT_DOMAIN;
+            return record.name !== DEFAULT_DOMAIN;
           },
           expandedRowRender: (record) => {
             const plugins = (pluginData[record.name] || []).filter(plugin => plugin.enabled);
-            return  (
+            return (
               <Table
                 dataSource={plugins}
                 columns={[
@@ -291,13 +291,15 @@ const DomainList: React.FC = () => {
                     render: (_, plugin) => {
                       return getI18nValue(plugin, 'title');
                     },
-                    key: 'title' },
+                    key: 'title'
+                  },
                   {
                     title: t('plugins.description'),
                     render: (_, plugin) => {
                       return getI18nValue(plugin, 'description');
                     },
-                    key: 'description' },
+                    key: 'description'
+                  },
                 ]}
                 pagination={false}
                 rowKey={(plugin) => `${plugin.name}`}
@@ -334,6 +336,7 @@ const DomainList: React.FC = () => {
         width={660}
         onClose={handleDrawerCancel}
         open={openDrawer}
+        destroyOnClose={true}
         extra={
           <Space>
             <Button onClick={handleDrawerCancel}>{t('misc.cancel')}</Button>
