@@ -28,9 +28,9 @@ export const DOMAIN_PROTOCOL_MAP = {
 // 数据库连接字符串正则 eg: mysql:user:pass@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
 export const REG_DSN_STRING = {
   // username:password@tcp(host:port)/dbname?param1=value1&param2=value2
-  MYSQL: /^(\w+):([^@]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
+  MYSQL: /^(\w+):([^:]+)@tcp\(([^:]+):(\d+)\)\/([^?]+)\?(.+)$/,
   // postgres://username:password@host:port/dbname
-  POSTGRESQL: /^postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)$/,
+  POSTGRESQL: /^postgres:\/\/([^:]+):([^:]+)@([^:]+):(\d+)\/([^?]+)$/,
   // tcp://localhost:9000?database=default&username=default&password=
   CLICKHOUSE: /^tcp:\/\/([^:]+):(\d+)\?database=([^&]+)&username=([^&]*)&password=([^&]*)/,
 };
