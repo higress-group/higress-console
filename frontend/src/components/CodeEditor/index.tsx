@@ -28,30 +28,39 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
   loader.config({ monaco });
 
   const editorRef = useRef<any>(null);
-  const [height, setHeight] = React.useState(autoHeight ? '0px' : (editorHeight || '370px'));
+  const containerRef = useRef<HTMLDivElement>(null);
 
   function handleEditorChange(value) {
     onChange && onChange(value);
   }
 
-  const subscriptionRef = useRef<monaco.IDisposable | null>(null);
+  const disposableRef = useRef<monaco.IDisposable | null>(null);
 
   // 保存 editor 实例
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
-    if (autoHeight) {
-      subscriptionRef.current = editor.onDidContentSizeChange(() => {
-        setHeight(`${editor.getContentHeight()}px`);
-      });
-      // Initialize height
-      setHeight(`${editor.getContentHeight()}px`);
+
+    if (autoHeight && containerRef.current) {
+      // 使用 ResizeObserver 监听编辑器内容变化，动态调整容器高度
+      const updateHeight = () => {
+        const contentHeight = editor.getContentHeight();
+        if (containerRef.current) {
+          containerRef.current.style.height = `${contentHeight}px`;
+        }
+      };
+
+      // 初始化高度
+      updateHeight();
+
+      // 监听内容大小变化
+      disposableRef.current = editor.onDidContentSizeChange(updateHeight);
     }
   };
 
   useEffect(() => {
     return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.dispose();
+      if (disposableRef.current) {
+        disposableRef.current.dispose();
       }
     };
   }, []);
@@ -83,19 +92,38 @@ const CodeEditor = forwardRef((props: IProps, ref) => {
     };
   });
 
+  const editorOptions = {
+    minimap: {
+      enabled: false,
+    },
+    scrollBeyondLastLine: false,
+    ...(autoHeight ? {
+      // 自动高度模式下的特殊配置
+      scrollbar: {
+        // 允许滚动事件冒泡到页面，这样当编辑器内容超出视口时可以滚动页面
+        alwaysConsumeMouseWheel: false,
+        vertical: 'hidden' as const,
+        horizontal: 'auto' as const,
+      },
+      overviewRulerLanes: 0,
+    } : {}),
+    ...extraOptions,
+  };
+
   return (
-    <div className="editor-container">
+    <div
+      ref={containerRef}
+      className="editor-container"
+      style={autoHeight ? {
+        minHeight: '100px',
+        overflow: 'visible',
+      } : undefined}
+    >
       <Editor
-        height={autoHeight ? height : (editorHeight || '370px')}
+        height={autoHeight ? '100%' : (editorHeight || '370px')}
         defaultLanguage={defaultLanguage || 'yaml'}
         defaultValue={defaultValue}
-        options={{
-          minimap: {
-            enabled: false,
-          },
-          scrollBeyondLastLine: !autoHeight,
-          ...extraOptions,
-        }}
+        options={editorOptions}
         onMount={handleEditorDidMount}
         onChange={(val) => {
           handleEditorChange(val);
