@@ -19,7 +19,7 @@ export default function Document() {
             "img-src 'self' data:; " +
             "font-src 'self' data:; " +
             "connect-src 'self'; " +
-            "frame-ancestors 'none';"
+            "frame-src *; "
           }
         />
         <Meta />
