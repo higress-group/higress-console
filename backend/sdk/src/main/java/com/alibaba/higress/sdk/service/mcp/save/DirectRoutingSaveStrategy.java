@@ -69,17 +69,24 @@ public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
         if (Objects.isNull(directRouteConfig)) {
             return;
         }
-        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY,
-            McpConstants.UPSTREAM_MCP_SERVER_TYPE);
+        if (StringUtils.equalsIgnoreCase(McpConstants.MCP_TRANSPORT_STREAMABLE, directRouteConfig.getTransportType())) {
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY,
+                McpConstants.MCP_TRANSPORT_STREAMABLE);
+        } else {
+            annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TYPE_KEY,
+                McpConstants.UPSTREAM_MCP_SERVER_TYPE);
+        }
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_UPSTREAM_TRANSPORT_TYPE_KEY,
             directRouteConfig.getTransportType());
         annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_ENABLE_REWRITE_KEY,
             Boolean.TRUE.toString());
 
-        // rewrite upstream sse event endpoint( all path ) to /mcp-servers/name/**
-        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY, "/");
-        // rewrite /mcp-servers/name to mcpInstance.getDirectRouteConfig().getPath()
         String upstreamPathPrefix = generateUpstreamPathPrefix(directRouteConfig);
+
+        // rewrite upstream sse event endpoint( all path ) to /mcp-servers/name/**
+        annotationsMap.put(McpServerConstants.Annotation.RESOURCE_MCP_SERVER_PATH_REWRITE_KEY, upstreamPathPrefix);
+
+        // rewrite /mcp-servers/name to mcpInstance.getDirectRouteConfig().getPath()
         RewriteConfig rewriteConfig = RewriteConfig.builder().path(upstreamPathPrefix).enabled(Boolean.TRUE).build();
         // default rewrite host
         String serviceDomainName = getServiceDomainName(upstreamService);
