@@ -103,8 +103,8 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         LlmProviderProtocol protocol = LlmProviderProtocol.fromValue(provider.getProtocol());
         if (protocol == null) {
             protocol = LlmProviderProtocol.DEFAULT;
-            configurations.put(PROTOCOL, protocol.getPluginValue());
         }
+        configurations.put(PROTOCOL, protocol.getPluginValue());
 
         List<String> tokens = provider.getTokens();
         if (CollectionUtils.isNotEmpty(tokens)) {
