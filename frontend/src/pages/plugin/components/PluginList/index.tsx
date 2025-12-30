@@ -52,59 +52,49 @@ const PluginList = forwardRef((props: Props, ref) => {
       if (Array.isArray(hiddenPlugins)) {
         plugins = plugins.filter(p => !p.builtIn || hiddenPlugins.indexOf(p.name) === -1);
       }
-      if (type === QueryType.ROUTE) {
-        const routeName = searchParams.get('name');
-        if (routeName) {
-          const currentRoute = await getGatewayRouteDetail(routeName);
-          if (!currentRoute) {
-            plugins = BUILTIN_ROUTE_PLUGIN_LIST.concat(plugins);
-            setPluginList(plugins);
-            return
-          }
-
-          const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
-          const builtInPlugins: WasmPluginData[] = BUILTIN_ROUTE_PLUGIN_LIST.map((plugin) => {
-            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
-            return {
-              ...plugin,
-              name: plugin.key,
-              enabled: foundPlugin ? foundPlugin.enabled : false,
-            };
-          });
-          const updatedPlugins = result.map((plugin: { name: string }) => {
-            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
-            return {
-              ...plugin,
-              enabled: foundPlugin ? foundPlugin.enabled : false,
-            };
-          });
-          plugins = builtInPlugins.concat(updatedPlugins)
+      const name = searchParams.get('name');
+      if (!name) {
+        return;
+      }
+      if (type === QueryType.ROUTE || type === QueryType.AI_ROUTE) {
+        let builtInRoutePluginList = BUILTIN_ROUTE_PLUGIN_LIST;
+        let routeName = name;
+        if (type === QueryType.AI_ROUTE) {
+          routeName = `ai-route-${routeName}.internal`;
+          builtInRoutePluginList = builtInRoutePluginList.filter(p => p.enabledInAiRoute !== false);
         }
+        const currentRoute = await getGatewayRouteDetail(routeName);
+        if (!currentRoute) {
+          plugins = builtInRoutePluginList.concat(plugins);
+          setPluginList(plugins);
+          return
+        }
+        const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
+        const builtInPlugins: WasmPluginData[] = builtInRoutePluginList.map((plugin) => {
+          const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
+          return {
+            ...plugin,
+            name: plugin.key,
+            enabled: foundPlugin ? foundPlugin.enabled : false,
+          };
+        });
+        const updatedPlugins = result.map((plugin: { name: string }) => {
+          const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
+          return {
+            ...plugin,
+            enabled: foundPlugin ? foundPlugin.enabled : false,
+          };
+        });
+        plugins = builtInPlugins.concat(updatedPlugins);
       } else if (type === QueryType.DOMAIN) {
-        const domainName = searchParams.get('name');
-        if (domainName) {
-          const pluginsByDomain = await getDomainPluginInstances(domainName);
-          plugins = result.map((plugin: { name: string }) => {
-            const foundPlugin = pluginsByDomain.find((p: { pluginName: string }) => p.pluginName === plugin.name);
-            return {
-              ...plugin,
-              enabled: foundPlugin ? foundPlugin.enabled : false,
-            };
-          });
-        }
-      } else if (type === QueryType.AI_ROUTE) {
-        const aiRouteName = searchParams.get('name');
-        if (aiRouteName) {
-          const routeResourceName = `ai-route-${aiRouteName}.internal`;
-          const pluginByRoutes = await fetchPluginsByRoute({ name: routeResourceName } as any);
-          plugins = result.map((plugin: { name: string }) => {
-            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
-            return {
-              ...plugin,
-              enabled: foundPlugin ? foundPlugin.enabled : false,
-            };
-          });
-        }
+        const pluginsByDomain = await getDomainPluginInstances(name);
+        plugins = result.map((plugin: { name: string }) => {
+          const foundPlugin = pluginsByDomain.find((p: { pluginName: string }) => p.pluginName === plugin.name);
+          return {
+            ...plugin,
+            enabled: foundPlugin ? foundPlugin.enabled : false,
+          };
+        });
       }
       setPluginList(plugins);
     },

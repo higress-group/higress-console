@@ -25,7 +25,7 @@ const Cors = forwardRef((props, ref) => {
   useEffect(() => {
     let initData = defaultCorsData;
 
-    if (data?.cors.enabled !== null) {
+    if (data?.cors?.enabled != null) {
       initData = data?.cors;
     }
 
