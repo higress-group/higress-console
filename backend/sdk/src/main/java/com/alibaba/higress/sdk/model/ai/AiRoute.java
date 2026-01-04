@@ -13,6 +13,7 @@
 package com.alibaba.higress.sdk.model.ai;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.RouteAuthConfig;
+import com.alibaba.higress.sdk.model.route.CorsConfig;
+import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
+import com.alibaba.higress.sdk.model.route.ProxyNextUpstreamConfig;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 
@@ -57,6 +61,16 @@ public class AiRoute {
     private RouteAuthConfig authConfig;
     @Schema(description = "Route fallback configuration")
     private AiRouteFallbackConfig fallbackConfig;
+    @Schema(description = "CORS configuration")
+    private CorsConfig cors;
+    @Schema(description = "Header control configuration")
+    private HeaderControlConfig headerControl;
+    @Schema(description = "Proxy next upstream configuration")
+    private ProxyNextUpstreamConfig proxyNextUpstream;
+    @Schema(description = "Custom configurations, e.g., custom annotations")
+    private Map<String, String> customConfigs;
+    @Schema(description = "Custom labels")
+    private Map<String, String> customLabels;
 
     public void validate() {
         if (StringUtils.isBlank(name)) {
