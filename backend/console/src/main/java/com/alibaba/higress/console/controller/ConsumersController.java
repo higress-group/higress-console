@@ -16,6 +16,8 @@ import javax.annotation.Resource;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
+import com.alibaba.higress.console.service.ApiKeyService;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
@@ -42,6 +45,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import java.util.List;
+
 @RestController("ConsumersController")
 @RequestMapping("/v1/consumers")
 @Validated
@@ -49,10 +54,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ConsumersController {
 
     private ConsumerService consumerService;
+    private ApiKeyService apiKeyService;
 
     @Resource
     public void setConsumerService(ConsumerService consumerService) {
         this.consumerService = consumerService;
+    }
+
+    @Resource
+    public void setApiKeyService(ApiKeyService apiKeyService) {
+        this.apiKeyService = apiKeyService;
     }
 
     @GetMapping
@@ -72,6 +83,19 @@ public class ConsumersController {
     public ResponseEntity<Response<Consumer>> add(@RequestBody Consumer consumer) {
         consumer.validate(false);
         Consumer newConsumer = consumerService.addOrUpdate(consumer);
+        // Create a default group for the consumer with the same name as the consumer
+        try {
+            if (apiKeyService != null) {
+                com.alibaba.higress.console.controller.dto.ApiKeyGroup group = new com.alibaba.higress.console.controller.dto.ApiKeyGroup();
+                group.setName(newConsumer.getName());
+                group.setKey(((KeyAuthCredential)consumer.getCredentials().get(0)).getValues().get(0));;
+                apiKeyService.upsertGroup(group);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the consumer creation
+            org.slf4j.LoggerFactory.getLogger(getClass()).error("Failed to create default group for consumer: " + newConsumer.getName(), e);
+            throw e;
+        }
         return ControllerUtil.buildResponseEntity(newConsumer);
     }
 
@@ -99,6 +123,19 @@ public class ConsumersController {
         }
         consumer.validate(true);
         Consumer updatedConsumer = consumerService.addOrUpdate(consumer);
+        // Update the corresponding group
+        try {
+            if (apiKeyService != null) {
+                com.alibaba.higress.console.controller.dto.ApiKeyGroup group = new com.alibaba.higress.console.controller.dto.ApiKeyGroup();
+                group.setName(updatedConsumer.getName());
+                group.setKey(((KeyAuthCredential)consumer.getCredentials().get(0)).getValues().get(0));;
+                apiKeyService.upsertGroup(group);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the consumer update
+            org.slf4j.LoggerFactory.getLogger(getClass()).error("Failed to update group for consumer: " + updatedConsumer.getName(), e);
+            throw e;
+        }
         return ControllerUtil.buildResponseEntity(updatedConsumer);
     }
 
@@ -108,6 +145,16 @@ public class ConsumersController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<Consumer>> delete(@PathVariable("name") @NotBlank String name) {
         consumerService.delete(name);
+        // Remove the corresponding group
+        try {
+            if (apiKeyService != null) {
+                apiKeyService.removeGroup(name);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the consumer deletion
+            org.slf4j.LoggerFactory.getLogger(getClass()).error("Failed to remove group for consumer: " + name, e);
+            throw e;
+        }
         return ResponseEntity.noContent().build();
     }
 }

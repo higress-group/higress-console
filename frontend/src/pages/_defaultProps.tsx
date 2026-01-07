@@ -3,6 +3,7 @@ import {
   DeploymentUnitOutlined,
   FullscreenExitOutlined,
   GlobalOutlined,
+  KeyOutlined,
   RobotOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
@@ -102,6 +103,11 @@ export default {
         name: 'menu.consumerManagement',
         path: '/consumer',
         icon: <UserOutlined />,
+      },
+      {
+        name: 'menu.apiKeyManagement',
+        path: '/api-key',
+        icon: <KeyOutlined />,
       },
       {
         name: 'menu.pluginManagement',

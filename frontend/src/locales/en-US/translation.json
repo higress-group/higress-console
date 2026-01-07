@@ -20,6 +20,7 @@
     "domainManagement": "Domain Management",
     "certManagement": "Certificate Management",
     "consumerManagement": "Consumer Management",
+    "apiKeyManagement": "API Key Management",
     "pluginManagement": "Plugin Management",
     "systemSettings": "System Settings",
     "mcpManagement": "MCP Management",

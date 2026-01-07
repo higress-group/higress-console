@@ -20,6 +20,7 @@
     "domainManagement": "域名管理",
     "certManagement": "证书管理",
     "consumerManagement": "消费者管理",
+    "apiKeyManagement": "客户密钥管理",
     "pluginManagement": "插件配置",
     "systemSettings": "系统设置",
     "mcpManagement": "MCP管理",
