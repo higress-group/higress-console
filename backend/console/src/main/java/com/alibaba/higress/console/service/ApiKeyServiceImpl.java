@@ -53,7 +53,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private static final String API_KEY_GROUP_ADD_MAPPING_PATH = "/apiKey/group/mapping/add";
     private static final String API_KEY_GROUP_DEL_MAPPING_PATH = "/apiKey/group/mapping/del";
 
-    @Value("${higress-console.api-key.service.url:http://localhost:8170}")
+    @Value("${higress-console.api-key.service.url:https://pref-gate.wujieai.com/open-platform-private}")
     private String serviceUrl;
 
     @Value("${higress-console.api-key.connection-timeout:5000}")
