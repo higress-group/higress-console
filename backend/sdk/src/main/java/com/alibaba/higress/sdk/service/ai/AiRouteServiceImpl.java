@@ -59,6 +59,7 @@ import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
+import com.alibaba.higress.sdk.util.EnvUtil;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.StringUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -70,6 +71,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AiRouteServiceImpl implements AiRouteService {
+
+    private static final String AI_ROUTE_AUTO_ENABLE_AI_STATS_ENV_KEY = "AI_ROUTE_AUTO_ENABLE_AI_STATS";
+    private static final String AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER_ENV_KEY = "AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER";
 
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
@@ -239,8 +243,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         String routeName = buildRouteResourceName(aiRoute.getName());
         Route route = buildRoute(routeName, aiRoute);
         setUpstreams(route, aiRoute.getUpstreams());
-        saveRoute(route);
-        writeModelRouteResources(aiRoute.getModelPredicates());
+        writeModelRouterResources(aiRoute.getModelPredicates());
         writeModelMappingResources(routeName, aiRoute.getUpstreams());
         writeAiStatisticsResources(routeName);
     }
@@ -305,8 +308,12 @@ public class AiRouteServiceImpl implements AiRouteService {
         writeAiStatisticsResources(fallbackRouteName);
     }
 
-    private void writeModelRouteResources(List<AiModelPredicate> modelPredicates) {
+    private void writeModelRouterResources(List<AiModelPredicate> modelPredicates) {
         if (CollectionUtils.isEmpty(modelPredicates)) {
+            return;
+        }
+
+        if (!EnvUtil.getBooleanEnv(AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER_ENV_KEY, true)) {
             return;
         }
 
@@ -373,6 +380,10 @@ public class AiRouteServiceImpl implements AiRouteService {
     }
 
     private void writeAiStatisticsResources(String routeName) {
+        if (!EnvUtil.getBooleanEnv(AI_ROUTE_AUTO_ENABLE_AI_STATS_ENV_KEY, true)) {
+            return;
+        }
+
         WasmPluginInstance existedInstance = wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, routeName,
             BuiltInPluginName.AI_STATISTICS, false);
         if (existedInstance != null) {
