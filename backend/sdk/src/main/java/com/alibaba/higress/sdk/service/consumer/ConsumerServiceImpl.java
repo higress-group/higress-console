@@ -212,10 +212,9 @@ public class ConsumerServiceImpl implements ConsumerService {
 
         List<String> credentialTypes = allowList.getCredentialTypes();
         if (CollectionUtils.isEmpty(credentialTypes)) {
-            credentialTypes = DEFAULT_CREDENTIAL_TYPES;
-        } else {
-            credentialTypes = credentialTypes.stream().distinct().collect(Collectors.toList());
+            return;
         }
+        credentialTypes = credentialTypes.stream().distinct().collect(Collectors.toList());
 
         switch (operation) {
             case ADD:
