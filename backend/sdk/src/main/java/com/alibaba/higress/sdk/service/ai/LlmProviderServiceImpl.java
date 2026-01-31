@@ -111,9 +111,11 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
         fillDefaultValues(provider);
 
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY, true);
+
         final String pluginName = BuiltInPluginName.AI_PROXY;
         WasmPluginInstance instance =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
         if (instance == null) {
             instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
             instance.setInternal(true);
@@ -170,6 +172,19 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
+
+        WasmPluginInstance existedServiceInstance = instances.stream()
+            .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName())).findFirst()
+            .orElse(null);
+        if (existedServiceInstance != null) {
+            String boundProviderName =
+                MapUtils.getString(existedServiceInstance.getConfigurations(), ACTIVE_PROVIDER_ID);
+            if (!provider.getName().equals(boundProviderName)) {
+                throw new ValidationException("The service instance for provider " + boundProviderName
+                    + " is already existed. Cannot bind it to provider " + provider.getName());
+            }
+        }
+
         WasmPluginInstance serviceInstance = new WasmPluginInstance();
         serviceInstance.setPluginName(instance.getPluginName());
         serviceInstance.setPluginVersion(instance.getPluginVersion());
