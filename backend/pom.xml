@@ -73,8 +73,8 @@
 		<swagger-core.version>2.2.20</swagger-core.version>
 		<springdoc.version>1.8.0</springdoc.version>
 		<swagger-ui.version>5.11.10</swagger-ui.version>
-
 		<webjars-locator-core.version>0.52</webjars-locator-core.version>
+
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
 		<plugin.outputEncoding>${project.build.sourceEncoding}</plugin.outputEncoding>
 
@@ -134,6 +134,11 @@
 				<groupId>org.webjars</groupId>
 				<artifactId>swagger-ui</artifactId>
 				<version>${swagger-ui.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.webjars</groupId>
+				<artifactId>webjars-locator-core</artifactId>
+				<version>${webjars-locator-core.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.swagger.core.v3</groupId>
