@@ -17,13 +17,14 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Typography, Select } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import RouteForm from './components/RouteForm';
 
 const { Text } = Typography;
+const { Option } = Select;
 
 interface RouteFormProps {
   name: string;
@@ -149,6 +150,20 @@ const RouteList: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
+  // 存储选中的state
+  const [selectedNames, setSelectedNames] = useState<string[]>([]);
+  const [domainSelectedNames, setDomainSelectedNames] = useState<string[]>([]);
+  const [selectedPathMatchTypes, setSelectedPathMatchTypes] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedAllowedConsumers, setSelectedAllowedConsumers] = useState<string[]>([]);
+
+  // 使用useRef保持最新状态以便在事件处理器外访问
+  const selectedNamesRef = useRef(selectedNames);
+  const domainSelectNamesRef = useRef(domainSelectedNames);
+  const selectedPathMatchTypesRef = useRef(selectedPathMatchTypes);
+  const selectedServicesRef = useRef(selectedServices);
+  const selectedAllowedConsumersRef = useRef(selectedAllowedConsumers);
+
 
   const getRouteList = async (factor): Promise<RouteResponse> => getGatewayRoutes(factor);
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
@@ -179,6 +194,14 @@ const RouteList: React.FC = () => {
         }
         return i1.name.localeCompare(i2.name);
       })
+      // 清空筛选框中的内容
+      form.setFieldsValue({
+        name: [],
+        domains: [],
+        routePredicates: [],
+        services: [],
+        auth: [],
+      });
       setOriginalDataSource(result);
       handleSearch(searchValue, result);
     },
@@ -334,6 +357,56 @@ const RouteList: React.FC = () => {
     handleSearch(value, originalDataSource);
   };
 
+  const applyFilters = () => {
+    let results = [...originalDataSource];
+    if (selectedNamesRef.current.length > 0) {
+      results = results.filter((item) => selectedNamesRef.current!.includes(item.name));
+    }
+
+    // 应用域名筛选
+    if (domainSelectNamesRef.current.length > 0) {
+      results = results.filter(item =>
+        item.domains?.some(domain => domainSelectNamesRef.current!.includes(domain)));
+    }
+    // 应用路径匹配类型筛选
+    if (selectedPathMatchTypesRef.current.length > 0) {
+      results = results.filter(item =>
+        selectedPathMatchTypesRef.current.includes(item.path?.matchType));
+    }
+
+    // 应用目标服务筛选
+    if (selectedServicesRef.current.length > 0) {
+      results = results.filter(item =>
+        item.services?.some(service => selectedServicesRef.current.includes(service.name)));
+    }
+
+    // 应用请求授权筛选
+    if (selectedAllowedConsumersRef.current.length > 0) {
+      results = results.filter(item => {
+        // 处理“未开启认证”的情况
+        if (selectedAllowedConsumersRef.current.includes("__auth_disabled__")) {
+          if (!item.authConfig || !item.authConfig.enabled) {
+            return true;
+          }
+        }
+
+        // 处理“未授权任何人访问”的情况
+        if (selectedAllowedConsumersRef.current.includes("__no_consumers__")) {
+          if (item.authConfig?.enabled && (!item.authConfig.allowedConsumers || item.authConfig.allowedConsumers.length === 0)) {
+            return true;
+          }
+        }
+
+        // 处理普通消费者的匹配
+        return item.authConfig?.enabled &&
+          item.authConfig.allowedConsumers?.some(consumer =>
+            selectedAllowedConsumersRef.current.includes(consumer));
+      });
+    }
+
+    setDataSource(results);
+  };
+  // @ts-ignore
   return (
     <PageContainer>
       {
@@ -352,7 +425,7 @@ const RouteList: React.FC = () => {
         form={form}
         style={{
           background: '#fff',
-          height: 64,
+          height: 128,
           paddingTop: 16,
           marginBottom: 16,
           paddingLeft: 16,
@@ -360,17 +433,133 @@ const RouteList: React.FC = () => {
         }}
       >
         <Row gutter={24}>
-          <Col span={14}>
-            <Form.Item name="searchVal">
-              <Input
+          {/* 路由名称 */}
+          <Col span={6}>
+            <Form.Item label={t('route.columns.name')} name="name">
+              <Select
+                mode="multiple"
                 allowClear
-                placeholder={t('route.routeSearchPlaceholder') || ''}
-                prefix={<SearchOutlined />}
-                onChange={onSearchChange}
-              />
+                placeholder={t('route.search.name') || ''}
+                value={selectedNames}
+                onChange={(values) => {
+                  setSelectedNames(values as string[]);
+                  selectedNamesRef.current = values;
+                  applyFilters();
+                }}
+                style={{ width: "100%" }}
+              >
+                xx{[...new Set(originalDataSource.map(item => item.name))].map(name => (
+                  <Option key={name} value={name}>
+                    {name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
-          <Col span={10} style={{ textAlign: 'right' }}>
+          {/* 域名 */}
+          <Col span={6}>
+            <Form.Item label={t('route.columns.domains')} name="domains">
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('route.search.domain') || ''}
+                value={domainSelectedNames}
+                onChange={(values) => {
+                  setDomainSelectedNames(values as string[]);
+                  domainSelectNamesRef.current = values;
+                  applyFilters();
+                }}
+                style={{ width: "100%" }}
+              >
+                {[...new Set(originalDataSource.flatMap(item => item.domains || []))].map(name => (
+                  <Option key={name} value={name}>
+                    {name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          {/* 匹配类型 */}
+          <Col span={6}>
+            <Form.Item label={t('route.columns.routePredicates')} name="routePredicates">
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('route.search.routePredicates') || ''}
+                value={selectedPathMatchTypes}
+                onChange={(values) => {
+                  setSelectedPathMatchTypes(values as string[]);
+                  selectedPathMatchTypesRef.current = values;
+                  applyFilters();
+                }}
+                style={{ width: "100%" }}
+              >
+                <Option value="PRE">{t('route.matchTypes.PRE')}</Option>
+                <Option value="EQUAL">{t('route.matchTypes.EQUAL')}</Option>
+                <Option value="REGULAR">{t('route.matchTypes.REGULAR')}</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          {/* 目标服务 */}
+          <Col span={6}>
+            <Form.Item label={t('route.columns.services')} name="services">
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('route.search.services') || ''}
+                value={selectedServices}
+                onChange={(values) => {
+                  setSelectedServices(values as string[]);
+                  selectedServicesRef.current = values;
+                  applyFilters();
+                }}
+                style={{ width: "100%" }}
+              >
+                {/* 动态生成所有可用的服务名称作为选项 */}
+                {[...new Set(originalDataSource.flatMap(item => item.services?.map(svc => svc.name) || []))].map(serviceName => (
+                  <Option key={serviceName} value={serviceName}>
+                    {serviceName}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+
+
+        </Row>
+        <Row gutter={24}>
+          {/* 请求授权 */}
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.columns.auth')} name="auth">
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('route.search.auth') || ''}
+                value={selectedAllowedConsumers}
+                onChange={(values) => {
+                  setSelectedAllowedConsumers(values as string[]);
+                  selectedAllowedConsumersRef.current = values;
+                  applyFilters();
+                }}
+                style={{ width: "100%" }}
+              >
+                {/* 手动添加特殊选项 */}
+                <Option key="__no_consumers__" value="__no_consumers__">
+                  {t('aiRoute.authNotEnabled')}
+                </Option>
+                <Option key="__auth_disabled__" value="__auth_disabled__">
+                  {t('aiRoute.authEnabledWithoutConsumer')}
+                </Option>
+
+                {/* 提取所有的唯一allowedConsumers值 */}
+                {[...new Set(originalDataSource.flatMap(item =>
+                  item.authConfig?.allowedConsumers || []))].map(consumer => (<Option key={consumer} value={consumer}>{consumer}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={18} style={{ textAlign: 'right' }} >
             <Button
               style={{ margin: '0 8px' }}
               type="primary"
