@@ -90,3 +90,5 @@ spec:
                                       key: "${fallbackHeader}"
                                       value: "${routeName}"
                                     append: false
+                with_request_body:
+                  max_request_bytes: 1024000
