@@ -615,6 +615,13 @@
     }
   },
   "route": {
+    "search": {
+      "name": "请选择路由名称",
+      "domain": "请选择域名",
+      "routePredicates": "请选择路由条件",
+      "services": "请选择目标服务",
+      "auth": "请选择已授权的服务"
+    },
     "columns": {
       "name": "路由名称",
       "domains": "域名",

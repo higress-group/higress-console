@@ -615,6 +615,13 @@
     }
   },
   "route": {
+    "search": {
+      "name": "Please select the Route Name",
+      "domain": "Please select the Domain",
+      "routePredicates": "Please select the Route Predicates",
+      "services": "Please select the Service",
+      "auth": "Please select the Request Auth"
+    },
     "columns": {
       "name": "Route Name",
       "domains": "Domain",
