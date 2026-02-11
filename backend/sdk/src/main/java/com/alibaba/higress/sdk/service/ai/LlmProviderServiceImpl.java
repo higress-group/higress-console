@@ -39,6 +39,7 @@ import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
+import com.alibaba.higress.sdk.model.ai.AiUpstream;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
@@ -58,8 +59,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     static {
         PROVIDER_HANDLERS = Stream.of(new OpenaiLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new QwenLlmProviderHandler(),
-            new AzureLlmProviderHandler(),
+            new QwenLlmProviderHandler(), new AzureLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.AI360, "api.360.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GITHUB, "models.inference.ai.azure.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
@@ -312,7 +312,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     private void syncRelatedAiRoutes(LlmProvider provider) {
         AiRouteService aiRouteService = this.aiRouteService;
         if (aiRouteService == null) {
-            return;
+            throw new IllegalStateException("AiRouteService is not available when AI route syncing is needed.");
         }
 
         PaginatedResult<AiRoute> aiRoutes = aiRouteService.list(null);
@@ -325,10 +325,24 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             if (CollectionUtils.isEmpty(aiRoute.getUpstreams())) {
                 continue;
             }
-            if (aiRoute.getUpstreams().stream().anyMatch(u -> providerName.equals(u.getProvider()))) {
+            if (hasProvider(aiRoute.getUpstreams(), providerName)
+                || aiRoute.getFallbackConfig() != null && Boolean.TRUE.equals(aiRoute.getFallbackConfig().getEnabled())
+                    && hasProvider(aiRoute.getFallbackConfig().getUpstreams(), providerName)) {
                 aiRouteService.update(aiRoute);
             }
         }
+    }
+
+    private static boolean hasProvider(List<AiUpstream> upstreams, String providerName) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return false;
+        }
+        for (AiUpstream upstream : upstreams) {
+            if (providerName.equals(upstream.getProvider())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private SortedMap<String, LlmProvider> getProviders() {
