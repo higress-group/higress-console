@@ -247,13 +247,6 @@ public class ConsumerServiceImpl implements ConsumerService {
 
             List<WasmPluginInstance> instances = getAllPluginInstances(handler);
 
-            WasmPluginInstance globalInstance = instances.stream()
-                .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
-            if (globalInstance == null) {
-                globalInstance = createGlobalPluginInstance(handler);
-                instancesToSave.add(globalInstance);
-            }
-
             WasmPluginInstance targetInstance =
                 instances.stream().filter(i -> targets.equals(i.getTargets())).findFirst().orElse(null);
             if (targetInstance == null) {
@@ -268,6 +261,17 @@ public class ConsumerServiceImpl implements ConsumerService {
             }
             handler.updateAllowList(operation, targetInstance, consumerNames);
             instancesToSave.add(targetInstance);
+
+            WasmPluginInstance globalInstance = instances.stream()
+                    .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
+            if (globalInstance == null && Boolean.TRUE.equals(targetInstance.getEnabled())) {
+                // The global instance hasn't been created yet, which should have been created when creating a consumer.
+                // This is a corner case where the allow list is being used to enable auth for the first time.
+                // If the target instance is enabled, we need to create the global instance.
+                // Otherwise, we can skip it because auth is still disabled globally.
+                globalInstance = createGlobalPluginInstance(handler);
+                instancesToSave.add(globalInstance);
+            }
 
             wasmPluginInstanceService.addOrUpdateAll(instancesToSave);
         }
