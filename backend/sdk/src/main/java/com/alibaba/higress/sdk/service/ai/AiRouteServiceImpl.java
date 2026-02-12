@@ -243,6 +243,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         String routeName = buildRouteResourceName(aiRoute.getName());
         Route route = buildRoute(routeName, aiRoute);
         setUpstreams(route, aiRoute.getUpstreams());
+        saveRoute(route);
         writeModelRouterResources(aiRoute.getModelPredicates());
         writeModelMappingResources(routeName, aiRoute.getUpstreams());
         writeAiStatisticsResources(routeName);
