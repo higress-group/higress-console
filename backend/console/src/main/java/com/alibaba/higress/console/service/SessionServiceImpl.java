@@ -75,6 +75,9 @@ public class SessionServiceImpl implements SessionService {
     @Value("${" + SystemConfigKey.ADMIN_CONFIG_TTL_KEY + ":" + SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT + "}")
     private long configTtl = SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT;
 
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_TTL_KEY + ":" + SystemConfigKey.ADMIN_SESSION_TTL_DEFAULT + "}")
+    private long sessionTtl = SystemConfigKey.ADMIN_SESSION_TTL_DEFAULT;
+
     private ConfigService configService;
     private KubernetesClientService kubernetesClientService;
 
@@ -149,13 +152,17 @@ public class SessionServiceImpl implements SessionService {
         if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
             return null;
         }
+        config.setLastSessionTimestamp(System.currentTimeMillis());
         return config.toUser();
     }
 
     @Override
     public void saveSession(HttpServletResponse response, User user, boolean persistent) {
         Cookie cookie = buildEmptyCookie();
-        cookie.setValue(generateToken(user));
+        String token = generateToken(user);
+        AdminConfig config = getAdminConfig();
+        config.setToken(token);
+        cookie.setValue(token);
         if (persistent) {
             cookie.setMaxAge(cookieMaxAge);
         }
@@ -164,6 +171,8 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public void clearSession(HttpServletResponse response) {
+        AdminConfig config = getAdminConfig();
+        config.setToken(null);
         Cookie cookie = buildEmptyCookie();
         cookie.setMaxAge(0);
         response.addCookie(cookie);
@@ -176,6 +185,12 @@ public class SessionServiceImpl implements SessionService {
             return user;
         }
         return tryExtractUserFromAuthHeader(request);
+    }
+
+    @Override
+    public void renewSession(HttpServletRequest request) {
+        AdminConfig config = getAdminConfig();
+        config.setLastSessionTimestamp(System.currentTimeMillis());
     }
 
     private User tryExtractUserFromCookie(HttpServletRequest request) {
@@ -191,6 +206,14 @@ public class SessionServiceImpl implements SessionService {
 
         AdminConfig config = tryGetAdminConfig();
         if (config == null) {
+            return null;
+        }
+
+        if (!token.equals(config.getToken())) {
+            return null;
+        }
+
+        if (!config.isSessionExpired(sessionTtl)) {
             return null;
         }
 
@@ -310,6 +333,7 @@ public class SessionServiceImpl implements SessionService {
             localAdminConfig = loadAdminConfig();
             if (localAdminConfig != null && localAdminConfig.isValid()) {
                 localAdminConfig.setLastUpdateTimestamp(System.currentTimeMillis());
+                localAdminConfig.setLastSessionTimestamp(System.currentTimeMillis());
                 adminConfigCache.set(localAdminConfig);
             }
         }
@@ -359,12 +383,20 @@ public class SessionServiceImpl implements SessionService {
 
         private long lastUpdateTimestamp;
 
+        private long lastSessionTimestamp;
+
+        private String token;
+
         public boolean isValid() {
             return StringUtils.isNoneBlank(username, password, encryptKey, encryptIv);
         }
 
         public boolean isExpired(long ttl) {
             return System.currentTimeMillis() - lastUpdateTimestamp >= ttl;
+        }
+
+        public boolean isSessionExpired(long ttl) {
+            return System.currentTimeMillis() - lastSessionTimestamp >= ttl;
         }
 
         public User toUser() {
