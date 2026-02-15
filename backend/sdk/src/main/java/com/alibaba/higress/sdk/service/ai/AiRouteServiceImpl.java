@@ -396,16 +396,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         instance.setEnabled(true);
         instance.setInternal(false);
 
-        Map<String, Object> questionAttribute = AiStatisticsConfig.buildAttribute("question",
-            AiStatisticsConfig.ValueSource.REQUEST_BODY, "messages.@reverse.0.content", null, true, null);
-        Map<String, Object> streamingAnswerAttribute =
-            AiStatisticsConfig.buildAttribute("answer", AiStatisticsConfig.ValueSource.RESPONSE_STREAMING_BODY,
-                "choices.0.delta.content", AiStatisticsConfig.Rule.APPEND, true, null);
-        Map<String, Object> nonStreamingAnswerAttribute = AiStatisticsConfig.buildAttribute("answer",
-            AiStatisticsConfig.ValueSource.RESPONSE_BODY, "choices.0.message.content", null, true, null);
-        List<Map<String, Object>> attributes =
-            Lists.newArrayList(questionAttribute, streamingAnswerAttribute, nonStreamingAnswerAttribute);
-        instance.setConfigurations(MapUtil.of(AiStatisticsConfig.ATTRIBUTES, attributes));
+        instance.setConfigurations(MapUtil.of(AiStatisticsConfig.USE_DEFAULT_RESPONSE_ATTRIBUTES, true));
 
         wasmPluginInstanceService.addOrUpdate(instance);
     }
