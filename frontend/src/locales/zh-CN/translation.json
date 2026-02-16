@@ -274,7 +274,11 @@
         "openaiCustomServerType": "自定义 OpenAI 服务配置方式",
         "openaiCustomService": "自定义 OpenAI 服务",
         "openaiCustomServiceHost": "自定义 OpenAI 服务主机域",
-        "openaiCustomServicePath": "自定义 OpenAI 服务路径"
+        "openaiCustomServicePath": "自定义 OpenAI 服务路径",
+        "zhipuDomain": "智谱 AI 服务域名",
+        "zhipuCodePlanMode": "启用 Code Plan 模式",
+        "claudeCodeMode": "启用 Claude Code 模式",
+        "claudeVersion": "Claude API 版本"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -314,15 +318,21 @@
       "tooltips": {
         "qwenFileIdsTooltip": "通过文件接口上传至 Dashscope 的文件 ID，其内容将被用做 AI 对话的上下文。",
         "qwenEnableCompatibleTooltip": "启用通义千问兼容模式后，将调用通义千问的 OpenAI 兼容接口，同时对请求/响应不做修改。",
-        "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。"
+        "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。",
+        "zhipuDomainTooltip": "选择智谱 AI 服务域名，中国用户使用 open.bigmodel.cn，国际用户使用 api.z.ai",
+        "zhipuCodePlanModeTooltip": "启用 Code Plan 模式后，智谱 AI 将使用 Code Plan 接口进行代码生成和规划",
+        "claudeCodeModeTooltip": "启用 Claude Code 模式后，将使用 OAuth Token 进行认证，运行 claude setup-token 获取 Token"
       },
       "placeholder": {
-        "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
+        "azureServiceUrlPlaceholder": "需包含"/chat/completions"路径和"api-version"查询参数",
         "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
         "openaiCustomUrlPlaceholder": "示例：https://api.openai.com/v1",
         "openaiCustomServiceHostPlaceholder": "示例：api.openai.com",
         "openaiCustomServicePathPlaceholder": "示例：/v1",
         "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
+        "qwenFileIdsPlaceholder": "示例：file-fe-xxx",
+        "zhipuDomainPlaceholder": "选择智谱 AI 服务域名"
+      },
         "qwenFileIdsPlaceholder": "示例：file-fe-xxx"
       },
       "openaiServerType": {
@@ -557,7 +567,7 @@
       "nacosGroups": "Nacos服务分组列表",
       "nacosGroupsRequired": "请输入Nacos服务分组列表",
       "nacosGroupsPlaceholder": "Nacos服务分组列表",
-      "nacos2PortNote": "“以上端口+1000”所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
+      "nacos2PortNote": ""以上端口+1000"所得到的端口应同时保持畅通，否则本服务来源将无法正常工作。",
       "serviceStaticAddresses": "服务地址",
       "serviceStaticAddressesRequired": "请输入服务地址",
       "serviceStaticAddressesPlaceholder": "IP:Port（多个地址请以换行分隔）",
@@ -583,7 +593,7 @@
       "mcpServerEnabled": "是否启用MCP Server功能",
       "mcpServerBaseUrl": "MCP Server路由路径前缀",
       "mcpServerBaseUrlRequired": "请输入MCP Server路由路径前缀",
-      "mcpServerBaseUrlBadFormat": "MCP Server路由路径前缀格式不正确。请使用“/”开头。",
+      "mcpServerBaseUrlBadFormat": "MCP Server路由路径前缀格式不正确。请使用"/"开头。",
       "mcpServerExportDomains": "关联MCP Server的域名",
       "mcpServerExportDomainsPlaceholder": "留空表示关联全部域名",
       "mcpServerExportDomainsOnlyDomainsWithRoute": "仅支持关联已经配置了路由的域名。",
@@ -667,7 +677,7 @@
       "domain": "域名",
       "domainSearchPlaceholder": "根据域名名称搜索域名。若留空，则表示路由可匹配任意域名",
       "matchType": "匹配规则",
-      "matchTypeTooltip": "规则之间是“与”关系，即填写的规则越多，匹配的范围越小",
+      "matchTypeTooltip": "规则之间是"与"关系，即填写的规则越多，匹配的范围越小",
       "path": "路径（Path）",
       "pathPredicateRequired": "请选择路径匹配规则",
       "pathMatcherRequired": "请输入路径匹配值",
@@ -676,9 +686,9 @@
       "method": "方法（Method）",
       "methodMatcherPlaceholder": "方法匹配值，可多选，不填则匹配所有的HTTP方法",
       "header": "请求头（Header）",
-      "headerTooltip": "多个参数之间是“与”关系",
+      "headerTooltip": "多个参数之间是"与"关系",
       "query": "请求参数（Query）",
-      "queryTooltip": "多个参数之间是“与”关系",
+      "queryTooltip": "多个参数之间是"与"关系",
       "customConfigs": "附加注解（Annotation）",
       "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
@@ -689,8 +699,8 @@
   "system": {
     "higress-config": {
       "title": "编辑全局配置：higress-config",
-      "note_k8s": "注意：对“mesh”和“meshNetworks”的修改需要重启 Higress Gateway 才能生效。",
-      "note_standalone": "注意：对“mesh”和“meshNetworks”的修改将需要整体重启 Higress 才能生效。"
+      "note_k8s": "注意：对"mesh"和"meshNetworks"的修改需要重启 Higress Gateway 才能生效。",
+      "note_standalone": "注意：对"mesh"和"meshNetworks"的修改将需要整体重启 Higress 才能生效。"
     }
   },
   "tlsCertificate": {

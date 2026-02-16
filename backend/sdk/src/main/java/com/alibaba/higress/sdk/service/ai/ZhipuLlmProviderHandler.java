@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package com.alibaba.higress.sdk.service.ai;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
+import com.alibaba.higress.sdk.model.ai.LlmProviderType;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+
+/**
+ * Handler for ZhipuAI (智谱 AI) LLM provider.
+ * Supports extra configurations like zhipuDomain and zhipuCodePlanMode.
+ */
+public class ZhipuLlmProviderHandler extends AbstractLlmProviderHandler {
+
+    private static final String DEFAULT_DOMAIN = "open.bigmodel.cn";
+    private static final String KEY_ZHIPU_DOMAIN = "zhipuDomain";
+    private static final String KEY_ZHIPU_CODE_PLAN_MODE = "zhipuCodePlanMode";
+
+    @Override
+    public String getType() {
+        return LlmProviderType.ZHIPUAI;
+    }
+
+    @Override
+    protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
+        String domain = DEFAULT_DOMAIN;
+        Object domainObj = providerConfig.get(KEY_ZHIPU_DOMAIN);
+        if (domainObj instanceof String) {
+            String domainStr = (String) domainObj;
+            if (StringUtils.isNotBlank(domainStr)) {
+                domain = domainStr;
+            }
+        }
+        return Collections.singletonList(new LlmProviderEndpoint(
+            V1McpBridge.PROTOCOL_HTTPS, domain, V1McpBridge.DEFAULT_HTTPS_PORT, "/"));
+    }
+
+    @Override
+    public void normalizeConfigs(Map<String, Object> configurations) {
+        if (MapUtils.isEmpty(configurations)) {
+            return;
+        }
+
+        // Normalize zhipuDomain
+        Object domainObj = configurations.get(KEY_ZHIPU_DOMAIN);
+        if (domainObj instanceof String) {
+            String domain = ((String) domainObj).trim();
+            if (StringUtils.isBlank(domain) || DEFAULT_DOMAIN.equals(domain)) {
+                configurations.remove(KEY_ZHIPU_DOMAIN);
+            } else {
+                configurations.put(KEY_ZHIPU_DOMAIN, domain);
+            }
+        } else if (domainObj != null) {
+            configurations.remove(KEY_ZHIPU_DOMAIN);
+        }
+
+        // Normalize zhipuCodePlanMode
+        Object codePlanModeObj = configurations.get(KEY_ZHIPU_CODE_PLAN_MODE);
+        if (codePlanModeObj instanceof Boolean) {
+            if ((Boolean) codePlanModeObj) {
+                configurations.put(KEY_ZHIPU_CODE_PLAN_MODE, true);
+            } else {
+                configurations.remove(KEY_ZHIPU_CODE_PLAN_MODE);
+            }
+        } else if (codePlanModeObj instanceof String) {
+            // Handle string representation of boolean
+            String strVal = ((String) codePlanModeObj).trim().toLowerCase();
+            if ("true".equals(strVal) || "1".equals(strVal)) {
+                configurations.put(KEY_ZHIPU_CODE_PLAN_MODE, true);
+            } else {
+                configurations.remove(KEY_ZHIPU_CODE_PLAN_MODE);
+            }
+        } else {
+            configurations.remove(KEY_ZHIPU_CODE_PLAN_MODE);
+        }
+    }
+}
