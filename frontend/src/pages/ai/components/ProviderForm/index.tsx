@@ -754,6 +754,61 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
 
       {
+        providerType === 'zhipuai' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuDomain')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuDomainTooltip')}
+              name={["rawConfigs", "zhipuDomain"]}
+            >
+              <Input
+                allowClear
+                maxLength={256}
+                placeholder={t('llmProvider.providerForm.placeholder.zhipuDomainPlaceholder') || ''}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuCodePlanMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuCodePlanModeTooltip')}
+              name={["rawConfigs", "zhipuCodePlanMode"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'claude' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeVersion')}
+              tooltip={t('llmProvider.providerForm.tooltips.claudeVersionTooltip')}
+              name={["rawConfigs", "claudeVersion"]}
+              initialValue="2023-06-01"
+            >
+              <Input
+                allowClear
+                maxLength={64}
+                placeholder="2023-06-01"
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeCodeMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.claudeCodeModeTooltip')}
+              name={["rawConfigs", "claudeCodeMode"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
         providerType === 'ollama' && (
           <>
             <Form.Item
