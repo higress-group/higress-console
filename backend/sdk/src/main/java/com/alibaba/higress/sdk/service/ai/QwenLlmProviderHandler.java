@@ -44,13 +44,15 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
-            throw new ValidationException("Missing Qwen specific configurations.");
+            configurations = new java.util.HashMap<>();
         }
 
+        // Default values for Qwen
         Boolean searchVal = MapUtils.getBoolean(configurations, ENABLE_SEARCH_KEY, Boolean.FALSE);
         configurations.put(ENABLE_SEARCH_KEY, searchVal);
 
-        Boolean compatibleVal = MapUtils.getBoolean(configurations, ENABLE_COMPATIBLE_KEY, Boolean.FALSE);
+        // Default to enable compatible mode (OpenAI-compatible API)
+        Boolean compatibleVal = MapUtils.getBoolean(configurations, ENABLE_COMPATIBLE_KEY, Boolean.TRUE);
         configurations.put(ENABLE_COMPATIBLE_KEY, compatibleVal);
 
         if (configurations.containsKey(FILE_IDS_KEY)) {

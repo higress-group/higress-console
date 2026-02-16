@@ -619,7 +619,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
               name={["rawConfigs", "qwenEnableCompatible"]}
               valuePropName="checked"
-              initialValue={false}
+              initialValue={true}
             >
               <Switch />
             </Form.Item>
@@ -772,7 +772,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               tooltip={t('llmProvider.providerForm.tooltips.zhipuCodePlanModeTooltip')}
               name={["rawConfigs", "zhipuCodePlanMode"]}
               valuePropName="checked"
-              initialValue={false}
+              initialValue={true}
             >
               <Switch />
             </Form.Item>

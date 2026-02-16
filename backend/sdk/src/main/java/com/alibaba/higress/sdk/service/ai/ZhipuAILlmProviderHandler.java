@@ -53,16 +53,19 @@ public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
         if (MapUtils.isEmpty(configurations)) {
-            return;
+            configurations = new java.util.HashMap<>();
         }
 
-        // Normalize zhipuCodePlanMode to boolean
+        // Default to enable Code Plan mode for better code generation
         Object codePlanModeObj = configurations.get(CODE_PLAN_MODE_KEY);
         if (codePlanModeObj != null) {
             Boolean codePlanMode = normalizeBoolean(codePlanModeObj, CODE_PLAN_MODE_KEY);
             if (codePlanMode != null) {
                 configurations.put(CODE_PLAN_MODE_KEY, codePlanMode);
             }
+        } else {
+            // Default value
+            configurations.put(CODE_PLAN_MODE_KEY, Boolean.TRUE);
         }
     }
 
