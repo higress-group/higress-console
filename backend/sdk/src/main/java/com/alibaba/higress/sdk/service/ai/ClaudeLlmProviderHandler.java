@@ -64,7 +64,7 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
 
         // Ensure claudeVersion has a default value if not set
         Object versionObj = configurations.get(VERSION_KEY);
-        if (versionObj == null || (versionObj instanceof String && StringUtils.isBlank((String)versionObj))) {
+        if (versionObj == null || versionObj instanceof String && StringUtils.isBlank((String)versionObj)) {
             configurations.put(VERSION_KEY, DEFAULT_VERSION);
         }
     }
