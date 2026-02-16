@@ -203,9 +203,6 @@ export const aiModelProviders = [
       },
     ],
     getProviderEndpoints: (record) => {
-      if (!record.rawConfigs) {
-        return null;
-      }
       return ['https://api.anthropic.com'];
     },
   },
@@ -329,8 +326,8 @@ export const aiModelProviders = [
         return null;
       }
       const { rawConfigs } = record;
-      const domain = (rawConfigs.zhipuDomain && rawConfigs.zhipuDomain !== '') 
-        ? rawConfigs.zhipuDomain.trim() 
+      const domain = (rawConfigs.zhipuDomain && rawConfigs.zhipuDomain !== '')
+        ? rawConfigs.zhipuDomain.trim()
         : 'open.bigmodel.cn';
       return [`https://${domain}`]
     },
