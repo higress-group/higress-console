@@ -202,6 +202,12 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      return ['https://api.anthropic.com'];
+    },
   },
   {
     label: 'Baichuan',
@@ -318,6 +324,16 @@ export const aiModelProviders = [
         value: 'GLM-4',
       },
     ],
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const { rawConfigs } = record;
+      const domain = (rawConfigs.zhipuDomain && rawConfigs.zhipuDomain !== '') 
+        ? rawConfigs.zhipuDomain.trim() 
+        : 'open.bigmodel.cn';
+      return [`https://${domain}`]
+    },
   },
   {
     label: '360智脑',

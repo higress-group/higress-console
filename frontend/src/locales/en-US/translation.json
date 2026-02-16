@@ -274,7 +274,10 @@
         "openaiCustomServerType": "Custom OpenAI Service Config Method",
         "openaiCustomService": "Custom OpenAI Service",
         "openaiCustomServiceHost": "Custom OpenAI Service Host",
-        "openaiCustomServicePath": "Custom OpenAI Service Path"
+        "openaiCustomServicePath": "Custom OpenAI Service Path",
+        "zhipuDomain": "ZhipuAI Service Domain",
+        "zhipuCodePlanMode": "Enable Code Plan Mode",
+        "claudeCodeMode": "Enable Claude Code Mode"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -313,8 +316,11 @@
       },
       "tooltips": {
         "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",
-        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen’s OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
-        "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired."
+        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen's OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
+        "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired.",
+        "zhipuDomainTooltip": "Select ZhipuAI service domain: open.bigmodel.cn for China, api.z.ai for international",
+        "zhipuCodePlanModeTooltip": "When Code Plan Mode is enabled, ZhipuAI will use the Code Plan API for code generation and planning",
+        "claudeCodeModeTooltip": "When Claude Code Mode is enabled, OAuth Token will be used for authentication. Run 'claude setup-token' to get the token"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",

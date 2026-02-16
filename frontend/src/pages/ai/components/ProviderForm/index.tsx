@@ -754,6 +754,52 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
 
       {
+        providerType === 'zhipuai' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuDomain')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuDomainTooltip')}
+              name={["rawConfigs", "zhipuDomain"]}
+            >
+              <Select
+                allowClear
+                showSearch
+                placeholder={t('llmProvider.providerForm.placeholder.zhipuDomainPlaceholder')}
+              >
+                <Select.Option value="open.bigmodel.cn">中国 (open.bigmodel.cn)</Select.Option>
+                <Select.Option value="api.z.ai">国际 (api.z.ai)</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuCodePlanMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuCodePlanModeTooltip')}
+              name={["rawConfigs", "zhipuCodePlanMode"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'claude' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeCodeMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.claudeCodeModeTooltip')}
+              name={["rawConfigs", "claudeCodeMode"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
         providerType === 'ollama' && (
           <>
             <Form.Item
