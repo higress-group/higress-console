@@ -11,7 +11,7 @@ jobs:
     env:
       OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT || 'oss-cn-hongkong.aliyuncs.com' }}
       OSS_REGION: ${{ vars.OSS_REGION || 'cn-hongkong' }}
-      OSS_BUCKET: ${{ vars.OSS_BUCKET || 'higress-website-cn-hongkong' }}
+      OSS_BUCKET: ${{ vars.OSS_BUCKET || 'higress-ai' }}
       OSS_HELM_CHART_PATH: ${{ vars.OSS_HELM_CHART_PATH || '/helm-charts' }}
       OSS_API_DOCS_DIR_PATH: ${{ vars.OSS_API_DOCS_DIR_PATH || '/swagger/' }}
     steps:

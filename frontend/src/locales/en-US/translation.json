@@ -213,7 +213,7 @@
       "openai": "OpenAI/OpenAI Compatible",
       "qwen": "Tongyi Qianwen",
       "moonshot": "Moonshot",
-      "ai360": "360 Zhinao|",
+      "ai360": "360 Zhinao",
       "azure": "Azure OpenAI",
       "baichuan": "Baichuan AI",
       "baidu": "ERNIE Bot",
@@ -274,7 +274,11 @@
         "openaiCustomServerType": "Custom OpenAI Service Config Method",
         "openaiCustomService": "Custom OpenAI Service",
         "openaiCustomServiceHost": "Custom OpenAI Service Host",
-        "openaiCustomServicePath": "Custom OpenAI Service Path"
+        "openaiCustomServicePath": "Custom OpenAI Service Path",
+        "zhipuDomain": "Custom Zhipu AI Domain",
+        "claudeVersion": "Claude API Version",
+        "claudeCodeMode": "Claude Code Mode (OAuth Token)",
+        "zhipuCodePlanMode": "Code Plan Mode"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -313,8 +317,12 @@
       },
       "tooltips": {
         "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",
-        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen’s OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
-        "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired."
+        "qwenEnableCompatibleTooltip": "When Tongyi Qianwen compatibility mode is enabled, requests will be sent to Tongyi Qianwen's OpenAI-compatible API endpoint, and no modifications will be applied to the request or response payloads.",
+        "vertexTokenRefreshAheadTooltip": "The lead time in seconds of refreshing the access token used to send requests to Vertex API. Leave it blank if the token shall only be refreshed after expired.",
+        "zhipuDomainTooltip": "Custom domain for Zhipu AI service. Leave empty to use the default domain (open.bigmodel.cn). Use 'api.z.ai' for international service.",
+        "zhipuCodePlanModeTooltip": "Enable Code Plan mode for optimized code generation capabilities.",
+        "claudeVersionTooltip": "Anthropic API version header. Default: 2023-06-01",
+        "claudeCodeModeTooltip": "Enable Claude Code mode to use OAuth token authentication instead of API key. Run 'claude setup-token' to get your OAuth token."
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "It shall contain \"/chat/completions\" in the path and \"api-version\" in the query string",
@@ -323,7 +331,8 @@
         "openaiCustomServiceHostPlaceholder": "Sample: api.openai.com",
         "openaiCustomServicePathPlaceholder": "Sample: /v1",
         "qwenDomainPlaceholder": "Sample: dashscope-finance.aliyuncs.com",
-        "qwenFileIdsPlaceholder": "Sample: file-fe-xxx"
+        "qwenFileIdsPlaceholder": "Sample: file-fe-xxx",
+        "zhipuDomainPlaceholder": "Sample: api.z.ai (for international service)"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
