@@ -69,9 +69,9 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.YI, "api.lingyiwanwu.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.DEEPSEEK, "api.deepseek.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new ZhipuAILlmProviderHandler(),
             new OllamaLlmProviderHandler(),
-            new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new ClaudeLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.STEPFUN, "api.stepfun.com", 443, V1McpBridge.PROTOCOL_HTTPS),
@@ -105,6 +105,11 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         LlmProviderHandler handler = PROVIDER_HANDLERS.get(provider.getType());
         if (handler == null) {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
+        }
+
+        // Ensure rawConfigs is not null before normalization
+        if (provider.getRawConfigs() == null) {
+            provider.setRawConfigs(new HashMap<>());
         }
 
         handler.normalizeConfigs(provider.getRawConfigs());

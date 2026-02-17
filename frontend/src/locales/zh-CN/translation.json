@@ -274,7 +274,11 @@
         "openaiCustomServerType": "自定义 OpenAI 服务配置方式",
         "openaiCustomService": "自定义 OpenAI 服务",
         "openaiCustomServiceHost": "自定义 OpenAI 服务主机域",
-        "openaiCustomServicePath": "自定义 OpenAI 服务路径"
+        "openaiCustomServicePath": "自定义 OpenAI 服务路径",
+        "zhipuDomain": "自定义智谱 AI 域名",
+        "claudeVersion": "Claude API 版本",
+        "claudeCodeMode": "Claude Code 模式（OAuth 令牌）",
+        "zhipuCodePlanMode": "Code Plan 模式"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -314,7 +318,11 @@
       "tooltips": {
         "qwenFileIdsTooltip": "通过文件接口上传至 Dashscope 的文件 ID，其内容将被用做 AI 对话的上下文。",
         "qwenEnableCompatibleTooltip": "启用通义千问兼容模式后，将调用通义千问的 OpenAI 兼容接口，同时对请求/响应不做修改。",
-        "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。"
+        "vertexTokenRefreshAheadTooltip": "提前刷新用于访问 Vertex API 的访问密钥的时间，单位为秒。留空表示仅在密钥过期时刷新。",
+        "zhipuDomainTooltip": "智谱 AI 服务的自定义域名。留空则使用默认域名（open.bigmodel.cn）。国际版请使用 'api.z.ai'。",
+        "zhipuCodePlanModeTooltip": "启用 Code Plan 模式以获得优化的代码生成能力。",
+        "claudeVersionTooltip": "Anthropic API 版本号。默认值：2023-06-01",
+        "claudeCodeModeTooltip": "启用 Claude Code 模式以使用 OAuth 令牌认证（而非 API Key）。运行 'claude setup-token' 获取 OAuth 令牌。"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
@@ -323,7 +331,8 @@
         "openaiCustomServiceHostPlaceholder": "示例：api.openai.com",
         "openaiCustomServicePathPlaceholder": "示例：/v1",
         "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
-        "qwenFileIdsPlaceholder": "示例：file-fe-xxx"
+        "qwenFileIdsPlaceholder": "示例：file-fe-xxx",
+        "zhipuDomainPlaceholder": "示例：api.z.ai（国际版服务）"
       },
       "openaiServerType": {
         "official": "OpenAI 官方服务",
