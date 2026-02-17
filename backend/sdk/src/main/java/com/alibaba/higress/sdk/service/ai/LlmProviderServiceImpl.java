@@ -107,6 +107,11 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
         }
 
+        // Ensure rawConfigs is not null before normalization
+        if (provider.getRawConfigs() == null) {
+            provider.setRawConfigs(new HashMap<>());
+        }
+
         handler.normalizeConfigs(provider.getRawConfigs());
 
         fillDefaultValues(provider);

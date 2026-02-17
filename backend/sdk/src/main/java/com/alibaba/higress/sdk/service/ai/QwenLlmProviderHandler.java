@@ -43,8 +43,8 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
 
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
-        if (MapUtils.isEmpty(configurations)) {
-            configurations = new java.util.HashMap<>();
+        if (configurations == null) {
+            return;
         }
 
         // Default values for Qwen

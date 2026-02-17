@@ -52,8 +52,8 @@ public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
-        if (MapUtils.isEmpty(configurations)) {
-            configurations = new java.util.HashMap<>();
+        if (configurations == null) {
+            return;
         }
 
         // Default to enable Code Plan mode for better code generation
