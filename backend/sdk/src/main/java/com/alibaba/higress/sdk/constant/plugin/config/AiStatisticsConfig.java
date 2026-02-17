@@ -18,6 +18,8 @@ import java.util.Map;
 public class AiStatisticsConfig {
 
     public static final String ATTRIBUTES = "attributes";
+    public static final String USE_DEFAULT_ATTRIBUTES = "use_default_attributes";
+    public static final String USE_DEFAULT_RESPONSE_ATTRIBUTES = "use_default_response_attributes";
 
     public static final String KEY = "key";
     public static final String VALUE_SOURCE = "value_source";
