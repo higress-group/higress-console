@@ -12,21 +12,21 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
-import com.alibaba.higress.sdk.exception.ValidationException;
-import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
-import com.alibaba.higress.sdk.model.ai.LlmProviderType;
-import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
-public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
+import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
+import com.alibaba.higress.sdk.model.ai.LlmProviderType;
+import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+
+public class QwenLlmProviderHandler extends AbstractLlmProviderHandler {
     private static final int DEFAULT_SERVICE_PORT = 443;
 
     private static final String DEFAULT_SERVICE_PROTOCOL = V1McpBridge.PROTOCOL_HTTPS;
@@ -34,8 +34,8 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
     private static final String DEFAULT_SERVICE_DOMAIN = "dashscope.aliyuncs.com";
 
     private static final String CUSTOM_DOMAIN_KEY = "qwenDomain";
-    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS =
-            Collections.singletonList(new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN, DEFAULT_SERVICE_PORT, "/"));
+    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS = Collections.singletonList(
+        new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN, DEFAULT_SERVICE_PORT, "/"));
 
     private static final String ENABLE_SEARCH_KEY = "qwenEnableSearch";
     private static final String ENABLE_COMPATIBLE_KEY = "qwenEnableCompatible";
@@ -63,7 +63,6 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
         }
     }
 
-
     @Override
     public String getType() {
         return LlmProviderType.QWEN;
@@ -72,17 +71,18 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
     @Override
     protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         URI customUrl = getCustomUrl(providerConfig);
-        if(customUrl != null){
+        if (customUrl != null) {
             return Collections.singletonList(LlmProviderEndpoint.fromUri(customUrl));
         }
         return DEFAULT_ENDPOINTS;
     }
+
     private URI getCustomUrl(Map<String, Object> providerConfig) {
         Object rawCustomDomainObject = providerConfig.get(CUSTOM_DOMAIN_KEY);
         if (!(rawCustomDomainObject instanceof String)) {
             return null;
         }
-        String rawCustomDomain = ((String) rawCustomDomainObject).trim();
+        String rawCustomDomain = ((String)rawCustomDomainObject).trim();
         if (StringUtils.isEmpty(rawCustomDomain)) {
             return null;
         }
@@ -93,8 +93,8 @@ public class QwenLlmProviderHandler extends AbstractLlmProviderHandler{
         try {
             return new URI(scheme, rawCustomDomain, path, null);
         } catch (URISyntaxException e) {
-            throw new ValidationException(CUSTOM_DOMAIN_KEY + " contains an invalid domain name: " + rawCustomDomain, e);
+            throw new ValidationException(CUSTOM_DOMAIN_KEY + " contains an invalid domain name: " + rawCustomDomain,
+                e);
         }
     }
-
 }

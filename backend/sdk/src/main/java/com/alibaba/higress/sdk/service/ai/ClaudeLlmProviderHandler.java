@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.util.ConverterUtil;
 
 /**
- * Handler for Claude LLM provider with support for:
- * - API version configuration (claudeVersion)
- * - Claude Code Mode using OAuth token (claudeCodeMode)
+ * Handler for Claude LLM provider with support for: - API version configuration (claudeVersion) - Claude Code Mode
+ * using OAuth token (claudeCodeMode)
  */
 public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
 
@@ -38,9 +38,8 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
     private static final String CODE_MODE_KEY = "claudeCodeMode";
     private static final String DEFAULT_VERSION = "2023-06-01";
 
-    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS =
-        Collections.singletonList(new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN,
-            DEFAULT_SERVICE_PORT, "/"));
+    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS = Collections.singletonList(
+        new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN, DEFAULT_SERVICE_PORT, "/"));
 
     @Override
     public String getType() {
@@ -56,7 +55,7 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
         // Normalize claudeCodeMode to boolean
         Object codeModeObj = configurations.get(CODE_MODE_KEY);
         if (codeModeObj != null) {
-            Boolean codeMode = normalizeBoolean(codeModeObj, CODE_MODE_KEY);
+            Boolean codeMode = ConverterUtil.toBoolean(codeModeObj);
             if (codeMode != null) {
                 configurations.put(CODE_MODE_KEY, codeMode);
             }
@@ -72,24 +71,5 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
     @Override
     protected List<LlmProviderEndpoint> getProviderEndpoints(Map<String, Object> providerConfig) {
         return DEFAULT_ENDPOINTS;
-    }
-
-    private Boolean normalizeBoolean(Object value, String key) {
-        if (value instanceof Boolean) {
-            return (Boolean)value;
-        }
-        if (value instanceof String) {
-            String strVal = ((String)value).trim().toLowerCase();
-            if ("true".equals(strVal) || "1".equals(strVal) || "yes".equals(strVal)) {
-                return Boolean.TRUE;
-            }
-            if ("false".equals(strVal) || "0".equals(strVal) || "no".equals(strVal) || strVal.isEmpty()) {
-                return Boolean.FALSE;
-            }
-        }
-        if (value instanceof Number) {
-            return ((Number)value).intValue() != 0;
-        }
-        return null;
     }
 }

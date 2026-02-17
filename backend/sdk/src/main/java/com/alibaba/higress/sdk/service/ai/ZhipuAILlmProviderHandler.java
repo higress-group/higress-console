@@ -25,11 +25,14 @@ import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
+import com.alibaba.higress.sdk.util.ConverterUtil;
 
 /**
  * Handler for Zhipu AI LLM provider with support for:
- * - Custom domain configuration (zhipuDomain)
- * - Code Plan Mode (zhipuCodePlanMode)
+ * <ul>
+ * <li>Custom domain configuration (zhipuDomain)</li>
+ * <li>- Code Plan Mode (zhipuCodePlanMode)</li>
+ * </ul>
  */
 public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
 
@@ -41,9 +44,8 @@ public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
     private static final String DOMAIN_KEY = "zhipuDomain";
     private static final String CODE_PLAN_MODE_KEY = "zhipuCodePlanMode";
 
-    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS =
-        Collections.singletonList(new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN,
-            DEFAULT_SERVICE_PORT, "/"));
+    private static final List<LlmProviderEndpoint> DEFAULT_ENDPOINTS = Collections.singletonList(
+        new LlmProviderEndpoint(DEFAULT_SERVICE_PROTOCOL, DEFAULT_SERVICE_DOMAIN, DEFAULT_SERVICE_PORT, "/"));
 
     @Override
     public String getType() {
@@ -58,15 +60,7 @@ public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
 
         // Default to enable Code Plan mode for better code generation
         Object codePlanModeObj = configurations.get(CODE_PLAN_MODE_KEY);
-        if (codePlanModeObj != null) {
-            Boolean codePlanMode = normalizeBoolean(codePlanModeObj, CODE_PLAN_MODE_KEY);
-            if (codePlanMode != null) {
-                configurations.put(CODE_PLAN_MODE_KEY, codePlanMode);
-            }
-        } else {
-            // Default value
-            configurations.put(CODE_PLAN_MODE_KEY, Boolean.TRUE);
-        }
+        configurations.put(CODE_PLAN_MODE_KEY, ConverterUtil.toBoolean(codePlanModeObj, Boolean.TRUE));
     }
 
     @Override
@@ -93,24 +87,5 @@ public class ZhipuAILlmProviderHandler extends AbstractLlmProviderHandler {
         }
         String domain = ((String)domainObj).trim();
         return StringUtils.isNotEmpty(domain) ? domain : null;
-    }
-
-    private Boolean normalizeBoolean(Object value, String key) {
-        if (value instanceof Boolean) {
-            return (Boolean)value;
-        }
-        if (value instanceof String) {
-            String strVal = ((String)value).trim().toLowerCase();
-            if ("true".equals(strVal) || "1".equals(strVal) || "yes".equals(strVal)) {
-                return Boolean.TRUE;
-            }
-            if ("false".equals(strVal) || "0".equals(strVal) || "no".equals(strVal) || strVal.isEmpty()) {
-                return Boolean.FALSE;
-            }
-        }
-        if (value instanceof Number) {
-            return ((Number)value).intValue() != 0;
-        }
-        return null;
     }
 }
