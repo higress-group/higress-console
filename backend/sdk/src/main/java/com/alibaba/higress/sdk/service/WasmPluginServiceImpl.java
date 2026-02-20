@@ -96,6 +96,9 @@ class WasmPluginServiceImpl implements WasmPluginService {
 
     private static final String NAME_PLACEHOLDER = "${name}";
     private static final String VERSION_PLACEHOLDER = "${version}";
+    private static final String OCI_PROTOCOL = "oci://";
+    private static final String DEFAULT_IMAGE_REGISTRY = "higress-registry.cn-hangzhou.cr.aliyuncs.com";
+    private static final String DEFAULT_IMAGE_NAMESPACE = "plugins";
 
     private volatile List<PluginCacheItem> builtInPlugins = Collections.emptyList();
 
@@ -125,6 +128,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
         final List<PluginCacheItem> plugins = new ArrayList<>(properties.size());
 
         final String customImageUrlPattern = wasmPluginServiceConfig.getCustomImageUrlPattern();
+        final String pluginImageRegistry = wasmPluginServiceConfig.getPluginImageRegistry();
+        final String pluginImageNamespace = wasmPluginServiceConfig.getPluginImageNamespace();
         final String imagePullSecret = wasmPluginServiceConfig.getImagePullSecret();
         final String imagePullPolicy = wasmPluginServiceConfig.getImagePullPolicy();
 
@@ -152,8 +157,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
                     ex);
             }
 
-            cacheItem.imageUrl = StringUtils.isBlank(customImageUrlPattern) ? imageUrl
-                : formatImageUrl(customImageUrlPattern, cacheItem.plugin.getInfo());
+            cacheItem.imageUrl = buildPluginImageUrl(imageUrl, customImageUrlPattern, pluginImageRegistry,
+                pluginImageNamespace, cacheItem.plugin.getInfo());
             cacheItem.imagePullSecret = imagePullSecret;
             cacheItem.imagePullPolicy = imagePullPolicy;
 
@@ -183,6 +188,46 @@ class WasmPluginServiceImpl implements WasmPluginService {
         }
         return pattern.replace(NAME_PLACEHOLDER, pluginInfo.getName())
             .replace(VERSION_PLACEHOLDER, pluginInfo.getVersion());
+    }
+
+    private static String buildPluginImageUrl(String defaultUrl, String customPattern, String registry,
+        String namespace, PluginInfo pluginInfo) {
+        // Priority: customPattern > registry/namespace > defaultUrl
+        if (StringUtils.isNotBlank(customPattern)) {
+            return formatImageUrl(customPattern, pluginInfo);
+        }
+
+        if (StringUtils.isBlank(registry) && StringUtils.isBlank(namespace)) {
+            return defaultUrl;
+        }
+
+        // Replace registry and/or namespace in the default URL
+        // URL format: oci://registry/namespace/plugin-name:version
+        if (!defaultUrl.startsWith(OCI_PROTOCOL)) {
+            return defaultUrl;
+        }
+
+        String urlWithoutProtocol = defaultUrl.substring(OCI_PROTOCOL.length());
+        String targetRegistry = StringUtils.isNotBlank(registry) ? registry : DEFAULT_IMAGE_REGISTRY;
+        String targetNamespace = StringUtils.isNotBlank(namespace) ? namespace : DEFAULT_IMAGE_NAMESPACE;
+
+        // Find the first slash to locate registry end
+        int firstSlash = urlWithoutProtocol.indexOf('/');
+        if (firstSlash == -1) {
+            return defaultUrl;
+        }
+
+        // Find the second slash to locate namespace end
+        int secondSlash = urlWithoutProtocol.indexOf('/', firstSlash + 1);
+        if (secondSlash == -1) {
+            return defaultUrl;
+        }
+
+        // Extract the plugin name and version part (after second slash)
+        String pluginPath = urlWithoutProtocol.substring(secondSlash + 1);
+
+        // Rebuild the URL with new registry and namespace
+        return OCI_PROTOCOL + targetRegistry + "/" + targetNamespace + "/" + pluginPath;
     }
 
     private void fillPluginConfigExample(Plugin plugin, String content) {

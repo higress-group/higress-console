@@ -1,4 +1,6 @@
 {{- $o11y := merge (dict) .Values.o11y .Values.global.o11y }}
+{{- $pluginImageRegistry := .Values.pluginServer.imageRegistry | default .Values.global.hub }}
+{{- $pluginImageNamespace := .Values.pluginServer.imageNamespace | default .Values.global.pluginNamespace }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -73,6 +75,20 @@ spec:
             {{- if and .Values.global.enablePluginServer (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN"))}}
             - name: HIGRESS_ADMIN_WASM_PLUGIN_CUSTOM_IMAGE_URL_PATTERN
               value: "{{ .Values.pluginServer.urlPattern }}"
+            {{- end }}
+            {{- if and .Values.pluginServer.imageRegistry (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_REGISTRY")) }}
+            - name: HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_REGISTRY
+              value: "{{ .Values.pluginServer.imageRegistry }}"
+            {{- else if and $pluginImageRegistry (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_REGISTRY")) }}
+            - name: HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_REGISTRY
+              value: "{{ $pluginImageRegistry }}"
+            {{- end }}
+            {{- if and .Values.pluginServer.imageNamespace (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_NAMESPACE")) }}
+            - name: HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_NAMESPACE
+              value: "{{ .Values.pluginServer.imageNamespace }}"
+            {{- else if and $pluginImageNamespace (not (hasKey .Values.podEnvs "HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_NAMESPACE")) }}
+            - name: HIGRESS_ADMIN_WASM_PLUGIN_IMAGE_NAMESPACE
+              value: "{{ $pluginImageNamespace }}"
             {{- end }}
             {{- if .Values.podEnvs }}
             {{- range $key, $val := .Values.podEnvs }}
