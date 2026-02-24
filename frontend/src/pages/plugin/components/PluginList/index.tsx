@@ -53,7 +53,8 @@ const PluginList = forwardRef((props: Props, ref) => {
         plugins = plugins.filter(p => !p.builtIn || hiddenPlugins.indexOf(p.name) === -1);
       }
       const name = searchParams.get('name');
-      if (!name) {
+      if (type && !name) {
+        // If the type is specified but no name is provided, we cannot proceed
         return;
       }
       if (type === QueryType.ROUTE || type === QueryType.AI_ROUTE) {
