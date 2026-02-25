@@ -39,6 +39,7 @@ import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.ai.AiRoute;
+import com.alibaba.higress.sdk.model.ai.AiUpstream;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
@@ -58,8 +59,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     static {
         PROVIDER_HANDLERS = Stream.of(new OpenaiLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.MOONSHOT, "api.moonshot.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new QwenLlmProviderHandler(),
-            new AzureLlmProviderHandler(),
+            new QwenLlmProviderHandler(), new AzureLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.AI360, "api.360.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GITHUB, "models.inference.ai.azure.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
@@ -69,9 +69,9 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.YI, "api.lingyiwanwu.com", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.DEEPSEEK, "api.deepseek.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
-            new DefaultLlmProviderHandler(LlmProviderType.ZHIPUAI, "open.bigmodel.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new ZhipuAILlmProviderHandler(),
             new OllamaLlmProviderHandler(),
-            new DefaultLlmProviderHandler(LlmProviderType.CLAUDE, "api.anthropic.com", 443, V1McpBridge.PROTOCOL_HTTPS),
+            new ClaudeLlmProviderHandler(),
             new DefaultLlmProviderHandler(LlmProviderType.BAIDU, "qianfan.baidubce.com", 443,
                 V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.STEPFUN, "api.stepfun.com", 443, V1McpBridge.PROTOCOL_HTTPS),
@@ -107,13 +107,20 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
         }
 
+        // Ensure rawConfigs is not null before normalization
+        if (provider.getRawConfigs() == null) {
+            provider.setRawConfigs(new HashMap<>());
+        }
+
         handler.normalizeConfigs(provider.getRawConfigs());
 
         fillDefaultValues(provider);
 
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY, true);
+
         final String pluginName = BuiltInPluginName.AI_PROXY;
         WasmPluginInstance instance =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
         if (instance == null) {
             instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
             instance.setInternal(true);
@@ -170,6 +177,19 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
+
+        WasmPluginInstance existedServiceInstance = instances.stream()
+            .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName())).findFirst()
+            .orElse(null);
+        if (existedServiceInstance != null) {
+            String boundProviderName =
+                MapUtils.getString(existedServiceInstance.getConfigurations(), ACTIVE_PROVIDER_ID);
+            if (!provider.getName().equals(boundProviderName)) {
+                throw new ValidationException("The service instance for provider " + boundProviderName
+                    + " is already existed. Cannot bind it to provider " + provider.getName());
+            }
+        }
+
         WasmPluginInstance serviceInstance = new WasmPluginInstance();
         serviceInstance.setPluginName(instance.getPluginName());
         serviceInstance.setPluginVersion(instance.getPluginVersion());
@@ -297,7 +317,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     private void syncRelatedAiRoutes(LlmProvider provider) {
         AiRouteService aiRouteService = this.aiRouteService;
         if (aiRouteService == null) {
-            return;
+            throw new IllegalStateException("AiRouteService is not available when AI route syncing is needed.");
         }
 
         PaginatedResult<AiRoute> aiRoutes = aiRouteService.list(null);
@@ -310,10 +330,24 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             if (CollectionUtils.isEmpty(aiRoute.getUpstreams())) {
                 continue;
             }
-            if (aiRoute.getUpstreams().stream().anyMatch(u -> providerName.equals(u.getProvider()))) {
+            if (hasProvider(aiRoute.getUpstreams(), providerName)
+                || aiRoute.getFallbackConfig() != null && Boolean.TRUE.equals(aiRoute.getFallbackConfig().getEnabled())
+                    && hasProvider(aiRoute.getFallbackConfig().getUpstreams(), providerName)) {
                 aiRouteService.update(aiRoute);
             }
         }
+    }
+
+    private static boolean hasProvider(List<AiUpstream> upstreams, String providerName) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return false;
+        }
+        for (AiUpstream upstream : upstreams) {
+            if (providerName.equals(upstream.getProvider())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private SortedMap<String, LlmProvider> getProviders() {

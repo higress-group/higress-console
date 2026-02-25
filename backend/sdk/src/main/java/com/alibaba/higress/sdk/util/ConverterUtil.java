@@ -32,4 +32,25 @@ public class ConverterUtil {
         }
         return sourceCollection.stream().map(function).filter(Objects::nonNull).collect(Collectors.toList());
     }
+
+    public static Boolean toBoolean(Object value) {
+        return toBoolean(value, null);
+    }
+
+    public static Boolean toBoolean(Object value, Boolean defaultValue) {
+        if (value instanceof Boolean) {
+            return (Boolean)value;
+        } else if (value instanceof String) {
+            String strVal = ((String)value).trim().toLowerCase();
+            if ("true".equals(strVal) || "1".equals(strVal) || "yes".equals(strVal)) {
+                return Boolean.TRUE;
+            }
+            if ("false".equals(strVal) || "0".equals(strVal) || "no".equals(strVal) || strVal.isEmpty()) {
+                return Boolean.FALSE;
+            }
+        } else if (value instanceof Number) {
+            return ((Number)value).intValue() != 0;
+        }
+        return defaultValue;
+    }
 }
