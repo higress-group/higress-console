@@ -12,17 +12,31 @@
  */
 package com.alibaba.higress.sdk.service.kubernetes.model;
 
-import java.util.Map;
-
 import com.alibaba.fastjson.annotation.JSONField;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.Map;
 
 public class IstioEndpoint {
 
     @JSONField(name = "Labels")
     private Map<String, String> labels;
 
-    @JSONField(name = "Address")
-    private String address;
+    @JSONField(name = "Addresses")
+    private List<String> addresses;
+
+    public List<String> getAddresses() {
+        return addresses;
+    }
+
+    // Compatible with the old caller, return the first address
+    public String getAddress() {
+        if (CollectionUtils.isEmpty(addresses)) {
+            return null;
+        }
+        return addresses.get(0);
+    }
 
     public Map<String, String> getLabels() {
         return labels;
@@ -32,11 +46,4 @@ public class IstioEndpoint {
         this.labels = labels;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }
