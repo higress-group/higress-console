@@ -88,6 +88,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     if (serviceOptions == null) {
       serviceResult.run();
     }
+    originalRawConfigsRef.current = {}
     if (props.value) {
       const {
         name,
