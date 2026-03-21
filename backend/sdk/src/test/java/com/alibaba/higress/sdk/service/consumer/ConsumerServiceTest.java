@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
@@ -55,6 +58,7 @@ import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
+import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
 import com.alibaba.higress.sdk.model.consumer.JwtAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
@@ -183,6 +187,14 @@ public class ConsumerServiceTest {
         assertEquals("jwtUser", consumerConfig.get("name"));
         assertEquals("issuer-demo", consumerConfig.get("issuer"));
         assertEquals("{\"keys\":[{\"kty\":\"oct\",\"k\":\"c2VjcmV0\"}]}", consumerConfig.get("jwks"));
+    }
+
+    @Test
+    void testValidate_UnsupportedCredentialType() {
+        Consumer consumer = Consumer.builder().name("bad-user")
+            .credentials(Collections.singletonList(new Credential("unknown-auth"))).build();
+
+        assertThrows(com.alibaba.higress.sdk.exception.ValidationException.class, () -> consumer.validate(false));
     }
 
     private void validateDefaultGlobalConfig(Map<String, Object> configurations) {
@@ -689,6 +701,21 @@ public class ConsumerServiceTest {
         assertEquals(BuiltInPluginName.JWT_AUTH, actualInstance.getPluginName());
         assertEquals(targets, actualInstance.getTargets());
         assertEquals(Lists.newArrayList("jwt-user"), actualInstance.getConfigurations().get("allow"));
+    }
+
+    @Test
+    void testUpdateAllowList_ReplaceOperation_InvalidCredentialTypeHasNoSideEffect() {
+        Map<WasmPluginInstanceScope, String> targets = new HashMap<>();
+        targets.put(WasmPluginInstanceScope.ROUTE, "mcp-server-test.internal");
+
+        AllowList allowList = AllowList.builder().targets(targets).authEnabled(true)
+            .credentialTypes(Lists.newArrayList("unknown-auth")).consumerNames(Lists.newArrayList("jwt-user")).build();
+
+        assertThrows(IllegalArgumentException.class,
+            () -> consumerService.updateAllowList(AllowListOperation.REPLACE, allowList));
+
+        verify(wasmPluginInstanceService, never()).delete(anyMap(), anyString(), anyBoolean());
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
     }
 
     @Test

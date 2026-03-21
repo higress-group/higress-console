@@ -220,6 +220,11 @@ public class ConsumerServiceImpl implements ConsumerService {
         } else {
             credentialTypes = credentialTypes.stream().distinct().collect(Collectors.toList());
         }
+        for (String credentialType : credentialTypes) {
+            if (!CREDENTIAL_HANDLERS.containsKey(credentialType)) {
+                throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
+            }
+        }
 
         switch (operation) {
             case ADD:
@@ -251,10 +256,6 @@ public class ConsumerServiceImpl implements ConsumerService {
 
         for (String credentialType : credentialTypes) {
             CredentialHandler handler = CREDENTIAL_HANDLERS.get(credentialType);
-            if (handler == null) {
-                throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
-            }
-
             List<WasmPluginInstance> instancesToSave = new ArrayList<>();
 
             List<WasmPluginInstance> instances = getAllPluginInstances(handler);
