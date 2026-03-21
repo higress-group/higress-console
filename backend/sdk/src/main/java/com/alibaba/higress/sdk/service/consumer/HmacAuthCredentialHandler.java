@@ -16,8 +16,10 @@ import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.ALLO
 import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.CONSUMERS;
 import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.CONSUMER_NAME;
 import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.GLOBAL_AUTH;
-import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.KEY;
-import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.SECRET;
+import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.ACCESS_KEY;
+import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.LEGACY_KEY;
+import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.LEGACY_SECRET;
+import static com.alibaba.higress.sdk.constant.plugin.config.HmacAuthConfig.SECRET_KEY;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -152,8 +154,10 @@ class HmacAuthCredentialHandler implements CredentialHandler {
         }
 
         credential.validate(false);
-        consumerConfig.put(KEY, credential.getKey());
-        consumerConfig.put(SECRET, credential.getSecret());
+        consumerConfig.put(ACCESS_KEY, credential.getKey());
+        consumerConfig.put(SECRET_KEY, credential.getSecret());
+        consumerConfig.remove(LEGACY_KEY);
+        consumerConfig.remove(LEGACY_SECRET);
         configurations.put(CONSUMERS, consumers);
         configurations.put(GLOBAL_AUTH, false);
         return true;
@@ -270,8 +274,9 @@ class HmacAuthCredentialHandler implements CredentialHandler {
     }
 
     private HmacAuthCredential parseCredential(Map<String, Object> consumerMap) {
-        String key = MapUtils.getString(consumerMap, KEY);
-        String secret = MapUtils.getString(consumerMap, SECRET);
+        String key = MapUtils.getString(consumerMap, ACCESS_KEY, MapUtils.getString(consumerMap, LEGACY_KEY));
+        String secret =
+            MapUtils.getString(consumerMap, SECRET_KEY, MapUtils.getString(consumerMap, LEGACY_SECRET));
         if (StringUtils.isAnyBlank(key, secret)) {
             return null;
         }

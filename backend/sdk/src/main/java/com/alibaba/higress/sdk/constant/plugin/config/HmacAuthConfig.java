@@ -20,6 +20,8 @@ public final class HmacAuthConfig {
     public static final String GLOBAL_AUTH = "global_auth";
     public static final String CONSUMERS = "consumers";
     public static final String CONSUMER_NAME = "name";
-    public static final String KEY = "key";
-    public static final String SECRET = "secret";
+    public static final String ACCESS_KEY = "access_key";
+    public static final String SECRET_KEY = "secret_key";
+    public static final String LEGACY_KEY = "key";
+    public static final String LEGACY_SECRET = "secret";
 }

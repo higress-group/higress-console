@@ -60,6 +60,7 @@ import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.model.consumer.CredentialType;
+import com.alibaba.higress.sdk.model.consumer.HmacAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.JwtAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredentialSource;
@@ -187,6 +188,68 @@ public class ConsumerServiceTest {
         assertEquals("jwtUser", consumerConfig.get("name"));
         assertEquals("issuer-demo", consumerConfig.get("issuer"));
         assertEquals("{\"keys\":[{\"kty\":\"oct\",\"k\":\"c2VjcmV0\"}]}", consumerConfig.get("jwks"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testAddOrUpdate_NewHmacConsumerUsesPluginFieldNames() {
+        Consumer consumer = createTestHmacConsumer("hmacUser");
+
+        AtomicReference<WasmPluginInstance> globalInstanceRef = new AtomicReference<>();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.HMAC_AUTH), eq(true))).thenAnswer(a -> globalInstanceRef.get());
+        when(wasmPluginInstanceService.addOrUpdateAll(any())).thenAnswer(a -> {
+            List<WasmPluginInstance> instances = a.getArgument(0);
+            globalInstanceRef.set(instances.get(0));
+            return instances;
+        });
+
+        Consumer result = consumerService.addOrUpdate(consumer);
+
+        assertNotNull(result);
+        ArgumentCaptor<List<WasmPluginInstance>> captor = ArgumentCaptor.forClass(List.class);
+        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture());
+
+        List<WasmPluginInstance> actualInstances = captor.getValue();
+        assertEquals(1, actualInstances.size());
+        WasmPluginInstance instance = actualInstances.get(0);
+        assertEquals(BuiltInPluginName.HMAC_AUTH, instance.getPluginName());
+
+        Map<String, Object> configurations = instance.getConfigurations();
+        assertEquals(Boolean.FALSE, configurations.get("global_auth"));
+        assertEquals(Collections.emptyList(), configurations.get("allow"));
+        List<Map<String, Object>> consumers = (List<Map<String, Object>>)configurations.get("consumers");
+        assertEquals(1, consumers.size());
+        Map<String, Object> consumerConfig = consumers.get(0);
+        assertEquals("hmacUser", consumerConfig.get("name"));
+        assertEquals("hmac-key-demo", consumerConfig.get("access_key"));
+        assertEquals("hmac-secret-demo", consumerConfig.get("secret_key"));
+        assertFalse(consumerConfig.containsKey("key"));
+        assertFalse(consumerConfig.containsKey("secret"));
+    }
+
+    @Test
+    void testQuery_HmacConsumerWithLegacyFields() {
+        String consumerName = "legacy-hmac-user";
+        WasmPluginInstance instance = createTestInstance(BuiltInPluginName.HMAC_AUTH);
+        instance.setGlobalTarget();
+        Map<String, Object> config = new HashMap<>();
+        config.put("consumers", Collections.singletonList(ImmutableMap.of(
+            "name", consumerName,
+            "key", "legacy-hmac-key",
+            "secret", "legacy-hmac-secret")));
+        instance.setConfigurations(config);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.HMAC_AUTH), eq(true))).thenReturn(instance);
+
+        Consumer result = consumerService.query(consumerName);
+
+        assertNotNull(result);
+        assertEquals(consumerName, result.getName());
+        assertEquals(1, result.getCredentials().size());
+        HmacAuthCredential credential = (HmacAuthCredential)result.getCredentials().get(0);
+        assertEquals("legacy-hmac-key", credential.getKey());
+        assertEquals("legacy-hmac-secret", credential.getSecret());
     }
 
     @Test
@@ -880,6 +943,11 @@ public class ConsumerServiceTest {
     private static Consumer createTestJwtConsumer(String name) {
         JwtAuthCredential credential = new JwtAuthCredential("issuer-demo",
             "{\"keys\":[{\"kty\":\"oct\",\"k\":\"c2VjcmV0\"}]}", null, null, null, null, null, Boolean.TRUE);
+        return new Consumer(name, Lists.newArrayList(credential));
+    }
+
+    private static Consumer createTestHmacConsumer(String name) {
+        HmacAuthCredential credential = new HmacAuthCredential("hmac-key-demo", "hmac-secret-demo");
         return new Consumer(name, Lists.newArrayList(credential));
     }
 
