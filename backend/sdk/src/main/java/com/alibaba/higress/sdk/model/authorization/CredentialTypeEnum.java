@@ -31,7 +31,15 @@ public enum CredentialTypeEnum {
     /**
      * credential type is key-auth
      */
-    KEY_AUTH("key-auth", "API_KEY");
+    KEY_AUTH("key-auth", "API_KEY"),
+    /**
+     * credential type is jwt-auth
+     */
+    JWT_AUTH("jwt-auth", "JWT"),
+    /**
+     * credential type is hmac-auth
+     */
+    HMAC_AUTH("hmac-auth", "HMAC");
 
     private final String type;
     /**

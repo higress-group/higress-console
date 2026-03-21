@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Alibaba Group Holding Ltd.
+ * Copyright (c) 2022-2024 Alibaba Group Holding Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,16 +10,16 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.model.consumer;
+package com.alibaba.higress.sdk.constant.plugin.config;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+public final class HmacAuthConfig {
 
-@Schema(description = "Credential Type", type = "string", allowableValues = {"key-auth", "jwt-auth", "hmac-auth"})
-public final class CredentialType {
+    private HmacAuthConfig() {}
 
-    private CredentialType() {}
-
-    public static final String KEY_AUTH = "key-auth";
-    public static final String JWT_AUTH = "jwt-auth";
-    public static final String HMAC_AUTH = "hmac-auth";
+    public static final String ALLOW = "allow";
+    public static final String GLOBAL_AUTH = "global_auth";
+    public static final String CONSUMERS = "consumers";
+    public static final String CONSUMER_NAME = "name";
+    public static final String KEY = "key";
+    public static final String SECRET = "secret";
 }

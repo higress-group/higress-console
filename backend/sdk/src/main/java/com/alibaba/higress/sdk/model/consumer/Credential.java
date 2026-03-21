@@ -30,10 +30,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Consumer Credential", oneOf = {KeyAuthCredential.class})
+@Schema(description = "Consumer Credential", oneOf = {KeyAuthCredential.class, JwtAuthCredential.class,
+    HmacAuthCredential.class})
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type",
     visible = true, defaultImpl = Credential.class)
-@JsonSubTypes({@JsonSubTypes.Type(value = KeyAuthCredential.class, name = CredentialType.KEY_AUTH),})
+@JsonSubTypes({@JsonSubTypes.Type(value = KeyAuthCredential.class, name = CredentialType.KEY_AUTH),
+    @JsonSubTypes.Type(value = JwtAuthCredential.class, name = CredentialType.JWT_AUTH),
+    @JsonSubTypes.Type(value = HmacAuthCredential.class, name = CredentialType.HMAC_AUTH),})
 public class Credential {
 
     @Schema(description = "Credential type", ref = "CredentialType")
