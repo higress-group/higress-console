@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -171,8 +172,10 @@ class ServiceServiceImpl implements ServiceService {
         Map<String, List<IstioEndpoint>> shards = endpointShard.getShards();
         shards.keySet().forEach(s -> {
             List<IstioEndpoint> istioEndpoints = shards.get(s);
-            endpoints
-                .addAll(istioEndpoints.stream().map(IstioEndpoint::getAddress).distinct().collect(Collectors.toList()));
+            endpoints.addAll(istioEndpoints.stream()
+                        .flatMap(ep -> ep.getAddresses() != null ? ep.getAddresses().stream() : Stream.empty())
+                        .distinct()
+                        .collect(Collectors.toList()));
         });
         return endpoints;
     }
