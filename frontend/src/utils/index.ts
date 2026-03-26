@@ -1,3 +1,4 @@
+import i18n, { lngs } from '@/i18n';
 import yaml from 'js-yaml';
 
 export const clearObjectVal = (obj, hash = new WeakMap()) => {
@@ -35,4 +36,13 @@ export const getYamlEmptyValString = (value) => {
 
 export const isInternalResource = (name: string) => {
   return name && name.endsWith('.internal');
+};
+
+export const getOfficialSiteLink = (path: string) => {
+  const lang = i18n.language;
+  const langConfig = lngs.find(l => l.code === lang);
+  const officialSiteLang = langConfig?.officialSiteCode || '';
+  const langPrefix = officialSiteLang ? `/${officialSiteLang}` : '';
+  const basePath = path.startsWith('/') ? path : `/${path}`;
+  return `https://higress.io${langPrefix}${basePath}`;
 };
