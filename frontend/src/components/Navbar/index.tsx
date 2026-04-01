@@ -14,29 +14,27 @@ interface NavbarProps { }
 const Navbar: React.FC<NavbarProps> = () => {
   const { t } = useTranslation();
 
-  const lang = i18n.language;
-
   const linkList = useMemo(() => {
     return [
       {
         name: t("navbar.officialWebsite"),
-        link: `${getOfficialSiteLink("/")}`,
+        link: getOfficialSiteLink("/"),
       },
       {
         name: t("navbar.docs"),
-        link: `${getOfficialSiteLink("/docs/latest/overview/what-is-higress")}`,
+        link: getOfficialSiteLink("/docs/latest/overview/what-is-higress"),
       },
       {
         name: t("navbar.commercial"),
-        link: `${i18n.language.startsWith("zh") ? COMMERCIAL_URL_ZH : COMMERCIAL_URL_EN}`,
+        link: i18n.language.startsWith("zh") ? COMMERCIAL_URL_ZH : COMMERCIAL_URL_EN,
       },
       {
         name: t("navbar.developers"),
-        link: `${getOfficialSiteLink("/docs/developers/developers_dev/")}`,
+        link: getOfficialSiteLink("/docs/developers/developers_dev/"),
       },
       {
         name: t("navbar.blog"),
-        link: `${getOfficialSiteLink("/blog/")}`,
+        link: getOfficialSiteLink("/blog/"),
       },
       {
         name: t("navbar.download"),
@@ -44,6 +42,7 @@ const Navbar: React.FC<NavbarProps> = () => {
       },
     ];
   }, [i18n.language]);
+
   return (
     <ul className={styles["header-nav-bar"]}>
       {linkList.map((item) => {
