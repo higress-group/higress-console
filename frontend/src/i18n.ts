@@ -32,12 +32,12 @@ export const lngs = [
     code: "zh-CN",
     nativeName: "简体中文",
     switchText: "中",
-    officialSiteCode: "zh-cn",
+    officialSiteCode: "",
   },
   {
     code: "en-US",
     nativeName: "English (United States)",
     switchText: "En",
-    officialSiteCode: "en-us",
+    officialSiteCode: "en",
   },
 ];

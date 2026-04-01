@@ -1,19 +1,19 @@
-import i18n, { lngs } from '@/i18n';
 import { OptionItem } from '@/interfaces/common';
 import { Consumer, CredentialType } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
 import { upstreamServiceToString } from '@/interfaces/route';
+import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
+import { getOfficialSiteLink } from '@/utils';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Checkbox, Form, Input, Select, Switch, Tooltip, Button } from 'antd';
+import { Button, Checkbox, Form, Input, Select, Switch, Tooltip } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FactorGroup from '../FactorGroup';
 import KeyValueGroup from '../KeyValueGroup';
-import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 
 const { Option } = Select;
 
@@ -132,10 +132,6 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       return values;
     },
   }));
-
-  const lang = i18n.language;
-  const langConfig = lngs.find(l => l.code === lang);
-  const officialSiteLang = langConfig?.officialSiteCode || lang.toLowerCase();
 
   return (
     <Form
@@ -325,7 +321,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             <>
               {t('route.routeForm.customConfigs')}
               <Tooltip title={t('route.routeForm.customConfigsTip')}>
-                <a href={`https://higress.io/${officialSiteLang}/docs/user/annotation-use-case`} target="_blank">
+                <a href={`${getOfficialSiteLink("/docs/latest/user/annotation-use-case")}`} target="_blank">
                   <QuestionCircleOutlined className="ant-form-item-tooltip" />
                 </a>
               </Tooltip>
