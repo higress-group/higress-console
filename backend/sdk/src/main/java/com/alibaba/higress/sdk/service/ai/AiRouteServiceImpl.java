@@ -78,7 +78,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
     private static final ProxyNextUpstreamConfig DEFAULT_PROXY_NEXT_UPSTREAM_CONFIG =
-        new ProxyNextUpstreamConfig(true, 3, 120000, new String[] {"error", "timeout", "non_idempotent"});
+        new ProxyNextUpstreamConfig(true, 3, 120, new String[] {"error", "timeout", "non_idempotent"});
 
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS = MapUtil
         .of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
