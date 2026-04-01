@@ -40,7 +40,9 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
     private static final String VERTEX_TOKEN_REFRESH_AHEAD_KEY = "vertexTokenRefreshAhead";
     private static final String GEMINI_SAFETY_SETTING_KEY = "geminiSafetySetting";
 
-    private static final String DOMAIN_FORMAT = "%s-aiplatform.googleapis.com";
+    private static final String GLOBAL_REGION = "global";
+    private static final String GLOBAL_DOMAIN = "aiplatform.googleapis.com";
+    private static final String REGIONAL_DOMAIN_FORMAT = "%s-aiplatform.googleapis.com";
 
     private static final String DEFAULT_AUTH_SERVICE_NAME =
         "vertex-auth" + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
@@ -129,7 +131,7 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
         if (StringUtils.isEmpty(region)) {
             throw new ValidationException(VERTEX_REGION_KEY + " cannot be empty.");
         }
-        String domain = String.format(DOMAIN_FORMAT, region);
+        String domain = GLOBAL_REGION.equals(region) ? GLOBAL_DOMAIN : String.format(REGIONAL_DOMAIN_FORMAT, region);
         return Collections.singletonList(new LlmProviderEndpoint(V1McpBridge.PROTOCOL_HTTPS, domain, 443, "/"));
     }
 

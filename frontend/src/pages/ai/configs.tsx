@@ -651,6 +651,7 @@ export const aiModelProviders = [
     label: 'Google Vertex',
     value: 'vertex',
     availableRegions: [
+      'global',
       'africa-south1',
       'asia-east1',
       'asia-east2',
@@ -727,7 +728,10 @@ export const aiModelProviders = [
     },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.vertexRegion;
-      return region && [`https://${region}-aiplatform.googleapis.com`] || [];
+      if (!region) {
+        return [];
+      }
+      return [region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`];
     },
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
@@ -853,6 +857,33 @@ export const aiModelProviders = [
         value: 'grok-2-image-1212',
       },
     ],
+  },
+  {
+    label: 'vLLM',
+    value: 'vllm',
+    targetModelList: [],
+    tokenRequired: false,
+    getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const customUrl = record.rawConfigs.vllmCustomUrl;
+      if (!customUrl) {
+        return null;
+      }
+      const customUrls = [customUrl];
+      if (Array.isArray(record.rawConfigs.vllmExtraCustomUrls)) {
+        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls)
+      }
+      return customUrls;
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (rawConfigs && Array.isArray(rawConfigs.vllmCustomUrls)) {
+        rawConfigs.vllmExtraCustomUrls = [...rawConfigs.vllmCustomUrls];
+        rawConfigs.vllmCustomUrl = rawConfigs.vllmExtraCustomUrls.shift();
+        delete rawConfigs.vllmCustomUrls;
+      }
+    },
   },
 ];
 

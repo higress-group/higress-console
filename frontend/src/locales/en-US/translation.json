@@ -278,7 +278,8 @@
         "zhipuDomain": "Custom Zhipu AI Domain",
         "claudeVersion": "Claude API Version",
         "claudeCodeMode": "Claude Code Mode (OAuth Token)",
-        "zhipuCodePlanMode": "Code Plan Mode"
+        "zhipuCodePlanMode": "Code Plan Mode",
+        "vllmCustomUrl": "Custom vLLM Service Base URL"
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -313,7 +314,12 @@
         "vertexAuthKeyBadRequiredProperty": "Required property is missing in the Google Cloud service account key: {{key}}",
         "geminiSafetyCategoryRequired": "Please input harm category",
         "geminiSafetyCategoryDuplicated": "Found duplicated harm categories",
-        "geminiSafetyThresholdRequired": "Please input block threshold"
+        "geminiSafetyThresholdRequired": "Please input block threshold",
+        "vllmCustomUrlRequired": "Please input a valid custom vLLM service base URL",
+        "invalidVllmCustomUrl": "Bad URL format: ",
+        "vllmCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom vLLM service base URLs",
+        "vllmCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom vLLM service base URLs",
+        "vllmCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom vLLM service base URLs"
       },
       "tooltips": {
         "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",
@@ -332,7 +338,8 @@
         "openaiCustomServicePathPlaceholder": "Sample: /v1",
         "qwenDomainPlaceholder": "Sample: dashscope-finance.aliyuncs.com",
         "qwenFileIdsPlaceholder": "Sample: file-fe-xxx",
-        "zhipuDomainPlaceholder": "Sample: api.z.ai (for international service)"
+        "zhipuDomainPlaceholder": "Sample: api.z.ai (for international service)",
+        "vllmCustomUrlPlaceholder": "Sample: http://192.168.0.1:8000/v1"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",

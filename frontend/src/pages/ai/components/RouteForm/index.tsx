@@ -170,7 +170,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         modelPredicates = [],
       } = values;
 
-      const payload = {
+      const payload = Object.assign({}, value, {
         name,
         domains: domains && !Array.isArray(domains) ? [domains] : domains,
         pathPredicate,
@@ -182,7 +182,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         authConfig: {
           enabled: authConfig_enabled,
         },
-      }
+      });
       payload["upstreams"] = upstreams.map(({ provider, weight, modelMapping }) => {
         const obj = { provider, weight, modelMapping: {} };
         obj["modelMapping"] = string2ModelMapping(modelMapping);

@@ -125,7 +125,11 @@ public class KubernetesUtil {
     }
 
     public static String buildLabelSelector(String name, String value) {
-        return name + Separators.EQUALS_SIGN + value;
+        if (StringUtils.contains(value, Separators.COMMA)) {
+            return StringUtils.join(name, " in (", value, ")");
+        } else {
+            return name + Separators.EQUALS_SIGN + value;
+        }
     }
 
     public static String buildLabelSelectors(Map<String, String> labels) {

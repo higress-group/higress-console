@@ -156,6 +156,17 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         onOpenaiServerTypeChanged(openaiServerTypeValue)
         form.setFieldValue('openaiCustomServerType', openaiCustomServerTypeValue);
         onOpenaiCustomServerTypeChanged(openaiCustomServerTypeValue);
+      } else if (type === 'vllm') {
+        rawConfigs.vllmCustomUrls = [];
+        if (rawConfigs && rawConfigs.vllmCustomUrl) {
+          rawConfigs.vllmCustomUrls.push(rawConfigs.vllmCustomUrl);
+          if (Array.isArray(rawConfigs.vllmExtraCustomUrls)) {
+            rawConfigs.vllmCustomUrls.push(...rawConfigs.vllmExtraCustomUrls);
+          }
+        }
+        if (rawConfigs.vllmCustomUrls.length === 0) {
+          rawConfigs.vllmCustomUrls.push('');
+        }
       }
 
       if (type === 'qwen') {
@@ -1102,6 +1113,105 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 }
               </Form.List>
             </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'vllm' && (
+          <>
+            <Form.List
+              name={["rawConfigs", "vllmCustomUrls"]}
+              initialValue={[null]}
+              rules={[
+                {
+                  validator(rule, value) {
+                    let protocol = '';
+                    let contextPath = '';
+                    for (const item of value) {
+                      if (!item) {
+                        continue;
+                      }
+                      let url;
+                      try {
+                        url = new URL(item);
+                      } catch (e) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.invalidVllmCustomUrl') + item)
+                      }
+                      if (value.length > 1
+                        && !/^(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.test(url.hostname)) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.vllmCustomUrlMultipleValuesWithIpOnly'))
+                      }
+                      if (protocol && url.protocol !== protocol) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.vllmCustomUrlInconsistentProtocols'))
+                      }
+                      protocol = url.protocol;
+                      if (contextPath && url.pathname !== contextPath) {
+                        return Promise.reject(t('llmProvider.providerForm.rules.vllmCustomUrlInconsistentContextPaths'))
+                      }
+                      contextPath = url.pathname;
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
+              {(fields, { add, remove }, { errors }) => (
+                <>
+                  {!fields.length ?
+                    <div
+                      style={{ marginBottom: '8px' }}
+                    >
+                      {t('llmProvider.providerForm.label.vllmCustomUrl')}
+                    </div> : null
+                  }
+
+                  {fields.map((field, index) => (
+                    <Form.Item
+                      label={index === 0 ? t('llmProvider.providerForm.label.vllmCustomUrl') : ''}
+                      required
+                      key={index}
+                      style={{ marginBottom: '0.5rem' }}
+                    >
+                      <Form.Item
+                        {...field}
+                        noStyle
+                        rules={[
+                          {
+                            required: true,
+                            pattern: /http(s)?:\/\/.+/,
+                            message: t('llmProvider.providerForm.rules.vllmCustomUrlRequired') || '',
+                          },
+                        ]}
+                      >
+                        <Input
+                          allowClear
+                          type="url"
+                          style={{ width: '94%' }}
+                          placeholder={t('llmProvider.providerForm.placeholder.vllmCustomUrlPlaceholder') || ''}
+                        />
+                      </Form.Item>
+                      <div style={{ display: "inline-block", width: '6%', textAlign: 'right' }}>
+                        <Button
+                          type="dashed"
+                          disabled={!(fields.length > 1)}
+                          onClick={() => remove(field.name)}
+                          icon={<MinusCircleOutlined />}
+                        />
+                      </div>
+                    </Form.Item>
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      icon={<PlusOutlined />}
+                    />
+                    <Form.ErrorList errors={errors} />
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
           </>
         )
       }
