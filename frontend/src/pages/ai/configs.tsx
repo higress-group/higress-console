@@ -651,6 +651,7 @@ export const aiModelProviders = [
     label: 'Google Vertex',
     value: 'vertex',
     availableRegions: [
+      'global',
       'africa-south1',
       'asia-east1',
       'asia-east2',
@@ -727,7 +728,10 @@ export const aiModelProviders = [
     },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.vertexRegion;
-      return region && [`https://${region}-aiplatform.googleapis.com`] || [];
+      if (!region) {
+        return [];
+      }
+      return [region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`];
     },
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
