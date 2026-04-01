@@ -6,7 +6,7 @@ import { getProxyServers } from '@/services/proxy-server';
 import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Tooltip, Typography } from 'antd';
 import { useRequest } from 'ice';
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
 
@@ -27,6 +27,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [openaiCustomServerType, setOpenaiCustomServerType] = useState<string | null>();
   const [qwenServerType, setQwenServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
+  // Preserve rawConfigs fields that have no corresponding form control (e.g. fields
+  // set directly via API). They are merged back on submit so UI edits don't erase them.
+  const originalRawConfigsRef = useRef<Record<string, any>>({});
   const [proxyServerOptions, setProxyServerOptions] = useState<OptionItem[] | null>();
   const proxyServersResult = useRequest(getProxyServers, {
     manual: true,
@@ -85,6 +88,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     if (serviceOptions == null) {
       serviceResult.run();
     }
+    originalRawConfigsRef.current = {}
     if (props.value) {
       const {
         name,
@@ -95,6 +99,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         proxyName = '',
         rawConfigs = {},
       } = props.value;
+      originalRawConfigsRef.current = rawConfigs || {};
       const {
         failureThreshold,
         successThreshold,
@@ -214,7 +219,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           healthCheckModel: values.healthCheckModel,
         },
         proxyName: values.proxyName,
-        rawConfigs: values.rawConfigs,
+        // Merge unknown extra fields (set via API, not exposed in the form) back into
+        // rawConfigs so they are not silently dropped when the user saves via the UI.
+        rawConfigs: { ...originalRawConfigsRef.current, ...(values.rawConfigs || {}) },
       };
 
       return result;
@@ -619,7 +626,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               tooltip={t('llmProvider.providerForm.tooltips.qwenEnableCompatibleTooltip')}
               name={["rawConfigs", "qwenEnableCompatible"]}
               valuePropName="checked"
-              initialValue={false}
+              initialValue
             >
               <Switch />
             </Form.Item>
@@ -748,6 +755,61 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 type="url"
                 placeholder={t('llmProvider.providerForm.placeholder.azureServiceUrlPlaceholder')}
               />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'zhipuai' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuDomain')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuDomainTooltip')}
+              name={["rawConfigs", "zhipuDomain"]}
+            >
+              <Input
+                allowClear
+                maxLength={256}
+                placeholder={t('llmProvider.providerForm.placeholder.zhipuDomainPlaceholder') || ''}
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.zhipuCodePlanMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.zhipuCodePlanModeTooltip')}
+              name={["rawConfigs", "zhipuCodePlanMode"]}
+              valuePropName="checked"
+              initialValue
+            >
+              <Switch />
+            </Form.Item>
+          </>
+        )
+      }
+
+      {
+        providerType === 'claude' && (
+          <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeVersion')}
+              tooltip={t('llmProvider.providerForm.tooltips.claudeVersionTooltip')}
+              name={["rawConfigs", "claudeVersion"]}
+              initialValue="2023-06-01"
+            >
+              <Input
+                allowClear
+                maxLength={64}
+                placeholder="2023-06-01"
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeCodeMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.claudeCodeModeTooltip')}
+              name={["rawConfigs", "claudeCodeMode"]}
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
             </Form.Item>
           </>
         )

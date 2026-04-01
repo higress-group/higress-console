@@ -563,8 +563,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
               {!getConfigLoading && !getDataLoading && (
                 <CodeEditor
                   defaultValue={defaultValue}
-                  // Set defaultValue as the key to force a refresh of CodeEditor
-                  key={defaultValue}
+                  autoHeight
                   onChange={(val) => {
                     setRawConfigurations(val);
                   }}

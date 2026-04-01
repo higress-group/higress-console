@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,6 +89,10 @@ public class WasmPluginInstance implements VersionedDto {
         return targets != null && targets.containsKey(scope);
     }
 
+    public boolean hasScopedTarget(WasmPluginInstanceScope scope, String target) {
+        return targets != null && targets.containsKey(scope) && Objects.equals(targets.get(scope), target);
+    }
+
     public void setGlobalTarget() {
         setTarget(WasmPluginInstanceScope.GLOBAL, null);
     }
@@ -117,7 +122,7 @@ public class WasmPluginInstance implements VersionedDto {
         if (targets.containsKey(WasmPluginInstanceScope.GLOBAL)) {
             if (targets.size() > 1) {
                 throw new IllegalArgumentException(
-                        "instance.targets cannot contain GLOBAL and other scopes at the same time.");
+                    "instance.targets cannot contain GLOBAL and other scopes at the same time.");
             }
             String target = targets.get(WasmPluginInstanceScope.GLOBAL);
             if (target != null) {
@@ -127,7 +132,7 @@ public class WasmPluginInstance implements VersionedDto {
             for (Map.Entry<WasmPluginInstanceScope, String> entry : targets.entrySet()) {
                 if (StringUtils.isEmpty(entry.getValue())) {
                     throw new IllegalArgumentException(
-                            "instance.target must not be null or empty when scope is not GLOBAL.");
+                        "instance.target must not be null or empty when scope is not GLOBAL.");
                 }
             }
         }

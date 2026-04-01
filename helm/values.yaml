@@ -9,6 +9,13 @@ global:
     # cluster domain. Default value is "cluster.local".
     clusterDomain: "cluster.local"
 
+  # -- Default hub (registry) for Higress images, passed from parent chart.
+  # Used for plugin image registry when pluginServer.imageRegistry is not set.
+  hub: ""
+  # -- Plugin image namespace for built-in plugins, passed from parent chart.
+  # Used when pluginServer.imageNamespace is not set. Default is "plugins".
+  pluginNamespace: ""
+
   # Observability (o11y) configurations
   o11y:
     enabled: false
@@ -130,3 +137,9 @@ pvc:
 
 pluginServer:
   urlPattern: "http://higress-plugin-server.higress-system.svc/plugins/${name}/${version}/plugin.wasm"
+  # -- Plugin image registry for built-in plugins. If set, will override the default registry in plugins.properties.
+  # Example: "my-registry.example.com"
+  imageRegistry: ""
+  # -- Plugin image namespace for built-in plugins. If set, will override the default namespace in plugins.properties.
+  # Default namespace is "plugins". Example: "my-plugins"
+  imageNamespace: ""

@@ -20,11 +20,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.alibaba.higress.sdk.util.MapUtil;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import com.alibaba.higress.sdk.constant.CommonKey;
 import com.alibaba.higress.sdk.constant.HigressConstants;
@@ -47,6 +50,7 @@ import com.alibaba.higress.sdk.model.ai.AiRouteFallbackConfig;
 import com.alibaba.higress.sdk.model.ai.AiRouteFallbackStrategy;
 import com.alibaba.higress.sdk.model.ai.AiUpstream;
 import com.alibaba.higress.sdk.model.route.KeyedRoutePredicate;
+import com.alibaba.higress.sdk.model.route.ProxyNextUpstreamConfig;
 import com.alibaba.higress.sdk.model.route.RoutePredicate;
 import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
@@ -55,28 +59,29 @@ import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
+import com.alibaba.higress.sdk.util.EnvUtil;
+import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.StringUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-
-import static com.alibaba.higress.sdk.constant.HigressConstants.VALID_FALLBACK_RESPONSE_CODES;
 
 @Slf4j
 public class AiRouteServiceImpl implements AiRouteService {
 
+    private static final String AI_ROUTE_AUTO_ENABLE_AI_STATS_ENV_KEY = "AI_ROUTE_AUTO_ENABLE_AI_STATS";
+    private static final String AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER_ENV_KEY = "AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER";
+
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
-    private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS =
-        MapUtil.of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY,
-                KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
+    private static final ProxyNextUpstreamConfig DEFAULT_PROXY_NEXT_UPSTREAM_CONFIG =
+        new ProxyNextUpstreamConfig(true, 3, 120000, new String[] {"error", "timeout", "non_idempotent"});
+
+    private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS = MapUtil
+        .of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
     private static final RoutePredicate DEFAULT_PATH_PREDICATE =
         new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
@@ -111,8 +116,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         try {
             this.routeFallbackEnvoyFilterConfigTemplate =
                 velocityEngine.getTemplate(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8.name());
-            String routeFallbackEnvoyFilterConfig = getRouteFallbackEnvoyFilterConfig(new ArrayList<>(
-                    VALID_FALLBACK_RESPONSE_CODES));
+            String routeFallbackEnvoyFilterConfig =
+                getRouteFallbackEnvoyFilterConfig(new ArrayList<>(HigressConstants.VALID_FALLBACK_RESPONSE_CODES));
             V1alpha3EnvoyFilter filter =
                 kubernetesClientService.loadFromYaml(routeFallbackEnvoyFilterConfig, V1alpha3EnvoyFilter.class);
             assert filter != null;
@@ -219,6 +224,9 @@ public class AiRouteServiceImpl implements AiRouteService {
                 fallbackConfig.setFallbackStrategy(AiRouteFallbackStrategy.RANDOM);
             }
         }
+        if (route.getProxyNextUpstream() == null) {
+            route.setProxyNextUpstream(DEFAULT_PROXY_NEXT_UPSTREAM_CONFIG);
+        }
     }
 
     private void fillDefaultWeights(List<AiUpstream> upstreams) {
@@ -236,7 +244,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         Route route = buildRoute(routeName, aiRoute);
         setUpstreams(route, aiRoute.getUpstreams());
         saveRoute(route);
-        writeModelRouteResources(aiRoute.getModelPredicates());
+        writeModelRouterResources(aiRoute.getModelPredicates());
         writeModelMappingResources(routeName, aiRoute.getUpstreams());
         writeAiStatisticsResources(routeName);
     }
@@ -301,8 +309,12 @@ public class AiRouteServiceImpl implements AiRouteService {
         writeAiStatisticsResources(fallbackRouteName);
     }
 
-    private void writeModelRouteResources(List<AiModelPredicate> modelPredicates) {
+    private void writeModelRouterResources(List<AiModelPredicate> modelPredicates) {
         if (CollectionUtils.isEmpty(modelPredicates)) {
+            return;
+        }
+
+        if (!EnvUtil.getBooleanEnv(AI_ROUTE_AUTO_ENABLE_MODEL_ROUTER_ENV_KEY, true)) {
             return;
         }
 
@@ -330,7 +342,8 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
         if (CollectionUtils.isEmpty(upstreams)) {
-            wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER, true);
+            wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER,
+                true);
             return;
         }
 
@@ -368,6 +381,10 @@ public class AiRouteServiceImpl implements AiRouteService {
     }
 
     private void writeAiStatisticsResources(String routeName) {
+        if (!EnvUtil.getBooleanEnv(AI_ROUTE_AUTO_ENABLE_AI_STATS_ENV_KEY, true)) {
+            return;
+        }
+
         WasmPluginInstance existedInstance = wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, routeName,
             BuiltInPluginName.AI_STATISTICS, false);
         if (existedInstance != null) {
@@ -379,16 +396,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         instance.setEnabled(true);
         instance.setInternal(false);
 
-        Map<String, Object> questionAttribute = AiStatisticsConfig.buildAttribute("question",
-            AiStatisticsConfig.ValueSource.REQUEST_BODY, "messages.@reverse.0.content", null, true, null);
-        Map<String, Object> streamingAnswerAttribute =
-            AiStatisticsConfig.buildAttribute("answer", AiStatisticsConfig.ValueSource.RESPONSE_STREAMING_BODY,
-                "choices.0.delta.content", AiStatisticsConfig.Rule.APPEND, true, null);
-        Map<String, Object> nonStreamingAnswerAttribute = AiStatisticsConfig.buildAttribute("answer",
-            AiStatisticsConfig.ValueSource.RESPONSE_BODY, "choices.0.message.content", null, true, null);
-        List<Map<String, Object>> attributes =
-            Lists.newArrayList(questionAttribute, streamingAnswerAttribute, nonStreamingAnswerAttribute);
-        instance.setConfigurations(MapUtil.of(AiStatisticsConfig.ATTRIBUTES, attributes));
+        instance.setConfigurations(MapUtil.of(AiStatisticsConfig.USE_DEFAULT_RESPONSE_ATTRIBUTES, true));
 
         wasmPluginInstanceService.addOrUpdate(instance);
     }
@@ -420,6 +428,12 @@ public class AiRouteServiceImpl implements AiRouteService {
         route.setUrlParams(aiRoute.getUrlParamPredicates());
 
         route.setAuthConfig(aiRoute.getAuthConfig());
+
+        route.setCors(aiRoute.getCors());
+        route.setHeaderControl(aiRoute.getHeaderControl());
+        route.setProxyNextUpstream(aiRoute.getProxyNextUpstream());
+        route.setCustomConfigs(aiRoute.getCustomConfigs());
+        route.setCustomLabels(aiRoute.getCustomLabels());
 
         return route;
     }

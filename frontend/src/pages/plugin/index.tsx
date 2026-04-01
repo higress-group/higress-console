@@ -1,5 +1,6 @@
 import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { createWasmPlugin, deleteWasmPlugin, getGatewayRouteDetail, updateWasmPlugin } from '@/services';
+import { getAiRoute } from '@/services/ai-route';
 import { RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -18,10 +19,11 @@ QUERY_TYPE_2_BACK_PATH[QueryType.ROUTE] = '/route';
 QUERY_TYPE_2_BACK_PATH[QueryType.DOMAIN] = '/domain';
 QUERY_TYPE_2_BACK_PATH[QueryType.AI_ROUTE] = '/ai/route';
 
-export default function RouterConfig() {
+export default function RouteConfig() {
   const { t } = useTranslation();
 
-  const [routeDetail, setRouteDetail] = useState({});
+  const [routeDetail, setRouteDetail] = useState<object | null>();
+  const [aiRouteDetail, setAiRouteDetail] = useState<object | null>();
   const [searchParams] = useSearchParams();
 
   const wasmFormRef = useRef<WasmFormRef>();
@@ -48,10 +50,17 @@ export default function RouterConfig() {
     return { title: '', subTitle: '' };
   }, [type, name]);
 
-  const { loading, run: loadRouteDetail } = useRequest(getGatewayRouteDetail, {
+  const { loading: routeLoading, run: loadRouteDetail } = useRequest(getGatewayRouteDetail, {
     manual: true,
     onSuccess: (res) => {
       setRouteDetail(res || {});
+    },
+  });
+
+  const { loading: aiRouteLoading, run: loadAiRouteDetail } = useRequest(getAiRoute, {
+    manual: true,
+    onSuccess: (res) => {
+      setAiRouteDetail(res || {});
     },
   });
 
@@ -86,8 +95,12 @@ export default function RouterConfig() {
   };
 
   const init = () => {
-    if (name && type === QueryType.ROUTE) {
-      loadRouteDetail(name);
+    if (name) {
+      if (type === QueryType.ROUTE) {
+        loadRouteDetail(name);
+      } else if (type === QueryType.AI_ROUTE) {
+        loadAiRouteDetail(name);
+      }
     }
     listRef.current?.refresh();
   };
@@ -106,7 +119,7 @@ export default function RouterConfig() {
           subTitle={pageHeader.subTitle}
         />
       )}
-      <Spin spinning={loading}>
+      <Spin spinning={routeLoading || aiRouteLoading}>
         <PageContainer>
           <div
             style={{
@@ -146,7 +159,7 @@ export default function RouterConfig() {
             onEdit={onEdit}
             onDelete={onDelete}
           />
-          <PluginDrawer pluginDrawerRef={pluginDrawerRef} routerDetail={routeDetail} onSuccess={init} />
+          <PluginDrawer pluginDrawerRef={pluginDrawerRef} routeDetail={routeDetail} aiRouteDetail={aiRouteDetail} onSuccess={init} />
           <WasmPluginDrawer ref={wasmFormRef} onSubmit={onSubmitWasm} />
         </PageContainer>
       </Spin>

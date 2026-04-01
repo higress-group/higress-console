@@ -16,6 +16,7 @@ export const BUILTIN_ROUTE_PLUGIN_LIST = [
     },
     icon: '',
     builtIn: true,
+    enabledInAiRoute: false,
   },
   {
     key: 'headerModify',

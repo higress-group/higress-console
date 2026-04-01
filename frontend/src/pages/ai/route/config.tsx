@@ -1,5 +1,5 @@
 import PluginList from '@/pages/plugin';
 
-export default function RouterConfig() {
+export default function RouteConfig() {
   return <PluginList />;
 }

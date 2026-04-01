@@ -19,7 +19,7 @@ const PLUGIN_COMP_MAP = {
 export default function PluginDrawer(props) {
   const emptyPluginData = { title: '', key: '' };
   const { t } = useTranslation();
-  const { pluginDrawerRef, routerDetail, onSuccess } = props;
+  const { pluginDrawerRef, routeDetail, aiRouteDetail, onSuccess } = props;
   const routePluginDetailRef = useRef<{ submit: () => {} }>(null);
   const globalPluginDetailRef = useRef<{ submit: () => {} }>(null);
 
@@ -70,7 +70,8 @@ export default function PluginDrawer(props) {
       {isRoutePlugin ? (
         <RoutePluginDetail
           ref={routePluginDetailRef}
-          routerDetail={routerDetail}
+          routeDetail={routeDetail}
+          aiRouteDetail={aiRouteDetail}
           data={activePluginData}
           onSuccess={() => {
             onCloseDrawer();

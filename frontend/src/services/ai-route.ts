@@ -1,8 +1,12 @@
-import request from './request';
 import { AiRoute } from '@/interfaces/ai-route';
+import request from './request';
 
 export const getAiRoutes = (): Promise<AiRoute[]> => {
   return request.get<any, AiRoute[]>('/v1/ai/routes');
+};
+
+export const getAiRoute = (name): Promise<AiRoute> => {
+  return request.get<any, AiRoute>(`/v1/ai/routes/${name}`);
 };
 
 export const addAiRoute = (payload: AiRoute): Promise<any> => {
