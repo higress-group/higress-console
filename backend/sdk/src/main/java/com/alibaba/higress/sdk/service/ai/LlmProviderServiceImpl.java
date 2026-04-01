@@ -85,7 +85,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             new DefaultLlmProviderHandler(LlmProviderType.COZE, "api.coze.cn", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.OPENROUTER, "openrouter.ai", 443, V1McpBridge.PROTOCOL_HTTPS),
             new DefaultLlmProviderHandler(LlmProviderType.GROK, "api.x.ai", 443, V1McpBridge.PROTOCOL_HTTPS),
-            new BedrockLlmProviderHandler(), new VertexLlmProviderHandler())
+            new BedrockLlmProviderHandler(), new VertexLlmProviderHandler(), new VllmLlmProviderHandler())
             .collect(Collectors.toMap(LlmProviderHandler::getType, p -> p));
     }
 
