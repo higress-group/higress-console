@@ -1,16 +1,16 @@
 import i18n from '@/i18n';
 import { fetchPluginsByRoute } from '@/interfaces/route';
 import { WasmPluginData } from '@/interfaces/wasm-plugin';
-import { getDomainPluginInstances, getGatewayRouteDetail, getWasmPlugins } from '@/services';
+import { getDomainPluginInstances, getGatewayRouteDetail, getGlobalPluginInstances, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Typography, Tag } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Tag, Typography } from 'antd';
 import { useSearchParams } from 'ice';
-import { forwardRef, useEffect, useImperativeHandle, useState, useMemo } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getI18nValue, QueryType } from '../../utils';
-import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 import PluginCategory from '../PluginCategory';
+import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -96,6 +96,15 @@ const PluginList = forwardRef((props: Props, ref) => {
             enabled: foundPlugin ? foundPlugin.enabled : false,
           };
         });
+      } else {
+        const pluginsByGlobal = await getGlobalPluginInstances();
+        plugins = result.map((plugin: { name: string }) => {
+          const foundPlugin = pluginsByGlobal.find((p: { pluginName: string }) => p.pluginName === plugin.name);
+          return {
+            ...plugin,
+            enabled: foundPlugin ? foundPlugin.enabled : false,
+          };
+        });
       }
       setPluginList(plugins);
     },
@@ -162,7 +171,6 @@ const PluginList = forwardRef((props: Props, ref) => {
   // Render a single plugin card
   const renderPluginItem = (item: WasmPluginData) => {
     const key = item.key || `${item.name}:${item.imageVersion}`;
-    const showTag = type === QueryType.ROUTE || type === QueryType.DOMAIN || type === QueryType.AI_ROUTE;
     return (
       <Col span={6} key={key} xl={6} lg={12} md={12} sm={12} xs={24}>
         <Card
@@ -193,13 +201,15 @@ const PluginList = forwardRef((props: Props, ref) => {
                 <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {getI18nValue(item, 'title')}
                 </div>
-                {showTag && item.enabled && (
-                  <Tag
-                    color="green"
-                    style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
-                  >{t('plugins.enabled')}
-                  </Tag>
-                )}
+                {
+                  item.enabled && (
+                    <Tag
+                      color="green"
+                      style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
+                    >{t('plugins.enabled')}
+                    </Tag>
+                  )
+                }
                 {
                   createPluginDropdown(item)
                 }

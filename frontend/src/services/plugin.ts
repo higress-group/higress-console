@@ -33,6 +33,11 @@ export const getGlobalPluginInstance = (pluginName: string) => {
   return request.get<any, any>(`/v1/global/plugin-instances/${pluginName}`);
 };
 
+// 获取所有全局插件配置列表
+export const getGlobalPluginInstances = () => {
+  return request.get<any, any>('/v1/global/plugin-instances');
+};
+
 // 修改全局的指定插件配置
 export const updateGlobalPluginInstance = (pluginName: string, payload) => {
   return request.put<any, any>(`/v1/global/plugin-instances/${pluginName}`, payload);
