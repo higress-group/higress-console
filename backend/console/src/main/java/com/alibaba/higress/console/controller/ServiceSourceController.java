@@ -69,9 +69,7 @@ public class ServiceSourceController {
         @ApiResponse(responseCode = "409", description = "Service source already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ServiceSource>> add(@RequestBody ServiceSource serviceSource) {
-        if (!serviceSource.isValid()) {
-            throw new ValidationException("serviceSource body is not valid.");
-        }
+        serviceSource.validate();
         if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Adding an internal service source is not allowed.");
         }
@@ -89,9 +87,7 @@ public class ServiceSourceController {
     public ResponseEntity<Response<ServiceSource>> addOrUpdate(@PathVariable("name") @NotBlank String name,
         @RequestBody ServiceSource serviceSource) {
         serviceSource.setName(name);
-        if (!serviceSource.isValid()) {
-            throw new ValidationException("serviceSource body is not valid.");
-        }
+        serviceSource.validate();
         if (serviceSource.getName().endsWith(HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX)) {
             throw new ValidationException("Updating an internal service source is not allowed.");
         }

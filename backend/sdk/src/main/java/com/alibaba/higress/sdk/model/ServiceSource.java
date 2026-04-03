@@ -24,6 +24,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.VPort;
 import com.alibaba.higress.sdk.util.ValidateUtil;
@@ -49,9 +50,9 @@ public class ServiceSource implements VersionedDto {
         ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
 
     private static final Set<String> ALLOWABLE_TYPES =
-            ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_NACOS, V1McpBridge.REGISTRY_TYPE_NACOS2,
-                    V1McpBridge.REGISTRY_TYPE_NACOS3, V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL,
-                    V1McpBridge.REGISTRY_TYPE_EUREKA, V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
+        ImmutableSet.of(V1McpBridge.REGISTRY_TYPE_NACOS, V1McpBridge.REGISTRY_TYPE_NACOS2,
+            V1McpBridge.REGISTRY_TYPE_NACOS3, V1McpBridge.REGISTRY_TYPE_ZK, V1McpBridge.REGISTRY_TYPE_CONSUL,
+            V1McpBridge.REGISTRY_TYPE_EUREKA, V1McpBridge.REGISTRY_TYPE_STATIC, V1McpBridge.REGISTRY_TYPE_DNS);
 
     static {
         VALIDATORS.put(V1McpBridge.REGISTRY_TYPE_NACOS, new NacosServiceSourceValidator());
@@ -66,7 +67,7 @@ public class ServiceSource implements VersionedDto {
     private String name;
 
     @Schema(description = "Register vport configuration with default and service-specific values. Optional.",
-            example = "{\"default\": 8080, \"services\": [{\"name\": \"svc1\", \"value\": 9090}]}")
+        example = "{\"default\": 8080, \"services\": [{\"name\": \"svc1\", \"value\": 9090}]}")
     private VPort vport;
 
     @Schema(description = "Service source version. Required when updating.")
@@ -109,119 +110,146 @@ public class ServiceSource implements VersionedDto {
 
     @Transient
     public boolean isValid() {
-        if (StringUtils.isAnyBlank(this.name, this.type, this.getDomain())) {
+        try {
+            validate();
+            return true;
+        } catch (ValidationException ex) {
             return false;
         }
+    }
 
+    @Transient
+    public void validate() {
+        // Basic field validation
+        if (StringUtils.isBlank(this.name)) {
+            throw new ValidationException("Service source name is required.");
+        }
+        if (StringUtils.isBlank(this.type)) {
+            throw new ValidationException("Service source type is required.");
+        }
+        if (StringUtils.isBlank(this.getDomain())) {
+            throw new ValidationException("Service source domain/IP is required.");
+        }
+
+        // Service name format validation
         if (!ValidateUtil.checkServiceName(this.name)) {
-            return false;
+            throw new ValidationException(
+                "Invalid service source name format. Name can only contain letters, numbers, and hyphens(-), "
+                    + "cannot start or end with a hyphen, and must be 1-63 characters long.");
         }
 
         // Check if type is within allowable values
         if (!ALLOWABLE_TYPES.contains(this.type)) {
-            return false;
+            throw new ValidationException(
+                "Unsupported service source type: " + this.type + ". Supported types: " + ALLOWABLE_TYPES);
         }
 
         // For non-static and non-DNS types,
         // check that the domain contains only alphanumeric chars, dashes (-), and asterisks (*).
-        if (!V1McpBridge.REGISTRY_TYPE_STATIC.equals(this.type)
-                && !V1McpBridge.REGISTRY_TYPE_DNS.equals(this.type)
-                && !this.getDomain().matches("^[a-zA-Z0-9\\-.*]+$")) {
-            return false;
+        if (!V1McpBridge.REGISTRY_TYPE_STATIC.equals(this.type) && !V1McpBridge.REGISTRY_TYPE_DNS.equals(this.type)
+            && !this.getDomain().matches("^[a-zA-Z0-9\\-.*]+$")) {
+            throw new ValidationException("Invalid domain format. For " + this.type
+                + " type, domain can only contain letters, numbers, hyphens(-), dots(.), and asterisks(*).");
         }
 
-        if (this.getPort() == null || !ValidateUtil.checkPort(this.getPort())) {
-            return false;
+        // Port validation
+        if (this.getPort() == null) {
+            throw new ValidationException("Service source port is required.");
+        }
+        if (!ValidateUtil.checkPort(this.getPort())) {
+            throw new ValidationException("Invalid port range. Port must be an integer between 2-65534.");
         }
 
-        if (!validateMcpConfigs()) {
-            return false;
-        }
+        // MCP configuration validation
+        validateMcpConfigs();
 
+        // Type-specific validator
         ServiceSourceValidator validator = VALIDATORS.get(this.getType());
-        if (validator != null && !validator.validate(this)) {
-            return false;
+        if (validator != null) {
+            validator.validate(this);
         }
 
+        // Proxy name validation
         if (StringUtils.isNotEmpty(proxyName) && !PROXY_SUPPORTED_REGISTRY_TYPES.contains(this.getType())) {
-            return false;
+            throw new ValidationException("Proxy server name is only supported for static and dns types.");
         }
 
+        // VPort validation
         if (this.vport != null) {
             if (this.vport.getDefaultValue() != null && !ValidateUtil.checkPort(this.vport.getDefaultValue())) {
-                return false;
+                throw new ValidationException("Invalid VPort default value. Must be an integer between 2-65534.");
             }
 
             if (this.vport.getServicesVport() != null) {
                 Set<String> serviceNames = new HashSet<>();
                 for (VPort.ServiceVport serviceVport : this.vport.getServicesVport()) {
                     if (!ValidateUtil.checkPort(serviceVport.getValue())) {
-                        return false;
+                        throw new ValidationException("Invalid VPort value for service " + serviceVport.getName()
+                            + ". Must be an integer between 2-65534.");
                     }
                     if (!serviceNames.add(serviceVport.getName())) {
-                        return false; // Service names cannot be duplicate
+                        throw new ValidationException(
+                            "Duplicate service name in VPort configuration: " + serviceVport.getName());
                     }
                 }
             }
         }
-
-        return true;
     }
 
-    private boolean validateMcpConfigs() {
+    private void validateMcpConfigs() {
         if (!V1McpBridge.MCP_SUPPORTED_REGISTRY_TYPES.contains(this.getType())) {
-            return true;
+            return;
         }
         if (MapUtils.isEmpty(properties)) {
-            return true;
+            return;
         }
 
         Object enabled = properties.get(V1McpBridge.ENABLE_MCP_SERVER);
         if (enabled == null) {
             // Not configured. We don't need to validate.
-            return true;
+            return;
         }
         if (!(enabled instanceof Boolean)) {
-            return false;
+            throw new ValidationException("Invalid type for enableMCPServer. Must be a boolean.");
         }
         if (!Boolean.TRUE.equals(enabled)) {
             // Not enabled. We don't need to validate.
-            return true;
+            return;
         }
 
         Object rawExportDomains = properties.get(V1McpBridge.MCP_SERVER_EXPORT_DOMAINS);
         if (rawExportDomains != null) {
             if (!(rawExportDomains instanceof List)) {
-                return false;
+                throw new ValidationException("Invalid type for mcpServerExportDomains. Must be a list of strings.");
             }
             List<?> exportDomains = (List<?>)rawExportDomains;
             for (Object rawExportDomain : exportDomains) {
                 if (!(rawExportDomain instanceof String)) {
-                    return false;
+                    throw new ValidationException(
+                        "Invalid domain in mcpServerExportDomains. All entries must be strings.");
                 }
                 String exportDomain = (String)rawExportDomain;
                 if (!ValidateUtil.checkDomain(exportDomain)) {
-                    return false;
+                    throw new ValidationException("Invalid domain format in mcpServerExportDomains: " + exportDomain);
                 }
             }
         }
 
         Object rawServerBaseUrl = properties.get(V1McpBridge.MCP_SERVER_BASE_URL);
         if (!(rawServerBaseUrl instanceof String)) {
-            return false;
+            throw new ValidationException("Invalid type for mcpServerBaseUrl. Must be a string.");
         }
         String serverBaseUrl = (String)rawServerBaseUrl;
         if (!ValidateUtil.checkUrlPath(serverBaseUrl)) {
-            return false;
+            throw new ValidationException("Invalid mcpServerBaseUrl format: " + serverBaseUrl
+                + ". Must start with '/' and cannot contain '?' characters.");
         }
-
-        return true;
     }
 
     private interface ServiceSourceValidator {
 
-        default boolean validate(ServiceSource source) {
-            return true;
+        default void validate(ServiceSource source) {
+            // Default implementation passes validation
         }
     }
 
@@ -229,109 +257,109 @@ public class ServiceSource implements VersionedDto {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean validate(ServiceSource source) {
+        public void validate(ServiceSource source) {
             Map<String, Object> properties = source.getProperties();
             if (MapUtils.isEmpty(properties)) {
-                return false;
+                throw new ValidationException("Nacos service source requires properties configuration.");
             }
             if (!V1McpBridge.REGISTRY_TYPE_NACOS3.equals(source.getType())
                 || !Boolean.TRUE.equals(properties.get(V1McpBridge.ENABLE_MCP_SERVER))) {
                 // No group configuration is needed for nacos3 when MCP is enabled.
                 Object groups = properties.get(V1McpBridge.REGISTRY_TYPE_NACOS_GROUPS);
                 if (!(groups instanceof List) || CollectionUtils.isEmpty((List<String>)groups)) {
-                    return false;
+                    throw new ValidationException("Nacos service source requires at least one group in nacosGroups.");
                 }
             }
-            return true;
         }
     }
 
     private static class ConsulServiceSourceValidator implements ServiceSourceValidator {
 
         @Override
-        public boolean validate(ServiceSource source) {
+        public void validate(ServiceSource source) {
             Map<String, Object> properties = source.getProperties();
             if (MapUtils.isEmpty(properties)) {
-                return false;
+                throw new ValidationException("Consul service source requires properties configuration.");
             }
 
             Object dataCenter = properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_DATA_CENTER);
             if (!(dataCenter instanceof String) || StringUtils.isBlank((String)dataCenter)) {
-                return false;
+                throw new ValidationException("Consul service source requires consulDatacenter configuration.");
             }
 
             Object rawRefreshInterval = properties.get(V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL);
             if (rawRefreshInterval != null) {
                 if (!(rawRefreshInterval instanceof Integer)) {
-                    return false;
+                    throw new ValidationException("Invalid type for consulRefreshInterval. Must be an integer.");
                 }
                 int refreshInterval = (Integer)rawRefreshInterval;
                 if (refreshInterval < V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MIN
                     || refreshInterval > V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MAX) {
-                    return false;
+                    throw new ValidationException("Invalid consulRefreshInterval value: " + refreshInterval
+                        + ". Must be between " + V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MIN + " and "
+                        + V1McpBridge.REGISTRY_TYPE_CONSUL_REFRESH_INTERVAL_MAX + " seconds.");
                 }
             }
-
-            return true;
         }
     }
 
     private static class StaticServiceSourceValidator implements ServiceSourceValidator {
 
         @Override
-        public boolean validate(ServiceSource source) {
+        public void validate(ServiceSource source) {
             if (StringUtils.isBlank(source.getDomain())) {
-                return false;
+                throw new ValidationException("Static service source requires domain configuration.");
             }
 
             List<String> addresses = Splitter.on(V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR).trimResults()
                 .omitEmptyStrings().splitToList(source.getDomain());
             if (CollectionUtils.isEmpty(addresses)) {
-                return false;
+                throw new ValidationException("Static service source domain format is invalid. "
+                    + "Must provide a list of IP:Port addresses separated by commas.");
             }
 
             for (String address : addresses) {
                 String[] segments = address.split(Separators.COLON);
                 if (segments.length != 2) {
-                    return false;
+                    throw new ValidationException("Invalid address format: " + address + ". "
+                        + "Correct format is IP:Port, e.g., 192.168.1.1:8080");
                 }
                 if (!ValidateUtil.checkIpAddress(segments[0])) {
-                    return false;
+                    throw new ValidationException("Invalid IP address format: " + segments[0]);
                 }
                 int port;
                 try {
                     port = Integer.parseInt(segments[1]);
                 } catch (NumberFormatException nfe) {
-                    return false;
+                    throw new ValidationException("Invalid port number: " + segments[1] + ". Port must be an integer.");
                 }
                 if (!ValidateUtil.checkPort(port)) {
-                    return false;
+                    throw new ValidationException("Invalid port range: " + port + ". Port must be between 2-65534.");
                 }
             }
-
-            return true;
         }
     }
 
     private static class DnsServiceSourceValidator implements ServiceSourceValidator {
 
         @Override
-        public boolean validate(ServiceSource source) {
+        public void validate(ServiceSource source) {
             if (StringUtils.isBlank(source.getDomain())) {
-                return false;
+                throw new ValidationException("DNS service source requires domain configuration.");
             }
 
             List<String> domains = Splitter.on(V1McpBridge.REGISTRY_TYPE_STATIC_DNS_SEPARATOR).trimResults()
                 .omitEmptyStrings().splitToList(source.getDomain());
             if (CollectionUtils.isEmpty(domains)) {
-                return false;
+                throw new ValidationException("DNS service source domain format is invalid. "
+                    + "Must provide a list of domain names separated by commas.");
             }
 
-            if (!domains.stream().allMatch(ValidateUtil::checkDomain)) {
-                return false;
+            for (String domain : domains) {
+                if (!ValidateUtil.checkDomain(domain)) {
+                    throw new ValidationException("Invalid domain format: " + domain);
+                }
             }
-
-            return true;
         }
     }
 }
