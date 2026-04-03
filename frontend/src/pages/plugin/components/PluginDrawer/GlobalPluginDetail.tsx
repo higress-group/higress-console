@@ -382,7 +382,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           if (Array.isArray(obj[key])) {
             obj[key].forEach((item, index) => {
               const uid = uidCounter++;
-              const newItem = { uid, data: item === 'object' ? {} : '' };
+              const newItem = { uid, data: typeof item === 'object' && item !== null ? {} : '' };
               if (typeof item === 'object' && item !== null) {
                 Object.keys(item).forEach(subKey => {
                   newItem.data[subKey] = item[subKey];
