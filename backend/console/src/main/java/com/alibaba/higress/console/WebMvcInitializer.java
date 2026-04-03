@@ -36,6 +36,9 @@ public class WebMvcInitializer implements WebMvcConfigurer {
 
     private static final String HOMEPAGE_PATH = "/index.html";
 
+    private static final List<String> STATIC_RESOURCE_DIR_PREFIXES =
+        Arrays.asList("/assets/", "/css/", "/js/", "/img/", "/images/", "/fonts/", "/static/");
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/*").addResourceLocations("classpath:/static/")
@@ -45,12 +48,20 @@ public class WebMvcInitializer implements WebMvcConfigurer {
                 protected Resource resolveResourceInternal(HttpServletRequest request, @NonNull String requestPath,
                     @NonNull List<? extends Resource> locations, @NonNull ResourceResolverChain chain) {
                     Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
-                    if (resource == null && API_PATH_PREFIXES.stream().noneMatch(requestPath::startsWith)) {
+                    if (resource == null && API_PATH_PREFIXES.stream().noneMatch(requestPath::startsWith)
+                        && !isStaticResourceRequest(requestPath)) {
                         // Resource not found. Fallback to the homepage.
                         resource = super.resolveResourceInternal(request, HOMEPAGE_PATH, locations, chain);
                     }
                     return resource;
                 }
             });
+    }
+
+    private static boolean isStaticResourceRequest(String requestPath) {
+        if (STATIC_RESOURCE_DIR_PREFIXES.stream().anyMatch(requestPath::startsWith)) {
+            return true;
+        }
+        return false;
     }
 }
