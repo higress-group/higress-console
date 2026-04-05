@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 自动缓存对应用户的历史对话，在后续对话中自动填充到上下文。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-history/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-history/README_EN.md
   version: 1.0.0
   contact:
     name: yuemingming

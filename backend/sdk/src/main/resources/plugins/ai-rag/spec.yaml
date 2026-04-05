@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 通过对接阿里云向量检索服务（DashVector）简化 RAG 应用的开发，优化大模型的生成内容。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-rag/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-rag/README_EN.md
   version: 1.0.0
   contact:
     name: rinfx

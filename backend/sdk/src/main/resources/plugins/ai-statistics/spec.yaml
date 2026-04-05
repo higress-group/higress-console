@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 提供了对 token 用量的统计信息，包括日志、监控以及告警。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-statistics/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-statistics/README_EN.md
   version: 1.0.0
   contact:
     name: rinfx

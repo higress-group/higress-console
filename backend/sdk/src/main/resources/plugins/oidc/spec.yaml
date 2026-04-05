@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 实现基于 OpenID Connect 标准的用户身份验证。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/oidc/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/oidc/README_EN.md
   version: 1.0.0
   contact:
     name: Jing-ze

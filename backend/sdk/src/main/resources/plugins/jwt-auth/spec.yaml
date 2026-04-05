@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 实现了基于 JSON Web Token 进行认证鉴权的功能，支持从 HTTP 请求的 URL 参数、请求头、Cookie 字段解析 JWT，同时验证该 Token 是否有权限访问。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-cpp/extensions/jwt_auth/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-cpp/extensions/jwt_auth/README_EN.md
   version: 1.0.0
   contact:
     name: Higress Team

@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 通过将 IP 地址列入白名单或黑名单来限制对服务或路由的访问。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ip-restriction/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ip-restriction/README_EN.md
   version: 1.0.0
   contact:
     name: Higress Team
