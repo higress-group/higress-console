@@ -1,14 +1,19 @@
 import CodeEditor from '@/components/CodeEditor';
-import { Alert, Card, Form, Input, message, Select, Space, Spin, Switch, Tabs, Typography } from 'antd';
+import { Alert, Button, Card, Form, Input, message, Modal, Select, Space, Spin, Switch, Tabs, Typography } from 'antd';
+import { FullscreenOutlined } from '@ant-design/icons';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import * as servicesApi from '@/services';
+import { getWasmPlugin, getWasmPluginReadme } from '@/services/plugin';
 import { useRequest } from 'ahooks';
 import i18next, { t } from 'i18next';
 import { useSearchParams } from 'ice';
 import yaml from 'js-yaml';
 import { QueryType } from '../../utils';
 import ArrayForm from './ArrayForm';
+import styles from './GlobalPluginDetail.module.css';
 
 const { Text } = Typography;
 const { TabPane } = Tabs;
@@ -17,6 +22,11 @@ const QUERY_TYPE_2_MESSAGE_KEY = {};
 QUERY_TYPE_2_MESSAGE_KEY[QueryType.DOMAIN] = 'plugins.configForm.targetDomain';
 QUERY_TYPE_2_MESSAGE_KEY[QueryType.ROUTE] = 'plugins.configForm.targetRoute';
 QUERY_TYPE_2_MESSAGE_KEY[QueryType.AI_ROUTE] = 'plugins.configForm.targetAiRoute';
+
+enum ReadmeMode {
+  EMPTY,
+  MARKDOWN
+}
 
 export interface IPluginData {
   configurations: object;
@@ -47,6 +57,14 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   const queryType: string = searchParams.get('type') || '';
   const queryName: string = searchParams.get('name') || '';
   const [currentTabKey, setCurrentTabKey] = useState('form');
+
+  // README related states
+  const [readmeMode, setReadmeMode] = useState<ReadmeMode>(ReadmeMode.EMPTY);
+  const [readmeUrl, setReadmeUrl] = useState<string>('');
+  const [readmeContent, setReadmeContent] = useState<string>('');
+  const [readmeLoading, setReadmeLoading] = useState(false);
+  const [readmeModalVisible, setReadmeModalVisible] = useState(false);
+  const [readmeLoaded, setReadmeLoaded] = useState(false);
 
   const isGlobalPlugin = useMemo(() => {
     return !queryType;
@@ -102,6 +120,44 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
 
   const [rawConfigurations, setRawConfigurations] = useState('');
   const [defaultValue, setDefaultValue] = useState('');
+
+  // README helper functions
+  const loadReadme = async (name: string, lang?: string) => {
+    if (!name) return;
+
+    setReadmeLoading(true);
+    try {
+      // 1. Get plugin info (includes readmeUrl resolved by language)
+      const plugin = await getWasmPlugin(name, lang);
+      const url = plugin?.readmeUrl;
+
+      if (url) {
+        setReadmeUrl(url);
+        // Use local content
+        setReadmeMode(ReadmeMode.MARKDOWN);
+        const localContent = await getWasmPluginReadme(name, lang);
+        setReadmeContent(localContent || '');
+      } else {
+        // 2. No URL, use local content from backend
+        setReadmeMode(ReadmeMode.MARKDOWN);
+        const content = await getWasmPluginReadme(name, lang);
+        setReadmeContent(content || '');
+      }
+    } catch (error) {
+      console.error('Failed to load README:', error);
+      // Fallback to backend content
+      try {
+        setReadmeMode(ReadmeMode.MARKDOWN);
+        const content = await getWasmPluginReadme(name, lang);
+        setReadmeContent(content || t('plugins.readme.loadError'));
+      } catch (e) {
+        setReadmeContent(t('plugins.readme.loadError'));
+      }
+    } finally {
+      setReadmeLoading(false);
+      setReadmeLoaded(true);
+    }
+  };
 
   const { loading: getDataLoading, run: getData } = useRequest(pluginInstancesApi.get, {
     manual: true,
@@ -489,6 +545,12 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     setRawConfigurations('');
     setDefaultValue('');
     setCurrentTabKey('form');
+    // Reset README states
+    setReadmeMode(ReadmeMode.EMPTY);
+    setReadmeUrl('');
+    setReadmeContent('');
+    setReadmeModalVisible(false);
+    setReadmeLoaded(false);
   };
 
   useEffect(() => {
@@ -511,6 +573,16 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       setDefaultValue(rawConfigurations);
     }
   }, [currentTabKey]);
+
+  useEffect(() => {
+    if (currentTabKey === 'readme' && pluginName && !readmeLoaded) {
+      loadReadme(pluginName, i18next.language);
+    }
+  }, [currentTabKey, pluginName, i18next.language, readmeLoaded]);
+
+  useEffect(() => {
+    setReadmeLoaded(false);
+  }, [i18next.language]);
 
   useImperativeHandle(ref, () => ({
     submit: onSubmit,
@@ -570,6 +642,75 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
                 />
               )}
             </TabPane>
+            <TabPane tab={t('plugins.readme.tabTitle')} key="readme">
+              {
+                readmeLoading && (
+                  <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <Spin />
+                  </div>
+                )
+              }
+              {
+                !readmeLoading && readmeMode === ReadmeMode.MARKDOWN && (
+                  <div style={{ position: 'relative' }}>
+                    <Button
+                      className="readme-expand-btn"
+                      type="text"
+                      icon={<FullscreenOutlined />}
+                      onClick={() => setReadmeModalVisible(true)}
+                      title={t('plugins.readme.expandView')}
+                    />
+                    {
+                      readmeUrl && (
+                        <div style={{ marginBottom: 8 }}>
+                          <a href={readmeUrl} target="_blank" rel="noopener noreferrer">
+                            {t('plugins.readme.openOnline')}
+                          </a>
+                        </div>
+                      )
+                    }
+                    <div
+                      className={styles.readmeMarkdown}
+                      style={{
+                        maxHeight: '500px',
+                        overflow: 'auto',
+                        padding: '16px',
+                        border: '1px solid #f0f0f0',
+                        borderRadius: '8px',
+                        background: '#fafafa',
+                      }}
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a: ({ href, children }) => {
+                            const isLocal = href?.startsWith('#');
+                            return (
+                              <a
+                                href={href}
+                                target={isLocal ? undefined : '_blank'}
+                                rel="noopener noreferrer"
+                              >
+                                {children}
+                              </a>
+                            );
+                          },
+                        }}
+                      >
+                        {readmeContent}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )
+              }
+              {
+                !readmeLoading && readmeMode === ReadmeMode.EMPTY && (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                    {t('plugins.readme.empty')}
+                  </div>
+                )
+              }
+            </TabPane>
           </Tabs>
           {!getConfigLoading && !getDataLoading && isGlobalPlugin && (
             <Space direction="horizontal" style={{ marginTop: '0.5rem' }}>
@@ -578,6 +719,51 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
           )}
         </Form>
       </Spin>
+      <Modal
+        title={t('plugins.readme.expandedTitle')}
+        open={readmeModalVisible}
+        onCancel={() => setReadmeModalVisible(false)}
+        footer={[
+          readmeUrl && (
+            <Button key="online" type="primary" onClick={() => window.open(readmeUrl, '_blank')}>
+              {t('plugins.readme.openOnline')}
+            </Button>
+          ),
+          <Button key="close" onClick={() => setReadmeModalVisible(false)}>
+            {t('misc.cancel')}
+          </Button>,
+        ]}
+        width={900}
+      >
+        <div
+          className={styles.readmeMarkdown}
+          style={{
+            maxHeight: '60vh',
+            overflow: 'auto',
+            padding: '16px',
+          }}
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              a: ({ href, children }) => {
+                const isLocal = href?.startsWith('#');
+                return (
+                  <a
+                    href={href}
+                    target={isLocal ? undefined : '_blank'}
+                    rel="noopener noreferrer"
+                  >
+                    {children}
+                  </a>
+                );
+              },
+            }}
+          >
+            {readmeContent}
+          </ReactMarkdown>
+        </div>
+      </Modal>
     </div>
   );
 });

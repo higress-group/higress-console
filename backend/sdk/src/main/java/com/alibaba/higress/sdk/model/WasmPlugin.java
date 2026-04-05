@@ -56,6 +56,9 @@ public class WasmPlugin implements VersionedDto {
     @Schema(description = "Plugin icon URL")
     private String icon;
 
+    @Schema(description = "Readme URL")
+    private String readmeUrl;
+
     @Schema(description = "Plugin image repository")
     private String imageRepository;
 

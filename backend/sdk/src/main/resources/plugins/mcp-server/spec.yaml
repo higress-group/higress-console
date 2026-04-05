@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 托管MCP服务器，实现AI工具集成。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01wv8H4g1mS4MUzC1QC_!!6000000004952-2-tps-1764-597.png
+  readmeUrl: https://higress.ai/docs/ai/mcp-server/
+  x-readmeUrl-i18n:
+    en-US: https://higress.ai/en/docs/ai/mcp-server/
   version: 1.0.0
   contact:
     name: Higress Team

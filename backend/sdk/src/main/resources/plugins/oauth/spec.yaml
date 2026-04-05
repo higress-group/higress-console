@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 基于 OAuth2 实现身份认证和鉴权。
   iconUrl: https://img.alicdn.com/imgextra/i4/O1CN01BPFGlT1pGZ2VDLgaH_!!6000000005333-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-cpp/extensions/oauth/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-cpp/extensions/oauth/README_EN.md
   version: 1.0.0
   contact:
     name: Higress Team

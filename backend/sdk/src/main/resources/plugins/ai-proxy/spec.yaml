@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 实现了基于 OpenAI API 规范的代理功能，通过统一的接口调用不同的 AI 服务提供商。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-proxy/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-proxy/README_EN.md
   version: 1.0.0
   contact:
     name: CH3CHO

@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 基于阿里云内容安全服务对大模型的输入输出进行安全检测。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-security-guard/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-security-guard/README_EN.md
   version: 1.0.0
   contact:
     name: rinfx

@@ -400,6 +400,14 @@
       "enableStatus": "Enabled",
       "globalConfigWarning": "Note: Configurations above will be applied to all domains the routes. Please edit with caution."
     },
+    "readme": {
+      "tabTitle": "Documentation",
+      "empty": "No documentation available",
+      "loadError": "Failed to load online documentation",
+      "openOnline": "View online documentation",
+      "expandView": "Expand view",
+      "expandedTitle": "Documentation"
+    },
     "builtIns": {
       "rewrite": {
         "missingParamError": "At least one of rewritten path and host shall be provided.",
