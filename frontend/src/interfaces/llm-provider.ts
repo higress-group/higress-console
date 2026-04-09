@@ -19,4 +19,5 @@ export interface TokeFailoverConfig {
 
 export enum LlmProviderProtocol {
   OPENAI_V1 = 'openai/v1',
+  ORIGINAL = 'original',
 }
