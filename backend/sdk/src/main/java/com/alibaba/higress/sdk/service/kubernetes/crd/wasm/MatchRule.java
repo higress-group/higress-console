@@ -15,6 +15,7 @@ package com.alibaba.higress.sdk.service.kubernetes.crd.wasm;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -51,9 +52,17 @@ public class MatchRule {
         return new MatchRule(null, null, null, null, Collections.singletonList(service));
     }
 
+    private static final String ACTIVE_PROVIDER_ID_KEY = "activeProviderId";
+
     public boolean keyEquals(MatchRule rule) {
-        return equalsUnordered(domain, rule.domain) && equalsUnordered(ingress, rule.ingress)
-            && equalsUnordered(service, rule.service);
+        // 匹配domain， ingress二入口，若不同则说明此服务提供者不是同一条
+        if (!equalsUnordered(domain, rule.domain) || !equalsUnordered(ingress, rule.ingress)) {
+            return false;
+        }
+        // 最要紧：active provider id，标识同一个服务提供者
+        String thisProviderId = config != null ? (String) config.get(ACTIVE_PROVIDER_ID_KEY) : null;
+        String ruleProviderId = rule.config != null ? (String) rule.config.get(ACTIVE_PROVIDER_ID_KEY) : null;
+        return Objects.equals(thisProviderId, ruleProviderId);
     }
 
     public boolean isEmpty() {
