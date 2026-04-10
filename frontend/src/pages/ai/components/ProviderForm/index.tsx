@@ -15,6 +15,7 @@ const { Text, Link } = Typography;
 
 const protocolList = [
   { label: "openai/v1", value: "openai/v1" },
+  { label: "original", value: "original" },
 ];
 
 const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
