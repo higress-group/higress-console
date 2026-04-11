@@ -11,6 +11,9 @@ info:
   x-description-i18n:
     zh-CN: 通过零代码实现智能体应用的快速构建，支持大模型与外部服务 API 的交互和调用。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-agent/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-agent/README_EN.md
   version: 1.0.0
   contact:
     name: xingyunyang01

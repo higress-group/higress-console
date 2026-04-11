@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 根据用户 IP 查询出地理位置信息，然后通过请求属性和新添加的请求头把地理位置信息传递给后续插件。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/geo-ip/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/geo-ip/README_EN.md
   version: 1.0.0
   contact:
     name: ranxuxin001

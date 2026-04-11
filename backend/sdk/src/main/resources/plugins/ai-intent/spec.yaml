@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 智能判断用户请求与某个领域或 agent 的功能契合度，从而提升不同模型的应用效果和用户体验。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-intent/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-intent/README_EN.md
   version: 1.0.0
   contact:
     name: lizhou0

@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 无须编写代码，使用自然语言的方式对网关的请求/响应进行修改。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-transformer/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-transformer/README_EN.md
   version: 1.0.0
   contact:
     name: rinfx

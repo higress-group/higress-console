@@ -12,6 +12,33 @@
  */
 package com.alibaba.higress.sdk.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
@@ -34,6 +61,7 @@ import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import io.kubernetes.client.openapi.ApiException;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
@@ -43,31 +71,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author CH3CHO
@@ -729,11 +732,14 @@ class WasmPluginServiceImpl implements WasmPluginService {
                 if (StringUtils.isEmpty(language)) {
                     wasmPlugin.setTitle(info.getTitle());
                     wasmPlugin.setDescription(info.getDescription());
+                    wasmPlugin.setReadmeUrl(info.getReadmeUrl());
                 } else {
                     String title = MapUtils.getString(info.getTitleI18n(), language, info.getTitle());
                     wasmPlugin.setTitle(title);
                     String description = MapUtils.getString(info.getDescriptionI18n(), language, info.getDescription());
                     wasmPlugin.setDescription(description);
+                    String readmeUrl = MapUtils.getString(info.getReadmeUrlI18n(), language, info.getReadmeUrl());
+                    wasmPlugin.setReadmeUrl(readmeUrl);
                 }
             }
 
@@ -782,7 +788,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             if (MapUtils.isEmpty(extensions)) {
                 return;
             }
-            for (Iterator<Map.Entry<String, Object>> it = extensions.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<String, Object>> it = extensions.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<String, Object> entry = it.next();
                 Matcher i18nKeyMatcher = I18N_EXTENSION_KEY_PATTERN.matcher(entry.getKey());
                 if (!i18nKeyMatcher.matches()) {

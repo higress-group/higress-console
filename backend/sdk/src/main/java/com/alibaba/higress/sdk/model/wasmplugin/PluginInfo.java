@@ -46,6 +46,11 @@ public class PluginInfo {
 
     private String iconUrl;
 
+    private String readmeUrl;
+
+    @JsonProperty("x-readmeUrl-i18n")
+    private Map<String, String> readmeUrlI18n;
+
     private String version;
 
     private Contact contact;

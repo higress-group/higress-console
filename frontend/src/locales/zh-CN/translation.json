@@ -400,6 +400,14 @@
       "enableStatus": "开启状态",
       "globalConfigWarning": "注意：以上配置将会在所有域名和路由上生效。请谨慎配置。"
     },
+    "readme": {
+      "tabTitle": "文档",
+      "empty": "暂无文档",
+      "loadError": "在线文档加载失败",
+      "openOnline": "查看在线文档",
+      "expandView": "放大查看",
+      "expandedTitle": "文档"
+    },
     "builtIns": {
       "rewrite": {
         "missingParamError": "重写路径和重写主机域必须要至少填一个",
