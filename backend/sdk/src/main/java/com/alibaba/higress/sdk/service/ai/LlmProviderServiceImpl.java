@@ -118,21 +118,25 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
         List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY, true);
 
-        final String pluginName = BuiltInPluginName.AI_PROXY;
-        WasmPluginInstance instance =
-            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
-        if (instance == null) {
-            instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
-            instance.setInternal(true);
-            instance.setGlobalTarget();
-        }
-        instance.setEnabled(true);
+        List<WasmPluginInstance> instancesToUpdate = new ArrayList<>();
+        List<WasmPluginInstance> instancesToDelete = new ArrayList<>();
 
-        Map<String, Object> configurations = instance.getConfigurations();
+        final String pluginName = BuiltInPluginName.AI_PROXY;
+
+        WasmPluginInstance globalInstance =
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
+        if (globalInstance == null) {
+            globalInstance = wasmPluginInstanceService.createEmptyInstance(pluginName);
+            globalInstance.setInternal(true);
+            globalInstance.setGlobalTarget();
+        }
+        globalInstance.setEnabled(true);
+
+        Map<String, Object> configurations = globalInstance.getConfigurations();
         if (MapUtils.isEmpty(configurations)) {
             // Just in case it is a readonly empty map.
             configurations = new HashMap<>();
-            instance.setConfigurations(configurations);
+            globalInstance.setConfigurations(configurations);
         }
 
         Object providersObj = configurations.get(PROVIDERS);
@@ -163,6 +167,8 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             providers.add(providerConfig);
         }
 
+        instancesToUpdate.add(globalInstance);
+
         List<ServiceSource> serviceSources = new ArrayList<>();
         {
             ServiceSource serviceSource = handler.buildServiceSource(provider.getName(), providerConfig);
@@ -177,10 +183,11 @@ public class LlmProviderServiceImpl implements LlmProviderService {
         }
 
         UpstreamService upstreamService = handler.buildUpstreamService(provider.getName(), providerConfig);
+        String upstreamServiceName = upstreamService.getName();
 
-        WasmPluginInstance existedServiceInstance = instances.stream()
-            .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName())).findFirst()
-            .orElse(null);
+        WasmPluginInstance existedServiceInstance =
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.SERVICE, upstreamServiceName))
+                .findFirst().orElse(null);
         if (existedServiceInstance != null) {
             String boundProviderName =
                 MapUtils.getString(existedServiceInstance.getConfigurations(), ACTIVE_PROVIDER_ID);
@@ -190,13 +197,29 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             }
         }
 
-        WasmPluginInstance serviceInstance = new WasmPluginInstance();
-        serviceInstance.setPluginName(instance.getPluginName());
-        serviceInstance.setPluginVersion(instance.getPluginVersion());
-        serviceInstance.setTarget(WasmPluginInstanceScope.SERVICE, upstreamService.getName());
-        serviceInstance.setEnabled(true);
-        serviceInstance.setInternal(true);
-        serviceInstance.setConfigurations(MapUtil.of(ACTIVE_PROVIDER_ID, provider.getName()));
+        boolean needNewServiceInstance = true;
+        for (WasmPluginInstance instance : instances) {
+            String boundProviderId = MapUtils.getString(instance.getConfigurations(), ACTIVE_PROVIDER_ID);
+            if (!provider.getName().equals(boundProviderId)) {
+                continue;
+            }
+            String service = MapUtils.getString(instance.getTargets(), WasmPluginInstanceScope.SERVICE);
+            if (upstreamServiceName.equals(service)) {
+                needNewServiceInstance = false;
+            } else {
+                instancesToDelete.add(instance);
+            }
+        }
+        if (needNewServiceInstance) {
+            WasmPluginInstance serviceInstance = new WasmPluginInstance();
+            serviceInstance.setPluginName(globalInstance.getPluginName());
+            serviceInstance.setPluginVersion(globalInstance.getPluginVersion());
+            serviceInstance.setTarget(WasmPluginInstanceScope.SERVICE, upstreamServiceName);
+            serviceInstance.setEnabled(true);
+            serviceInstance.setInternal(true);
+            serviceInstance.setConfigurations(MapUtil.of(ACTIVE_PROVIDER_ID, provider.getName()));
+            instancesToUpdate.add(serviceInstance);
+        }
 
         // Perform all the updates here just to avoid possible errors in resource building.
         if (!serviceSources.isEmpty()) {
@@ -205,11 +228,18 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 serviceSourceService.addOrUpdate(serviceSource);
             }
         }
-        wasmPluginInstanceService.addOrUpdate(instance);
-        wasmPluginInstanceService.addOrUpdate(serviceInstance);
+
+        wasmPluginInstanceService.addOrUpdateAll(instancesToUpdate);
 
         if (handler.needSyncRouteAfterUpdate()) {
             syncRelatedAiRoutes(provider);
+        }
+
+        if (!instancesToDelete.isEmpty()) {
+            for (WasmPluginInstance instance : instancesToDelete) {
+                wasmPluginInstanceService.delete(instance.getTargets(), instance.getPluginName(),
+                    instance.getInternal());
+            }
         }
 
         return query(provider.getName());
