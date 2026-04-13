@@ -110,14 +110,11 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer')
         }
-        return value.map((consumer: string, index: number) => {
-          return (
-            <span key={consumer}>
-              {index !== 0 && (<br />)}
-              {consumer}
-            </span>
-          );
-        });
+        return (
+          <a onClick={() => { setConsumerModalList(value); setConsumerModalVisible(true); }}>
+            {t('aiRoute.viewConsumers')}
+          </a>
+        );
       },
     },
     {
@@ -157,6 +154,8 @@ const RouteList: React.FC = () => {
   const [selectedPathMatchTypes, setSelectedPathMatchTypes] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedAllowedConsumers, setSelectedAllowedConsumers] = useState<string[]>([]);
+  const [consumerModalVisible, setConsumerModalVisible] = useState(false);
+  const [consumerModalList, setConsumerModalList] = useState<string[]>([]);
 
   // 使用useRef保持最新状态以便在事件处理器外访问
   const selectedNamesRef = useRef(selectedNames);
@@ -636,6 +635,16 @@ const RouteList: React.FC = () => {
             吗？
           </Trans>
         </p>
+      </Modal>
+      <Modal
+        title={t('aiRoute.viewConsumers')}
+        open={consumerModalVisible}
+        onCancel={() => setConsumerModalVisible(false)}
+        footer={null}
+      >
+        {consumerModalList.map((consumer: string) => (
+          <div key={consumer} style={{ padding: '4px 0' }}>{consumer}</div>
+        ))}
       </Modal>
       <Drawer
         title={t(currentRoute ? 'route.editRoute' : 'route.createRoute')}

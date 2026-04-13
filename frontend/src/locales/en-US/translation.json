@@ -112,6 +112,7 @@
     "deleteConfirmation": "Are you sure you want to delete <1>{{currentRouteName}}</1>?",
     "authNotEnabled": "Not enabled",
     "authEnabledWithoutConsumer": "Nobody authorized",
+    "viewConsumers": "View",
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
     "aiRouteUsageContent": "You can send a test request using the command below:",
