@@ -8,7 +8,7 @@ import { getWasmPlugins } from '@/services';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Row, Space, Table } from 'antd';
+import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Popover, Row, Space, Table, Tag } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -112,6 +112,7 @@ const AiRouteList: React.FC = () => {
       title: t('aiRoute.columns.auth'),
       dataIndex: ['authConfig', 'allowedConsumers'],
       key: 'authConfig.allowedConsumers',
+      width: 300,
       render: (value, record) => {
         const { authConfig } = record;
         if (!authConfig || !authConfig.enabled) {
@@ -120,10 +121,23 @@ const AiRouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer');
         }
+        const maxDisplay = 3;
+        const displayed = value.slice(0, maxDisplay);
+        const remaining = value.length - maxDisplay;
+        const popoverContent = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflow: 'auto' }}>
+            {value.map((c: string) => <div key={c}>{c}</div>)}
+          </div>
+        );
         return (
-          <a onClick={() => { setConsumerModalList(value); setConsumerModalVisible(true); }}>
-            {t('aiRoute.viewConsumers')}
-          </a>
+          <Popover content={popoverContent}>
+            <Space direction="vertical" size={4}>
+              {displayed.map((consumer: string) => (
+                <Tag key={consumer} style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{consumer}</Tag>
+              ))}
+              {remaining > 0 && <Tag>+{remaining}</Tag>}
+            </Space>
+          </Popover>
         );
       },
     },
@@ -159,8 +173,6 @@ const AiRouteList: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
-  const [consumerModalVisible, setConsumerModalVisible] = useState(false);
-  const [consumerModalList, setConsumerModalList] = useState<string[]>([]);
 
   const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
     return getWasmPlugins(i18n.language)
@@ -484,16 +496,6 @@ const AiRouteList: React.FC = () => {
             确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>
-      </Modal>
-      <Modal
-        title={t('aiRoute.viewConsumers')}
-        open={consumerModalVisible}
-        onCancel={() => setConsumerModalVisible(false)}
-        footer={null}
-      >
-        {consumerModalList.map((consumer: string) => (
-          <div key={consumer} style={{ padding: '4px 0' }}>{consumer}</div>
-        ))}
       </Modal>
     </PageContainer>
   );

@@ -17,7 +17,7 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Row, Space, Table, Typography, Select } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Input, message, Modal, Popover, Row, Space, Table, Tag, Typography, Select } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -102,6 +102,7 @@ const RouteList: React.FC = () => {
       title: t('aiRoute.columns.auth'),
       dataIndex: ['authConfig', 'allowedConsumers'],
       key: 'authConfig.allowedConsumers',
+      width: 300,
       render: (value, record) => {
         const { authConfig } = record;
         if (!authConfig || !authConfig.enabled) {
@@ -110,10 +111,23 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer')
         }
+        const maxDisplay = 3;
+        const displayed = value.slice(0, maxDisplay);
+        const remaining = value.length - maxDisplay;
+        const popoverContent = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflow: 'auto' }}>
+            {value.map((c: string) => <div key={c}>{c}</div>)}
+          </div>
+        );
         return (
-          <a onClick={() => { setConsumerModalList(value); setConsumerModalVisible(true); }}>
-            {t('aiRoute.viewConsumers')}
-          </a>
+          <Popover content={popoverContent}>
+            <Space direction="vertical" size={4}>
+              {displayed.map((consumer: string) => (
+                <Tag key={consumer} style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{consumer}</Tag>
+              ))}
+              {remaining > 0 && <Tag>+{remaining}</Tag>}
+            </Space>
+          </Popover>
         );
       },
     },
@@ -154,8 +168,6 @@ const RouteList: React.FC = () => {
   const [selectedPathMatchTypes, setSelectedPathMatchTypes] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedAllowedConsumers, setSelectedAllowedConsumers] = useState<string[]>([]);
-  const [consumerModalVisible, setConsumerModalVisible] = useState(false);
-  const [consumerModalList, setConsumerModalList] = useState<string[]>([]);
 
   // 使用useRef保持最新状态以便在事件处理器外访问
   const selectedNamesRef = useRef(selectedNames);
@@ -635,16 +647,6 @@ const RouteList: React.FC = () => {
             吗？
           </Trans>
         </p>
-      </Modal>
-      <Modal
-        title={t('aiRoute.viewConsumers')}
-        open={consumerModalVisible}
-        onCancel={() => setConsumerModalVisible(false)}
-        footer={null}
-      >
-        {consumerModalList.map((consumer: string) => (
-          <div key={consumer} style={{ padding: '4px 0' }}>{consumer}</div>
-        ))}
       </Modal>
       <Drawer
         title={t(currentRoute ? 'route.editRoute' : 'route.createRoute')}
