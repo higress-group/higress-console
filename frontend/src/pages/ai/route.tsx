@@ -120,14 +120,11 @@ const AiRouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer');
         }
-        const result: React.ReactNode[] = [];
-        value.forEach((consumer, index) => {
-          if (index > 0) {
-            result.push(<br key={`br-${index}`} />);
-          }
-          result.push(<span key={`span-${index}`}>{consumer}</span>);
-        });
-        return result;
+        return (
+          <a onClick={() => { setConsumerModalList(value); setConsumerModalVisible(true); }}>
+            {t('aiRoute.viewConsumers')}
+          </a>
+        );
       },
     },
     {
@@ -162,6 +159,8 @@ const AiRouteList: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+  const [consumerModalVisible, setConsumerModalVisible] = useState(false);
+  const [consumerModalList, setConsumerModalList] = useState<string[]>([]);
 
   const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
     return getWasmPlugins(i18n.language)
@@ -485,6 +484,16 @@ const AiRouteList: React.FC = () => {
             确定删除 <span style={{ color: '#0070cc' }}>{{ currentRouteName: (currentAiRoute && currentAiRoute.name) || '' }}</span> 吗？
           </Trans>
         </p>
+      </Modal>
+      <Modal
+        title={t('aiRoute.viewConsumers')}
+        open={consumerModalVisible}
+        onCancel={() => setConsumerModalVisible(false)}
+        footer={null}
+      >
+        {consumerModalList.map((consumer: string) => (
+          <div key={consumer} style={{ padding: '4px 0' }}>{consumer}</div>
+        ))}
       </Modal>
     </PageContainer>
   );
