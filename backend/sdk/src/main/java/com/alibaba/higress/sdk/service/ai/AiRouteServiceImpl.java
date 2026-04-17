@@ -15,7 +15,9 @@ package com.alibaba.higress.sdk.service.ai;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -348,13 +350,33 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         final String pluginName = BuiltInPluginName.MODEL_MAPPER;
-        for (AiUpstream upstream : upstreams) {
+
+        // Multiple upstreams of the same provider resolve to the same service and share
+        // one model-mapper instance. Group by service, merge their modelMappings, and
+        // write once per service. Higher-weight upstreams take precedence on conflicts.
+        Map<String, String> serviceByProvider = new LinkedHashMap<>();
+        Map<String, Map<String, String>> mergedMappings = new LinkedHashMap<>();
+
+        List<AiUpstream> sorted = new ArrayList<>(upstreams);
+        sorted.sort(Comparator.comparingInt(u -> Optional.ofNullable(u.getWeight()).orElse(0)));
+
+        for (AiUpstream upstream : sorted) {
             UpstreamService upstreamService = llmProviderService.buildUpstreamService(upstream.getProvider());
+            String serviceName = upstreamService.getName();
+            serviceByProvider.putIfAbsent(serviceName, upstream.getProvider());
 
+            if (MapUtils.isNotEmpty(upstream.getModelMapping())) {
+                mergedMappings.computeIfAbsent(serviceName, k -> new HashMap<>())
+                    .putAll(upstream.getModelMapping());
+            }
+        }
+
+        for (String serviceName : serviceByProvider.keySet()) {
             Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName,
-                WasmPluginInstanceScope.SERVICE, upstreamService.getName());
+                WasmPluginInstanceScope.SERVICE, serviceName);
 
-            if (MapUtils.isEmpty(upstream.getModelMapping())) {
+            Map<String, String> merged = mergedMappings.get(serviceName);
+            if (MapUtils.isEmpty(merged)) {
                 wasmPluginInstanceService.delete(targets, pluginName, true);
                 continue;
             }
@@ -369,12 +391,11 @@ public class AiRouteServiceImpl implements AiRouteService {
 
             Map<String, Object> configurations = instance.getConfigurations();
             if (MapUtils.isEmpty(configurations)) {
-                // Just in case it is a readonly empty map.
                 configurations = new HashMap<>();
                 instance.setConfigurations(configurations);
             }
 
-            configurations.put(ModelMapperConfig.MODEL_MAPPING, new HashMap<>(upstream.getModelMapping()));
+            configurations.put(ModelMapperConfig.MODEL_MAPPING, new HashMap<>(merged));
 
             wasmPluginInstanceService.addOrUpdate(instance);
         }
