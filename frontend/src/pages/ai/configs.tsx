@@ -202,8 +202,83 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
+    isTokenRequired: record => {
+      if (record.claudeServerType) {
+        return record.claudeServerType === 'official';
+      }
+      const rc = record.rawConfigs;
+      if (!rc) {
+        return true;
+      }
+      if (rc.claudeCustomUrl) {
+        return false;
+      }
+      if (rc.providerDomain) {
+        return false;
+      }
+      const bp = rc.providerBasePath;
+      if (bp != null && String(bp).trim() !== '' && bp !== '/') {
+        return false;
+      }
+      return true;
+    },
     getProviderEndpoints: (record) => {
-      return ['https://api.anthropic.com'];
+      if (!record.rawConfigs) {
+        return null;
+      }
+      const rawConfigs = record.rawConfigs;
+
+      const wasmPreviewUrl = () => {
+        const host = rawConfigs.providerDomain || 'api.anthropic.com';
+        let path = '/';
+        if (rawConfigs.providerBasePath != null && String(rawConfigs.providerBasePath).trim() !== '') {
+          path = rawConfigs.providerBasePath.startsWith('/') ? rawConfigs.providerBasePath : `/${rawConfigs.providerBasePath}`;
+        }
+        return `https://${host}${path}`;
+      };
+
+      const customUrl = rawConfigs.claudeCustomUrl;
+      if (customUrl) {
+        return [customUrl];
+      }
+      if (rawConfigs.providerDomain
+        || (rawConfigs.providerBasePath != null && String(rawConfigs.providerBasePath).trim() !== '' && rawConfigs.providerBasePath !== '/')) {
+        return [wasmPreviewUrl()];
+      }
+      return null;
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (!rawConfigs) {
+        return;
+      }
+
+      const urlToWasmFields = (urlString: string) => {
+        try {
+          const u = new URL(urlString);
+          rawConfigs.providerDomain = u.host;
+          rawConfigs.providerBasePath = u.pathname || '/';
+        } catch (e) {
+          /* keep existing wasm fields */
+        }
+      };
+
+      if (typeof rawConfigs.claudeCustomUrl === 'string' && rawConfigs.claudeCustomUrl.trim() !== '') {
+        rawConfigs.claudeCustomUrl = rawConfigs.claudeCustomUrl.trim();
+        urlToWasmFields(rawConfigs.claudeCustomUrl);
+      } else if (Array.isArray(rawConfigs.claudeCustomUrls)) {
+        const urls = rawConfigs.claudeCustomUrls.filter(Boolean);
+        if (urls.length > 0) {
+          rawConfigs.claudeCustomUrl = String(urls[0]).trim();
+          urlToWasmFields(rawConfigs.claudeCustomUrl);
+        }
+        delete rawConfigs.claudeCustomUrls;
+      }
+      delete rawConfigs.claudeCustomServiceObj;
+      delete rawConfigs.claudeCustomServiceHost;
+      delete rawConfigs.claudeCustomServicePath;
+      delete rawConfigs.claudeCustomServiceName;
+      delete rawConfigs.claudeCustomServicePort;
+      delete rawConfigs.claudeExtraCustomUrls;
     },
   },
   {

@@ -68,7 +68,7 @@ class HigressServiceProviderImpl implements HigressServiceProvider {
             wasmPluginInstanceService, consumerService);
         domainService = new DomainServiceImpl(kubernetesClientService, kubernetesModelConverter, routeService,
             wasmPluginInstanceService);
-        llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService);
+        llmProviderService = new LlmProviderServiceImpl(serviceSourceService, wasmPluginInstanceService, serviceService);
         aiRouteService = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService, routeService,
             llmProviderService, wasmPluginInstanceService);
         ((LlmProviderServiceImpl)llmProviderService).setAiRouteService(aiRouteService);
