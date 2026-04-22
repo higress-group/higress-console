@@ -76,7 +76,9 @@
         "serviceName": "Service Name",
         "serviceWeight": "Weight",
         "services": "Target Services",
-        "modelPredicates": "Model Match Rule"
+        "modelPredicates": "Model Match Rule",
+        "customConfigs": "Custom Annotations",
+        "customConfigsTip": "Click this \"?\" to view the configuration guide."
       },
       "rule": {
         "matchTypeRequired": "Please select a match type",
