@@ -227,77 +227,75 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     @Override
     public void delete(String providerName) {
-        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY);
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY, true);
         if (CollectionUtils.isEmpty(instances)) {
             return;
         }
 
         // Find the global config.
-        List<WasmPluginInstance> globalInstanceList =
-                instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).collect(Collectors.toList());
+        WasmPluginInstance globalInstance =
+                instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
 
-        for (WasmPluginInstance globalInstance : globalInstanceList) {
-            if (globalInstance == null) {
-                continue;
-            }
-
-            Map<String, Object> globalConfigurations = globalInstance.getConfigurations();
-            if (MapUtils.isEmpty(globalConfigurations)) {
-                continue;
-            }
-
-            Object providersObj = globalConfigurations.get(PROVIDERS);
-            if (!(providersObj instanceof List)) {
-                continue;
-            }
-
-            // Find the provider config and remove it.
-            Map<String, Object> deletedProvider = null;
-            List<Object> providers = (List<Object>)providersObj;
-            for (int i = providers.size() - 1; i >= 0; --i) {
-                Object providerObj = providers.get(i);
-                if (!(providerObj instanceof Map<?, ?>)) {
-                    continue;
-                }
-                Map<String, Object> providerMap = (Map<String, Object>)providerObj;
-                if (providerName.equals(providerMap.get(PROVIDER_ID))) {
-                    providers.remove(i);
-                    deletedProvider = providerMap;
-                    break;
-                }
-            }
-
-            if (deletedProvider == null) {
-                continue;
-            }
-
-            // Delete other resources related to the deleted provider.
-            Object type = deletedProvider.get(PROVIDER_TYPE);
-            if (type != null) {
-                LlmProviderHandler handler = PROVIDER_HANDLERS.get((String)type);
-                if (handler != null) {
-                    UpstreamService upstreamService = handler.buildUpstreamService(providerName, deletedProvider);
-                    wasmPluginInstanceService.delete(WasmPluginInstanceScope.SERVICE, upstreamService.getName(),
-                            BuiltInPluginName.AI_PROXY, true);
-
-                    ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
-                    if (serviceSource != null) {
-                        serviceSourceService.delete(serviceSource.getName());
-                    }
-
-                    List<ServiceSource> extraServiceSources =
-                            handler.getExtraServiceSources(providerName, deletedProvider, true);
-                    if (CollectionUtils.isNotEmpty(extraServiceSources)) {
-                        for (ServiceSource extraSource : extraServiceSources) {
-                            serviceSourceService.delete(extraSource.getName());
-                        }
-                    }
-                }
-            }
-
-            // Save the global config on the plugin.
-            wasmPluginInstanceService.addOrUpdate(globalInstance);
+        if (globalInstance == null) {
+            return;
         }
+
+        Map<String, Object> globalConfigurations = globalInstance.getConfigurations();
+        if (MapUtils.isEmpty(globalConfigurations)) {
+            return;
+        }
+
+        Object providersObj = globalConfigurations.get(PROVIDERS);
+        if (!(providersObj instanceof List)) {
+            return;
+        }
+
+        // Find the provider config and remove it.
+        Map<String, Object> deletedProvider = null;
+        List<Object> providers = (List<Object>)providersObj;
+        for (int i = providers.size() - 1; i >= 0; --i) {
+            Object providerObj = providers.get(i);
+            if (!(providerObj instanceof Map<?, ?>)) {
+                continue;
+            }
+            Map<String, Object> providerMap = (Map<String, Object>)providerObj;
+            if (providerName.equals(providerMap.get(PROVIDER_ID))) {
+                providers.remove(i);
+                deletedProvider = providerMap;
+                break;
+            }
+        }
+
+        if (deletedProvider == null) {
+            return;
+        }
+
+        // Delete other resources related to the deleted provider.
+        Object type = deletedProvider.get(PROVIDER_TYPE);
+        if (type != null) {
+            LlmProviderHandler handler = PROVIDER_HANDLERS.get((String)type);
+            if (handler != null) {
+                UpstreamService upstreamService = handler.buildUpstreamService(providerName, deletedProvider);
+                wasmPluginInstanceService.delete(WasmPluginInstanceScope.SERVICE, upstreamService.getName(),
+                        BuiltInPluginName.AI_PROXY, true);
+
+                ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
+                if (serviceSource != null) {
+                    serviceSourceService.delete(serviceSource.getName());
+                }
+
+                List<ServiceSource> extraServiceSources =
+                        handler.getExtraServiceSources(providerName, deletedProvider, true);
+                if (CollectionUtils.isNotEmpty(extraServiceSources)) {
+                    for (ServiceSource extraSource : extraServiceSources) {
+                        serviceSourceService.delete(extraSource.getName());
+                    }
+                }
+            }
+        }
+
+        // Save the global config on the plugin.
+        wasmPluginInstanceService.addOrUpdate(globalInstance);
     }
 
     @Override
