@@ -270,6 +270,10 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             return;
         }
 
+        if (providers.isEmpty()) {
+            globalInstance.setEnabled(false);
+        }
+
         // Delete other resources related to the deleted provider.
         Object type = deletedProvider.get(PROVIDER_TYPE);
         if (type != null) {
