@@ -42,7 +42,7 @@ export const getOfficialSiteLink = (path: string) => {
   const lang = i18n.language;
   const langConfig = lngs.find(l => l.code === lang);
   const officialSiteLang = langConfig?.officialSiteCode || '';
-  const langPrefix = officialSiteLang ? `/${officialSiteLang}` : '';
+  const langPrefix = (officialSiteLang && officialSiteLang != 'zh-cn') ? `/${officialSiteLang}` : '';
   const basePath = path.startsWith('/') ? path : `/${path}`;
   return `https://higress.io${langPrefix}${basePath}`;
 };
