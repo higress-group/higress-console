@@ -52,10 +52,6 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
     return !queryType;
   }, [queryType]);
 
-  const isChangeExampleRaw = useMemo(() => {
-    return isGlobalPlugin && category === 'auth';
-  }, [isGlobalPlugin, category]);
-
   const pluginInstancesApi = useMemo(() => {
     if (queryType === QueryType.ROUTE) {
       return {
@@ -128,7 +124,7 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
       }
       if (!defaultValue) {
         let exampleRaw = res.schema?.extensions ? res.schema.extensions['x-example-raw'] : '';
-        if (isChangeExampleRaw) {
+        if (!isGlobalPlugin && ['basic-auth', 'key-auth', 'jwt-auth'].indexOf(pluginName) !== -1) {
           // Need a space after the colon
           exampleRaw = 'allow: []';
         }
