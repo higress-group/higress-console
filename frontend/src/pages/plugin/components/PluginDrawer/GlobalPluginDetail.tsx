@@ -176,11 +176,11 @@ const GlobalPluginDetail = forwardRef((props: IProps, ref) => {
   }
 
   function generateFields(scm, prefix = '') {
-    const { properties } = scm;
-    const requiredFields = scm.required || [];
+    const { properties } = scm || {};
     if (!properties) {
       return <div>{t('misc.invalidSchema')}</div>;
     }
+    const requiredFields = scm.required || [];
     return Object.entries(properties).map(([key, property]) => {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       let translatedTitle = getLocalizedText(property, 'title', key);
