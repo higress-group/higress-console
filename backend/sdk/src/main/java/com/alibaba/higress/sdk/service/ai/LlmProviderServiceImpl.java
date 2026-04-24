@@ -285,7 +285,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 }
 
                 List<ServiceSource> extraServiceSources =
-                    handler.getExtraServiceSources  (providerName, deletedProvider, true);
+                    handler.getExtraServiceSources(providerName, deletedProvider, true);
                 if (CollectionUtils.isNotEmpty(extraServiceSources)) {
                     for (ServiceSource extraSource : extraServiceSources) {
                         serviceSourceService.delete(extraSource.getName());
