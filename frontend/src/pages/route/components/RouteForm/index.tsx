@@ -73,8 +73,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
     // Build domain options
     const _domainOptions: OptionItem[] = [];
-    const domains = _domains as Domain[];
-    domains && domains.forEach(domain => {
+    _domains && (_domains as Domain[]).forEach(domain => {
       const { name } = domain;
       name !== DEFAULT_DOMAIN && _domainOptions.push({ label: name, value: name });
     });
