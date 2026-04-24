@@ -248,7 +248,7 @@
         "healthCheckInterval": "Health Check Request Interval (ms)",
         "healthCheckModel": "Health Check Request LLM Model",
         "healthCheckTimeout": "Health Check Request Timeout (ms)",
-        "protocol": "Request Procotol",
+        "protocol": "Request Protocol",
         "serviceName": "Service Name",
         "successThreshold": "Min Consecuitive Sucesses to Mark Up a Token",
         "azureServiceUrl": "Azure Service URL",
