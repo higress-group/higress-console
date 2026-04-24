@@ -34,6 +34,7 @@ import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.consumer.AllowList;
 import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
@@ -141,6 +142,7 @@ public class McpServiceContextImpl implements McpServerService {
     public void addAllowConsumers(McpServerConsumers consumers) {
         Route route = getMcpServerBoundRoute(consumers.getMcpServerName());
         AllowList allowList = AllowList.forTarget(WasmPluginInstanceScope.ROUTE, route.getName())
+            .credentialTypes(resolveCredentialTypes(route))
             .consumerNames(consumers.getConsumers()).build();
         consumerService.updateAllowList(AllowListOperation.ADD, allowList);
     }
@@ -149,6 +151,7 @@ public class McpServiceContextImpl implements McpServerService {
     public void deleteAllowConsumers(McpServerConsumers consumers) {
         Route route = getMcpServerBoundRoute(consumers.getMcpServerName());
         AllowList allowList = AllowList.forTarget(WasmPluginInstanceScope.ROUTE, route.getName())
+            .credentialTypes(resolveCredentialTypes(route))
             .consumerNames(consumers.getConsumers()).build();
         consumerService.updateAllowList(AllowListOperation.REMOVE, allowList);
     }
@@ -162,10 +165,19 @@ public class McpServiceContextImpl implements McpServerService {
         if (StringUtils.isNotBlank(query.getConsumerName())) {
             consumerFilter = c -> c.contains(query.getConsumerName());
         }
+        List<String> credentialTypes = resolveCredentialTypes(route);
+        final String credentialType =
+            CollectionUtils.isNotEmpty(credentialTypes) ? credentialTypes.get(0) : null;
         List<McpServerConsumerDetail> resultList = allowedConsumers.stream().filter(consumerFilter).map(
-            consumer -> McpServerConsumerDetail.builder().mcpServerName(route.getName()).consumerName(consumer).build())
+            consumer -> McpServerConsumerDetail.builder().mcpServerName(route.getName()).consumerName(consumer)
+                .type(credentialType).build())
             .collect(Collectors.toList());
         return PaginatedResult.createFromFullList(resultList, query);
+    }
+
+    private List<String> resolveCredentialTypes(Route route) {
+        return Optional.ofNullable(route).map(Route::getAuthConfig).map(RouteAuthConfig::getAllowedCredentialTypes)
+            .orElse(null);
     }
 
     private @NotNull Route getMcpServerBoundRoute(String serverName) {
