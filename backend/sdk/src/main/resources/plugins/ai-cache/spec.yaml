@@ -11,6 +11,9 @@ info:
   x-description-i18n:
     en-US: Cache the response of large language models, significantly reduce the response latency of similar problems and save costs.
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-cache/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-cache/README_EN.md
   version: 1.0.0
   contact:
     name: johnlanni

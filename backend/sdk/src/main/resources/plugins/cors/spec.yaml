@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 为服务端启用 CORS（Cross-Origin Resource Sharing，跨域资源共享）的返回 HTTP 响应头。
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cors/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cors/README_EN.md
   version: 1.0.0
   contact:
     name: Higress Team

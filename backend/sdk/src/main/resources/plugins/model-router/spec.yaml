@@ -10,6 +10,9 @@ info:
   x-description-i18n:
     zh-CN: 实现了基于 LLM 协议中的 model 参数路由的功能
   iconUrl: https://img.alicdn.com/imgextra/i1/O1CN018iKKih1iVx287RltL_!!6000000004419-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/model-router/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/model-router/README_EN.md
   version: 1.0.0
   contact:
     name: johnlanni

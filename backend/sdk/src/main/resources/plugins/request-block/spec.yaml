@@ -12,6 +12,7 @@ info:
   x-description-i18n:
     zh-CN: 基于 URI、请求头等特征屏蔽 HTTP 请求，可以用于防护部分站点资源不对外部暴露。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/request-block/README.md
   version: 1.0.0
   contact:
     name: Higress Team

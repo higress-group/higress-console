@@ -12,6 +12,9 @@ info:
   x-description-i18n:
     zh-CN: 为响应头部添加 Expires 和 Cache-Control 头部，从而方便浏览器对特定后缀的文件进行缓存，例如 jpg、png 等图片文件。
   iconUrl: https://img.alicdn.com/imgextra/i3/O1CN01bAFa9k1t1gdQcVTH0_!!6000000005842-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cache-control/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cache-control/README_EN.md
   version: 1.0.0
   contact:
     name: Higress Team

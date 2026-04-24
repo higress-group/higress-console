@@ -13,6 +13,7 @@
     "@monaco-editor/react": "^4.4.6",
     "antd": "^4.24.0",
     "axios": "^1.2.1",
+    "dompurify": "^3.0.0",
     "i18next": "^22.4.9",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.1.1",
@@ -23,7 +24,9 @@
     "react-chatgpt-modal": "^0.1.8",
     "react-dom": "^18.2.0",
     "react-i18next": "^12.1.4",
-    "react-syntax-highlighter": "^15.6.1"
+    "react-markdown": "^9.0.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@ice/app": "^3.0.0",
@@ -31,6 +34,7 @@
     "@ice/plugin-request": "^1.0.0",
     "@ice/plugin-store": "^1.0.0",
     "@iceworks/spec": "^1.0.0",
+    "@types/dompurify": "^3.2.0",
     "@types/js-yaml": "^4.0.9",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
