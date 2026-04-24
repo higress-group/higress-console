@@ -234,7 +234,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
         // Find the global config.
         WasmPluginInstance globalInstance =
-                instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
+            instances.stream().filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
 
         if (globalInstance == null) {
             return;
@@ -277,7 +277,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             if (handler != null) {
                 UpstreamService upstreamService = handler.buildUpstreamService(providerName, deletedProvider);
                 wasmPluginInstanceService.delete(WasmPluginInstanceScope.SERVICE, upstreamService.getName(),
-                        BuiltInPluginName.AI_PROXY, true);
+                    BuiltInPluginName.AI_PROXY, true);
 
                 ServiceSource serviceSource = handler.buildServiceSource(providerName, deletedProvider);
                 if (serviceSource != null) {
@@ -285,7 +285,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 }
 
                 List<ServiceSource> extraServiceSources =
-                        handler.getExtraServiceSources(providerName, deletedProvider, true);
+                    handler.getExtraServiceSources  (providerName, deletedProvider, true);
                 if (CollectionUtils.isNotEmpty(extraServiceSources)) {
                     for (ServiceSource extraSource : extraServiceSources) {
                         serviceSourceService.delete(extraSource.getName());
