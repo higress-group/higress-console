@@ -6,15 +6,17 @@ import FactorGroup from '@/pages/route/components/FactorGroup';
 import { getGatewayDomains } from '@/services';
 import { getConsumers } from '@/services/consumer';
 import { getLlmProviders } from '@/services/llm-provider';
-import { MinusCircleOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch } from 'antd';
+import { Button, Checkbox, Empty, Form, Input, InputNumber, Select, Space, Switch, Tooltip } from 'antd';
 import { uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { aiModelProviders } from '../../configs';
 import { HistoryButton, ModelMappingEditor, RedoOutlinedBtn } from './Components';
 import { modelMapping2String, string2ModelMapping } from './util';
+import KeyValueGroup from '@/pages/route/components/KeyValueGroup';
+import { getOfficialSiteLink } from '@/utils';
 
 const { Option } = Select;
 
@@ -103,6 +105,14 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       return { ...header, uid: uniqueId() };
     });
 
+    const customConfigArray = value?.customConfigs
+      ? Object.keys(value.customConfigs).map((key) => ({
+        uid: uniqueId(),
+        key,
+        value: value.customConfigs[key],
+      }))
+      : [];
+
     const initValues = {
       name,
       domains: (Array.isArray(domains) ? domains : [domains]).filter(d => !!d),
@@ -113,6 +123,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       authConfig_enabled: _authConfig_enabled,
       authConfig_allowedConsumers: value?.authConfig?.allowedConsumers || [],
       ...fallbackInitValues,
+      customConfigs: customConfigArray,
     };
 
     initValues["modelPredicates"] = modelPredicates ? modelPredicates.map(item => ({
@@ -168,6 +179,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         fallbackConfig_modelNames = '',
         fallbackConfig_responseCodes = [],
         modelPredicates = [],
+        customConfigs,
       } = values;
 
       const payload = Object.assign({}, value, {
@@ -201,6 +213,18 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
       }
       payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers && !Array.isArray(authConfig_allowedConsumers)
         ? [authConfig_allowedConsumers] : authConfig_allowedConsumers;
+
+      // 处理 customConfigs
+      const customConfigsObj = {};
+      if (customConfigs?.length) {
+        for (const config of customConfigs) {
+          if (config.key?.trim()) {
+            customConfigsObj[config.key.trim()] = config.value ?? '';
+          }
+        }
+      }
+      payload.customConfigs = customConfigsObj;
+
       return payload;
     },
   }));
@@ -598,6 +622,23 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
           />
         </div>
       </Form.Item>
+
+      <Form.Item
+        label={
+          <>
+            {t('aiRoute.routeForm.label.customConfigs')}
+            <Tooltip title={t('aiRoute.routeForm.label.customConfigsTip')}>
+              <a href={`${getOfficialSiteLink("/docs/latest/user/annotation-use-case")}`} target="_blank">
+                <QuestionCircleOutlined className="ant-form-item-tooltip" style={{ marginLeft: 4 }} />
+              </a>
+            </Tooltip>
+          </>
+        }
+        name="customConfigs"
+      >
+        <KeyValueGroup />
+      </Form.Item>
+
     </Form>
   );
 });

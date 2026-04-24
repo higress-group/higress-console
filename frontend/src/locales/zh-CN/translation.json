@@ -76,7 +76,9 @@
         "serviceName": "服务名称",
         "serviceWeight": "请求比例",
         "services": "目标AI服务",
-        "modelPredicates": "模型匹配规则"
+        "modelPredicates": "模型匹配规则",
+        "customConfigs": "附加注解（Annotation）",
+        "customConfigsTip": "点击问号查看注解配置说明"
       },
       "rule": {
         "matchTypeRequired": "请选择匹配方式",
