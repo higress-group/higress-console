@@ -227,7 +227,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     @Override
     public void delete(String providerName) {
-        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY);
+        List<WasmPluginInstance> instances = wasmPluginInstanceService.list(BuiltInPluginName.AI_PROXY, true);
         if (CollectionUtils.isEmpty(instances)) {
             return;
         }
