@@ -204,6 +204,17 @@ public class LlmProviderServiceImpl implements LlmProviderService {
                 serviceSource.setProxyName(provider.getProxyName());
                 serviceSourceService.addOrUpdate(serviceSource);
             }
+        } else if (provider.getProxyName() != null) {
+            // When using a custom upstream service (e.g., OpenAI with custom URL),
+            // buildServiceSource returns null, but we still need to sync proxyName
+            // to the existing service source.
+            String effectiveSourceName =
+                handler.getEffectiveServiceSourceName(provider.getName(), providerConfig);
+            ServiceSource existingSource = serviceSourceService.query(effectiveSourceName);
+            if (existingSource != null) {
+                existingSource.setProxyName(provider.getProxyName());
+                serviceSourceService.addOrUpdate(existingSource);
+            }
         }
         wasmPluginInstanceService.addOrUpdate(instance);
         wasmPluginInstanceService.addOrUpdate(serviceInstance);
@@ -420,6 +431,12 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             }
             String serviceSourceName = handler.getServiceSourceName(provider.getName());
             ServiceSource serviceSource = serviceSourceMap.get(serviceSourceName);
+            if (serviceSource == null) {
+                // Try using the effective service source name (handles custom upstream cases)
+                String effectiveSourceName = handler.getEffectiveServiceSourceName(
+                    provider.getName(), provider.getRawConfigs());
+                serviceSource = serviceSourceMap.get(effectiveSourceName);
+            }
             if (serviceSource != null) {
                 provider.setProxyName(serviceSource.getProxyName());
             }
