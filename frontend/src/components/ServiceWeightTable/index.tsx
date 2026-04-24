@@ -36,10 +36,6 @@ function ServiceWeightTable({
   const [isAutoMode, setIsAutoMode] = useState(initialAutoMode);
   // Track previous service names to detect additions/removals
   const prevServiceNamesRef = useRef<string[]>([]);
-  // Prevent recursive updates
-  const isUpdatingRef = useRef(false);
-  // Track timeout for cleanup
-  const timeoutRef = useRef<number | null>(null);
 
   const { sum, isValid } = useMemo(() => {
     const total = value.reduce((acc, s) => {
@@ -50,13 +46,12 @@ function ServiceWeightTable({
     return { sum: total, isValid: total === 100 };
   }, [value]);
 
-  // Track if this is the first render
-  const isFirstRenderRef = useRef(true);
-
   // Handle service list changes (additions/removals)
   useEffect(() => {
-    if (!onChange || isUpdatingRef.current) {
-      return;
+    let aborted = false;
+
+    if (!onChange) {
+      return () => { aborted = true; };
     }
 
     const currentNames = value.map(s => s.name);
@@ -64,47 +59,31 @@ function ServiceWeightTable({
 
     // Skip if no change
     if (arraysEqual(currentNames, prevNames)) {
-      isFirstRenderRef.current = false;
-      return;
+      return () => { aborted = true; };
     }
 
     // Detect what changed
     const addedNames = currentNames.filter(name => !prevNames.includes(name));
     const removedNames = prevNames.filter(name => !currentNames.includes(name));
 
-    // Handle first render with services (initial load)
-    if (isFirstRenderRef.current && currentNames.length > 0) {
-      isFirstRenderRef.current = false;
-      prevServiceNamesRef.current = [...currentNames];
+    // Sync update ref so we don't re-process the same diff
+    prevServiceNamesRef.current = [...currentNames];
 
-      if (isAutoMode) {
-        // Auto mode on first render: distribute equally
-        isUpdatingRef.current = true;
-        const weights = distributeWeightsEqually(value.length);
-        const newServices = value.map((s, index) => ({
-          ...s,
-          weight: weights[index] || 0,
-        }));
-        onChange(newServices);
-        // Reset flag after state update
-        timeoutRef.current = window.setTimeout(() => { isUpdatingRef.current = false; }, 0);
-      }
-      return;
-    }
-
-    isFirstRenderRef.current = false;
+    let timer: number | null = null;
 
     if (addedNames.length > 0 || removedNames.length > 0) {
       if (isAutoMode) {
         // Auto mode: redistribute equally
-        isUpdatingRef.current = true;
         const weights = distributeWeightsEqually(value.length);
-        const newServices = value.map((s, index) => ({
-          ...s,
-          weight: weights[index] || 0,
-        }));
-        onChange(newServices);
-        timeoutRef.current = window.setTimeout(() => { isUpdatingRef.current = false; }, 0);
+        timer = window.setTimeout(() => {
+          if (aborted) {
+            return;
+          }
+          onChange(value.map((s, index) => ({
+            ...s,
+            weight: weights[index] || 0,
+          })));
+        }, 0);
       } else {
         // Manual mode: new services get 0, removed services are already filtered out
         // Just ensure new services have weight 0
@@ -113,28 +92,24 @@ function ServiceWeightTable({
           return svc && (svc.weight === undefined || svc.weight === null);
         });
         if (hasNewServices) {
-          isUpdatingRef.current = true;
-          const newServices = value.map(s => ({
-            ...s,
-            weight: s.weight ?? 0,
-          }));
-          onChange(newServices);
-          timeoutRef.current = window.setTimeout(() => { isUpdatingRef.current = false; }, 0);
+          timer = window.setTimeout(() => {
+            if (aborted) {
+              return;
+            }
+            onChange(value.map(s => ({
+              ...s,
+              weight: s.weight ?? 0,
+            })));
+          }, 0);
         }
       }
     }
 
-    prevServiceNamesRef.current = [...currentNames];
-
-    // Cleanup timeout on unmount or before the next effect run.
-    // Crucially, also reset isUpdatingRef — otherwise a previous timeout that was
-    // cleared here would never run, leaving the flag stuck at true forever.
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      aborted = true;
+      if (timer !== null) {
+        clearTimeout(timer);
       }
-      isUpdatingRef.current = false;
     };
   }, [value, isAutoMode, onChange]);
 
