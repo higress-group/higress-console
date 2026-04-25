@@ -26,6 +26,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [providerType, setProviderType] = useState<string | null>();
   const [openaiServerType, setOpenaiServerType] = useState<string | null>();
   const [openaiCustomServerType, setOpenaiCustomServerType] = useState<string | null>();
+  const [claudeServerType, setClaudeServerType] = useState<string | null>();
   const [qwenServerType, setQwenServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
   // Preserve rawConfigs fields that have no corresponding form control (e.g. fields
@@ -78,6 +79,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     setOpenaiServerType(null);
     setOpenaiCustomServerType(null);
     onOpenaiServerTypeChanged(null);
+    setClaudeServerType(null);
+    onClaudeServerTypeChanged(null);
     onQwenServerTypeChanged(null);
   };
 
@@ -168,6 +171,24 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         if (rawConfigs.vllmCustomUrls.length === 0) {
           rawConfigs.vllmCustomUrls.push('');
         }
+      } else if (type === 'claude') {
+        let claudeServerTypeValue = 'official';
+        if (rawConfigs && rawConfigs.claudeCustomUrl) {
+          claudeServerTypeValue = 'custom';
+        } else if (rawConfigs && (rawConfigs.providerDomain || rawConfigs.providerBasePath)) {
+          claudeServerTypeValue = 'custom';
+          let path = '/';
+          if (rawConfigs.providerBasePath != null && String(rawConfigs.providerBasePath).trim() !== '') {
+            path = rawConfigs.providerBasePath.startsWith('/')
+              ? rawConfigs.providerBasePath
+              : `/${rawConfigs.providerBasePath}`;
+          }
+          const host = rawConfigs.providerDomain || 'api.anthropic.com';
+          rawConfigs.claudeCustomUrl = `https://${host}${path}`;
+        }
+
+        form.setFieldValue('claudeServerType', claudeServerTypeValue);
+        onClaudeServerTypeChanged(claudeServerTypeValue);
       }
 
       if (type === 'qwen') {
@@ -216,6 +237,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         providerConfig.normalizeRawConfigs(values.rawConfigs);
       }
 
+      if (values.type === 'claude' && values.claudeServerType === 'official' && values.rawConfigs) {
+        delete values.rawConfigs.providerDomain;
+        delete values.rawConfigs.providerBasePath;
+        delete values.rawConfigs.claudeCustomServiceName;
+        delete values.rawConfigs.claudeCustomServicePort;
+        delete values.rawConfigs.claudeCustomUrls;
+        delete values.rawConfigs.claudeCustomUrl;
+      }
+
       const result = {
         type: values.type,
         name: values.name,
@@ -233,7 +263,20 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         proxyName: values.proxyName,
         // Merge unknown extra fields (set via API, not exposed in the form) back into
         // rawConfigs so they are not silently dropped when the user saves via the UI.
-        rawConfigs: { ...originalRawConfigsRef.current, ...(values.rawConfigs || {}) },
+        rawConfigs: (() => {
+          const merged = { ...originalRawConfigsRef.current, ...(values.rawConfigs || {}) };
+          if (values.type === 'claude') {
+            delete merged.claudeExtraCustomUrls;
+            delete merged.claudeCustomUrls;
+            delete merged.claudeCustomServiceName;
+            delete merged.claudeCustomServicePort;
+            if (values.claudeServerType === 'official') {
+              delete merged.providerDomain;
+              delete merged.providerBasePath;
+            }
+          }
+          return merged;
+        })(),
       };
 
       return result;
@@ -248,6 +291,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     setOpenaiCustomServerType(value);
   }
 
+  function onClaudeServerTypeChanged(value: string | null) {
+    setClaudeServerType(value);
+  }
+
   function onQwenServerTypeChanged(value: string | null) {
     setQwenServerType(value);
   }
@@ -259,6 +306,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     if (value === 'openai') {
       openaiServerType || setOpenaiServerType('official');
       openaiCustomServerType || setOpenaiCustomServerType('url');
+    } else if (value === 'claude') {
+      claudeServerType || setClaudeServerType('official');
     }
   }
 
@@ -802,6 +851,43 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       {
         providerType === 'claude' && (
           <>
+            <Form.Item
+              label={t('llmProvider.providerForm.label.claudeServerType')}
+              required
+              name="claudeServerType"
+              initialValue="official"
+            >
+              <Select
+                onChange={onClaudeServerTypeChanged}
+              >
+                <Select.Option value="official">{t('llmProvider.providerForm.claudeServerType.official')}</Select.Option>
+                <Select.Option value="custom">{t('llmProvider.providerForm.claudeServerType.custom')}</Select.Option>
+              </Select>
+            </Form.Item>
+            {
+              claudeServerType === 'custom' && (
+                <>
+                  <Form.Item
+                    label={t('llmProvider.providerForm.label.claudeCustomUrl')}
+                    name={['rawConfigs', 'claudeCustomUrl']}
+                    rules={[
+                      {
+                        required: true,
+                        pattern: /http(s)?:\/\/.+/,
+                        message: t('llmProvider.providerForm.rules.claudeCustomUrlRequired') || '',
+                      },
+                    ]}
+                  >
+                    <Input
+                      allowClear
+                      type="url"
+                      maxLength={256}
+                      placeholder={t('llmProvider.providerForm.placeholder.claudeCustomUrlPlaceholder') || ''}
+                    />
+                  </Form.Item>
+                </>
+              )
+            }
             <Form.Item
               label={t('llmProvider.providerForm.label.claudeVersion')}
               tooltip={t('llmProvider.providerForm.tooltips.claudeVersionTooltip')}

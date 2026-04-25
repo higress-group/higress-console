@@ -202,8 +202,76 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
+    isTokenRequired: record => {
+      if (record.claudeServerType) {
+        return record.claudeServerType === 'official';
+      }
+      return !record.rawConfigs?.claudeCustomUrl;
+    },
     getProviderEndpoints: (record) => {
+      if (!record.rawConfigs) {
+        return ['https://api.anthropic.com'];
+      }
+      const rawConfigs = record.rawConfigs;
+
+      const wasmPreviewUrl = () => {
+        const normalizedHost = rawConfigs.providerDomain && String(rawConfigs.providerDomain).trim() !== ''
+          ? String(rawConfigs.providerDomain).trim()
+          : 'api.anthropic.com';
+        const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
+        let path = '/';
+        if (normalizedBasePath !== '') {
+          path = normalizedBasePath.startsWith('/') ? normalizedBasePath : `/${normalizedBasePath}`;
+        }
+        return `https://${normalizedHost}${path}`;
+      };
+
+      const customUrl = rawConfigs.claudeCustomUrl;
+      if (customUrl) {
+        return [customUrl];
+      }
+
+      const normalizedDomain = rawConfigs.providerDomain == null ? '' : String(rawConfigs.providerDomain).trim();
+      const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
+      const hasDomainOverride = normalizedDomain !== '';
+      const hasNonRootBasePath = normalizedBasePath !== '' && normalizedBasePath !== '/';
+      if (hasDomainOverride || hasNonRootBasePath) {
+        return [wasmPreviewUrl()];
+      }
       return ['https://api.anthropic.com'];
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (!rawConfigs) {
+        return;
+      }
+
+      const urlToWasmFields = (urlString: string) => {
+        try {
+          const u = new URL(urlString);
+          rawConfigs.providerDomain = u.host;
+          rawConfigs.providerBasePath = u.pathname || '/';
+        } catch (e) {
+          /* keep existing wasm fields */
+        }
+      };
+
+      if (typeof rawConfigs.claudeCustomUrl === 'string' && rawConfigs.claudeCustomUrl.trim() !== '') {
+        rawConfigs.claudeCustomUrl = rawConfigs.claudeCustomUrl.trim();
+        urlToWasmFields(rawConfigs.claudeCustomUrl);
+      } else if (Array.isArray(rawConfigs.claudeCustomUrls)) {
+        const urls = rawConfigs.claudeCustomUrls.filter(Boolean);
+        if (urls.length > 0) {
+          rawConfigs.claudeCustomUrl = String(urls[0]).trim();
+          urlToWasmFields(rawConfigs.claudeCustomUrl);
+        }
+        delete rawConfigs.claudeCustomUrls;
+      }
+      delete rawConfigs.claudeCustomServiceObj;
+      delete rawConfigs.claudeCustomServiceHost;
+      delete rawConfigs.claudeCustomServicePath;
+      delete rawConfigs.claudeCustomServiceName;
+      delete rawConfigs.claudeCustomServicePort;
+      delete rawConfigs.claudeExtraCustomUrls;
     },
   },
   {

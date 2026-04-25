@@ -278,6 +278,12 @@
         "openaiCustomServiceHost": "自定义 OpenAI 服务主机域",
         "openaiCustomServicePath": "自定义 OpenAI 服务路径",
         "zhipuDomain": "自定义智谱 AI 域名",
+        "claudeServerType": "Claude 服务类型",
+        "claudeCustomUrl": "自定义 Claude 服务 Base URL",
+        "claudeCustomServerType": "自定义 Claude 服务配置方式",
+        "claudeCustomService": "自定义 Claude 服务",
+        "claudeCustomServiceHost": "自定义 Claude 服务主机域",
+        "claudeCustomServicePath": "自定义 Claude 服务路径",
         "claudeVersion": "Claude API 版本",
         "claudeCodeMode": "Claude Code 模式（OAuth 令牌）",
         "zhipuCodePlanMode": "Code Plan 模式",
@@ -304,6 +310,13 @@
         "openaiCustomUrlInconsistentContextPaths": "各个自定义 OpenAI 服务 BaseURL 所使用的路径不一致",
         "openaiCustomServiceRequired": "请选择自定义 OpenAI 服务",
         "openaiCustomServicePathRequired": "请输入定义 OpenAI 服务路径",
+        "claudeCustomUrlRequired": "请输入合法的自定义 Claude 服务 Base URL",
+        "invalidClaudeCustomUrl": "URL 格式不正确：",
+        "claudeCustomUrlMultipleValuesWithIpOnly": "仅支持指定多个使用 IP 和端口的自定义 Claude 服务 Base URL",
+        "claudeCustomUrlInconsistentProtocols": "各个自定义 Claude 服务 Base URL 所使用的协议不一致",
+        "claudeCustomUrlInconsistentContextPaths": "各个自定义 Claude 服务 Base URL 所使用的路径不一致",
+        "claudeCustomServiceRequired": "请选择自定义 Claude 服务",
+        "claudeCustomServicePathRequired": "请输入自定义 Claude 服务路径",
         "qwenFileIdRequired": "请输入通义千问文件 ID",
         "qwenDomainRequired": "请输入合法的自定义通义千问域名",
         "awsRegionRequired": "请输入 AWS Region",
@@ -341,7 +354,10 @@
         "qwenDomainPlaceholder": "示例：dashscope-finance.aliyuncs.com",
         "qwenFileIdsPlaceholder": "示例：file-fe-xxx",
         "zhipuDomainPlaceholder": "示例：api.z.ai（国际版服务）",
-        "vllmCustomUrlPlaceholder": "示例：http://192.168.0.1:8000/v1"
+        "vllmCustomUrlPlaceholder": "示例：http://192.168.0.1:8000/v1",
+        "claudeCustomUrlPlaceholder": "示例：https://api.anthropic.com 或 https://proxy.example.com/anthropic",
+        "claudeCustomServiceHostPlaceholder": "示例：api.anthropic.com",
+        "claudeCustomServicePathPlaceholder": "示例：/ 或 /anthropic"
       },
       "openaiServerType": {
         "official": "OpenAI 官方服务",
@@ -354,6 +370,14 @@
       "qwenServerType": {
         "official": "通义千问官方服务",
         "custom": "自定义服务"
+      },
+      "claudeServerType": {
+        "official": "Anthropic 官方服务",
+        "custom": "自定义服务"
+      },
+      "claudeCustomServerType": {
+        "service": "选择服务",
+        "url": "输入 URL"
       },
       "secretRefModal": {
         "entry": "我想引用保存在 Secret 中的凭证信息",
