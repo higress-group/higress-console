@@ -27,9 +27,12 @@ import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
 
+import okhttp3.HttpUrl;
+
 public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
 
     private static final String SERVICE_URL_KEY = "azureServiceUrl";
+    private static final String API_VERSION_QUERY_PARAM = "api-version";
 
     @Override
     public String getType() {
@@ -41,14 +44,20 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Azure specific configurations.");
         }
-        URI uri = getServiceUri(configurations);
-        String scheme = uri.getScheme();
+        HttpUrl url = HttpUrl.parse(getServiceUri(configurations).toString());
+        if (url == null){
+            throw new ValidationException("Invalid Azure service URL.");
+        }
+        String scheme = url.scheme();
         if (StringUtils.isEmpty(scheme)) {
             throw new ValidationException("Azure service URL must have a scheme.");
         }
         scheme = scheme.toLowerCase(Locale.ROOT);
         if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
             throw new ValidationException("Azure service URL must have a valid scheme.");
+        }
+        if (StringUtils.isEmpty(url.queryParameter(API_VERSION_QUERY_PARAM))) {
+            throw new ValidationException("Azure service URL must have a non-empty " + API_VERSION_QUERY_PARAM + " query parameter.");
         }
     }
 
