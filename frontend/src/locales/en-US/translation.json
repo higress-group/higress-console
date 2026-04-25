@@ -295,6 +295,8 @@
         "protocol": "Please select a request protocol",
         "successThresholdRequired": "Please input min consecuitive sucesses to mark up a token",
         "azureServiceUrlRequired": "Please input Azure service URL",
+        "azureServiceUrlMissingApiVersion": "Azure service URL must contain api-version query parameter and its value cannot be empty",
+        "azureServiceUrlInvalid": "Invalid Azure service URL format",
         "ollamaServerHostRequired": "Please input Ollama service host",
         "ollamaServerPortRequired": "Please input Ollama service port",
         "openaiCustomUrlRequired": "Please input a valid custom OpenAI service base URL",
