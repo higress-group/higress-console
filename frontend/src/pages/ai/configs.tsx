@@ -206,17 +206,7 @@ export const aiModelProviders = [
       if (record.claudeServerType) {
         return record.claudeServerType === 'official';
       }
-      const rc = record.rawConfigs;
-      if (!rc) {
-        return true;
-      }
-      if (rc.claudeCustomUrl) {
-        return false;
-      }
-      if (rc.providerDomain) {
-        return false;
-      }
-      return true;
+      return !record.rawConfigs?.claudeCustomUrl;
     },
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
