@@ -306,8 +306,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
     if (value === 'openai') {
       openaiServerType || setOpenaiServerType('official');
       openaiCustomServerType || setOpenaiCustomServerType('url');
-    }
-    if (value === 'claude') {
+    } else if (value === 'claude') {
       claudeServerType || setClaudeServerType('official');
     }
   }

@@ -44,7 +44,6 @@ import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
-import com.alibaba.higress.sdk.service.ServiceService;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
@@ -96,7 +95,7 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     private AiRouteService aiRouteService;
 
     public LlmProviderServiceImpl(ServiceSourceService serviceSourceService,
-        WasmPluginInstanceService wasmPluginInstanceService, ServiceService serviceService) {
+        WasmPluginInstanceService wasmPluginInstanceService) {
         this.serviceSourceService = serviceSourceService;
         this.wasmPluginInstanceService = wasmPluginInstanceService;
     }

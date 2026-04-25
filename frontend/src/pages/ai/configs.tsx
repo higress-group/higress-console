@@ -216,36 +216,39 @@ export const aiModelProviders = [
       if (rc.providerDomain) {
         return false;
       }
-      const bp = rc.providerBasePath;
-      if (bp != null && String(bp).trim() !== '' && bp !== '/') {
-        return false;
-      }
       return true;
     },
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
-        return null;
+        return ['https://api.anthropic.com'];
       }
       const rawConfigs = record.rawConfigs;
 
       const wasmPreviewUrl = () => {
-        const host = rawConfigs.providerDomain || 'api.anthropic.com';
+        const normalizedHost = rawConfigs.providerDomain && String(rawConfigs.providerDomain).trim() !== ''
+          ? String(rawConfigs.providerDomain).trim()
+          : 'api.anthropic.com';
+        const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
         let path = '/';
-        if (rawConfigs.providerBasePath != null && String(rawConfigs.providerBasePath).trim() !== '') {
-          path = rawConfigs.providerBasePath.startsWith('/') ? rawConfigs.providerBasePath : `/${rawConfigs.providerBasePath}`;
+        if (normalizedBasePath !== '') {
+          path = normalizedBasePath.startsWith('/') ? normalizedBasePath : `/${normalizedBasePath}`;
         }
-        return `https://${host}${path}`;
+        return `https://${normalizedHost}${path}`;
       };
 
       const customUrl = rawConfigs.claudeCustomUrl;
       if (customUrl) {
         return [customUrl];
       }
-      if (rawConfigs.providerDomain
-        || (rawConfigs.providerBasePath != null && String(rawConfigs.providerBasePath).trim() !== '' && rawConfigs.providerBasePath !== '/')) {
+
+      const normalizedDomain = rawConfigs.providerDomain == null ? '' : String(rawConfigs.providerDomain).trim();
+      const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
+      const hasDomainOverride = normalizedDomain !== '';
+      const hasNonRootBasePath = normalizedBasePath !== '' && normalizedBasePath !== '/';
+      if (hasDomainOverride || hasNonRootBasePath) {
         return [wasmPreviewUrl()];
       }
-      return null;
+      return ['https://api.anthropic.com'];
     },
     normalizeRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
