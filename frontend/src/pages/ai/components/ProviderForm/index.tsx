@@ -8,7 +8,7 @@ import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, S
 import { useRequest } from 'ice';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { aiModelProviders } from '../../configs';
+import { aiModelProviders, builtInProviderConfigKeys } from '../../configs';
 
 const { TextArea } = Input;
 const { Text, Link } = Typography;
@@ -216,6 +216,16 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         providerConfig.normalizeRawConfigs(values.rawConfigs);
       }
 
+      // Only keep keys from the original that the current provider doesn't supports.
+      const supportedKeys = new Set(builtInProviderConfigKeys);
+      (providerConfig?.customRawConfigsKeys || []).forEach(key => supportedKeys.add(key));
+      const filteredOriginal: Record<string, any> = {};
+      for (const key of Object.keys(originalRawConfigsRef.current)) {
+        if (!supportedKeys.has(key)) {
+          filteredOriginal[key] = originalRawConfigsRef.current[key];
+        }
+      }
+
       const result = {
         type: values.type,
         name: values.name,
@@ -233,7 +243,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         proxyName: values.proxyName,
         // Merge unknown extra fields (set via API, not exposed in the form) back into
         // rawConfigs so they are not silently dropped when the user saves via the UI.
-        rawConfigs: { ...originalRawConfigsRef.current, ...(values.rawConfigs || {}) },
+        rawConfigs: { ...filteredOriginal, ...(values.rawConfigs || {}) },
       };
 
       return result;
@@ -759,6 +769,23 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 {
                   required: true,
                   message: t('llmProvider.providerForm.rules.azureServiceUrlRequired'),
+                },
+                {
+                  validator: (_, value) => {
+                    if (!value) {
+                      return Promise.resolve();
+                    }
+                    try {
+                      const url = new URL(value);
+                      const apiVersion = url.searchParams.get('api-version');
+                      if (!apiVersion || apiVersion.trim() === '') {
+                        return Promise.reject(t('llmProvider.providerForm.rules.azureServiceUrlMissingApiVersion'));
+                      }
+                      return Promise.resolve();
+                    } catch (e) {
+                      return Promise.reject(t('llmProvider.providerForm.rules.azureServiceUrlInvalid'));
+                    }
+                  },
                 },
               ]}
             >
