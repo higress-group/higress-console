@@ -1,7 +1,7 @@
+import { WasmPluginData } from "@/interfaces/wasm-plugin";
 import { BUILTIN_ROUTE_PLUGIN_LIST } from "@/pages/plugin/components/PluginList/constant";
 import { getRoutePluginInstances } from "@/services";
 import { message } from "antd";
-import { WasmPluginData } from "@/interfaces/wasm-plugin";
 
 export interface CorsConfig {
   allowOrigins: string[];
@@ -72,6 +72,7 @@ export interface KeyedRoutePredicate extends RoutePredicate {
 export interface UpstreamService {
   name: string;
   version?: string;
+  // 0-100, sum of all services' weights in a route must equal 100
   weight?: number;
   port?: number;
 }
@@ -115,6 +116,55 @@ export function upstreamServiceToString(service: UpstreamService): string {
   }
   const name = service.name || '-';
   return service.port != null ? `${name}:${service.port}` : name;
+}
+
+/**
+ * Sanitizes a service name to prevent XSS attacks.
+ * Removes potentially dangerous characters while preserving valid service name characters.
+ */
+function sanitizeServiceName(name: string): string {
+  // Allow alphanumeric, dots, hyphens, and underscores (common in service names)
+  // Remove HTML tags and other potentially dangerous characters
+  return name
+    .replace(/[<>"'&]/g, '') // Remove HTML special characters
+    .trim();
+}
+
+export function stringToUpstreamService(serviceStr: string, weight: number = 0): UpstreamService {
+  if (!serviceStr || serviceStr === '-') {
+    return { name: '-', weight };
+  }
+
+  // Sanitize input to prevent XSS
+  const sanitizedInput = sanitizeServiceName(serviceStr);
+
+  const parts = sanitizedInput.split(':');
+  if (parts.length >= 2) {
+    const port = parseInt(parts[1], 10);
+    if (!isNaN(port) && port > 0 && port <= 65535) {
+      return {
+        name: parts[0] || '-',
+        port,
+        weight: Math.max(0, Math.min(100, weight)),
+      };
+    }
+  }
+  return { name: sanitizedInput || '-', weight: Math.max(0, Math.min(100, weight)) };
+}
+
+export function distributeWeightsEqually(serviceCount: number): number[] {
+  if (serviceCount <= 0) return [];
+  if (serviceCount === 1) return [100];
+
+  const baseWeight = Math.floor(100 / serviceCount);
+  const remainder = 100 - (baseWeight * serviceCount);
+
+  // Distribute remainder evenly among first 'remainder' services
+  const weights: number[] = [];
+  for (let i = 0; i < serviceCount; i++) {
+    weights.push(baseWeight + (i < remainder ? 1 : 0));
+  }
+  return weights;
 }
 
 export const getRouteBuiltInPlugins = (route: Route): WasmPluginData[] => {

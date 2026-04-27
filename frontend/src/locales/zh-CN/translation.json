@@ -716,7 +716,18 @@
       "customConfigsTip": "点击问号查看注解配置说明",
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
-      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选"
+      "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选",
+      "weightConfig": "权重配置"
+    },
+    "weightTable": {
+      "serviceName": "服务名",
+      "weight": "权重 (%)",
+      "action": "操作",
+      "delete": "删除此服务",
+      "equalDistribution": "一键均分",
+      "sumLabel": "总和: {{sum}}/100",
+      "invalidSum": "权重总和为 {{sum}}，需要调整为100",
+      "zeroWeightWarning": "此服务权重为0，不会接受流量"
     }
   },
   "system": {
