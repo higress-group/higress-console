@@ -770,6 +770,23 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   required: true,
                   message: t('llmProvider.providerForm.rules.azureServiceUrlRequired'),
                 },
+                {
+                  validator: (_, value) => {
+                    if (!value) {
+                      return Promise.resolve();
+                    }
+                    try {
+                      const url = new URL(value);
+                      const apiVersion = url.searchParams.get('api-version');
+                      if (!apiVersion || apiVersion.trim() === '') {
+                        return Promise.reject(t('llmProvider.providerForm.rules.azureServiceUrlMissingApiVersion'));
+                      }
+                      return Promise.resolve();
+                    } catch (e) {
+                      return Promise.reject(t('llmProvider.providerForm.rules.azureServiceUrlInvalid'));
+                    }
+                  },
+                },
               ]}
             >
               <Input

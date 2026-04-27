@@ -295,6 +295,8 @@
         "protocol": "请选择请求协议",
         "successThresholdRequired": "请输入最小连续健康检测成功次数",
         "azureServiceUrlRequired": "请输入 Azure 服务 URL",
+        "azureServiceUrlMissingApiVersion": "Azure 服务 URL 必须包含 api-version 查询参数且其值不能为空",
+        "azureServiceUrlInvalid": "Azure 服务 URL 格式不合法",
         "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
         "ollamaServerPortRequired": "请输入 Ollama 服务端口",
         "openaiCustomUrlRequired": "请输入合法的自定义 OpenAI 服务 BaseURL",
