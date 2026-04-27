@@ -718,7 +718,18 @@
       "customConfigsTip": "Click this \"?\" to view the configuration guide.",
       "targetService": "Target Service",
       "targetServiceRequired": "Please choose the target service.",
-      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed."
+      "targetServiceNamedPlaceholder": "Search target service by name. Multiple selections are allowed.",
+      "weightConfig": "Weight Configuration"
+    },
+    "weightTable": {
+      "serviceName": "Service Name",
+      "weight": "Weight (%)",
+      "action": "Action",
+      "delete": "Delete this service",
+      "equalDistribution": "Distribute Equally",
+      "sumLabel": "Sum: {{sum}}/100",
+      "invalidSum": "The sum of all weights is {{sum}}, must be 100",
+      "zeroWeightWarning": "This service has a weight of 0 and will not receive traffic"
     }
   },
   "system": {
