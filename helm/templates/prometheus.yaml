@@ -140,7 +140,7 @@ spec:
       securityContext:
       {{- if $config.securityContext }}
         {{- toYaml $config.securityContext | nindent 8 }}
-      {{- else if and ($existedDeployment) ($existedDeployment.spec.template.spec.securityContext) }}
+      {{- else if and $existedDeployment $existedDeployment.spec $existedDeployment.spec.template $existedDeployment.spec.template.spec $existedDeployment.spec.template.spec.securityContext }}
         {{- toYaml $existedDeployment.spec.template.spec.securityContext | nindent 8 }}
       {{- else }}
         runAsUser: 0
