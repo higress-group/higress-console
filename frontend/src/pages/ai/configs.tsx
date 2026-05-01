@@ -1,4 +1,4 @@
-import { serviceToString } from "@/interfaces/service";
+import { serviceToString } from '@/interfaces/service';
 
 export const aiModelProviders = [
   {
@@ -28,7 +28,7 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
-    isTokenRequired: record => {
+    isTokenRequired: (record) => {
       if (record.openaiServerType) {
         // For form validation
         return record.openaiServerType === 'official';
@@ -51,11 +51,11 @@ export const aiModelProviders = [
         const scheme = schemeEndIndex !== -1 ? customUrl.substring(0, schemeEndIndex) : 'http';
         const path = hostEndIndex !== -1 ? customUrl.substring(hostEndIndex) : '';
         const portSegment = rawConfigs.openaiCustomServicePort ? `:${rawConfigs.openaiCustomServicePort}` : '';
-        return [`${scheme}://${rawConfigs.openaiCustomServiceName}${portSegment}${path}`]
+        return [`${scheme}://${rawConfigs.openaiCustomServiceName}${portSegment}${path}`];
       }
       const customUrls = [customUrl];
       if (Array.isArray(rawConfigs.openaiExtraCustomUrls)) {
-        customUrls.push(...rawConfigs.openaiExtraCustomUrls)
+        customUrls.push(...rawConfigs.openaiExtraCustomUrls);
       }
       return customUrls;
     },
@@ -65,9 +65,11 @@ export const aiModelProviders = [
       }
       if (typeof rawConfigs.openaiCustomServiceObj === 'object') {
         const customService = rawConfigs.openaiCustomServiceObj;
-        const host = rawConfigs.openaiCustomServiceHost || (customService.port ? `${customService.name}:${customService.port}` : customService.name);
+        const host =
+          rawConfigs.openaiCustomServiceHost ||
+          (customService.port ? `${customService.name}:${customService.port}` : customService.name);
         const protocol = customService.protocol && customService.protocol.toUpperCase() === 'HTTPS' ? 'https' : 'http';
-        let path = rawConfigs.openaiCustomServicePath || ''
+        let path = rawConfigs.openaiCustomServicePath || '';
         if (!path.startsWith('/')) {
           path = '/' + path;
         }
@@ -116,9 +118,9 @@ export const aiModelProviders = [
       }
       const { rawConfigs } = record;
       const { qwenDomain, qwenEnableCompatible } = rawConfigs;
-      const customDomain = (qwenDomain && qwenDomain !== '') ? rawConfigs.qwenDomain.trim() : 'dashscope.aliyuncs.com';
+      const customDomain = qwenDomain && qwenDomain !== '' ? rawConfigs.qwenDomain.trim() : 'dashscope.aliyuncs.com';
       const servicePath = qwenEnableCompatible ? 'compatible-mode/v1' : 'api/v1/services/aigc';
-      return [`https://${customDomain}/${servicePath}`]
+      return [`https://${customDomain}/${servicePath}`];
     },
   },
   {
@@ -202,67 +204,31 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
-    isTokenRequired: record => {
-      if (record.claudeServerType) {
-        return record.claudeServerType === 'official';
-      }
-      return !record.rawConfigs?.claudeCustomUrl;
-    },
+    isTokenRequired: (record) => !record.rawConfigs?.claudeCustomUrl,
     getProviderEndpoints: (record) => {
-      if (!record.rawConfigs) {
-        return ['https://api.anthropic.com'];
+      if (record.rawConfigs?.claudeCustomUrl) {
+        return [record.rawConfigs.claudeCustomUrl];
       }
-      const rawConfigs = record.rawConfigs;
-
-      const wasmPreviewUrl = () => {
-        const normalizedHost = rawConfigs.providerDomain && String(rawConfigs.providerDomain).trim() !== ''
-          ? String(rawConfigs.providerDomain).trim()
-          : 'api.anthropic.com';
-        const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
-        let path = '/';
-        if (normalizedBasePath !== '') {
-          path = normalizedBasePath.startsWith('/') ? normalizedBasePath : `/${normalizedBasePath}`;
-        }
-        return `https://${normalizedHost}${path}`;
-      };
-
-      const customUrl = rawConfigs.claudeCustomUrl;
-      if (customUrl) {
-        return [customUrl];
+      const domain =
+        (record.rawConfigs?.providerDomain && String(record.rawConfigs.providerDomain).trim()) || 'api.anthropic.com';
+      const basePath =
+        record.rawConfigs?.providerBasePath != null ? String(record.rawConfigs.providerBasePath).trim() : '/';
+      let path = '/';
+      if (basePath && basePath !== '/') {
+        path = basePath.startsWith('/') ? basePath : `/${basePath}`;
       }
-
-      const normalizedDomain = rawConfigs.providerDomain == null ? '' : String(rawConfigs.providerDomain).trim();
-      const normalizedBasePath = rawConfigs.providerBasePath == null ? '' : String(rawConfigs.providerBasePath).trim();
-      const hasDomainOverride = normalizedDomain !== '';
-      const hasNonRootBasePath = normalizedBasePath !== '' && normalizedBasePath !== '/';
-      if (hasDomainOverride || hasNonRootBasePath) {
-        return [wasmPreviewUrl()];
-      }
-      return ['https://api.anthropic.com'];
+      return [`https://${domain}${path}`];
     },
     normalizeRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
         return;
       }
-
-      const urlToWasmFields = (urlString: string) => {
-        try {
-          const u = new URL(urlString);
-          rawConfigs.providerDomain = u.host;
-          rawConfigs.providerBasePath = u.pathname || '/';
-        } catch (e) {
-          /* keep existing wasm fields */
-        }
-      };
-
       if (typeof rawConfigs.claudeCustomUrl === 'string' && rawConfigs.claudeCustomUrl.trim() !== '') {
         rawConfigs.claudeCustomUrl = rawConfigs.claudeCustomUrl.trim();
-        urlToWasmFields(rawConfigs.claudeCustomUrl);
       } else if (Array.isArray(rawConfigs.claudeCustomUrls)) {
         const urls = rawConfigs.claudeCustomUrls.filter(Boolean);
         if (urls.length > 0) {
           rawConfigs.claudeCustomUrl = String(urls[0]).trim();
-          urlToWasmFields(rawConfigs.claudeCustomUrl);
         }
         delete rawConfigs.claudeCustomUrls;
       }
@@ -711,7 +677,7 @@ export const aiModelProviders = [
     },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.awsRegion;
-      return region && [`https://bedrock-runtime.${region}.amazonaws.com`] || [];
+      return (region && [`https://bedrock-runtime.${region}.amazonaws.com`]) || [];
     },
     targetModelList: [],
   },
@@ -799,7 +765,9 @@ export const aiModelProviders = [
       if (!region) {
         return [];
       }
-      return [region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`];
+      return [
+        region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`,
+      ];
     },
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
@@ -941,7 +909,7 @@ export const aiModelProviders = [
       }
       const customUrls = [customUrl];
       if (Array.isArray(record.rawConfigs.vllmExtraCustomUrls)) {
-        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls)
+        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls);
       }
       return customUrls;
     },
