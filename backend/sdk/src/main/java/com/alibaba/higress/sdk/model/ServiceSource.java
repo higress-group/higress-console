@@ -144,12 +144,11 @@ public class ServiceSource implements VersionedDto {
                 "Unsupported service source type: " + this.type + ". Supported types: " + ALLOWABLE_TYPES);
         }
 
-        // For non-static and non-DNS types,
-        // check that the domain contains only alphanumeric chars, dashes (-), and asterisks (*).
+        // For non-static and non-DNS types, domain must be valid IP or domain
         if (!V1McpBridge.REGISTRY_TYPE_STATIC.equals(this.type) && !V1McpBridge.REGISTRY_TYPE_DNS.equals(this.type)
-            && !this.getDomain().matches("^[a-zA-Z0-9\\-.*]+$")) {
+            && !ValidateUtil.checkIpOrDomain(this.getDomain())) {
             throw new ValidationException("Invalid domain format. For " + this.type
-                + " type, domain can only contain letters, numbers, hyphens(-), dots(.), and asterisks(*).");
+                + " type, domain must be a valid domain name or IP address.");
         }
 
         // Port validation
@@ -157,7 +156,7 @@ public class ServiceSource implements VersionedDto {
             throw new ValidationException("Service source port is required.");
         }
         if (!ValidateUtil.checkPort(this.getPort())) {
-            throw new ValidationException("Invalid port range. Port must be an integer between 2-65534.");
+            throw new ValidationException("Invalid port range. Port must be an integer between 1-65535.");
         }
 
         // MCP configuration validation
@@ -177,7 +176,7 @@ public class ServiceSource implements VersionedDto {
         // VPort validation
         if (this.vport != null) {
             if (this.vport.getDefaultValue() != null && !ValidateUtil.checkPort(this.vport.getDefaultValue())) {
-                throw new ValidationException("Invalid VPort default value. Must be an integer between 2-65534.");
+                throw new ValidationException("Invalid VPort default value. Must be an integer between 1-65535.");
             }
 
             if (this.vport.getServicesVport() != null) {
@@ -185,7 +184,7 @@ public class ServiceSource implements VersionedDto {
                 for (VPort.ServiceVport serviceVport : this.vport.getServicesVport()) {
                     if (!ValidateUtil.checkPort(serviceVport.getValue())) {
                         throw new ValidationException("Invalid VPort value for service " + serviceVport.getName()
-                            + ". Must be an integer between 2-65534.");
+                            + ". Must be an integer between 1-65535.");
                     }
                     if (!serviceNames.add(serviceVport.getName())) {
                         throw new ValidationException(
@@ -334,7 +333,7 @@ public class ServiceSource implements VersionedDto {
                     throw new ValidationException("Invalid port number: " + segments[1] + ". Port must be an integer.");
                 }
                 if (!ValidateUtil.checkPort(port)) {
-                    throw new ValidationException("Invalid port range: " + port + ". Port must be between 2-65534.");
+                    throw new ValidationException("Invalid port range: " + port + ". Port must be between 1-65535.");
                 }
             }
         }

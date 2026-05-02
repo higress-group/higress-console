@@ -39,7 +39,7 @@ public class ValidateUtil {
         if (null == port) {
             return false;
         }
-        return port > 1 && port < 65535;
+        return port > 0 && port <= 65535;
     }
 
     public static boolean checkDomain(String domain) {
@@ -56,5 +56,16 @@ public class ValidateUtil {
 
     public static boolean checkUrlPath(String path) {
         return StringUtils.isNotEmpty(path) && path.charAt(0) == '/' && !path.contains("?");
+    }
+
+    /**
+     * Validate if the value is a valid domain name or IP address
+     *
+     * @param value
+     * @return
+     */
+    public static boolean checkIpOrDomain(String value) {
+        return !StringUtils.isEmpty(value)
+            && (checkIpAddress(value) || checkDomain(value) || checkDomainWithWildcard(value));
     }
 }
