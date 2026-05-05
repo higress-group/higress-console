@@ -74,6 +74,10 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
         if (endpoint == null || StringUtils.isBlank(endpoint.getProtocol()) || StringUtils.isBlank(endpoint.getAddress())) {
             return true;
         }
+        if (isDefaultEndpoint(endpoint)) {
+            rawConfigs.remove(CUSTOM_URL_KEY);
+            return true;
+        }
         String path = StringUtils.defaultIfBlank(endpoint.getContextPath(), "/");
         if (!path.startsWith("/")) {
             path = "/" + path;
@@ -86,6 +90,16 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
         String customUrl = endpoint.getProtocol() + "://" + host + (omitPort ? "" : ":" + port) + path;
         rawConfigs.put(CUSTOM_URL_KEY, customUrl);
         return true;
+    }
+
+    private boolean isDefaultEndpoint(LlmProviderEndpoint endpoint) {
+        if (endpoint == null) {
+            return true;
+        }
+        return DEFAULT_SERVICE_PROTOCOL.equals(endpoint.getProtocol())
+            && DEFAULT_SERVICE_DOMAIN.equals(endpoint.getAddress())
+            && (endpoint.getPort() == null || endpoint.getPort() == DEFAULT_HTTPS_PORT)
+            && ("/".equals(endpoint.getContextPath()) || StringUtils.isBlank(endpoint.getContextPath()));
     }
 
     @Override
@@ -118,6 +132,9 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
                 if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
                     throw new ValidationException("Custom service URL must have a valid scheme: " + uri);
                 }
+                configurations.put(PROVIDER_DOMAIN_KEY, uri.getHost());
+                String path = StringUtils.defaultIfBlank(uri.getRawPath(), "/");
+                configurations.put(PROVIDER_BASE_PATH_KEY, path);
             }
             return;
         }

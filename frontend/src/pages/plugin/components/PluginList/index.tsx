@@ -48,10 +48,6 @@ const PluginList = forwardRef((props: Props, ref) => {
     manual: true,
     onSuccess: async (result = []) => {
       let plugins = result || [];
-      const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
-      if (Array.isArray(hiddenPlugins)) {
-        plugins = plugins.filter(p => !p.builtIn || hiddenPlugins.indexOf(p.name) === -1);
-      }
       const name = searchParams.get('name');
       if (type && !name) {
         // If the type is specified but no name is provided, we cannot proceed
@@ -67,26 +63,25 @@ const PluginList = forwardRef((props: Props, ref) => {
         const currentRoute = await getGatewayRouteDetail(routeName);
         if (!currentRoute) {
           plugins = builtInRoutePluginList.concat(plugins);
-          setPluginList(plugins);
-          return
+        } else {
+          const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
+          const builtInPlugins: WasmPluginData[] = builtInRoutePluginList.map((plugin) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
+            return {
+              ...plugin,
+              name: plugin.key,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+          const updatedPlugins = result.map((plugin: { name: string }) => {
+            const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
+            return {
+              ...plugin,
+              enabled: foundPlugin ? foundPlugin.enabled : false,
+            };
+          });
+          plugins = builtInPlugins.concat(updatedPlugins);
         }
-        const pluginByRoutes = await fetchPluginsByRoute(currentRoute);
-        const builtInPlugins: WasmPluginData[] = builtInRoutePluginList.map((plugin) => {
-          const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.key && p.internal);
-          return {
-            ...plugin,
-            name: plugin.key,
-            enabled: foundPlugin ? foundPlugin.enabled : false,
-          };
-        });
-        const updatedPlugins = result.map((plugin: { name: string }) => {
-          const foundPlugin = pluginByRoutes.find((p) => p.name === plugin.name);
-          return {
-            ...plugin,
-            enabled: foundPlugin ? foundPlugin.enabled : false,
-          };
-        });
-        plugins = builtInPlugins.concat(updatedPlugins);
       } else if (type === QueryType.DOMAIN) {
         const pluginsByDomain = await getDomainPluginInstances(name);
         plugins = result.map((plugin: { name: string }) => {
@@ -106,6 +101,10 @@ const PluginList = forwardRef((props: Props, ref) => {
           };
         });
       }
+      const hiddenPlugins = HIDDEN_PLUGINS_BY_QUERY_TYPE[type];
+      if (Array.isArray(hiddenPlugins)) {
+        plugins = plugins.filter(p => !(p.builtIn && hiddenPlugins.includes(p.name)));
+      }
       setPluginList(plugins);
     },
   });
@@ -120,9 +119,12 @@ const PluginList = forwardRef((props: Props, ref) => {
 
   useEffect(() => {
     loadWasmPlugins();
+    const handler = () => loadWasmPlugins();
+    i18n.on('languageChanged', handler);
+    return () => {
+      i18n.off('languageChanged', handler);
+    };
   }, []);
-
-  i18n.on('languageChanged', () => loadWasmPlugins());
 
   const createPluginDropdown = (plugin) => {
     if (BUILTIN_ROUTE_PLUGIN_LIST.some(p => p.key === plugin.key)) {

@@ -1,7 +1,8 @@
+import ServiceWeightTable, { WeightedService } from '@/components/ServiceWeightTable';
 import { OptionItem } from '@/interfaces/common';
 import { Consumer, CredentialType } from '@/interfaces/consumer';
 import { DEFAULT_DOMAIN, Domain } from '@/interfaces/domain';
-import { upstreamServiceToString } from '@/interfaces/route';
+import { stringToUpstreamService, upstreamServiceToString } from '@/interfaces/route';
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
@@ -42,6 +43,9 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const { data: _domains = [], refresh: refreshDomains } = useRequest(getGatewayDomains);
 
   const [consumerList, setConsumerList] = useState<Consumer[]>([]);
+  const [weightedServices, setWeightedServices] = useState<WeightedService[]>([]);
+  const [editMode, setEditMode] = useState(false);
+
   const consumerResult = useRequest(getConsumers, {
     onSuccess: (result) => {
       const consumers = (result || []) as Consumer[];
@@ -51,30 +55,45 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
 
   useEffect(() => {
     form.resetFields();
+
+    // Build service options
     const _serviceOptions: OptionItem[] = [];
-    const serviceKeys = new Set<string>()
+    const serviceKeys = new Set<string>();
     _services && _services.forEach(service => {
       const text = upstreamServiceToString(service);
       if (serviceKeys.has(text)) {
         // Ignore duplicated keys to avoid UI refresh issues.
         return;
       }
-      serviceKeys.add(text)
+      serviceKeys.add(text);
       _serviceOptions.push({ label: text, value: text });
       servicesRef.current.set(text, service);
     });
     setServiceOptions(_serviceOptions);
+
+    // Build domain options
     const _domainOptions: OptionItem[] = [];
-    const domains = _domains as Domain[];
-    domains && domains.forEach(domain => {
+    _domains && (_domains as Domain[]).forEach(domain => {
       const { name } = domain;
       name !== DEFAULT_DOMAIN && _domainOptions.push({ label: name, value: name });
     });
     setDomainOptions(_domainOptions);
 
     if (value) {
-      // eslint-disable-next-line @typescript-eslint/no-shadow
       const { name, domains, path, headers, methods, urlParams, services, customConfigs, authConfig } = value;
+
+      // Use explicit version check for edit mode detection
+      const isEditing = value.version != null;
+      setEditMode(isEditing);
+
+      // Initialize weighted services from value
+      const initialWeighted: WeightedService[] = services ? services.map((s, index) => ({
+        id: uniqueId(`ws-${s.name}-${index}-`),
+        name: upstreamServiceToString(s),
+        weight: s.weight ?? 0,
+      })) : [];
+      setWeightedServices(initialWeighted);
+
       headers && headers.map((header) => {
         return { ...header, uid: uniqueId() };
       });
@@ -99,15 +118,55 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
         customConfigs: customConfigArray,
       });
       setAuthConfigEnabled(_authConfig_enabled);
-      // form.setFieldsValue({
-      //   authConfig_allowedConsumers: _authConfig_allowedConsumers,
-      // })
+    } else {
+      // Reset when creating new route
+      setWeightedServices([]);
+      setEditMode(false);
     }
 
     return () => {
       setAuthConfigEnabled(false);
+    };
+  }, [_services, _domains, value, form]);
+
+  // Handle service selection changes from Select component
+  const handleServicesChange = (selectedServiceNames: string[]) => {
+    const existingMap = new Map(weightedServices.map(s => [s.name, s]));
+
+    const newServices: WeightedService[] = selectedServiceNames.map((name, index) => {
+      if (existingMap.has(name)) {
+        // Preserve existing service with its weight
+        const existing = existingMap.get(name)!;
+        return { ...existing };
+      } else {
+        // New service
+        return {
+          id: uniqueId(`ws-${name}-${index}-`),
+          name,
+          weight: 0, // Default weight, Table component will handle auto-distribution if in auto mode
+        };
+      }
+    });
+
+    setWeightedServices(newServices);
+  };
+
+  // Sync weightedServices changes back to form services field
+  // This ensures that when services are deleted from the weight table,
+  // they are also removed from the Select component
+  useEffect(() => {
+    const currentFormServices = form.getFieldValue('services') || [];
+    const weightedServiceNames = weightedServices.map(s => s.name);
+
+    // Check if the arrays are different
+    const hasChanges = currentFormServices.length !== weightedServiceNames.length ||
+      currentFormServices.some((name: string) => !weightedServiceNames.includes(name)) ||
+      weightedServiceNames.some((name: string) => !currentFormServices.includes(name));
+
+    if (hasChanges) {
+      form.setFieldsValue({ services: weightedServiceNames });
     }
-  }, [_services, _domains, value]);
+  }, [weightedServices, form]);
 
   useImperativeHandle(ref, () => ({
     reset: () => form.resetFields(),
@@ -129,6 +188,10 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
       const allowdConsumers = values.authConfig_allowedConsumers;
       authConfig.allowedConsumers = allowdConsumers && !Array.isArray(allowdConsumers) ? [allowdConsumers] : allowdConsumers;
       values.authConfig = authConfig;
+
+      // Convert weighted services back to UpstreamService format
+      values.services = weightedServices.map(ws => stringToUpstreamService(ws.name, ws.weight));
+
       return values;
     },
   }));
@@ -352,6 +415,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
                 allowClear
                 placeholder={t('route.routeForm.targetServiceNamedPlaceholder')}
                 options={serviceOptions}
+                onChange={handleServicesChange}
                 style={{ flex: 1 }}
               />
             </Form.Item>
@@ -363,6 +427,21 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             />
           </div>
         </Form.Item>
+        {
+          weightedServices.length > 0 && (
+            <Form.Item
+              label={t('route.routeForm.weightConfig')}
+              required
+            >
+              <ServiceWeightTable
+                value={weightedServices}
+                onChange={setWeightedServices}
+                disabled={false}
+                autoMode={!editMode}
+              />
+            </Form.Item>
+          )
+        }
       </Form.Item>
     </Form>
   );

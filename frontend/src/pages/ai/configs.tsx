@@ -1,11 +1,34 @@
 import { serviceToString } from '@/interfaces/service';
 
+export const builtInProviderConfigKeys = [
+  'id',
+  'type',
+  'protocol',
+  'apiTokens',
+  'failover',
+  'retryOnFailure',
+  'proxyName',
+];
+
 export const aiModelProviders = [
   {
     label: 'OpenAI',
     value: 'openai',
     serviceAddress: 'https://api.openai.com/v1',
     modelNamePattern: 'gpt-*',
+    customRawConfigsKeys: [
+      'openaiServerType',
+      'openaiCustomServerType',
+      'openaiCustomUrls',
+      'openaiCustomService',
+      'openaiCustomServiceHost',
+      'openaiCustomServicePath',
+      'openaiCustomServiceObj',
+      'openaiCustomServiceName',
+      'openaiCustomServicePort',
+      'openaiCustomUrl',
+      'openaiExtraCustomUrls',
+    ],
     targetModelList: [
       {
         label: 'gpt-3',
@@ -94,6 +117,13 @@ export const aiModelProviders = [
     value: 'qwen',
     serviceAddress: 'https://dashscope.aliyuncs.com/api/v1/services/aigc',
     modelNamePattern: 'qwen-*',
+    customRawConfigsKeys: [
+      'qwenServerType',
+      'qwenDomain',
+      'qwenEnableSearch',
+      'qwenEnableCompatible',
+      'qwenFileIds',
+    ],
     targetModelList: [
       {
         label: 'qwen-max',
@@ -148,6 +178,9 @@ export const aiModelProviders = [
     value: 'azure',
     serviceAddress: '',
     modelNamePattern: 'gpt-*',
+    customRawConfigsKeys: [
+      'azureServiceUrl',
+    ],
     targetModelList: [
       {
         label: 'gpt-3',
@@ -204,7 +237,11 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
-    isTokenRequired: (record) => !record.rawConfigs?.claudeCustomUrl,
+    isTokenRequired: (record) => {
+      const rc = record.rawConfigs;
+      if (!rc) return true;
+      return !rc.claudeCustomUrl && !rc.providerDomain?.trim();
+    },
     getProviderEndpoints: (record) => {
       if (record.rawConfigs?.claudeCustomUrl) {
         return [record.rawConfigs.claudeCustomUrl];
@@ -225,19 +262,16 @@ export const aiModelProviders = [
       }
       if (typeof rawConfigs.claudeCustomUrl === 'string' && rawConfigs.claudeCustomUrl.trim() !== '') {
         rawConfigs.claudeCustomUrl = rawConfigs.claudeCustomUrl.trim();
-      } else if (Array.isArray(rawConfigs.claudeCustomUrls)) {
-        const urls = rawConfigs.claudeCustomUrls.filter(Boolean);
-        if (urls.length > 0) {
-          rawConfigs.claudeCustomUrl = String(urls[0]).trim();
-        }
-        delete rawConfigs.claudeCustomUrls;
+      } else {
+        rawConfigs.claudeCustomUrl = undefined;
+        rawConfigs.providerDomain = undefined;
+        rawConfigs.providerBasePath = undefined;
       }
       delete rawConfigs.claudeCustomServiceObj;
       delete rawConfigs.claudeCustomServiceHost;
       delete rawConfigs.claudeCustomServicePath;
       delete rawConfigs.claudeCustomServiceName;
       delete rawConfigs.claudeCustomServicePort;
-      delete rawConfigs.claudeExtraCustomUrls;
     },
   },
   {
@@ -317,6 +351,10 @@ export const aiModelProviders = [
     value: 'zhipuai',
     serviceAddress: 'https://open.bigmodel.cn',
     modelNamePattern: 'GLM-*',
+    customRawConfigsKeys: [
+      'zhipuDomain',
+      'zhipuCodePlanMode',
+    ],
     targetModelList: [
       {
         label: 'GLM-4-Plus',
@@ -592,6 +630,10 @@ export const aiModelProviders = [
     label: 'Ollama',
     value: 'ollama',
     tokenRequired: false,
+    customRawConfigsKeys: [
+      'ollamaServerHost',
+      'ollamaServerPort',
+    ],
     targetModelList: [],
     getProviderEndpoints: (record) => {
       if (!record.rawConfigs) {
@@ -632,6 +674,11 @@ export const aiModelProviders = [
   {
     label: 'AWS Bedrock',
     value: 'bedrock',
+    customRawConfigsKeys: [
+      'awsRegion',
+      'awsAccessKey',
+      'awsSecretKey',
+    ],
     availableRegions: [
       'af-south-1',
       'ap-east-1',
@@ -684,6 +731,14 @@ export const aiModelProviders = [
   {
     label: 'Google Vertex',
     value: 'vertex',
+    customRawConfigsKeys: [
+      'vertexRegion',
+      'vertexProjectId',
+      'vertexAuthKey',
+      'vertexTokenRefreshAhead',
+      'parsed',
+      'geminiSafetySettings',
+    ],
     availableRegions: [
       'global',
       'africa-south1',
@@ -897,6 +952,11 @@ export const aiModelProviders = [
   {
     label: 'vLLM',
     value: 'vllm',
+    customRawConfigsKeys: [
+      'vllmCustomUrls',
+      'vllmCustomUrl',
+      'vllmExtraCustomUrls',
+    ],
     targetModelList: [],
     tokenRequired: false,
     getProviderEndpoints: (record) => {
