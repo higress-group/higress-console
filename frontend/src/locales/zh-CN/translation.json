@@ -680,7 +680,10 @@
         "matchType": "请选择条件",
         "matchValue": "请输入值"
       },
-      "parameter": "参数"
+      "parameter": "参数",
+      "decoded": "解码结果",
+      "encode": "编码",
+      "nonAsciiError": "不支持非ASCII字符，请点击按钮进行编码"
     },
     "keyValueGroup": {
       "columns": {

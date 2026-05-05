@@ -680,7 +680,10 @@
         "matchType": "Please select match type.",
         "matchValue": "Please input match value."
       },
-      "parameter": "Parameter"
+      "parameter": "Parameter",
+      "decoded": "Decode Result",
+      "encode": "Encode",
+      "nonAsciiError": "Non-ASCII characters not allowed. Please click button to encode"
     },
     "keyValueGroup": {
       "columns": {

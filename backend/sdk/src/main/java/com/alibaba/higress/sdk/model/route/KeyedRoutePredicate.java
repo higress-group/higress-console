@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.sdk.model.route;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.exception.ValidationException;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,4 +30,33 @@ import lombok.NoArgsConstructor;
 public class KeyedRoutePredicate extends RoutePredicate {
 
     private String key;
+
+    @Override
+    public void validate() {
+        validate(null);
+    }
+
+    public void validate(String location) {
+        super.validate();
+
+        String keyValue = this.key;
+        String matchValue = this.getMatchValue();
+
+        if (keyValue != null && !StringUtils.isAsciiPrintable(keyValue)) {
+            throw new ValidationException(buildNonAsciiErrorMessage(location));
+        }
+
+        if (matchValue != null && !StringUtils.isAsciiPrintable(matchValue)) {
+            throw new ValidationException(buildNonAsciiErrorMessage(location));
+        }
+    }
+
+    private String buildNonAsciiErrorMessage(String location) {
+        if (location != null) {
+            return String.format("Route %s predicate contains non-ASCII characters: key=%s, matchValue=%s",
+                location, getKey(), getMatchValue());
+        }
+        return String.format("Route predicate contains non-ASCII characters: key=%s, matchValue=%s", getKey(),
+            getMatchValue());
+    }
 }
