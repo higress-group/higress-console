@@ -237,7 +237,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         providerConfig.normalizeRawConfigs(values.rawConfigs);
       }
 
-      // Only keep keys from the original that the current provider doesn't supports.
+      // Only keep keys from the original that the current provider doesn't support.
       const supportedKeys = new Set(builtInProviderConfigKeys);
       (providerConfig?.customRawConfigsKeys || []).forEach(key => supportedKeys.add(key));
       const filteredOriginal: Record<string, any> = {};
