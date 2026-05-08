@@ -146,9 +146,9 @@ public class ServiceSource implements VersionedDto {
 
         // For non-static and non-DNS types, domain must be valid IP or domain
         if (!V1McpBridge.REGISTRY_TYPE_STATIC.equals(this.type) && !V1McpBridge.REGISTRY_TYPE_DNS.equals(this.type)
-            && !ValidateUtil.checkIpOrDomain(this.getDomain())) {
-            throw new ValidationException("Invalid domain format. For " + this.type
-                + " type, domain must be a valid domain name or IP address.");
+            && !ValidateUtil.checkIpAddress(this.getDomain()) && !ValidateUtil.checkDomain(this.getDomain())) {
+            throw new ValidationException(
+                "Invalid domain format. For " + this.type + " type, domain must be a valid domain name or IP address.");
         }
 
         // Port validation

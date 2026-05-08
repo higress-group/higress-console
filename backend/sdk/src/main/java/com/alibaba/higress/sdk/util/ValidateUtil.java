@@ -57,15 +57,4 @@ public class ValidateUtil {
     public static boolean checkUrlPath(String path) {
         return StringUtils.isNotEmpty(path) && path.charAt(0) == '/' && !path.contains("?");
     }
-
-    /**
-     * Validate if the value is a valid domain name or IP address
-     *
-     * @param value
-     * @return
-     */
-    public static boolean checkIpOrDomain(String value) {
-        return !StringUtils.isEmpty(value)
-            && (checkIpAddress(value) || checkDomain(value) || checkDomainWithWildcard(value));
-    }
 }

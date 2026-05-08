@@ -71,14 +71,4 @@ public class ValidateUtilTest {
         assertFalse(ValidateUtil.checkUrlPath("/api/test?param=1"));
         assertFalse(ValidateUtil.checkUrlPath(""));
     }
-
-    @Test
-    void testCheckIpOrDomain() {
-        assertTrue(ValidateUtil.checkIpOrDomain("192.168.1.1"));
-        assertFalse(ValidateUtil.checkIpOrDomain("555.555.555.555"));
-        assertTrue(ValidateUtil.checkIpOrDomain("example.com"));
-        assertTrue(ValidateUtil.checkIpOrDomain("*.example.com"));
-        assertFalse(ValidateUtil.checkIpOrDomain(""));
-        assertFalse(ValidateUtil.checkIpOrDomain(null));
-    }
 }
