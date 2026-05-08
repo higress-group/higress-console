@@ -1,3 +1,4 @@
+import { containsNonAscii, looksUrlEncoded, urlDecodeValue, urlEncodeValue } from '@/utils';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Table } from 'antd';
 import type { FormInstance } from 'antd/es/form';
@@ -5,6 +6,42 @@ import { uniqueId } from 'lodash';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './index.module.css';
+
+interface UrlEncodingHelperProps {
+  value: string;
+  onEncode: (encoded: string) => void;
+}
+
+const UrlEncodingHelper: React.FC<UrlEncodingHelperProps> = ({ value, onEncode }) => {
+  const { t } = useTranslation();
+
+  if (!value) return null;
+
+  // Input has non-ASCII characters - show encoding preview
+  if (containsNonAscii(value)) {
+    const encoded = urlEncodeValue(value);
+    return (
+      <div>
+        <span className={styles.nonAsciiError}>{t('route.factorGroup.nonAsciiError')}</span>
+        <Button type="link" size="small" onClick={() => onEncode(encoded)}>
+          {t('route.factorGroup.encode')}
+        </Button>
+      </div>
+    );
+  }
+
+  // Input looks URL-encoded - show decoded preview
+  if (looksUrlEncoded(value)) {
+    const decoded = urlDecodeValue(value);
+    return (
+      <div className={styles.decodedLabel}>
+        {t('route.factorGroup.decoded')}: {decoded}
+      </div>
+    );
+  }
+
+  return null;
+};
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
@@ -63,12 +100,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const save = async () => {
     try {
       const values = await form.validateFields();
-
       handleSave({ ...record, ...values });
     } catch (errInfo) {
       // eslint-disable-next-line no-console
       console.log('Save failed:', errInfo);
     }
+  };
+
+  const handleEncode = (encoded: string) => {
+    form.setFieldsValue({ [dataIndex as string]: encoded });
+    handleSave({ ...record, [dataIndex as string]: encoded });
   };
 
   let childNode = children;
@@ -77,7 +118,11 @@ const EditableCell: React.FC<EditableCellProps> = ({
     nodeType === 'select' ? (
       <Select ref={inputRef} options={matchOptions} />
     ) : (
-      <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      <Input
+        ref={inputRef}
+        onBlur={save}
+        onPressEnter={save}
+      />
     );
 
   if (editable) {
@@ -88,13 +133,26 @@ const EditableCell: React.FC<EditableCellProps> = ({
         rules={[
           {
             required: true,
-            message: t(`route.factorGroup.required.${dataIndex}`),
+            message: t(`route.factorGroup.required.${dataIndex}`) || '',
           },
         ]}
       >
         {node}
       </Form.Item>
     );
+
+    // For input fields (key and matchValue), wrap with EncodingPreview
+    if (nodeType === 'input') {
+      childNode = (
+        <>
+          {childNode}
+          <UrlEncodingHelper
+            value={form.getFieldValue(dataIndex as string) || record[dataIndex as string]}
+            onEncode={handleEncode}
+          />
+        </>
+      );
+    }
   }
 
   return <td {...restProps}>{childNode}</td>;
@@ -143,12 +201,13 @@ const FactorGroup: React.FC = ({ value, onChange }) => {
       title: t('route.factorGroup.columns.operation'),
       dataIndex: 'operation',
       width: 60,
-      render: (_, record: { uid: number }) =>
-        (dataSource.length >= 1 ? (
+      render: (_, record: { uid: number }) => (
+        dataSource.length >= 1 ? (
           <div onClick={() => handleDelete(record.uid)}>
             <DeleteOutlined />
           </div>
-        ) : null),
+        ) : null
+      ),
     },
   ];
 

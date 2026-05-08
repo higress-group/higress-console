@@ -46,3 +46,21 @@ export const getOfficialSiteLink = (path: string) => {
   const basePath = path.startsWith('/') ? path : `/${path}`;
   return `https://higress.io${langPrefix}${basePath}`;
 };
+
+// Detect non-ASCII characters
+export const containsNonAscii = (str: string): boolean => /[^\x00-\x7F]/.test(str);
+
+// Detect URL-encoded pattern
+export const looksUrlEncoded = (str: string): boolean => /%[0-9A-F]{2}/i.test(str);
+
+// Encode non-ASCII characters
+export const urlEncodeValue = (str: string): string => encodeURIComponent(str);
+
+// Decode URL-encoded string
+export const urlDecodeValue = (str: string): string => {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+};

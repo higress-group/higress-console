@@ -118,10 +118,10 @@ public class Route implements VersionedDto {
             path.validate();
         }
         if (CollectionUtils.isNotEmpty(headers)) {
-            headers.forEach(KeyedRoutePredicate::validate);
+            headers.forEach(h -> h.validate("header"));
         }
         if (CollectionUtils.isNotEmpty(urlParams)) {
-            urlParams.forEach(KeyedRoutePredicate::validate);
+            urlParams.forEach(q -> q.validate("query"));
         }
         services.forEach(UpstreamService::validate);
         if (authConfig != null) {
