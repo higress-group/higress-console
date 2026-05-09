@@ -156,7 +156,8 @@ const MCPDetailPage: React.FC = () => {
       return `{
   "mcpServers": {
     "${name}": {
-      "url": "${apiGatewayUrl}/mcp-servers/${name}"
+      "url": "${apiGatewayUrl}/mcp-servers/${name}"，
+      "type": "http"
     }
   }
 }`;
@@ -165,7 +166,8 @@ const MCPDetailPage: React.FC = () => {
       return `{
   "mcpServers": {
     "${name}": {
-      "url": "${apiGatewayUrl}/mcp-servers/${name}/sse"
+      "url": "${apiGatewayUrl}/mcp-servers/${name}/sse",
+      "type": "sse"
     }
   }
 }`;
