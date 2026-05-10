@@ -445,21 +445,14 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
             />
           </div>
         </Form.Item>
-        {
-          weightedServices.length > 0 && (
-            <Form.Item
-              label={t('route.routeForm.weightConfig')}
-              required
-            >
-              <ServiceWeightTable
-                value={weightedServices}
-                onChange={setWeightedServices}
-                disabled={false}
-                autoMode={!editMode}
-              />
-            </Form.Item>
-          )
-        }
+        <Form.Item>
+          <ServiceWeightTable
+            value={weightedServices}
+            onChange={setWeightedServices}
+            disabled={false}
+            autoMode={!editMode}
+          />
+        </Form.Item>
       </Form.Item>
     </Form>
   );

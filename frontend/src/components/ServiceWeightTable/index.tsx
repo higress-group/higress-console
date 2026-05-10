@@ -54,6 +54,11 @@ function ServiceWeightTable({
       return () => { aborted = true; };
     }
 
+    if (value.length === 0) {
+      setIsAutoMode(true);
+      return () => { aborted = true; };
+    }
+
     const currentNames = value.map(s => s.name);
     const prevNames = prevServiceNamesRef.current;
 
@@ -165,7 +170,7 @@ function ServiceWeightTable({
             max={100}
             value={record.weight}
             onChange={(val) => handleWeightChange(record.id, val || 0)}
-            disabled={disabled || value.length === 1}
+            disabled={disabled}
             style={{ width: 80 }}
           />
           <Text type="secondary">%</Text>
@@ -182,7 +187,7 @@ function ServiceWeightTable({
       key: 'action',
       width: 80,
       render: (_: unknown, record: WeightedService) => (
-        value.length > 1 ? (
+        value.length > 0 && (
           <Tooltip title={t('route.weightTable.delete')}>
             <Button
               type="text"
@@ -193,10 +198,15 @@ function ServiceWeightTable({
               aria-label={String(t('route.weightTable.delete'))}
             />
           </Tooltip>
-        ) : null
+        )
       ),
     },
   ], [t, disabled, value.length, handleWeightChange, handleDelete]);
+
+  // Return nothing when service list is empty
+  if (value.length === 0) {
+    return null;
+  }
 
   return (
     <div>
