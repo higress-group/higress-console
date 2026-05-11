@@ -302,8 +302,20 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
                   message: t('serviceSource.serviceSourceForm.domainRequired'),
                 },
                 {
-                  pattern: /^[a-zA-Z0-9\-.*]+$/,
-                  message: t('serviceSource.serviceSourceForm.domainPlaceholder'),
+                  validator: (_, inputValue) => {
+                    if (!inputValue) {
+                      return Promise.resolve();
+                    }
+                    // IP address pattern: 0-255.0-255.0-255.0-255
+                    const ipv4Pattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                    // Domain pattern: lowercase alphanumeric, hyphens allowed in middle, at least one dot
+                    // (aligned with backend ValidateUtil.DOMAIN_PATTERN semantics)
+                    const domainPattern = /^(?:(?!-)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+                    if (ipv4Pattern.test(inputValue) || domainPattern.test(inputValue)) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(t('serviceSource.serviceSourceForm.domainInvalidFormat'));
+                  },
                 },
               ]}
             >
@@ -316,20 +328,33 @@ const SourceForm: React.FC = forwardRef((props, ref) => {
             </Form.Item>
             <Form.Item
               label={t('serviceSource.serviceSourceForm.port')}
-              required
-              rules={[
-                {
-                  required: true,
-                  message: t('serviceSource.serviceSourceForm.portRequired'),
-                },
-              ]}
             >
-              <Form.Item name="port" noStyle>
+              <Form.Item
+                name="port"
+                noStyle
+                required
+                rules={[
+                  {
+                    required: true,
+                    message: t('serviceSource.serviceSourceForm.portRequired'),
+                  },
+                  {
+                    validator: (_, portValue) => {
+                      if (!portValue) {
+                        return Promise.resolve();
+                      }
+                      const port = parseInt(portValue, 10);
+                      if (isNaN(port) || port < 1 || port > 65535) {
+                        return Promise.reject(t('serviceSource.serviceSourceForm.portInvalidRange'));
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
+              >
                 <Input
                   allowClear
                   type="number"
-                  min={1}
-                  max={65535}
                   placeholder={t('serviceSource.serviceSourceForm.portPlaceholder')}
                 />
               </Form.Item>

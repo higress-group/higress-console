@@ -278,6 +278,12 @@
         "openaiCustomServiceHost": "Custom OpenAI Service Host",
         "openaiCustomServicePath": "Custom OpenAI Service Path",
         "zhipuDomain": "Custom Zhipu AI Domain",
+        "claudeServerType": "Claude Service Type",
+        "claudeCustomUrl": "Custom Claude Service Base URL",
+        "claudeCustomServerType": "Custom Claude Service Config Method",
+        "claudeCustomService": "Custom Claude Service",
+        "claudeCustomServiceHost": "Custom Claude Service Host",
+        "claudeCustomServicePath": "Custom Claude Service Path",
         "claudeVersion": "Claude API Version",
         "claudeCodeMode": "Claude Code Mode (OAuth Token)",
         "zhipuCodePlanMode": "Code Plan Mode",
@@ -306,6 +312,13 @@
         "openaiCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom OpenAI service base URLs",
         "openaiCustomServiceRequired": "Please select custom OpenAI service",
         "openaiCustomServicePathRequired": "Please select custom OpenAI service path",
+        "claudeCustomUrlRequired": "Please input a valid custom Claude service base URL",
+        "invalidClaudeCustomUrl": "Bad URL format: ",
+        "claudeCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom Claude service base URLs",
+        "claudeCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom Claude service base URLs",
+        "claudeCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom Claude service base URLs",
+        "claudeCustomServiceRequired": "Please select custom Claude service",
+        "claudeCustomServicePathRequired": "Please input custom Claude service path",
         "qwenFileIdRequired": "Please input Tongyi Qianwen file ID",
         "qwenDomainRequired": "Please input a valid custom Tongyi Qianwen domain",
         "awsRegionRequired": "Please input AWS Region",
@@ -343,7 +356,10 @@
         "qwenDomainPlaceholder": "Sample: dashscope-finance.aliyuncs.com",
         "qwenFileIdsPlaceholder": "Sample: file-fe-xxx",
         "zhipuDomainPlaceholder": "Sample: api.z.ai (for international service)",
-        "vllmCustomUrlPlaceholder": "Sample: http://192.168.0.1:8000/v1"
+        "vllmCustomUrlPlaceholder": "Sample: http://192.168.0.1:8000/v1",
+        "claudeCustomUrlPlaceholder": "Sample: https://api.anthropic.com or https://proxy.example.com/anthropic",
+        "claudeCustomServiceHostPlaceholder": "Sample: api.anthropic.com",
+        "claudeCustomServicePathPlaceholder": "Sample: / or /anthropic"
       },
       "openaiServerType": {
         "official": "OpenAI Official Service",
@@ -356,6 +372,14 @@
       "qwenServerType": {
         "official": "Tongyi Qianwen Official Service",
         "custom": "Custom Service"
+      },
+      "claudeServerType": {
+        "official": "Anthropic Official Service",
+        "custom": "Custom Service"
+      },
+      "claudeCustomServerType": {
+        "service": "Select a service",
+        "url": "Input URL(s)"
       },
       "secretRefModal": {
         "entry": "I'd like to use token info stored in a Secret resource.",
@@ -553,9 +577,11 @@
       "domain": "Registry Domain",
       "domainTooltip": "It can be either an IP address or a domain name.",
       "domainRequired": "Please select a domain name",
-      "domainPlaceholder": "Only following inputs are allowed: upper-and lower-case letters, numbers, dash (-) and asterisk (*). No longer than 256 characters.",
+      "domainPlaceholder": "Only following inputs are allowed: lower-case letters, numbers, dash (-) and asterisk (*). No longer than 256 characters.",
+      "domainInvalidFormat": "Invalid format. Please enter a valid domain name or IP address.",
       "port": "Registry Port",
       "portRequired": "Please input the port.",
+      "portInvalidRange": "Port must be between 1 and 65535.",
       "portPlaceholder": "Registry Port",
       "vport": "Service Default Port",
       "vportEnabled": "Enable Custom Service Ports",
