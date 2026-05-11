@@ -1,3 +1,5 @@
+import { serviceToString } from '@/interfaces/service';
+
 export const builtInProviderConfigKeys = [
   'id',
   'type',
@@ -49,7 +51,7 @@ export const aiModelProviders = [
         value: 'gpt-4o-mini',
       },
     ],
-    isTokenRequired: record => {
+    isTokenRequired: (record) => {
       if (record.openaiServerType) {
         // For form validation
         return record.openaiServerType === 'official';
@@ -72,11 +74,11 @@ export const aiModelProviders = [
         const scheme = schemeEndIndex !== -1 ? customUrl.substring(0, schemeEndIndex) : 'http';
         const path = hostEndIndex !== -1 ? customUrl.substring(hostEndIndex) : '';
         const portSegment = rawConfigs.openaiCustomServicePort ? `:${rawConfigs.openaiCustomServicePort}` : '';
-        return [`${scheme}://${rawConfigs.openaiCustomServiceName}${portSegment}${path}`]
+        return [`${scheme}://${rawConfigs.openaiCustomServiceName}${portSegment}${path}`];
       }
       const customUrls = [customUrl];
       if (Array.isArray(rawConfigs.openaiExtraCustomUrls)) {
-        customUrls.push(...rawConfigs.openaiExtraCustomUrls)
+        customUrls.push(...rawConfigs.openaiExtraCustomUrls);
       }
       return customUrls;
     },
@@ -86,9 +88,11 @@ export const aiModelProviders = [
       }
       if (typeof rawConfigs.openaiCustomServiceObj === 'object') {
         const customService = rawConfigs.openaiCustomServiceObj;
-        const host = rawConfigs.openaiCustomServiceHost || (customService.port ? `${customService.name}:${customService.port}` : customService.name);
+        const host =
+          rawConfigs.openaiCustomServiceHost ||
+          (customService.port ? `${customService.name}:${customService.port}` : customService.name);
         const protocol = customService.protocol && customService.protocol.toUpperCase() === 'HTTPS' ? 'https' : 'http';
-        let path = rawConfigs.openaiCustomServicePath || ''
+        let path = rawConfigs.openaiCustomServicePath || '';
         if (!path.startsWith('/')) {
           path = '/' + path;
         }
@@ -144,9 +148,9 @@ export const aiModelProviders = [
       }
       const { rawConfigs } = record;
       const { qwenDomain, qwenEnableCompatible } = rawConfigs;
-      const customDomain = (qwenDomain && qwenDomain !== '') ? rawConfigs.qwenDomain.trim() : 'dashscope.aliyuncs.com';
+      const customDomain = qwenDomain && qwenDomain !== '' ? rawConfigs.qwenDomain.trim() : 'dashscope.aliyuncs.com';
       const servicePath = qwenEnableCompatible ? 'compatible-mode/v1' : 'api/v1/services/aigc';
-      return [`https://${customDomain}/${servicePath}`]
+      return [`https://${customDomain}/${servicePath}`];
     },
   },
   {
@@ -233,8 +237,41 @@ export const aiModelProviders = [
         value: 'claude-3-5-haiku-latest',
       },
     ],
+    isTokenRequired: (record) => {
+      const rc = record.rawConfigs;
+      if (!rc) return true;
+      return !rc.claudeCustomUrl && !rc.providerDomain?.trim();
+    },
     getProviderEndpoints: (record) => {
-      return ['https://api.anthropic.com'];
+      if (record.rawConfigs?.claudeCustomUrl) {
+        return [record.rawConfigs.claudeCustomUrl];
+      }
+      const domain =
+        (record.rawConfigs?.providerDomain && String(record.rawConfigs.providerDomain).trim()) || 'api.anthropic.com';
+      const basePath =
+        record.rawConfigs?.providerBasePath != null ? String(record.rawConfigs.providerBasePath).trim() : '/';
+      let path = '/';
+      if (basePath && basePath !== '/') {
+        path = basePath.startsWith('/') ? basePath : `/${basePath}`;
+      }
+      return [`https://${domain}${path}`];
+    },
+    normalizeRawConfigs: (rawConfigs) => {
+      if (!rawConfigs) {
+        return;
+      }
+      if (typeof rawConfigs.claudeCustomUrl === 'string' && rawConfigs.claudeCustomUrl.trim() !== '') {
+        rawConfigs.claudeCustomUrl = rawConfigs.claudeCustomUrl.trim();
+      } else {
+        rawConfigs.claudeCustomUrl = undefined;
+        rawConfigs.providerDomain = undefined;
+        rawConfigs.providerBasePath = undefined;
+      }
+      delete rawConfigs.claudeCustomServiceObj;
+      delete rawConfigs.claudeCustomServiceHost;
+      delete rawConfigs.claudeCustomServicePath;
+      delete rawConfigs.claudeCustomServiceName;
+      delete rawConfigs.claudeCustomServicePort;
     },
   },
   {
@@ -687,7 +724,7 @@ export const aiModelProviders = [
     },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.awsRegion;
-      return region && [`https://bedrock-runtime.${region}.amazonaws.com`] || [];
+      return (region && [`https://bedrock-runtime.${region}.amazonaws.com`]) || [];
     },
     targetModelList: [],
   },
@@ -783,7 +820,9 @@ export const aiModelProviders = [
       if (!region) {
         return [];
       }
-      return [region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`];
+      return [
+        region === 'global' ? 'https://aiplatform.googleapis.com' : `https://${region}-aiplatform.googleapis.com`,
+      ];
     },
     parseRawConfigs: (rawConfigs) => {
       if (!rawConfigs) {
@@ -930,7 +969,7 @@ export const aiModelProviders = [
       }
       const customUrls = [customUrl];
       if (Array.isArray(record.rawConfigs.vllmExtraCustomUrls)) {
-        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls)
+        customUrls.push(...record.rawConfigs.vllmExtraCustomUrls);
       }
       return customUrls;
     },
