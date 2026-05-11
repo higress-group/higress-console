@@ -6,7 +6,7 @@ import { stringToUpstreamService, upstreamServiceToString } from '@/interfaces/r
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 import { getGatewayDomains, getGatewayServices } from '@/services';
 import { getConsumers } from '@/services/consumer';
-import { getOfficialSiteLink } from '@/utils';
+import { containsNonAscii, getOfficialSiteLink } from '@/utils';
 import { QuestionCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Button, Checkbox, Form, Input, Select, Switch, Tooltip } from 'antd';
@@ -41,6 +41,22 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   const servicesRef = useRef(new Map());
   const { data: _services = [], refresh: refreshServices } = useRequest(getGatewayServices);
   const { data: _domains = [], refresh: refreshDomains } = useRequest(getGatewayDomains);
+
+  // Validator for FactorGroup items (headers, urlParams)
+  const validateFactorGroupItems = (_: unknown, values: Array<{ key?: string; matchType?: string; matchValue?: string }>) => {
+    if (!Array.isArray(values)) {
+      return Promise.resolve();
+    }
+    for (const item of values) {
+      if (!item.key || !item.matchType || !item.matchValue) {
+        return Promise.reject();
+      }
+      if (containsNonAscii(item.key) || containsNonAscii(item.matchValue)) {
+        return Promise.reject();
+      }
+    }
+    return Promise.resolve();
+  };
 
   const [consumerList, setConsumerList] = useState<Consumer[]>([]);
   const [weightedServices, setWeightedServices] = useState<WeightedService[]>([]);
@@ -316,6 +332,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           label={t('route.routeForm.header')}
           name="headers"
           tooltip={t('route.routeForm.headerTooltip')}
+          rules={[{ validator: validateFactorGroupItems }]}
         >
           <FactorGroup />
         </Form.Item>
@@ -323,6 +340,7 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
           label={t('route.routeForm.query')}
           name="urlParams"
           tooltip={t('route.routeForm.queryTooltip')}
+          rules={[{ validator: validateFactorGroupItems }]}
         >
           <FactorGroup />
         </Form.Item>

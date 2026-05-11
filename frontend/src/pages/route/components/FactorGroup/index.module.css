@@ -3,3 +3,16 @@
     margin: 0;
   }
 }
+
+.nonAsciiError {
+  font-size: 12px;
+  color: #ff4d4f;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.decodedLabel {
+  color: #52c41a;
+}

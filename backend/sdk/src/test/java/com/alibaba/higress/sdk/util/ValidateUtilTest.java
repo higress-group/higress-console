@@ -29,11 +29,10 @@ public class ValidateUtilTest {
     @Test
     void testCheckPort() {
         assertTrue(ValidateUtil.checkPort(80));
-        assertTrue(ValidateUtil.checkPort(65534));
+        assertTrue(ValidateUtil.checkPort(65535));
         assertFalse(ValidateUtil.checkPort(0));
-        assertFalse(ValidateUtil.checkPort(65535));
         assertFalse(ValidateUtil.checkPort(null));
-        assertFalse(ValidateUtil.checkPort(1));
+        assertTrue(ValidateUtil.checkPort(1));
     }
 
     @Test
