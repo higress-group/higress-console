@@ -14,10 +14,12 @@ package com.alibaba.higress.sdk.model.consumer;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Credential Type", type = "string", allowableValues = {"key-auth"})
+@Schema(description = "Credential Type", type = "string", allowableValues = {"key-auth", "jwt-auth", "hmac-auth"})
 public final class CredentialType {
 
     private CredentialType() {}
 
     public static final String KEY_AUTH = "key-auth";
+    public static final String JWT_AUTH = "jwt-auth";
+    public static final String HMAC_AUTH = "hmac-auth";
 }
