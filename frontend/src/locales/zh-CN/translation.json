@@ -287,7 +287,10 @@
         "claudeVersion": "Claude API 版本",
         "claudeCodeMode": "Claude Code 模式（OAuth 令牌）",
         "zhipuCodePlanMode": "Code Plan 模式",
-        "vllmCustomUrl": "自定义 vLLM 服务 BaseURL"
+        "vllmCustomUrl": "自定义 vLLM 服务 BaseURL",
+        "failoverOnStatus": "触发降级的 HTTP 状态码",
+        "retryOnFailure": "失败时重试",
+        "retryOnFailureTooltip": "启用后，在触发降级前会对失败的请求进行重试。注意：失败重试对流式响应支持不佳，使用流式响应时建议关闭此选项。"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -298,6 +301,7 @@
         "healthCheckTimeoutRequired": "请输入健康检测请求超时时间（毫秒）",
         "healthCheckIntervalRequired": "请输入健康检测请求发起间隔（毫秒）",
         "healthCheckModelRequired": "请输入健康检测请求使用的模型名称",
+        "failoverOnStatusRequired": "请输入至少一个触发降级的 HTTP 状态码",
         "protocol": "请选择请求协议",
         "successThresholdRequired": "请输入最小连续健康检测成功次数",
         "azureServiceUrlRequired": "请输入 Azure 服务 URL",

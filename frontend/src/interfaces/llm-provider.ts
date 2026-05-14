@@ -6,6 +6,7 @@ export interface LlmProvider {
   proxyName?: string;
   tokens: string[];
   tokenFailoverConfig?: TokeFailoverConfig;
+  retryOnFailureConfig?: RetryOnFailureConfig;
 }
 
 export interface TokeFailoverConfig {
@@ -15,6 +16,11 @@ export interface TokeFailoverConfig {
   healthCheckInterval?: number;
   healthCheckTimeout?: number;
   healthCheckModel?: string;
+  failoverOnStatus?: number[];
+}
+
+export interface RetryOnFailureConfig {
+  enabled?: boolean;
 }
 
 export enum LlmProviderProtocol {
