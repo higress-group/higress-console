@@ -362,8 +362,15 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           },
           {
             validator: (_, value) => {
+              // Skip pattern validation when editing to maintain compatibility with existing non-ASCII names
+              if (!props.value) {
+                const pattern = /^[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?$/;
+                if (value && !pattern.test(value)) {
+                  return Promise.reject(t('llmProvider.providerForm.rules.invalidNamePattern'));
+                }
+              }
               if (value && value.includes('/')) {
-                return Promise.reject('name is invalid: slashes (/) are not allowed.');
+                return Promise.reject(t('llmProvider.providerForm.rules.serviceNameNoSlash'));
               }
               return Promise.resolve();
             },
