@@ -18,6 +18,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILO
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_INTERVAL;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_MODEL;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_HEALTH_CHECK_TIMEOUT;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_ON_STATUS;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.FAILOVER_SUCCESS_THRESHOLD;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTOCOL;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
@@ -43,6 +44,7 @@ import com.alibaba.higress.sdk.model.ServiceSource;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderEndpoint;
 import com.alibaba.higress.sdk.model.ai.LlmProviderProtocol;
+import com.alibaba.higress.sdk.model.ai.RetryOnFailureConfig;
 import com.alibaba.higress.sdk.model.ai.TokenFailoverConfig;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
@@ -80,6 +82,14 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
             failoverConfig = buildTokenFailoverConfig((Map<String, Object>)failoverObj);
         }
 
+        RetryOnFailureConfig retryOnFailureConfig = null;
+        Object retryObj = configurations.get(RETRY_ON_FAILURE);
+        if (retryObj instanceof Map<?, ?>) {
+            Map<String, Object> retryMap = (Map<String, Object>)retryObj;
+            retryOnFailureConfig = new RetryOnFailureConfig();
+            retryOnFailureConfig.setEnabled(MapUtils.getBoolean(retryMap, RETRY_ENABLED));
+        }
+
         LlmProviderProtocol protocol =
             LlmProviderProtocol.fromPluginValue(MapUtils.getString(configurations, PROTOCOL));
         if (protocol == null) {
@@ -91,6 +101,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         provider.setType(getType());
         provider.setTokens(tokens);
         provider.setTokenFailoverConfig(failoverConfig);
+        provider.setRetryOnFailureConfig(retryOnFailureConfig);
         provider.setRawConfigs(new HashMap<>(configurations));
         return true;
     }
@@ -121,7 +132,13 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
             Map<String, Object> failoverMap = new HashMap<>();
             saveTokenFailoverConfig(failoverConfig, failoverMap);
             configurations.put(FAILOVER, failoverMap);
-            Map<String, Object> retryOnFailureMap = MapUtil.of(RETRY_ENABLED, failoverConfig.getEnabled());
+        }
+
+        RetryOnFailureConfig retryOnFailureConfig = provider.getRetryOnFailureConfig();
+        if (retryOnFailureConfig == null) {
+            configurations.remove(RETRY_ON_FAILURE);
+        } else {
+            Map<String, Object> retryOnFailureMap = MapUtil.of(RETRY_ENABLED, retryOnFailureConfig.getEnabled());
             configurations.put(RETRY_ON_FAILURE, retryOnFailureMap);
         }
     }
@@ -232,6 +249,18 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         failoverConfig.setHealthCheckInterval(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_INTERVAL));
         failoverConfig.setHealthCheckTimeout(MapUtils.getInteger(failoverMap, FAILOVER_HEALTH_CHECK_TIMEOUT));
         failoverConfig.setHealthCheckModel(MapUtils.getString(failoverMap, FAILOVER_HEALTH_CHECK_MODEL));
+        Object failoverOnStatusObj = failoverMap.get(FAILOVER_ON_STATUS);
+        if (failoverOnStatusObj instanceof List<?>) {
+            List<Integer> statusList = new ArrayList<>();
+            for (Object item : (List<?>)failoverOnStatusObj) {
+                if (item instanceof Integer) {
+                    statusList.add((Integer)item);
+                } else if (item instanceof Number) {
+                    statusList.add(((Number)item).intValue());
+                }
+            }
+            failoverConfig.setFailoverOnStatus(statusList);
+        }
         return failoverConfig;
     }
 
@@ -242,5 +271,10 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         failoverMap.put(FAILOVER_HEALTH_CHECK_INTERVAL, failoverConfig.getHealthCheckInterval());
         failoverMap.put(FAILOVER_HEALTH_CHECK_TIMEOUT, failoverConfig.getHealthCheckTimeout());
         failoverMap.put(FAILOVER_HEALTH_CHECK_MODEL, failoverConfig.getHealthCheckModel());
+        if (CollectionUtils.isNotEmpty(failoverConfig.getFailoverOnStatus())) {
+            failoverMap.put(FAILOVER_ON_STATUS, failoverConfig.getFailoverOnStatus());
+        } else {
+            failoverMap.remove(FAILOVER_ON_STATUS);
+        }
     }
 }

@@ -100,6 +100,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         protocol,
         tokens,
         tokenFailoverConfig = {},
+        retryOnFailureConfig = {},
         proxyName = '',
         rawConfigs = {},
       } = props.value;
@@ -110,6 +111,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckInterval,
         healthCheckTimeout,
         healthCheckModel,
+        failoverOnStatus,
       } = tokenFailoverConfig ?? {};
 
       // providerConfig cannot be used here directly because it is not updated yet
@@ -211,6 +213,8 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckInterval: healthCheckInterval || 5000,
         healthCheckTimeout: healthCheckTimeout || 10000,
         healthCheckModel,
+        failoverOnStatus: (failoverOnStatus || []).map(String),
+        retryOnFailure: retryOnFailureConfig.enabled !== undefined ? retryOnFailureConfig.enabled : true,
         proxyName: proxyName || '',
         rawConfigs,
       });
@@ -260,6 +264,10 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           healthCheckInterval: values.healthCheckInterval,
           healthCheckTimeout: values.healthCheckTimeout,
           healthCheckModel: values.healthCheckModel,
+          failoverOnStatus: (values.failoverOnStatus || []).map((s: string) => parseInt(s, 10)).filter((n: number) => !isNaN(n)),
+        },
+        retryOnFailureConfig: {
+          enabled: values.retryOnFailure,
         },
         proxyName: values.proxyName,
         // Merge unknown extra fields (set via API, not exposed in the form) back into
@@ -1379,6 +1387,42 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               ]}
             >
               <Input />
+            </Form.Item>
+
+            {/* 触发降级的 HTTP 状态码 */}
+            <Form.Item
+              name="failoverOnStatus"
+              label={t('llmProvider.providerForm.label.failoverOnStatus')}
+              rules={[
+                {
+                  validator: (_, values: string[]) => {
+                    if (!values || values.length === 0) return Promise.resolve();
+                    const invalid = values.filter(v => isNaN(parseInt(v, 10)) || parseInt(v, 10) < 100 || parseInt(v, 10) > 599);
+                    if (invalid.length > 0) {
+                      return Promise.reject(`Invalid HTTP status code(s): ${invalid.join(', ')}`);
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
+              <Select
+                mode="tags"
+                placeholder="e.g. 502, 503, 504"
+                style={{ width: '100%' }}
+                tokenSeparators={[',']}
+              />
+            </Form.Item>
+
+            {/* 失败时重试 */}
+            <Form.Item
+              name="retryOnFailure"
+              label={t('llmProvider.providerForm.label.retryOnFailure')}
+              valuePropName="checked"
+              initialValue
+              tooltip={t('llmProvider.providerForm.label.retryOnFailureTooltip')}
+            >
+              <Switch />
             </Form.Item>
           </>
           : null

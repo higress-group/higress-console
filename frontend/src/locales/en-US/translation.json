@@ -287,7 +287,10 @@
         "claudeVersion": "Claude API Version",
         "claudeCodeMode": "Claude Code Mode (OAuth Token)",
         "zhipuCodePlanMode": "Code Plan Mode",
-        "vllmCustomUrl": "Custom vLLM Service Base URL"
+        "vllmCustomUrl": "Custom vLLM Service Base URL",
+        "failoverOnStatus": "Failover on HTTP Status Codes",
+        "retryOnFailure": "Retry on Failure",
+        "retryOnFailureTooltip": "When enabled, failed requests will be retried before triggering failover. Note: Retry on failure has limited support for streaming responses. It is recommended to disable this when using streaming."
       },
       "rules": {
         "tokenRequired": "Please input auth token",
@@ -298,6 +301,7 @@
         "healthCheckTimeoutRequired": "Please input health check request timeout (ms)",
         "healthCheckIntervalRequired": "Please input health check request interval (ms)",
         "healthCheckModelRequired": "Please input health check request LLM model",
+        "failoverOnStatusRequired": "Please input at least one HTTP status code to trigger failover",
         "protocol": "Please select a request protocol",
         "successThresholdRequired": "Please input min consecuitive sucesses to mark up a token",
         "azureServiceUrlRequired": "Please input Azure service URL",
