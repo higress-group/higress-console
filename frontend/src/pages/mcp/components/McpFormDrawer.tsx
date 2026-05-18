@@ -6,7 +6,7 @@ import { getGatewayDomains } from '@/services/domain';
 import { getMcpServer } from '@/services/mcp';
 import { getGatewayServices } from '@/services/service';
 import { RedoOutlined } from '@ant-design/icons';
-import { Button, Drawer, Form, Input, Select, Space, Switch } from 'antd';
+import { Button, Drawer, Form, Input, Select, Space, Switch, message } from 'antd';
 import { useWatch } from 'antd/es/form/Form';
 import React, { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -46,17 +46,25 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
   }, [visible]);
 
   // 计算 dbUrl 和 dbPort
+  // DB 类型时，从服务信息中提取主机地址作为默认值
+  // 注意：数据库端口必须由用户手动填写，因为服务端口和 DB 实际端口可能不同
   useEffect(() => {
-    if (!selectedService) return;
+    if (serviceType !== SERVICE_TYPE.DB || !selectedService) return;
+
     const serviceName = selectedService.split(':')[0];
     const service = originalBackendServiceList.find((item) => item.name === serviceName);
+
     if (service) {
-      form.setFieldsValue({
-        db_server_host: service.endpoints?.[0] || '-',
-        db_server_port: service.port || '-',
-      });
+      const currentHost = form.getFieldValue('db_server_host');
+      // 仅在主机地址为空时自动填充，优先使用 endpoints，其次 domain（对 DNS/Nacos 服务兼容）
+      if (!currentHost) {
+        const defaultHost = service.endpoints?.[0] || service.domain || '';
+        if (defaultHost) {
+          form.setFieldValue('db_server_host', defaultHost);
+        }
+      }
     }
-  }, [originalBackendServiceList, selectedService]);
+  }, [originalBackendServiceList, selectedService, serviceType]);
 
   // 监听 record 变化，重置表单
   useEffect(() => {
@@ -78,6 +86,8 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           formValues.db_user_name = record.dbConfig.username;
           formValues.db_password = record.dbConfig.password;
           formValues.db_database = record.dbConfig.dbname; // 兼容 dbname 字段
+          formValues.db_server_host = record.dbConfig.host;
+          formValues.db_server_port = record.dbConfig.port;
 
           // 将 otherParams 对象转换为字符串格式
           if (record.dbConfig.otherParams && typeof record.dbConfig.otherParams === 'object') {
@@ -190,6 +200,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
     service = originalBackendServiceList.find((item) => item.name === serviceName);
     if (!service) {
+      message.error(t('mcp.form.serviceNotFound') || '未找到对应的后端服务');
       return;
     }
 
@@ -413,8 +424,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 <Form.Item
                   label={t('mcp.form.dbHost') || '主机地址'}
                   name="db_server_host"
+                  rules={[{ required: true, message: t('mcp.form.dbHostRequired') || '请输入数据库主机地址' }]}
                 >
-                  <Input disabled placeholder={t('mcp.form.dbHostPlaceholder') || '请先选择后端服务'} />
+                  <Input placeholder={t('mcp.form.dbHostPlaceholder') || '请输入数据库主机地址'} />
                 </Form.Item>
               </div>
             </div>
@@ -423,8 +435,23 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 <Form.Item
                   label={t('mcp.form.dbPort') || '端口'}
                   name="db_server_port"
+                  rules={[
+                    { required: true, message: t('mcp.form.dbPortRequired') || '请输入数据库端口' },
+                    {
+                      validator: (_, value) => {
+                        if (value === undefined || value === null || value === '') {
+                          return Promise.resolve();
+                        }
+                        const port = Number(value);
+                        if (Number.isNaN(port) || !Number.isInteger(port) || port < 1 || port > 65535) {
+                          return Promise.reject(new Error(t('mcp.form.dbPortInvalid') || '请输入有效的端口号 (1-65535)'));
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
                 >
-                  <Input disabled placeholder={t('mcp.form.dbHostPlaceholder') || '请先选择后端服务'} />
+                  <Input placeholder={t('mcp.form.dbPortPlaceholder') || '请输入数据库端口号'} />
                 </Form.Item>
               </div>
               <div style={{ minWidth: 0 }}>
