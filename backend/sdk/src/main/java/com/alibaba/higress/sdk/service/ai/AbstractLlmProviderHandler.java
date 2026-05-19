@@ -99,6 +99,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
     public void saveConfig(LlmProvider provider, Map<String, Object> configurations) {
         configurations.put(PROVIDER_ID, provider.getName());
         configurations.put(PROVIDER_TYPE, getType());
+        configurations.put("username", provider.getUsername());
 
         LlmProviderProtocol protocol = LlmProviderProtocol.fromValue(provider.getProtocol());
         if (protocol == null) {
@@ -142,7 +143,7 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         if (CollectionUtils.isEmpty(endpoints)) {
             throw new ValidationException("No endpoints found for provider: " + providerName);
         }
-        String type = null, protocol = null, contextPath = null;
+        String type = null, protocol = null, contextPath = null, username = null;
         List<String> domains = new ArrayList<>(endpoints.size());
         Integer port = null;
         for (LlmProviderEndpoint endpoint : endpoints) {

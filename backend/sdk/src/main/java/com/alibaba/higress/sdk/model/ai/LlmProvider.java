@@ -45,6 +45,9 @@ public class LlmProvider {
     @Schema(description = "Raw configuration key-value pairs used by ai-proxy plugin")
     private Map<String, Object> rawConfigs;
 
+    // 用户名
+    private String username;
+
     public void validate(boolean forUpdate) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name cannot be blank.");

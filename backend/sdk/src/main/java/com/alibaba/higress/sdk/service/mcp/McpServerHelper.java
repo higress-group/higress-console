@@ -183,6 +183,8 @@ public class McpServerHelper {
         result.setName(mcpServerName);
         result.setServices(route.getServices());
         result.setDomains(route.getDomains());
+        result.setUsername(route.getCustomLabels().get(McpServerConstants.Label.RESOURCE_MCP_SERVER_USERNAME_KEY));
+        result.setPlatform(route.getCustomLabels().get(McpServerConstants.Label.RESOURCE_MCP_SERVER_PLATFROM_KEY));
 
         Map<String, String> customConfigs = route.getCustomConfigs();
         if (MapUtils.isNotEmpty(customConfigs)) {

@@ -214,6 +214,12 @@ public class McpServiceContextImpl implements McpServerService {
             McpServerTypeEnum mcpServerTypeEnum = McpServerTypeEnum.fromName(type);
             resultList.removeIf(mcpServer -> !mcpServerTypeEnum.equals(mcpServer.getType()));
         }
+
+        // 新增：按用户名过滤
+        String username = query.getUsername();
+        if (StringUtils.isNotBlank(username)) {
+            resultList.removeIf(mcpServer -> !StringUtils.contains(mcpServer.getUsername(), username));
+        }
     }
 
     // TODO: Use another way instead of customLabels to determine whether the route is bound to mcpServer
