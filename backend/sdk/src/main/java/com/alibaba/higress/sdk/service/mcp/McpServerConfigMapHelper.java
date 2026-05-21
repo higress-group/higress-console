@@ -168,17 +168,22 @@ public class McpServerConfigMapHelper {
             Map<String, Map<String, Object>> matchListsMapFromK8s = matchListsFromK8s.stream()
                 .collect(Collectors.toMap(rule -> (String)rule.get(MATCH_RULE_PATH_KEY), v -> v));
             // add, update
-            for (McpServerConfigMap.MatchList obj : mcpConfig.getMatchList()) {
-                Map<String, Object> matchListMapFromK8s = matchListsMapFromK8s.get(obj.getMatchRulePath());
-                matchListsFromK8s.removeIf(rule -> obj.getMatchRulePath().equals(rule.get(MATCH_RULE_PATH_KEY)));
-                matchListsFromK8s.add(obj.fillMap(matchListMapFromK8s));
-                matchListUpdated = true;
+            if (mcpConfig.getMatchList() != null) {
+                for (McpServerConfigMap.MatchList obj : mcpConfig.getMatchList()) {
+                    Map<String, Object> matchListMapFromK8s = matchListsMapFromK8s.get(obj.getMatchRulePath());
+                    matchListsFromK8s.removeIf(rule -> obj.getMatchRulePath().equals(rule.get(MATCH_RULE_PATH_KEY)));
+                    matchListsFromK8s.add(obj.fillMap(matchListMapFromK8s));
+                    matchListUpdated = true;
+                }
             }
             // delete
-            Set<String> matchListPathSet = mcpConfig.getMatchList().stream()
-                .map(McpServerConfigMap.MatchList::getMatchRulePath).collect(Collectors.toSet());
-            boolean matchListRemoved = matchListsFromK8s
-                .removeIf(matchList -> !matchListPathSet.contains(String.valueOf(matchList.get(MATCH_RULE_PATH_KEY))));
+            boolean matchListRemoved = false;
+            if (mcpConfig.getMatchList() != null) {
+                Set<String> matchListPathSet = mcpConfig.getMatchList().stream()
+                    .map(McpServerConfigMap.MatchList::getMatchRulePath).collect(Collectors.toSet());
+                matchListRemoved = matchListsFromK8s
+                    .removeIf(matchList -> !matchListPathSet.contains(String.valueOf(matchList.get(MATCH_RULE_PATH_KEY))));
+            }
             if (matchListUpdated || matchListRemoved) {
                 mcpConfigFromK8s.put(MATCH_LIST_KEY, matchListsFromK8s);
             }

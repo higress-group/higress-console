@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Select, message, Button } from 'antd';
-import { useSearchParams } from 'ice';
 import { CLIENT_MAP } from '../constant';
 import { useTranslation, Trans } from 'react-i18next';
 import MonacoEditor, { loader } from '@monaco-editor/react';
@@ -15,8 +14,6 @@ interface McpServerCommandProps {
 
 const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => {
   const [client, setClient] = useState('vscode');
-  const [searchParams] = useSearchParams();
-  const name = searchParams.get('name');
   const { t } = useTranslation();
 
 
@@ -28,13 +25,21 @@ const McpServerCommand: React.FC<McpServerCommandProps> = ({ mode, config }) => 
       parsedConfig = {};
     }
 
+    // 尝试从 config 中提取 mcpServers 配置
     if (parsedConfig && parsedConfig.mcpServers) {
-      const mcpConfig = parsedConfig.mcpServers[name];
-      const configStr = JSON.stringify(mcpConfig);
-      return `npx mcp-installer@latest install ${name} --client ${client} --config '${configStr}'`;
+      // 获取第一个 mcpServer 配置（兼容不同的 name）
+      const serverNames = Object.keys(parsedConfig.mcpServers);
+      if (serverNames.length > 0) {
+        const serverName = serverNames[0];
+        const mcpConfig = parsedConfig.mcpServers[serverName];
+        const configStr = JSON.stringify(mcpConfig);
+        return `npx mcp-installer@latest install ${serverName} --client ${client} --config '${configStr}'`;
+      }
     }
+
+    // 如果无法解析，返回空字符串
     return '';
-  }, [config, client, name]);
+  }, [config, client]);
 
   const handleCopy = () => {
     // 尝试使用现代 API
