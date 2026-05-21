@@ -134,7 +134,8 @@
       "tokenSourceRequired": "Please choose a token source",
       "authTokenRequired": "Please input auth token",
       "headerNameRequired": "Please input header name",
-      "paramNameRequired": "Please input parameter key"
+      "paramNameRequired": "Please input parameter key",
+      "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters."
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "Custom HTTP Header",
@@ -336,7 +337,8 @@
         "invalidVllmCustomUrl": "Bad URL format: ",
         "vllmCustomUrlMultipleValuesWithIpOnly": "Only URLs with IP and port are supported when specifying multiple custom vLLM service base URLs",
         "vllmCustomUrlInconsistentProtocols": "Inconsistent protocols found in custom vLLM service base URLs",
-        "vllmCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom vLLM service base URLs"
+        "vllmCustomUrlInconsistentContextPaths": "Inconsistent paths found in custom vLLM service base URLs",
+        "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters."
       },
       "tooltips": {
         "qwenFileIdsTooltip": "The file IDs uploaded to Dashscope via the file API. The file contents will be used as contextual input for AI conversations.",

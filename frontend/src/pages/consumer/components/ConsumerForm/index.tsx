@@ -84,6 +84,21 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
             required: true,
             message: t('consumer.consumerForm.nameRequired') || '',
           },
+          {
+            validator: (_, name) => {
+              if (!value) {
+                return Promise.resolve();
+              }
+              // Skip pattern validation when editing to maintain compatibility with existing non-ASCII names
+              if (!props.value) {
+                const pattern = /^[a-zA-Z0-9](?:[a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?$/;
+                if (!pattern.test(name)) {
+                  return Promise.reject(t('consumer.consumerForm.invalidNamePattern') || '');
+                }
+              }
+              return Promise.resolve();
+            },
+          },
         ]}
       >
         <Input
