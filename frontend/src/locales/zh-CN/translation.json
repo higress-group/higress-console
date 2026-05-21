@@ -134,7 +134,8 @@
       "tokenSourceRequired": "请选择令牌来源",
       "authTokenRequired": "请输入认证令牌",
       "headerNameRequired": "请输入Header名称",
-      "paramNameRequired": "请输入参数名称"
+      "paramNameRequired": "请输入参数名称",
+      "invalidNamePattern": "仅允许字母、数字、连字符(-)和点(.)，不能以特殊字符开头或结尾，最大长度63个字符"
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "自定义 HTTP Header",
@@ -336,7 +337,8 @@
         "invalidVllmCustomUrl": "URL 格式不正确：",
         "vllmCustomUrlMultipleValuesWithIpOnly": "仅支持指定多个使用 IP 和端口的自定义 vLLM 服务 BaseURL",
         "vllmCustomUrlInconsistentProtocols": "各个自定义 vLLM 服务 BaseURL 所使用的协议不一致",
-        "vllmCustomUrlInconsistentContextPaths": "各个自定义 vLLM 服务 BaseURL 所使用的路径不一致"
+        "vllmCustomUrlInconsistentContextPaths": "各个自定义 vLLM 服务 BaseURL 所使用的路径不一致",
+        "invalidNamePattern": "仅允许字母、数字、连字符(-)和点(.)，不能以特殊字符开头或结尾，最大长度63个字符"
       },
       "tooltips": {
         "qwenFileIdsTooltip": "通过文件接口上传至 Dashscope 的文件 ID，其内容将被用做 AI 对话的上下文。",
