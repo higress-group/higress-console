@@ -3,16 +3,17 @@ import { AiRoute, AiUpstream } from '@/interfaces/ai-route';
 import { fetchPluginsByRoute, RoutePredicate } from '@/interfaces/route';
 import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { getI18nValue } from "@/pages/plugin/utils";
-import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
 import { getWasmPlugins } from '@/services';
+import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/services/ai-route';
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Popover, Row, Space, Table, Tag } from 'antd';
+import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Row, Space, Table } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import ConsumerList from '../route/components/ConsumerList';
 import RouteForm from './components/RouteForm';
 
 interface FormRef {
@@ -121,24 +122,7 @@ const AiRouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer');
         }
-        const maxDisplay = 3;
-        const displayed = value.slice(0, maxDisplay);
-        const remaining = value.length - maxDisplay;
-        const popoverContent = (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflow: 'auto' }}>
-            {value.map((c: string) => <div key={c}>{c}</div>)}
-          </div>
-        );
-        return (
-          <Popover content={popoverContent}>
-            <Space direction="vertical" size={4}>
-              {displayed.map((consumer: string) => (
-                <Tag key={consumer} style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{consumer}</Tag>
-              ))}
-              {remaining > 0 && <Tag>+{remaining}</Tag>}
-            </Space>
-          </Popover>
-        );
+        return <ConsumerList consumers={value} />;
       },
     },
     {
