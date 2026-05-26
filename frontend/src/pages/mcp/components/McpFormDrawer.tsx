@@ -45,14 +45,32 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     }
   }, [visible]);
 
+  // 解析下拉选中的 "name:port" 字符串到原始服务对象。
+  // 兼容 Nacos 等场景下服务名本身带冒号（如 group:service），不能简单 split(':')[0]。
+  // 策略：先按完整字符串当 name 精确匹配（覆盖编辑回填只写 name 的情况），
+  // 再按从末尾切出的 port 反查 (name, port)，最后退化为只按 name 匹配。
+  const resolveBackendService = (value?: string, list: any[] = originalBackendServiceList) => {
+    if (!value) return undefined;
+    let svc = list.find((item) => item.name === value);
+    if (svc) return svc;
+    const idx = value.lastIndexOf(':');
+    if (idx > 0) {
+      const serviceName = value.slice(0, idx);
+      const port = value.slice(idx + 1);
+      svc = list.find((item) => item.name === serviceName && String(item.port) === port);
+      if (svc) return svc;
+      svc = list.find((item) => item.name === serviceName);
+    }
+    return svc;
+  };
+
   // 计算 dbUrl 和 dbPort
   // DB 类型时，从服务信息中提取主机地址作为默认值
   // 注意：数据库端口必须由用户手动填写，因为服务端口和 DB 实际端口可能不同
   useEffect(() => {
     if (serviceType !== SERVICE_TYPE.DB || !selectedService) return;
 
-    const serviceName = selectedService.split(':')[0];
-    const service = originalBackendServiceList.find((item) => item.name === serviceName);
+    const service = resolveBackendService(selectedService);
 
     if (service) {
       const currentHost = form.getFieldValue('db_server_host');
@@ -91,7 +109,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
           // 将 otherParams 对象转换为字符串格式
           if (record.dbConfig.otherParams && typeof record.dbConfig.otherParams === 'object') {
-            const otherParamsStr = Object.entries(record.dbConfig.otherParams)
+            const otherParamsStr = Object.entries(record.dbConfig.otherParams as Record<string, any>)
               .map(([key, value]) => `${key}=${value}`)
               .join('&');
             formValues.db_other_params = otherParamsStr;
@@ -188,17 +206,9 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
 
   // 表单提交
   const handleFinish = (values: any) => {
-    let serviceName: string;
-    let service: any;
-
-    // 根据服务类型确定使用哪个服务字段
-    if (values.type === SERVICE_TYPE.DIRECT_ROUTE) {
-      serviceName = values.directRoute_service?.split(':')[0];
-    } else {
-      serviceName = values.service?.split(':')[0];
-    }
-
-    service = originalBackendServiceList.find((item) => item.name === serviceName);
+    // 根据服务类型确定使用哪个服务字段；统一通过 resolveBackendService 兼容名字带冒号的服务（如 Nacos 的 group:service）
+    const rawValue = values.type === SERVICE_TYPE.DIRECT_ROUTE ? values.directRoute_service : values.service;
+    const service = resolveBackendService(rawValue);
     if (!service) {
       message.error(t('mcp.form.serviceNotFound') || '未找到对应的后端服务');
       return;
@@ -599,7 +609,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         >
           <Select disabled>
             {
-              Object.values(CredentialType).filter(ct => !!ct.enabled).map(ct => (
+              (Object.values(CredentialType) as any[]).filter(ct => !!ct.enabled).map(ct => (
                 <Select.Option key={ct.key} value={ct.key}>{ct.displayName}</Select.Option>
               ))
             }
