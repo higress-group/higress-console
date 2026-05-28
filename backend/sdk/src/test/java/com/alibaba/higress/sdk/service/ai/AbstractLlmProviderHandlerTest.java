@@ -20,6 +20,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVI
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROTOCOL;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ENABLED;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_FAILURE;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_STATUS;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -169,9 +170,8 @@ public class AbstractLlmProviderHandlerTest {
     }
 
     @Test
-    public void saveConfig_nullRetryOnFailureConfig_removesKey() {
+    public void saveConfig_nullRetryOnFailureConfig_defaultsToEnabledFalse() {
         Map<String, Object> configs = new HashMap<>();
-        configs.put(RETRY_ON_FAILURE, new HashMap<>());
 
         LlmProvider provider = new LlmProvider();
         provider.setName("test-provider");
@@ -179,8 +179,29 @@ public class AbstractLlmProviderHandlerTest {
 
         handler.saveConfig(provider, configs);
 
-        Assertions.assertNull(configs.get(RETRY_ON_FAILURE),
-            "null retryOnFailureConfig should remove key from config map");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> savedRetry = (Map<String, Object>)configs.get(RETRY_ON_FAILURE);
+        Assertions.assertNotNull(savedRetry);
+        Assertions.assertEquals(false, savedRetry.get(RETRY_ENABLED),
+            "null retryOnFailureConfig should default to enabled: false");
+    }
+
+    @Test
+    public void saveConfig_nullEnabled_defaultsToEnabledFalse() {
+        Map<String, Object> configs = new HashMap<>();
+
+        LlmProvider provider = new LlmProvider();
+        provider.setName("test-provider");
+        provider.setProtocol("openai/v1");
+        provider.setRetryOnFailureConfig(RetryOnFailureConfig.builder().enabled(null).build());
+
+        handler.saveConfig(provider, configs);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> savedRetry = (Map<String, Object>)configs.get(RETRY_ON_FAILURE);
+        Assertions.assertNotNull(savedRetry);
+        Assertions.assertEquals(false, savedRetry.get(RETRY_ENABLED),
+            "retryOnFailureConfig with null enabled should default to enabled: false");
     }
 
     @Test
@@ -213,5 +234,10 @@ public class AbstractLlmProviderHandlerTest {
             reloaded.getTokenFailoverConfig().getFailoverOnStatus());
         Assertions.assertNotNull(reloaded.getRetryOnFailureConfig());
         Assertions.assertFalse(reloaded.getRetryOnFailureConfig().getEnabled());
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> savedRetry = (Map<String, Object>)savedConfigs.get(RETRY_ON_FAILURE);
+        Assertions.assertNotNull(savedRetry);
+        Assertions.assertEquals(Arrays.asList(500, 502, 503), savedRetry.get(RETRY_ON_STATUS),
+            "retryOnStatus should equal failoverOnStatus");
     }
-}

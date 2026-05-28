@@ -26,6 +26,7 @@ import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVI
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ENABLED;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_FAILURE;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.RETRY_ON_STATUS;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +49,6 @@ import com.alibaba.higress.sdk.model.ai.RetryOnFailureConfig;
 import com.alibaba.higress.sdk.model.ai.TokenFailoverConfig;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.kubernetes.crd.mcp.V1McpBridge;
-import com.alibaba.higress.sdk.util.MapUtil;
 import com.alibaba.higress.sdk.util.ValidateUtil;
 
 abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
@@ -127,7 +127,6 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         TokenFailoverConfig failoverConfig = provider.getTokenFailoverConfig();
         if (failoverConfig == null) {
             configurations.remove(FAILOVER);
-            configurations.remove(RETRY_ON_FAILURE);
         } else {
             Map<String, Object> failoverMap = new HashMap<>();
             saveTokenFailoverConfig(failoverConfig, failoverMap);
@@ -135,12 +134,13 @@ abstract class AbstractLlmProviderHandler implements LlmProviderHandler {
         }
 
         RetryOnFailureConfig retryOnFailureConfig = provider.getRetryOnFailureConfig();
-        if (retryOnFailureConfig == null) {
-            configurations.remove(RETRY_ON_FAILURE);
-        } else {
-            Map<String, Object> retryOnFailureMap = MapUtil.of(RETRY_ENABLED, retryOnFailureConfig.getEnabled());
-            configurations.put(RETRY_ON_FAILURE, retryOnFailureMap);
+        Boolean retryEnabled = retryOnFailureConfig != null ? retryOnFailureConfig.getEnabled() : null;
+        Map<String, Object> retryOnFailureMap = new HashMap<>();
+        retryOnFailureMap.put(RETRY_ENABLED, retryEnabled != null ? retryEnabled : false);
+        if (failoverConfig != null && CollectionUtils.isNotEmpty(failoverConfig.getFailoverOnStatus())) {
+            retryOnFailureMap.put(RETRY_ON_STATUS, failoverConfig.getFailoverOnStatus());
         }
+        configurations.put(RETRY_ON_FAILURE, retryOnFailureMap);
     }
 
     @Override

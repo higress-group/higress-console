@@ -214,7 +214,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         healthCheckTimeout: healthCheckTimeout || 10000,
         healthCheckModel,
         failoverOnStatus: (failoverOnStatus || []).map(String),
-        retryOnFailure: retryOnFailureConfig.enabled !== undefined ? retryOnFailureConfig.enabled : true,
+        retryOnFailure: retryOnFailureConfig.enabled !== undefined ? retryOnFailureConfig.enabled : false,
         proxyName: proxyName || '',
         rawConfigs,
       });
@@ -1419,7 +1419,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
               name="retryOnFailure"
               label={t('llmProvider.providerForm.label.retryOnFailure')}
               valuePropName="checked"
-              initialValue
+              initialValue={false}
               tooltip={t('llmProvider.providerForm.label.retryOnFailureTooltip')}
             >
               <Switch />
