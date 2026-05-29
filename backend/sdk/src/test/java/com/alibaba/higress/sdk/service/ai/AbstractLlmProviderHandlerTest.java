@@ -241,3 +241,4 @@ public class AbstractLlmProviderHandlerTest {
         Assertions.assertEquals(Arrays.asList(500, 502, 503), savedRetry.get(RETRY_ON_STATUS),
             "retryOnStatus should equal failoverOnStatus");
     }
+}
