@@ -12,6 +12,9 @@
  */
 package com.alibaba.higress.sdk.service.mcp.detail;
 
+import java.util.Collections;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,6 +25,7 @@ import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.mcp.McpServerDirectRouteConfig;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
@@ -60,6 +64,22 @@ public class DirectRoutingDetailStrategy extends AbstractMcpServerDetailStrategy
             path = StringUtils.join(path, generateUpstreamPathPrefix());
         }
         config.setPath(path);
+
+        // Restore custom headers from route's headerControl config.
+        // Prefer "set" (request-header-control-update) as saved by the current version; fall back to "add" for
+        // configurations created by earlier versions that used request-header-control-add.
+        HeaderControlConfig headerControl = route.getHeaderControl();
+        if (headerControl != null && headerControl.getRequest() != null) {
+            if (CollectionUtils.isNotEmpty(headerControl.getRequest().getSet())) {
+                config.setHeaders(headerControl.getRequest().getSet());
+            } else if (CollectionUtils.isNotEmpty(headerControl.getRequest().getAdd())) {
+                config.setHeaders(headerControl.getRequest().getAdd());
+            } else {
+                config.setHeaders(Collections.emptyList());
+            }
+        } else {
+            config.setHeaders(Collections.emptyList());
+        }
     }
 
     private String generateUpstreamPathPrefix() {
