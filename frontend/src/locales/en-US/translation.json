@@ -951,7 +951,9 @@
       "dbOtherParamsPlaceholder": "Format: key1=value1&key2=value2",
       "ssePathRule": "Path (SSE): /mcp-servers/<1>{{currentMcpServerName}}</1>/sse",
       "httpPathRule": "Path (Streamable HTTP): /mcp-servers/<1>{{currentMcpServerName}}</1>",
-      "nameDefault": "MCP Service Name"
+      "nameDefault": "MCP Service Name",
+      "customHeaders": "Custom Headers",
+      "addHeader": "Add Header"
     },
     "deleteConfirm": "Are you sure you want to delete <1>{{currentMcpServerName}}</1>?",
     "detail": {

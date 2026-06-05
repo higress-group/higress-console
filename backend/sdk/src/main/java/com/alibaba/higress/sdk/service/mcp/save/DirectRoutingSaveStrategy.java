@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.mcp.save;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,8 @@ import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
 import com.alibaba.higress.sdk.model.mcp.McpServerDirectRouteConfig;
 import com.alibaba.higress.sdk.model.mcp.McpServerTypeEnum;
+import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
+import com.alibaba.higress.sdk.model.route.HeaderControlStageConfig;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.model.route.UpstreamService;
 import com.alibaba.higress.sdk.service.RouteService;
@@ -94,6 +97,24 @@ public class DirectRoutingSaveStrategy extends AbstractMcpServerSaveStrategy {
             rewriteConfig.setHost(serviceDomainName);
         }
         route.setRewrite(rewriteConfig);
+
+        // Configure custom headers sent to the upstream MCP Server (e.g., authentication).
+        // Use "set" (mapped to request-header-control-update) instead of "add" so that user-configured headers
+        // override client-sent headers with the same name. This is required when MCP Server consumer auth is enabled:
+        // the client may send an Authorization header for Higress authentication, but the upstream should receive the
+        // custom Authorization header configured here instead of the client's credential.
+        if (CollectionUtils.isNotEmpty(directRouteConfig.getHeaders())) {
+            HeaderControlConfig headerControl = HeaderControlConfig.builder()
+                .enabled(Boolean.TRUE)
+                .request(HeaderControlStageConfig.builder()
+                    .set(new ArrayList<>(directRouteConfig.getHeaders()))
+                    .build())
+                .build();
+            route.setHeaderControl(headerControl);
+        } else {
+            // Explicitly clear headerControl when no headers are configured
+            route.setHeaderControl(null);
+        }
 
     }
 
