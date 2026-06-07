@@ -173,7 +173,7 @@ public class SystemServiceImpl implements SystemService {
 
     @Override
     public void initSystem(User adminUser, Map<String, Object> configs) {
-        if (configService.getBoolean(UserConfigKey.SYSTEM_INITIALIZED)) {
+        if (configService.getBoolean(UserConfigKey.SYSTEM_INITIALIZED, false)) {
             throw new IllegalStateException("System already initialized.");
         }
 
