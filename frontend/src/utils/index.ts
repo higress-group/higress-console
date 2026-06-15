@@ -47,6 +47,14 @@ export const getOfficialSiteLink = (path: string) => {
   return `https://higress.io${langPrefix}${basePath}`;
 };
 
+// Remove trailing spaces and tabs from every line, preserving line breaks.
+export const stripTrailingSpaces = (text: string): string => {
+  if (!text) {
+    return text;
+  }
+  return text.replace(/[ \t]+$/gm, '');
+};
+
 // Detect non-ASCII characters
 export const containsNonAscii = (str: string): boolean => /[^\x00-\x7F]/.test(str);
 
