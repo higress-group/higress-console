@@ -185,7 +185,12 @@ const RouteForm: React.FC = forwardRef((props, ref) => {
   }, [weightedServices, form]);
 
   useImperativeHandle(ref, () => ({
-    reset: () => form.resetFields(),
+    reset: () => {
+      form.resetFields();
+      // Also clear the weighted services state so the ServiceWeightTable
+      // doesn't retain stale data when re-opening the New Route dialog.
+      setWeightedServices([]);
+    },
     handleSubmit: async () => {
       const values = await form.validateFields();
       if (values.domains && !Array.isArray(values.domains)) {
