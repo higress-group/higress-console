@@ -832,6 +832,8 @@
     }
   },
   "misc": {
+    "showMore": "还有 {{count}} 个...",
+    "collapse": "收起",
     "logout": "退出登录",
     "confirm": "确定",
     "submit": "提交",
