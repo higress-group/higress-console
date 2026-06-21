@@ -901,6 +901,7 @@
       "dbTypeRequired": "Please select database type",
       "dsn": "DSN",
       "upstreamService": "Backend Service",
+      "serviceNotFound": "The corresponding backend service was not found",
       "consumerAuth": "Authentication",
       "saveAndPublish": "Save and Publish",
       "cancel": "Cancel",
