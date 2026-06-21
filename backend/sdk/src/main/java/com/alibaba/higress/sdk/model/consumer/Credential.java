@@ -12,9 +12,16 @@
  */
 package com.alibaba.higress.sdk.model.consumer;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,11 +37,18 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Consumer Credential", oneOf = {KeyAuthCredential.class})
+@Schema(description = "Consumer Credential", oneOf = {KeyAuthCredential.class, JwtAuthCredential.class,
+    HmacAuthCredential.class})
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type",
     visible = true, defaultImpl = Credential.class)
-@JsonSubTypes({@JsonSubTypes.Type(value = KeyAuthCredential.class, name = CredentialType.KEY_AUTH),})
+@JsonSubTypes({@JsonSubTypes.Type(value = KeyAuthCredential.class, name = CredentialType.KEY_AUTH),
+    @JsonSubTypes.Type(value = JwtAuthCredential.class, name = CredentialType.JWT_AUTH),
+    @JsonSubTypes.Type(value = HmacAuthCredential.class, name = CredentialType.HMAC_AUTH),})
 public class Credential {
+
+    private static final Set<String> SUPPORTED_TYPES =
+        Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(CredentialType.KEY_AUTH, CredentialType.JWT_AUTH, CredentialType.HMAC_AUTH)));
 
     @Schema(description = "Credential type", ref = "CredentialType")
     private String type;
@@ -55,5 +69,12 @@ public class Credential {
         this.properties.put(name, value);
     }
 
-    public void validate(boolean forUpdate) {}
+    public void validate(boolean forUpdate) {
+        if (StringUtils.isBlank(type)) {
+            throw new ValidationException("type cannot be blank.");
+        }
+        if (!SUPPORTED_TYPES.contains(type)) {
+            throw new ValidationException("unsupported credential type: " + type);
+        }
+    }
 }

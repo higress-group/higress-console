@@ -40,6 +40,7 @@ import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.Route;
+import com.alibaba.higress.sdk.model.RouteAuthConfig;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
@@ -82,6 +83,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 public class McpServerServiceTest {
     private static final String TEST_MCP_SERVER_PLUGIN_NAME = "mcp-server";
     private static final String TEST_KEY_AUTH_PLUGIN_NAME = "key-auth";
+    private static final String TEST_JWT_AUTH_PLUGIN_NAME = "jwt-auth";
     private static final String DEFAULT_VERSION = "1.0.0";
     private static final String DEFAULT_ROUTE_DOMAIN = "higress.cn";
     private static final String DEFAULT_UPSTREAM_SERVICE = "test.default.svc.cluster.local";
@@ -407,6 +409,55 @@ public class McpServerServiceTest {
         List<?> allowList = (List<?>)allowObj;
         Assertions.assertEquals(1, allowList.size());
         Assertions.assertTrue(allowList.contains("consumerB"));
+    }
+
+    @Test
+    public void addJwtConsumerTest() throws Exception {
+        final String mcpServerName = "test-jwt";
+        final boolean routeEnabled = true;
+        final McpServerTypeEnum mcpServerType = McpServerTypeEnum.OPEN_API;
+        final List<String> allowConsumers = Arrays.asList("consumerA", "consumerB");
+        final Map<String, Object> jwtAuthPluginConfig = MapUtil.of("allow", allowConsumers);
+
+        String routeName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
+
+        V1alpha1WasmPlugin jwtAuthPluginCr = buildWasmPluginResource(TEST_JWT_AUTH_PLUGIN_NAME, true, true);
+        kubernetesModelConverter.setWasmPluginInstanceToCr(jwtAuthPluginCr,
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName))
+                .enabled(routeEnabled).configurations(jwtAuthPluginConfig).build());
+        List<V1alpha1WasmPlugin> jwtAuthPlugins = Collections.singletonList(jwtAuthPluginCr);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_JWT_AUTH_PLUGIN_NAME))).thenReturn(jwtAuthPlugins);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_JWT_AUTH_PLUGIN_NAME), any())).thenReturn(jwtAuthPlugins);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_JWT_AUTH_PLUGIN_NAME), any(), any()))
+            .thenReturn(jwtAuthPlugins);
+
+        V1Ingress ingress = buildIngressResource(routeName, "", mcpServerType);
+        Route route = kubernetesModelConverter.ingress2Route(ingress);
+        route.setAuthConfig(RouteAuthConfig.builder().enabled(true)
+            .allowedCredentialTypes(Collections.singletonList("jwt-auth")).allowedConsumers(allowConsumers).build());
+        ingress = kubernetesModelConverter.route2Ingress(route);
+        when(kubernetesClientService.readIngress(eq(routeName))).thenReturn(ingress);
+
+        McpServerConsumers newConsumers = new McpServerConsumers();
+        newConsumers.setMcpServerName(mcpServerName);
+        newConsumers.setConsumers(new ArrayList<String>() {
+            {
+                add("consumerC");
+            }
+        });
+        mcpServerService.addAllowConsumers(newConsumers);
+
+        ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(pluginCaptor.capture());
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_JWT_AUTH_PLUGIN_NAME));
+        V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
+        Object allowObj = capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow");
+        Assertions.assertInstanceOf(List.class, allowObj);
+        List<?> allowList = (List<?>)allowObj;
+        Assertions.assertEquals(3, allowList.size());
+        Assertions.assertTrue(allowList.contains("consumerA"));
+        Assertions.assertTrue(allowList.contains("consumerB"));
+        Assertions.assertTrue(allowList.contains("consumerC"));
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
