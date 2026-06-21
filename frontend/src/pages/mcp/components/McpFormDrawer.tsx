@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import { CredentialType } from '@/interfaces/consumer';
+import { serviceToString } from '@/interfaces/service';
 import { HistoryButton } from '@/pages/ai/components/RouteForm/Components';
 import { getConsumers } from '@/services/consumer';
 import { getGatewayDomains } from '@/services/domain';
@@ -61,7 +62,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       if (svc) return svc;
       svc = list.find((item) => item.name === serviceName);
     }
-    return svc;
+    return undefined;
   };
 
   // 计算 dbUrl 和 dbPort
@@ -152,7 +153,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       setOriginalBackendServiceList(res);
       setBackendServiceList(
         res.map((item: any) => ({
-          value: `${item.name}:${item.port}`,
+          value: serviceToString(item),
           label: item.name,
         })),
       );
@@ -175,7 +176,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     if (!value) {
       setBackendServiceList(
         allBackendServiceList.map((item: any) => ({
-          value: `${item.name}:${item.port}`,
+          value: serviceToString(item),
           label: item.name,
         })),
       );
@@ -184,7 +185,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
         allBackendServiceList
           .filter((item: any) => item.name.includes(value))
           .map((item: any) => ({
-            value: `${item.name}:${item.port}`,
+            value: serviceToString(item),
             label: item.name,
           })),
       );
@@ -210,7 +211,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
     const rawValue = values.type === SERVICE_TYPE.DIRECT_ROUTE ? values.directRoute_service : values.service;
     const service = resolveBackendService(rawValue);
     if (!service) {
-      message.error(t('mcp.form.serviceNotFound') || '未找到对应的后端服务');
+      message.error(t('mcp.form.serviceNotFound'));
       return;
     }
 
