@@ -607,17 +607,17 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                           {...restField}
                           name={[name, 'key']}
                           style={{ flex: 1, marginBottom: 0 }}
-                          rules={[{ required: true, message: '请输入 Header Key' }]}
+                          rules={[{ required: true, message: t('mcp.form.headerKeyRequired')! }]}
                         >
-                          <Input placeholder="如: Authorization" />
+                          <Input placeholder={t('mcp.form.headerKeyPlaceholder')!} />
                         </Form.Item>
                         <Form.Item
                           {...restField}
                           name={[name, 'value']}
                           style={{ flex: 2, marginBottom: 0 }}
-                          rules={[{ required: true, message: '请输入 Header Value' }]}
+                          rules={[{ required: true, message: t('mcp.form.headerValueRequired')! }]}
                         >
-                          <Input placeholder="如: Bearer xxx" />
+                          <Input placeholder={t('mcp.form.headerValuePlaceholder')!} />
                         </Form.Item>
                         <Button onClick={() => remove(name)}>-</Button>
                       </div>

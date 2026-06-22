@@ -953,7 +953,11 @@
       "httpPathRule": "Path (Streamable HTTP): /mcp-servers/<1>{{currentMcpServerName}}</1>",
       "nameDefault": "MCP Service Name",
       "customHeaders": "Custom Headers",
-      "addHeader": "Add Header"
+      "addHeader": "Add Header",
+      "headerKeyRequired": "Please input header key",
+      "headerValueRequired": "Please input header value",
+      "headerKeyPlaceholder": "e.g. Authorization",
+      "headerValuePlaceholder": "e.g. Bearer xxx"
     },
     "deleteConfirm": "Are you sure you want to delete <1>{{currentMcpServerName}}</1>?",
     "detail": {
