@@ -1,54 +1,19 @@
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
-import { ExclamationCircleOutlined, EyeInvisibleTwoTone, EyeTwoTone, RedoOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, Modal, Row, Space, Table, Typography } from 'antd';
+import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
+import TokenList from './components/TokenList';
 import { aiModelProviders } from './configs';
-
-const { Text } = Typography;
 
 interface FormRef {
   reset: () => void;
   handleSubmit: () => Promise<FormProps>;
 }
-
-const EllipsisMiddle: React.FC = (params: { value: String }) => {
-  const { value } = params;
-  const [isHidden, setIsHidden] = useState(true);
-
-  const toggledText = () => {
-    if (!isHidden) {
-      return value;
-    }
-    const prefixLength = 3;
-    const suffixLength = 3;
-    if (value.length - prefixLength - suffixLength > 6) {
-      return `${value.slice(0, 3)}******${value.slice(-3)}`;
-    }
-    if (value.length > 2) {
-      return `${value.slice(0, 1)}******${value.slice(-1)}`;
-    }
-    return `${value.slice(0, 1)}******`;
-  };
-
-  return (
-    <div
-      style={{ marginBottom: '10px' }}
-    >
-      <Text>{toggledText()}</Text>
-      <span
-        style={{ cursor: 'pointer', marginLeft: '2px' }}
-        onClick={() => setIsHidden(!isHidden)}
-      >
-        {isHidden ? <EyeTwoTone /> : <EyeInvisibleTwoTone />}
-      </span>
-    </div>
-  );
-};
 
 const LlmProviderList: React.FC = () => {
   const { t } = useTranslation();
@@ -94,6 +59,7 @@ const LlmProviderList: React.FC = () => {
       title: t('llmProvider.columns.tokens'),
       dataIndex: 'tokens',
       key: 'tokens',
+      width: 300,
       render: (value, record) => {
         const providerConfig = aiModelProviders.find(p => p.value === record.type);
         if (providerConfig && providerConfig.useCustomCredentials) {
@@ -102,7 +68,7 @@ const LlmProviderList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return '-';
         }
-        return value.map((token) => <EllipsisMiddle key={token} value={token} />);
+        return <TokenList tokens={value} />;
       },
     },
     {

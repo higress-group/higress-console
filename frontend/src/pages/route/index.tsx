@@ -17,10 +17,11 @@ import { isInternalResource } from '@/utils';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Alert, Button, Col, Drawer, Form, message, Modal, Popover, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, message, Modal, Row, Select, Space, Table, Typography } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import ConsumerList from './components/ConsumerList';
 import RouteForm from './components/RouteForm';
 
 const { Text } = Typography;
@@ -116,24 +117,7 @@ const RouteList: React.FC = () => {
         if (!Array.isArray(value) || !value.length) {
           return t('aiRoute.authEnabledWithoutConsumer')
         }
-        const maxDisplay = 3;
-        const displayed = value.slice(0, maxDisplay);
-        const remaining = value.length - maxDisplay;
-        const popoverContent = (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflow: 'auto' }}>
-            {value.map((c: string) => <div key={c}>{c}</div>)}
-          </div>
-        );
-        return (
-          <Popover content={popoverContent}>
-            <Space direction="vertical" size={4}>
-              {displayed.map((consumer: string) => (
-                <Tag key={consumer} style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{consumer}</Tag>
-              ))}
-              {remaining > 0 && <Tag>+{remaining}</Tag>}
-            </Space>
-          </Popover>
-        );
+        return <ConsumerList consumers={value} />;
       },
     },
     {
