@@ -132,7 +132,6 @@ public class McpServiceContextImpl implements McpServerService {
     @Override
     public void delete(String name) {
         routeService.delete(McpServerHelper.mcpServerName2RouteName(name));
-        routeService.delete(name);
         deleteMatchRulePath(name);
         deleteServersConfig(name);
     }

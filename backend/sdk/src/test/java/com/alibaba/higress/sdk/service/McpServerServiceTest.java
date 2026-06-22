@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -252,13 +253,14 @@ public class McpServerServiceTest {
     @Test
     public void deleteTest() throws Exception {
         final String mcpServerName = "test";
+        final String mcpServerRouteName = McpServerHelper.mcpServerName2RouteName(mcpServerName);
         final boolean routeEnabled = true;
         final List<String> allowConsumers = Arrays.asList("consumerA", "consumerB");
         final Map<String, Object> mcpPluginConfig = MapUtil.of("server", MapUtil.of("name", mcpServerName));
         final Map<String, Object> keyAuthPluginConfig = MapUtil.of("allow", allowConsumers);
         V1alpha1WasmPlugin mcpServerPluginCr = buildWasmPluginResource(TEST_MCP_SERVER_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(mcpServerPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerRouteName))
                 .enabled(routeEnabled).configurations(mcpPluginConfig).build());
         List<V1alpha1WasmPlugin> mcpPlugins = Collections.singletonList(mcpServerPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_MCP_SERVER_PLUGIN_NAME))).thenReturn(mcpPlugins);
@@ -268,7 +270,7 @@ public class McpServerServiceTest {
 
         V1alpha1WasmPlugin keyAuthPluginCr = buildWasmPluginResource(TEST_KEY_AUTH_PLUGIN_NAME, true, true);
         kubernetesModelConverter.setWasmPluginInstanceToCr(keyAuthPluginCr,
-            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerName))
+            WasmPluginInstance.builder().targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, mcpServerRouteName))
                 .enabled(routeEnabled).configurations(keyAuthPluginConfig).build());
         List<V1alpha1WasmPlugin> keyAuthPlugins = Collections.singletonList(keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_KEY_AUTH_PLUGIN_NAME))).thenReturn(keyAuthPlugins);
@@ -279,7 +281,7 @@ public class McpServerServiceTest {
         List<V1alpha1WasmPlugin> allPlugins = Arrays.asList(mcpServerPluginCr, keyAuthPluginCr);
         when(kubernetesClientService.listWasmPlugin()).thenReturn(allPlugins);
 
-        doNothing().when(kubernetesClientService).deleteIngress(eq(mcpServerName));
+        doNothing().when(kubernetesClientService).deleteIngress(eq(mcpServerRouteName));
         McpServerConfigMap mcpServerConfigMap = new McpServerConfigMap();
         McpServerConfigMap.MatchList matchList = new McpServerConfigMap.MatchList();
         matchList.setMatchRulePath("/mcp-servers/" + mcpServerName);
@@ -291,7 +293,8 @@ public class McpServerServiceTest {
         when(kubernetesClientService.readConfigMap(anyString())).thenReturn(systemConfigMap);
 
         mcpServerService.delete(mcpServerName);
-        verify(kubernetesClientService, times(1)).deleteIngress(mcpServerName);
+        verify(kubernetesClientService, times(1)).deleteIngress(mcpServerRouteName);
+        verify(kubernetesClientService, never()).deleteIngress(mcpServerName);
         ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
         verify(kubernetesClientService, times(2)).replaceWasmPlugin(pluginCaptor.capture());
         List<V1alpha1WasmPlugin> capturedValues = pluginCaptor.getAllValues();
