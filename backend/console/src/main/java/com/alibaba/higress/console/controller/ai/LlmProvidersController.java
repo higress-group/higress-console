@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
+import com.alibaba.higress.console.service.SessionUserHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -60,6 +61,11 @@ public class LlmProvidersController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Providers listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<LlmProvider>> list(@RequestParam(required = false) CommonPageQuery query) {
+        String name = SessionUserHelper.getCurrentUser().getName();
+        if(!"admin".equals(name)){
+            query = new CommonPageQuery();
+            query.setUsername(name);
+        }
         PaginatedResult<LlmProvider> providers = llmProviderService.list(query);
         return ControllerUtil.buildResponseEntity(providers);
     }
@@ -72,6 +78,7 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider provider) {
         provider.validate(false);
+        provider.setUsername(SessionUserHelper.getCurrentUser().getName());
         LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
         return ControllerUtil.buildResponseEntity(newProvider);
     }

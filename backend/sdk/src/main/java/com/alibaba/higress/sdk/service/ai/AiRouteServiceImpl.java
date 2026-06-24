@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,13 +80,13 @@ public class AiRouteServiceImpl implements AiRouteService {
     private static final String ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH = "/templates/envoyfilter-route-fallback.yaml";
 
     private static final ProxyNextUpstreamConfig DEFAULT_PROXY_NEXT_UPSTREAM_CONFIG =
-        new ProxyNextUpstreamConfig(true, 3, 120, new String[] {"error", "timeout", "non_idempotent"});
+            new ProxyNextUpstreamConfig(true, 3, 120000, new String[] {"error", "timeout", "non_idempotent"});
 
     private static final Map<String, String> AI_ROUTE_LABEL_SELECTORS = MapUtil
-        .of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
+            .of(KubernetesConstants.Label.CONFIG_MAP_TYPE_KEY, KubernetesConstants.Label.CONFIG_MAP_TYPE_VALUE_AI_ROUTE);
 
     private static final RoutePredicate DEFAULT_PATH_PREDICATE =
-        new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
+            new RoutePredicate(RoutePredicateTypeEnum.PRE.name(), "/", true);
 
     private final KubernetesModelConverter kubernetesModelConverter;
 
@@ -101,8 +103,8 @@ public class AiRouteServiceImpl implements AiRouteService {
     private final Template routeFallbackEnvoyFilterConfigTemplate;
 
     public AiRouteServiceImpl(KubernetesModelConverter kubernetesModelConverter,
-        KubernetesClientService kubernetesClientService, RouteService routeService,
-        LlmProviderService llmProviderService, WasmPluginInstanceService wasmPluginInstanceService) {
+                              KubernetesClientService kubernetesClientService, RouteService routeService,
+                              LlmProviderService llmProviderService, WasmPluginInstanceService wasmPluginInstanceService) {
         this.kubernetesModelConverter = kubernetesModelConverter;
         this.kubernetesClientService = kubernetesClientService;
         this.routeService = routeService;
@@ -115,11 +117,11 @@ public class AiRouteServiceImpl implements AiRouteService {
 
         try {
             this.routeFallbackEnvoyFilterConfigTemplate =
-                velocityEngine.getTemplate(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8.name());
+                    velocityEngine.getTemplate(ROUTE_FALLBACK_ENVOY_FILTER_CONFIG_PATH, StandardCharsets.UTF_8.name());
             String routeFallbackEnvoyFilterConfig =
-                getRouteFallbackEnvoyFilterConfig(new ArrayList<>(HigressConstants.VALID_FALLBACK_RESPONSE_CODES));
+                    getRouteFallbackEnvoyFilterConfig(new ArrayList<>(HigressConstants.VALID_FALLBACK_RESPONSE_CODES));
             V1alpha3EnvoyFilter filter =
-                kubernetesClientService.loadFromYaml(routeFallbackEnvoyFilterConfig, V1alpha3EnvoyFilter.class);
+                    kubernetesClientService.loadFromYaml(routeFallbackEnvoyFilterConfig, V1alpha3EnvoyFilter.class);
             assert filter != null;
         } catch (Exception e) {
             throw new IllegalStateException("Error occurs when loading route fallback envoy filter  from resource.", e);
@@ -152,8 +154,61 @@ public class AiRouteServiceImpl implements AiRouteService {
         List<V1ConfigMap> configMaps;
         try {
             configMaps = kubernetesClientService.listConfigMap(AI_ROUTE_LABEL_SELECTORS);
+            // 初始化空集合，避免后续流式操作NPE
+            if (configMaps == null) {
+                configMaps = new ArrayList<>();
+                log.info("查询ConfigMap结果为null，已初始化为空集合");
+            }
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when listing ConfigMap.", e);
+        }
+
+        // 根据用户名过滤：流式操作+空值全防护+精细化日志
+        if (StringUtils.isNotBlank(query.username) && !CollectionUtils.isEmpty(configMaps)) {
+            // 临时集合存储过滤结果，原集合用于日志追溯
+            List<V1ConfigMap> filteredConfigMaps = new ArrayList<>();
+            for (V1ConfigMap cm : configMaps) {
+                // 原因1：ConfigMap对象本身为null
+                if (cm == null) {
+                    log.warn("ConfigMap被过滤：对象为null，无法获取配置信息");
+                    continue;
+                }
+                // 获取ConfigMap名称（用于日志唯一标识，排查时可快速定位资源）
+                String cmName = cm.getMetadata() != null ? cm.getMetadata().getName() : "无名称";
+                String cmNamespace = cm.getMetadata() != null ? cm.getMetadata().getNamespace() : "无命名空间";
+                String cmUniqueKey = String.format("[%s/%s]", cmNamespace, cmName);
+
+                // 原因2：ConfigMap的data属性为null或空，无任何配置
+                if (MapUtils.isEmpty(cm.getData())) {
+                    log.warn("ConfigMap{}被过滤：data配置集为null或空，无username字段", cmUniqueKey);
+                    continue;
+                }
+
+                // 获取配置中的username
+                JSONObject data = JSON.parseObject(cm.getData().get("data").toString());
+                String configUsername =data.getString("username");
+                // 原因3：data中无username配置项（值为null）
+                if (configUsername == null) {
+                    log.warn("ConfigMap{}被过滤：data中未配置username字段", cmUniqueKey);
+                    continue;
+                }
+                // 原因4：data中的username与查询条件不匹配
+                if (!query.username.equals(configUsername)) {
+                    log.warn("ConfigMap{}被过滤：配置username[{}]与查询username[{}]不匹配",
+                            cmUniqueKey, configUsername, query.username);
+                    continue;
+                }
+
+                // 所有条件匹配，加入过滤结果
+                filteredConfigMaps.add(cm);
+                log.debug("ConfigMap{}通过过滤：配置username[{}]与查询条件一致", cmUniqueKey, configUsername);
+            }
+
+            // 替换为过滤后的集合
+            configMaps = filteredConfigMaps;
+            // 记录过滤最终结果
+            log.info("根据用户名过滤ConfigMap完成，过滤后总数：{}，查询用户名：{}",
+                    configMaps.size(), query.username);
         }
         return PaginatedResult.createFromFullList(configMaps, query, this::configMap2AiRoute);
     }
@@ -198,7 +253,7 @@ public class AiRouteServiceImpl implements AiRouteService {
                 throw new ResourceConflictException();
             }
             throw new BusinessException(
-                "Error occurs when replacing the ConfigMap generated by AI route: " + route.getName(), e);
+                    "Error occurs when replacing the ConfigMap generated by AI route: " + route.getName(), e);
         }
 
         return configMap2AiRoute(updatedConfigMap);
@@ -252,7 +307,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     private void writeAiRouteFallbackResources(AiRoute aiRoute) {
         AiRouteFallbackConfig fallbackConfig = aiRoute.getFallbackConfig();
         if (fallbackConfig == null || !Boolean.TRUE.equals(fallbackConfig.getEnabled())
-            || CollectionUtils.isEmpty(fallbackConfig.getUpstreams())) {
+                || CollectionUtils.isEmpty(fallbackConfig.getUpstreams())) {
             deleteFallbackRouteResources(aiRoute.getName());
             return;
         }
@@ -290,10 +345,10 @@ public class AiRouteServiceImpl implements AiRouteService {
         StringUtil.replace(envoyFilterBuilder, "${routeName}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${fallbackHeader}", HigressConstants.FALLBACK_FROM_HEADER);
         V1alpha3EnvoyFilter envoyFilter =
-            kubernetesClientService.loadFromYaml(envoyFilterBuilder.toString(), V1alpha3EnvoyFilter.class);
+                kubernetesClientService.loadFromYaml(envoyFilterBuilder.toString(), V1alpha3EnvoyFilter.class);
         try {
             V1alpha3EnvoyFilter existedFilter =
-                kubernetesClientService.readEnvoyFilter(envoyFilter.getMetadata().getName());
+                    kubernetesClientService.readEnvoyFilter(envoyFilter.getMetadata().getName());
             if (existedFilter == null) {
                 kubernetesClientService.createEnvoyFilter(envoyFilter);
             } else {
@@ -302,7 +357,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             }
         } catch (ApiException e) {
             throw new BusinessException(
-                "Error occurs when writing the fallback EnvoyFilter for AI route: " + aiRoute.getName(), e);
+                    "Error occurs when writing the fallback EnvoyFilter for AI route: " + aiRoute.getName(), e);
         }
 
         writeModelMappingResources(fallbackRouteName, fallbackUpStreams);
@@ -320,7 +375,7 @@ public class AiRouteServiceImpl implements AiRouteService {
 
         final String pluginName = BuiltInPluginName.MODEL_ROUTER;
         WasmPluginInstance instance =
-            wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
+                wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, pluginName, true);
         if (instance == null) {
             instance = wasmPluginInstanceService.createEmptyInstance(pluginName);
             instance.setInternal(true);
@@ -343,7 +398,7 @@ public class AiRouteServiceImpl implements AiRouteService {
     private void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
         if (CollectionUtils.isEmpty(upstreams)) {
             wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER,
-                true);
+                    true);
             return;
         }
 
@@ -352,7 +407,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             UpstreamService upstreamService = llmProviderService.buildUpstreamService(upstream.getProvider());
 
             Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName,
-                WasmPluginInstanceScope.SERVICE, upstreamService.getName());
+                    WasmPluginInstanceScope.SERVICE, upstreamService.getName());
 
             if (MapUtils.isEmpty(upstream.getModelMapping())) {
                 wasmPluginInstanceService.delete(targets, pluginName, true);
@@ -386,7 +441,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         WasmPluginInstance existedInstance = wasmPluginInstanceService.query(WasmPluginInstanceScope.ROUTE, routeName,
-            BuiltInPluginName.AI_STATISTICS, false);
+                BuiltInPluginName.AI_STATISTICS, false);
         if (existedInstance != null) {
             return;
         }
@@ -450,7 +505,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             if (modelPredicate.getMatchType().equals(RoutePredicateTypeEnum.REGULAR.toString())) {
                 // Shouldn't happen as we have checked it in the caller.
                 throw new IllegalArgumentException(
-                    "Regular expression match is not supported for model routing header.");
+                        "Regular expression match is not supported for model routing header.");
             }
             regexBuilder.append(escapeForRegexMatch(modelPredicate.getMatchValue()));
             if (RoutePredicateTypeEnum.PRE == RoutePredicateTypeEnum.fromName(modelPredicate.getMatchType())) {
@@ -512,7 +567,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         } catch (ApiException e) {
             if (e.getCode() != HttpStatus.NOT_FOUND) {
                 throw new BusinessException(
-                    "Error occurs when deleting the fallback EnvoyFilter: " + originalResourceName, e);
+                        "Error occurs when deleting the fallback EnvoyFilter: " + originalResourceName, e);
             }
         }
 
@@ -536,6 +591,6 @@ public class AiRouteServiceImpl implements AiRouteService {
 
     private static String buildFallbackRouteResourceName(String routeName) {
         return CommonKey.AI_ROUTE_PREFIX + routeName + HigressConstants.FALLBACK_ROUTE_NAME_SUFFIX
-            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+                + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
     }
 }

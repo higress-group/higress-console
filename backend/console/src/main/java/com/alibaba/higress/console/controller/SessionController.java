@@ -53,6 +53,22 @@ public class SessionController {
         this.sessionService = sessionService;
     }
 
+    @PostMapping("/creatUser")
+    @Operation(summary = "CreatUser")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
+            @ApiResponse(responseCode = "400", description = "Missing user name or password."),
+            @ApiResponse(responseCode = "500", description = "Internal server error")})
+    public ResponseEntity<Response<User>> creatUser(@RequestBody User user) {
+        if (StringUtils.isEmpty(user.getName()) || StringUtils.isEmpty(user.getPassword())) {
+            throw new ValidationException("Missing user name or password.");
+        }
+
+        sessionService.initializeAdmin(user);
+
+        return ControllerUtil.buildResponseEntity(user);
+    }
+
+
     @PostMapping("/login")
     @Operation(summary = "Login")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
