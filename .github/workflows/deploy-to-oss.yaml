@@ -16,7 +16,7 @@ jobs:
       OSS_API_DOCS_DIR_PATH: ${{ vars.OSS_API_DOCS_DIR_PATH || '/swagger/' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Aliyun CLI
         run: |
@@ -49,16 +49,17 @@ jobs:
         run: ./aliyun oss cp ./artifact/ oss://$OSS_BUCKET$OSS_HELM_CHART_PATH/ -r -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION
 
       - name: "Setup Java"
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: 'temurin'
 
       - name: "Setup Kind"
-        uses: engineerd/setup-kind@v0.6.2
-        with:
-          name: higress
-          version: "v0.24.0"
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          kind create cluster --name higress --wait 300s
 
       - name: Build Higress Console API Docs
         run: |
