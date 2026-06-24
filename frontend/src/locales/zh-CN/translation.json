@@ -288,7 +288,12 @@
         "claudeVersion": "Claude API 版本",
         "claudeCodeMode": "Claude Code 模式（OAuth 令牌）",
         "zhipuCodePlanMode": "Code Plan 模式",
-        "vllmCustomUrl": "自定义 vLLM 服务 BaseURL"
+        "vllmCustomUrl": "自定义 vLLM 服务 BaseURL",
+        "reasoningContentMode": "推理内容模式",
+        "reasoningModePassthrough": "透传 (passthrough)",
+        "reasoningModeIgnore": "忽略 (ignore)",
+        "reasoningModeConcat": "拼接到正文 (concat)",
+        "firstByteTimeout": "首包超时 (毫秒)"
       },
       "rules": {
         "tokenRequired": "请输入凭证",
@@ -347,7 +352,9 @@
         "zhipuDomainTooltip": "智谱 AI 服务的自定义域名。留空则使用默认域名（open.bigmodel.cn）。国际版请使用 'api.z.ai'。",
         "zhipuCodePlanModeTooltip": "启用 Code Plan 模式以获得优化的代码生成能力。",
         "claudeVersionTooltip": "Anthropic API 版本号。默认值：2023-06-01",
-        "claudeCodeModeTooltip": "启用 Claude Code 模式以使用 OAuth 令牌认证（而非 API Key）。运行 'claude setup-token' 获取 OAuth 令牌。"
+        "claudeCodeModeTooltip": "启用 Claude Code 模式以使用 OAuth 令牌认证（而非 API Key）。运行 'claude setup-token' 获取 OAuth 令牌。",
+        "reasoningContentModeTooltip": "控制如何处理大模型返回的推理内容：passthrough 原样透传；ignore 丢弃；concat 拼接到正文。留空使用默认值 passthrough。",
+        "firstByteTimeoutTooltip": "流式请求中收到上游服务第一个响应包的超时时间（毫秒）。留空（0）表示不开启。"
       },
       "placeholder": {
         "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
@@ -359,6 +366,8 @@
         "qwenFileIdsPlaceholder": "示例：file-fe-xxx",
         "zhipuDomainPlaceholder": "示例：api.z.ai（国际版服务）",
         "vllmCustomUrlPlaceholder": "示例：http://192.168.0.1:8000/v1",
+        "reasoningContentModePlaceholder": "默认：透传 (passthrough)",
+        "firstByteTimeoutPlaceholder": "留空（0）表示不开启",
         "claudeCustomUrlPlaceholder": "示例：https://api.anthropic.com 或 https://proxy.example.com/anthropic",
         "claudeCustomServiceHostPlaceholder": "示例：api.anthropic.com",
         "claudeCustomServicePathPlaceholder": "示例：/ 或 /anthropic"
