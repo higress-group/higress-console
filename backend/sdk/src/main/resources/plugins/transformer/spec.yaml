@@ -15,7 +15,7 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/transformer/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/transformer/README_EN.md
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: Higress Team
     url: http://higress.io/

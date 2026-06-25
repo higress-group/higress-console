@@ -15,14 +15,14 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cors/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/cors/README_EN.md
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: Higress Team
     url: http://higress.io/
     email: admin@higress.io
 spec:
-  phase: AUTHZ
-  priority: 340
+  phase: AUTHN
+  priority: 1001
   configSchema:
     openAPIV3Schema:
       type: object
