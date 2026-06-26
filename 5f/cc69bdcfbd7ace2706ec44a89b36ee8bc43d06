@@ -1,0 +1,36 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_81de0a2fc4da6d::t_f4da6a12bbf3f9 4,7-9,16-22,37-50,61-70,78-130
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_81de0a2fc4da6d::t_9861dde9cd2ae3 445,449,456-457,467
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_81de0a2fc4da6d::t_0a198116694a87 214-220,225-228
+  s_81de0a2fc4da6d::t_7f90f356cea486 290-296,300-303
+  s_81de0a2fc4da6d::t_988363bf3d58d9 33
+  s_81de0a2fc4da6d::t_d696c89ab5c730 474-485,494-497
+  s_81de0a2fc4da6d::t_f977be60c883f8 166-172,176-179
+  s_81de0a2fc4da6d::t_fd0062ea2ca8d7 367-373,377-380
+  s_81de0a2fc4da6d::t_02b1a260f5683e 419-425,429-432
+  s_81de0a2fc4da6d::t_11c5296bf6b16e 162,210,286,363,404,457
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_81de0a2fc4da6d::t_e0beabb54b1135 95-97,103-109
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/RemoteAIGatewayManagementServiceImpl.java
+  s_81de0a2fc4da6d::t_42d91654392ef7 3-5,35-37,39-40,42-63,74,81,94,101,108,120
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AggregateDao.java
+  s_81de0a2fc4da6d::t_951f91cdb8deaf 24-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.18-trip",
+  "base_commit_sha": "5fcc69bdcfbd7ace2706ec44a89b36ee8bc43d06",
+  "prompts": {},
+  "sessions": {
+    "s_81de0a2fc4da6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b704ec3b-8fb0-421e-a0b2-498f9f71f230",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
