@@ -8,7 +8,7 @@ import { addAiRoute, deleteAiRoute, getAiRoutes, updateAiRoute } from '@/service
 import { ArrowRightOutlined, ExclamationCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
-import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Row, Space, Table } from 'antd';
+import { Button, Col, Drawer, Form, FormProps, Input, message, Modal, Row, Select, Space, Table } from 'antd';
 import { history } from 'ice';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -19,6 +19,17 @@ import RouteForm from './components/RouteForm';
 interface FormRef {
   reset: () => void;
   handleSubmit: () => Promise<FormProps>;
+}
+
+const { Option } = Select;
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 }
 
 const AiRouteList: React.FC = () => {
@@ -142,7 +153,6 @@ const AiRouteList: React.FC = () => {
     },
   ];
 
-  const [form] = Form.useForm();
   const formRef = useRef<FormRef>(null);
   const routesRef = useRef<AiRoute[] | null>(null);
   const [dataSource, setDataSource] = useState<AiRoute[]>([]);
@@ -150,13 +160,104 @@ const AiRouteList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [loadingapi, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [usageDrawer, setUsageDrawer] = useState(false)
   const [usageCommand, setUsageCommand] = useState<string>('')
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
+
+  // Filter state — Input 类（带 debounce）
+  const [nameFilter, setNameFilter] = useState('');
+  const [domainFilter, setDomainFilter] = useState('');
+  const [pathFilter, setPathFilter] = useState('');
+  const [providerFilter, setProviderFilter] = useState('');
+  const [consumerFilter, setConsumerFilter] = useState('');
+  const debouncedNameFilter = useDebounce(nameFilter, 300);
+  const debouncedDomainFilter = useDebounce(domainFilter, 300);
+  const debouncedPathFilter = useDebounce(pathFilter, 300);
+  const debouncedProviderFilter = useDebounce(providerFilter, 300);
+  const debouncedConsumerFilter = useDebounce(consumerFilter, 300);
+
+  // Filter state — Select 多选类
+  const [selectedAuthStates, setSelectedAuthStates] = useState<string[]>([]);
+
+  const applyFilters = () => {
+    let results = [...(routesRef.current || [])];
+
+    // 1. 名称（子串，大小写不敏感）
+    if (debouncedNameFilter) {
+      const q = debouncedNameFilter.toLowerCase();
+      results = results.filter(item => item.name?.toLowerCase().includes(q));
+    }
+
+    // 2. 域名（任一命中）
+    if (debouncedDomainFilter) {
+      const q = debouncedDomainFilter.toLowerCase();
+      results = results.filter(item =>
+        item.domains?.some(d => d.toLowerCase().includes(q)));
+    }
+
+    // 3. 路径（子串，大小写不敏感）
+    if (debouncedPathFilter) {
+      const q = debouncedPathFilter.toLowerCase();
+      results = results.filter(item =>
+        item.pathPredicate?.matchValue?.toLowerCase().includes(q));
+    }
+
+    // 4. Provider（任一命中）
+    if (debouncedProviderFilter) {
+      const q = debouncedProviderFilter.toLowerCase();
+      results = results.filter(item =>
+        item.upstreams?.some(u => u.provider?.toLowerCase().includes(q)));
+    }
+
+    // 5. 已授权消费者 ID（任一命中；未开启/无消费者路由被排除）
+    if (debouncedConsumerFilter) {
+      const q = debouncedConsumerFilter.toLowerCase();
+      results = results.filter(item => {
+        const { authConfig } = item;
+        if (!authConfig?.enabled ||
+            !Array.isArray(authConfig.allowedConsumers)) {
+          return false;
+        }
+        return authConfig.allowedConsumers.some(c =>
+          c.toLowerCase().includes(q));
+      });
+    }
+
+    // 6. 认证状态（OR；3 种特殊值）
+    if (selectedAuthStates.length > 0) {
+      const set = new Set(selectedAuthStates);
+      results = results.filter(item => {
+        const { authConfig } = item;
+        const notEnabled = !authConfig || !authConfig.enabled;
+        const enabledNoConsumers = authConfig?.enabled &&
+          (!Array.isArray(authConfig.allowedConsumers) ||
+           authConfig.allowedConsumers.length === 0);
+        const hasConsumers = authConfig?.enabled &&
+          Array.isArray(authConfig.allowedConsumers) &&
+          authConfig.allowedConsumers.length > 0;
+        return (
+          (set.has('__auth_disabled__') && notEnabled) ||
+          (set.has('__no_consumers__') && enabledNoConsumers) ||
+          (set.has('__auth_enabled__') && hasConsumers)
+        );
+      });
+    }
+
+    setDataSource(results);
+  };
+
+  const resetFilters = () => {
+    setNameFilter('');
+    setDomainFilter('');
+    setPathFilter('');
+    setProviderFilter('');
+    setConsumerFilter('');
+    setSelectedAuthStates([]);
+    setDataSource([...(routesRef.current || [])]);
+  };
 
   const { loading: wasmLoading, run: loadWasmPlugins } = useRequest(() => {
     return getWasmPlugins(i18n.language)
@@ -177,7 +278,7 @@ const AiRouteList: React.FC = () => {
         return i1.name.localeCompare(i2.name);
       })
       routesRef.current = aiRoutes;
-      onSearch();
+      applyFilters();
     },
   });
 
@@ -192,6 +293,21 @@ const AiRouteList: React.FC = () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, []);
+
+  // 过滤状态变化时重新过滤
+  useEffect(() => {
+    if (routesRef.current) {
+      applyFilters();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    debouncedNameFilter,
+    debouncedDomainFilter,
+    debouncedPathFilter,
+    debouncedProviderFilter,
+    debouncedConsumerFilter,
+    selectedAuthStates,
+  ]);
 
   const buildUsageCommand = (aiRoute: AiRoute): string => {
     let command = `curl -sv http://<higress-gateway-ip>/v1/chat/completions \\
@@ -237,23 +353,6 @@ const AiRouteList: React.FC = () => {
   const onShowDrawer = () => {
     setOpenDrawer(true);
     setCurrentAiRoute(null);
-  };
-
-  const onSearch = () => {
-    setIsLoading(true);
-    let _dataSource: AiRoute[] = routesRef.current as AiRoute[];
-    const { searchVal } = form.getFieldsValue();
-    if (searchVal) {
-      _dataSource = _dataSource.filter((item) => {
-        const nameMatch = item.name?.includes(searchVal);
-        const domainsMatch = item.domains?.some(domain => domain.includes(searchVal));
-        const pathMatch = item.pathPredicate?.matchValue?.includes(searchVal);
-        const upstreamsMatch = item.upstreams?.some(upstream => upstream.provider?.includes(searchVal));
-        return nameMatch || domainsMatch || pathMatch || upstreamsMatch;
-      });
-    }
-    setDataSource(_dataSource);
-    setIsLoading(false);
   };
 
   const normalizeRoutePredicate = (predicate: RoutePredicate) => {
@@ -356,30 +455,101 @@ const AiRouteList: React.FC = () => {
   return (
     <PageContainer>
       <Form
-        form={form}
         style={{
           background: '#fff',
-          height: 64,
-          paddingTop: 16,
+          padding: '16px 16px 24px',
           marginBottom: 16,
-          paddingLeft: 16,
-          paddingRight: 16,
         }}
       >
         <Row gutter={24}>
-          <Col span={14}>
-            <Form.Item name="searchVal">
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.columns.name')}>
               <Input
-                allowClear
-                placeholder={t('aiRoute.searchPlaceholder') || ''}
                 prefix={<SearchOutlined />}
-                onChange={onSearch}
+                allowClear
+                placeholder={t('aiRoute.search.name') || ''}
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
               />
             </Form.Item>
           </Col>
-          <Col span={10} style={{ textAlign: 'right' }}>
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.columns.domains')}>
+              <Input
+                prefix={<SearchOutlined />}
+                allowClear
+                placeholder={t('aiRoute.search.domain') || ''}
+                value={domainFilter}
+                onChange={(e) => setDomainFilter(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.columns.upstreams')}>
+              <Input
+                prefix={<SearchOutlined />}
+                allowClear
+                placeholder={t('aiRoute.search.provider') || ''}
+                value={providerFilter}
+                onChange={(e) => setProviderFilter(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.search.pathLabel')}>
+              <Input
+                prefix={<SearchOutlined />}
+                allowClear
+                placeholder={t('aiRoute.search.path') || ''}
+                value={pathFilter}
+                onChange={(e) => setPathFilter(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={24}>
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.search.authState')}>
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder={t('aiRoute.search.authState')}
+                value={selectedAuthStates}
+                onChange={setSelectedAuthStates}
+                style={{ width: '100%' }}
+              >
+                <Option key="__auth_disabled__" value="__auth_disabled__">
+                  {t('aiRoute.authNotEnabled')}
+                </Option>
+                <Option key="__no_consumers__" value="__no_consumers__">
+                  {t('aiRoute.authEnabledWithoutConsumer')}
+                </Option>
+                <Option key="__auth_enabled__" value="__auth_enabled__">
+                  {t('aiRoute.search.authEnabled')}
+                </Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={6}>
+            <Form.Item label={t('aiRoute.search.consumerLabel')}>
+              <Input
+                prefix={<SearchOutlined />}
+                allowClear
+                placeholder={t('aiRoute.search.consumer') || ''}
+                value={consumerFilter}
+                onChange={(e) => setConsumerFilter(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12} style={{ textAlign: 'right', paddingTop: 30 }}>
             <Button
-              style={{ margin: '0 8px' }}
+              style={{ marginRight: 8 }}
+              onClick={resetFilters}
+            >
+              {t('aiRoute.search.reset')}
+            </Button>
+            <Button
+              style={{ marginRight: 8 }}
               type="primary"
               onClick={onShowDrawer}
             >
@@ -390,7 +560,7 @@ const AiRouteList: React.FC = () => {
         </Row>
       </Form>
       <Table
-        loading={loading || isLoading}
+        loading={loading}
         dataSource={dataSource}
         columns={columns}
         pagination={false}
