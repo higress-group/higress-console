@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigFetcher.java
+  s_aed44b5c9078ed::t_c478186382f6d7 12,19,22-26
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigFetcherTest.java
+  s_aed44b5c9078ed::t_9adfe367496020 62-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "26e8d888acc698272533d1acbfd9937dc59a5cd5",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
