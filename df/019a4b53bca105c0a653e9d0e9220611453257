@@ -1,0 +1,33 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/FileDiffReporter.java
+  s_aed44b5c9078ed::t_34bf893add8155 7-88
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparatorTest.java
+  s_aed44b5c9078ed::t_8d21fad63fb109 18-25
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/JsonDiffReporter.java
+  s_aed44b5c9078ed::t_ac3dc81ad4c6c1 45-79
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigFetcherTest.java
+  s_aed44b5c9078ed::t_cee3ffaa3135f4 23
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffTool.java
+  s_aed44b5c9078ed::t_3ecacf570a62c7 14
+  s_aed44b5c9078ed::t_ee3f95a1586ff6 61
+  s_aed44b5c9078ed::t_144d1ad1147b17 112-119
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffToolTest.java
+  s_aed44b5c9078ed::t_b3829a31efbcff 4-122
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparator.java
+  s_aed44b5c9078ed::t_74f0abd1544159 20-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "df019a4b53bca105c0a653e9d0e9220611453257",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
