@@ -1,0 +1,29 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparatorTest.java
+  s_aed44b5c9078ed::t_6dfc2ee01bf50c 115-140
+  s_aed44b5c9078ed::t_5cd2664ea898ef 4
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizer.java
+  s_aed44b5c9078ed::t_b452a0e126d47a 1-29
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizerTest.java
+  s_aed44b5c9078ed::t_2ae7c1370cd600 1-84,86-125
+  s_aed44b5c9078ed::t_e7c2ca09c225ff 85
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparator.java
+  s_aed44b5c9078ed::t_c7659a7e0b000e 77-78
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/CrossRegionConfigSyncer.java
+  s_aed44b5c9078ed::t_9a10ef36a3cc61 767
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "2d56afff85b3ebd2164701750182a0b12e9a7b94",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
