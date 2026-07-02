@@ -12,8 +12,6 @@
  */
 package com.alibaba.higress.sdk.model.ai;
 
-import java.util.List;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,14 +22,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Token Failover Config")
-public class TokenFailoverConfig {
+@Schema(description = "Retry on Failure Config")
+public class RetryOnFailureConfig {
 
     private Boolean enabled;
-    private Integer failureThreshold;
-    private Integer successThreshold;
-    private Integer healthCheckInterval;
-    private Integer healthCheckTimeout;
-    private String healthCheckModel;
-    private List<Integer> failoverOnStatus;
 }

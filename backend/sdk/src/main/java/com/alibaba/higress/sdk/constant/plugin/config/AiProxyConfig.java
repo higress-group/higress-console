@@ -30,7 +30,9 @@ public class AiProxyConfig {
     public static final String FAILOVER_HEALTH_CHECK_INTERVAL = "healthCheckInterval";
     public static final String FAILOVER_HEALTH_CHECK_TIMEOUT = "healthCheckTimeout";
     public static final String FAILOVER_HEALTH_CHECK_MODEL = "healthCheckModel";
+    public static final String FAILOVER_ON_STATUS = "failoverOnStatus";
 
     public static final String RETRY_ON_FAILURE = "retryOnFailure";
     public static final String RETRY_ENABLED = "enabled";
+    public static final String RETRY_ON_STATUS = "retryOnStatus";
 }

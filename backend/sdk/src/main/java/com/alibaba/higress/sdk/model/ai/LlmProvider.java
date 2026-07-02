@@ -42,6 +42,8 @@ public class LlmProvider {
     private List<String> tokens;
     @Schema(description = "Token fail-over configuration")
     private TokenFailoverConfig tokenFailoverConfig;
+    @Schema(description = "Retry on failure configuration")
+    private RetryOnFailureConfig retryOnFailureConfig;
     @Schema(description = "Raw configuration key-value pairs used by ai-proxy plugin")
     private Map<String, Object> rawConfigs;
 
