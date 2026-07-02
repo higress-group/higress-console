@@ -1,0 +1,36 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/JsonDiffReporter.java
+  s_aed44b5c9078ed::t_d73525ab3deac4 67-70
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/FileDiffReporter.java
+  s_aed44b5c9078ed::t_d7305d4d88ee40 14-15
+  s_aed44b5c9078ed::t_7addccd41ed491 75-84
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/DiffReport.java
+  s_aed44b5c9078ed::t_17aeb69aa2a4cc 10-58
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/DiffReportTest.java
+  s_aed44b5c9078ed::t_9c13f607c1b62e 5-73
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/ConsoleDiffReporter.java
+  s_aed44b5c9078ed::t_6a1af1e07afb7e 4-5
+  s_aed44b5c9078ed::t_a75d7dc5813c46 46-54
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffToolTest.java
+  s_aed44b5c9078ed::t_2843278d15bdf2 212-227
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffTool.java
+  s_aed44b5c9078ed::t_c54774db2a8d1c 72-93
+  s_aed44b5c9078ed::t_cdd75250a053e9 150-158
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/FileDiffReporterTest.java
+  s_aed44b5c9078ed::t_1c8d381714ed96 33-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "5e0f61737e2274dd5665aed93c5aad0679e2a699",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
