@@ -1,0 +1,25 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigBackfillRunner.java
+  s_5950a573e22fa4::t_ffd13942fb9229 38-39,64
+  s_5950a573e22fa4::t_75a0dd98ed3de0 1-12,15-32,35-37,40-50,52-53,55-63,65-110,112-172,176-177,179-231
+  s_5950a573e22fa4::t_a5325b720fa6ca 13-14
+  s_5950a573e22fa4::t_a6e32e5fa9cb63 178
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigDumper.java
+  s_5950a573e22fa4::t_2abb861f41caf5 16,36-37,50,76,78-79,84,86,88
+  s_5950a573e22fa4::t_04f008eebccc46 7-10,12-15,17,22-28,30-32,38-41,51-71,77,85,87,89-279,282-310,313-408,411-441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "115a6eaddab520201cd5e6228bd0cad1622bd6a1",
+  "prompts": {},
+  "sessions": {
+    "s_5950a573e22fa4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05fd0ad2-4653-4263-88bf-3a88a151185f",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
