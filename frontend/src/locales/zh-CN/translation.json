@@ -951,7 +951,13 @@
       "dbOtherParamsPlaceholder": "格式：key1=value1&key2=value2",
       "ssePathRule": "路径 (SSE) : /mcp-servers/<1>{{currentMcpServerName}}</1>/sse",
       "httpPathRule": "路径 (Streamable HTTP) : /mcp-servers/<1>{{currentMcpServerName}}</1>",
-      "nameDefault": "MCP服务名称"
+      "nameDefault": "MCP服务名称",
+      "customHeaders": "自定义请求头",
+      "addHeader": "添加请求头",
+      "headerKeyRequired": "请输入 Header Key",
+      "headerValueRequired": "请输入 Header Value",
+      "headerKeyPlaceholder": "如：Authorization",
+      "headerValuePlaceholder": "如：Bearer xxx"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {
