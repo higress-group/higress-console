@@ -1,0 +1,23 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigFetcherTest.java
+  s_aed44b5c9078ed::t_f11c74fe5233c2 1-27,29-48,50-62
+  s_aed44b5c9078ed::t_aeea5f275d5900 28
+  s_aed44b5c9078ed::t_c9cab87d59633d 49
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigFetcher.java
+  s_aed44b5c9078ed::t_808508996f3d49 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "65778f522a0b43951ef67ab2a528889f8251f43f",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

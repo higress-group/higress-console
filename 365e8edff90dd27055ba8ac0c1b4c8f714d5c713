@@ -1,0 +1,22 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/FileDiffReporterTest.java
+  s_aed44b5c9078ed::t_5a838bbbe9a443 1-34
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/FileDiffReporter.java
+  s_aed44b5c9078ed::t_2a82cb36cb7937 1-28,30-32,34-87
+  s_aed44b5c9078ed::t_8f3e681c06b501 29,33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "365e8edff90dd27055ba8ac0c1b4c8f714d5c713",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
