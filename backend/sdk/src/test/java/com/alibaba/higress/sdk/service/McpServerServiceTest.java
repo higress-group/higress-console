@@ -355,8 +355,8 @@ public class McpServerServiceTest {
         mcpServerService.addAllowConsumers(newConsumers);
 
         ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
-        verify(kubernetesClientService, times(1)).replaceWasmPlugin(pluginCaptor.capture());
-        V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
+        verify(kubernetesClientService, times(2)).replaceWasmPlugin(pluginCaptor.capture());
+        V1alpha1WasmPlugin capturedValue = pluginCaptor.getAllValues().get(1);
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
         Object allowObj = capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow");
@@ -401,8 +401,8 @@ public class McpServerServiceTest {
         mcpServerService.deleteAllowConsumers(newConsumers);
 
         ArgumentCaptor<V1alpha1WasmPlugin> pluginCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
-        verify(kubernetesClientService, times(1)).replaceWasmPlugin(pluginCaptor.capture());
-        V1alpha1WasmPlugin capturedValue = pluginCaptor.getValue();
+        verify(kubernetesClientService, times(2)).replaceWasmPlugin(pluginCaptor.capture());
+        V1alpha1WasmPlugin capturedValue = pluginCaptor.getAllValues().get(1);
         Assertions.assertNotNull(capturedValue);
         Assertions.assertNotNull(capturedValue.getSpec().getMatchRules());
         Object allowObj = capturedValue.getSpec().getMatchRules().get(0).getConfig().get("allow");

@@ -29,6 +29,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -65,7 +66,7 @@ public class ConsumerServiceImpl implements ConsumerService {
     public Consumer addOrUpdate(Consumer consumer) {
         List<WasmPluginInstance> instancesToUpdate = new ArrayList<>(CREDENTIAL_HANDLERS.size());
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
-            WasmPluginInstance instance = getGlobalPluginInstance(handler);
+            WasmPluginInstance instance = mergeGlobalPluginInstances(handler);
             if (instance == null) {
                 instance = createGlobalPluginInstance(handler);
             }
@@ -106,8 +107,7 @@ public class ConsumerServiceImpl implements ConsumerService {
         }
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
             List<WasmPluginInstance> instances = instancesCache.get(handler.getType());
-            WasmPluginInstance globalInstance = instances.stream()
-                .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).findFirst().orElse(null);
+            WasmPluginInstance globalInstance = mergeGlobalPluginInstances(handler, instances);
             if (globalInstance == null) {
                 continue;
             }
@@ -280,17 +280,15 @@ public class ConsumerServiceImpl implements ConsumerService {
     private SortedMap<String, Consumer> getConsumers() {
         SortedMap<String, Consumer> consumers = new TreeMap<>();
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
-            WasmPluginInstance instance = getGlobalPluginInstance(handler);
-            if (instance == null) {
-                continue;
-            }
-            List<Consumer> extractedConsumers = handler.extractConsumers(instance);
-            for (Consumer consumer : extractedConsumers) {
-                Consumer existedConsumer = consumers.putIfAbsent(consumer.getName(), consumer);
-                if (existedConsumer != null) {
-                    List<Credential> credentials = new ArrayList<>(existedConsumer.getCredentials());
-                    credentials.addAll(consumer.getCredentials());
-                    existedConsumer.setCredentials(credentials);
+            for (WasmPluginInstance instance : getGlobalPluginInstances(handler)) {
+                List<Consumer> extractedConsumers = handler.extractConsumers(instance);
+                for (Consumer consumer : extractedConsumers) {
+                    Consumer existedConsumer = consumers.putIfAbsent(consumer.getName(), consumer);
+                    if (existedConsumer != null) {
+                        List<Credential> credentials = new ArrayList<>(existedConsumer.getCredentials());
+                        credentials.addAll(consumer.getCredentials());
+                        existedConsumer.setCredentials(credentials);
+                    }
                 }
             }
         }
@@ -304,6 +302,53 @@ public class ConsumerServiceImpl implements ConsumerService {
 
     private WasmPluginInstance getGlobalPluginInstance(CredentialHandler handler) {
         return wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, handler.getPluginName(), true);
+    }
+
+    private List<WasmPluginInstance> getGlobalPluginInstances(CredentialHandler handler) {
+        List<WasmPluginInstance> globalInstances = getAllPluginInstances(handler).stream()
+            .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(globalInstances)) {
+            return globalInstances;
+        }
+        WasmPluginInstance globalInstance = getGlobalPluginInstance(handler);
+        return globalInstance == null ? Collections.emptyList() : Collections.singletonList(globalInstance);
+    }
+
+    private WasmPluginInstance mergeGlobalPluginInstances(CredentialHandler handler) {
+        List<WasmPluginInstance> instances = getAllPluginInstances(handler);
+        WasmPluginInstance merged = mergeGlobalPluginInstances(handler, instances);
+        if (merged != null) {
+            return merged;
+        }
+        return getGlobalPluginInstance(handler);
+    }
+
+    private WasmPluginInstance mergeGlobalPluginInstances(CredentialHandler handler, List<WasmPluginInstance> instances) {
+        List<WasmPluginInstance> globalInstances = instances.stream()
+            .filter(i -> i.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(globalInstances)) {
+            return null;
+        }
+
+        WasmPluginInstance merged = globalInstances.get(0);
+        Map<String, Object> mergedConfigurations = new HashMap<>();
+        if (MapUtils.isNotEmpty(merged.getConfigurations())) {
+            mergedConfigurations.putAll(merged.getConfigurations());
+        }
+        List<Object> mergedConsumers = new ArrayList<>();
+        for (WasmPluginInstance instance : globalInstances) {
+            Map<String, Object> configurations = instance.getConfigurations();
+            if (MapUtils.isEmpty(configurations)) {
+                continue;
+            }
+            Object consumersObj = configurations.get(KeyAuthConfig.CONSUMERS);
+            if (consumersObj instanceof List<?>) {
+                mergedConsumers.addAll((List<?>)consumersObj);
+            }
+        }
+        mergedConfigurations.put(KeyAuthConfig.CONSUMERS, mergedConsumers);
+        merged.setConfigurations(mergedConfigurations);
+        return merged;
     }
 
     private WasmPluginInstance getPluginInstance(CredentialHandler handler,

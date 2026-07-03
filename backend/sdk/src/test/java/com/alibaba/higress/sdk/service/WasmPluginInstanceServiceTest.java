@@ -22,7 +22,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,8 @@ import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.Separators;
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPlugin;
@@ -449,10 +453,73 @@ public class WasmPluginInstanceServiceTest {
             .assertTrue(exception.getMessage().contains("Error occurs when adding or updating the WasmPlugin CR"));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    public void addOrUpdateAllTestShardsInternalKeyAuthConsumers() throws Exception {
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(BuiltInPluginName.KEY_AUTH)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .configurations(buildKeyAuthConfig(101)).internal(true).build();
+
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+        Assertions.assertNotNull(updatedInstance);
+
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(2)).createWasmPlugin(crCaptor.capture());
+        List<V1alpha1WasmPlugin> crs = crCaptor.getAllValues();
+        Assertions.assertEquals(BuiltInPluginName.KEY_AUTH + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX,
+            crs.get(0).getMetadata().getName());
+        Assertions.assertEquals(BuiltInPluginName.KEY_AUTH + "-consumers-1"
+            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX, crs.get(1).getMetadata().getName());
+        Assertions.assertEquals(100,
+            ((List<?>)crs.get(0).getSpec().getDefaultConfig().get(KeyAuthConfig.CONSUMERS)).size());
+        Assertions.assertEquals(1,
+            ((List<?>)crs.get(1).getSpec().getDefaultConfig().get(KeyAuthConfig.CONSUMERS)).size());
+    }
+
+    @Test
+    public void addOrUpdateAllTestSyncsInternalKeyAuthAllowListToShards() throws Exception {
+        V1alpha1WasmPlugin firstShard = buildWasmPluginResource(BuiltInPluginName.KEY_AUTH, true, true);
+        V1alpha1WasmPlugin secondShard = buildWasmPluginResource(BuiltInPluginName.KEY_AUTH, true, true);
+        secondShard.getMetadata().setName(BuiltInPluginName.KEY_AUTH + "-consumers-1"
+            + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+        List<V1alpha1WasmPlugin> crs = Lists.newArrayList(firstShard, secondShard);
+        when(kubernetesClientService.listWasmPlugin(eq(BuiltInPluginName.KEY_AUTH), anyString())).thenReturn(crs);
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(BuiltInPluginName.KEY_AUTH)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "route-a")).enabled(true)
+            .configurations(MapUtil.of(KeyAuthConfig.ALLOW, Lists.newArrayList("consumer-a"))).internal(true).build();
+
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+        Assertions.assertNotNull(updatedInstance);
+
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(2)).replaceWasmPlugin(crCaptor.capture());
+        for (V1alpha1WasmPlugin cr : crCaptor.getAllValues()) {
+            Assertions.assertEquals(1, cr.getSpec().getMatchRules().size());
+            MatchRule rule = cr.getSpec().getMatchRules().get(0);
+            Assertions.assertEquals(Collections.singletonList("route-a"), rule.getIngress());
+            Assertions.assertEquals(Collections.singletonList("consumer-a"), rule.getConfig().get(KeyAuthConfig.ALLOW));
+        }
+    }
+
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
         WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn)
             .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
             .imageRepository("oci://docker.io/" + name).build();
         return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
+    }
+
+    private Map<String, Object> buildKeyAuthConfig(int consumerCount) {
+        Map<String, Object> config = new HashMap<>();
+        config.put(KeyAuthConfig.GLOBAL_AUTH, false);
+        config.put(KeyAuthConfig.ALLOW, Collections.emptyList());
+        config.put(KeyAuthConfig.KEYS, Collections.singletonList("x-higress-dummy-key"));
+        List<Map<String, Object>> consumers = new ArrayList<>();
+        for (int i = 0; i < consumerCount; i++) {
+            consumers.add(MapUtil.of(KeyAuthConfig.CONSUMER_NAME, "consumer-" + i,
+                KeyAuthConfig.CONSUMER_CREDENTIALS, Collections.singletonList("credential-" + i)));
+        }
+        config.put(KeyAuthConfig.CONSUMERS, consumers);
+        return config;
     }
 }

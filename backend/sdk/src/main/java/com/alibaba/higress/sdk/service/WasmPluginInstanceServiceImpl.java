@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,6 +34,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.constant.plugin.config.KeyAuthConfig;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginConfig;
@@ -40,7 +45,9 @@ import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPluginSpec;
 import com.alibaba.higress.sdk.util.MapUtil;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -50,6 +57,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
+
+    private static final int KEY_AUTH_CONSUMERS_PER_SHARD = 100;
+    private static final String KEY_AUTH_SHARD_NAME_PREFIX = BuiltInPluginName.KEY_AUTH + "-consumers-";
 
     private final WasmPluginService wasmPluginService;
     private final KubernetesClientService kubernetesClientService;
@@ -159,6 +169,10 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     @Override
     @SuppressWarnings("unchecked")
     public List<WasmPluginInstance> addOrUpdateAll(List<WasmPluginInstance> instances) {
+        if (isKeyAuthInternalOnly(instances)) {
+            return addOrUpdateKeyAuthInternalInstances(instances);
+        }
+
         Map<String, WasmPlugin> pluginsToUpdate = new HashMap<>();
         ListValuedMap<WasmPluginInstanceGroupKey, WasmPluginInstance> groupedInstances = new ArrayListValuedHashMap<>();
         for (WasmPluginInstance instance : instances) {
@@ -253,6 +267,197 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         }
 
         return instances.stream().map(beforeToAfterMap::get).collect(Collectors.toList());
+    }
+
+    private boolean isKeyAuthInternalOnly(List<WasmPluginInstance> instances) {
+        return CollectionUtils.isNotEmpty(instances) && instances.stream()
+            .allMatch(i -> BuiltInPluginName.KEY_AUTH.equals(i.getPluginName()) && i.isInternal());
+    }
+
+    private List<WasmPluginInstance> addOrUpdateKeyAuthInternalInstances(List<WasmPluginInstance> instances) {
+        List<WasmPluginInstance> results = new ArrayList<>(instances.size());
+        for (WasmPluginInstance instance : instances) {
+            instance.syncDeprecatedFields();
+            instance.validate();
+            if (instance.hasScopedTarget(WasmPluginInstanceScope.GLOBAL)) {
+                results.add(addOrUpdateKeyAuthGlobalInstance(instance));
+            } else {
+                results.add(addOrUpdateKeyAuthScopedInstance(instance));
+            }
+        }
+        return results;
+    }
+
+    @SuppressWarnings("unchecked")
+    private WasmPluginInstance addOrUpdateKeyAuthGlobalInstance(WasmPluginInstance instance) {
+        WasmPlugin plugin = queryKeyAuthPlugin(instance);
+        List<V1alpha1WasmPlugin> existingCrs = listKeyAuthInternalCrs(plugin.getPluginVersion());
+        List<MatchRule> existingMatchRules = collectMatchRules(existingCrs);
+
+        List<Object> consumers = new ArrayList<>();
+        Map<String, Object> configurations = Optional.ofNullable(instance.getConfigurations()).orElseGet(HashMap::new);
+        Object consumersObj = configurations.get(KeyAuthConfig.CONSUMERS);
+        if (consumersObj instanceof List<?>) {
+            consumers.addAll((List<Object>)consumersObj);
+        }
+
+        int shardCount = Math.max(1, (consumers.size() + KEY_AUTH_CONSUMERS_PER_SHARD - 1) / KEY_AUTH_CONSUMERS_PER_SHARD);
+        Map<String, V1alpha1WasmPlugin> existingByName = existingCrs.stream()
+            .filter(cr -> cr.getMetadata() != null && StringUtils.isNotBlank(cr.getMetadata().getName()))
+            .collect(Collectors.toMap(cr -> cr.getMetadata().getName(), cr -> cr, (a, b) -> a));
+
+        List<V1alpha1WasmPlugin> savedCrs = new ArrayList<>(shardCount);
+        for (int i = 0; i < shardCount; i++) {
+            String shardName = keyAuthShardName(i);
+            V1alpha1WasmPlugin cr = existingByName.get(shardName);
+            if (cr == null) {
+                cr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
+                Objects.requireNonNull(cr.getMetadata()).setName(shardName);
+            }
+
+            V1alpha1WasmPluginSpec spec = Objects.requireNonNull(cr.getSpec());
+            spec.setDefaultConfigDisable(!Boolean.TRUE.equals(instance.getEnabled()));
+            Map<String, Object> shardConfig = new HashMap<>(configurations);
+            int from = i * KEY_AUTH_CONSUMERS_PER_SHARD;
+            int to = Math.min(consumers.size(), from + KEY_AUTH_CONSUMERS_PER_SHARD);
+            shardConfig.put(KeyAuthConfig.CONSUMERS, new ArrayList<>(consumers.subList(from, to)));
+            spec.setDefaultConfig(shardConfig);
+            spec.setMatchRules(copyMatchRules(existingMatchRules));
+            savedCrs.add(saveWasmPluginCr(cr, existingByName.containsKey(shardName), plugin.getName()));
+        }
+
+        for (V1alpha1WasmPlugin cr : existingCrs) {
+            String name = cr.getMetadata() == null ? null : cr.getMetadata().getName();
+            if (isKeyAuthShardName(name) && shardIndex(name) >= shardCount) {
+                deleteWasmPluginCr(name);
+            }
+        }
+
+        return kubernetesModelConverter.getWasmPluginInstanceFromCr(savedCrs.get(0), instance.getTargets());
+    }
+
+    private WasmPluginInstance addOrUpdateKeyAuthScopedInstance(WasmPluginInstance instance) {
+        WasmPlugin plugin = queryKeyAuthPlugin(instance);
+        List<V1alpha1WasmPlugin> existingCrs = listKeyAuthInternalCrs(plugin.getPluginVersion());
+        if (CollectionUtils.isEmpty(existingCrs)) {
+            V1alpha1WasmPlugin cr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
+            kubernetesModelConverter.setWasmPluginInstanceToCr(cr, instance);
+            return kubernetesModelConverter.getWasmPluginInstanceFromCr(saveWasmPluginCr(cr, false, plugin.getName()),
+                instance.getTargets());
+        }
+
+        WasmPluginInstance result = null;
+        for (V1alpha1WasmPlugin cr : existingCrs) {
+            kubernetesModelConverter.setWasmPluginInstanceToCr(cr, instance);
+            V1alpha1WasmPlugin saved = saveWasmPluginCr(cr, true, plugin.getName());
+            if (result == null) {
+                result = kubernetesModelConverter.getWasmPluginInstanceFromCr(saved, instance.getTargets());
+            }
+        }
+        return result;
+    }
+
+    private WasmPlugin queryKeyAuthPlugin(WasmPluginInstance instance) {
+        WasmPlugin plugin = wasmPluginService.query(BuiltInPluginName.KEY_AUTH, null);
+        if (plugin == null) {
+            throw new IllegalArgumentException("Unknown plugin: " + instance.getPluginName());
+        }
+        String version = StringUtils.firstNonEmpty(instance.getPluginVersion(), plugin.getPluginVersion());
+        if (!version.equals(plugin.getPluginVersion())) {
+            throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
+        }
+        instance.setPluginVersion(version);
+        return plugin;
+    }
+
+    private List<V1alpha1WasmPlugin> listKeyAuthInternalCrs(String version) {
+        try {
+            List<V1alpha1WasmPlugin> crs = kubernetesClientService.listWasmPlugin(BuiltInPluginName.KEY_AUTH, version);
+            if (CollectionUtils.isEmpty(crs)) {
+                return Collections.emptyList();
+            }
+            return crs.stream().filter(KubernetesUtil::isInternalResource).collect(Collectors.toList());
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
+        }
+    }
+
+    private V1alpha1WasmPlugin saveWasmPluginCr(V1alpha1WasmPlugin cr, boolean existed, String pluginName) {
+        try {
+            return existed ? kubernetesClientService.replaceWasmPlugin(cr) : kubernetesClientService.createWasmPlugin(cr);
+        } catch (ApiException e) {
+            if (e.getCode() == HttpStatus.CONFLICT) {
+                throw new ResourceConflictException();
+            }
+            throw new BusinessException("Error occurs when adding or updating the WasmPlugin CR with name: " + pluginName,
+                e);
+        }
+    }
+
+    private void deleteWasmPluginCr(String name) {
+        try {
+            kubernetesClientService.deleteWasmPlugin(name);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when deleting stale WasmPlugin CR with name: " + name, e);
+        }
+    }
+
+    private String keyAuthShardName(int index) {
+        if (index == 0) {
+            return BuiltInPluginName.KEY_AUTH + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+        }
+        return KEY_AUTH_SHARD_NAME_PREFIX + index + HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX;
+    }
+
+    private boolean isKeyAuthShardName(String name) {
+        return StringUtils.equals(name, keyAuthShardName(0))
+            || StringUtils.startsWith(name, KEY_AUTH_SHARD_NAME_PREFIX);
+    }
+
+    private int shardIndex(String name) {
+        if (StringUtils.equals(name, keyAuthShardName(0))) {
+            return 0;
+        }
+        if (!StringUtils.startsWith(name, KEY_AUTH_SHARD_NAME_PREFIX)) {
+            return -1;
+        }
+        String suffix = StringUtils.removeEnd(StringUtils.removeStart(name, KEY_AUTH_SHARD_NAME_PREFIX),
+            HigressConstants.INTERNAL_RESOURCE_NAME_SUFFIX);
+        try {
+            return Integer.parseInt(suffix);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private List<MatchRule> collectMatchRules(List<V1alpha1WasmPlugin> crs) {
+        List<MatchRule> rules = new ArrayList<>();
+        for (V1alpha1WasmPlugin cr : crs) {
+            V1alpha1WasmPluginSpec spec = cr.getSpec();
+            if (spec == null || CollectionUtils.isEmpty(spec.getMatchRules())) {
+                continue;
+            }
+            for (MatchRule rule : spec.getMatchRules()) {
+                if (rules.stream().noneMatch(rule::keyEquals)) {
+                    rules.add(copyMatchRule(rule));
+                }
+            }
+        }
+        return rules;
+    }
+
+    private List<MatchRule> copyMatchRules(List<MatchRule> rules) {
+        if (CollectionUtils.isEmpty(rules)) {
+            return Collections.emptyList();
+        }
+        return rules.stream().map(this::copyMatchRule).collect(Collectors.toList());
+    }
+
+    private MatchRule copyMatchRule(MatchRule rule) {
+        return new MatchRule(rule.getConfigDisable(), rule.getConfig() == null ? null : new HashMap<>(rule.getConfig()),
+            rule.getDomain() == null ? null : new ArrayList<>(rule.getDomain()),
+            rule.getIngress() == null ? null : new ArrayList<>(rule.getIngress()),
+            rule.getService() == null ? null : new ArrayList<>(rule.getService()));
     }
 
     @Override
