@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/alibaba/higress/console/config/SwaggerConfig.java
+  s_3ce6f57db3069d::t_188b874fd27a38 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "c8de30c6d8a23bc4f754189dd051314aeb77066d",
+  "prompts": {},
+  "sessions": {
+    "s_3ce6f57db3069d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "68f2eb5f-7047-4924-a4da-78b59417bfa9",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
