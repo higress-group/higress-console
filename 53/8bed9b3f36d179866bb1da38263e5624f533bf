@@ -1,0 +1,32 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizer.java
+  s_0b6a2881ff2678::t_29816e5fe5ac72 3,11,31-54,56
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparatorTest.java
+  s_0b6a2881ff2678::t_ed388e49ab6213 135-177
+  s_0b6a2881ff2678::t_344fd55931eafe 178-206
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparator.java
+  s_0b6a2881ff2678::t_d0d4df4be3d320 43-44,58-68,70,75-80
+  s_0b6a2881ff2678::t_b9d6416b41117b 117-118
+  s_0b6a2881ff2678::t_369f32df5fb75e 121-140,142-151
+  s_0b6a2881ff2678::t_6881d3b3c6a036 24-31
+  s_0b6a2881ff2678::t_5f78963bc90e33 89-116,119-120,141
+  s_0b6a2881ff2678::t_dafcc389f5bd91 3-4,6
+  s_0b6a2881ff2678::t_51b8df89c66eb0 5
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/CrossRegionConfigSyncer.java
+  s_0b6a2881ff2678::t_c43a89342869b8 476-478
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "538bed9b3f36d179866bb1da38263e5624f533bf",
+  "prompts": {},
+  "sessions": {
+    "s_0b6a2881ff2678": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b6a8d293-a865-4c04-af91-f43dbbcc89c6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
