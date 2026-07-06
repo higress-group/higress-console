@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffTool.java
+  s_9094bdd4b1b249::t_0710102802bd00 7-8
+  s_9094bdd4b1b249::t_22bbc7ff29fac1 42
+  s_9094bdd4b1b249::t_72a294cc499067 280-282,285-286,290-291,297-350
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "041efb46cfe3776a3f67e7fac1315695ec9ee890",
+  "prompts": {},
+  "sessions": {
+    "s_9094bdd4b1b249": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23d71630-b2b0-4c8b-b3cd-5ffb0a97c7ab",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
