@@ -1,0 +1,19 @@
+backend/console/src/main/resources/mapper/ResourceDataMapper.xml
+  s_b4c1c1ab5541ca::t_39966288e996eb 55-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "2cdda0f6f10ffee301ab7097d97e13aacfafe90f",
+  "prompts": {},
+  "sessions": {
+    "s_b4c1c1ab5541ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "31f619cd-72f6-40ba-961f-ba8d14da7aa8",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
