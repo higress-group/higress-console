@@ -1,0 +1,26 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/ConsumerServiceImplTest.java
+  s_8fe3ca13404626::t_7807b6ff2d5894 46
+  s_8fe3ca13404626::t_e5cbc1af972808 1-45,47-59
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/ConsumerServiceImpl.java
+  s_8fe3ca13404626::t_338b5e51273300 4
+  s_8fe3ca13404626::t_4293f4e3bc44c8 26,29,31
+  s_8fe3ca13404626::t_bcdd6b77915a2f 16
+  s_8fe3ca13404626::t_722c6159d60940 64
+  s_8fe3ca13404626::t_daa371a48c369e 61-63,65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "474de3c1814411bb3b3cb1e3138135dc1ce8d651",
+  "prompts": {},
+  "sessions": {
+    "s_8fe3ca13404626": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d09f72c9-ff8c-4d3c-b381-a42d44050785",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}

@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/CrossRegionConfigSyncer.java
+  s_03adea600b51e4::t_6f809d3fcdd530 142
+  s_03adea600b51e4::t_cf789346356036 155-167
+  s_03adea600b51e4::t_1c70f91513390d 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "f0d5e9e1f05c695a19b85786d417b61a3251751f",
+  "prompts": {},
+  "sessions": {
+    "s_03adea600b51e4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8888649b-bd4e-4f76-bfdd-90d4ba2253cb",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
