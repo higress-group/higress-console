@@ -1,0 +1,32 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigDumper.java
+  s_cfb489f9da7a97::t_ca150386892911 8
+  s_cfb489f9da7a97::t_2dbe327aedbd12 73-81,94-95,97
+  s_a534d00b783c52::t_054f6bbe81abe3 105,130
+  s_a534d00b783c52::t_5947c6d01a876a 86
+  s_cfb489f9da7a97::t_6204bcd90a3d25 131-133,136-157,164-165,176-178,186
+  s_cfb489f9da7a97::t_56a4ecc4b9f2b6 285-286,290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.32-trip",
+  "base_commit_sha": "5d39eb52679951a5b36af38fc01444362ebd1674",
+  "prompts": {},
+  "sessions": {
+    "s_a534d00b783c52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "352c27ad-863f-43a8-99b7-580b91f072d6",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_cfb489f9da7a97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3bc38ab8-3634-479a-b092-3e14cb91d8c0",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
