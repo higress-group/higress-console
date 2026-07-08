@@ -1,0 +1,113 @@
+apiVersion: 1.0.0
+info:
+  gatewayMinVersion: ""
+  type: oss
+  category: security
+  name: csp
+  image: platform_wasm/csp
+  title: CSP Content Security Policy
+  x-title-i18n:
+    zh-CN: CSP 内容安全策略
+  description: Injects the Content-Security-Policy response header to reduce XSS and other injection risks, with support for report-only mode and upstream header override control.
+  x-description-i18n:
+    zh-CN: 为 HTTP 响应注入 Content-Security-Policy 响应头，降低 XSS 等注入类攻击风险，支持仅上报模式与上游响应头覆盖控制。
+  iconUrl: https://img.alicdn.com/imgextra/i1/O1CN01jKT9vC1O059vNaq5u_!!6000000001642-2-tps-42-42.png
+  readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/csp/README.md
+  x-readmeUrl-i18n:
+    en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/csp/README_EN.md
+  version: 1.0.0
+  contact:
+    name: Higress Team
+    url: http://higress.io/
+    email: admin@higress.io
+spec:
+  phase: default
+  priority: 330
+  configSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        policy:
+          type: string
+          title: CSP Policy
+          x-title-i18n:
+            zh-CN: CSP 策略
+          description: The CSP directive string, e.g. default-src 'self'; img-src *. Required and must be non-empty.
+          x-description-i18n:
+            zh-CN: CSP 策略字符串，例如 default-src 'self'; img-src *。必填且不能为空。
+        report_only:
+          type: boolean
+          title: Report-Only Mode
+          x-title-i18n:
+            zh-CN: 仅上报模式
+          description: When true, uses the Content-Security-Policy-Report-Only header so violations are reported but not enforced, which is useful for validating a policy before rollout.
+          x-description-i18n:
+            zh-CN: 为 true 时使用 Content-Security-Policy-Report-Only 响应头，仅上报违规而不强制拦截，便于灰度验证策略。
+          default: false
+        report_only_policy:
+          type: string
+          title: Report-Only Candidate Policy
+          x-title-i18n:
+            zh-CN: 灰度验证策略
+          description: Optional. When set, injects an extra Content-Security-Policy-Report-Only header alongside the enforced policy, so a stricter candidate policy can be validated while the current one stays enforced. Cannot be combined with report_only true.
+          x-description-i18n:
+            zh-CN: 可选。设置后在强制策略之外额外注入一个 Content-Security-Policy-Report-Only 响应头，用于强制现有策略的同时灰度验证更严格的候选策略。不可与 report_only 为 true 同时使用。
+        override:
+          type: boolean
+          title: Override Upstream Header
+          x-title-i18n:
+            zh-CN: 覆盖上游响应头
+          description: When true (default), removes any CSP header already set by the upstream (both variants) before injecting the configured policy; when false, keeps an existing upstream header of the same variant untouched while still injecting the other configured variant.
+          x-description-i18n:
+            zh-CN: 为 true（默认）时先清除上游已设置的 CSP 响应头（两种变体都会被清除）再注入本插件策略；为 false 时若响应中已存在同名（同一变体）的 CSP 响应头则保留原值、不注入该变体，另一变体仍会正常注入。
+          default: true
+      required:
+        - policy
+      example:
+        policy: "default-src 'self'; img-src *; script-src 'self'"
+        report_only: false
+        override: true
+  routeConfigSchema:
+    openAPIV3Schema:
+      type: object
+      properties:
+        policy:
+          type: string
+          title: CSP Policy
+          x-title-i18n:
+            zh-CN: CSP 策略
+          description: The CSP directive string, e.g. default-src 'self'; img-src *. Required and must be non-empty.
+          x-description-i18n:
+            zh-CN: CSP 策略字符串，例如 default-src 'self'; img-src *。必填且不能为空。
+        report_only:
+          type: boolean
+          title: Report-Only Mode
+          x-title-i18n:
+            zh-CN: 仅上报模式
+          description: When true, uses the Content-Security-Policy-Report-Only header so violations are reported but not enforced, which is useful for validating a policy before rollout.
+          x-description-i18n:
+            zh-CN: 为 true 时使用 Content-Security-Policy-Report-Only 响应头，仅上报违规而不强制拦截，便于灰度验证策略。
+          default: false
+        report_only_policy:
+          type: string
+          title: Report-Only Candidate Policy
+          x-title-i18n:
+            zh-CN: 灰度验证策略
+          description: Optional. When set, injects an extra Content-Security-Policy-Report-Only header alongside the enforced policy, so a stricter candidate policy can be validated while the current one stays enforced. Cannot be combined with report_only true.
+          x-description-i18n:
+            zh-CN: 可选。设置后在强制策略之外额外注入一个 Content-Security-Policy-Report-Only 响应头，用于强制现有策略的同时灰度验证更严格的候选策略。不可与 report_only 为 true 同时使用。
+        override:
+          type: boolean
+          title: Override Upstream Header
+          x-title-i18n:
+            zh-CN: 覆盖上游响应头
+          description: When true (default), removes any CSP header already set by the upstream (both variants) before injecting the configured policy; when false, keeps an existing upstream header of the same variant untouched while still injecting the other configured variant.
+          x-description-i18n:
+            zh-CN: 为 true（默认）时先清除上游已设置的 CSP 响应头（两种变体都会被清除）再注入本插件策略；为 false 时若响应中已存在同名（同一变体）的 CSP 响应头则保留原值、不注入该变体，另一变体仍会正常注入。
+          default: true
+      required:
+        - policy
+      example:
+        policy: "default-src 'self'; img-src *; script-src 'self'"
+        report_only: false
+        override: true

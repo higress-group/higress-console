@@ -60,4 +60,5 @@ public final class BuiltInPluginName {
     public static final String BOT_DETECT = "bot-detect";
     public static final String WAF = "waf";
     public static final String CORS = "cors";
+    public static final String CSP = "csp";
 }
