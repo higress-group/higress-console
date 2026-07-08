@@ -1,0 +1,30 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_305e3b1347b1d2::t_f25f6222b407ce 7-8
+  s_305e3b1347b1d2::t_9729cb8b8e1385 23
+  s_305e3b1347b1d2::t_b66213aacf81b0 51-60
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDaoTest.java
+  s_305e3b1347b1d2::t_efceba10e50905 54
+  s_305e3b1347b1d2::t_3d1856b5e59b2e 48
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_305e3b1347b1d2::t_d310e7e879c1e7 339
+  s_305e3b1347b1d2::t_cc9271fbdc62f2 321
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDaoTest.java
+  s_305e3b1347b1d2::t_3f7818a396a7b4 45
+  s_305e3b1347b1d2::t_1f53f5b2042b6d 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.32-trip",
+  "base_commit_sha": "6f079d6c8b056afc671e3ffc16b8d30ac9008c15",
+  "prompts": {},
+  "sessions": {
+    "s_305e3b1347b1d2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "195a36f7-8664-4733-99c7-c355b1f785f3",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
