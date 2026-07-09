@@ -1,0 +1,23 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/InternalSyncTokenValidator.java
+  s_b720a93eecb257::t_45ade6a8a655a4 40-43
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/InternalSyncTokenValidatorTest.java
+  s_b720a93eecb257::t_d6c44a94b1da00 72,76,80,84
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_b720a93eecb257::t_b1bbb143f7b5d4 58-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "a612643ff600195eea0e8d0aacd6aea1773acba0",
+  "prompts": {},
+  "sessions": {
+    "s_b720a93eecb257": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "963579b3-8cb4-47fb-b59d-91e330055e44",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
