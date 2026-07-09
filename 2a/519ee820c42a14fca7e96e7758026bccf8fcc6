@@ -1,0 +1,31 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_3acbd406b9d2e9::t_663d9afb35ddd9 286-287
+  s_221fb6c443f24f::t_e2555f8ad783bc 276
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_221fb6c443f24f::t_054a64badaabfa 75-76
+  s_221fb6c443f24f::t_edb7abd4de7314 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "2a519ee820c42a14fca7e96e7758026bccf8fcc6",
+  "prompts": {},
+  "sessions": {
+    "s_221fb6c443f24f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "72fcd2ec-e5e6-4233-9728-4334c51b419b",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_3acbd406b9d2e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "36e6d71d-834d-409c-aa3e-b5af2a794e32",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
