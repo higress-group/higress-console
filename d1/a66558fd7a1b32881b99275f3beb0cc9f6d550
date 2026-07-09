@@ -1,0 +1,22 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_de83f6d94cdeaa::t_b87336f3e9f3ae 320-333
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_de83f6d94cdeaa::t_6ef30942b82fc4 50
+  s_de83f6d94cdeaa::t_8c512cfbe00efb 47-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "d1a66558fd7a1b32881b99275f3beb0cc9f6d550",
+  "prompts": {},
+  "sessions": {
+    "s_de83f6d94cdeaa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "74303c60-0e11-4171-8cf5-2cfdbbefac35",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
