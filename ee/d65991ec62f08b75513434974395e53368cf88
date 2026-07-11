@@ -1,0 +1,23 @@
+backend/console/src/main/resources/application.properties
+  s_545c01413fe0bf::t_e6d57f08e30437 31
+backend/console/src/main/java/com/alibaba/higress/console/config/CorsConfig.java
+  s_545c01413fe0bf::t_b3e4f3114d1e92 1-60
+backend/console/src/test/java/com/alibaba/higress/console/config/CorsConfigTest.java
+  s_545c01413fe0bf::t_bd596b23c3bc59 1-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "eed65991ec62f08b75513434974395e53368cf88",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
