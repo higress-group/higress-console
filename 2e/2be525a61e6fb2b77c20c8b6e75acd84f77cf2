@@ -1,0 +1,50 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_73f7891538820c::t_4b33d8debe327b 114,118-119,127,129-130,132,135-136,145,148-149
+  s_73f7891538820c::t_acb85118725e1d 128,131,133-134,146-147
+  s_73f7891538820c::t_e5f46430a45ea4 106-113,116-117,120-126,137-144,150-160
+  s_73f7891538820c::t_a0aec8b818f356 115
+  s_73f7891538820c::t_c83084597292dc 17
+  s_73f7891538820c::t_074fafa93319c3 86-87,104-105
+  s_73f7891538820c::t_5eb8e165079af5 6
+  s_73f7891538820c::t_ef16f602851f57 27-31,44-46,57-58,63-64,161
+frontend/src/services/maintenance.ts
+  s_73f7891538820c::t_1149baec1de558 7
+  s_73f7891538820c::t_bdfcf119b34824 3-6
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_73f7891538820c::t_2bb980d5e1100c 84-85,89
+  s_73f7891538820c::t_79f9153af8b16d 92
+  s_73f7891538820c::t_ab8e87c908d183 9
+  s_73f7891538820c::t_1449da59348526 38
+  s_73f7891538820c::t_fbc05b9f985196 81
+frontend/src/locales/zh-CN/translation.json
+  s_73f7891538820c::t_3fe21976ee4a53 729-733
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_73f7891538820c::t_8df26db6721219 473,478-485
+  s_73f7891538820c::t_34a162e7ad6db8 545,550-556
+  s_73f7891538820c::t_a470125dd132eb 546-548
+  s_73f7891538820c::t_4b16948839e3b1 451-452,454-457,459-460,486-488
+  s_73f7891538820c::t_3b8465e7f0031d 449-450,477,549
+frontend/src/locales/en-US/translation.json
+  s_73f7891538820c::t_0477392d72ebf2 729-733
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_73f7891538820c::t_74d8f684806244 453
+  s_73f7891538820c::t_06f120b084b4d0 498
+frontend/src/pages/decrypt/index.tsx
+  s_73f7891538820c::t_476df22c2ff3c0 28-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "2e2be525a61e6fb2b77c20c8b6e75acd84f77cf2",
+  "prompts": {},
+  "sessions": {
+    "s_73f7891538820c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5198cc0b-77d7-4463-a2cb-2be7d96d90df",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
