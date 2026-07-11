@@ -1,0 +1,22 @@
+frontend/src/pages/deployment/useShardStatuses.ts
+  s_545c01413fe0bf::t_24f65037b7e2e2 1-20,28,32-57
+  s_545c01413fe0bf::t_f69a1dcd0f44bf 21-27,29-31
+frontend/src/pages/deployment/__tests__/useShardStatuses.test.ts
+  s_545c01413fe0bf::t_34dd7c7ca6f410 1-10,12,14-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "e98fbe759b25735b962f783f8ce70292d2a090c6",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
