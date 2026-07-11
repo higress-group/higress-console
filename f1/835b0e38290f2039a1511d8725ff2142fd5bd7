@@ -1,0 +1,24 @@
+frontend/src/services/deployment.ts
+  s_545c01413fe0bf::t_8f65327eb0d767 1-10,12-24
+  s_545c01413fe0bf::t_bdc07b1eb06106 11
+frontend/src/interfaces/deployment.ts
+  s_545c01413fe0bf::t_4c387362ab9efd 1-30
+frontend/src/services/__tests__/deployment.test.ts
+  s_545c01413fe0bf::t_1de350eae5a17f 1-31,33-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "f1835b0e38290f2039a1511d8725ff2142fd5bd7",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
