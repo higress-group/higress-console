@@ -1,0 +1,23 @@
+frontend/src/components/ClusterSelector/__tests__/env-config.test.ts
+  s_545c01413fe0bf::t_477028a34043dc 1-8,14-29
+  s_545c01413fe0bf::t_af240e32beb570 9-13
+frontend/src/components/ClusterSelector/env-config.ts
+  s_545c01413fe0bf::t_9d6fb423eb54ee 243-289
+  s_545c01413fe0bf::t_4085bdf4dfd3cd 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "7e562bd5d9d24d2b55557c11e2ab32b100e1e1bd",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
