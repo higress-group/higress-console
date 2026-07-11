@@ -1,0 +1,20 @@
+backend/console/src/main/java/com/alibaba/higress/console/config/SdkConfig.java
+  s_545c01413fe0bf::t_09ad513dada185 49
+  s_545c01413fe0bf::t_5ecc32d680f46f 113-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "a7f5bb780e11f31e40049447fc938ba85ada1a84",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
