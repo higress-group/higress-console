@@ -1,0 +1,20 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/DeploymentStatusAssembler.java
+  s_545c01413fe0bf::t_30f7dbb6a07d1a 134-145
+  s_545c01413fe0bf::t_0867f74027aefa 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "ca26042266a3506f6e6273ab4de24ca8b67107cc",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

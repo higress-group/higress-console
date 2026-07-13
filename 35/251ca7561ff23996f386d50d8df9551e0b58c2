@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "35251ca7561ff23996f386d50d8df9551e0b58c2",
+  "prompts": {},
+  "humans": {
+    "h_eb3d1210109a84": {
+      "author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

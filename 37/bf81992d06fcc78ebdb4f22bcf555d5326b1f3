@@ -1,0 +1,32 @@
+backend/console/src/main/java/com/alibaba/higress/console/constant/PermissionCode.java
+  s_af21a12e36dfe6::t_bd6c7e8233d0b6 3-6,8-9,11-13,18-22,24-26,28-31,33-36,38,41-44,46-47,50-52,54-57,60-65
+  s_af21a12e36dfe6::t_93223b44555b10 14-17,27,32,37,39-40,45,48-49,53,67
+  s_af21a12e36dfe6::t_b46bf5be89e396 69-78
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/service/impl/TripSessionServiceImpl.java
+  s_af21a12e36dfe6::t_7faf00c7275f75 88
+backend/console/src/main/java/com/alibaba/higress/console/service/PermissionCheckService.java
+  s_af21a12e36dfe6::t_63cc7de0bbaf87 52-55
+backend/console/src/test/java/com/alibaba/higress/console/service/PermissionCheckServiceTest.java
+  s_af21a12e36dfe6::t_e747c48724cf11 802
+  s_af21a12e36dfe6::t_f8933d8f0f321d 818-819
+backend/console/src/main/java/com/alibaba/higress/console/model/PermissionRequirement.java
+  s_af21a12e36dfe6::t_6618b3c46c3ffe 42-43,50-51,53
+backend/console/src/test/java/com/alibaba/higress/console/model/PermissionRequirementTest.java
+  s_af21a12e36dfe6::t_d8ac3c8cf44b7c 56-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "37bf81992d06fcc78ebdb4f22bcf555d5326b1f3",
+  "prompts": {},
+  "sessions": {
+    "s_af21a12e36dfe6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab710336-2d55-44fb-b7f4-3b78f67eb1a7",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}

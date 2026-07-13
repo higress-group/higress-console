@@ -1,0 +1,23 @@
+backend/console/src/main/java/com/alibaba/higress/console/constant/PermissionCode.java
+  s_af21a12e36dfe6::t_bd6c7e8233d0b6 3-68
+backend/console/src/test/java/com/alibaba/higress/console/model/PermissionRequirementTest.java
+  s_af21a12e36dfe6::t_d8ac3c8cf44b7c 56,58
+backend/console/src/main/java/com/alibaba/higress/console/model/PermissionRequirement.java
+  s_af21a12e36dfe6::t_6618b3c46c3ffe 42,51,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "c432a4e187a08319ef708c6656c32a4321438237",
+  "prompts": {},
+  "sessions": {
+    "s_af21a12e36dfe6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab710336-2d55-44fb-b7f4-3b78f67eb1a7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

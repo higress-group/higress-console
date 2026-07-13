@@ -1,0 +1,28 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/deployment/PodStatus.java
+  s_545c01413fe0bf::t_b8577f3e649aad 1-10
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/deployment/DeploymentStatus.java
+  s_545c01413fe0bf::t_258d4e89145cd7 1-13
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/deployment/ShardStatus.java
+  s_545c01413fe0bf::t_54c82d1adaece6 1-18
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/deployment/ReplicaSetGroup.java
+  s_545c01413fe0bf::t_eb353232e9e017 1-10
+backend/pom.xml
+  s_545c01413fe0bf::t_d8b8f063d86694 54
+  s_545c01413fe0bf::t_0f46e684f31740 205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "30276a2870734d80dfa641f37c0c1f913a32a484",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
