@@ -1,0 +1,98 @@
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerController.java
+  s_55731ddaca8b3c::t_a7bd0ad3184792 47,50
+  s_55731ddaca8b3c::t_695711f364e3b5 22
+  s_55731ddaca8b3c::t_49b9e926d12c95 51-59
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/DaoTestBase.java
+  s_55731ddaca8b3c::t_e4d5203f6fcde3 4,12-15,18,32-35,62-63,90-97
+  s_55731ddaca8b3c::t_16d7a1b9effff2 43-61
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_55731ddaca8b3c::t_ad210e7e14a679 323-328,330-331,333-334,336-338
+  s_55731ddaca8b3c::t_88475137732f37 24,30
+  s_55731ddaca8b3c::t_5eeab7d4edf53b 33,177-178,209-210,241-242
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/util/AesKmsEncryptionUtil.java
+  s_55731ddaca8b3c::t_fc6a1c414355a1 18-20,29-37,48,52,54-55,59,63,65-69,73-83,87-102,106-107,112
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerConsumerController.java
+  s_55731ddaca8b3c::t_b4fa541036d473 22
+  s_55731ddaca8b3c::t_debf6283fd6be6 47,50
+  s_55731ddaca8b3c::t_27a65dd3faf582 51-57
+frontend/src/services/llm-consumer.ts
+  s_55731ddaca8b3c::t_cf517a47ea48c2 10,12
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_55731ddaca8b3c::t_197ff008c3c967 187
+  s_55731ddaca8b3c::t_aeaa8efab55347 184,191
+  s_55731ddaca8b3c::t_a80c0f1a6b1104 185-186
+  s_55731ddaca8b3c::t_772768992f057b 207,224
+  s_55731ddaca8b3c::t_6d452fc97cd092 293-294,325
+  s_55731ddaca8b3c::t_acb02a74b17f4e 324
+  s_55731ddaca8b3c::t_a6975909a13e4e 21
+frontend/src/pages/decrypt/index.tsx
+  s_55731ddaca8b3c::t_c5c1f91de11287 12
+  s_55731ddaca8b3c::t_005ea1a8bacad0 64
+  s_55731ddaca8b3c::t_deea423e3a9002 27-32,34
+  s_55731ddaca8b3c::t_deca188e638a2b 1
+frontend/src/locales/zh-CN/translation.json
+  s_55731ddaca8b3c::t_5bc74411c9e6b0 730-731,741-744
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_55731ddaca8b3c::t_7af62e1895fedc 44-45
+  s_55731ddaca8b3c::t_a22b2e8e84a9fd 156,188,209
+backend/console/src/main/java/com/alibaba/higress/console/controller/util/ControllerUtil.java
+  s_55731ddaca8b3c::t_aeb9ceface2c85 38-42
+  s_55731ddaca8b3c::t_2de3325de995b0 23-24
+frontend/src/services/llm-route.ts
+  s_55731ddaca8b3c::t_312e2e243af5da 10-11,13
+frontend/src/services/mcp-server.ts
+  s_55731ddaca8b3c::t_7cce630fa34c75 10-12,14
+frontend/src/services/mcp-server-consumer.ts
+  s_55731ddaca8b3c::t_7a76feab685b5f 10-11,13
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDaoTest.java
+  s_55731ddaca8b3c::t_1fb824be15ba1b 13,18
+  s_55731ddaca8b3c::t_dbea53a3ddcce5 34
+  s_55731ddaca8b3c::t_c1cb970b413017 45-49,51-52,54,56-58,64-67,69,71-72,74,76-78
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_55731ddaca8b3c::t_84f42acb3d2c28 155-204
+  s_55731ddaca8b3c::t_9edb33258761de 205-208
+frontend/src/locales/en-US/translation.json
+  s_55731ddaca8b3c::t_85cf571b9e70ec 730-731,741-744
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_55731ddaca8b3c::t_c31851da3948a1 99
+  s_55731ddaca8b3c::t_d202c4c396e860 34,40
+  s_55731ddaca8b3c::t_c0bd4c235063f6 250-253,255,257,259-260,262,264-269
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmRouteController.java
+  s_55731ddaca8b3c::t_ea705cc4854ecb 52-58,60-62
+  s_55731ddaca8b3c::t_9bb3dec41441cc 48,51
+  s_55731ddaca8b3c::t_5d6a5dbf2ff044 23,29-36
+frontend/src/services/llm-service.ts
+  s_55731ddaca8b3c::t_aa485645f83943 10-11,13
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmConsumerController.java
+  s_55731ddaca8b3c::t_fa7b32a7a6e6f4 22
+  s_55731ddaca8b3c::t_3b202a7be9e152 51-54
+  s_55731ddaca8b3c::t_99afc586f40318 47,50
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDaoTest.java
+  s_55731ddaca8b3c::t_a974749166affd 37
+  s_55731ddaca8b3c::t_5318dff1248fb7 50-53,55-56,58,60-62,68-71,73-74,76-77,79,81-83
+  s_55731ddaca8b3c::t_a83e8cc8c2e86b 14,19
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_55731ddaca8b3c::t_e5cbcc201e71e0 97-112,125
+frontend/src/services/maintenance.ts
+  s_55731ddaca8b3c::t_0b3b0536a84562 11-18
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceController.java
+  s_55731ddaca8b3c::t_7222206a6389d2 22
+  s_55731ddaca8b3c::t_81c704adf7065a 47,50
+  s_55731ddaca8b3c::t_d593980b9b1e14 51-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "9b846f467a0ab0ee70c26cb4ece059dd30c67c61",
+  "prompts": {},
+  "sessions": {
+    "s_55731ddaca8b3c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "576ed50f-5e25-4ba6-b7a8-fc91cb0d41f3",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
