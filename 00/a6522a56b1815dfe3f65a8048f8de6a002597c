@@ -1,0 +1,86 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_2ef97328c5b7c4::t_eb0132c0eabddd 383
+  s_2ef97328c5b7c4::t_6e687dedda3531 178
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmServiceService.java
+  s_2ef97328c5b7c4::t_54b1a20ce20520 12-13
+frontend/src/services/mcp-server-consumer.ts
+  s_564d101ed31291::t_8b1441c7bff4e6 2
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_69d61d6cd9f2a1::t_6b8bb1d37c637d 290-293
+  s_69d61d6cd9f2a1::t_46a962cc6b6109 654-657
+  s_69d61d6cd9f2a1::t_925ed9e1cb5bda 294-304
+frontend/src/services/mcp-server.ts
+  s_564d101ed31291::t_0689ed3542c113 2
+frontend/src/pages/view/mcp-server.tsx
+  s_564d101ed31291::t_fbfc993e0e1718 51
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/ConsumerServiceImpl.java
+  s_2ef97328c5b7c4::t_7b3c7597d95cd3 64,70-75
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_2ef97328c5b7c4::t_20f786e1f7dfa0 796-836
+  s_2ef97328c5b7c4::t_b92f1c76b46c81 735-775
+  s_2ef97328c5b7c4::t_d9a86a3a0ae4cd 456,459-461,471-473,484-489,563,584,650-688,703-704,859,865,903
+frontend/src/pages/view/llm-route.tsx
+  s_564d101ed31291::t_ba44005f605514 48
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/ConsumerService.java
+  s_2ef97328c5b7c4::t_9ab3820f78350d 12-13
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_e5054bebf978dd::t_a2fa91cb0ff42b 126-127,303-306,319-358,383-386,403-406,424-427,456-459,464-466,474-477,513,548-549
+frontend/src/services/llm-service.ts
+  s_564d101ed31291::t_62b835b820d79d 2
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/ConsumerServiceImplTest.java
+  s_2ef97328c5b7c4::t_da3c73e3e45c44 45,57-74
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/model/ResourceDeleteState.java
+  s_e5054bebf978dd::t_f9b794040d3543 3-4,8,36-37
+frontend/src/services/llm-route.ts
+  s_564d101ed31291::t_809c016d4ee20c 2
+frontend/src/pages/view/llm-service.tsx
+  s_564d101ed31291::t_e7d81050aff3e6 44
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_564d101ed31291::t_5b572cd66f8297 44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImpl.java
+  s_2ef97328c5b7c4::t_cecf72143e3d4d 228-236,245
+frontend/src/services/llm-consumer.ts
+  s_564d101ed31291::t_377c0c08fc2bd4 2
+frontend/src/pages/view/llm-consumer.tsx
+  s_564d101ed31291::t_10fa6b70889388 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "00a6522a56b1815dfe3f65a8048f8de6a002597c",
+  "prompts": {},
+  "sessions": {
+    "s_2ef97328c5b7c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "654d5032-19f8-4e15-bd68-a29b03076a85",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": null
+    },
+    "s_564d101ed31291": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a31be99-6cf3-4cee-94c8-4c3fba886d57",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_69d61d6cd9f2a1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a664cc02-75cd-4350-aa22-9793e8bc92da",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_e5054bebf978dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4c78bf9-711e-4584-b02d-606676c4b460",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": null
+    }
+  }
+}
