@@ -1,0 +1,34 @@
+frontend/src/pages/deployment/index.tsx
+  s_545c01413fe0bf::t_c518914c6913b2 112
+  s_545c01413fe0bf::t_9a58615944a7cc 8
+  s_545c01413fe0bf::t_596def3ae27278 61-83
+  s_545c01413fe0bf::t_ad0d181031807c 86
+frontend/src/pages/layout.tsx
+  s_545c01413fe0bf::t_bd1373cdfb936a 68-69
+frontend/src/pages/_defaultProps.tsx
+  s_545c01413fe0bf::t_dfe49718466236 120
+frontend/src/interfaces/user.ts
+  s_545c01413fe0bf::t_08e4adf7ccedb2 1-7
+  s_545c01413fe0bf::t_70ae3552a24a12 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "b52868dd0c810e4a332f2e2e9ab79a948bd506f3",
+  "prompts": {},
+  "humans": {
+    "h_eb3d1210109a84": {
+      "author": "CH3CHO <ch3cho@qq.com>"
+    }
+  },
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
