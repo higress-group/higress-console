@@ -1,0 +1,27 @@
+frontend/src/locales/zh-CN/translation.json
+  s_67d0e290768b4b::t_5db8ce51671a6d 732
+frontend/src/locales/en-US/translation.json
+  s_67d0e290768b4b::t_f024e97fed3942 732
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_67d0e290768b4b::t_e2a6df0652bf72 140
+  s_67d0e290768b4b::t_e75d929c3dd24c 148
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_67d0e290768b4b::t_01095e657653e9 93
+  s_67d0e290768b4b::t_ca4cfddfbf82e9 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "6f8c8a5b020e0b603500370b81fef395c5a6a996",
+  "prompts": {},
+  "sessions": {
+    "s_67d0e290768b4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a141050-cebe-43d2-9c00-53a5284ef63c",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
