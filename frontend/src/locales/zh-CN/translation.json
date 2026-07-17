@@ -118,7 +118,19 @@
     "usage": "使用方法",
     "aiRouteUsage": "AI路由使用方法",
     "aiRouteUsageContent": "可使用以下命令发送请求：",
-    "searchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由"
+    "searchPlaceholder": "根据路由名称、域名、路由条件和目标服务搜索路由",
+    "search": {
+      "name": "按名称搜索",
+      "domain": "按域名搜索",
+      "provider": "按 AI 服务搜索",
+      "pathLabel": "路径",
+      "path": "按路径搜索",
+      "consumerLabel": "消费者",
+      "consumer": "按已授权消费者搜索",
+      "authState": "认证状态",
+      "authEnabled": "已授权消费者",
+      "reset": "重置"
+    }
   },
   "consumer": {
     "columns": {

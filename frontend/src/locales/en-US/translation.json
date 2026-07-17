@@ -118,7 +118,19 @@
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
     "aiRouteUsageContent": "You can send a test request using the command below:",
-    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers."
+    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers.",
+    "search": {
+      "name": "Search by name",
+      "domain": "Search by domain",
+      "provider": "Search by AI service",
+      "pathLabel": "Path",
+      "path": "Search by path",
+      "consumerLabel": "Consumer",
+      "consumer": "Search by authorized consumer",
+      "authState": "Auth State",
+      "authEnabled": "Enabled with consumers",
+      "reset": "Reset"
+    }
   },
   "consumer": {
     "columns": {
