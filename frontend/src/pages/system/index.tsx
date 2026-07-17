@@ -2,6 +2,7 @@ import CodeEditor, { CodeEditorRef } from '@/components/CodeEditor';
 import { Mode } from '@/interfaces/config';
 import { getHigressConfig, updateHigressConfig } from '@/services/system';
 import store from '@/store';
+import { stripTrailingSpaces } from '@/utils';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Form, message } from 'antd';
@@ -32,7 +33,8 @@ const SystemSettings: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const updatedConfigYaml = await updateHigressConfig(configYaml);
+      const cleanedConfigYaml = stripTrailingSpaces(configYaml);
+      const updatedConfigYaml = await updateHigressConfig(cleanedConfigYaml);
       setConfigYaml(updatedConfigYaml);
       codeEditorRef.current?.pushContent(updatedConfigYaml);
       message.success(t('plugins.saveSuccess'));

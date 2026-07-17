@@ -57,9 +57,31 @@ public class DirectRoutingDetailStrategy extends AbstractMcpServerDetailStrategy
         mcpServer.setDirectRouteConfig(config);
         String path = route.getRewrite().getPath();
         if (StringUtils.equals(transportType, McpConstants.MCP_TRANSPORT_SSE)) {
-            path = StringUtils.join(path, generateUpstreamPathPrefix());
+            path = joinPath(path, generateUpstreamPathPrefix());
         }
         config.setPath(path);
+    }
+
+    /**
+     * Concatenates a path prefix and a suffix while guaranteeing exactly one '/' between them, regardless of whether
+     * the prefix has a trailing slash and/or the suffix has a leading slash. If the prefix is the root path (i.e. '/'
+     * or composed entirely of '/'), the suffix is returned on its own.
+     */
+    private static String joinPath(String prefix, String suffix) {
+        if (StringUtils.isBlank(suffix)) {
+            return prefix;
+        }
+        if (StringUtils.isBlank(prefix)) {
+            return suffix;
+        }
+        String trimmedPrefix = StringUtils.stripEnd(prefix, "/");
+        String normalizedSuffix = suffix.startsWith("/") ? suffix : "/" + suffix;
+        if (trimmedPrefix.isEmpty()) {
+            // The prefix was the root path '/' (or composed entirely of '/' characters); the normalized suffix
+            // already carries its own leading separator.
+            return normalizedSuffix;
+        }
+        return trimmedPrefix + normalizedSuffix;
     }
 
     private String generateUpstreamPathPrefix() {

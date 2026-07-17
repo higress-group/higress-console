@@ -841,6 +841,8 @@
     }
   },
   "misc": {
+    "showMore": "还有 {{count}} 个...",
+    "collapse": "收起",
     "logout": "退出登录",
     "confirm": "确定",
     "submit": "提交",
@@ -908,6 +910,7 @@
       "dbTypeRequired": "请选择数据库类型",
       "dsn": "DSN",
       "upstreamService": "后端服务",
+      "serviceNotFound": "未找到对应的后端服务",
       "consumerAuth": "认证",
       "saveAndPublish": "保存并发布",
       "cancel": "取消",
