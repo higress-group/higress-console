@@ -788,6 +788,21 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 </>
               )
             }
+            <Form.Item
+              label={t('llmProvider.providerForm.label.reasoningContentMode')}
+              tooltip={t('llmProvider.providerForm.tooltips.reasoningContentModeTooltip')}
+              name={["rawConfigs", "reasoningContentMode"]}
+            >
+              <Select
+                allowClear
+                placeholder={t('llmProvider.providerForm.placeholder.reasoningContentModePlaceholder') || ''}
+                options={[
+                  { label: t('llmProvider.providerForm.label.reasoningModePassthrough'), value: 'passthrough' },
+                  { label: t('llmProvider.providerForm.label.reasoningModeIgnore'), value: 'ignore' },
+                  { label: t('llmProvider.providerForm.label.reasoningModeConcat'), value: 'concat' },
+                ]}
+              />
+            </Form.Item>
           </>
         )
       }
@@ -1314,6 +1329,19 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
           </>
         )
       }
+
+      {/* 通用：流式首包超时（适用于所有供应商） */}
+      <Form.Item
+        label={t('llmProvider.providerForm.label.firstByteTimeout')}
+        tooltip={t('llmProvider.providerForm.tooltips.firstByteTimeoutTooltip')}
+        name={["rawConfigs", "firstByteTimeout"]}
+      >
+        <InputNumber
+          min={0}
+          style={{ width: '100%' }}
+          placeholder={t('llmProvider.providerForm.placeholder.firstByteTimeoutPlaceholder') || ''}
+        />
+      </Form.Item>
 
       {/* 令牌降级 */}
       <Form.Item
