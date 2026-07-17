@@ -12,6 +12,11 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -21,10 +26,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
+import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.model.ai.AiRoute;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
+
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AiRouteServiceTest {
 
@@ -97,6 +113,77 @@ public class AiRouteServiceTest {
 		String config = writer.toString();
 		//System.out.println(writer);
 		Assertions.assertTrue(config.contains("name: \"4xx_response\"") && config.contains("name: \"5xx_response\""));
+	}
+
+	@Test
+	public void validateResourceVersionShouldAllowCurrentVersion() throws ApiException {
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		when(kubernetesClientService.readConfigMap("ai-route-test"))
+				.thenReturn(new V1ConfigMap().metadata(new V1ObjectMeta().resourceVersion("2")));
+
+		AiRouteServiceImpl aiRouteService = createAiRouteService(kubernetesClientService);
+		AiRoute route = AiRoute.builder().name("test").version("2").build();
+
+		Assertions.assertDoesNotThrow(() -> aiRouteService.validateResourceVersion(route));
+	}
+
+	@Test
+	public void validateResourceVersionShouldRejectStaleVersion() throws ApiException {
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		when(kubernetesClientService.readConfigMap("ai-route-test"))
+				.thenReturn(new V1ConfigMap().metadata(new V1ObjectMeta().resourceVersion("2")));
+
+		AiRouteServiceImpl aiRouteService = createAiRouteService(kubernetesClientService);
+		AiRoute route = AiRoute.builder().name("test").version("1").build();
+
+		Assertions.assertThrows(ResourceConflictException.class,
+				() -> aiRouteService.validateResourceVersion(route));
+	}
+
+	@Test
+	public void validateResourceVersionShouldFailWhenConfigMapReadFails() throws ApiException {
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		ApiException apiException = new ApiException(500, "Failed to read ConfigMap");
+		when(kubernetesClientService.readConfigMap("ai-route-test")).thenThrow(apiException);
+
+		AiRouteServiceImpl aiRouteService = createAiRouteService(kubernetesClientService);
+		AiRoute route = AiRoute.builder().name("test").version("1").build();
+
+		BusinessException exception = Assertions.assertThrows(BusinessException.class,
+				() -> aiRouteService.validateResourceVersion(route));
+		Assertions.assertSame(apiException, exception.getCause());
+	}
+
+	@Test
+	public void validateResourceVersionShouldFailWhenConfigMapIsMissing() throws ApiException {
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		when(kubernetesClientService.readConfigMap("ai-route-test")).thenReturn(null);
+
+		AiRouteServiceImpl aiRouteService = createAiRouteService(kubernetesClientService);
+		AiRoute route = AiRoute.builder().name("test").version("1").build();
+
+		Assertions.assertThrows(BusinessException.class,
+				() -> aiRouteService.validateResourceVersion(route));
+	}
+
+	@Test
+	public void validateResourceVersionShouldFailWhenMetadataIsMissing() throws ApiException {
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		when(kubernetesClientService.readConfigMap("ai-route-test")).thenReturn(new V1ConfigMap());
+
+		AiRouteServiceImpl aiRouteService = createAiRouteService(kubernetesClientService);
+		AiRoute route = AiRoute.builder().name("test").version("1").build();
+
+		Assertions.assertThrows(BusinessException.class,
+				() -> aiRouteService.validateResourceVersion(route));
+	}
+
+	private static AiRouteServiceImpl createAiRouteService(KubernetesClientService kubernetesClientService)
+			throws ApiException {
+		when(kubernetesClientService.loadFromYaml(anyString(), eq(V1alpha3EnvoyFilter.class)))
+				.thenReturn(new V1alpha3EnvoyFilter());
+		return new AiRouteServiceImpl(new KubernetesModelConverter(kubernetesClientService),
+				kubernetesClientService, null, null, null);
 	}
 
 }
