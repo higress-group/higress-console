@@ -68,6 +68,10 @@ public class SystemConfigKey {
 
     public static final long ADMIN_CONFIG_TTL_DEFAULT = 10 * 1000;
 
+    public static final String ADMIN_SESSION_TTL_KEY = CONFIG_KEY_PREFIX + "admin.session-ttl";
+
+    public static final long ADMIN_SESSION_TTL_DEFAULT = 30 * 60 * 1000;
+
     public static final String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY =
         CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
     public static final boolean DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT = true;
