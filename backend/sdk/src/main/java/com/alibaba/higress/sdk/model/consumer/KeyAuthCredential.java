@@ -23,7 +23,6 @@ import com.alibaba.higress.sdk.exception.ValidationException;
 import com.google.common.collect.Sets;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -31,7 +30,6 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "KeyAuth Credential")
 public class KeyAuthCredential extends Credential {
 
@@ -44,6 +42,13 @@ public class KeyAuthCredential extends Credential {
     private String key;
     @Schema(description = "Credential Values")
     private List<String> values;
+
+    public KeyAuthCredential(String source, String key, List<String> values) {
+        super(CredentialType.KEY_AUTH);
+        this.source = source;
+        this.key = key;
+        this.values = values != null ? new ArrayList<>(values) : null;
+    }
 
     public KeyAuthCredential(String type, String source, String key, List<String> values) {
         super(type);

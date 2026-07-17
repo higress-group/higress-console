@@ -10,22 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.alibaba.higress.sdk.model.mcp;
+package com.alibaba.higress.sdk.constant.plugin.config;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Data;
+public final class HmacAuthConfig {
 
-/**
- * @author HecarimV
- */
-@Data
-@Builder
-public class McpServerConsumerDetail {
-    @Schema(description = "Mcp server name")
-    private String mcpServerName;
-    @Schema(description = "Consumer name")
-    private String consumerName;
-    @Schema(description = "Credential type")
-    private String type;
+    private HmacAuthConfig() {}
+
+    public static final String ALLOW = "allow";
+    public static final String GLOBAL_AUTH = "global_auth";
+    public static final String CONSUMERS = "consumers";
+    public static final String CONSUMER_NAME = "name";
+    public static final String ACCESS_KEY = "access_key";
+    public static final String SECRET_KEY = "secret_key";
+    public static final String LEGACY_KEY = "key";
+    public static final String LEGACY_SECRET = "secret";
 }

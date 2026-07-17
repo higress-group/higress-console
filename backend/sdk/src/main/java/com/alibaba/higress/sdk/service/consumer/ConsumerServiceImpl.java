@@ -51,8 +51,8 @@ public class ConsumerServiceImpl implements ConsumerService {
     private static final Map<String, CredentialHandler> CREDENTIAL_HANDLERS;
 
     static {
-        CREDENTIAL_HANDLERS =
-            Stream.of(new KeyAuthCredentialHandler()).collect(Collectors.toMap(CredentialHandler::getType, c -> c));
+        CREDENTIAL_HANDLERS = Stream.of(new KeyAuthCredentialHandler(), new JwtAuthCredentialHandler(),
+            new HmacAuthCredentialHandler()).collect(Collectors.toMap(CredentialHandler::getType, c -> c));
     }
 
     private final WasmPluginInstanceService wasmPluginInstanceService;
@@ -65,7 +65,11 @@ public class ConsumerServiceImpl implements ConsumerService {
     public Consumer addOrUpdate(Consumer consumer) {
         List<WasmPluginInstance> instancesToUpdate = new ArrayList<>(CREDENTIAL_HANDLERS.size());
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
+            boolean hasCredential = hasCredential(consumer, handler.getType());
             WasmPluginInstance instance = getGlobalPluginInstance(handler);
+            if (instance == null && !hasCredential) {
+                continue;
+            }
             if (instance == null) {
                 instance = createGlobalPluginInstance(handler);
             }
@@ -216,6 +220,11 @@ public class ConsumerServiceImpl implements ConsumerService {
         } else {
             credentialTypes = credentialTypes.stream().distinct().collect(Collectors.toList());
         }
+        for (String credentialType : credentialTypes) {
+            if (!CREDENTIAL_HANDLERS.containsKey(credentialType)) {
+                throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
+            }
+        }
 
         switch (operation) {
             case ADD:
@@ -237,12 +246,16 @@ public class ConsumerServiceImpl implements ConsumerService {
                 throw new UnsupportedOperationException("Unsupported operation: " + operation);
         }
 
+        if (operation == AllowListOperation.REPLACE) {
+            for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
+                if (!credentialTypes.contains(handler.getType())) {
+                    wasmPluginInstanceService.delete(targets, handler.getPluginName(), true);
+                }
+            }
+        }
+
         for (String credentialType : credentialTypes) {
             CredentialHandler handler = CREDENTIAL_HANDLERS.get(credentialType);
-            if (handler == null) {
-                throw new IllegalArgumentException("Unsupported credential type: " + credentialType);
-            }
-
             List<WasmPluginInstance> instancesToSave = new ArrayList<>();
 
             List<WasmPluginInstance> instances = getAllPluginInstances(handler);
@@ -317,5 +330,12 @@ public class ConsumerServiceImpl implements ConsumerService {
         instance.setGlobalTarget();
         handler.initDefaultGlobalConfigs(instance);
         return instance;
+    }
+
+    private boolean hasCredential(Consumer consumer, String credentialType) {
+        if (consumer == null || CollectionUtils.isEmpty(consumer.getCredentials())) {
+            return false;
+        }
+        return consumer.getCredentials().stream().anyMatch(c -> Objects.equals(credentialType, c.getType()));
     }
 }
