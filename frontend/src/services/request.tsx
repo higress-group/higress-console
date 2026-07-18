@@ -2,9 +2,10 @@ import { Modal } from "antd";
 import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
+import { resolveRequestTimeout } from './timeout';
 
 const request = axios.create({
-  timeout: 5 * 1000,
+  timeout: resolveRequestTimeout(),
   baseURL: process.env.ICE_CORE_MODE === "development" ? "/api" : "",
   headers: {
     "Content-Type": "application/json",
