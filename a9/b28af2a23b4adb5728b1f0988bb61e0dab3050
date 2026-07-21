@@ -1,0 +1,42 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/DaoTestBase.java
+  s_143528a7def094::t_22ba20167db7b7 32
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_143528a7def094::t_ea7f9dfd9753d3 141,151
+  s_143528a7def094::t_31cdc3fb6e5a76 205
+  s_143528a7def094::t_c9a8029607ecc3 107,121
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/util/AesKmsEncryptionUtil.java
+  s_143528a7def094::t_9340f8792253a2 111
+  s_143528a7def094::t_6a81dff9ea8033 17-20,22,43,46,48
+  s_143528a7def094::t_41821f5d0c25a6 9
+  s_143528a7def094::t_4da09f218f981f 112-115,118-119,125
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/util/AesKmsEncryptionUtilTest.java
+  s_80b718d8ee99bb::t_feb20b405bc56f 16
+  s_143528a7def094::t_d4ab450886c392 92-93
+  s_143528a7def094::t_c947c728b22c99 15
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_143528a7def094::t_97d6f7600debd9 427-428,465,472-473,511
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.35-trip",
+  "base_commit_sha": "a9b28af2a23b4adb5728b1f0988bb61e0dab3050",
+  "prompts": {},
+  "sessions": {
+    "s_143528a7def094": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec84a836-3918-41cb-b7b7-2d5b4fde6fe1",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_80b718d8ee99bb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "41e4e6d1-30a0-492e-8a9d-4c83883c6118",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
