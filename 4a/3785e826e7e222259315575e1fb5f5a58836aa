@@ -1,0 +1,44 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterDumpDiffTool.java
+  s_27b5fff95717c1::t_8fdafcc99662ab 494-495
+  s_27b5fff95717c1::t_b323a640ccd9ab 85,87-91,93-99,101-125
+  s_878c46c603107c::t_6543224ef28015 465-472
+  s_27b5fff95717c1::t_a2d4ced50b5859 497-499,503-506
+  s_27b5fff95717c1::t_6f02273cca1d80 546-547,552,555
+  s_27b5fff95717c1::t_95b850321c523d 9
+  s_27b5fff95717c1::t_741e5a9363f240 508,511
+  s_27b5fff95717c1::t_5db0e8d1ace142 194-196,200,212,215,221,227,230-231,234,252-258,261,264,267-268,271-272
+  s_878c46c603107c::t_c01c2e6dc24dce 548-551,553-554
+  s_878c46c603107c::t_57c88c6076f14c 189-190
+  s_878c46c603107c::t_5b140178cb32f4 496,500-502,507,509-510,512-513
+  s_27b5fff95717c1::t_ff14256c61f1bb 210-211
+  s_878c46c603107c::t_3ff70234cc0ab5 238-251
+  s_878c46c603107c::t_8b06931031e210 295,299-301,303,306,309-311,313-314
+  s_878c46c603107c::t_ab02941852d65b 138-143
+  s_878c46c603107c::t_dcbc12cf84ce1e 100
+  s_878c46c603107c::t_a4c2dc069501db 178
+  s_878c46c603107c::t_53744e7da28625 325-327
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.35-trip",
+  "base_commit_sha": "4a3785e826e7e222259315575e1fb5f5a58836aa",
+  "prompts": {},
+  "sessions": {
+    "s_27b5fff95717c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bec815a7-88fe-4960-8929-6856e790be95",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_878c46c603107c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42e7fdc3-2bb1-4373-9fd3-97cd482e45b4",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
