@@ -1,0 +1,62 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterDumpDiffTool.java
+  s_18c4fc00bdaf44::t_457f9becd3caa8 3-6
+  s_18c4fc00bdaf44::t_bf836af5976397 47-49,63-65,67
+  s_18c4fc00bdaf44::t_eadf93a9e19146 26
+  s_27b5fff95717c1::t_123a994947523d 214
+  s_27b5fff95717c1::t_9f169a17acb903 356
+  s_27b5fff95717c1::t_9d9325f5ed8e73 256
+  s_27b5fff95717c1::t_75ea6239fe71c3 136
+  s_18c4fc00bdaf44::t_30a3aaaa1261fc 116,119
+  s_27b5fff95717c1::t_29bf69db7825ce 144
+  s_18c4fc00bdaf44::t_d7955c6307dcda 69-76,78-80,82-95,99,102,104
+  s_18c4fc00bdaf44::t_681e7fc9832a8c 388-391
+  s_18c4fc00bdaf44::t_1ae15aee2bbcae 10
+  s_27b5fff95717c1::t_9bd8286addcd99 110
+  s_18c4fc00bdaf44::t_21e9d6066a92d6 38-41
+  s_18c4fc00bdaf44::t_fc6c97baa89c0c 217-227,229-231,233,235-236,239,242-246,253
+  s_18c4fc00bdaf44::t_395369f074cf4b 316
+  s_27b5fff95717c1::t_2141171328472a 240,252,258,261,263,266
+  s_18c4fc00bdaf44::t_cde213d2640ef6 1-2,7-9,11-17,19-25,27-37,42-45,52,60-62,68,105-109,111-115,120-135,138,140-143,145-200,204-213,215-216,228,247-251,254-255,257,259-260,262,264-265,267-315,317-355,357-371,373-375,377-381,384-387,392-446
+  s_18c4fc00bdaf44::t_48a3cf39689004 137,139
+  s_18c4fc00bdaf44::t_d95c598e8d6234 96-98
+  s_27b5fff95717c1::t_6ca7f456a3a641 372,376
+  s_18c4fc00bdaf44::t_aa939cfb2c005b 46,50,66
+  s_18c4fc00bdaf44::t_390b74c7ae806f 53-54,57-59
+  s_18c4fc00bdaf44::t_736458b18b1527 117-118
+  s_18c4fc00bdaf44::t_6cb80f0058ad8c 201-203
+  s_18c4fc00bdaf44::t_470efa32551c6d 232,234,237-238,241
+  s_27b5fff95717c1::t_653a1b123081a0 18
+  s_18c4fc00bdaf44::t_61d085e0297907 100-101,103
+  s_27b5fff95717c1::t_3e8ca74036f386 77
+  s_27b5fff95717c1::t_e7e1814eea9d0c 81
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigDumper.java
+  s_18c4fc00bdaf44::t_696cc26a557653 82,84,101-109,111-121,123
+  s_18c4fc00bdaf44::t_16bd0c25d4a2a8 85-87,89-92,94-98,100
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterDump.java
+  s_27b5fff95717c1::t_f5163e6304575b 5,22
+  s_18c4fc00bdaf44::t_12cac3320d2d6c 1-4,6-21,23-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.35-trip",
+  "base_commit_sha": "2dd853549b8d65df2c4098ba244ae06f3f029238",
+  "prompts": {},
+  "sessions": {
+    "s_18c4fc00bdaf44": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd89ee0e-e88f-47ab-875f-27f97648f626",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_27b5fff95717c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bec815a7-88fe-4960-8929-6856e790be95",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
