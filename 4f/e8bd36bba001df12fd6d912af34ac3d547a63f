@@ -1,0 +1,19 @@
+docs/superpowers/specs/2026-07-18-frontend-request-timeout-design.md
+  s_437e841d6c034b::t_24b36dc702a1e6 1-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "4fe8bd36bba001df12fd6d912af34ac3d547a63f",
+  "prompts": {},
+  "sessions": {
+    "s_437e841d6c034b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df3631c3-5423-4489-afcc-a5af46b7261e",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
