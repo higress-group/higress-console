@@ -82,6 +82,11 @@ public class ClaudeLlmProviderHandler extends AbstractLlmProviderHandler {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
+        // Omit root paths so a URL without a trailing slash isn't rewritten with an extra "/" on reload.
+        // stripEnd also collapses all-slash paths like "//".
+        if (StringUtils.stripEnd(path, "/").isEmpty()) {
+            path = "";
+        }
         String host = endpoint.getAddress().trim();
         int port = endpoint.getPort() != null ? endpoint.getPort()
             : (V1McpBridge.PROTOCOL_HTTP.equals(endpoint.getProtocol()) ? DEFAULT_HTTP_PORT : DEFAULT_HTTPS_PORT);
