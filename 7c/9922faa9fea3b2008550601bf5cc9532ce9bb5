@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/TripLlmRouterRefactorController.java
+  s_c47d4d73fb9100::t_162c171b95e2ab 31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "7c9922faa9fea3b2008550601bf5cc9532ce9bb5",
+  "prompts": {},
+  "sessions": {
+    "s_c47d4d73fb9100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0b8e0009-0c6e-456f-b156-72636792f2e2",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
