@@ -1,0 +1,69 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_d9d041b852939b::t_142f39c478548f 5,51,54,60
+  s_d9d041b852939b::t_b0e55e126d2b6d 6
+  s_d9d041b852939b::t_80a63c634dd65b 53
+  s_d9d041b852939b::t_494340c78d77be 55-59
+backend/console/src/main/resources/mapper/McpServerConsumerMapper.xml
+  s_d9d041b852939b::t_03b242a1f72c90 35,40
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerConsumerDao.java
+  s_d9d041b852939b::t_32c2db109b6142 55
+  s_d9d041b852939b::t_cbd4dfb2577965 6
+  s_d9d041b852939b::t_fcc07867d5e291 5,53,56,62
+  s_d9d041b852939b::t_05fb117eba65a7 57-61
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDao.java
+  s_d9d041b852939b::t_850c87ecb4d719 74
+  s_d9d041b852939b::t_f714ce615627c4 3-4,9-10,16-21,29-34,81-82,88-95,97-98
+  s_d9d041b852939b::t_39b6112bd0495a 7,65-66,100
+  s_d9d041b852939b::t_f192517474d29d 69
+  s_d9d041b852939b::t_5a464f235950b6 72,75-76
+backend/console/src/main/resources/mapper/ResourceDataMapper.xml
+  s_d9d041b852939b::t_178c4180b9c99b 51-56,63-66
+backend/console/src/main/resources/mapper/LlmServiceMapper.xml
+  s_d9d041b852939b::t_8c41c0fe92bb7f 47,52
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceDataMapper.java
+  s_d9d041b852939b::t_3317c26487fdf7 19
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDao.java
+  s_d9d041b852939b::t_b8530cbe5dccbb 5,50-51,54
+  s_d9d041b852939b::t_958c7637539fb4 6
+  s_d9d041b852939b::t_8cade55afb65d5 53
+  s_d9d041b852939b::t_c2743a7bc258d8 55-59
+backend/console/src/main/resources/mapper/LlmConsumerMapper.xml
+  s_d9d041b852939b::t_603488787cd0ec 46,51
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractResourceAggregateDao.java
+  s_d9d041b852939b::t_f7de5802599673 183,185-187
+  s_d9d041b852939b::t_3182493e241daa 140-141,143-144
+  s_d9d041b852939b::t_8aef6f61eb6ed4 192,194-197,199
+  s_d9d041b852939b::t_73b6b692d45a31 134-135,139,146
+  s_d9d041b852939b::t_20aad88c80292e 21
+  s_d9d041b852939b::t_ff15bd527d87e4 188,190-191
+  s_d9d041b852939b::t_c61e5ff8baab17 217-218,222-225
+  s_d9d041b852939b::t_23ac80b395dc7b 110,112-113
+  s_d9d041b852939b::t_0a6e4a0990c24d 142,145
+  s_d9d041b852939b::t_c5779f21c38e63 150
+  s_d9d041b852939b::t_b207d3e84a629e 159,161-163
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_d9d041b852939b::t_75be77dad81f17 58
+  s_d9d041b852939b::t_91c64f0f38ed9d 7
+  s_d9d041b852939b::t_b713288ea817fa 6,56,59,65
+  s_d9d041b852939b::t_c80cfd5e77ec4b 60-64
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_d9d041b852939b::t_46529839c57288 53,58
+backend/console/src/main/resources/mapper/McpServerMapper.xml
+  s_d9d041b852939b::t_5993a6b7149be6 54,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.17-trip",
+  "base_commit_sha": "68faeb4d0d95d86401f8e692e7629b57638b3f36",
+  "prompts": {},
+  "sessions": {
+    "s_d9d041b852939b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9a4466a5-0255-4078-9b87-6434ed45b7ce",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/44zlpcmel2rf"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

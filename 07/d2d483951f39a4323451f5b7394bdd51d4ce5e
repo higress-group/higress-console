@@ -1,0 +1,72 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_c1f7fd2600fd84::t_9a4a431650d4b3 3,25-26,46-48,69,75,150-151,154,157-161,196-200,203-206,208-209,211,269-282
+  s_c1f7fd2600fd84::t_db4a564b6e6b2e 72-73,78-80,97,102,105,201-202
+  s_c1f7fd2600fd84::t_1858daf7886669 103-104
+  s_c1f7fd2600fd84::t_0bc0756647b6f0 56-57,74,76-77
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/DaoTestBase.java
+  s_c1f7fd2600fd84::t_83b9ecbf96e34a 6,39-40,50-51
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/InternalSyncTokenValidator.java
+  s_c1f7fd2600fd84::t_d7d9be3207c5b9 15-18,28-31,41,52-56
+  s_c1f7fd2600fd84::t_abd434c5844a61 1,5-6,8-10,13-14,19-21,24-26,32-40,42-51,60-61,63-81
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/entity/ResourceDataDO.java
+  s_c1f7fd2600fd84::t_6a9a35e5eca5d6 19-20
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_c1f7fd2600fd84::t_2fcf5834419753 31
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_c1f7fd2600fd84::t_93502889427066 9,20,95,100-101,119-121
+  s_c1f7fd2600fd84::t_0a24ef6981de9e 60
+  s_c1f7fd2600fd84::t_db4a564b6e6b2e 61,98-99,107-108
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_c1f7fd2600fd84::t_88c81a9ea998ad 412,424,426
+  s_c1f7fd2600fd84::t_738e735ffe20bf 7,10,18,22,25,32,39,41,43,47,52,71,101-108,110-111,113-115,126,151-152,234,279,283-284,293-295,305-411,413-423,425,427-456
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_7fa0a85aba7776::t_5c2b17d04baf03 166,172
+  s_7fa0a85aba7776::t_5c3f41849d8c48 276,282
+  s_7fa0a85aba7776::t_d40479f4903426 207,214
+  s_7fa0a85aba7776::t_56fe1fca31ea4c 346,352
+  s_7fa0a85aba7776::t_06c192f7ff464a 391,397
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_fc75d107e936a9::t_b65ff0ef8b172d 42,44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_c1f7fd2600fd84::t_b2ee80371e1966 175,183-184,186
+  s_c1f7fd2600fd84::t_47de0780c63163 57
+  s_c1f7fd2600fd84::t_0bab4a2750fc22 28
+  s_c1f7fd2600fd84::t_75d77ec76d199b 463
+  s_c1f7fd2600fd84::t_beaca2f771e35b 474,541
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_7fa0a85aba7776::t_40c66b9822d281 1-29,33-501
+backend/console/src/main/resources/mapper/ResourceDataMapper.xml
+  s_c1f7fd2600fd84::t_f8f661340f67b1 12-13,22-25,29-30,33-34,39-40,48-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.18-trip",
+  "base_commit_sha": "07d2d483951f39a4323451f5b7394bdd51d4ce5e",
+  "prompts": {},
+  "sessions": {
+    "s_7fa0a85aba7776": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5706839a-652d-4811-82c6-9c6414fc4e0b",
+        "model": "arn:aws:bedrock:eu-central-1:133197901387:application-inference-profile/6fy9m3ca6aa5"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_c1f7fd2600fd84": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d51d563a-cbfc-4544-968d-3d640765268c",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_fc75d107e936a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d70a9ec0-126d-459d-85d9-3788cdd5a520",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/model/DeploymentStatusSerializationTest.java
+  s_545c01413fe0bf::t_c51c00a0342102 1-25
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/deployment/ReplicaSetGroup.java
+  s_545c01413fe0bf::t_2869fda67e5215 22
+  s_545c01413fe0bf::t_8058c254984218 5-6
+backend/console/src/main/java/com/alibaba/higress/console/config/CorsConfig.java
+  s_545c01413fe0bf::t_a3c4c7a7c14518 45
+frontend/src/pages/deployment/kubectl-commands.ts
+  s_545c01413fe0bf::t_1e867017b1b1cd 32
+frontend/src/pages/deployment/__tests__/kubectl-commands.test.ts
+  s_545c01413fe0bf::t_8198117d9caeaf 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "b00486eee7b38780bc77199eff16d6f1a53836bf",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

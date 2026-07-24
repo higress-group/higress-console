@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/DeploymentStatusControllerTest.java
+  s_545c01413fe0bf::t_13a16020dc1e1b 1-44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/DeploymentStatusController.java
+  s_545c01413fe0bf::t_cacc04a7070974 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "e9d19bc46f953bd08a9009ec099ff8fc334afd84",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

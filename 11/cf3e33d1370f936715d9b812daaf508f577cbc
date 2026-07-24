@@ -1,0 +1,53 @@
+frontend/src/locales/zh-CN/translation.json
+  s_67d0e290768b4b::t_5db8ce51671a6d 740
+  s_e5adfd1161fd27::t_d1676617cae02f 529-530
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_67d0e290768b4b::t_01095e657653e9 93
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_67d0e290768b4b::t_e75d929c3dd24c 148
+  s_67d0e290768b4b::t_e2a6df0652bf72 140
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_84d22197d3e7eb::t_79ff2caccf17a9 131
+  s_84d22197d3e7eb::t_4dd1ae31a188b4 210
+  s_84d22197d3e7eb::t_3ecd905fa6989b 458-459
+  s_84d22197d3e7eb::t_3e4b4e42031548 493
+  s_84d22197d3e7eb::t_92b093bb742793 575,577,580-585,587,593,597
+frontend/src/locales/en-US/translation.json
+  s_67d0e290768b4b::t_f024e97fed3942 740
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_84d22197d3e7eb::t_964b9e38d8e42f 495
+  s_84d22197d3e7eb::t_c66e125d47945f 370,385
+  s_84d22197d3e7eb::t_c7db8361a3b8b9 415,417-418
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "11cf3e33d1370f936715d9b812daaf508f577cbc",
+  "prompts": {},
+  "sessions": {
+    "s_67d0e290768b4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a141050-cebe-43d2-9c00-53a5284ef63c",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_84d22197d3e7eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8083c08-e806-4b60-96ff-25c1ec406e33",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_e5adfd1161fd27": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb8e1db2-3495-4b09-b12f-dac2b0cc3075",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

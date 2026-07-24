@@ -1,0 +1,61 @@
+frontend/src/components/ConfigViewPage/index.tsx
+  s_6263358f80e13a::t_8a6e462a025f97 29
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmRouteService.java
+  s_6263358f80e13a::t_d587a0cee09b33 27
+frontend/src/pages/view/llm-consumer.tsx
+  s_6263358f80e13a::t_a62c6e8a981200 37
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/ConsumerService.java
+  s_6263358f80e13a::t_fd7f3075ed2154 10-11
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmServiceService.java
+  s_6263358f80e13a::t_95c2478d7ffd35 10-11
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/ConsumerServiceImpl.java
+  s_6263358f80e13a::t_288ecf62903c7f 32,43-48
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/McpServerServiceImpl.java
+  s_6263358f80e13a::t_5cf27e5d21090c 257-258
+  s_6263358f80e13a::t_40b5a6cf85a221 308-309
+frontend/src/pages/view/mcp-server.tsx
+  s_6263358f80e13a::t_beaac068b930ce 51
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/McpServerService.java
+  s_6263358f80e13a::t_0473c6435f9d1a 19-22
+frontend/src/pages/view/llm-route.tsx
+  s_6263358f80e13a::t_cc2520daeeb68a 48
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_6263358f80e13a::t_7a701641dfb3fe 44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImpl.java
+  s_6263358f80e13a::t_fab56fdf33d8c4 120-121
+frontend/src/pages/view/llm-service.tsx
+  s_6263358f80e13a::t_0ebd2e23a94f23 44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_6263358f80e13a::t_11b0fcd3410163 230,235-243
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_6263358f80e13a::t_0b3c97b38d38b7 413
+  s_6263358f80e13a::t_9a7f4f3538ea00 293
+  s_6263358f80e13a::t_f6dd3435dda5f1 167
+  s_6263358f80e13a::t_46d91d6a497149 216
+  s_6263358f80e13a::t_5d72d5cfc09252 13
+  s_6263358f80e13a::t_c50fcb8261da7b 469-471
+  s_6263358f80e13a::t_2eba8189e1cfb3 371
+frontend/src/components/ConfigDetailDrawer/index.tsx
+  s_6263358f80e13a::t_87c44e7c2037b4 11
+  s_6263358f80e13a::t_1d7e5112da3d33 62
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_6263358f80e13a::t_b7bb083bb435ee 120,131,143,155,168,184,440,453,466,475,488,501,515
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_6263358f80e13a::t_0870283f0999c8 184-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "c2b96e4655df919be7221cb09ab7f6683f6f5747",
+  "prompts": {},
+  "sessions": {
+    "s_6263358f80e13a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1dfb6de6-acc9-476e-b551-71d7e00e1ab1",
+        "model": "glm-5.1"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

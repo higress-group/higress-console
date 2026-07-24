@@ -1,0 +1,41 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_355e55d30ca214::t_721607710f57df 111-112,126,135,157,168,176,188,199,207,219,230,238,249,257-258,267
+  s_355e55d30ca214::t_6a01a5f9937310 36
+  s_355e55d30ca214::t_041c389edc4f66 327
+  s_355e55d30ca214::t_91054fbc21d7ad 32
+  s_355e55d30ca214::t_d2582e6479560a 99-100
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_9a928dc6a42cfc::t_59b6fb989abd87 497
+  s_9a928dc6a42cfc::t_49190ade139bfc 511
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_355e55d30ca214::t_20ae1ac28036e9 98-99,136-137
+  s_355e55d30ca214::t_db43542f21c0cf 104
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_355e55d30ca214::t_c78f58d15f371c 284-287,300-301,303-306,308
+  s_355e55d30ca214::t_ee19bb697954e2 288,299,302
+  s_355e55d30ca214::t_b940128de895d1 68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "1f23af4ad03dbac1b6019a6cb2eef082ef3622a8",
+  "prompts": {},
+  "sessions": {
+    "s_355e55d30ca214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f45ed23-8dd3-476f-9ae8-b70a39ee1310",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_9a928dc6a42cfc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cf04414b-4386-4074-a737-465914fb05d4",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

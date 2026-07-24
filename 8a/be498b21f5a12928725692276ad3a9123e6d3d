@@ -1,0 +1,25 @@
+frontend/src/locales/en-US/translation.json
+  s_545c01413fe0bf::t_456a5a59a5a2a3 986-989
+frontend/src/pages/deployment/index.tsx
+  s_545c01413fe0bf::t_19ff19b3a1a0ea 1,5-29,36-39,42-113,116-118,120-122,124,126-127,133-135,138,140-161,166,169,171-172,183-216,218,221-225,230-234,326-372,389-400
+  s_545c01413fe0bf::t_ff4a8acdbd4e35 2
+  s_545c01413fe0bf::t_32156e76bd3381 30-35,40-41,114-115,119,123,125,128-132,136-137,139,162-165,167-168,170,173-182,217,219-220,226-229,235-325,373-388
+frontend/src/locales/zh-CN/translation.json
+  s_545c01413fe0bf::t_5fd928a86ad128 986-989
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "8abe498b21f5a12928725692276ad3a9123e6d3d",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}

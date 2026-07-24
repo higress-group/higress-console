@@ -1,0 +1,25 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/DiffReport.java
+  s_aed44b5c9078ed::t_fad1bb05d3bbf9 1-24
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/DiffType.java
+  s_aed44b5c9078ed::t_95f6fc1872df90 1-7
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/ConfigDiff.java
+  s_aed44b5c9078ed::t_54ec65e045f377 1-16
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/ConfigDiffTest.java
+  s_aed44b5c9078ed::t_d407725826a4b9 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "f6cabf5a8d558b4e00cca7ca5d94b4e49de0cca5",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

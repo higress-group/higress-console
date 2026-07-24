@@ -1,0 +1,23 @@
+frontend/vitest.config.ts
+  s_545c01413fe0bf::t_a5049f41bf22f0 1-16
+frontend/package.json
+  s_545c01413fe0bf::t_60300ef2d2aba6 69-71
+frontend/vitest.setup.ts
+  s_545c01413fe0bf::t_25d9e1c5e3d3a8 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "7d533d60540e4c4e3e64f9a1c1affb76c5c8e9be",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

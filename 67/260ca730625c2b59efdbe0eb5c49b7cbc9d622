@@ -1,0 +1,25 @@
+frontend/src/locales/en-US/translation.json
+  s_9799a1adff651e::t_b09cbdcf451a5f 121-132
+frontend/src/pages/ai/route.tsx
+  s_9799a1adff651e::t_03f3d08fd21548 508,510
+  s_9799a1adff651e::t_1014d701765416 263
+  s_9799a1adff651e::t_b09cbdcf451a5f 11,24-34,171-262,264-277,297,313-328,484-485,487-498,500-507,511-513,517-599
+frontend/src/locales/zh-CN/translation.json
+  s_9799a1adff651e::t_b09cbdcf451a5f 121-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "67260ca730625c2b59efdbe0eb5c49b7cbc9d622",
+  "prompts": {},
+  "sessions": {
+    "s_9799a1adff651e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1311bd54-4f86-4728-b686-336ac4ea3008",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_ed421110553d3d::t_b248bb4130a171 1-293
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.17-trip",
+  "base_commit_sha": "0476cc7a752cea1c29d54d18bd7e0533498320e0",
+  "prompts": {},
+  "sessions": {
+    "s_ed421110553d3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4cc67c5-9a88-4a9c-ba10-1e402b4ddf14",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

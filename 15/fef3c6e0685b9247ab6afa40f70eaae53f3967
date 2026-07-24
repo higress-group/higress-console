@@ -1,0 +1,20 @@
+docs/superpowers/specs/2026-06-27-ai-route-filter-design.md
+  s_9799a1adff651e::t_6c0af9004530fb 1-250,252-254,258-260,263-266,275-352
+  s_9799a1adff651e::t_5c43a80a9a33bb 251,255-257,261-262,267-274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "15fef3c6e0685b9247ab6afa40f70eaae53f3967",
+  "prompts": {},
+  "sessions": {
+    "s_9799a1adff651e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1311bd54-4f86-4728-b686-336ac4ea3008",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_53a9d5c613001e::t_f48b5f8f84b9a3 86
+  s_53a9d5c613001e::t_ebf8b13cfaaff8 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "c232ef39c428bec7f7007b25598928329cd4ec96",
+  "prompts": {},
+  "sessions": {
+    "s_53a9d5c613001e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5be42e0d-2c84-489e-b083-19e0d18d50b7",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

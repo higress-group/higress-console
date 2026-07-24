@@ -1,0 +1,21 @@
+frontend/src/pages/deployment/__tests__/kubectl-commands.test.ts
+  s_545c01413fe0bf::t_f8f4d7e3b943fc 1-42
+frontend/src/pages/deployment/kubectl-commands.ts
+  s_545c01413fe0bf::t_3d7121c1ab4bee 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "4eca151901cd1b3110d74f7565b3c3b9ba8628a8",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_27ce2db971e770::t_c2cf65d1ea745e 185-186
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/util/AesKmsEncryptionUtil.java
+  s_27ce2db971e770::t_f208ec3e38eefe 109-111,116,120
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/util/AesKmsEncryptionUtilTest.java
+  s_27ce2db971e770::t_9af53611921214 54,86-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "e57eec44d043789e0843849aa3e92eadb3755179",
+  "prompts": {},
+  "sessions": {
+    "s_27ce2db971e770": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "513a70dd-e15c-443a-8e90-2eaff1410da0",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

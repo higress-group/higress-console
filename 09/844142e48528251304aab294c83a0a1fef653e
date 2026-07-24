@@ -1,0 +1,68 @@
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_6dbdc6ecf64abd::t_3c848681a48c17 173-174
+  s_6dbdc6ecf64abd::t_be7fbf8228429b 22-27,29-30,51-60
+  s_6dbdc6ecf64abd::t_81076695983e2a 171-172,175-178
+  s_6dbdc6ecf64abd::t_6766573a47ed3b 6,9
+  s_6dbdc6ecf64abd::t_05321ea07361f3 161
+  s_6dbdc6ecf64abd::t_a073177a15bc31 28,34-36,38-45
+frontend/src/components/ConfigDetailDrawer/index.tsx
+  s_6dbdc6ecf64abd::t_86be4ee91d1c16 1-6,10-16,19-24,30-38,40-75
+  s_6dbdc6ecf64abd::t_e1a8b8af04cf34 7-9,17-18,25-29,39
+frontend/src/pages/view/llm-route.tsx
+  s_6dbdc6ecf64abd::t_41174e15074c18 183-184,187-190
+  s_6dbdc6ecf64abd::t_044b3ce8ec699b 6,9,29-37,62-71
+  s_6dbdc6ecf64abd::t_bb43df990f8c6e 45,48,50-52,54-55
+  s_6dbdc6ecf64abd::t_768af608faf2cb 185-186
+frontend/src/pages/view/llm-service.tsx
+  s_6dbdc6ecf64abd::t_f4ae10316cf979 29-37,58-67
+  s_6dbdc6ecf64abd::t_bfe054589ca146 45-52
+  s_6dbdc6ecf64abd::t_c289b05263c3e1 6,9
+  s_6dbdc6ecf64abd::t_9b83687509bfed 179-180,183-186
+  s_6dbdc6ecf64abd::t_6e89c8f9535452 181-182
+frontend/src/pages/view/mcp-server.tsx
+  s_6dbdc6ecf64abd::t_5f31e72463f8a8 178-179,182-185
+  s_6dbdc6ecf64abd::t_86e267e0dd5474 6,9
+  s_6dbdc6ecf64abd::t_497ff09bdb8c95 22-30,58-67
+  s_6dbdc6ecf64abd::t_2812a6c6d35326 180-181
+  s_6dbdc6ecf64abd::t_6d555c753305d2 38-52
+frontend/src/locales/en-US/translation.json
+  s_6dbdc6ecf64abd::t_2b45743d31a2dc 826-829
+  s_6dbdc6ecf64abd::t_707bbe85bd1e36 1000,1013,1026-1027,1039-1040
+  s_6dbdc6ecf64abd::t_dd9bad3a5507fc 1020-1021
+  s_6dbdc6ecf64abd::t_b048615f4b0b4a 1034-1035
+  s_6dbdc6ecf64abd::t_fc0cd0485283dd 1047-1048
+  s_6dbdc6ecf64abd::t_0d7d6f81a09390 994-995
+  s_6dbdc6ecf64abd::t_54b9502d98ee46 1007-1008
+frontend/src/pages/view/llm-consumer.tsx
+  s_6dbdc6ecf64abd::t_c00d6e139f7b93 22-30,44-53
+  s_6dbdc6ecf64abd::t_febc7408ffd053 166-167
+  s_6dbdc6ecf64abd::t_36aca5ca546ff7 164-165,168-171
+  s_6dbdc6ecf64abd::t_03944523972565 6,9
+frontend/src/locales/zh-CN/translation.json
+  s_6dbdc6ecf64abd::t_5ca872ffc13ca2 1000,1013,1026-1027,1040
+  s_6dbdc6ecf64abd::t_641397e1edf5fa 1039
+  s_6dbdc6ecf64abd::t_358febeca2970c 1007-1008
+  s_6dbdc6ecf64abd::t_8b06464eadfcc1 1020-1021
+  s_6dbdc6ecf64abd::t_119050aba31a21 1025,1031-1032
+  s_6dbdc6ecf64abd::t_605aa7839c66b4 1034-1035
+  s_6dbdc6ecf64abd::t_6e99315cc7b6c1 30-31
+  s_6dbdc6ecf64abd::t_e71fe0a2717a35 1047-1048
+  s_6dbdc6ecf64abd::t_1510709c0e0a7e 826-829
+  s_6dbdc6ecf64abd::t_c2142cf5f58e06 994-995
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.17-trip",
+  "base_commit_sha": "09844142e48528251304aab294c83a0a1fef653e",
+  "prompts": {},
+  "sessions": {
+    "s_6dbdc6ecf64abd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e4a7e9e-2f77-41fa-9a56-ca0eec1ebd76",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/44zlpcmel2rf"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

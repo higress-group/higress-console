@@ -1,0 +1,25 @@
+frontend/src/pages/ai/route.tsx
+  s_9799a1adff651e::t_286bb8efbb437b 518
+  s_9799a1adff651e::t_003ed130df453d 230-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "97261b4f6c0c86ab37f8b454a45b2d029e5daa1d",
+  "prompts": {},
+  "humans": {
+    "h_eb3d1210109a84": {
+      "author": "CH3CHO <ch3cho@qq.com>"
+    }
+  },
+  "sessions": {
+    "s_9799a1adff651e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1311bd54-4f86-4728-b686-336ac4ea3008",
+        "model": "MiniMax-M3"
+      },
+      "human_author": null
+    }
+  }
+}

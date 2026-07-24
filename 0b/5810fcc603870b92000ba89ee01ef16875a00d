@@ -1,0 +1,21 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesClientService.java
+  s_545c01413fe0bf::t_b9520fc5ed1bb6 74-75,82-85
+  s_545c01413fe0bf::t_676c49e170c1cb 67
+  s_545c01413fe0bf::t_013560daa592a1 410-441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "0b5810fcc603870b92000ba89ee01ef16875a00d",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

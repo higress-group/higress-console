@@ -1,0 +1,23 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/constant/HttpHeaderConstants.java
+  s_dbfd4dfb724706::t_fe3cf962ae4d3a 4,19
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/model/WriteMode.java
+  s_dbfd4dfb724706::t_9e7dbd369b0e87 4,8,13,17,20
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractResourceAggregateDao.java
+  s_dbfd4dfb724706::t_6bf50091589d0a 86-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10-trip",
+  "base_commit_sha": "e2b3a0bc89a9c198f7a3047bd5095076cef2dab9",
+  "prompts": {},
+  "sessions": {
+    "s_dbfd4dfb724706": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47f140c6-c0e3-4733-bfef-3b502483cd14",
+        "model": "arn:aws:bedrock:us-west-2:671660153913:application-inference-profile/4n4k86cu4ixk"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

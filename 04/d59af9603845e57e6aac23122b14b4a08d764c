@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/ResourceAggregateDao.java
+  s_dbfd4dfb724706::t_958848176a286b 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10-trip",
+  "base_commit_sha": "04d59af9603845e57e6aac23122b14b4a08d764c",
+  "prompts": {},
+  "sessions": {
+    "s_dbfd4dfb724706": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47f140c6-c0e3-4733-bfef-3b502483cd14",
+        "model": "arn:aws:bedrock:us-west-2:671660153913:application-inference-profile/4n4k86cu4ixk"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

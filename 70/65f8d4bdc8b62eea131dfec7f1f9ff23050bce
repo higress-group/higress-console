@@ -1,0 +1,24 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/JsonDiffReporterTest.java
+  s_aed44b5c9078ed::t_8556b69d1c3076 47-48
+  s_aed44b5c9078ed::t_c81dd64b21334e 1-46,49-52
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/diff/JsonDiffReporter.java
+  s_aed44b5c9078ed::t_0ee5d05cb3781b 1-38,40-49,51-83
+  s_aed44b5c9078ed::t_cee9afdf6b992f 39
+  s_aed44b5c9078ed::t_ed0a6c74bc7677 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "7065f8d4bdc8b62eea131dfec7f1f9ff23050bce",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

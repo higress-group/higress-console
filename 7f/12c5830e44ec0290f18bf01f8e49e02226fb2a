@@ -1,0 +1,102 @@
+frontend/src/services/mcp-server.ts
+  s_63d92d82723288::t_a21effe2e677c3 2-22
+frontend/src/services/request.tsx
+  s_63d92d82723288::t_d45a8798b1772d 76-77
+  s_63d92d82723288::t_9c626f0b5fcf58 72-75
+frontend/src/services/llm-service.ts
+  s_63d92d82723288::t_8406ce9bc3fd77 1-6,8-24
+  s_a80b3c043d0e47::t_63cebcfa54c28a 7
+frontend/src/locales/en-US/translation.json
+  s_63d92d82723288::t_e9685031d2a9a0 27
+  s_63d92d82723288::t_29c0e94608e2c4 1025-1027,1030-1035
+  s_63d92d82723288::t_742d021caf087c 25-26,28-31,981-1024
+  s_63d92d82723288::t_685a0b7013bb77 1028-1029
+frontend/src/pages/view/llm-route.tsx
+  s_63d92d82723288::t_ee8c9d22bab0c9 21
+  s_a80b3c043d0e47::t_6789796d3f6f7b 108
+  s_a80b3c043d0e47::t_2ffdfbf874f5ed 62
+  s_63d92d82723288::t_21769b1d3c3629 137
+  s_a80b3c043d0e47::t_d6b8bc0134a315 154-155
+  s_63d92d82723288::t_017d6b4a1f51dd 174
+  s_63d92d82723288::t_4f78a4975f65e3 38-56
+frontend/src/interfaces/llm-route.ts
+  s_63d92d82723288::t_78e9129a6a61e2 1-54
+frontend/src/pages/view/llm-consumer.tsx
+  s_63d92d82723288::t_9eedc3c461694e 31-49
+  s_63d92d82723288::t_9e6a55758664aa 14
+  s_a80b3c043d0e47::t_5b5d8f41ddf30e 101
+  s_63d92d82723288::t_ea7e2981cdc5f8 166
+  s_a80b3c043d0e47::t_8633e92fcd248a 55
+  s_a80b3c043d0e47::t_104ffadb03eef6 147-148
+frontend/src/services/mcp-server-consumer.ts
+  s_63d92d82723288::t_bc7710bc09cdb9 1-24
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_a80b3c043d0e47::t_6f32a7da759118 147-148
+  s_a80b3c043d0e47::t_21667366a1be78 55
+  s_a80b3c043d0e47::t_ac83e390257e68 101
+  s_63d92d82723288::t_4eedf36af1375a 14
+  s_63d92d82723288::t_7c6041652dc096 166
+  s_63d92d82723288::t_59f6cc0ad195b5 5-11,24-50,119-130,152
+frontend/src/services/llm-consumer.ts
+  s_63d92d82723288::t_a3993d5fa78d5d 1-12
+frontend/src/interfaces/llm-consumer.ts
+  s_63d92d82723288::t_7fcf98732b3c6d 1-17
+frontend/src/interfaces/llm-service.ts
+  s_63d92d82723288::t_af301ed61f8c65 1-38
+frontend/src/pages/view/mcp-server.tsx
+  s_63d92d82723288::t_2c930711ffb8a8 166
+  s_a80b3c043d0e47::t_3d6ed99f11dfa2 55
+  s_a80b3c043d0e47::t_a4f391499816f1 147-148
+  s_63d92d82723288::t_a1b33df3882c26 5-6,31-50,120-130,157
+  s_63d92d82723288::t_a58cdaca0bd312 14
+  s_a80b3c043d0e47::t_eceea0f799ca6c 101
+frontend/src/pages/_defaultProps.tsx
+  s_63d92d82723288::t_34bf875739e074 118
+  s_63d92d82723288::t_1cc658ac98c4ae 119-142
+  s_63d92d82723288::t_2083b3f02c8f71 12,117
+frontend/src/pages/view/llm-service.tsx
+  s_63d92d82723288::t_99bb0710135a1a 39-60
+  s_a80b3c043d0e47::t_06f8fe83b9fc9f 108
+  s_63d92d82723288::t_2be86030d04871 21
+  s_63d92d82723288::t_56f32127de8bdd 174
+  s_63d92d82723288::t_7136b0e71a7e41 1-3,14-20,24-27,63-84,86-107,133,139-145,158-160
+  s_63d92d82723288::t_328e5236765667 38,85,110
+  s_a80b3c043d0e47::t_fe52eb552d6acb 62
+  s_a80b3c043d0e47::t_e43855df2b5980 154-155
+  s_63d92d82723288::t_511365d2173eee 5,137
+frontend/src/interfaces/mcp-server-consumer.ts
+  s_63d92d82723288::t_b9a2c304080884 1-31
+frontend/src/interfaces/mcp-server.ts
+  s_63d92d82723288::t_150b907dddbc88 3-19
+frontend/src/locales/zh-CN/translation.json
+  s_63d92d82723288::t_94315b4d2ff6e7 25-26,28-31,981-1026
+  s_63d92d82723288::t_23a0590470db95 27
+  s_63d92d82723288::t_fb28e3ac69bb7a 1030-1031
+  s_63d92d82723288::t_8587e823f4a562 1027-1029,1032-1035
+frontend/src/services/llm-route.ts
+  s_63d92d82723288::t_1e66af0209f8cd 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.17-trip",
+  "base_commit_sha": "7f12c5830e44ec0290f18bf01f8e49e02226fb2a",
+  "prompts": {},
+  "sessions": {
+    "s_63d92d82723288": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "261ddef5-0adc-4d4f-86ec-a1db6a212656",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/69qupdyxh52i"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_a80b3c043d0e47": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5b4a00ae-1518-4975-99f3-f6d567afdc74",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/44zlpcmel2rf"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+frontend/src/locales/zh-CN/translation.json
+  s_9799a1adff651e::t_86baefe232366c 126-128
+frontend/src/locales/en-US/translation.json
+  s_9799a1adff651e::t_634b85d3cefebb 126-128
+frontend/src/pages/ai/route.tsx
+  s_9799a1adff651e::t_685cc046fc467c 309
+  s_9799a1adff651e::t_a7f6aa41673bd2 174,179,203-210,217,231,257
+  s_9799a1adff651e::t_0346e45e5c27f2 463,502,506-508,539-550
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.24-trip",
+  "base_commit_sha": "cb5c63d75c8913a34f49123f09806d2e94250791",
+  "prompts": {},
+  "humans": {
+    "h_eb3d1210109a84": {
+      "author": "CH3CHO <ch3cho@qq.com>"
+    }
+  },
+  "sessions": {
+    "s_9799a1adff651e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1311bd54-4f86-4728-b686-336ac4ea3008",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

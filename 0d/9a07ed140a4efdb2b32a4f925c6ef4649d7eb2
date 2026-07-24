@@ -1,0 +1,21 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/DeploymentStatusAssembler.java
+  s_545c01413fe0bf::t_2e888f71d16dcb 1-12,40-41,52,63-78,96-97,105,107,111-112,129
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/DeploymentStatusAssemblerTest.java
+  s_545c01413fe0bf::t_f5dee75802bd6f 140-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "0d9a07ed140a4efdb2b32a4f925c6ef4649d7eb2",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

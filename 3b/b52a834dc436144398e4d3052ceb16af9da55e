@@ -1,0 +1,121 @@
+backend/console/src/main/resources/mapper/LlmConsumerMapper.xml
+  s_e5adfd1161fd27::t_ae76291c4a3d1e 29-30,32-35,39,46,52
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmConsumerController.java
+  s_e5adfd1161fd27::t_9ed5331fd1ab0a 27,62
+  s_e5adfd1161fd27::t_d36e0e1a02aac7 55-61
+frontend/src/pages/view/llm-route.tsx
+  s_e5adfd1161fd27::t_1282e968830787 51-66
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_e5adfd1161fd27::t_3f96742b3e8e84 47-62
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/CommonSearchPageQuery.java
+  s_e5adfd1161fd27::t_905a4ab42344e1 1-40
+backend/console/src/main/resources/mapper/LlmServiceMapper.xml
+  s_e5adfd1161fd27::t_02c39daab09e9e 30-31,33-34,36-40,43,50,56
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/McpServerConsumerMapper.java
+  s_e5adfd1161fd27::t_3407b48268b8fb 15
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerController.java
+  s_e5adfd1161fd27::t_0cd6cdb596cd5c 54
+  s_e5adfd1161fd27::t_36009ea5a877cd 55-62
+  s_e5adfd1161fd27::t_ca5d70eaf8fbda 27,63
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_e5adfd1161fd27::t_eeb65f1e2406d7 267
+  s_e5adfd1161fd27::t_8767307232b0f9 141-143,152
+  s_e5adfd1161fd27::t_2a65a0353ad08a 17
+  s_e5adfd1161fd27::t_fb296fdc6c3af5 138
+  s_e5adfd1161fd27::t_ea15c321d13668 170
+  s_e5adfd1161fd27::t_787233c230cdab 144,146,148,151,167,175
+  s_e5adfd1161fd27::t_51bce6d40cf38f 262,264-265,270,273-276,278,282-284
+  s_e5adfd1161fd27::t_1d836250eeeb9a 281,286
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerConsumerDao.java
+  s_e5adfd1161fd27::t_8ae0e6e1b1a465 44
+  s_e5adfd1161fd27::t_56dc000f0d60da 11
+  s_e5adfd1161fd27::t_7981f2a0a4bb67 31,50,52-55,57-58,60
+  s_e5adfd1161fd27::t_9d45eba5b08685 32,37,39,45,47-49,51,56,59
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/McpServerMapper.java
+  s_e5adfd1161fd27::t_e2a9c9e42784fa 15
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_e5adfd1161fd27::t_2c021201e17ee4 62,67
+  s_e5adfd1161fd27::t_4d0ce66ea10b42 13
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerConsumerController.java
+  s_e5adfd1161fd27::t_32f30cc542af82 27,64
+  s_e5adfd1161fd27::t_8075a44c2e597d 55-63
+frontend/src/pages/view/mcp-server.tsx
+  s_e5adfd1161fd27::t_ac56f07af65787 54-76
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmConsumerMapper.java
+  s_e5adfd1161fd27::t_c95539e0fb4aee 15
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDao.java
+  s_e5adfd1161fd27::t_9e0068ddb481e1 11
+  s_e5adfd1161fd27::t_b64997e42ffee1 43
+  s_e5adfd1161fd27::t_c4e28ab0aed9fa 30,49,51-54,56-57,59
+  s_e5adfd1161fd27::t_9745ad308e4484 31,36,38,44,46-48,50,55,58
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDao.java
+  s_e5adfd1161fd27::t_65d58b0be284a3 43
+  s_e5adfd1161fd27::t_92444fa063a98e 11,30-31,36,38,44,46-56,78
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmRouteMapper.java
+  s_e5adfd1161fd27::t_279cba317b5b5f 15
+frontend/src/locales/en-US/translation.json
+  s_e5adfd1161fd27::t_f11cb2981ff332 1006-1008
+  s_e5adfd1161fd27::t_9553649d6b37e0 1037-1041
+  s_e5adfd1161fd27::t_939edf031b58d8 1053-1054
+  s_e5adfd1161fd27::t_35860ca95c0b65 1021-1023
+frontend/src/services/mcp-server.ts
+  s_e5adfd1161fd27::t_100197c79051b4 6-7,9-16
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmServiceMapper.java
+  s_e5adfd1161fd27::t_da2121ee41f6a9 15
+backend/console/src/main/resources/mapper/McpServerMapper.xml
+  s_e5adfd1161fd27::t_66286694a4c8df 31-32,34-35,37-38,40-43,47,54,60
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AggregateDao.java
+  s_e5adfd1161fd27::t_8dcdb648857d3c 44,46-49
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_e5adfd1161fd27::t_8f85914a73e17e 30-31,33-34,36-39,43,50,56
+frontend/src/services/llm-route.ts
+  s_e5adfd1161fd27::t_9e22fa9f857fe1 6-7,9-15
+frontend/src/pages/view/llm-service.tsx
+  s_e5adfd1161fd27::t_d098db60ae1922 47-62
+frontend/src/locales/zh-CN/translation.json
+  s_e5adfd1161fd27::t_d1676617cae02f 528-529,1006-1008,1021-1023,1037-1041,1053-1054,1069
+frontend/src/services/mcp-server-consumer.ts
+  s_e5adfd1161fd27::t_df5fe6719ff470 6-7,9-15
+frontend/src/services/llm-consumer.ts
+  s_e5adfd1161fd27::t_2b7bd4d1792724 6-7,9-14
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmRouteController.java
+  s_e5adfd1161fd27::t_3282224db52ca2 27
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_e5adfd1161fd27::t_287c262ddd755d 143,162,164-167,170-171,173
+  s_e5adfd1161fd27::t_48c3c518e03051 156
+  s_e5adfd1161fd27::t_2eb937e63f3351 144,149,151,157,159-161,163,168-169,172
+frontend/src/pages/view/llm-consumer.tsx
+  s_e5adfd1161fd27::t_bbb0687f3b5ab0 40-48
+backend/console/src/main/resources/mapper/McpServerConsumerMapper.xml
+  s_e5adfd1161fd27::t_46875aa8dd3792 32-33,35-36,38-41,45,52,58
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_e5adfd1161fd27::t_bd181e7e3ab06d 30,49,51-57,59-60,62
+  s_e5adfd1161fd27::t_e8b994917801ca 31,36,38,44,46-48,50,58,61
+  s_e5adfd1161fd27::t_8df9e5c644ad31 11
+  s_e5adfd1161fd27::t_13acc0b209a8b1 43
+frontend/src/services/llm-service.ts
+  s_e5adfd1161fd27::t_753a6229403eaa 6-7,9-15
+frontend/src/components/ConfigViewPage/index.tsx
+  s_e5adfd1161fd27::t_b4f4f8d2dc97fa 31,41,54,127-142
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceController.java
+  s_e5adfd1161fd27::t_1eae34aafcf58a 55-62
+  s_e5adfd1161fd27::t_62bb8d92c387d5 27,63
+frontend/src/interfaces/llm-route.ts
+  s_e5adfd1161fd27::t_7ba1e1b5cd6aa6 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "3bb52a834dc436144398e4d3052ceb16af9da55e",
+  "prompts": {},
+  "sessions": {
+    "s_e5adfd1161fd27": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb8e1db2-3495-4b09-b12f-dac2b0cc3075",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

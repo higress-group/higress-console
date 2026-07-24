@@ -1,0 +1,99 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ClusterConfigDiffTool.java
+  s_9094bdd4b1b249::t_0710102802bd00 8
+  s_9094bdd4b1b249::t_22bbc7ff29fac1 42
+  s_9094bdd4b1b249::t_72a294cc499067 282-353
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizer.java
+  s_0b6a2881ff2678::t_29816e5fe5ac72 3-56
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparator.java
+  s_0b6a2881ff2678::t_dafcc389f5bd91 3-4,6
+  s_0b6a2881ff2678::t_51b8df89c66eb0 5
+  s_0b6a2881ff2678::t_6881d3b3c6a036 24-31
+  s_0b6a2881ff2678::t_d0d4df4be3d320 43-80
+  s_0b6a2881ff2678::t_b9d6416b41117b 117-118
+  s_0b6a2881ff2678::t_5f78963bc90e33 89-116,119-120,141
+  s_0b6a2881ff2678::t_369f32df5fb75e 121-140,142-151
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigDumper.java
+  s_cfb489f9da7a97::t_2dbe327aedbd12 73-81,94-95,97
+  s_a534d00b783c52::t_5947c6d01a876a 86
+  s_a534d00b783c52::t_054f6bbe81abe3 105,130
+  s_5950a573e22fa4::t_2abb861f41caf5 17,37-38,85,87-93,96,98
+  s_cfb489f9da7a97::t_ca150386892911 8
+  s_cfb489f9da7a97::t_6204bcd90a3d25 131-157,164-165,176-178,186
+  s_cfb489f9da7a97::t_56a4ecc4b9f2b6 285-286,290
+  s_5950a573e22fa4::t_04f008eebccc46 7,9-16,18-33,39-70,99-104,106-129,158-163,166-175,179-185,187-284,287-289,291-476
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ManualConfigSyncRunner.java
+  s_9216e94c134cd6::t_deef5a0e38b377 37
+  s_9216e94c134cd6::t_7ac42355a9844b 34,41-221
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/CrossRegionConfigSyncer.java
+  s_03adea600b51e4::t_1c70f91513390d 32
+  s_03adea600b51e4::t_cf789346356036 155-167
+  s_03adea600b51e4::t_6f809d3fcdd530 142
+  s_0b6a2881ff2678::t_c43a89342869b8 513-515
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparatorTest.java
+  s_0b6a2881ff2678::t_344fd55931eafe 178-206
+  s_0b6a2881ff2678::t_ed388e49ab6213 135-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.34-trip",
+  "base_commit_sha": "087357a5cfb22f0879c459c4882903671a172ecb",
+  "prompts": {},
+  "sessions": {
+    "s_03adea600b51e4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8888649b-bd4e-4f76-bfdd-90d4ba2253cb",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    },
+    "s_0b6a2881ff2678": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b6a8d293-a865-4c04-af91-f43dbbcc89c6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    },
+    "s_5950a573e22fa4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05fd0ad2-4653-4263-88bf-3a88a151185f",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_9094bdd4b1b249": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23d71630-b2b0-4c8b-b3cd-5ffb0a97c7ab",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    },
+    "s_9216e94c134cd6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59b34a60-19f8-44a6-9b71-3afd03e88387",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_a534d00b783c52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "352c27ad-863f-43a8-99b7-580b91f072d6",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_cfb489f9da7a97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3bc38ab8-3634-479a-b092-3e14cb91d8c0",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

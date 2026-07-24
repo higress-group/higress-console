@@ -1,0 +1,47 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/AbstractDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_98f9cdb7b19676 12,33-36,38
+  s_45175c07dbf9d7::t_7e097e2ad872f0 37
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/LlmRouteDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_2d5a167741bec3 42
+  s_45175c07dbf9d7::t_49cbee8221e5f0 17,38-41,43
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/McpServerConsumerDualWriteTemplate.java
+  s_45175c07dbf9d7::t_f44c262ed3664e 36-41,43-51
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/McpServerConsumerDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_7fd77e915f2191 14,35-38,40
+  s_45175c07dbf9d7::t_a13220a067976a 39
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/LlmServiceDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_f9a34e7c81acd6 13,34-37,39
+  s_45175c07dbf9d7::t_65edad009cee33 38
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/AbstractDualWriteTemplate.java
+  s_45175c07dbf9d7::t_6e63c8e9520633 144
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/DualWriteTestBase.java
+  s_45175c07dbf9d7::t_228dcdb4a71ea6 3
+  s_45175c07dbf9d7::t_01a4eb293dcbc9 8,64,66,71,74-76,78-81
+  s_45175c07dbf9d7::t_c99c0e419d904c 63,65,67-70,72-73,77
+  s_45175c07dbf9d7::t_1964e2f25ae94f 5
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/ConsumerDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_605afaa88efe87 40
+  s_45175c07dbf9d7::t_f0993166494191 15,36-39,41
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/LlmRouteDualWriteTemplate.java
+  s_45175c07dbf9d7::t_d622366a9beb30 28,30-31,34,36,38-40,43-45,54-71,80-95
+  s_45175c07dbf9d7::t_33dca6575220d2 29,32-33,35,37,41-42
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/McpServerDualWriteTemplateTest.java
+  s_45175c07dbf9d7::t_9662cde89621c7 13,34-37,39
+  s_45175c07dbf9d7::t_ff458358cf3fac 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.17-trip",
+  "base_commit_sha": "71e3c8307c0f73555abb396b509791df7aa5a4f4",
+  "prompts": {},
+  "sessions": {
+    "s_45175c07dbf9d7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2b02e865-be09-495d-bce8-12cf7cbe3bbf",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/69qupdyxh52i"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

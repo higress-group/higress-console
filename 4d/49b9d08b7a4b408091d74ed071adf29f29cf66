@@ -1,0 +1,20 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ManualConfigSyncRunner.java
+  s_9216e94c134cd6::t_7ac42355a9844b 34,41-42,45-54,58,65-81,86-87,107-111,114,118,120,124,130,134,140,143,152,166,173,179,187,202-203,219,221
+  s_9216e94c134cd6::t_deef5a0e38b377 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "4d49b9d08b7a4b408091d74ed071adf29f29cf66",
+  "prompts": {},
+  "sessions": {
+    "s_9216e94c134cd6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59b34a60-19f8-44a6-9b71-3afd03e88387",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/Cluster.java
+  s_91834c74507ab7::t_daf8f81643f40a 42-55
+frontend/src/components/ClusterSelector/env-config.ts
+  s_033d3a1ce8ffe7::t_99a92293485e78 91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.35-trip",
+  "base_commit_sha": "6a6e1f0f524e7d92d005056cfd0e05f20009fbb1",
+  "prompts": {},
+  "sessions": {
+    "s_033d3a1ce8ffe7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c5aab73a-9c7d-42aa-a2d3-0dbcf3ab8e43",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_91834c74507ab7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "130c6e64-fb95-4432-a8b0-a6da0084f2da",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

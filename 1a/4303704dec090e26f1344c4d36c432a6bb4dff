@@ -1,0 +1,72 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_9c8df104dca3cd::t_00ad9e3297d61e 9,12,27-29
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/AbstractDualWriteTemplate.java
+  s_9c8df104dca3cd::t_5b99487bd24c01 25
+  s_9c8df104dca3cd::t_fb32a4d468394a 39-61
+  s_9c8df104dca3cd::t_d783169a52fe8e 3,113
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_9c8df104dca3cd::t_894ab3e34d168c 267
+  s_9c8df104dca3cd::t_70523ab25821bf 120
+  s_9c8df104dca3cd::t_354da03876bbbd 295
+  s_9c8df104dca3cd::t_d0b26eebb94490 117
+  s_9c8df104dca3cd::t_0915f62bb30708 146
+  s_9c8df104dca3cd::t_3ca092cd719e15 292
+  s_9c8df104dca3cd::t_22cccafcdb6752 150
+  s_9c8df104dca3cd::t_d4eaa9b6d0034e 80-83
+  s_9c8df104dca3cd::t_748822382be429 264
+  s_9c8df104dca3cd::t_5c2b822385cc7b 319
+  s_9c8df104dca3cd::t_de3ae4dfb8048f 200,203
+  s_9c8df104dca3cd::t_b00ec64141a4f4 323
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/McpServerDualWriteTemplate.java
+  s_9c8df104dca3cd::t_ebe7f2b99fd9b4 49
+  s_9c8df104dca3cd::t_86cf05c41640ee 15
+  s_9c8df104dca3cd::t_860918c73dd2ab 44
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/ConsumerDualWriteTemplate.java
+  s_9c8df104dca3cd::t_b4a0f8ae48fafa 34
+  s_9c8df104dca3cd::t_adca91c2122100 39
+  s_9c8df104dca3cd::t_0d0b759841a564 12
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_9c8df104dca3cd::t_64ad1154845b82 539-541
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/LlmServiceDualWriteTemplate.java
+  s_9c8df104dca3cd::t_a7fad411bca836 34
+  s_9c8df104dca3cd::t_e675489c7b8e83 39
+  s_9c8df104dca3cd::t_19211e7aba5ad1 12
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDao.java
+  s_9c8df104dca3cd::t_481fe16eef77c1 9,12,27,29-30
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_9c8df104dca3cd::t_bbfe94f755c033 12,15,30-35
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/McpServerConsumerDualWriteTemplate.java
+  s_9c8df104dca3cd::t_eb51d15cbbb8fe 1-38,43-44,49-50,65-70,80-83,87-91,94-101
+  s_9c8df104dca3cd::t_15bd545eac3e94 39-42,45-47,52-64,71-79,85-86
+  s_9c8df104dca3cd::t_f5d48469dc0fb2 92-93
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerConsumerDao.java
+  s_9c8df104dca3cd::t_2c16d2e3449c68 9,12,28,31
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/constant/HttpHeaderConstants.java
+  s_9c8df104dca3cd::t_87c87f1c735a57 1-17
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/persistence/LlmRouteDualWriteTemplate.java
+  s_9c8df104dca3cd::t_4d547f966f6062 15
+  s_9c8df104dca3cd::t_fb8a92bbd3db2e 54
+  s_9c8df104dca3cd::t_a42657fa5a4941 35
+  s_9c8df104dca3cd::t_6bca2854e481a3 97
+  s_9c8df104dca3cd::t_63552998f25fa9 28-29,45-46
+  s_9c8df104dca3cd::t_3d261c974cc2c7 92
+  s_9c8df104dca3cd::t_dcb0fc2fa2168c 65-66
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDao.java
+  s_9c8df104dca3cd::t_7726077a43410b 9,12,27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10-trip",
+  "base_commit_sha": "1a4303704dec090e26f1344c4d36c432a6bb4dff",
+  "prompts": {},
+  "sessions": {
+    "s_9c8df104dca3cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "804e983b-e201-4d5e-96f7-1425184e25e5",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

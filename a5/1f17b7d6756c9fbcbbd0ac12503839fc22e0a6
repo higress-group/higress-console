@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparatorTest.java
+  s_aed44b5c9078ed::t_0a508da26521e4 29-35,49,56,61,66-111
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigComparator.java
+  s_aed44b5c9078ed::t_4c4e9e6d469d41 12,17,29,34-44,47-55,60,78-82,86-91,95-100,104-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.26-trip",
+  "base_commit_sha": "a51f17b7d6756c9fbcbbd0ac12503839fc22e0a6",
+  "prompts": {},
+  "sessions": {
+    "s_aed44b5c9078ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aca17b69-2eb3-4427-9a6c-9e73562646b7",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

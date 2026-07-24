@@ -1,0 +1,103 @@
+frontend/src/pages/_defaultProps.tsx
+  s_a45bec96a408bb::t_87967cb915e6a1 149-153
+  s_a45bec96a408bb::t_5050fa4ba7e2f0 10
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_a45bec96a408bb::t_6f268aa8e6924a 29
+  s_73f7891538820c::t_1449da59348526 38
+  s_73f7891538820c::t_79f9153af8b16d 92
+  s_a45bec96a408bb::t_4d2d0eee2f74cd 95-96
+  s_73f7891538820c::t_fbc05b9f985196 81
+  s_73f7891538820c::t_2bb980d5e1100c 84-85,89
+  s_a45bec96a408bb::t_449366ab3de39e 87-88,90-91,94
+  s_73f7891538820c::t_ab8e87c908d183 9
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_a45bec96a408bb::t_63845fad50787e 198
+  s_a45bec96a408bb::t_93a26aae431644 575-587,589-590
+  s_a45bec96a408bb::t_7767ab80de4881 588,591-592
+  s_a45bec96a408bb::t_6b4044d243b61a 478-484,539,549-554
+  s_73f7891538820c::t_a470125dd132eb 557-559
+  s_a45bec96a408bb::t_4de42670ffcfff 30
+  s_ec6402d7264b2b::t_fb9216113f54cd 537-538
+  s_ec6402d7264b2b::t_2286d6a0ae56b5 456
+  s_a45bec96a408bb::t_f16f1233de350a 221
+  s_c1f7fd2600fd84::t_beaca2f771e35b 462
+  s_a45bec96a408bb::t_e97b4d21c3d502 555
+  s_73f7891538820c::t_4b16948839e3b1 463-464,466-469,471-472,499-501
+  s_73f7891538820c::t_34a162e7ad6db8 556,561-566
+  s_a45bec96a408bb::t_2d6043f0cbe2b4 181
+  s_a45bec96a408bb::t_582a2408ad7766 169
+  s_73f7891538820c::t_8df26db6721219 486,491-497
+  s_a45bec96a408bb::t_93ba74ab3c004a 209
+  s_ec6402d7264b2b::t_f79ce5054e71e3 458
+  s_73f7891538820c::t_3b8465e7f0031d 490,560
+  s_a45bec96a408bb::t_e54551cc60a357 240
+  s_ec6402d7264b2b::t_b8634be1efdc9e 573
+frontend/src/locales/zh-CN/translation.json
+  s_73f7891538820c::t_3fe21976ee4a53 736-740
+  s_a45bec96a408bb::t_f54a9125ea5bdf 33
+  s_a45bec96a408bb::t_619f166caaeb86 725-735,741
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_73f7891538820c::t_74d8f684806244 453
+  s_ec6402d7264b2b::t_96497f7e9a6926 3
+  s_ec6402d7264b2b::t_2447d293d46810 468
+  s_73f7891538820c::t_06f120b084b4d0 498
+  s_ec6402d7264b2b::t_2bbda67700cd51 424
+  s_ec6402d7264b2b::t_668c3d7ea3a7d7 17
+  s_ec6402d7264b2b::t_7f0a1858389c77 25-33,35-40
+  s_ec6402d7264b2b::t_6e9435892ed254 44-46
+  s_ec6402d7264b2b::t_a16dcec57aaf03 368-415,418-423,425-448,451-452,457-467,469-493,496-497,502-533
+  s_ec6402d7264b2b::t_04306bbd5903a2 59-60,85-87,123-125,146-148,158-160,309,325,416-417,449-450,454-456,494-495,499-501
+frontend/src/locales/en-US/translation.json
+  s_a45bec96a408bb::t_3c554e6b346ee2 33
+  s_a45bec96a408bb::t_589bd615288932 725-735,741
+  s_73f7891538820c::t_0477392d72ebf2 736-740
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_73f7891538820c::t_5eb8e165079af5 6
+  s_73f7891538820c::t_c83084597292dc 17
+  s_73f7891538820c::t_e5f46430a45ea4 106-113,116-117,120-126,137-144,150-160
+  s_73f7891538820c::t_a0aec8b818f356 115
+  s_73f7891538820c::t_ef16f602851f57 27-31,44-46,57-58,63-64,161
+  s_73f7891538820c::t_acb85118725e1d 128,131,133-134,146-147
+  s_73f7891538820c::t_074fafa93319c3 86-87,104-105
+  s_73f7891538820c::t_4b33d8debe327b 114,118-119,127,129-130,132,135-136,145,148-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "4f915e2f904ef9616e2db6e666ccdfe8609ef66f",
+  "prompts": {},
+  "sessions": {
+    "s_73f7891538820c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5198cc0b-77d7-4463-a2cb-2be7d96d90df",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_a45bec96a408bb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed725db2-9ca2-452a-9547-1fcb45c052e3",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_c1f7fd2600fd84": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d51d563a-cbfc-4544-968d-3d640765268c",
+        "model": "arn:aws:bedrock:us-west-2:133197901387:application-inference-profile/ypvzpmevzxdl"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_ec6402d7264b2b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9f72039a-985b-4e46-9de3-347e130aff54",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

@@ -1,0 +1,292 @@
+frontend/src/services/mcp-server.ts
+  s_334772a80fe7e2::t_26f4218117109c 7
+frontend/src/pages/view/mcp-server.tsx
+  s_a1d67562c96f48::t_3b17057ec4cd3a 1-4,6,8-9,11-16,18-23,25-30,32-39,42-45,47-50,52-62
+  s_334772a80fe7e2::t_80431b6e7957c7 17
+  s_334772a80fe7e2::t_a68acf36e74730 31
+  s_334772a80fe7e2::t_7d526af4372d9f 24
+  s_334772a80fe7e2::t_e3225992d4c604 41
+  s_334772a80fe7e2::t_0b35e291c0f288 51
+  s_334772a80fe7e2::t_db0cdc0ff5be19 10
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_3dc3ebe7185405::t_80fef845cbe9eb 19,25
+  s_3dc3ebe7185405::t_08f64c92862d06 131-136
+  s_3dc3ebe7185405::t_e86f6e49f4057a 160
+  s_3dc3ebe7185405::t_043b94530f7860 79-83,142
+  s_6e0e9a883f5431::t_b388f45dc5f2fc 171
+  s_1ba0e5a97889d3::t_2e901e445b721c 62
+  s_345c1157e2c2b7::t_20944d70bac46c 143-146
+  s_1ba0e5a97889d3::t_43781f617757d2 9
+  s_3dc3ebe7185405::t_f288fc8fe05aa6 117
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerConsumerDao.java
+  s_6e0e9a883f5431::t_dd56a9cc6fd23e 29,58
+  s_345c1157e2c2b7::t_6e7e8377de3367 30-33
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmServiceMapper.java
+  s_345c1157e2c2b7::t_7846eaf25a4768 16-17
+frontend/src/pages/view/llm-route.tsx
+  s_334772a80fe7e2::t_7168162ffec937 38
+  s_334772a80fe7e2::t_b93d3b70d8f5b9 48
+  s_a1d67562c96f48::t_6d2fed4aad5961 1-4,8-9,11-16,18-24,26-27,29-36,39-47,49-60
+  s_334772a80fe7e2::t_1246d6f73dfaa3 10
+  s_334772a80fe7e2::t_6ed046a0f84212 17
+  s_334772a80fe7e2::t_b40fe525507321 28
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDaoTest.java
+  s_3dc3ebe7185405::t_b2713e52677520 3
+  s_3dc3ebe7185405::t_356e385b8854ed 87-141
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/McpServerConsumerMapper.java
+  s_345c1157e2c2b7::t_c4b4412c03b40d 16-17
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDaoTest.java
+  s_17380f1e34969e::t_0112bcd9f39f54 44-54
+  s_17380f1e34969e::t_b993de8aa262c4 5
+  s_1ba0e5a97889d3::t_ccfcb6cd0e568c 40,42-43
+  s_17380f1e34969e::t_99bf8ca9274fa0 7,18
+backend/console/src/main/resources/mapper/LlmServiceMapper.xml
+  s_3dc3ebe7185405::t_501a43494ec789 32
+  s_345c1157e2c2b7::t_653f01097e20ea 36-40
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_345c1157e2c2b7::t_e6878d26aae227 29-32
+  s_6e0e9a883f5431::t_d93fe777adda6c 28,58
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoEncodeTest.java
+  s_345c1157e2c2b7::t_8aa9c2c49ac329 52-55
+  s_1ba0e5a97889d3::t_37f1cc6bdcb940 335-336
+  s_17380f1e34969e::t_5e0d11985094b2 440-443
+  s_17380f1e34969e::t_06e7cf5009a5ab 569-572
+  s_17380f1e34969e::t_0dde86b64217ee 526-529
+  s_6e0e9a883f5431::t_fb6e7c384d05c1 75,309,420,463,506,549,592
+  s_3dc3ebe7185405::t_bc6575fc326997 6-7,51,274-285,291-308,310-328,330-334,337-342,396,439,485-486,525,568
+  s_1ba0e5a97889d3::t_4f50d44915407e 15
+  s_1ba0e5a97889d3::t_a44268a17fac2c 142,269,329
+  s_17380f1e34969e::t_cccb844cd7ab1f 397-400
+  s_17380f1e34969e::t_b69239fd2a7afe 286-290,482-484
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmRouteMapper.java
+  s_345c1157e2c2b7::t_e484a1a32c473a 16-17
+frontend/src/services/mcp-server-consumer.ts
+  s_334772a80fe7e2::t_761c3c81a30fac 7
+frontend/src/services/llm-service.ts
+  s_334772a80fe7e2::t_9d4b18e2a99578 7
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_d90af483d7b033::t_6e6fb3bcb0db92 70-73,156-157
+  s_d90af483d7b033::t_fc3d3027773c8e 104
+frontend/src/components/ConfigViewPage/index.tsx
+  s_a1d67562c96f48::t_d18e53704ee560 1-4,6-17,25,29-45,48,50-57,59-68,70,72-74,76,78-82,84,86-88,91-93,95,97-100,103-110,112-142,144-145,147,150-167,169-173,175-178,183-188
+  s_334772a80fe7e2::t_82eafdc8b19d95 18-24,26-28
+  s_334772a80fe7e2::t_2dd457c217fc3a 58
+  s_5ea4d59204ae2d::t_688d3dabb334fa 83,90,94,101-102
+  s_334772a80fe7e2::t_e627984ca1712a 5
+  s_5ea4d59204ae2d::t_477319394fbc95 71,75
+  s_334772a80fe7e2::t_24c0ac892f257a 143,146,148-149
+  s_334772a80fe7e2::t_973772b8931319 69,77,85,89,96
+  s_334772a80fe7e2::t_33a1b48bb169f5 174,179-182
+  s_5ea4d59204ae2d::t_e88dce5f39911f 46-47
+  s_334772a80fe7e2::t_6c47571e5a7a0c 49
+  s_334772a80fe7e2::t_3c050d43dbd262 111
+  s_334772a80fe7e2::t_b106f15bbfaea0 168
+backend/console/src/main/resources/mapper/LlmConsumerMapper.xml
+  s_345c1157e2c2b7::t_ac46a9ae370161 35-39
+  s_3dc3ebe7185405::t_14d57bb0ec687a 31
+frontend/src/services/llm-route.ts
+  s_334772a80fe7e2::t_3fe795649d6041 7
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDaoTest.java
+  s_17380f1e34969e::t_fa80df1e009dbd 41-51
+  s_17380f1e34969e::t_e7761af1af51e0 6,17
+  s_1ba0e5a97889d3::t_aface1ba3d56b9 37,39-40
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/DaoTestBase.java
+  s_1ba0e5a97889d3::t_b8566d925ef9b4 6
+  s_1ba0e5a97889d3::t_6941bdb8aabeb9 39,50
+frontend/src/pages/view/mcp-server-consumer.tsx
+  s_334772a80fe7e2::t_c05dff99518639 10
+  s_334772a80fe7e2::t_d2dc71bef0c633 44
+  s_334772a80fe7e2::t_2b1ec10b08880f 17
+  s_a1d67562c96f48::t_c002b251521244 1-4,6-9,11-16,18-23,25-32,35-43,45-55
+  s_334772a80fe7e2::t_9fd1461f560003 24
+  s_334772a80fe7e2::t_fbd45646710ac6 34
+frontend/src/locales/zh-CN/translation.json
+  s_a1d67562c96f48::t_2daba1f5b09cac 1045-1046
+backend/console/src/main/resources/mapper/McpServerMapper.xml
+  s_345c1157e2c2b7::t_454fc1ce3b0025 37-41
+  s_3dc3ebe7185405::t_b96728280fa757 33
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_3dc3ebe7185405::t_0c08218b2d943d 173,175-176,182,222,231,299-300,306,376-377,383,429-430,436,495,509
+  s_3dc3ebe7185405::t_823890666b8c2b 434-435
+  s_3dc3ebe7185405::t_b91ca5a217d2d6 297
+  s_3dc3ebe7185405::t_cd463f86cece20 304-305
+  s_3dc3ebe7185405::t_85e7a588d7ff21 180-181
+  s_3dc3ebe7185405::t_2ae79eeeb53af5 229-230
+  s_3dc3ebe7185405::t_5862c4686161b2 493-494
+  s_3dc3ebe7185405::t_2f4c63a1f719df 220-221
+  s_3dc3ebe7185405::t_323820e4e5468a 381-382
+  s_d90af483d7b033::t_70efe705e9a807 426,428
+  s_3dc3ebe7185405::t_51cb874340963e 507-508
+  s_3dc3ebe7185405::t_5757d5a3a57663 374
+backend/console/src/main/resources/mapper/McpServerConsumerMapper.xml
+  s_345c1157e2c2b7::t_761b08281053e0 38-42
+  s_3dc3ebe7185405::t_7b1e6ce9165e23 34
+frontend/src/pages/view/llm-service.tsx
+  s_334772a80fe7e2::t_3fb2c26fa228a8 17
+  s_a1d67562c96f48::t_acc0859c3355cd 1-4,8-9,11-16,18-23,25-32,35-43,45-56
+  s_334772a80fe7e2::t_c08b25f7ade23f 24
+  s_334772a80fe7e2::t_142e965a297f53 34
+  s_334772a80fe7e2::t_f540ea206bc237 44
+  s_334772a80fe7e2::t_fd3d5a2e5ae842 10
+frontend/src/pages/view/llm-consumer.tsx
+  s_a1d67562c96f48::t_26b46ded7baf3f 1-4,6-9,11-16,18-25,28-36,38-48
+  s_334772a80fe7e2::t_6ff02910a6eb4f 10
+  s_334772a80fe7e2::t_0b8ac22b38c73c 37
+  s_334772a80fe7e2::t_ef35af70bcd61f 17
+  s_334772a80fe7e2::t_7a50d58cf84277 27
+frontend/src/interfaces/mcp-server.ts
+  s_334772a80fe7e2::t_e0950ff455618d 5
+frontend/src/components/ConfigDetailDrawer/index.tsx
+  s_334772a80fe7e2::t_18fe0cb294b213 6,9,11,15,22,34-49,51,62,71,91
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_3dc3ebe7185405::t_78b5a8dfbdceff 131-132
+  s_17380f1e34969e::t_a325280c8b8a3c 582-587
+  s_17380f1e34969e::t_31f5e696c434f0 560-565
+frontend/src/services/llm-consumer.ts
+  s_334772a80fe7e2::t_0c384841dccdce 7
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_3dc3ebe7185405::t_26df89440b42a1 134,157,191-194,198-199,251,253,286
+  s_6e0e9a883f5431::t_329ebb9359b993 161-162
+  s_345c1157e2c2b7::t_3c3a57e54c3bdf 145-148,152-155
+  s_3dc3ebe7185405::t_5f26a0a38b0c9b 332
+  s_1ba0e5a97889d3::t_f4fa3548fad742 214-215,218,220-221,224,231,235-237,239
+  s_345c1157e2c2b7::t_fed306509bfb76 248-250,252
+  s_1ba0e5a97889d3::t_bb30e53a79ef2c 324,328
+  s_17380f1e34969e::t_4951ed2adaaec1 159-160,163
+  s_1ba0e5a97889d3::t_0360412040ddbc 229
+  s_6e0e9a883f5431::t_b04b52d94ee149 283,297
+  s_6e0e9a883f5431::t_17a1a7212e2444 285,288-290,292
+  s_1ba0e5a97889d3::t_dbe072f3171e2b 287,293
+  s_6e0e9a883f5431::t_5f8715eba63b2d 171,173-177,179-184,187-188,190,195-197,200-201,203,208-209,211-213,216-217,222-223,225-226,228,230,232,238
+  s_345c1157e2c2b7::t_915b4bdf00cbd0 136-140,142-144,149-151,156,158,172
+  s_345c1157e2c2b7::t_8a1800bcf80d5d 247
+  s_1ba0e5a97889d3::t_28b3d50669f2a6 18
+  s_1ba0e5a97889d3::t_db8b98fd839fd2 98,189,227,284,291
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDao.java
+  s_345c1157e2c2b7::t_016ccae17e03c9 29-32
+  s_6e0e9a883f5431::t_83b112842572f3 28,56
+frontend/src/locales/en-US/translation.json
+  s_334772a80fe7e2::t_61a98f939872ed 1036
+  s_a1d67562c96f48::t_dc5f9ecc919255 1045-1046
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_345c1157e2c2b7::t_62b30677d1751a 234,245
+  s_6e0e9a883f5431::t_d731f5634ce74a 86
+  s_1ba0e5a97889d3::t_566720b5940124 122,126,131,136,152-153,179,236,259,282,303,305,345,365,386,418,426,438
+  s_345c1157e2c2b7::t_ae52d2f96fad45 257,267,280,289,301,314
+  s_6e0e9a883f5431::t_b8d10afbd2169e 228
+  s_1ba0e5a97889d3::t_b10189cd797bb2 270
+  s_1ba0e5a97889d3::t_873eb0a3eb0037 29
+  s_6e0e9a883f5431::t_0a3399e666d27f 274
+  s_6e0e9a883f5431::t_e7042fa5bd359e 295
+  s_3dc3ebe7185405::t_4a352f282342c5 399,406
+  s_345c1157e2c2b7::t_1158276d52d658 150
+  s_3dc3ebe7185405::t_668d3a7524c941 99-100,102-103
+  s_3dc3ebe7185405::t_bd23577a4f173e 123
+  s_3dc3ebe7185405::t_410d8c5fe68f51 6,60,104
+  s_3dc3ebe7185405::t_55ea9bc24884ad 95-98
+  s_345c1157e2c2b7::t_8180d7a68f0cd1 212,221
+  s_1ba0e5a97889d3::t_70b85194d4dd3c 101
+  s_345c1157e2c2b7::t_b117483c26fd81 61-64
+  s_6e0e9a883f5431::t_2b65cfb15f04b9 223
+frontend/src/interfaces/mcp-server-consumer.ts
+  s_334772a80fe7e2::t_a4cd360f558285 6
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/InternalSyncTokenValidator.java
+  s_3dc3ebe7185405::t_6f5e094d3c1b13 9-10
+  s_3dc3ebe7185405::t_cfa33384195505 31-35
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDao.java
+  s_6e0e9a883f5431::t_9dcfbaf3899ceb 28,55
+  s_345c1157e2c2b7::t_1dfdc734c7adad 29-32
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_3dc3ebe7185405::t_67b499d20bc91d 32
+  s_345c1157e2c2b7::t_3c315ec93bd642 36-40
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmConsumerMapper.java
+  s_345c1157e2c2b7::t_ad991475f88fa3 16-17
+frontend/src/services/request.tsx
+  s_334772a80fe7e2::t_5e7b2db3dfd5d5 7-12
+  s_334772a80fe7e2::t_fd6a3b71850e0f 76
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/McpServerMapper.java
+  s_345c1157e2c2b7::t_52e5de324a6475 16-17
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmRouteService.java
+  s_d90af483d7b033::t_541e590e37eb02 24
+  s_d90af483d7b033::t_d1df3e837ca056 25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.28-trip",
+  "base_commit_sha": "7e4ffac3d1d45388ecbb2365f2f1c3b9de9e93f9",
+  "prompts": {},
+  "sessions": {
+    "s_17380f1e34969e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd03b8bc-4d07-47ac-a0c2-a730b818b594",
+        "model": "qwen3.7-max"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_1ba0e5a97889d3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3cb1620e-5dc6-4c95-b745-0b2d7a4d20dd",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_334772a80fe7e2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87870b8e-0373-4787-baf4-db1b8393faba",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_345c1157e2c2b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59c27530-265c-4e3e-95b3-4752b84c3757",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_3dc3ebe7185405": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "add23785-433e-448d-9e53-220aa79b64ca",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_5ea4d59204ae2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2e8eb7d-5fb2-4757-b9fb-5c3f81bde250",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_6e0e9a883f5431": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f26155c3-6eb2-4bc0-8a3f-7cd85707dc27",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_a1d67562c96f48": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04c6cc61-a6b3-4fd7-9320-57f79dae1e91",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_d90af483d7b033": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "80e91865-afbf-497d-9222-5fc2a9c348eb",
+        "model": "kimi-k2.6"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImplTest.java
+  s_84d22197d3e7eb::t_c66e125d47945f 370,385
+  s_84d22197d3e7eb::t_964b9e38d8e42f 495
+  s_84d22197d3e7eb::t_c7db8361a3b8b9 415,417-418
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_84d22197d3e7eb::t_3ecd905fa6989b 444-445
+  s_84d22197d3e7eb::t_79ff2caccf17a9 131
+  s_84d22197d3e7eb::t_4dd1ae31a188b4 209
+  s_84d22197d3e7eb::t_3e4b4e42031548 480
+  s_84d22197d3e7eb::t_92b093bb742793 564,566,569-572,574,576,582,586
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "b3eb5e6ea3eb0ad025a73b97ecedb48627414aab",
+  "prompts": {},
+  "sessions": {
+    "s_84d22197d3e7eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8083c08-e806-4b60-96ff-25c1ec406e33",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}

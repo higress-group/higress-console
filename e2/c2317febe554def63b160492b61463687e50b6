@@ -1,0 +1,25 @@
+frontend/src/locales/en-US/translation.json
+  s_545c01413fe0bf::t_825aa31634f3d3 983-1016
+  s_545c01413fe0bf::t_5820e929218be8 27-28
+frontend/src/pages/layout.tsx
+  s_545c01413fe0bf::t_3755f5e5b69dbb 67-69
+frontend/src/locales/zh-CN/translation.json
+  s_545c01413fe0bf::t_dcdd5ec2ab40f5 983-1016
+  s_545c01413fe0bf::t_e1771054cbf9f0 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.33-trip",
+  "base_commit_sha": "e2c2317febe554def63b160492b61463687e50b6",
+  "prompts": {},
+  "sessions": {
+    "s_545c01413fe0bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "abc80fc1-cafa-4cb5-a8a5-5bf465b37745",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
