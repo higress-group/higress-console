@@ -1,0 +1,34 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/TripLlmRouterRefactorController.java
+  s_c47d4d73fb9100::t_293efda41560da 1-190
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/TripLlmRouterCleanRequest.java
+  s_c47d4d73fb9100::t_553934fc92b653 1-26
+backend/sdk/src/main/java/com/alibaba/higress/sdk/constant/plugin/config/TripLlmRouterConfig.java
+  s_c47d4d73fb9100::t_cde4b22c447898 12
+  s_c47d4d73fb9100::t_af4a2c4cce70a5 222-239
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/TripLlmRouterRefactorControllerTest.java
+  s_c47d4d73fb9100::t_582e67ccb30f5c 1-259
+backend/console/src/test/java/com/alibaba/higress/sdk/constant/plugin/config/TripLlmRouterConfigTest.java
+  s_c47d4d73fb9100::t_01be0bf58221a7 194-233
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_c47d4d73fb9100::t_ddde1d0e233e96 21,26-27,39
+  s_c47d4d73fb9100::t_7aed2033f6ff8d 7
+  s_c47d4d73fb9100::t_7698a65fcb2442 653-698
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_c47d4d73fb9100::t_78f206e863b42e 473
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "c67f4864ace90fe940d4823c8a45c2b4a2b4ab38",
+  "prompts": {},
+  "sessions": {
+    "s_c47d4d73fb9100": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0b8e0009-0c6e-456f-b156-72636792f2e2",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
