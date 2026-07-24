@@ -1,0 +1,19 @@
+backend/docs/superpowers/specs/2026-07-24-fastjson-rce-fix-design.md
+  s_3277d4a2b20011::t_31aea2b65c2185 1-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "7f494ccc16100f6dd77bc7243e01439e75a4ee89",
+  "prompts": {},
+  "sessions": {
+    "s_3277d4a2b20011": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "509a1a9b-657f-4396-935a-254f10f31464",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
