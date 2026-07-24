@@ -199,6 +199,16 @@ public abstract class AbstractMcpServerSaveStrategy implements McpServerSaveStra
         labelsMap.put(KubernetesConstants.Label.INTERNAL_KEY, Boolean.TRUE.toString());
         labelsMap.put(KubernetesConstants.Label.RESOURCE_BIZ_TYPE_KEY, MCP_SERVER_BIZ_TYPE_VALUE);
         labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_TYPE_KEY, mcpInstance.getType().name());
+
+        // 新增：存储用户名到Route标签
+        if (StringUtils.isNotBlank(mcpInstance.getUsername())) {
+            labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_USERNAME_KEY, mcpInstance.getUsername());
+        }
+
+        // 新增上线状态到Route标签
+        if(StringUtils.isNotBlank(mcpInstance.getPlatform())){
+            labelsMap.put(McpServerConstants.Label.RESOURCE_MCP_SERVER_PLATFROM_KEY, String.valueOf(mcpInstance.getPlatform()));
+        }
         route.setCustomLabels(labelsMap);
     }
 
