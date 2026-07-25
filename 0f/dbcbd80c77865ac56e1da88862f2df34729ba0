@@ -1,0 +1,22 @@
+backend/docs/superpowers/specs/2026-07-24-fastjson-rce-fix-design.md
+  s_3277d4a2b20011::t_5f81fd2e01bd12 84,87-88,93-117,122-132,136-145,153-157
+backend/docs/superpowers/plans/2026-07-24-fastjson-rce-fix.md
+  s_3277d4a2b20011::t_da554a9f0ec29d 271-272,274-275,284
+  s_3277d4a2b20011::t_b50e4b94014bc9 150,153,159-183,188-198,202-211,218-219,221-222,226-229,231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "0fdbcbd80c77865ac56e1da88862f2df34729ba0",
+  "prompts": {},
+  "sessions": {
+    "s_3277d4a2b20011": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "509a1a9b-657f-4396-935a-254f10f31464",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
