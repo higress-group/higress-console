@@ -1,0 +1,19 @@
+backend/pom.xml
+  s_3277d4a2b20011::t_091636b15128cf 60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "b28d070abcdcb970c540af5f99a8655f45a6138b",
+  "prompts": {},
+  "sessions": {
+    "s_3277d4a2b20011": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "509a1a9b-657f-4396-935a-254f10f31464",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
