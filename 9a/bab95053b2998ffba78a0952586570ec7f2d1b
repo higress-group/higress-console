@@ -1,0 +1,19 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesModelConverter.java
+  s_41fee63ae1e397::t_a7e4a226b6344e 834
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "9abab95053b2998ffba78a0952586570ec7f2d1b",
+  "prompts": {},
+  "sessions": {
+    "s_41fee63ae1e397": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c65c112-e3b9-4897-a333-d6f5da060964",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
