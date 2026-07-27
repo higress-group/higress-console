@@ -1,0 +1,110 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesClientService.java
+  s_41fee63ae1e397::t_e56722c95bcdea 739-833
+  s_41fee63ae1e397::t_bc927b44d65116 57,60-62
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/WasmPluginInstanceServiceImplTest.java
+  s_41fee63ae1e397::t_760c7ac148cc4b 1-20,22-34,36-37,39,42-91,272
+  s_41fee63ae1e397::t_8bb548f038deb7 35,38,150-196,241-270
+  s_41fee63ae1e397::t_eed43da8385a9d 21
+  s_41fee63ae1e397::t_acd31735f39d0c 92-108
+  s_41fee63ae1e397::t_891c8a1cd4eb91 109-148
+  s_41fee63ae1e397::t_a0269f221d8382 40-41
+  s_41fee63ae1e397::t_edb10ab4785b9a 198-240
+  s_41fee63ae1e397::t_69de9707823a02 149
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/V1alpha1WasmPluginMatchRuleGsonTest.java
+  s_41fee63ae1e397::t_5d02b090b4c4c2 1-50
+backend/sdk/src/test/java/com/alibaba/higress/sdk/util/K8sNameUtilTest.java
+  s_41fee63ae1e397::t_549edd1118d662 1-45,54
+  s_41fee63ae1e397::t_4709015816e9eb 46-53
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesModelConverter.java
+  s_41fee63ae1e397::t_dc344059aa52e1 762-837,839-842
+  s_41fee63ae1e397::t_7915eaef80d3a6 843
+  s_41fee63ae1e397::t_7e4a7e56e8ba0e 86-87,89
+  s_41fee63ae1e397::t_5425c051eebca0 876
+  s_41fee63ae1e397::t_11ca027e8bc6de 1049
+  s_41fee63ae1e397::t_b093ad6c2b52be 547-560,566-577
+  s_41fee63ae1e397::t_08c49f55bed5cf 1100-1119
+  s_41fee63ae1e397::t_053bce70354bda 1130
+  s_41fee63ae1e397::t_17e457b15e667b 561-565
+  s_41fee63ae1e397::t_462154eecd86ea 1157-1188
+  s_41fee63ae1e397::t_e884bf3f3af750 853-854,861,874-875
+  s_41fee63ae1e397::t_a4c2ec0d3e59a3 65
+  s_41fee63ae1e397::t_a7e4a226b6344e 838
+  s_41fee63ae1e397::t_04a0758ee2d644 940-948
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/MatchRule.java
+  s_41fee63ae1e397::t_dbd328eb40fe07 42-43,45,49,53-57,62,66-67
+backend/console/src/test/java/com/alibaba/higress/console/controller/WasmPluginInstancesControllerConsumerTest.java
+  s_41fee63ae1e397::t_a948df58451420 1-99
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/WasmPluginInstance.java
+  s_41fee63ae1e397::t_684d7f9b92c2c2 59-65
+  s_41fee63ae1e397::t_97164ead9d07d9 146-157
+  s_41fee63ae1e397::t_33dc9507f15f6d 141-145,158-168
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/WasmPluginInstanceServiceImpl.java
+  s_41fee63ae1e397::t_172b4befad24de 45,49
+  s_41fee63ae1e397::t_0a59c7b682368b 241-255
+  s_41fee63ae1e397::t_1bf5985da47ec5 352
+  s_41fee63ae1e397::t_ce820c1eab808c 467-488,490-544,600-601
+  s_41fee63ae1e397::t_548dd03877786b 489
+  s_41fee63ae1e397::t_fa269a44fa73a2 17
+  s_41fee63ae1e397::t_4711972fe63d5a 391,401-437
+  s_41fee63ae1e397::t_3f96287a67140b 545-599
+  s_41fee63ae1e397::t_ad83325080e8f3 100-109,111-112
+  s_41fee63ae1e397::t_4e63b6411684d9 123-144,146
+  s_41fee63ae1e397::t_942c0a0ab99cea 41,48,50
+  s_41fee63ae1e397::t_a9fbe57073cbbf 47
+  s_41fee63ae1e397::t_31b731649264b3 179-192
+  s_41fee63ae1e397::t_98dfa4e2e4ba9c 323-327
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/V1alpha1WasmPluginMatchRuleList.java
+  s_41fee63ae1e397::t_10340f2c004132 1-61
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/WasmPluginInstanceSource.java
+  s_41fee63ae1e397::t_00090587c2f14f 1-25
+backend/sdk/src/test/java/com/alibaba/higress/sdk/model/WasmPluginInstanceScopeTest.java
+  s_41fee63ae1e397::t_aacea87e0dd412 1-30
+backend/console/src/main/java/com/alibaba/higress/console/controller/WasmPluginInstancesController.java
+  s_41fee63ae1e397::t_f447774314e6ed 257-294
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/V1alpha1WasmPluginMatchRule.java
+  s_41fee63ae1e397::t_d15d9b41b7a39e 1-51
+backend/sdk/src/main/java/com/alibaba/higress/sdk/constant/KubernetesConstants.java
+  s_41fee63ae1e397::t_0aa97f83cf5fdc 90-91
+backend/sdk/src/test/java/com/alibaba/higress/sdk/model/WasmPluginInstanceTest.java
+  s_41fee63ae1e397::t_3a46df83e9072e 1-40,51-58
+  s_41fee63ae1e397::t_ad6a9ce01da19a 42-50
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/MatchRuleTest.java
+  s_41fee63ae1e397::t_1c39f1d648084b 1-40
+backend/sdk/src/main/java/com/alibaba/higress/sdk/util/K8sNameUtil.java
+  s_41fee63ae1e397::t_3ad32407098eb9 71-74
+  s_41fee63ae1e397::t_212f3514914932 20-22,27-30,38,46-47,62,66-67,79,89-91,97-99
+  s_41fee63ae1e397::t_b5aef8d823d8e4 1-19,23-26,31-37,39-45,48-61,63-65,68-70,75-78,80-88,92-96,100-103
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/crd/wasm/V1alpha1WasmPluginMatchRuleSpec.java
+  s_41fee63ae1e397::t_07c1c8e5a64cde 1-39
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesModelConverterTest.java
+  s_41fee63ae1e397::t_74510d53c68b3e 2065-2071
+  s_41fee63ae1e397::t_2fc32e3de71132 48-50
+  s_41fee63ae1e397::t_57128a9d5ede43 2121-2157
+  s_41fee63ae1e397::t_415fe9c1d0e219 1305
+  s_41fee63ae1e397::t_97723e89b48fef 2158-2188
+  s_41fee63ae1e397::t_7df45d4895f2d7 2072-2081
+  s_41fee63ae1e397::t_0c0f3bd75663d6 2082-2083,2085,2087-2088,2090,2120
+  s_41fee63ae1e397::t_1efcb106b4b9f4 2084,2086,2089,2091-2119,2250
+  s_41fee63ae1e397::t_f798c01f3914d9 2189-2248
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesClientServiceWasmPluginMatchRuleTest.java
+  s_41fee63ae1e397::t_85d87c17b658e6 1-29
+backend/sdk/src/main/java/com/alibaba/higress/sdk/model/WasmPluginInstanceScope.java
+  s_41fee63ae1e397::t_0ccfbfca78eaaf 26
+  s_41fee63ae1e397::t_c79fed89a6c91f 44,46-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "e4ea86e3cb52a235cba416aac51a3c4ab2db67e4",
+  "prompts": {},
+  "sessions": {
+    "s_41fee63ae1e397": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c65c112-e3b9-4897-a333-d6f5da060964",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
