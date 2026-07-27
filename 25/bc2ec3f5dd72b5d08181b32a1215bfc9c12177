@@ -1,0 +1,24 @@
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesModelConverterTest.java
+  s_41fee63ae1e397::t_2fc32e3de71132 48-50
+  s_41fee63ae1e397::t_1efcb106b4b9f4 2084,2086,2089,2091-2119,2122
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/kubernetes/KubernetesModelConverter.java
+  s_41fee63ae1e397::t_dc344059aa52e1 701-780
+  s_41fee63ae1e397::t_a4c2ec0d3e59a3 65
+  s_41fee63ae1e397::t_7e4a7e56e8ba0e 86-87,89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "25bc2ec3f5dd72b5d08181b32a1215bfc9c12177",
+  "prompts": {},
+  "sessions": {
+    "s_41fee63ae1e397": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c65c112-e3b9-4897-a333-d6f5da060964",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
