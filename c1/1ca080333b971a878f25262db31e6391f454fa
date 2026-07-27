@@ -1,0 +1,23 @@
+backend/sdk/src/main/java/com/alibaba/higress/sdk/service/WasmPluginInstanceServiceImpl.java
+  s_41fee63ae1e397::t_4711972fe63d5a 369,379-415
+  s_41fee63ae1e397::t_1bf5985da47ec5 330
+backend/sdk/src/test/java/com/alibaba/higress/sdk/service/WasmPluginInstanceServiceImplTest.java
+  s_41fee63ae1e397::t_a0269f221d8382 37-38
+  s_41fee63ae1e397::t_acd31735f39d0c 89-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "c11ca080333b971a878f25262db31e6391f454fa",
+  "prompts": {},
+  "sessions": {
+    "s_41fee63ae1e397": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c65c112-e3b9-4897-a333-d6f5da060964",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
