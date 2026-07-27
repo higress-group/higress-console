@@ -1,0 +1,21 @@
+backend/sdk/src/test/java/com/alibaba/higress/sdk/util/K8sNameUtilTest.java
+  s_41fee63ae1e397::t_4709015816e9eb 46-53
+backend/sdk/src/main/java/com/alibaba/higress/sdk/util/K8sNameUtil.java
+  s_41fee63ae1e397::t_3ad32407098eb9 71-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "588ea8faab2b2d8ad9ec4e2ee91aa81403ef8aa2",
+  "prompts": {},
+  "sessions": {
+    "s_41fee63ae1e397": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c65c112-e3b9-4897-a333-d6f5da060964",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
