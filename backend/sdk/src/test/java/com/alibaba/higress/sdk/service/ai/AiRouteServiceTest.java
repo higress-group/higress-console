@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import com.alibaba.higress.sdk.service.kubernetes.crd.istio.V1alpha3EnvoyFilter;
+
+import io.kubernetes.client.util.Yaml;
+
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -97,6 +101,33 @@ public class AiRouteServiceTest {
 		String config = writer.toString();
 		//System.out.println(writer);
 		Assertions.assertTrue(config.contains("name: \"4xx_response\"") && config.contains("name: \"5xx_response\""));
+	}
+
+	@Test
+	public void fallbackPolicyAppliesToOriginalAndFallbackRoutesTest() {
+		VelocityContext context = new VelocityContext();
+		context.put("responseCodes", Arrays.asList("4xx", "5xx"));
+		StringWriter writer = new StringWriter();
+		routeFallbackEnvoyFilterConfigTemplate.merge(context, writer);
+		String config = writer.toString();
+
+		Assertions.assertEquals(2, config.split("applyTo: HTTP_ROUTE", -1).length - 1);
+		Assertions.assertEquals(2, config.split("max_internal_redirects: 10", -1).length - 1);
+		Assertions.assertTrue(config.contains("name: \"${routeName}\""));
+		Assertions.assertTrue(config.contains("name: \"${fallbackRouteName}\""));
+
+		String resolvedConfig = config.replace("${name}", "primary-route")
+			.replace("${routeName}", "primary-route")
+			.replace("${fallbackRouteName}", "primary-route-fallback")
+			.replace("${fallbackHeader}", "x-higress-fallback-from");
+		V1alpha3EnvoyFilter envoyFilter =
+			Yaml.getSnakeYaml(V1alpha3EnvoyFilter.class).loadAs(resolvedConfig, V1alpha3EnvoyFilter.class);
+
+		Assertions.assertEquals(2, envoyFilter.getSpec().getConfigPatches().size());
+		Assertions.assertEquals("primary-route", envoyFilter.getSpec().getConfigPatches().get(0).getMatch()
+			.getRouteConfiguration().getVhost().getRoute().getName());
+		Assertions.assertEquals("primary-route-fallback", envoyFilter.getSpec().getConfigPatches().get(1).getMatch()
+			.getRouteConfiguration().getVhost().getRoute().getName());
 	}
 
 }

@@ -288,6 +288,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         StringBuilder envoyFilterBuilder = new StringBuilder(fallbackEnvoyFilterConfig);
         StringUtil.replace(envoyFilterBuilder, "${name}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${routeName}", originalRouteName);
+        StringUtil.replace(envoyFilterBuilder, "${fallbackRouteName}", fallbackRouteName);
         StringUtil.replace(envoyFilterBuilder, "${fallbackHeader}", HigressConstants.FALLBACK_FROM_HEADER);
         V1alpha3EnvoyFilter envoyFilter =
             kubernetesClientService.loadFromYaml(envoyFilterBuilder.toString(), V1alpha3EnvoyFilter.class);

@@ -17,13 +17,14 @@ metadata:
   name: "${name}"
 spec:
   configPatches:
+    #macro(routeFallbackPatch $matchedRouteName)
     - applyTo: HTTP_ROUTE
       match:
         context: GATEWAY
         routeConfiguration:
           vhost:
             route:
-              name: "${routeName}"
+              name: "$matchedRouteName"
       patch:
         operation: MERGE
         value:
@@ -92,3 +93,6 @@ spec:
                                     append: false
                 with_request_body:
                   max_request_bytes: 1024000
+    #end
+    #routeFallbackPatch("${routeName}")
+    #routeFallbackPatch("${fallbackRouteName}")
