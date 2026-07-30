@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/alibaba/higress/console/HigressConsoleApplication.java
+  s_822d37b27e7487::t_c977447facfeb5 119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "db56fa9f2bd8396a73661724daf97361a342a2d3",
+  "prompts": {},
+  "sessions": {
+    "s_822d37b27e7487": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aaf25eec-72b1-40a2-a927-95d1c2a3b582",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
