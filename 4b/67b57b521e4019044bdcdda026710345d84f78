@@ -1,0 +1,19 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/TripLlmRouterWhitelistRefactorControllerTest.java
+  s_e512b637f5ccbe::t_50384cca6bbc17 288-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "4b67b57b521e4019044bdcdda026710345d84f78",
+  "prompts": {},
+  "sessions": {
+    "s_e512b637f5ccbe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a9759592-b613-43f8-a1ac-583574aad050",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
