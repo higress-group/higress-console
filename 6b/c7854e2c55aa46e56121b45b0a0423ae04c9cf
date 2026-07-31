@@ -1,0 +1,19 @@
+frontend/src/components/ConfigViewPage/index.tsx
+  s_062addef1fefef::t_66314fd7232697 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "6bc7854e2c55aa46e56121b45b0a0423ae04c9cf",
+  "prompts": {},
+  "sessions": {
+    "s_062addef1fefef": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "edfca843-85d6-44d3-adb7-6e317c9508e9",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
