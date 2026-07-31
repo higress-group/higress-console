@@ -1,0 +1,21 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteSyncWhitelistTest.java
+  s_e512b637f5ccbe::t_88d91822eda395 1-98
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteSyncWhitelist.java
+  s_e512b637f5ccbe::t_c9788ba3fe856a 1-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "db963c611bffa45e436a9693db6b92a29d1a929f",
+  "prompts": {},
+  "sessions": {
+    "s_e512b637f5ccbe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a9759592-b613-43f8-a1ac-583574aad050",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
