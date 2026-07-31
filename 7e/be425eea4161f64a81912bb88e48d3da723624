@@ -1,0 +1,26 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_e512b637f5ccbe::t_1de8c29037d3ad 34
+  s_e512b637f5ccbe::t_e100030025e69f 611
+  s_e512b637f5ccbe::t_9db4eeda8a8ae8 117-119
+  s_e512b637f5ccbe::t_45073c7d2c9f13 423-424
+  s_e512b637f5ccbe::t_6a1106fb75f152 412,414
+  s_e512b637f5ccbe::t_a614d6c1c18559 496
+  s_e512b637f5ccbe::t_4cdd23d83cbc06 566
+  s_e512b637f5ccbe::t_d2dae974739c71 484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.38-trip",
+  "base_commit_sha": "7ebe425eea4161f64a81912bb88e48d3da723624",
+  "prompts": {},
+  "sessions": {
+    "s_e512b637f5ccbe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a9759592-b613-43f8-a1ac-583574aad050",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
