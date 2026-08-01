@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/validation/SyncLlmServiceGroupRequestValidator.java
+  s_db06c750e1f63b::t_484652cbe5fa1e 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "bc224f2c9c37f973c3b0ec370fc0e39bf4a4b036",
+  "prompts": {},
+  "sessions": {
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
