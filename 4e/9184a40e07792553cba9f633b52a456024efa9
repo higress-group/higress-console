@@ -1,0 +1,21 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDao.java
+  s_db06c750e1f63b::t_a7e760a2ab2f10 1-79
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_db06c750e1f63b::t_2db4408b6afbfe 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "4e9184a40e07792553cba9f633b52a456024efa9",
+  "prompts": {},
+  "sessions": {
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
