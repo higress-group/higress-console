@@ -1,0 +1,19 @@
+backend/console/src/test/java/com/alibaba/higress/sdk/constant/plugin/config/TripLlmRouterConfigTest.java
+  s_db06c750e1f63b::t_db4222e5bd7dda 234-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "baff079e9a09271e3a13e03dab996a9ecba62154",
+  "prompts": {},
+  "sessions": {
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
