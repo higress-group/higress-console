@@ -1,0 +1,23 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/RemoteAIGatewayManagementServiceImplTest.java
+  s_db06c750e1f63b::t_5d1bb449072605 7,10,14
+  s_db06c750e1f63b::t_05cfa5d52d773e 116-133
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/RemoteAIGatewayManagementServiceImpl.java
+  s_db06c750e1f63b::t_880dbe2bdbfe09 86-91
+  s_db06c750e1f63b::t_9a8b1fb0933770 23-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "959f181709e885f1515dd645f0838e67c2aa5b79",
+  "prompts": {},
+  "sessions": {
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
