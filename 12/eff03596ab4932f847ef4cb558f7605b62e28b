@@ -1,0 +1,30 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_db06c750e1f63b::t_54394750f465a9 94
+  s_db06c750e1f63b::t_6ebea01155f0a6 1123-1171
+  s_db06c750e1f63b::t_400843aac43c23 11,18,26-27,33-34,40
+  s_db06c750e1f63b::t_3520c42db4a664 81-84
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_db06c750e1f63b::t_b516b4453addf2 113-114
+  s_db06c750e1f63b::t_d00f12dbb68141 21,29
+  s_db06c750e1f63b::t_9b1ac19cd550d9 64-65
+  s_db06c750e1f63b::t_28b718c84b556e 160-161,174-175
+  s_db06c750e1f63b::t_14d6e7a9256a57 79
+  s_db06c750e1f63b::t_74657d40a73e77 53
+  s_db06c750e1f63b::t_695ef2156b5e20 431-471
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "12eff03596ab4932f847ef4cb558f7605b62e28b",
+  "prompts": {},
+  "sessions": {
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
