@@ -1,0 +1,92 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_db06c750e1f63b::t_74657d40a73e77 53
+  s_db06c750e1f63b::t_14d6e7a9256a57 79
+  s_db06c750e1f63b::t_b516b4453addf2 113-114
+  s_db06c750e1f63b::t_695ef2156b5e20 431-471
+  s_db06c750e1f63b::t_9b1ac19cd550d9 64-65
+  s_db06c750e1f63b::t_28b718c84b556e 160-161,174-175
+  s_db06c750e1f63b::t_d00f12dbb68141 21,29
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmServiceGroupService.java
+  s_db06c750e1f63b::t_8a945d74f97573 1-14
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/model/ResourceType.java
+  s_db06c750e1f63b::t_c48382e35681b9 26-30
+backend/sdk/src/main/java/com/alibaba/higress/sdk/constant/plugin/config/TripLlmRouterConfig.java
+  s_576ee08fdd18d0::t_00b5249b922cbb 31,35
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImpl.java
+  s_db06c750e1f63b::t_2365a8d4a00905 93,100-126,128
+  s_db06c750e1f63b::t_f2896def211ecf 4,9
+  s_db06c750e1f63b::t_663ea60264a5b8 66-68,70-92
+  s_db06c750e1f63b::t_85082d4aca0de5 7
+  s_db06c750e1f63b::t_ec2f4facb83928 11,21,32,34-35,37
+  s_db06c750e1f63b::t_c23e4bdb1b9790 170-180
+  s_db06c750e1f63b::t_3e248dcb30a319 1-3,5-6,8,10,12-20,22-31,33,36,38-65,69,94-99,127,129-169,181-190
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_db06c750e1f63b::t_2db4408b6afbfe 1-9,11-20,22-25,27-29,32-41
+  s_db06c750e1f63b::t_7b50f54a944d1e 10,21,26,30-31
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/validation/SyncLlmServiceGroupRequestValidator.java
+  s_db06c750e1f63b::t_484652cbe5fa1e 1-13
+backend/console/src/test/java/com/alibaba/higress/sdk/constant/plugin/config/TripLlmRouterConfigTest.java
+  s_db06c750e1f63b::t_db4222e5bd7dda 234-235
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmServiceGroupMapper.java
+  s_db06c750e1f63b::t_78be4db7e5abb4 1-26
+backend/console/pom.xml
+  s_db06c750e1f63b::t_69d876a8a5c106 173
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/entity/LlmServiceGroupDO.java
+  s_db06c750e1f63b::t_2bf89539e54bf6 1-20
+backend/console/src/main/resources/mapper/LlmServiceGroupMapper.xml
+  s_db06c750e1f63b::t_c4299f74627b1e 68-69,71
+  s_db06c750e1f63b::t_51288db43a317e 17-18,22,25
+  s_db06c750e1f63b::t_f2b300a93ea0d8 1-16,19-21,23-24,26-67,70,72-74
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AggregatedAIGatewayManagementServiceImpl.java
+  s_db06c750e1f63b::t_dd1700dee5a842 65
+  s_db06c750e1f63b::t_6ac367f3f41345 182-192
+  s_db06c750e1f63b::t_450dff90a630ab 52-53
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_db06c750e1f63b::t_ded7a1d0369d48 1-7,9-16,19-25,27-31,34-53,56-92,192
+  s_db06c750e1f63b::t_e59fefc9ca0a32 54
+  s_db06c750e1f63b::t_187443f7448b96 55
+  s_db06c750e1f63b::t_86b1b7089ce5b1 8,18,26,32-33
+  s_db06c750e1f63b::t_eca4579f1965db 94-101,103-115,117-126,145-191
+  s_db06c750e1f63b::t_48c5094f5e2433 102,116,127-144
+  s_db06c750e1f63b::t_0e6a35bb932418 17
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_db06c750e1f63b::t_6ebea01155f0a6 1123-1126,1129-1135,1137-1138,1140-1149,1152-1157,1159-1175
+  s_db06c750e1f63b::t_3520c42db4a664 81-84
+  s_db06c750e1f63b::t_54394750f465a9 94
+  s_db06c750e1f63b::t_400843aac43c23 11,18,26-27,33-34,40
+  s_db06c750e1f63b::t_13b79f0ea8873a 1127-1128,1139,1150-1151,1158
+  s_db06c750e1f63b::t_2e20f84af81ee4 1136
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDao.java
+  s_db06c750e1f63b::t_a7e760a2ab2f10 1-61,63-79
+  s_db06c750e1f63b::t_fb12fed3003d80 62
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/RemoteAIGatewayManagementServiceImplTest.java
+  s_db06c750e1f63b::t_5d1bb449072605 7,10,14
+  s_db06c750e1f63b::t_05cfa5d52d773e 116-133
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/RemoteAIGatewayManagementServiceImpl.java
+  s_db06c750e1f63b::t_9a8b1fb0933770 23-24
+  s_db06c750e1f63b::t_880dbe2bdbfe09 86-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "c671d0159e3fc7f70792dfa6ccd18259b17d903e",
+  "prompts": {},
+  "sessions": {
+    "s_576ee08fdd18d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce928cac-9b66-40a3-a6a0-6bfa88230c36",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    },
+    "s_db06c750e1f63b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "883b8ea0-6310-4d96-a153-87c607a8a535",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
