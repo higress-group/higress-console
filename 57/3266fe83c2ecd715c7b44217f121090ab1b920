@@ -1,0 +1,33 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_f37e48624c3a4d::t_cad7fd35795d6b 699-799
+frontend/src/locales/zh-CN/translation.json
+  s_f37e48624c3a4d::t_3bbe7e1211c1b9 1027
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_f37e48624c3a4d::t_9431467e76deec 275-279
+  s_f37e48624c3a4d::t_5a981592a9cc4e 246-251
+  s_f37e48624c3a4d::t_a03c83bcac970e 948,950,966,976-978,986-988
+  s_f37e48624c3a4d::t_87684855bbed6c 949,951,965,967,979-985,989-990
+  s_f37e48624c3a4d::t_28efd2218e35fb 486-492
+frontend/src/interfaces/llm-route.ts
+  s_f37e48624c3a4d::t_fdc5b80fb566b3 38
+frontend/src/pages/view/llm-route.tsx
+  s_f37e48624c3a4d::t_efbc3081e3e092 28-34
+frontend/src/locales/en-US/translation.json
+  s_f37e48624c3a4d::t_efce0e579d9cc7 1027
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "573266fe83c2ecd715c7b44217f121090ab1b920",
+  "prompts": {},
+  "sessions": {
+    "s_f37e48624c3a4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "319e8a5f-7923-40ac-8aa9-76c39aa06959",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
