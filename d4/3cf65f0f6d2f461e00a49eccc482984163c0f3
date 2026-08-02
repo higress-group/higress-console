@@ -1,0 +1,34 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_f37e48624c3a4d::t_0de8349ec47e51 102,116,139
+  s_f37e48624c3a4d::t_8f52c704ce9d51 54
+frontend/src/pages/view/llm-service-group.tsx
+  s_f37e48624c3a4d::t_e3a99899cbc991 22-23,26
+frontend/src/interfaces/llm-service-group.ts
+  s_f37e48624c3a4d::t_428dad1de9ad32 10
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_f37e48624c3a4d::t_4aa84dc865ff66 21
+  s_f37e48624c3a4d::t_8a11bb451c1442 26,30-31
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_f37e48624c3a4d::t_936c2834db1184 84-85
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImpl.java
+  s_f37e48624c3a4d::t_fea455da679150 66
+  s_f37e48624c3a4d::t_365f41b3cb5a3a 170-171
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_f37e48624c3a4d::t_8e9ac36c758d5e 1136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "d43cf65f0f6d2f461e00a49eccc482984163c0f3",
+  "prompts": {},
+  "sessions": {
+    "s_f37e48624c3a4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "319e8a5f-7923-40ac-8aa9-76c39aa06959",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
