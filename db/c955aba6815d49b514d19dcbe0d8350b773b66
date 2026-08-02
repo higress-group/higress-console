@@ -1,0 +1,21 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_f37e48624c3a4d::t_28193166a16855 258-262
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_f37e48624c3a4d::t_876adc64243a5f 740-752
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "dbc955aba6815d49b514d19dcbe0d8350b773b66",
+  "prompts": {},
+  "sessions": {
+    "s_f37e48624c3a4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "319e8a5f-7923-40ac-8aa9-76c39aa06959",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
