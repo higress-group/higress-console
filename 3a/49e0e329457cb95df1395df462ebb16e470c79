@@ -1,0 +1,41 @@
+frontend/src/locales/zh-CN/translation.json
+  s_f37e48624c3a4d::t_584d3f3439a6bf 30
+  s_f37e48624c3a4d::t_a0dc1d2051de8d 1053-1067
+  s_f37e48624c3a4d::t_d6d050d731d816 143
+frontend/src/services/llm-service-group.ts
+  s_f37e48624c3a4d::t_6220ee02eca63f 1-14
+frontend/src/pages/ai/trip-llm-routes.tsx
+  s_f37e48624c3a4d::t_fe516ade4fdef2 1
+  s_f37e48624c3a4d::t_33bb9b3b1863f2 115-122,126-139,145-146
+  s_f37e48624c3a4d::t_7c72b9c5ccfec4 65-67,72-77
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_f37e48624c3a4d::t_10c19208e1415e 1-91
+frontend/src/locales/en-US/translation.json
+  s_f37e48624c3a4d::t_f2e754c982eafb 1053-1067
+  s_f37e48624c3a4d::t_f7c3278cc2b111 30
+  s_f37e48624c3a4d::t_a98f0852762128 143
+frontend/src/interfaces/llm-service-group.ts
+  s_f37e48624c3a4d::t_d8a42a8d290eda 1-23
+frontend/src/pages/view/llm-service-group.tsx
+  s_f37e48624c3a4d::t_7cbd690535d563 1-74
+frontend/src/interfaces/trip-llm-router.ts
+  s_f37e48624c3a4d::t_1c3c2e27703dc4 6-10,25,37,46
+frontend/src/pages/_defaultProps.tsx
+  s_f37e48624c3a4d::t_02500fcb7c87a7 135-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "3a49e0e329457cb95df1395df462ebb16e470c79",
+  "prompts": {},
+  "sessions": {
+    "s_f37e48624c3a4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "319e8a5f-7923-40ac-8aa9-76c39aa06959",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
