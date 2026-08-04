@@ -1,0 +1,61 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/service/impl/ValidationServiceImpl.java
+  s_4c173ca6610fa9::t_58092207e91855 12
+  s_4c173ca6610fa9::t_83fbed43f35d34 46-47,54-55
+  s_4c173ca6610fa9::t_57cc8626f531d1 9-10,21-22,24-25,28-29
+  s_4c173ca6610fa9::t_82183f34b8e2fc 45,53
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/config/Config.java
+  s_4c173ca6610fa9::t_d1a208e8a1bc3a 28,30,32-36
+  s_4c173ca6610fa9::t_bb3dd04833c782 31
+  s_4c173ca6610fa9::t_604a1c7f14860d 14,29
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_4c173ca6610fa9::t_7ad6ff257196aa 41-42
+  s_4c173ca6610fa9::t_868464ddbed84c 65-68,74-76
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_4c173ca6610fa9::t_e7ab8beee167d3 42,49-50,60,97-98,102,110-111,284,294-299,301-311,898-899,913-914,923-924,927-938,941-962,965-983
+  s_4c173ca6610fa9::t_82183f34b8e2fc 300,897,912,925-926,939-940,963-964
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_4c173ca6610fa9::t_4db2959315d693 62
+  s_4c173ca6610fa9::t_dc43347b1fd082 63
+  s_4c173ca6610fa9::t_bced894a8b8de6 28
+  s_4c173ca6610fa9::t_0853be731c6f98 6
+  s_4c173ca6610fa9::t_207d07998ba39c 57-59
+  s_4c173ca6610fa9::t_17385c5bbd4bea 26-27,29,31,35-38
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelperTest.java
+  s_4c173ca6610fa9::t_afdd2ef86dc09d 58-61,64,70-77,81,87,93-94,96-99,101-119,127-128,133,191-202,214
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/model/WriteDirective.java
+  s_4c173ca6610fa9::t_d8540a62ad4d70 6-7,11-13,16,20,23,25,33-34
+  s_4c173ca6610fa9::t_5c9bd5babd8d30 21
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ManualConfigSyncRunner.java
+  s_4c173ca6610fa9::t_16ecbf1e01fbf3 210
+  s_4c173ca6610fa9::t_12094707d567a7 37,43-45
+  s_4c173ca6610fa9::t_1905b136b7018f 96-98
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/McpServerServiceImpl.java
+  s_4c173ca6610fa9::t_f5dc0a8b294452 367
+  s_4c173ca6610fa9::t_29be3781fb2359 353-356,360-362
+  s_4c173ca6610fa9::t_b26bde6fd4cea0 372-373
+  s_4c173ca6610fa9::t_82183f34b8e2fc 366,368
+  s_4c173ca6610fa9::t_9b4ec3331e76d9 280-282
+  s_4c173ca6610fa9::t_10e5328a475781 365,369-371
+  s_4c173ca6610fa9::t_5ffcd57ffd9d16 120,124,130
+  s_4c173ca6610fa9::t_03bb89a0c9925d 350,359
+  s_4c173ca6610fa9::t_173a958d460007 24,27,45
+  s_4c173ca6610fa9::t_094cb11e9ac2c1 351-352,357-358,363-364
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_4c173ca6610fa9::t_8c56d5b53b4356 190,195,201,204,240,245,251,254,317,322,327,330,395,400,406,409,459,464,470,473,535,551,557,565
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "2c3da3a797fca9d846b56fadf6cfa835bb5e18f1",
+  "prompts": {},
+  "sessions": {
+    "s_4c173ca6610fa9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "39a18ecf-465f-4da6-b002-b9679b112f64",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
