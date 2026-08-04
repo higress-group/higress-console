@@ -1,0 +1,71 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_4c173ca6610fa9::t_868464ddbed84c 65-68,74-76
+  s_4c173ca6610fa9::t_7ad6ff257196aa 41-42
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelperTest.java
+  s_4c173ca6610fa9::t_afdd2ef86dc09d 58-61,64,70-77,81,87,93-94,96-99,101-119,127-128,133,191-202,214
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_4c173ca6610fa9::t_8c56d5b53b4356 190,195,201,204,240,245,251,254,317,322,327,330,395,400,406,409,459,464,470,473,535,551,557,565
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_4c173ca6610fa9::t_82183f34b8e2fc 296,887,902,915-916,955-956
+  s_4c173ca6610fa9::t_04fd91fbfb32b7 928-930,933-935
+  s_4c173ca6610fa9::t_e7ab8beee167d3 49-50,96-97,101,109-110,300-301,888-889,903-904,913-914,917-927,931,936-954,957-975
+  s_4c173ca6610fa9::t_7a02c49365c758 299
+  s_4c173ca6610fa9::t_0cc7987ecb5a13 283,285-286,292-295,297-298
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/model/WriteDirective.java
+  s_4c173ca6610fa9::t_d8540a62ad4d70 6-7,11-13,16,20,23,25,33-34
+  s_4c173ca6610fa9::t_5c9bd5babd8d30 21
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_4c173ca6610fa9::t_6e3e3edb8e94f3 849,866,887,911,928,949,970,989,1013,1037,1061,1080,1100,1125,1159,1176
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/config/Config.java
+  s_4c173ca6610fa9::t_d1a208e8a1bc3a 28,31,43-45
+  s_4c173ca6610fa9::t_cb2a52f566f876 30,33-42
+  s_4c173ca6610fa9::t_604a1c7f14860d 14
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ManualConfigSyncRunner.java
+  s_4c173ca6610fa9::t_12094707d567a7 38
+  s_4c173ca6610fa9::t_16ecbf1e01fbf3 211
+  s_4c173ca6610fa9::t_4ca925a7c5db5f 98
+  s_4c173ca6610fa9::t_1905b136b7018f 97,99
+  s_4c173ca6610fa9::t_07001780a23337 16
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/McpServerServiceImpl.java
+  s_4c173ca6610fa9::t_173a958d460007 24,27,45
+  s_4c173ca6610fa9::t_f5dc0a8b294452 368
+  s_4c173ca6610fa9::t_5ffcd57ffd9d16 120,124,130
+  s_4c173ca6610fa9::t_a0fd8b427de2e0 350,352,359-362
+  s_4c173ca6610fa9::t_094cb11e9ac2c1 351,357,363
+  s_4c173ca6610fa9::t_36bf9a0b278f24 367,369
+  s_4c173ca6610fa9::t_29be3781fb2359 353-356
+  s_4c173ca6610fa9::t_10e5328a475781 370-372
+  s_4c173ca6610fa9::t_b26bde6fd4cea0 373
+  s_4c173ca6610fa9::t_9b4ec3331e76d9 280-282
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_4c173ca6610fa9::t_0853be731c6f98 6
+  s_4c173ca6610fa9::t_4db2959315d693 62
+  s_4c173ca6610fa9::t_dc43347b1fd082 63
+  s_4c173ca6610fa9::t_207d07998ba39c 57-59
+  s_4c173ca6610fa9::t_17385c5bbd4bea 26-27,29,31-32,35-38
+  s_4c173ca6610fa9::t_6f5e8bdb5606ee 28
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_4c173ca6610fa9::t_d3807668420867 10
+  s_4c173ca6610fa9::t_753207af882ee7 69-73
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/service/impl/ValidationServiceImpl.java
+  s_4c173ca6610fa9::t_83fbed43f35d34 46-47,54-55
+  s_4c173ca6610fa9::t_57cc8626f531d1 9-10,21-22,24-25,28-29
+  s_4c173ca6610fa9::t_82183f34b8e2fc 45,53
+  s_4c173ca6610fa9::t_58092207e91855 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "05deb2cbdcd4d2b501f9e7d11005fc44b879b409",
+  "prompts": {},
+  "sessions": {
+    "s_4c173ca6610fa9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "39a18ecf-465f-4da6-b002-b9679b112f64",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
