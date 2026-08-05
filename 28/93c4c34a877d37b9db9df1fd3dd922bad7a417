@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/config/DalConfig.java
+  s_c6b7266eea6cb5::t_756e866f977334 5-6,9,17-20,27-29,36-61,64-71,75,85-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "2893c4c34a877d37b9db9df1fd3dd922bad7a417",
+  "prompts": {},
+  "sessions": {
+    "s_c6b7266eea6cb5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b41418c-d95c-4c30-ae35-d844eb9efcd9",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
