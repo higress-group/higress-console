@@ -1,0 +1,121 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceRelationMapper.java
+  s_368742ef72d639::t_e57054971aa659 1-31
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_4c173ca6610fa9::t_753207af882ee7 80-82
+  s_4c173ca6610fa9::t_d3807668420867 11
+  s_368742ef72d639::t_45394366efdf43 31-32,34-37,39
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/McpServerServiceImplTest.java
+  s_368742ef72d639::t_2f2ce06eb0b0cd 72,85-86,97,102-104
+  s_4c173ca6610fa9::t_864ce2a15e7a8c 1-71,73-84,87-96,98-101,105-142
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/model/WriteDirective.java
+  s_368742ef72d639::t_9b2d1b7c50ab30 12,17,24,26,34-35
+  s_4c173ca6610fa9::t_5c9bd5babd8d30 22
+  s_4c173ca6610fa9::t_d8540a62ad4d70 13-14,21
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_368742ef72d639::t_6342a2673291f1 12,19,30-37,66-67,71
+  s_4c173ca6610fa9::t_207d07998ba39c 68
+  s_4c173ca6610fa9::t_0853be731c6f98 6
+  s_4c173ca6610fa9::t_17385c5bbd4bea 28-29,40-41,44-47
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/service/impl/ValidationServiceImpl.java
+  s_4c173ca6610fa9::t_83fbed43f35d34 46-47,54-55
+  s_4c173ca6610fa9::t_58092207e91855 12
+  s_4c173ca6610fa9::t_57cc8626f531d1 9-10,21-22,24-25,28-29
+  s_4c173ca6610fa9::t_82183f34b8e2fc 45,53
+backend/console/src/main/java/com/alibaba/higress/console/controller/util/ControllerUtil.java
+  s_368742ef72d639::t_3fcfb8642be64a 39-44
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDaoTest.java
+  s_368742ef72d639::t_0753b57d091e92 28
+  s_368742ef72d639::t_80c2859fef9295 139-157,164-165,173,180-181,190,202-204,206,211-212,214,226-227,235,238-239,252-253,260,277-278,284,287,299-300,311,314,326-327,335
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_4c173ca6610fa9::t_7d8edd55d09802 532-535,545-548,559-562,566-574,591-593,603-606
+  s_4c173ca6610fa9::t_7ad6ff257196aa 41-42
+  s_368742ef72d639::t_32e7354eab052f 576-579,583-585
+  s_4c173ca6610fa9::t_868464ddbed84c 65-68,74-76
+  s_368742ef72d639::t_cac7dbb9eeba89 550-552
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/McpServerServiceImpl.java
+  s_4c173ca6610fa9::t_9b4ec3331e76d9 279-281
+  s_4c173ca6610fa9::t_173a958d460007 24,44
+  s_4c173ca6610fa9::t_a0fd8b427de2e0 353-356
+  s_368742ef72d639::t_7feb1c3a9a59c7 350
+  s_4c173ca6610fa9::t_5ffcd57ffd9d16 119,123,129
+  s_4c173ca6610fa9::t_36bf9a0b278f24 361,363
+  s_4c173ca6610fa9::t_f5dc0a8b294452 362
+  s_4c173ca6610fa9::t_10e5328a475781 364-367
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_dee3243f1ac892::t_92a1b5d704cc63 518,559,574-575,591-592,609-610,619,633-634,644
+  s_4c173ca6610fa9::t_6e3e3edb8e94f3 849,866,887,911,928,949,970,989,1013,1037,1061,1080,1100,1125,1159,1176
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_368742ef72d639::t_1251838c11660c 126-132,137
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelperTest.java
+  s_368742ef72d639::t_8e63c841bf4f40 61-62,65,75
+  s_368742ef72d639::t_71a75d35ea9a50 113-114,116-120
+  s_368742ef72d639::t_650ee880116736 192,196,202,215
+  s_4c173ca6610fa9::t_afdd2ef86dc09d 58-60,71-74,76-78,82,88,94-95,97-100,102-112,115,128-129,134,193-195,197-201,203
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_368742ef72d639::t_23194c25712efd 265-276
+  s_368742ef72d639::t_def208c96c5df3 4-5,9,17,20,23-24
+  s_368742ef72d639::t_f65f86e2a62db2 81
+  s_368742ef72d639::t_e3808f2c153318 37,39-40,43
+  s_368742ef72d639::t_9a18b60255c97e 108,134
+backend/console/src/main/resources/mapper/ResourceRelationMapper.xml
+  s_368742ef72d639::t_937e884b1c4297 1-45
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_dee3243f1ac892::t_92a1b5d704cc63 195,245,322,330,400,409,473
+  s_4c173ca6610fa9::t_8c56d5b53b4356 190,201,204,240,251,254,317,327,395,406,459,464,470,535,551,557
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_368742ef72d639::t_b5a27398dc477a 913
+  s_4c173ca6610fa9::t_e7ab8beee167d3 48-49,95-96,100,108-109,887,902,916
+  s_4c173ca6610fa9::t_82183f34b8e2fc 294-295,886,901
+  s_368742ef72d639::t_6d62c5186f6bcf 917
+  s_4c173ca6610fa9::t_0cc7987ecb5a13 282,284-285,292-293,296
+  s_4c173ca6610fa9::t_7a02c49365c758 297-299
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/entity/ResourceRelationDO.java
+  s_368742ef72d639::t_3a499838514664 1-26
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ManualConfigSyncRunner.java
+  s_368742ef72d639::t_f7c3d1d274c05d 211
+  s_4c173ca6610fa9::t_12094707d567a7 38
+  s_4c173ca6610fa9::t_07001780a23337 16
+  s_368742ef72d639::t_cadaf4bf39f402 97-99
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/config/Config.java
+  s_4c173ca6610fa9::t_d1a208e8a1bc3a 28,31,43-45
+  s_4c173ca6610fa9::t_cb2a52f566f876 30,33-35,39-42
+  s_dee3243f1ac892::t_fd09c91973d467 36-38
+  s_4c173ca6610fa9::t_604a1c7f14860d 14
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_368742ef72d639::t_9058ea194cac0e 48-50,57
+  s_368742ef72d639::t_e9c92dc434f117 7,12,15,17-18,23,28-29
+  s_368742ef72d639::t_3189e0bc6f27cd 25
+  s_368742ef72d639::t_3b78d05c3c9e09 246-438
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "b2b78dc118c3648fb376aaf6109fb12ddd5cbbca",
+  "prompts": {},
+  "sessions": {
+    "s_368742ef72d639": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ac945b66-677c-4ddd-a9b5-eabe01c27a34",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_4c173ca6610fa9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "39a18ecf-465f-4da6-b002-b9679b112f64",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_dee3243f1ac892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2de5b6a4-2cc0-4926-822f-f74276f80e98",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
