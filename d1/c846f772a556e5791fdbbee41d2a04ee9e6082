@@ -1,0 +1,150 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/SyncTaskPoller.java
+  s_fab2d7cee9506e::t_92fdf850e36def 1-23,25-28,30-31,34-152
+  s_fab2d7cee9506e::t_626827f2d04e31 24,29,32-33
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_18330927da2a81::t_2dbfaf89c9889d 23
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/model/SyncTaskOperation.java
+  s_35586e7bcb7be0::t_817223a589bea5 1-20,22-24
+  s_fab2d7cee9506e::t_e9e1ab9faada58 21
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/DbVsK8sDiffTool.java
+  s_fab88553194bfd::t_f436d5f231e667 638-645,652,655-659
+  s_652d57421f5411::t_4d939639329432 291-293
+  s_652d57421f5411::t_c41649af5ae8a7 68-71
+  s_652d57421f5411::t_bb7cb37c9f633f 165
+  s_fab88553194bfd::t_08101748459323 441-458,473-481,492-493,495,498-500,503-509
+  s_652d57421f5411::t_e5fc55d90ab00f 630,632-633
+  s_652d57421f5411::t_41c5db6cd6f27a 631,634,669-672,676,685-689
+  s_fab88553194bfd::t_0654b162e24904 323-331
+  s_fab88553194bfd::t_168182e074308c 673-675,677
+  s_652d57421f5411::t_7f263fcf45dd17 3-24,26-30,32-52,55-56,78-111,115-133,137-138,142,145-151,154-164,167,176-198,201-203,209-214,218-242,247-249,253-268,272-277,281-282,294-298,303-304,307-308,313,315-317,349-355,357-359,547-577,581-626,662-665,678-681,690-713,717-718,724,744-778
+  s_fab88553194bfd::t_44af78923a6c02 734-739,743
+  s_fab88553194bfd::t_c4459d277ee5cf 459-460,464-465,482-488,494,496-497,501-502
+  s_652d57421f5411::t_54ca001526d13d 143-144
+  s_652d57421f5411::t_80fee715d5aa4c 725-729,733
+  s_652d57421f5411::t_30e481435d8511 199
+  s_fab88553194bfd::t_27a898aa8e352f 646-651,660-661
+  s_fab88553194bfd::t_a4e6da7b67f12c 25
+  s_fab88553194bfd::t_320e8451368040 430-431,435-436,440,461-463,466-472
+  s_652d57421f5411::t_b2501a5f67d096 152,166,168,174-175
+  s_652d57421f5411::t_2721749da09fd7 31
+  s_652d57421f5411::t_c84d140936b3d5 343-348
+  s_652d57421f5411::t_44651320fbf658 200
+  s_fab88553194bfd::t_7d80ceb400eb88 653-654
+  s_652d57421f5411::t_ffbe1d5d931e90 318-319,337,366-372,374,414-426
+  s_fab88553194bfd::t_d055cd9bd01b65 169-173
+  s_652d57421f5411::t_8bc0d87c47e70e 283-290,302,305-306,309,314,320-322,332-336,338-342,356,373,379-397,401-413,512-513,517-519,527-528,534-539
+  s_fab88553194bfd::t_10301b09d39e0c 514-515,520-525,532-533,540
+  s_652d57421f5411::t_cb0f204c403b53 53-54
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/model/ResourceWriteResult.java
+  s_fab2d7cee9506e::t_060696ed62f5ed 18-21,29-30
+  s_fab2d7cee9506e::t_b2f31bcd84b6b9 11
+  s_fab2d7cee9506e::t_81498a92a2730a 17,31
+  s_fab2d7cee9506e::t_b6b3d1ed3f3688 10
+  s_18330927da2a81::t_3bb7ebd4c19297 27,42-43
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_dee3243f1ac892::t_29ffa52ebed992 208,220
+  s_18330927da2a81::t_d1a984122f8619 610
+  s_18330927da2a81::t_d0467acf6a956e 633
+  s_dee3243f1ac892::t_48203c45628705 434,446
+  s_18330927da2a81::t_d18afc97524987 37
+  s_dee3243f1ac892::t_642718c672f973 265,277
+  s_dee3243f1ac892::t_66ba0a36babc43 349,360
+  s_fab2d7cee9506e::t_92fdf850e36def 202-204,215-218,259-261,272-275,343-345,355-358,428-430,441-444,499-502,512-515,787-791
+  s_dee3243f1ac892::t_fd4d5bf84e068d 505
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/SyncTaskGray.java
+  s_18330927da2a81::t_e711bdfe236db9 14-81
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/model/SyncStatus.java
+  s_dee3243f1ac892::t_59545e5b6782f1 23
+  s_fab2d7cee9506e::t_602cf355afc7c5 19,27-28
+  s_fab2d7cee9506e::t_02c87f135520f1 11,15
+  s_35586e7bcb7be0::t_bec7a6e361b329 1-10,12-14,16-18,20-22,24-26,29-31
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/entity/SyncTaskDO.java
+  s_fab2d7cee9506e::t_f730a7a223ddc1 12-14,18
+  s_dee3243f1ac892::t_ac66dfda6ec84c 16-17,19,37
+  s_dee3243f1ac892::t_f2877df0a6a341 39
+  s_35586e7bcb7be0::t_0ab5672d80306f 1-10,15,20-36,38,40-47
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_dee3243f1ac892::t_26e023c43ec310 524-525,566-567,626-627,651
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmConsumerDao.java
+  s_18330927da2a81::t_02b06546fc87e7 21
+backend/console/src/main/resources/mapper/SyncTaskMapper.xml
+  s_dee3243f1ac892::t_d5cb793f8a95a9 38
+  s_fab2d7cee9506e::t_d692e6a52da544 55
+  s_fab2d7cee9506e::t_c31bb8381522f3 56-66,68-71
+  s_fab2d7cee9506e::t_bbaea736aeaef0 67
+  s_35586e7bcb7be0::t_ef3ce4fe9c7b47 1-12,14,16-25,28-34,39-49,51-54,73
+  s_dee3243f1ac892::t_ca3b018ca65993 15
+  s_dee3243f1ac892::t_441b35661559bb 13,26-27,35-37
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/SyncTaskMapper.java
+  s_fab2d7cee9506e::t_48033079c6f191 35-36
+  s_fab2d7cee9506e::t_4145c04a030712 10,14
+  s_fab2d7cee9506e::t_45f3944a2aa5a8 11-12,23-24
+  s_35586e7bcb7be0::t_eb723e55fdf6f9 1,6-9,13,15-20,27-34,39-47,64
+  s_fab2d7cee9506e::t_ad5aa8ce824371 21-22
+  s_fab2d7cee9506e::t_bfb8fa315660db 3-5,48-63
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_fab2d7cee9506e::t_3a7f98467cbaa4 115
+  s_fab2d7cee9506e::t_92fdf850e36def 78,89-95,103,143,170-176,188
+  s_fab2d7cee9506e::t_8e5b14ffffda30 56,113
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceDao.java
+  s_18330927da2a81::t_e6f5a9cc556e62 21
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AggregateDao.java
+  s_fab2d7cee9506e::t_207c32bfe1c3f4 24
+  s_fab2d7cee9506e::t_e38bb961156baa 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "d1c846f772a556e5791fdbbee41d2a04ee9e6082",
+  "prompts": {},
+  "sessions": {
+    "s_18330927da2a81": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0ceceefe-b21e-4100-99cd-80186e517c80",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_35586e7bcb7be0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f2882fb-71a7-4e58-8fb7-7b819d4a3b7a",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_652d57421f5411": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8502b652-f570-4721-b5be-28d36c3402b9",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_dee3243f1ac892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2de5b6a4-2cc0-4926-822f-f74276f80e98",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_fab2d7cee9506e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fc55d9ab-2b46-4524-82d5-ca2bde0522f9",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    },
+    "s_fab88553194bfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cca6a71f-71d9-4cb3-9f99-13e330b791db",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
