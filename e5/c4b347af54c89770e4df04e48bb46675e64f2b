@@ -1,0 +1,25 @@
+backend/console/src/main/resources/mapper/ResourceRelationMapper.xml
+  s_816fabddb3e6a8::t_73a2cf606fff7a 46-55
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceRelationMapper.java
+  s_816fabddb3e6a8::t_b9188e429565d9 31-40
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationController.java
+  s_816fabddb3e6a8::t_fe0478fa964d9a 1-238
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_816fabddb3e6a8::t_805f631e55d7e0 244-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "e5c4b347af54c89770e4df04e48bb46675e64f2b",
+  "prompts": {},
+  "sessions": {
+    "s_816fabddb3e6a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17534229-7fa5-4e36-8aad-afb8a4beaace",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
