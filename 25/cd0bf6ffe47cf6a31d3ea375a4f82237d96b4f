@@ -1,0 +1,21 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/SyncTaskPoller.java
+  s_f7241a4193a085::t_51a6c2fd16d4af 1-142
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_f7241a4193a085::t_1c8d022744054a 741-743
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "25cd0bf6ffe47cf6a31d3ea375a4f82237d96b4f",
+  "prompts": {},
+  "sessions": {
+    "s_f7241a4193a085": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ac4939e9-187e-4f25-937e-3f8f70de5e33",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
