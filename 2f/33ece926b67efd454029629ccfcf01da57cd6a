@@ -1,0 +1,51 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationController.java
+  s_816fabddb3e6a8::t_257ff16cc47f53 32-35,42,51,59-60,80,83
+  s_816fabddb3e6a8::t_4b4ac344aca074 147-148
+  s_816fabddb3e6a8::t_2d665d8846036f 140
+  s_816fabddb3e6a8::t_617059748e2bec 205
+  s_816fabddb3e6a8::t_0047f634291e06 169
+  s_816fabddb3e6a8::t_ef5f265b9e77cc 192,195
+  s_816fabddb3e6a8::t_fafe551a2be5c6 1-31,36-41,43-50,52-58,61-79,84-139,141-146,149-167,170-191,193-194,196-204,206-220,222-229
+  s_816fabddb3e6a8::t_1ab5ae10eafbf0 221
+  s_816fabddb3e6a8::t_d9f0d69a1975a2 168
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_816fabddb3e6a8::t_dde3db76a98035 257-265,267,273,276,278-293,295-296,298-299,301-315,317
+  s_816fabddb3e6a8::t_558e6199259527 269-270
+  s_816fabddb3e6a8::t_486aefc5c1415f 271
+  s_816fabddb3e6a8::t_39a7d2ab609794 272,277
+  s_816fabddb3e6a8::t_c04aa4211ce740 266,268,274-275,294,297,300,316,318-319
+  s_816fabddb3e6a8::t_64b86b2d6148ca 227-228,242-256
+  s_816fabddb3e6a8::t_fafe551a2be5c6 22,128,177,186,328
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceRelationMapper.java
+  s_816fabddb3e6a8::t_b9188e429565d9 24-25
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/AbstractAggregateDao.java
+  s_816fabddb3e6a8::t_627ca15140e2e8 166
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmRouteMapper.java
+  s_816fabddb3e6a8::t_486aefc5c1415f 29
+  s_816fabddb3e6a8::t_68c09df0e76ccc 28
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_816fabddb3e6a8::t_486aefc5c1415f 90
+  s_816fabddb3e6a8::t_68c09df0e76ccc 91-98
+backend/console/src/main/resources/mapper/ResourceRelationMapper.xml
+  s_816fabddb3e6a8::t_73a2cf606fff7a 46-55
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmRouteParseUtil.java
+  s_816fabddb3e6a8::t_9639428d8a8fc9 35
+  s_816fabddb3e6a8::t_78c8df8688879b 20-22
+  s_816fabddb3e6a8::t_66ed05c45637fe 17-18,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "2f33ece926b67efd454029629ccfcf01da57cd6a",
+  "prompts": {},
+  "sessions": {
+    "s_816fabddb3e6a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17534229-7fa5-4e36-8aad-afb8a4beaace",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
