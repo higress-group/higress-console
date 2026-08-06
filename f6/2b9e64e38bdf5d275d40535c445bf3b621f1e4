@@ -1,0 +1,52 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationControllerTest.java
+  s_816fabddb3e6a8::t_11ba265924a456 1-193
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/util/LlmRouteParseUtilTest.java
+  s_816fabddb3e6a8::t_ab21c464b85734 1-142
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmRouteParseUtil.java
+  s_816fabddb3e6a8::t_66ed05c45637fe 17-18,25
+  s_816fabddb3e6a8::t_78c8df8688879b 20-22
+  s_816fabddb3e6a8::t_9639428d8a8fc9 35
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmRouteMapper.java
+  s_816fabddb3e6a8::t_486aefc5c1415f 29
+  s_816fabddb3e6a8::t_68c09df0e76ccc 28
+backend/console/src/main/resources/mapper/ResourceRelationMapper.xml
+  s_816fabddb3e6a8::t_73a2cf606fff7a 46-55
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationController.java
+  s_816fabddb3e6a8::t_ef5f265b9e77cc 184,187
+  s_816fabddb3e6a8::t_257ff16cc47f53 31-34,41,72-75
+  s_816fabddb3e6a8::t_cdbe13c1bb3597 51-52
+  s_816fabddb3e6a8::t_0047f634291e06 161
+  s_816fabddb3e6a8::t_fafe551a2be5c6 1-30,35-40,42-50,53-71,76-82,84-131,133-138,141-159,162-183,185-186,188-196,198-212,214-221
+  s_816fabddb3e6a8::t_4b4ac344aca074 139-140
+  s_816fabddb3e6a8::t_d9f0d69a1975a2 160
+  s_816fabddb3e6a8::t_2d665d8846036f 132
+  s_816fabddb3e6a8::t_c4736785dbb809 83
+  s_816fabddb3e6a8::t_617059748e2bec 197
+  s_816fabddb3e6a8::t_1ab5ae10eafbf0 213
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_816fabddb3e6a8::t_dde3db76a98035 305-308
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceRelationMapper.java
+  s_816fabddb3e6a8::t_b9188e429565d9 24-25
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_816fabddb3e6a8::t_486aefc5c1415f 90
+  s_816fabddb3e6a8::t_68c09df0e76ccc 91-98
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_816fabddb3e6a8::t_f5663a3cb5361b 15,18
+  s_816fabddb3e6a8::t_0c5f3700e1abbb 441-609
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "f62b9e64e38bdf5d275d40535c445bf3b621f1e4",
+  "prompts": {},
+  "sessions": {
+    "s_816fabddb3e6a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17534229-7fa5-4e36-8aad-afb8a4beaace",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
