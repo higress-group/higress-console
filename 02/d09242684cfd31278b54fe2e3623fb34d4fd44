@@ -1,0 +1,46 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationControllerTest.java
+  s_816fabddb3e6a8::t_11ba265924a456 1-193
+backend/console/src/main/resources/mapper/ResourceRelationMapper.xml
+  s_816fabddb3e6a8::t_73a2cf606fff7a 46-55
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/ResourceRelationMapper.java
+  s_368742ef72d639::t_e57054971aa659 9-11
+  s_816fabddb3e6a8::t_b9188e429565d9 24-25
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_816fabddb3e6a8::t_f5663a3cb5361b 15,18
+  s_816fabddb3e6a8::t_0c5f3700e1abbb 441-608
+  s_368742ef72d639::t_3b78d05c3c9e09 609
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmRouteMapper.java
+  s_816fabddb3e6a8::t_486aefc5c1415f 29
+  s_816fabddb3e6a8::t_68c09df0e76ccc 28
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_816fabddb3e6a8::t_dde3db76a98035 349-352
+  s_368742ef72d639::t_def208c96c5df3 25
+  s_368742ef72d639::t_23194c25712efd 372
+backend/console/src/main/resources/mapper/LlmRouteMapper.xml
+  s_816fabddb3e6a8::t_486aefc5c1415f 90
+  s_816fabddb3e6a8::t_68c09df0e76ccc 91-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "02d09242684cfd31278b54fe2e3623fb34d4fd44",
+  "prompts": {},
+  "sessions": {
+    "s_368742ef72d639": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ac945b66-677c-4ddd-a9b5-eabe01c27a34",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    },
+    "s_816fabddb3e6a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17534229-7fa5-4e36-8aad-afb8a4beaace",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
