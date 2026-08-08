@@ -1,0 +1,45 @@
+frontend/src/services/mcp-server-consumer.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/services/mcp-server.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/pages/layout.tsx
+  s_2072013556986f::t_c4b58ad3b52fff 61
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerConsumerController.java
+  s_2072013556986f::t_565f90cb8922c5 38
+backend/console/src/main/java/com/alibaba/higress/console/WebMvcInitializer.java
+  s_2072013556986f::t_463f22953524eb 39
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmRouteController.java
+  s_2072013556986f::t_9ca44362e82287 39
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceController.java
+  s_2072013556986f::t_d26ba89138edbe 38
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_2072013556986f::t_b9f7f4d50f0ecc 29
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmConsumerController.java
+  s_2072013556986f::t_9a0c62a8ab558f 38
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerController.java
+  s_2072013556986f::t_f806eaac9aaa37 38
+frontend/src/services/llm-consumer.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/services/llm-route.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/services/llm-service-group.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/services/llm-service.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "06c7e9ad672090ae523328c95faad25152313226",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
