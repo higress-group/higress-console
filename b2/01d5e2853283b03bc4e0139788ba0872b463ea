@@ -1,0 +1,27 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDaoTest.java
+  s_c16361f3634572::t_0f7a32c8b8d470 10-11
+  s_c16361f3634572::t_1910a0553ed381 146-178
+  s_c16361f3634572::t_d0843434c8dcde 3,20
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/McpServerDao.java
+  s_c16361f3634572::t_5ffd43e1144a66 72-74
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/DualWriteHelper.java
+  s_c16361f3634572::t_ce679a5e5c0dc7 34-35,41
+  s_c16361f3634572::t_5e11a87f1d9a4b 31
+  s_c16361f3634572::t_04a501804d44cd 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "b201d5e2853283b03bc4e0139788ba0872b463ea",
+  "prompts": {},
+  "sessions": {
+    "s_c16361f3634572": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dc27ecdd-f0dd-4491-8cf6-fb6da27379a8",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
