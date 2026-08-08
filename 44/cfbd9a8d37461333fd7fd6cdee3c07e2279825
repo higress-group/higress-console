@@ -1,0 +1,43 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_2072013556986f::t_28136528df517a 697-754
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_2072013556986f::t_31e6c45cfd98c9 152-201
+  s_2072013556986f::t_39838a2237cc35 250-251,263-264
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_2072013556986f::t_a02ef2d2de2741 851-886
+  s_2072013556986f::t_a8e66820bc9a54 69-70,78
+backend/console/src/test/java/com/alibaba/higress/console/controller/view/LlmServiceGroupControllerTest.java
+  s_2072013556986f::t_61a14c950f8c12 1-120
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_2072013556986f::t_1b58438ceaa66c 1173
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_2072013556986f::t_a49141821f9e23 50
+  s_2072013556986f::t_299c5291921791 98,102-103,113
+  s_2072013556986f::t_8f988957d5b5be 252-254,263
+  s_2072013556986f::t_3970d89defa13b 341-356
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_2072013556986f::t_3145633f5c2c4d 4
+  s_2072013556986f::t_61cf0aa3a77017 59-63
+frontend/src/pages/view/llm-service-group.tsx
+  s_2072013556986f::t_a0bb0c7d717757 18
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_2072013556986f::t_0d8f13ea68340d 42-46
+  s_2072013556986f::t_e9e953df865b82 9-10,12,14,26-41,47-64,78,89,98-99,115-116,122-123,125-129,138,140-141,147,150-288
+  s_2072013556986f::t_179c615248eea8 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "44cfbd9a8d37461333fd7fd6cdee3c07e2279825",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
