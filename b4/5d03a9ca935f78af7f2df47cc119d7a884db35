@@ -1,0 +1,36 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_2072013556986f::t_0b3f6cdcbb1abe 1159
+  s_2072013556986f::t_323a8a29a24be0 1135
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImpl.java
+  s_2072013556986f::t_304bbd2b4d202d 22,25
+  s_2072013556986f::t_c2d070ef196cd3 106-120,123,136
+  s_2072013556986f::t_6d2ab323908909 36,39,42
+  s_2072013556986f::t_7fa84a200bc4da 4
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/LlmServiceGroupRelationController.java
+  s_2072013556986f::t_4f80cbb02079ef 1-219
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/LlmServiceGroupRelationControllerTest.java
+  s_2072013556986f::t_7fa6f3377f2222 1-174
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_2072013556986f::t_aa6aad98db1be2 63-67
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_2072013556986f::t_716142f35f4f1a 199-200,211-212,218-219,229-230
+  s_2072013556986f::t_c762bd89007b90 196-198,201-210,213-217,220-228,231-232
+  s_2072013556986f::t_07b40735246ffb 8,10
+  s_2072013556986f::t_a6f02cc8212215 29,36-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "b45d03a9ca935f78af7f2df47cc119d7a884db35",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
