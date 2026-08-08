@@ -1,0 +1,27 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/MaintenanceControllerTest.java
+  s_53a9d5c613001e::t_3fd8cdcf501342 9
+  s_53a9d5c613001e::t_402443f5be08ec 55
+  s_53a9d5c613001e::t_88202ce6666727 66
+  s_53a9d5c613001e::t_2bfdebceaf771d 83-86
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/MaintenanceController.java
+  s_53a9d5c613001e::t_ebf8b13cfaaff8 11
+  s_53a9d5c613001e::t_06d935e6e33bda 13
+  s_53a9d5c613001e::t_f48b5f8f84b9a3 86
+  s_53a9d5c613001e::t_9fe5472a1bfbb4 90-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "3a47d17e5344cb38671bb7ce1e584f388e95c3f7",
+  "prompts": {},
+  "sessions": {
+    "s_53a9d5c613001e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5be42e0d-2c84-489e-b083-19e0d18d50b7",
+        "model": "kimi-k2.7-code"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
