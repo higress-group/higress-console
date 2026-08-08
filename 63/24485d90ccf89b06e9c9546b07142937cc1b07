@@ -1,0 +1,36 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmServiceGroupParseUtil.java
+  s_2072013556986f::t_aebc1cf4f1432a 1-43
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmRouteParseUtil.java
+  s_2072013556986f::t_3cd682d2cb93fd 49-64
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_2072013556986f::t_4ca704888f53eb 3-7,10,12-18,31,44,49-135
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmServiceGroupMapper.java
+  s_2072013556986f::t_1f1afbd18f3ec7 26-27
+backend/console/src/main/resources/mapper/LlmServiceGroupMapper.xml
+  s_2072013556986f::t_d7123fb62a4f13 74-82
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDao.java
+  s_2072013556986f::t_1a09fa437a545c 3-5,7-8,13,16,18-21,24,26,31,33-34,37,79,85-209
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_2072013556986f::t_6e3dec77fb091f 360,365-370
+  s_2072013556986f::t_c78fed4be9fb47 6
+  s_2072013556986f::t_9479593a9ed4b1 203-207,209-218,233-247
+  s_2072013556986f::t_91b81a771a7eaf 321
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_2072013556986f::t_6a75bd97776c8d 360-437
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "6324485d90ccf89b06e9c9546b07142937cc1b07",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
