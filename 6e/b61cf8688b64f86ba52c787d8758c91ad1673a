@@ -1,0 +1,32 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImplTest.java
+  s_2072013556986f::t_740fdadd582a1f 87,103-104,110,115-125
+  s_2072013556986f::t_c68e1442f15f81 45-46,54
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_2072013556986f::t_54a55b872d6b6f 30,38-41
+  s_2072013556986f::t_a512353c2e5ff8 207-244
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImpl.java
+  s_2072013556986f::t_7fa2e9e5817281 123-155
+  s_2072013556986f::t_f80a6362ec607c 23,38,41,45
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImpl.java
+  s_2072013556986f::t_8f32219414ec07 238-244
+  s_2072013556986f::t_174a4d95c4914a 86,90,96
+  s_2072013556986f::t_3d0ceeb07ef4d7 37
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmServiceGroupService.java
+  s_2072013556986f::t_d5b96f81717a99 3-4,16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "6eb61cf8688b64f86ba52c787d8758c91ad1673a",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
