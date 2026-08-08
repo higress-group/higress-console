@@ -1,0 +1,134 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImplTest.java
+  s_2072013556986f::t_740fdadd582a1f 87,103-104,110,115-125
+  s_2072013556986f::t_c68e1442f15f81 45-46,54
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImplTest.java
+  s_2072013556986f::t_0b3f6cdcbb1abe 1159
+  s_2072013556986f::t_323a8a29a24be0 1135
+  s_2072013556986f::t_1b58438ceaa66c 1173
+backend/console/src/main/resources/mapper/LlmServiceGroupMapper.xml
+  s_2072013556986f::t_d7123fb62a4f13 74-82
+backend/console/src/main/java/com/alibaba/higress/console/WebMvcInitializer.java
+  s_2072013556986f::t_463f22953524eb 39
+frontend/src/services/llm-route.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmRouteParseUtil.java
+  s_2072013556986f::t_76e1c8aadbb48f 50-52,54-56,58-59
+  s_2072013556986f::t_3cd682d2cb93fd 49,53,57,60-61
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationControllerTest.java
+  s_2072013556986f::t_8f8ba5cad08cb4 181-203
+  s_2072013556986f::t_78aeb37e90df19 167
+  s_2072013556986f::t_d250f38a1ffd5d 56-63
+  s_2072013556986f::t_a8a9efa7cb8af5 125-127
+  s_2072013556986f::t_6c93019411d995 102-105
+  s_2072013556986f::t_cd8ebec398b262 147-149
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmRouteController.java
+  s_2072013556986f::t_9ca44362e82287 39
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDaoTest.java
+  s_2072013556986f::t_4ca704888f53eb 3-8,11,13,17-25,65-77,79-88,90-97,100-114,117-121,124,130-137,139,142-146,148-149
+  s_2072013556986f::t_e9e953df865b82 9-10,12,14,26-41,47-64,78,89,98-99,115-116,122-123,125-129,138,140-141,147,150-288
+  s_2072013556986f::t_179c615248eea8 16
+  s_2072013556986f::t_0d8f13ea68340d 42-46
+frontend/src/pages/view/llm-service-group.tsx
+  s_2072013556986f::t_a0bb0c7d717757 18
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceController.java
+  s_2072013556986f::t_d26ba89138edbe 38
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmServiceGroupController.java
+  s_2072013556986f::t_b9f7f4d50f0ecc 30
+  s_2072013556986f::t_aa6aad98db1be2 55-58,64
+  s_2072013556986f::t_3145633f5c2c4d 4
+  s_2072013556986f::t_61cf0aa3a77017 59-63
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmServiceGroupDao.java
+  s_2072013556986f::t_1a09fa437a545c 3-209
+frontend/src/services/llm-service-group.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+backend/console/src/test/java/com/alibaba/higress/console/controller/view/LlmServiceGroupControllerTest.java
+  s_2072013556986f::t_61a14c950f8c12 1-120
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_2072013556986f::t_7bf1e1cc1ab1c9 273-277,282,287-292,297-308
+  s_2072013556986f::t_9479593a9ed4b1 203-207,209-218,233-247
+  s_2072013556986f::t_c78fed4be9fb47 6
+  s_2072013556986f::t_b6439fdde9f7b9 309-312
+  s_2072013556986f::t_b30d427b11b85d 339,348-355
+  s_2072013556986f::t_6e3dec77fb091f 392,397-398,401-402
+  s_2072013556986f::t_add1b8eb00042a 399-400
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImpl.java
+  s_2072013556986f::t_f80a6362ec607c 23,38,41,45
+  s_2072013556986f::t_304bbd2b4d202d 22,24-26
+  s_2072013556986f::t_6d2ab323908909 37,39-40,42-44
+  s_2072013556986f::t_c2d070ef196cd3 109-122,156-172
+  s_2072013556986f::t_7fa2e9e5817281 123-155
+  s_2072013556986f::t_7fa84a200bc4da 4
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/LlmServiceGroupService.java
+  s_2072013556986f::t_d5b96f81717a99 3-18
+frontend/src/services/llm-consumer.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceGroupServiceImplTest.java
+  s_2072013556986f::t_c762bd89007b90 290-292,295-305,308-314
+  s_2072013556986f::t_31e6c45cfd98c9 156-205
+  s_2072013556986f::t_39838a2237cc35 293-294,306-307
+  s_2072013556986f::t_a6f02cc8212215 29,31-37
+  s_2072013556986f::t_07b40735246ffb 8-10
+  s_2072013556986f::t_a512353c2e5ff8 207-244
+  s_2072013556986f::t_54a55b872d6b6f 30,38-41
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerConsumerController.java
+  s_2072013556986f::t_565f90cb8922c5 38
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/McpServerController.java
+  s_2072013556986f::t_f806eaac9aaa37 38
+frontend/src/services/mcp-server.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+frontend/src/services/mcp-server-consumer.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+backend/console/src/main/java/com/alibaba/higress/console/controller/view/LlmConsumerController.java
+  s_2072013556986f::t_9a0c62a8ab558f 38
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/LlmServiceGroupRelationController.java
+  s_2072013556986f::t_4f80cbb02079ef 1-219
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/util/LlmServiceGroupParseUtil.java
+  s_2072013556986f::t_aebc1cf4f1432a 1-43
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/controller/refactor/ResourceRelationController.java
+  s_2072013556986f::t_9e029b701e7070 10
+  s_2072013556986f::t_ff2e7c47d802d3 133,139-149,153-156,161-162,174,181-182
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/controller/refactor/LlmServiceGroupRelationControllerTest.java
+  s_2072013556986f::t_7fa6f3377f2222 1-174
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImpl.java
+  s_2072013556986f::t_3970d89defa13b 341-356
+  s_2072013556986f::t_299c5291921791 98,102-103,113
+  s_2072013556986f::t_a49141821f9e23 50
+  s_2072013556986f::t_8f988957d5b5be 252-263
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmRouteServiceImplTest.java
+  s_2072013556986f::t_a02ef2d2de2741 851-886
+  s_2072013556986f::t_a8e66820bc9a54 69-70,78
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/AIGatewayManagementServiceImpl.java
+  s_2072013556986f::t_9bbc8a13b71dfe 422,433
+  s_2072013556986f::t_62940647cb4dc5 427,436
+frontend/src/services/llm-service.ts
+  s_2072013556986f::t_105f2f626b84e1 4
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDaoTest.java
+  s_2072013556986f::t_05110a5a4224dd 522,529-533,535-536,540,542-543,545-548,552-555,560-561,563
+  s_2072013556986f::t_6a75bd97776c8d 361-438
+  s_2072013556986f::t_732fa0ffd4ee8a 4
+  s_2072013556986f::t_28136528df517a 697-754
+frontend/src/pages/layout.tsx
+  s_2072013556986f::t_c4b58ad3b52fff 61
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/mapper/LlmServiceGroupMapper.java
+  s_2072013556986f::t_1f1afbd18f3ec7 26-27
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/soa/biz/impl/LlmServiceServiceImpl.java
+  s_2072013556986f::t_3d0ceeb07ef4d7 37
+  s_2072013556986f::t_174a4d95c4914a 86,90,96
+  s_2072013556986f::t_8f32219414ec07 238-244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "1d091f4961c4cd2b52636aa51478397d1f86af41",
+  "prompts": {},
+  "sessions": {
+    "s_2072013556986f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f27d487a-5206-42f9-acb1-913a990af5f6",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
