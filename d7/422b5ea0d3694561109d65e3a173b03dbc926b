@@ -1,0 +1,19 @@
+backend/pom.xml
+  s_a84d304c02fd2c::t_cb2ab027222e1c 91-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "d7422b5ea0d3694561109d65e3a173b03dbc926b",
+  "prompts": {},
+  "sessions": {
+    "s_a84d304c02fd2c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "713b75e8-1cc5-4d63-83c0-4ebaec22eac6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
