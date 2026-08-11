@@ -167,7 +167,7 @@ const AiRouteList: React.FC = () => {
   const [pluginData, setPluginsData] = useState<Record<string, WasmPluginData[]>>({});
   const [pluginInfoList, setPluginInfoList] = useState<WasmPluginData[]>([]);
 
-  // Filter state — Input 类（带 debounce）
+  // Filter state — Input-backed filters (debounced)
   const [nameFilter, setNameFilter] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [pathFilter, setPathFilter] = useState('');
@@ -179,40 +179,40 @@ const AiRouteList: React.FC = () => {
   const debouncedProviderFilter = useDebounce(providerFilter, 300);
   const debouncedConsumerFilter = useDebounce(consumerFilter, 300);
 
-  // Filter state — Select 多选类
+  // Filter state — Multi-select filters
   const [selectedAuthStates, setSelectedAuthStates] = useState<string[]>([]);
 
   const applyFilters = () => {
     let results = [...(routesRef.current || [])];
 
-    // 1. 名称（子串，大小写不敏感）
+    // 1. Name (substring, case-insensitive)
     if (debouncedNameFilter) {
       const q = debouncedNameFilter.toLowerCase();
       results = results.filter(item => item.name?.toLowerCase().includes(q));
     }
 
-    // 2. 域名（任一命中）
+    // 2. Domain (any-match)
     if (debouncedDomainFilter) {
       const q = debouncedDomainFilter.toLowerCase();
       results = results.filter(item =>
         item.domains?.some(d => d.toLowerCase().includes(q)));
     }
 
-    // 3. 路径（子串，大小写不敏感）
+    // 3. Path (substring, case-insensitive)
     if (debouncedPathFilter) {
       const q = debouncedPathFilter.toLowerCase();
       results = results.filter(item =>
         item.pathPredicate?.matchValue?.toLowerCase().includes(q));
     }
 
-    // 4. Provider（任一命中）
+    // 4. Provider (any-match)
     if (debouncedProviderFilter) {
       const q = debouncedProviderFilter.toLowerCase();
       results = results.filter(item =>
         item.upstreams?.some(u => u.provider?.toLowerCase().includes(q)));
     }
 
-    // 5. 已授权消费者 ID（任一命中；未开启/无消费者路由被排除）
+    // 5. Authorized consumer ID (any-match; routes without auth or consumers are excluded)
     if (debouncedConsumerFilter) {
       const q = debouncedConsumerFilter.toLowerCase();
       results = results.filter(item => {
@@ -226,7 +226,7 @@ const AiRouteList: React.FC = () => {
       });
     }
 
-    // 6. 认证状态（OR；3 种特殊值）
+    // 6. Auth state (OR across the three sentinel values)
     if (selectedAuthStates.length > 0) {
       const set = new Set(selectedAuthStates);
       results = results.filter(item => {
@@ -294,7 +294,7 @@ const AiRouteList: React.FC = () => {
     };
   }, []);
 
-  // 过滤状态变化时重新过滤
+  // Re-apply filters whenever any filter state changes
   useEffect(() => {
     if (routesRef.current) {
       applyFilters();

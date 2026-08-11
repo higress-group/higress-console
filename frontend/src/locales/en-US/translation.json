@@ -118,7 +118,6 @@
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
     "aiRouteUsageContent": "You can send a test request using the command below:",
-    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers.",
     "search": {
       "name": "Search by name",
       "domain": "Search by domain",
