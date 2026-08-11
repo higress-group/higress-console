@@ -1,0 +1,19 @@
+backend/console/src/main/java/com/ctrip/framework/gateway/ai/dal/dao/LlmRouteDao.java
+  s_a84d304c02fd2c::t_c76ee2040e8ce6 72-74,118-119,190-191,206-207,321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "cb3ea3b9db735ce59109399ba4da268590d41a9f",
+  "prompts": {},
+  "sessions": {
+    "s_a84d304c02fd2c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "713b75e8-1cc5-4d63-83c0-4ebaec22eac6",
+        "model": "glm-5.2"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}

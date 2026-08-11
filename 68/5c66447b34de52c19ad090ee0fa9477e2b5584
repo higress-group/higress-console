@@ -1,0 +1,24 @@
+backend/pom.xml
+  s_a84d304c02fd2c::t_13697aa5fdf5ae 94
+  s_a84d304c02fd2c::t_910ec17325d80d 201-205
+  s_a84d304c02fd2c::t_cb2ab027222e1c 91-93
+  s_a84d304c02fd2c::t_cf54a03dcef26b 479
+  s_a84d304c02fd2c::t_ec2ea6da522e5d 70
+  s_a84d304c02fd2c::t_4e0d989139afe6 334-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "685c66447b34de52c19ad090ee0fa9477e2b5584",
+  "prompts": {},
+  "sessions": {
+    "s_a84d304c02fd2c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "713b75e8-1cc5-4d63-83c0-4ebaec22eac6",
+        "model": "glm-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
