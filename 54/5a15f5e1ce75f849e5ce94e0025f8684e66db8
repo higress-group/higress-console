@@ -1,0 +1,34 @@
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/CrossRegionConfigSyncer.java
+  s_07414e3c51d9ad::t_51aa704b8230f8 459-465
+  s_07414e3c51d9ad::t_5c377b78583ce4 533,537-540
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizer.java
+  s_07414e3c51d9ad::t_a8d8243df7f7c1 11,56-75
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/Cluster.java
+  s_07414e3c51d9ad::t_369a88a11738b9 128-129,139,142-146
+  s_07414e3c51d9ad::t_38ade93539ea2a 39
+  s_07414e3c51d9ad::t_0632f601629f47 89
+  s_07414e3c51d9ad::t_ad1e1ec5c402d0 71
+  s_07414e3c51d9ad::t_4d564473e4fb60 107
+  s_07414e3c51d9ad::t_32481488e61160 53
+  s_07414e3c51d9ad::t_ea493bd1339d23 55
+  s_07414e3c51d9ad::t_3aaa85340e94bf 73,91,110,124-125
+backend/console/src/test/java/com/ctrip/framework/gateway/ai/ConfigNormalizerTest.java
+  s_07414e3c51d9ad::t_eb93b118019897 128-210
+  s_07414e3c51d9ad::t_a2282c758f0f9f 5,12,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "545a15f5e1ce75f849e5ce94e0025f8684e66db8",
+  "prompts": {},
+  "sessions": {
+    "s_07414e3c51d9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d6854895-6d25-4590-8e15-a015db0fc557",
+        "model": "glm-5.2"
+      },
+      "human_author": "Kevin Zhang <zhiw.zhang@trip.com>"
+    }
+  }
+}
