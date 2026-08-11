@@ -1,0 +1,19 @@
+backend/console/src/test/java/com/alibaba/higress/console/security/FastjsonAutotypeGuardTest.java
+  s_60175f84b91f10::t_0345fa04e1dd0e 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.39-trip",
+  "base_commit_sha": "4456fabb00b10d2635af86f8ad09f754af1f732e",
+  "prompts": {},
+  "sessions": {
+    "s_60175f84b91f10": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0c02adc-cb22-436d-8866-61578d61977f",
+        "model": "MiniMax-M3"
+      },
+      "human_author": "CH3CHO <ch3cho@qq.com>"
+    }
+  }
+}
