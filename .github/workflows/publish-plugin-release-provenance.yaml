@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: console-plugin-release-provenance-${{ github.event.release.id }}
+  cancel-in-progress: false
+
 jobs:
   provenance:
     runs-on: ubuntu-latest
@@ -33,8 +37,25 @@ jobs:
           commit=$(git rev-parse "refs/tags/$TAG^{commit}")
           test -f backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json
           test -n "$CHART_REGISTRY"
-          chart_ref="$CHART_REGISTRY/higress-console:${TAG#v}"
-          chart_digest=$(oras manifest fetch "$chart_ref" --descriptor --format json | jq -r .digest)
+          version="${TAG#v}"
+          test "$TAG" = "v$version"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$CHART_REGISTRY" =~ ^[a-z0-9][a-z0-9.-]*(:[0-9]+)?(/[a-z0-9][a-z0-9._-]*)+$ ]]
+          chart_ref="$CHART_REGISTRY/higress-console:$version"
+          chart_descriptor=""
+          for attempt in $(seq 1 30); do
+            if chart_descriptor=$(oras manifest fetch "$chart_ref" --descriptor --format json 2>/tmp/chart-descriptor.err); then
+              break
+            fi
+            sleep 10
+          done
+          if [ -z "$chart_descriptor" ]; then
+            cat /tmp/chart-descriptor.err >&2
+            echo "published Console OCI chart is unavailable: $chart_ref" >&2
+            exit 1
+          fi
+          chart_digest=$(jq -er '.digest' <<<"$chart_descriptor")
+          [[ "$chart_digest" =~ ^sha256:[0-9a-f]{64}$ ]]
           lock=$(jq -cS . backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json)
           properties=$(sha256sum backend/sdk/src/main/resources/plugins/plugins.properties | awk '{print $1}')
           specs=$(find backend/sdk/src/main/resources/plugins -name spec.yaml -print0 | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
