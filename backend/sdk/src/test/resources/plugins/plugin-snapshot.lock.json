@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "snapshotSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pluginServerCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "pluginServerImage": "registry.example/higress/plugin-server@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "baseSha": "dddddddddddddddddddddddddddddddddddddddd",
+  "plugins": {
+    "json-converter": {
+      "resourceDir": "json-converter",
+      "version": "2.0.0",
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/jsonrpc-converter:2.0.0",
+      "digest": "sha256:147c50aa5f473b4067d0e3b3daabe74cbd4504e0e2eb8813069529a443e2ec2d"
+    }
+  }
+}

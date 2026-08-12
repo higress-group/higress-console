@@ -23,10 +23,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -44,6 +49,7 @@ import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
@@ -150,6 +156,72 @@ public class WasmPluginServiceTest {
             Assertions.assertEquals(expectedUrl, plugin.getImageRepository());
             Assertions.assertNull(null, plugin.getImageVersion());
         }
+    }
+
+    @Test
+    public void managedPluginUsesOneVersionInOciPluginServerAndBuiltInObject() throws Exception {
+        final String pluginName = "ai-load-balancer";
+        final String version = "2.0.0";
+        service.initialize();
+        WasmPlugin ociPlugin = service.list(null).getData().stream().filter(p -> pluginName.equals(p.getName())).findFirst().get();
+        Assertions.assertEquals(version, ociPlugin.getPluginVersion());
+        Assertions.assertTrue(ociPlugin.getImageRepository().endsWith("/" + pluginName));
+
+        System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "http://plugin-server:8080/plugins/${name}/${version}/plugin.wasm");
+        setUp();
+        service.initialize();
+        WasmPlugin serverPlugin = service.list(null).getData().stream().filter(p -> pluginName.equals(p.getName())).findFirst().get();
+        Assertions.assertEquals(version, serverPlugin.getPluginVersion());
+        Assertions.assertEquals("http://plugin-server:8080/plugins/ai-load-balancer/2.0.0/plugin.wasm", serverPlugin.getImageRepository());
+
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
+        when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        service.updateBuiltIn(serverPlugin);
+        ArgumentCaptor<V1alpha1WasmPlugin> captured = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService).createWasmPlugin(captured.capture());
+        Assertions.assertEquals(serverPlugin.getImageRepository(), captured.getValue().getSpec().getUrl());
+    }
+
+    @Test
+    public void builtInOciUrlCreateAndReplaceUseTheSameVersion() throws Exception {
+        assertBuiltInUrlCreateAndReplace("oci://registry.example/plugins/ai-load-balancer", "2.0.0");
+    }
+
+    @Test
+    public void builtInPluginServerUrlCreateAndReplaceUseTheSameVersion() throws Exception {
+        assertBuiltInUrlCreateAndReplace("http://plugin-server:8080/plugins/ai-load-balancer/2.0.0/plugin.wasm", null);
+    }
+
+    @Test
+    public void managedPluginSnapshotLockMatchesPropertiesAndReviewedSpec() throws Exception {
+        service.initialize();
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("plugins/plugin-snapshot.lock.json")) {
+            Assertions.assertNotNull(input, "a rendered Console snapshot lock must be packaged with managed resources");
+            JsonNode lock = new ObjectMapper().readTree(input);
+            Properties properties = new Properties();
+            try (InputStream props = getClass().getClassLoader().getResourceAsStream("plugins/plugins.properties")) {
+                properties.load(props);
+            }
+            for (java.util.Iterator<java.util.Map.Entry<String, JsonNode>> it = lock.path("plugins").fields(); it.hasNext();) {
+                java.util.Map.Entry<String, JsonNode> item = it.next();
+                String key = item.getKey();
+                JsonNode value = item.getValue();
+                Assertions.assertEquals(value.path("ociRef").asText(), properties.getProperty(key));
+                String resource = value.path("resourceDir").asText();
+                try (InputStream spec = getClass().getClassLoader().getResourceAsStream("plugins/" + resource + "/spec.yaml")) {
+                    Assertions.assertNotNull(spec, "managed resource spec must be packaged for " + key);
+                    String yaml = readUtf8(spec);
+                    Assertions.assertTrue(yaml.contains("  version: " + value.path("version").asText()));
+                }
+                Assertions.assertTrue(value.path("digest").asText().matches("sha256:[0-9a-f]{64}"));
+            }
+        }
+    }
+
+    @Test
+    public void jsonConverterReadmeAndSpecArePackaged() {
+        Assertions.assertNotNull(getClass().getClassLoader().getResource("plugins/json-converter/README.md"));
+        Assertions.assertNotNull(getClass().getClassLoader().getResource("plugins/json-converter/spec.yaml"));
     }
 
     @Test
@@ -386,5 +458,39 @@ public class WasmPluginServiceTest {
             .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
             .imageRepository("oci://docker.io/" + name).build();
         return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
+    }
+
+    private void assertBuiltInUrlCreateAndReplace(String repository, String imageVersion) throws Exception {
+        final String pluginName = "ai-load-balancer";
+        service.initialize();
+        WasmPlugin plugin = service.list(null).getData().stream().filter(item -> pluginName.equals(item.getName())).findFirst().get();
+        plugin.setImageRepository(repository);
+        plugin.setImageVersion(imageVersion);
+        plugin.setPhase(PluginPhase.UNSPECIFIED.getName());
+        plugin.setPriority(1000);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
+        when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        service.updateBuiltIn(plugin);
+        ArgumentCaptor<V1alpha1WasmPlugin> created = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService).createWasmPlugin(created.capture());
+        Assertions.assertEquals(new ImageUrl(repository, imageVersion).toUrlString(), created.getValue().getSpec().getUrl());
+
+        V1alpha1WasmPlugin existing = buildWasmPluginResource(pluginName, true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Lists.newArrayList(existing));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        service.updateBuiltIn(plugin);
+        ArgumentCaptor<V1alpha1WasmPlugin> replaced = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService).replaceWasmPlugin(replaced.capture());
+        Assertions.assertEquals(created.getValue().getSpec().getUrl(), replaced.getValue().getSpec().getUrl());
+    }
+
+    private String readUtf8(InputStream input) throws java.io.IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        for (int read; (read = input.read(buffer)) != -1;) {
+            output.write(buffer, 0, read);
+        }
+        return new String(output.toByteArray(), StandardCharsets.UTF_8);
     }
 }
