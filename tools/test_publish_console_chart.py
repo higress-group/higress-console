@@ -164,6 +164,21 @@ class ConsoleChartPublisherTest(unittest.TestCase):
         self.assertIn("if: ${{ github.event_name == 'push' }}", production_job)
         self.assertIn("environment: console-chart-production", production_job)
 
+    def test_release_workflows_pair_oras_setup_metadata_with_pinned_cli(self):
+        oras_setup = "oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3"
+        oras_setup_with_cli = oras_setup + "\n        with:\n          version: 1.2.3"
+        superseded_setup = "oras-project/setup-oras@ca28077386065e263c03428f4ae0c09024817c93"
+        expected_callers = {
+            "deploy-to-oss.yaml": 1,
+            "publish-plugin-release-provenance.yaml": 1,
+            "sync-plugin-snapshot.yaml": 1,
+        }
+        for name, expected in expected_callers.items():
+            workflow = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
+            self.assertNotIn(superseded_setup, workflow, name)
+            self.assertEqual(expected, workflow.count("version: 1.2.3"), name)
+            self.assertEqual(expected, workflow.count(oras_setup_with_cli), name)
+
 
 if __name__ == "__main__":
     unittest.main()
