@@ -4,19 +4,83 @@ on:
   push:
     tags:
     - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Console chart version to package and validate without publishing"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: console-chart-publish-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
-  deploy-to-oss:
+  validate-chart:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    env:
+      CONSOLE_CHART_REGISTRY: ${{ vars.CONSOLE_CHART_REGISTRY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Initialize dry-run Helm chart index
+        run: |
+          set -euo pipefail
+          mkdir -p ./artifact
+          printf 'apiVersion: v1\nentries: {}\n' > ./artifact/index.yaml
+
+      - id: calc-version
+        name: Calculate Version Number
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "Version=$version"
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Set up Helm
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
+        with:
+          version: v3.14.4
+
+      - name: Build Artifact
+        env:
+          VERSION: ${{ steps.calc-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          helm package helm --debug --app-version "$VERSION" --version "$VERSION" -d ./artifact
+          helm repo index --url https://higress.io/helm-charts/ --merge ./artifact/index.yaml ./artifact
+          cp ./artifact/index.yaml ./artifact/cn-index.yaml
+          sed -i 's/higress\.io/higress\.cn/g' ./artifact/cn-index.yaml
+
+      - name: Validate packaged Helm chart without publishing
+        env:
+          VERSION: ${{ steps.calc-version.outputs.version }}
+          CHART_PACKAGE: ./artifact/higress-console-${{ steps.calc-version.outputs.version }}.tgz
+          DRY_RUN: true
+        run: tools/publish_console_chart.sh
+
+  deploy-to-oss:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    # The registry credentials are scoped to this protected environment.
+    environment: console-chart-production
     env:
       OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT || 'oss-cn-hongkong.aliyuncs.com' }}
       OSS_REGION: ${{ vars.OSS_REGION || 'cn-hongkong' }}
       OSS_BUCKET: ${{ vars.OSS_BUCKET || 'higress-ai' }}
       OSS_HELM_CHART_PATH: ${{ vars.OSS_HELM_CHART_PATH || '/helm-charts' }}
       OSS_API_DOCS_DIR_PATH: ${{ vars.OSS_API_DOCS_DIR_PATH || '/swagger/' }}
+      CONSOLE_CHART_REGISTRY: ${{ vars.CONSOLE_CHART_REGISTRY }}
+      CONSOLE_CHART_REGISTRY_IMMUTABLE_TAGS: ${{ vars.CONSOLE_CHART_REGISTRY_IMMUTABLE_TAGS }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install Aliyun CLI
         run: |
@@ -31,19 +95,41 @@ jobs:
       - id: calc-version
         name: Calculate Version Number
         run: |
-          version=$(echo ${{ github.ref_name }} | cut -c2-)
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          test "$GITHUB_REF_NAME" = "v$version"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           echo "Version=$version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Build Artifact
-        uses: stefanprodan/kube-tools@v1
+      - name: Set up Helm
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
         with:
-          helmv3: 3.7.2
-          command: |
-            helmv3 package helm --debug --app-version ${{steps.calc-version.outputs.version}} --version ${{steps.calc-version.outputs.version}} -d ./artifact
-            helmv3 repo index --url https://higress.io/helm-charts/ --merge ./artifact/index.yaml ./artifact
-            cp ./artifact/index.yaml ./artifact/cn-index.yaml
-            sed -i 's/higress\.io/higress\.cn/g' ./artifact/cn-index.yaml
+          version: v3.14.4
+
+      - name: Build Artifact
+        env:
+          VERSION: ${{ steps.calc-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          helm package helm --debug --app-version "$VERSION" --version "$VERSION" -d ./artifact
+          helm repo index --url https://higress.io/helm-charts/ --merge ./artifact/index.yaml ./artifact
+          cp ./artifact/index.yaml ./artifact/cn-index.yaml
+          sed -i 's/higress\.io/higress\.cn/g' ./artifact/cn-index.yaml
+
+      - name: Install ORAS for OCI chart digest resolution
+        uses: oras-project/setup-oras@ca28077386065e263c03428f4ae0c09024817c93 # v1.2.0
+        with:
+          version: 1.2.3
+
+      - name: Publish or verify exact packaged Helm chart in OCI
+        env:
+          VERSION: ${{ steps.calc-version.outputs.version }}
+          CHART_PACKAGE: ./artifact/higress-console-${{ steps.calc-version.outputs.version }}.tgz
+          DRY_RUN: false
+          CONSOLE_CHART_REGISTRY_USERNAME: ${{ secrets.CONSOLE_CHART_REGISTRY_USERNAME }}
+          CONSOLE_CHART_REGISTRY_PASSWORD: ${{ secrets.CONSOLE_CHART_REGISTRY_PASSWORD }}
+        run: tools/publish_console_chart.sh
 
       - name: Upload Helm Charts to OSS
         run: ./aliyun oss cp ./artifact/ oss://$OSS_BUCKET$OSS_HELM_CHART_PATH/ -r -f -e $OSS_ENDPOINT --access-key-id ${{ secrets.ACCESS_KEYID }} --access-key-secret ${{ secrets.ACCESS_KEYSECRET }} --region $OSS_REGION
