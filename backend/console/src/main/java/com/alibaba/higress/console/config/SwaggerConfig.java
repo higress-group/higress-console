@@ -60,9 +60,10 @@ public class SwaggerConfig {
             .description(
                 "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices."
                     + "\n\n## API Authentication\n\n"
-                    + "Accessing this console API requires authentication via HTTP **Basic Auth**."
-                    + "Use the administrator account's username and password as credentials,"
-                    + "or enter the credentials via the **Authorize** button at the top right of the page before making a request.")
+                    + "Most operations in this console API require authentication via HTTP **Basic Auth**. "
+                    + "Use the administrator account's username and password as credentials, "
+                    + "or enter the credentials via the **Authorize** button at the top right of the page before making a request. "
+                    + "A few endpoints (such as login and system initialization) are anonymous and do not require credentials.")
             .license(new License().name("Apache 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
         openApi.info(apiInfo);
 
