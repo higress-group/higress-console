@@ -16,7 +16,7 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-load-balancer/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-load-balancer/README_EN.md
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: johnlanni
 spec:
