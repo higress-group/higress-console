@@ -83,17 +83,34 @@ jobs:
           BASE_SHA: ${{ steps.input.outputs.base_sha }}
         run: |
           set -euo pipefail
+          verify_plugin_server_index() {
+            jq -e '
+              def runnable: (.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64"));
+              [.manifests[] | select(runnable)] as $runnable |
+              [.manifests[] | select(runnable | not)] as $extra |
+              (([$runnable[] | .platform.os + "/" + .platform.architecture] | sort) == ["linux/amd64","linux/arm64"]) and
+              (($runnable | length) == 2) and
+              (($extra | length) == 0 or
+                (($extra | length) == 2 and
+                 all($extra[];
+                   .mediaType == "application/vnd.oci.image.manifest.v1+json" and
+                   .platform.os == "unknown" and .platform.architecture == "unknown" and
+                   .annotations["vnd.docker.reference.type"] == "attestation-manifest") and
+                 (([$extra[].annotations["vnd.docker.reference.digest"]] | sort) == ([$runnable[].digest] | sort))))
+            ' "$1" >/dev/null
+          }
           curl --fail --silent --show-error "https://raw.githubusercontent.com/higress-group/higress/$COMMIT/$PATH_IN_REPO" -o /tmp/snapshot.json
           test "$(sha256sum /tmp/snapshot.json | awk '{print $1}')" = "$SHA"
-          oras manifest fetch "$PLUGIN_SERVER_IMAGE" --raw >/tmp/plugin-server-index.json
-          jq -e '.manifests | length == 2 and ([.[] | .platform.os + "/" + .platform.architecture] | sort == ["linux/amd64","linux/arm64"])' /tmp/plugin-server-index.json >/dev/null
+          oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json
+          verify_plugin_server_index /tmp/plugin-server-index.json
+          plugin_server_repo=${PLUGIN_SERVER_IMAGE%@*}
           while read -r platform; do
-            manifest=$(oras manifest fetch "$PLUGIN_SERVER_IMAGE@$platform")
+            manifest=$(oras manifest fetch "$plugin_server_repo@$platform")
             config=$(jq -r .config.digest <<<"$manifest")
-            labels=$(oras blob fetch "$PLUGIN_SERVER_IMAGE@$platform" "$config" -o - | jq -c '.config.Labels')
+            labels=$(oras blob fetch "$plugin_server_repo@$config" -o - | jq -c '.config.Labels')
             jq -e --arg plugin "$PLUGIN_SERVER_COMMIT" --arg higress "$COMMIT" --arg snapshot "$SHA" \
               '."org.opencontainers.image.revision" == $plugin and ."io.higress.higress-source-commit" == $higress and ."io.higress.plugin-snapshot-sha256" == $snapshot' <<<"$labels" >/dev/null
-          done < <(jq -r '.manifests[].digest' /tmp/plugin-server-index.json)
+          done < <(jq -r '.manifests[] | select(.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64")) | .digest' /tmp/plugin-server-index.json)
           jq -c '.plugins[] | select(.consumers.console != null)' /tmp/snapshot.json | while read -r plugin; do
             ref=$(jq -r .ociRef <<<"$plugin"); digest=$(jq -r .digest <<<"$plugin")
             test "$(oras manifest fetch "$ref" --descriptor --format json | jq -r .digest)" = "$digest"

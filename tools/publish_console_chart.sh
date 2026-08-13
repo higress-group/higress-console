@@ -52,7 +52,7 @@ descriptor_error=/tmp/console-chart-descriptor.err
 if descriptor=$(oras manifest fetch "$chart_ref" --descriptor --format json 2>"$descriptor_error"); then
   digest=$(jq -er '.digest' <<<"$descriptor")
   [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
-  manifest=$(oras manifest fetch "$chart_ref@$digest" --raw)
+  manifest=$(oras manifest fetch "$chart_ref@$digest")
   layer_digest=$(jq -er '[.layers[] | select(.mediaType == "application/vnd.cncf.helm.chart.content.v1.tar+gzip")] | if length == 1 then .[0].digest else error("expected one Helm chart content layer") end' <<<"$manifest")
   if [ "$layer_digest" != "$package_digest" ]; then
     echo "immutable Console chart tag conflict: $chart_ref contains $layer_digest, expected $package_digest" >&2
@@ -76,7 +76,7 @@ helm push "$CHART_PACKAGE" "oci://$CONSOLE_CHART_REGISTRY"
 published=$(oras manifest fetch "$chart_ref" --descriptor --format json)
 digest=$(jq -er '.digest' <<<"$published")
 [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
-manifest=$(oras manifest fetch "$chart_ref@$digest" --raw)
+manifest=$(oras manifest fetch "$chart_ref@$digest")
 layer_digest=$(jq -er '[.layers[] | select(.mediaType == "application/vnd.cncf.helm.chart.content.v1.tar+gzip")] | if length == 1 then .[0].digest else error("expected one Helm chart content layer") end' <<<"$manifest")
 test "$layer_digest" = "$package_digest"
 {
