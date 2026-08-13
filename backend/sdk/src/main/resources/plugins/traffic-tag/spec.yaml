@@ -17,7 +17,7 @@ info:
     # 中文插件简介
     zh-CN: 根据权重或特定请求内容通过添加特定请求头的方式对请求流量进行标记。
   # 插件版本
-  version: 1.0.0
+  version: 2.0.1
   # 插件镜像名称
   image: platform_wasm/traffic-tag
   # 支持的最小网关版本

@@ -11,7 +11,7 @@ info:
   description: Converts compatible JSON-RPC request and response payloads.
   x-description-i18n:
     zh-CN: 转换兼容的 JSON-RPC 请求和响应载荷。
-  version: 2.0.0
+  version: 2.0.1
 spec:
   phase: default
   priority: 50

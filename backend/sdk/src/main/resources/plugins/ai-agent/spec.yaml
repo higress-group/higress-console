@@ -14,7 +14,7 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-agent/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/ai-agent/README_EN.md
-  version: 1.0.0
+  version: 2.0.1
   contact:
     name: xingyunyang01
   gatewayMinVersion: ""
