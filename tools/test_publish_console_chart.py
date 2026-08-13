@@ -62,13 +62,13 @@ class ConsoleChartPublisherTest(unittest.TestCase):
                   exit 1
                 fi
                 if [ "$mode" = incompatible ]; then layer=sha256:$(printf z | tr z 0 | head -c 64); else layer=$PACKAGE_DIGEST; fi
-                if [ "$4" = --raw ]; then
+                if [ "$4" = --descriptor ]; then
+                  printf '{"digest":"sha256:%064d"}' 0
+                else
                   printf '{"layers":[{"mediaType":"%s","digest":"%s"}]}' '"""
             )
             + CHART_MEDIA_TYPE
             + """' "$layer"
-                else
-                  printf '{"digest":"sha256:%064d"}' 0
                 fi
                 """,
             encoding="utf-8",
@@ -178,6 +178,23 @@ class ConsoleChartPublisherTest(unittest.TestCase):
             self.assertNotIn(superseded_setup, workflow, name)
             self.assertEqual(expected, workflow.count("version: 1.2.3"), name)
             self.assertEqual(expected, workflow.count(oras_setup_with_cli), name)
+
+    def test_release_paths_use_oras_1_2_reference_syntax(self):
+        publisher = PUBLISHER.read_text(encoding="utf-8")
+        receiver = (ROOT / ".github" / "workflows" / "sync-plugin-snapshot.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("oras manifest fetch \"$chart_ref@$digest\" --raw", publisher)
+        self.assertEqual(2, publisher.count('oras manifest fetch "$chart_ref@$digest"'))
+        self.assertNotIn("oras manifest fetch \"$PLUGIN_SERVER_IMAGE\" --raw", receiver)
+        self.assertIn('oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json', receiver)
+        self.assertIn('oras blob fetch "$plugin_server_repo@$config" -o -', receiver)
+        self.assertNotIn('oras blob fetch "$PLUGIN_SERVER_IMAGE@$platform" "$config"', receiver)
+
+    def test_plugin_server_receiver_accepts_only_runnable_pair_and_paired_attestations(self):
+        receiver = (ROOT / ".github" / "workflows" / "sync-plugin-snapshot.yaml").read_text(encoding="utf-8")
+        self.assertIn('verify_plugin_server_index /tmp/plugin-server-index.json', receiver)
+        self.assertIn('"vnd.docker.reference.type"] == "attestation-manifest"', receiver)
+        self.assertIn('[$extra[].annotations["vnd.docker.reference.digest"]] | sort', receiver)
+        self.assertIn('select(.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64"))', receiver)
 
 
 if __name__ == "__main__":
