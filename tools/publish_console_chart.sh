@@ -49,7 +49,7 @@ printf '%s' "$CONSOLE_CHART_REGISTRY_PASSWORD" | helm registry login "$registry_
 printf '%s' "$CONSOLE_CHART_REGISTRY_PASSWORD" | oras login "$registry_host" --username "$CONSOLE_CHART_REGISTRY_USERNAME" --password-stdin
 
 descriptor_error=/tmp/console-chart-descriptor.err
-if descriptor=$(oras manifest fetch "$chart_ref" --descriptor --format json 2>"$descriptor_error"); then
+if descriptor=$(oras manifest fetch "$chart_ref" --descriptor 2>"$descriptor_error"); then
   digest=$(jq -er '.digest' <<<"$descriptor")
   [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
   manifest=$(oras manifest fetch "$chart_ref@$digest")
@@ -73,7 +73,7 @@ if ! grep -Eqi 'not found|404|manifest unknown|name unknown' "$descriptor_error"
 fi
 
 helm push "$CHART_PACKAGE" "oci://$CONSOLE_CHART_REGISTRY"
-published=$(oras manifest fetch "$chart_ref" --descriptor --format json)
+published=$(oras manifest fetch "$chart_ref" --descriptor)
 digest=$(jq -er '.digest' <<<"$published")
 [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
 manifest=$(oras manifest fetch "$chart_ref@$digest")

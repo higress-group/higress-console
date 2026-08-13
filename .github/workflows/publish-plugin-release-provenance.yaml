@@ -44,7 +44,7 @@ jobs:
           chart_ref="$CHART_REGISTRY/higress-console:$version"
           chart_descriptor=""
           for attempt in $(seq 1 30); do
-            if chart_descriptor=$(oras manifest fetch "$chart_ref" --descriptor --format json 2>/tmp/chart-descriptor.err); then
+            if chart_descriptor=$(oras manifest fetch "$chart_ref" --descriptor 2>/tmp/chart-descriptor.err); then
               break
             fi
             sleep 10
