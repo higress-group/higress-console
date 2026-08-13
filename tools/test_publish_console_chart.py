@@ -182,6 +182,9 @@ class ConsoleChartPublisherTest(unittest.TestCase):
     def test_release_paths_use_oras_1_2_reference_syntax(self):
         publisher = PUBLISHER.read_text(encoding="utf-8")
         receiver = (ROOT / ".github" / "workflows" / "sync-plugin-snapshot.yaml").read_text(encoding="utf-8")
+        provenance = (ROOT / ".github" / "workflows" / "publish-plugin-release-provenance.yaml").read_text(encoding="utf-8")
+        for name, release_path in {"publisher": publisher, "receiver": receiver, "provenance": provenance}.items():
+            self.assertNotIn("--descriptor --format json", release_path, name)
         self.assertNotIn("oras manifest fetch \"$chart_ref@$digest\" --raw", publisher)
         self.assertEqual(2, publisher.count('oras manifest fetch "$chart_ref@$digest"'))
         self.assertNotIn("oras manifest fetch \"$PLUGIN_SERVER_IMAGE\" --raw", receiver)

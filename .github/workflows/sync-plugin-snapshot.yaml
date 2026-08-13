@@ -114,7 +114,7 @@ jobs:
           done < <(jq -r '.manifests[] | select(.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64")) | .digest' /tmp/plugin-server-index.json)
           jq -c '.plugins[] | select(.consumers.console != null)' /tmp/snapshot.json | while read -r plugin; do
             ref=$(jq -r .ociRef <<<"$plugin"); digest=$(jq -r .digest <<<"$plugin")
-            test "$(oras manifest fetch "$ref" --descriptor --format json | jq -r .digest)" = "$digest"
+            test "$(oras manifest fetch "$ref" --descriptor | jq -r .digest)" = "$digest"
           done
           python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" --plugin-server-commit "$PLUGIN_SERVER_COMMIT" --plugin-server-image "$PLUGIN_SERVER_IMAGE" --base-sha "$BASE_SHA" --validate-rendered
           git diff --check
