@@ -186,8 +186,26 @@ class ConsoleChartPublisherTest(unittest.TestCase):
         self.assertEqual(2, publisher.count('oras manifest fetch "$chart_ref@$digest"'))
         self.assertNotIn("oras manifest fetch \"$PLUGIN_SERVER_IMAGE\" --raw", receiver)
         self.assertIn('oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json', receiver)
+        self.assertIn('if [[ "${plugin_server_repo##*/}" == *:* ]]; then plugin_server_repo=${plugin_server_repo%:*}; fi', receiver)
         self.assertIn('oras blob fetch "$plugin_server_repo@$config" -o -', receiver)
         self.assertNotIn('oras blob fetch "$PLUGIN_SERVER_IMAGE@$platform" "$config"', receiver)
+
+    def test_plugin_server_repository_normalization_is_port_safe(self):
+        script = r'''
+set -euo pipefail
+PLUGIN_SERVER_IMAGE=$1
+plugin_server_repo=${PLUGIN_SERVER_IMAGE%@*}
+if [[ "${plugin_server_repo##*/}" == *:* ]]; then plugin_server_repo=${plugin_server_repo%:*}; fi
+printf '%s' "$plugin_server_repo"
+'''
+        fixtures = {
+            "registry.example/higress/plugin-server:2.2.4@sha256:" + "a" * 64: "registry.example/higress/plugin-server",
+            "registry.example:5000/higress/plugin-server:2.2.4@sha256:" + "a" * 64: "registry.example:5000/higress/plugin-server",
+            "registry.example:5000/higress/plugin-server@sha256:" + "a" * 64: "registry.example:5000/higress/plugin-server",
+        }
+        for image, expected in fixtures.items():
+            result = subprocess.run(["bash", "-c", script, "bash", image], text=True, capture_output=True, check=True)
+            self.assertEqual(expected, result.stdout)
 
     def test_plugin_server_receiver_accepts_only_runnable_pair_and_paired_attestations(self):
         receiver = (ROOT / ".github" / "workflows" / "sync-plugin-snapshot.yaml").read_text(encoding="utf-8")

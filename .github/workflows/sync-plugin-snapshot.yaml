@@ -104,6 +104,7 @@ jobs:
           oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json
           verify_plugin_server_index /tmp/plugin-server-index.json
           plugin_server_repo=${PLUGIN_SERVER_IMAGE%@*}
+          if [[ "${plugin_server_repo##*/}" == *:* ]]; then plugin_server_repo=${plugin_server_repo%:*}; fi
           while read -r platform; do
             manifest=$(oras manifest fetch "$plugin_server_repo@$platform")
             config=$(jq -r .config.digest <<<"$manifest")
