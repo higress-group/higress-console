@@ -3,6 +3,7 @@
 
 import importlib.util
 import pathlib
+import re
 import unittest
 
 
@@ -61,6 +62,46 @@ class RecoveryContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fixed original image digest"):
             recovery.validate(**values)
 
+    def descriptor(self, architecture, digest_char, *, os_name="linux"):
+        return {"mediaType": "application/vnd.oci.image.manifest.v1+json",
+                "digest": "sha256:" + digest_char * 64,
+                "platform": {"os": os_name, "architecture": architecture}}
+
+    def attestation(self, digest_char, subject_char):
+        descriptor = self.descriptor("unknown", digest_char, os_name="unknown")
+        descriptor["annotations"] = {
+            "vnd.docker.reference.type": "attestation-manifest",
+            "vnd.docker.reference.digest": "sha256:" + subject_char * 64,
+        }
+        return descriptor
+
+    def test_platform_index_accepts_exact_pair_and_one_to_one_attestations(self):
+        amd64 = self.descriptor("amd64", "a")
+        arm64 = self.descriptor("arm64", "b")
+        index = {"manifests": [amd64, arm64, self.attestation("c", "a"), self.attestation("d", "b")]}
+        self.assertEqual(recovery.validate_platform_index(index), [amd64["digest"], arm64["digest"]])
+
+    def test_platform_index_rejects_two_amd64_extra_runnable_and_unknown_extra(self):
+        valid = [self.descriptor("amd64", "a"), self.descriptor("arm64", "b")]
+        cases = {
+            "two amd64": [self.descriptor("amd64", "a"), self.descriptor("amd64", "b")],
+            "extra runnable": valid + [self.descriptor("s390x", "c")],
+            "unknown extra": valid + [self.descriptor("unknown", "c", os_name="unknown")],
+        }
+        for name, manifests in cases.items():
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                recovery.validate_platform_index({"manifests": manifests})
+
+    def test_platform_index_rejects_duplicate_or_misbound_attestations(self):
+        valid = [self.descriptor("amd64", "a"), self.descriptor("arm64", "b")]
+        cases = [
+            valid + [self.attestation("c", "a"), self.attestation("c", "b")],
+            valid + [self.attestation("c", "a"), self.attestation("d", "a")],
+        ]
+        for manifests in cases:
+            with self.subTest(manifests=manifests), self.assertRaises(ValueError):
+                recovery.validate_platform_index({"manifests": manifests})
+
     def test_workflow_uses_existing_protected_environment_and_production_image_secrets(self):
         workflow_path = ROOT / ".github/workflows/recover-console-image-2.2.4.yaml"
         raw = workflow_path.read_text(encoding="utf-8")
@@ -78,6 +119,10 @@ class RecoveryContractTest(unittest.TestCase):
         self.assertIn('test "$EXPECTED_OLD_DIGEST" = "$manifest_old"', raw)
         self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', raw)
         self.assertIn("console-image-recovery-2.2.4.json", raw)
+        self.assertIn("--index-file /tmp/candidate-index.json", raw)
+        actions = re.findall(r"(?m)^\s*- uses:\s*[^@\s]+@([^\s#]+)", raw)
+        self.assertTrue(actions)
+        self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in actions), actions)
 
 
 if __name__ == "__main__":

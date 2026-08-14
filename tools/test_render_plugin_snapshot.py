@@ -209,6 +209,8 @@ class RenderTest(unittest.TestCase):
             self.assertTrue((plugins_root / plugin / "spec.yaml").is_file())
             self.assertTrue((plugins_root / plugin / "README.md").is_file())
             self.assertTrue((plugins_root / plugin / "README_EN.md").is_file())
+        hmac_spec = (plugins_root / "hmac-auth-apisix/spec.yaml").read_text(encoding="utf-8")
+        self.assertIn("        clock_skew:\n          type: integer\n          minimum: 0\n          default: 300", hmac_spec)
 
     def test_rejects_wrong_snapshot_hash(self):
         with tempfile.TemporaryDirectory() as temp:

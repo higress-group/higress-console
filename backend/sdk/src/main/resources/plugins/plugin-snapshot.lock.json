@@ -2,9 +2,9 @@
   "baseSha": "cf6c6fd81f0005e6cd807679fb51b93f3fb88343",
   "marketplaceRecovery": {
     "gatewayVersion": "2.2.4",
-    "higressCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171",
+    "higressCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7",
     "imageRepository": "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console",
-    "manifestSha256": "272e7e38c52413bdfcb760a1a24fd6d74f069dd346c8b7bbde5994ab1795768b",
+    "manifestSha256": "5fdd12fd5c839ada283675b53025c0b53293002d86c56cb88620ae9d16107a0e",
     "originalConsoleCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022",
     "originalImageDigest": "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
   },
@@ -47,7 +47,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-context-limit:1.0.0",
       "resourceDir": "ai-context-limit",
@@ -209,7 +209,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/gw-error-format:1.0.0",
       "resourceDir": "gw-error-format",
@@ -220,9 +220,9 @@
       "marketplace": {
         "files": [
           {
-            "destinationSha256": "0408ca31e394290404ae426f013fc5e4ef19c5d387e078d5e2b7b9c8d3b2dcee",
+            "destinationSha256": "d8ea901848ebe354471297840a4ba8da3f50fff55998e85bd656396b5608815b",
             "sourcePath": "plugins/release/console/hmac-auth-apisix/spec.yaml",
-            "sourceSha256": "0408ca31e394290404ae426f013fc5e4ef19c5d387e078d5e2b7b9c8d3b2dcee",
+            "sourceSha256": "d8ea901848ebe354471297840a4ba8da3f50fff55998e85bd656396b5608815b",
             "targetPath": "spec.yaml"
           },
           {
@@ -239,7 +239,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/hmac-auth-apisix:2.0.1",
       "resourceDir": "hmac-auth-apisix",
@@ -281,7 +281,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/log-request-response:1.0.0",
       "resourceDir": "log-request-response",
@@ -311,7 +311,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/mcp-router:2.0.1",
       "resourceDir": "mcp-router",
@@ -359,7 +359,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/nginx-rewrite-compatible:1.0.0",
       "resourceDir": "nginx-rewrite-compatible",
@@ -407,7 +407,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/response-cache:1.0.1",
       "resourceDir": "response-cache",
@@ -437,7 +437,7 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "64603e618fd43131138a6180fa8b4cf5f0a97171"
+        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/simple-jwt-auth:1.0.1",
       "resourceDir": "simple-jwt-auth",
