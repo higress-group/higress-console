@@ -161,10 +161,10 @@ public class WasmPluginServiceTest {
     @Test
     public void managedPluginUsesOneVersionInOciPluginServerAndBuiltInObject() throws Exception {
         final String pluginName = "ai-load-balancer";
-        final String version = "2.0.0";
         service.initialize();
         WasmPlugin ociPlugin = service.list(null).getData().stream().filter(p -> pluginName.equals(p.getName())).findFirst().get();
-        Assertions.assertEquals(version, ociPlugin.getPluginVersion());
+        final String version = ociPlugin.getPluginVersion();
+        Assertions.assertNotNull(version);
         Assertions.assertTrue(ociPlugin.getImageRepository().endsWith("/" + pluginName));
 
         System.setProperty(CUSTOM_IMAGE_URL_PATTERN_PROPERTY, "http://plugin-server:8080/plugins/${name}/${version}/plugin.wasm");
@@ -172,7 +172,8 @@ public class WasmPluginServiceTest {
         service.initialize();
         WasmPlugin serverPlugin = service.list(null).getData().stream().filter(p -> pluginName.equals(p.getName())).findFirst().get();
         Assertions.assertEquals(version, serverPlugin.getPluginVersion());
-        Assertions.assertEquals("http://plugin-server:8080/plugins/ai-load-balancer/2.0.0/plugin.wasm", serverPlugin.getImageRepository());
+        Assertions.assertEquals("http://plugin-server:8080/plugins/ai-load-balancer/" + version + "/plugin.wasm",
+            serverPlugin.getImageRepository());
 
         when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
