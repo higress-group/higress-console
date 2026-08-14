@@ -101,6 +101,19 @@ jobs:
           }
           curl --fail --silent --show-error "https://raw.githubusercontent.com/higress-group/higress/$COMMIT/$PATH_IN_REPO" -o /tmp/snapshot.json
           test "$(sha256sum /tmp/snapshot.json | awk '{print $1}')" = "$SHA"
+          bundle_cache=/tmp/plugin-marketplace-bundles
+          mkdir -p "$bundle_cache"
+          while IFS=$'\t' read -r repository source_commit; do
+            [[ "$repository" == "higress-group/higress" || "$repository" == "higress-group/higress-console" ]]
+            [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+            key=${repository//\//__}
+            destination="$bundle_cache/$key/$source_commit"
+            mkdir -p "$destination"
+            curl --fail --silent --show-error --location \
+              "https://codeload.github.com/$repository/tar.gz/$source_commit" -o /tmp/plugin-marketplace-source.tgz
+            tar -xzf /tmp/plugin-marketplace-source.tgz --strip-components=1 -C "$destination"
+          done < <(python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" \
+            --higress-commit "$COMMIT" --print-bundle-sources)
           oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json
           verify_plugin_server_index /tmp/plugin-server-index.json
           plugin_server_repo=${PLUGIN_SERVER_IMAGE%@*}
@@ -116,7 +129,10 @@ jobs:
             ref=$(jq -r .ociRef <<<"$plugin"); digest=$(jq -r .digest <<<"$plugin")
             test "$(oras manifest fetch "$ref" --descriptor | jq -r .digest)" = "$digest"
           done
-          python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" --plugin-server-commit "$PLUGIN_SERVER_COMMIT" --plugin-server-image "$PLUGIN_SERVER_IMAGE" --base-sha "$BASE_SHA" --validate-rendered
+          python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" \
+            --higress-commit "$COMMIT" --bundle-cache "$bundle_cache" \
+            --plugin-server-commit "$PLUGIN_SERVER_COMMIT" --plugin-server-image "$PLUGIN_SERVER_IMAGE" \
+            --base-sha "$BASE_SHA" --validate-rendered
           git diff --check
       - name: Dry-run summary
         if: ${{ inputs.dry_run }}
