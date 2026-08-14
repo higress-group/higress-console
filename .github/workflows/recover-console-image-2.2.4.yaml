@@ -37,7 +37,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: console-image-recovery-2.2.4
+  group: console-image-publish-v2.2.4
   cancel-in-progress: false
 
 jobs:
@@ -251,6 +251,10 @@ jobs:
           EXPECTED_NEW_DIGEST: ${{ inputs.expected_new_digest }}
         run: |
           set -euo pipefail
+          pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)
+          python3 tools/verify_console_image_recovery.py --pre-copy-mode "$RECOVERY_MODE" \
+            --pre-copy-current-digest "$pre_copy_current" \
+            --manifest-old-digest "$MANIFEST_OLD_DIGEST" >/dev/null
           oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST" "$IMAGE_REPOSITORY:$VERSION"
           test "$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)" = "$EXPECTED_NEW_DIGEST"
 

@@ -17,8 +17,10 @@
 import argparse
 import hashlib
 import json
+import os
 import pathlib
 import re
+import stat
 import sys
 
 
@@ -31,6 +33,8 @@ SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 SAFE_ID_RE = re.compile(r"^[a-z0-9]+(?:[a-z0-9._-]*[a-z0-9])?$")
 ORIGINAL_CONSOLE_COMMIT = "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
 ORIGINAL_IMAGE_DIGEST = "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
+PLUGIN_RESOURCE_PARTS = ("backend", "sdk", "src", "main", "resources", "plugins")
+DIRECTORY_OPEN_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 
 
 def load(path):
@@ -132,6 +136,159 @@ def reviewed_source_path(root, source):
     return resolved
 
 
+class PluginResourceStore:
+    """Access Console plugin resources without following repository-local symlinks."""
+
+    def __init__(self, root):
+        root = pathlib.Path(root)
+        if root.is_symlink():
+            raise ValueError("Console repository root must not be a symlink")
+        try:
+            self.exact_root = root.resolve(strict=True)
+        except OSError as error:
+            raise ValueError("Console repository root is unavailable") from error
+        if not self.exact_root.is_dir():
+            raise ValueError("Console repository root is not a directory")
+        current_fd = os.open(self.exact_root, DIRECTORY_OPEN_FLAGS)
+        try:
+            current_path = self.exact_root
+            for part in PLUGIN_RESOURCE_PARTS:
+                self._require_directory(current_fd, part, "Console plugin resource path")
+                next_fd = os.open(part, DIRECTORY_OPEN_FLAGS, dir_fd=current_fd)
+                os.close(current_fd)
+                current_fd = next_fd
+                current_path = current_path / part
+                self._prove_directory_fd(current_fd, current_path, "Console plugin resource path")
+        except Exception:
+            os.close(current_fd)
+            raise
+        self.plugins_root = self.exact_root.joinpath(*PLUGIN_RESOURCE_PARTS)
+        self.plugins_fd = current_fd
+
+    @staticmethod
+    def _require_directory(parent_fd, name, description):
+        info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if stat.S_ISLNK(info.st_mode):
+            raise ValueError(description + " must not contain symlinks: " + name)
+        if not stat.S_ISDIR(info.st_mode):
+            raise ValueError(description + " is not a directory: " + name)
+
+    @staticmethod
+    def _prove_directory_fd(directory_fd, expected, description):
+        try:
+            resolved = pathlib.Path("/proc/self/fd/" + str(directory_fd)).resolve(strict=True)
+        except OSError as error:
+            raise ValueError(description + " cannot be resolved") from error
+        if resolved != expected:
+            raise ValueError(description + " escaped its exact repository root")
+
+    @staticmethod
+    def _require_regular(parent_fd, name, description, missing_ok=False):
+        try:
+            info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            if missing_ok:
+                return False
+            raise ValueError(description + " is missing: " + name)
+        if stat.S_ISLNK(info.st_mode):
+            raise ValueError(description + " must not be a symlink: " + name)
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError(description + " is not a regular file: " + name)
+        return True
+
+    def close(self):
+        if self.plugins_fd is not None:
+            os.close(self.plugins_fd)
+            self.plugins_fd = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _type, _value, _traceback):
+        self.close()
+
+    def preflight_file(self, name):
+        self._require_regular(self.plugins_fd, name, "Console plugin metadata")
+
+    def _open_regular(self, parent_fd, name, flags, description, missing_ok=False):
+        self._require_regular(parent_fd, name, description, missing_ok=missing_ok)
+        try:
+            file_fd = os.open(name, flags | os.O_NOFOLLOW, 0o644, dir_fd=parent_fd)
+        except OSError as error:
+            raise ValueError(description + " could not be opened safely: " + name) from error
+        if not stat.S_ISREG(os.fstat(file_fd).st_mode):
+            os.close(file_fd)
+            raise ValueError(description + " changed from a regular file: " + name)
+        return file_fd
+
+    def read_bytes(self, name):
+        file_fd = self._open_regular(self.plugins_fd, name, os.O_RDONLY, "Console plugin metadata")
+        with os.fdopen(file_fd, "rb") as file:
+            return file.read()
+
+    def read_text(self, name):
+        return self.read_bytes(name).decode("utf-8")
+
+    def write_bytes(self, name, raw):
+        file_fd = self._open_regular(self.plugins_fd, name, os.O_WRONLY | os.O_TRUNC,
+                                     "Console plugin metadata")
+        with os.fdopen(file_fd, "wb") as file:
+            file.write(raw)
+
+    def write_text(self, name, value):
+        self.write_bytes(name, value.encode("utf-8"))
+
+    def _open_resource(self, resource, create=False):
+        try:
+            self._require_directory(self.plugins_fd, resource, "Console plugin resource directory")
+        except FileNotFoundError:
+            if not create:
+                raise ValueError("Console plugin resource directory is missing: " + resource)
+            os.mkdir(resource, dir_fd=self.plugins_fd)
+            self._require_directory(self.plugins_fd, resource, "Console plugin resource directory")
+        try:
+            resource_fd = os.open(resource, DIRECTORY_OPEN_FLAGS, dir_fd=self.plugins_fd)
+        except OSError as error:
+            raise ValueError("Console plugin resource directory could not be opened safely: " + resource) from error
+        try:
+            self._prove_directory_fd(resource_fd, self.plugins_root / resource,
+                                     "Console plugin resource directory")
+        except Exception:
+            os.close(resource_fd)
+            raise
+        return resource_fd
+
+    def prepare_resource(self, resource):
+        resource_fd = self._open_resource(resource, create=True)
+        os.close(resource_fd)
+
+    def preflight_resource_file(self, resource, target):
+        resource_fd = self._open_resource(resource)
+        try:
+            self._require_regular(resource_fd, target, "Console plugin target", missing_ok=True)
+        finally:
+            os.close(resource_fd)
+
+    def write_resource_bytes(self, resource, target, raw):
+        resource_fd = self._open_resource(resource)
+        try:
+            file_fd = self._open_regular(resource_fd, target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                                         "Console plugin target", missing_ok=True)
+            with os.fdopen(file_fd, "wb") as file:
+                file.write(raw)
+        finally:
+            os.close(resource_fd)
+
+    def read_resource_bytes(self, resource, target):
+        resource_fd = self._open_resource(resource)
+        try:
+            file_fd = self._open_regular(resource_fd, target, os.O_RDONLY, "Console plugin target")
+            with os.fdopen(file_fd, "rb") as file:
+                return file.read()
+        finally:
+            os.close(resource_fd)
+
+
 def bundle_sources(document, higress_commit):
     result = set()
     for plugin in document.get("plugins", []):
@@ -145,7 +302,7 @@ def bundle_sources(document, higress_commit):
     return sorted(result)
 
 
-def validate_and_copy_bundle(destination, mapping, version, bundle_cache, higress_commit):
+def validate_and_copy_bundle(store, mapping, version, bundle_cache, higress_commit):
     bundle = mapping.get("marketplace")
     if not bundle:
         raise ValueError(mapping.get("resourceDir", "plugin") + " lacks reviewed marketplace bundle")
@@ -156,6 +313,7 @@ def validate_and_copy_bundle(destination, mapping, version, bundle_cache, higres
         raise ValueError("marketplace bundle has no files")
     seen = set()
     copied = []
+    rendered = []
     for item in files:
         source = item.get("sourcePath")
         target = item.get("targetPath")
@@ -168,12 +326,18 @@ def validate_and_copy_bundle(destination, mapping, version, bundle_cache, higres
         if sha256(raw) != expected:
             raise ValueError("marketplace source hash mismatch: " + source)
         raw = render_bundle_bytes(raw, target, mapping["resourceDir"], version)
-        (destination / target).write_bytes(raw)
+        rendered.append((target, raw))
         copied.append({"sourcePath": source, "targetPath": target, "sourceSha256": expected,
                        "destinationSha256": sha256(raw)})
     missing = REQUIRED_TARGETS - seen
     if missing:
         raise ValueError("marketplace bundle lacks required files: " + ", ".join(sorted(missing)))
+    resource = mapping["resourceDir"]
+    store.prepare_resource(resource)
+    for target, _raw in rendered:
+        store.preflight_resource_file(resource, target)
+    for target, raw in rendered:
+        store.write_resource_bytes(resource, target, raw)
     return {"repository": repository, "sourceCommit": commit, "files": copied}
 
 
@@ -187,10 +351,8 @@ def upsert_property(properties, key, replacement):
     return properties + key + "=" + replacement.split("=", 1)[1] + "\n"
 
 
-def project_plugins(root, plugins, lock, bundle_cache, higress_commit):
-    plugins_root = root / "backend/sdk/src/main/resources/plugins"
-    properties_path = plugins_root / "plugins.properties"
-    properties = properties_path.read_text(encoding="utf-8")
+def project_plugins(store, plugins, lock, bundle_cache, higress_commit):
+    properties = store.read_text("plugins.properties")
     mappings = []
     seen_keys, seen_resources = set(), set()
     for plugin in plugins:
@@ -214,13 +376,11 @@ def project_plugins(root, plugins, lock, bundle_cache, higress_commit):
             raise ValueError("missing or ambiguous Console mapping")
         if not oci.endswith(":" + version):
             raise ValueError(key + " OCI tag/version drift")
-        destination = plugins_root / resource
-        destination.mkdir(parents=True, exist_ok=True)
-        marketplace = validate_and_copy_bundle(destination, mapping, version, bundle_cache, higress_commit)
+        marketplace = validate_and_copy_bundle(store, mapping, version, bundle_cache, higress_commit)
         properties = upsert_property(properties, key, key + "=oci://" + oci)
         lock["plugins"][key] = {"resourceDir": resource, "version": version, "ociRef": "oci://" + oci,
                                 "digest": digest, "marketplace": marketplace}
-    properties_path.write_text(properties, encoding="utf-8")
+    store.write_text("plugins.properties", properties)
 
 
 def render(root, snapshot_path, expected_sha256, plugin_server_commit=None, plugin_server_image=None,
@@ -236,9 +396,11 @@ def render(root, snapshot_path, expected_sha256, plugin_server_commit=None, plug
     lock = {"schemaVersion": 2, "snapshotSha256": expected_sha256, "sourceCommit": snapshot.get("sourceCommit"),
             "bundleHigressCommit": higress_commit, "pluginServerCommit": plugin_server_commit,
             "pluginServerImage": plugin_server_image, "baseSha": base_sha, "plugins": {}}
-    project_plugins(root, snapshot.get("plugins", []), lock, bundle_cache, higress_commit)
-    lock_path = root / "backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json"
-    lock_path.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with PluginResourceStore(root) as store:
+        store.preflight_file("plugins.properties")
+        store.preflight_file("plugin-snapshot.lock.json")
+        project_plugins(store, snapshot.get("plugins", []), lock, bundle_cache, higress_commit)
+        store.write_text("plugin-snapshot.lock.json", json.dumps(lock, indent=2, sort_keys=True) + "\n")
 
 
 def render_recovery(root, manifest_path, expected_sha256, bundle_cache, higress_commit):
@@ -247,94 +409,98 @@ def render_recovery(root, manifest_path, expected_sha256, bundle_cache, higress_
         raise ValueError("recovery manifest SHA-256 mismatch")
     manifest = json.loads(raw)
     validate_recovery_manifest_contract(manifest)
-    lock_path = root / "backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json"
-    lock = load(lock_path)
-    if lock.get("snapshotSha256") != manifest.get("snapshotSha256"):
-        raise ValueError("recovery manifest does not match the unchanged Console snapshot lock")
-    lock["schemaVersion"] = 2
-    lock["marketplaceRecovery"] = {
-        "gatewayVersion": "2.2.4", "manifestSha256": expected_sha256,
-        "higressCommit": higress_commit, "imageRepository": manifest["imageRepository"],
-        "originalConsoleCommit": manifest["originalConsoleCommit"],
-        "originalImageDigest": manifest["originalImageDigest"],
-    }
-    lock.setdefault("plugins", {})
-    project_plugins(root, manifest.get("plugins", []), lock, bundle_cache, higress_commit)
-    lock_path.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with PluginResourceStore(root) as store:
+        store.preflight_file("plugins.properties")
+        store.preflight_file("plugin-snapshot.lock.json")
+        lock = json.loads(store.read_text("plugin-snapshot.lock.json"))
+        if lock.get("snapshotSha256") != manifest.get("snapshotSha256"):
+            raise ValueError("recovery manifest does not match the unchanged Console snapshot lock")
+        lock["schemaVersion"] = 2
+        lock["marketplaceRecovery"] = {
+            "gatewayVersion": "2.2.4", "manifestSha256": expected_sha256,
+            "higressCommit": higress_commit, "imageRepository": manifest["imageRepository"],
+            "originalConsoleCommit": manifest["originalConsoleCommit"],
+            "originalImageDigest": manifest["originalImageDigest"],
+        }
+        lock.setdefault("plugins", {})
+        project_plugins(store, manifest.get("plugins", []), lock, bundle_cache, higress_commit)
+        store.write_text("plugin-snapshot.lock.json", json.dumps(lock, indent=2, sort_keys=True) + "\n")
 
 
 def validate_recovery_source(root, manifest, bundle_cache, higress_commit):
     """Prove merged Console bytes match the reviewed recovery manifest without mutation."""
     validate_recovery_manifest_contract(manifest)
-    plugins_root = root / "backend/sdk/src/main/resources/plugins"
-    properties = (plugins_root / "plugins.properties").read_text(encoding="utf-8").splitlines()
-    property_map = dict(line.split("=", 1) for line in properties if line and not line.startswith("#"))
-    inventory = []
-    mappings = []
-    seen_keys, seen_resources = set(), set()
-    for plugin in manifest.get("plugins", []):
-        mapping = plugin.get("console") or {}
-        key, resource = mapping.get("propertyKey"), mapping.get("resourceDir")
-        if not SAFE_ID_RE.fullmatch(key or "") or not SAFE_ID_RE.fullmatch(resource or ""):
-            raise ValueError("recovery contains an unsafe Console mapping")
-        if key in seen_keys or resource in seen_resources:
-            raise ValueError("recovery contains duplicate Console propertyKey or resourceDir")
-        seen_keys.add(key)
-        seen_resources.add(resource)
-        mappings.append((plugin, mapping, key, resource))
-    for plugin, mapping, key, resource in mappings:
-        if property_map.get(key) != "oci://" + plugin.get("ociRef", ""):
-            raise ValueError(key + " merged properties do not match recovery artifact")
-        destination = plugins_root / resource
-        bundle = mapping.get("marketplace")
-        repository, commit = source_commit(bundle, higress_commit)
-        source = source_root(bundle_cache, repository, commit)
-        targets = set()
-        for item in bundle.get("files", []):
-            if not safe_relative(item.get("sourcePath")) or item.get("targetPath") not in ALLOWED_TARGETS:
-                raise ValueError(key + " recovery bundle contains unsafe paths")
-            raw = reviewed_source_path(source, item["sourcePath"]).read_bytes()
-            if sha256(raw) != item.get("sha256"):
-                raise ValueError(key + " recovery source hash mismatch")
-            raw = render_bundle_bytes(raw, item["targetPath"], resource, plugin["version"])
-            target = destination / item["targetPath"]
-            if not target.is_file() or target.read_bytes() != raw:
-                raise ValueError(key + " merged marketplace resource differs from reviewed source")
-            targets.add(item["targetPath"])
-        if not REQUIRED_TARGETS.issubset(targets):
-            raise ValueError(key + " recovery bundle lacks required localized resources")
-        inventory.append({"logicalId": plugin["logicalId"], "version": plugin["version"],
-                          "digest": plugin["digest"], "resourceDir": resource})
+    with PluginResourceStore(root) as store:
+        properties = store.read_text("plugins.properties").splitlines()
+        property_map = dict(line.split("=", 1) for line in properties if line and not line.startswith("#"))
+        inventory = []
+        mappings = []
+        seen_keys, seen_resources = set(), set()
+        for plugin in manifest.get("plugins", []):
+            mapping = plugin.get("console") or {}
+            key, resource = mapping.get("propertyKey"), mapping.get("resourceDir")
+            if not SAFE_ID_RE.fullmatch(key or "") or not SAFE_ID_RE.fullmatch(resource or ""):
+                raise ValueError("recovery contains an unsafe Console mapping")
+            if key in seen_keys or resource in seen_resources:
+                raise ValueError("recovery contains duplicate Console propertyKey or resourceDir")
+            seen_keys.add(key)
+            seen_resources.add(resource)
+            mappings.append((plugin, mapping, key, resource))
+        for plugin, mapping, key, resource in mappings:
+            if property_map.get(key) != "oci://" + plugin.get("ociRef", ""):
+                raise ValueError(key + " merged properties do not match recovery artifact")
+            bundle = mapping.get("marketplace")
+            repository, commit = source_commit(bundle, higress_commit)
+            source = source_root(bundle_cache, repository, commit)
+            targets = set()
+            for item in bundle.get("files", []):
+                if not safe_relative(item.get("sourcePath")) or item.get("targetPath") not in ALLOWED_TARGETS:
+                    raise ValueError(key + " recovery bundle contains unsafe paths")
+                raw = reviewed_source_path(source, item["sourcePath"]).read_bytes()
+                if sha256(raw) != item.get("sha256"):
+                    raise ValueError(key + " recovery source hash mismatch")
+                raw = render_bundle_bytes(raw, item["targetPath"], resource, plugin["version"])
+                if store.read_resource_bytes(resource, item["targetPath"]) != raw:
+                    raise ValueError(key + " merged marketplace resource differs from reviewed source")
+                targets.add(item["targetPath"])
+            if not REQUIRED_TARGETS.issubset(targets):
+                raise ValueError(key + " recovery bundle lacks required localized resources")
+            inventory.append({"logicalId": plugin["logicalId"], "version": plugin["version"],
+                              "digest": plugin["digest"], "resourceDir": resource})
     return sha256((json.dumps(inventory, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8"))
 
 
 def validate_rendered(root):
-    plugins_root = root / "backend/sdk/src/main/resources/plugins"
-    lock = load(plugins_root / "plugin-snapshot.lock.json")
-    properties = {}
-    for line in (plugins_root / "plugins.properties").read_text(encoding="utf-8").splitlines():
-        if line and not line.startswith("#"):
-            key, value = line.split("=", 1)
-            if key in properties:
-                raise ValueError(key + " appears more than once in plugins.properties")
-            properties[key] = value
-    resources = set()
-    for key, item in lock.get("plugins", {}).items():
-        if properties.get(key) != item["ociRef"]:
-            raise ValueError(key + " properties/lock OCI mismatch")
-        if item["resourceDir"] in resources:
-            raise ValueError("duplicate Console resourceDir in lock: " + item["resourceDir"])
-        resources.add(item["resourceDir"])
-        resource = plugins_root / item["resourceDir"]
-        spec = resource / "spec.yaml"
-        if not spec.is_file() or not re.search(r"(?m)^  version:\s*" + re.escape(item["version"]) + r"\s*$", spec.read_text(encoding="utf-8")):
-            raise ValueError(key + " lock version is absent from its plugin spec")
-        marketplace = item.get("marketplace")
-        if marketplace:
-            for file in marketplace.get("files", []):
-                target = resource / file["targetPath"]
-                if not target.is_file() or sha256(target.read_bytes()) != file["destinationSha256"]:
-                    raise ValueError(key + " rendered marketplace file hash mismatch")
+    with PluginResourceStore(root) as store:
+        lock = json.loads(store.read_text("plugin-snapshot.lock.json"))
+        properties = {}
+        for line in store.read_text("plugins.properties").splitlines():
+            if line and not line.startswith("#"):
+                key, value = line.split("=", 1)
+                if key in properties:
+                    raise ValueError(key + " appears more than once in plugins.properties")
+                properties[key] = value
+        resources = set()
+        for key, item in lock.get("plugins", {}).items():
+            resource = item.get("resourceDir")
+            if not SAFE_ID_RE.fullmatch(resource or ""):
+                raise ValueError(key + " lock resourceDir is unsafe")
+            if properties.get(key) != item["ociRef"]:
+                raise ValueError(key + " properties/lock OCI mismatch")
+            if resource in resources:
+                raise ValueError("duplicate Console resourceDir in lock: " + resource)
+            resources.add(resource)
+            spec = store.read_resource_bytes(resource, "spec.yaml").decode("utf-8")
+            if not re.search(r"(?m)^  version:\s*" + re.escape(item["version"]) + r"\s*$", spec):
+                raise ValueError(key + " lock version is absent from its plugin spec")
+            marketplace = item.get("marketplace")
+            if marketplace:
+                for file in marketplace.get("files", []):
+                    target = file.get("targetPath")
+                    if target not in ALLOWED_TARGETS:
+                        raise ValueError(key + " rendered marketplace target is unsafe")
+                    if sha256(store.read_resource_bytes(resource, target)) != file["destinationSha256"]:
+                        raise ValueError(key + " rendered marketplace file hash mismatch")
     return lock
 
 

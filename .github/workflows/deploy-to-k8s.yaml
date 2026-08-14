@@ -15,6 +15,11 @@ on:
     #     type: environment
     #     required: false
 
+concurrency:
+  # Serialize the normal tag publisher with the one-time v2.2.4 recovery.
+  group: console-image-publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   deploy-to-k8s:
     runs-on: ubuntu-latest

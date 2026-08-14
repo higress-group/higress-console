@@ -99,9 +99,26 @@ def validate(operation, version, image_repository, source_commit, higress_commit
     return "replace"
 
 
+def validate_pre_copy(mode, current_digest, manifest_old_digest):
+    """Recheck the mutable tag immediately before the one authorized replacement."""
+    if manifest_old_digest != ORIGINAL_IMAGE_DIGEST:
+        raise ValueError("pre-copy check does not bind the fixed original image digest")
+    if not DIGEST_RE.fullmatch(current_digest or ""):
+        raise ValueError("pre-copy current digest is invalid")
+    if mode == "already-replaced":
+        return "skip"
+    if mode != "replace":
+        raise ValueError("pre-copy check requires a validated replacement mode")
+    if current_digest != manifest_old_digest:
+        raise ValueError("tag changed after validation; replacement refused")
+    return "copy"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--index-file")
+    parser.add_argument("--pre-copy-mode", choices=["replace", "already-replaced"])
+    parser.add_argument("--pre-copy-current-digest")
     parser.add_argument("--operation")
     parser.add_argument("--version")
     parser.add_argument("--image-repository")
@@ -113,13 +130,18 @@ def main():
     parser.add_argument("--expected-new-digest", default="")
     parser.add_argument("--current-digest")
     parser.add_argument("--candidate-digest", default="")
-    parser.add_argument("--source-is-merged", choices=["true", "false"], required=True)
+    parser.add_argument("--source-is-merged", choices=["true", "false"])
     args = parser.parse_args()
     try:
         if args.index_file:
             with open(args.index_file, encoding="utf-8") as file:
                 for digest in validate_platform_index(json.load(file)):
                     print(digest)
+            return 0
+        if args.pre_copy_mode:
+            mode = validate_pre_copy(args.pre_copy_mode, args.pre_copy_current_digest,
+                                     args.manifest_old_digest)
+            print(json.dumps({"mode": mode}, sort_keys=True))
             return 0
         mode = validate(args.operation, args.version, args.image_repository, args.source_commit,
                         args.higress_commit, args.manifest_original_console_commit, args.manifest_old_digest,

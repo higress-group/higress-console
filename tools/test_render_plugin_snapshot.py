@@ -70,7 +70,10 @@ class RenderTest(unittest.TestCase):
             self.assertEqual(first, second)
             props = (work / "backend/sdk/src/main/resources/plugins/plugins.properties").read_text()
             self.assertEqual(props.count("new-plugin="), 1)
-            self.assertTrue((work / "backend/sdk/src/main/resources/plugins/new-plugin/README_EN.md").is_file())
+            resource = work / "backend/sdk/src/main/resources/plugins/new-plugin"
+            self.assertTrue(resource.is_dir())
+            self.assertFalse(resource.is_symlink())
+            self.assertTrue((resource / "README_EN.md").is_file())
             lock = renderer.validate_rendered(work)
             self.assertEqual(lock["plugins"]["new-plugin"]["marketplace"]["sourceCommit"], HIGRESS_COMMIT)
 
@@ -157,6 +160,66 @@ class RenderTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "symlink"):
                 renderer.render(work, path, hashlib.sha256(path.read_bytes()).hexdigest(),
                                 bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+
+    def test_rejects_symlinked_plugin_root_and_metadata_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cache, bundle = self.cache_bundle(temp, renderer.HIGRESS_REPOSITORY, HIGRESS_COMMIT)
+            path = self.write_document(temp, [self.plugin(bundle)])
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            for index, name in enumerate(("plugins-root", "plugins.properties", "plugin-snapshot.lock.json")):
+                with self.subTest(name=name):
+                    work = self.workspace(tempfile.mkdtemp(dir=temp))
+                    plugins = work / "backend/sdk/src/main/resources/plugins"
+                    if name == "plugins-root":
+                        outside = pathlib.Path(temp) / ("outside-" + str(index))
+                        shutil.copytree(plugins, outside)
+                        shutil.rmtree(plugins)
+                        plugins.symlink_to(outside, target_is_directory=True)
+                    else:
+                        target = plugins / name
+                        outside = pathlib.Path(temp) / ("outside-" + str(index))
+                        outside.write_bytes(target.read_bytes())
+                        target.unlink()
+                        target.symlink_to(outside)
+                    before = outside.read_bytes() if outside.is_file() else tree_hash(outside)
+                    with self.assertRaisesRegex(ValueError, "symlink"):
+                        renderer.render(work, path, digest, bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+                    after = outside.read_bytes() if outside.is_file() else tree_hash(outside)
+                    self.assertEqual(before, after)
+
+    def test_rejects_symlinked_target_resource_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            work = self.workspace(temp)
+            cache, bundle = self.cache_bundle(temp, renderer.HIGRESS_REPOSITORY, HIGRESS_COMMIT)
+            plugins = work / "backend/sdk/src/main/resources/plugins"
+            outside = pathlib.Path(temp) / "outside-resource"
+            outside.mkdir()
+            sentinel = outside / "sentinel"
+            sentinel.write_text("unchanged", encoding="utf-8")
+            (plugins / "new-plugin").symlink_to(outside, target_is_directory=True)
+            path = self.write_document(temp, [self.plugin(bundle)])
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                renderer.render(work, path, hashlib.sha256(path.read_bytes()).hexdigest(),
+                                bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
+            self.assertEqual(sorted(item.name for item in outside.iterdir()), ["sentinel"])
+
+    def test_rejects_symlinked_target_file_before_writing_bundle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            work = self.workspace(temp)
+            cache, bundle = self.cache_bundle(temp, renderer.HIGRESS_REPOSITORY, HIGRESS_COMMIT)
+            resource = work / "backend/sdk/src/main/resources/plugins/new-plugin"
+            resource.mkdir()
+            outside = pathlib.Path(temp) / "outside-readme.md"
+            outside.write_text("unchanged\n", encoding="utf-8")
+            (resource / "README.md").symlink_to(outside)
+            path = self.write_document(temp, [self.plugin(bundle)])
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                renderer.render(work, path, hashlib.sha256(path.read_bytes()).hexdigest(),
+                                bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+            self.assertEqual(outside.read_text(encoding="utf-8"), "unchanged\n")
+            self.assertFalse((resource / "spec.yaml").exists())
+            self.assertFalse((resource / "README_EN.md").exists())
 
     def test_external_bundle_requires_exact_commit_and_sources_are_listed(self):
         with tempfile.TemporaryDirectory() as temp:

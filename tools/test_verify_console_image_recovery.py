@@ -2,8 +2,12 @@
 # Licensed under the Apache License, Version 2.0.
 
 import importlib.util
+import json
 import pathlib
 import re
+import subprocess
+import sys
+import tempfile
 import unittest
 
 
@@ -62,6 +66,20 @@ class RecoveryContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fixed original image digest"):
             recovery.validate(**values)
 
+    def test_pre_copy_recheck_requires_the_unchanged_fixed_original_digest(self):
+        self.assertEqual(recovery.validate_pre_copy("replace", recovery.ORIGINAL_IMAGE_DIGEST,
+                                                    recovery.ORIGINAL_IMAGE_DIGEST), "copy")
+        with self.assertRaisesRegex(ValueError, "tag changed after validation"):
+            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
+                                       recovery.ORIGINAL_IMAGE_DIGEST)
+        with self.assertRaisesRegex(ValueError, "fixed original image digest"):
+            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
+                                       "sha256:" + "e" * 64)
+
+    def test_already_replaced_mode_remains_an_idempotent_no_copy(self):
+        self.assertEqual(recovery.validate_pre_copy("already-replaced", "sha256:" + "d" * 64,
+                                                    recovery.ORIGINAL_IMAGE_DIGEST), "skip")
+
     def descriptor(self, architecture, digest_char, *, os_name="linux"):
         return {"mediaType": "application/vnd.oci.image.manifest.v1+json",
                 "digest": "sha256:" + digest_char * 64,
@@ -102,6 +120,17 @@ class RecoveryContractTest(unittest.TestCase):
             with self.subTest(manifests=manifests), self.assertRaises(ValueError):
                 recovery.validate_platform_index({"manifests": manifests})
 
+    def test_platform_index_cli_does_not_require_replacement_arguments(self):
+        index = {"manifests": [self.descriptor("amd64", "a"), self.descriptor("arm64", "b")]}
+        with tempfile.TemporaryDirectory() as temp:
+            path = pathlib.Path(temp) / "index.json"
+            path.write_text(json.dumps(index), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "tools/verify_console_image_recovery.py"),
+                 "--index-file", str(path)], check=False, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ["sha256:" + "a" * 64, "sha256:" + "b" * 64])
+
     def test_workflow_uses_existing_protected_environment_and_production_image_secrets(self):
         workflow_path = ROOT / ".github/workflows/recover-console-image-2.2.4.yaml"
         raw = workflow_path.read_text(encoding="utf-8")
@@ -120,6 +149,18 @@ class RecoveryContractTest(unittest.TestCase):
         self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', raw)
         self.assertIn("console-image-recovery-2.2.4.json", raw)
         self.assertIn("--index-file /tmp/candidate-index.json", raw)
+        copy_start = raw.index("- name: Replace only the exact not-yet-public 2.2.4 tag")
+        copy_end = raw.index("- name: Publish separate immutable recovery evidence", copy_start)
+        copy_step = raw[copy_start:copy_end]
+        recheck = 'pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)'
+        self.assertIn(recheck, copy_step)
+        self.assertIn('--pre-copy-current-digest "$pre_copy_current"', copy_step)
+        self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', copy_step)
+        self.assertNotIn("EXPECTED_OLD_DIGEST", copy_step)
+        self.assertLess(copy_step.index(recheck), copy_step.index('oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST"'))
+        self.assertIn("group: console-image-publish-v2.2.4", raw)
+        publisher = (ROOT / ".github/workflows/deploy-to-k8s.yaml").read_text(encoding="utf-8")
+        self.assertIn("group: console-image-publish-${{ github.ref_name }}", publisher)
         actions = re.findall(r"(?m)^\s*- uses:\s*[^@\s]+@([^\s#]+)", raw)
         self.assertTrue(actions)
         self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in actions), actions)
