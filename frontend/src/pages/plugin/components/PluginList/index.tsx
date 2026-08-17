@@ -219,8 +219,8 @@ const PluginList = forwardRef((props: Props, ref) => {
                         color="orange"
                         style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
                       >
-                      {t('plugins.productCovered')}
-                    </Tag>
+                        {t('plugins.productCovered')}
+                      </Tag>
                     </Tooltip>
                   )
                 }
