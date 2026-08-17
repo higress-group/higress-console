@@ -38,6 +38,7 @@ import com.alibaba.higress.sdk.model.WasmPluginConfig;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -208,6 +209,15 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             V1alpha1WasmPlugin result;
             if (existedCr != null) {
                 result = existedCr;
+                String existedVersion = KubernetesUtil.getLabel(existedCr.getMetadata(),
+                    KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+                if (internal && Boolean.TRUE.equals(plugin.getBuiltIn())
+                    && !plugin.getPluginVersion().equals(existedVersion)) {
+                    V1alpha1WasmPlugin currentCr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
+                    currentCr.getMetadata().setResourceVersion(existedCr.getMetadata().getResourceVersion());
+                    kubernetesModelConverter.mergeWasmPluginSpec(existedCr, currentCr);
+                    result = currentCr;
+                }
             } else if (version.equals(plugin.getPluginVersion())) {
                 result = kubernetesModelConverter.wasmPluginToCr(plugin, internal);
             } else {
