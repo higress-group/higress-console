@@ -704,6 +704,14 @@ class WasmPluginServiceImpl implements WasmPluginService {
             return readmes.get(language);
         }
 
+        private boolean isProductCoveredPlugin(String pluginName) {
+            return ProductCoveredPlugin.AI_PROXY.equals(pluginName)
+                || ProductCoveredPlugin.MODEL_ROUTER.equals(pluginName)
+                || ProductCoveredPlugin.MODEL_MAPPER.equals(pluginName)
+                || ProductCoveredPlugin.MCP_SERVER.equals(pluginName)
+                || ProductCoveredPlugin.KEY_AUTH.equals(pluginName);
+        }
+
         public void setReadme(String language, String content) {
             if (StringUtils.isNotEmpty(content)) {
                 readmes.put(language, content);
@@ -723,8 +731,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             wasmPlugin.setImagePullSecret(imagePullSecret);
             wasmPlugin.setImagePullPolicy(imagePullPolicy);
             wasmPlugin.setBuiltIn(true);
-            wasmPlugin.setProductCovered(ProductCoveredPlugin.AI_PROXY.equals(name)
-                || ProductCoveredPlugin.MCP_SERVER.equals(name));
+            wasmPlugin.setProductCovered(isProductCoveredPlugin(name));
 
             PluginInfo info = plugin.getInfo();
             if (info != null) {

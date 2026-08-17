@@ -31,7 +31,22 @@ public final class ProductCoveredPlugin {
     public static final String AI_PROXY = "ai-proxy";
 
     /**
+     * Plugin covered by the AI Route product feature.
+     */
+    public static final String MODEL_ROUTER = "model-router";
+
+    /**
+     * Plugin covered by the AI Route product feature.
+     */
+    public static final String MODEL_MAPPER = "model-mapper";
+
+    /**
      * Plugin covered by the MCP Server product feature.
      */
     public static final String MCP_SERVER = "mcp-server";
+
+    /**
+     * Plugin covered by the Consumer product feature.
+     */
+    public static final String KEY_AUTH = "key-auth";
 }
