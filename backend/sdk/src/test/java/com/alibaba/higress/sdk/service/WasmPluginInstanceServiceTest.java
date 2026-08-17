@@ -444,6 +444,31 @@ public class WasmPluginInstanceServiceTest {
     }
 
     @Test
+    public void addOrUpdateTestKeepInternalConfigWithCustomImageOnCurrentVersion() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        existedCr.getSpec().setUrl("oci://private-registry.example.com/plugins/basic-auth:custom");
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(existedCr));
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
+            .configurations(MapUtil.of("k", "v")).internal(true).build();
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+
+        Assertions.assertTrue(updatedInstance.getInternal());
+
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin cr = crCaptor.getValue();
+        Assertions.assertNotNull(cr);
+        Assertions.assertSame(existedCr, cr);
+        Assertions.assertEquals("oci://private-registry.example.com/plugins/basic-auth:custom", cr.getSpec().getUrl());
+        Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
+    }
+
+    @Test
     public void addOrUpdateAllTestEmptyInput() {
         List<WasmPluginInstance> result = service.addOrUpdateAll(Collections.emptyList());
         Assertions.assertTrue(result.isEmpty(), "Result should be empty for empty input.");
