@@ -213,7 +213,7 @@ const PluginList = forwardRef((props: Props, ref) => {
                   )
                 }
                 {
-                  item.productCovered && !item.enabled && (
+                  item.productCovered && (
                     <Tooltip title={t('plugins.productCoveredTip')}>
                       <Tag
                         color="orange"
