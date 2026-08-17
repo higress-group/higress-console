@@ -1,15 +1,15 @@
-name: Recover Not-Yet-Public Console 2.2.4 Image
+name: Recover Console 2.2.4 Image
 
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Build the reviewed candidate, or replace the exact 2.2.4 tag with its approved digest
+        description: Build the approved hotfix candidate, or replace the exact 2.2.4 tag with its reviewed digest
         required: true
         type: choice
         options: [build-candidate, replace]
       console_source_commit:
-        description: Exact merged higress-console main commit containing the reviewed resources
+        description: Exact approved merged higress-console commit containing PR 763
         required: true
         type: string
       higress_commit:
@@ -21,7 +21,7 @@ on:
         required: true
         type: string
       expected_old_digest:
-        description: Fixed original 2.2.4 digest recorded in the reviewed recovery manifest
+        description: Fixed current 2.2.4 digest recorded by the previous recovery evidence
         required: true
         type: string
       expected_new_digest:
@@ -29,7 +29,7 @@ on:
         required: false
         type: string
       confirmation:
-        description: BUILD_NOT_YET_PUBLIC_2.2.4 or REPLACE_NOT_YET_PUBLIC_2.2.4
+        description: BUILD_APPROVED_HOTFIX_2.2.4 or REPLACE_APPROVED_HOTFIX_2.2.4
         required: true
         type: string
 
@@ -70,7 +70,9 @@ jobs:
           [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           test "$(git rev-parse HEAD^{commit})" = "$SOURCE_COMMIT"
           git fetch origin main
+          test "$SOURCE_COMMIT" = "$(git rev-parse origin/main^{commit})"
           git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
+          git merge-base --is-ancestor 1aa0c03da2279b8c7d2eec025d39f9951d329bf1 "$SOURCE_COMMIT"
           higress_check=$(mktemp -d)
           git -C "$higress_check" init -q
           git -C "$higress_check" remote add canonical https://github.com/higress-group/higress.git
@@ -79,11 +81,11 @@ jobs:
           test "$(git -C "$higress_check" rev-parse "$HIGRESS_COMMIT^{commit}")" = "$HIGRESS_COMMIT"
           git -C "$higress_check" merge-base --is-ancestor "$HIGRESS_COMMIT" "$canonical_main"
           if [ "$OPERATION" = build-candidate ]; then
-            test "$CONFIRMATION" = BUILD_NOT_YET_PUBLIC_2.2.4
+            test "$CONFIRMATION" = BUILD_APPROVED_HOTFIX_2.2.4
             test -z "$EXPECTED_NEW_DIGEST"
           else
             test "$OPERATION" = replace
-            test "$CONFIRMATION" = REPLACE_NOT_YET_PUBLIC_2.2.4
+            test "$CONFIRMATION" = REPLACE_APPROVED_HOTFIX_2.2.4
             [[ "$EXPECTED_NEW_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           fi
 
@@ -107,14 +109,29 @@ jobs:
           required_branch=$(jq -er .requiredSourceBranch /tmp/console-recovery.json)
           test "$original_commit" = 36aa9c67fb0057164dab9b1fe687b38fe5b8a022
           test "$manifest_old" = sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6
-          test "$EXPECTED_OLD_DIGEST" = "$manifest_old"
+          test "$EXPECTED_OLD_DIGEST" = sha256:4a07fedf9925a2775e9e9b7dfdbf99194651e51a7ee2c0b6bb8fab62e61d2da8
           test "$required_branch" = main
+          previous_evidence=/tmp/console-image-recovery-2.2.4.json
+          previous_checksum=/tmp/console-image-recovery-2.2.4.json.sha256
+          curl --fail --silent --show-error --location \
+            "https://github.com/higress-group/higress-console/releases/download/v2.2.4/console-image-recovery-2.2.4.json" \
+            -o "$previous_evidence"
+          curl --fail --silent --show-error --location \
+            "https://github.com/higress-group/higress-console/releases/download/v2.2.4/console-image-recovery-2.2.4.json.sha256" \
+            -o "$previous_checksum"
+          (cd /tmp && sha256sum -c "${previous_checksum##*/}")
+          test "$(jq -er .oldDigest "$previous_evidence")" = "$manifest_old"
+          test "$(jq -er .newDigest "$previous_evidence")" = "$EXPECTED_OLD_DIGEST"
+          test "$(jq -er .consoleSourceCommit "$previous_evidence")" = 7118cc192522deb144298175318b3ea91d94c715
+          previous_evidence_sha=$(sha256sum "$previous_evidence" | awk '{print $1}')
+          test "$previous_evidence_sha" = 6efb6fbbb7cb44198bfb503a7f8a93f1d1b7d86c85ed5f08909c453bd581dde4
           jq -e --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
             '.schemaVersion == 1 and .gatewayVersion == $version and .imageRepository == $image and (.plugins | length == 8)' \
             /tmp/console-recovery.json >/dev/null
           {
             echo "MANIFEST_ORIGINAL_CONSOLE_COMMIT=$original_commit"
             echo "MANIFEST_OLD_DIGEST=$manifest_old"
+            echo "PREVIOUS_RECOVERY_EVIDENCE_SHA256=$previous_evidence_sha"
           } >> "$GITHUB_ENV"
           bundle_cache=/tmp/plugin-marketplace-bundles
           mkdir -p "$bundle_cache"
@@ -181,7 +198,7 @@ jobs:
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         if: ${{ inputs.operation == 'build-candidate' }}
 
-      - name: Build reviewed recovery candidate without touching 2.2.4
+      - name: Build reviewed hotfix candidate without touching 2.2.4
         if: ${{ inputs.operation == 'build-candidate' }}
         env:
           SOURCE_COMMIT: ${{ inputs.console_source_commit }}
@@ -245,16 +262,18 @@ jobs:
                ."io.higress.marketplace-recovery-higress-commit" == $higress' <<<"$labels" >/dev/null
           done </tmp/candidate-runnable-digests
 
-      - name: Replace only the exact not-yet-public 2.2.4 tag
+      - name: Replace only the exact approved 2.2.4 tag
         if: ${{ inputs.operation == 'replace' && env.RECOVERY_MODE == 'replace' }}
         env:
+          EXPECTED_OLD_DIGEST: ${{ inputs.expected_old_digest }}
           EXPECTED_NEW_DIGEST: ${{ inputs.expected_new_digest }}
         run: |
           set -euo pipefail
           pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)
           python3 tools/verify_console_image_recovery.py --pre-copy-mode "$RECOVERY_MODE" \
             --pre-copy-current-digest "$pre_copy_current" \
-            --manifest-old-digest "$MANIFEST_OLD_DIGEST" >/dev/null
+            --manifest-old-digest "$MANIFEST_OLD_DIGEST" \
+            --expected-old-digest "$EXPECTED_OLD_DIGEST" >/dev/null
           oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST" "$IMAGE_REPOSITORY:$VERSION"
           test "$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)" = "$EXPECTED_NEW_DIGEST"
 
@@ -277,20 +296,24 @@ jobs:
           chart_ref=$(jq -er .chart.ref /tmp/original-provenance/plugin-release-provenance.json)
           chart_digest=$(jq -er .chart.digest /tmp/original-provenance/plugin-release-provenance.json)
           tag_commit=$(jq -er .commit /tmp/original-provenance/plugin-release-provenance.json)
+          evidence_basename="console-image-recovery-2.2.4-${SOURCE_COMMIT:0:12}"
           jq -cnS --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
             --arg old "$EXPECTED_OLD_DIGEST" --arg new "$EXPECTED_NEW_DIGEST" \
             --arg source "$SOURCE_COMMIT" --arg higress "$HIGRESS_COMMIT" --arg manifest "$MANIFEST_SHA256" \
             --arg inventory "$INVENTORY_SHA256" --arg provenance "$provenance_sha" \
+            --arg previousEvidenceSha "$PREVIOUS_RECOVERY_EVIDENCE_SHA256" \
             --arg tagCommit "$tag_commit" --arg chartRef "$chart_ref" --arg chartDigest "$chart_digest" \
             '{schemaVersion:1,version:$version,imageRepository:$image,oldDigest:$old,newDigest:$new,
               consoleSourceCommit:$source,higressCommit:$higress,recoveryManifestSha256:$manifest,
               marketplaceInventorySha256:$inventory,unchangedRelease:{tagCommit:$tagCommit,chartRef:$chartRef,
-              chartDigest:$chartDigest,pluginReleaseProvenanceSha256:$provenance}}' \
-            > console-image-recovery-2.2.4.json
-          sha256sum console-image-recovery-2.2.4.json > console-image-recovery-2.2.4.json.sha256
+              chartDigest:$chartDigest,pluginReleaseProvenanceSha256:$provenance},
+              previousRecovery:{asset:"console-image-recovery-2.2.4.json",sha256:$previousEvidenceSha,
+              resultingDigest:$old}}' \
+            > "$evidence_basename.json"
+          sha256sum "$evidence_basename.json" > "$evidence_basename.json.sha256"
           mkdir -p /tmp/existing-recovery
           asset_names=$(gh release view "v$VERSION" --json assets --jq '.assets[].name')
-          for asset in console-image-recovery-2.2.4.json console-image-recovery-2.2.4.json.sha256; do
+          for asset in "$evidence_basename.json" "$evidence_basename.json.sha256"; do
             if grep -Fxq "$asset" <<<"$asset_names"; then
               gh release download "v$VERSION" --pattern "$asset" --dir /tmp/existing-recovery
               cmp "/tmp/existing-recovery/$asset" "$asset"
@@ -298,4 +321,4 @@ jobs:
               gh release upload "v$VERSION" "$asset"
             fi
           done
-          echo "Recovered \`$IMAGE_REPOSITORY:$VERSION@$EXPECTED_NEW_DIGEST\`; the existing tag, chart, and plugin provenance asset were not modified." >> "$GITHUB_STEP_SUMMARY"
+          echo "Recovered \`$IMAGE_REPOSITORY:$VERSION@$EXPECTED_NEW_DIGEST\`; the Git release tag, chart, and plugin provenance asset were not modified." >> "$GITHUB_STEP_SUMMARY"
