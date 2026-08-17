@@ -34,9 +34,9 @@ class RecoveryContractTest(unittest.TestCase):
                     source_commit="a" * 40, higress_commit="b" * 40,
                     manifest_original_console_commit=recovery.ORIGINAL_CONSOLE_COMMIT,
                     manifest_old_digest=recovery.ORIGINAL_IMAGE_DIGEST,
-                    expected_old_digest=recovery.ORIGINAL_IMAGE_DIGEST,
+                    expected_old_digest=recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
                     expected_new_digest="sha256:" + "d" * 64,
-                    current_digest=recovery.ORIGINAL_IMAGE_DIGEST,
+                    current_digest=recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
                     candidate_digest="sha256:" + "d" * 64, source_is_merged=True)
 
     def test_exact_replacement_and_idempotent_retry(self):
@@ -46,7 +46,8 @@ class RecoveryContractTest(unittest.TestCase):
         self.assertEqual(recovery.validate(**values), "already-replaced")
 
     def test_rejects_other_version_stale_digest_unmerged_source_and_candidate_drift(self):
-        for field, value in (("version", "2.2.5"), ("current_digest", "sha256:" + "e" * 64),
+        for field, value in (("version", "2.2.5"), ("source_commit", "invalid"),
+                             ("current_digest", "sha256:" + "e" * 64),
                              ("source_is_merged", False), ("candidate_digest", "sha256:" + "e" * 64)):
             with self.subTest(field=field):
                 values = self.values(); values[field] = value
@@ -60,13 +61,13 @@ class RecoveryContractTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             recovery.validate(**values)
 
-    def test_fixed_original_digest_prevents_a_second_different_replacement(self):
+    def test_approved_replacement_base_prevents_an_unreviewed_chain(self):
         values = self.values()
         values["expected_old_digest"] = values["expected_new_digest"]
         values["current_digest"] = values["expected_new_digest"]
         values["expected_new_digest"] = "sha256:" + "e" * 64
         values["candidate_digest"] = values["expected_new_digest"]
-        with self.assertRaisesRegex(ValueError, "fixed recovery manifest"):
+        with self.assertRaisesRegex(ValueError, "approved replacement base"):
             recovery.validate(**values)
 
     def test_rejects_mismatched_fixed_old_manifest(self):
@@ -77,18 +78,26 @@ class RecoveryContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fixed original image digest"):
             recovery.validate(**values)
 
-    def test_pre_copy_recheck_requires_the_unchanged_fixed_original_digest(self):
-        self.assertEqual(recovery.validate_pre_copy("replace", recovery.ORIGINAL_IMAGE_DIGEST,
+    def test_pre_copy_recheck_requires_the_approved_replacement_base(self):
+        self.assertEqual(recovery.validate_pre_copy("replace", recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
+                                                    recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
                                                     recovery.ORIGINAL_IMAGE_DIGEST), "copy")
         with self.assertRaisesRegex(ValueError, "tag changed after validation"):
             recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
+                                       recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
+                                       recovery.ORIGINAL_IMAGE_DIGEST)
+        with self.assertRaisesRegex(ValueError, "approved replacement base"):
+            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
+                                       "sha256:" + "e" * 64,
                                        recovery.ORIGINAL_IMAGE_DIGEST)
         with self.assertRaisesRegex(ValueError, "fixed original image digest"):
-            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
+            recovery.validate_pre_copy("replace", recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
+                                       recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
                                        "sha256:" + "e" * 64)
 
     def test_already_replaced_mode_remains_an_idempotent_no_copy(self):
         self.assertEqual(recovery.validate_pre_copy("already-replaced", "sha256:" + "d" * 64,
+                                                    recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
                                                     recovery.ORIGINAL_IMAGE_DIGEST), "skip")
 
     def descriptor(self, architecture, digest_char, *, os_name="linux"):
@@ -151,23 +160,29 @@ class RecoveryContractTest(unittest.TestCase):
         self.assertNotIn("CONSOLE_CHART_REGISTRY_USERNAME", raw)
         self.assertNotIn("CONSOLE_CHART_REGISTRY_PASSWORD", raw)
         self.assertIn("higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console", raw)
-        self.assertIn("REPLACE_NOT_YET_PUBLIC_2.2.4", raw)
+        self.assertIn("REPLACE_APPROVED_HOTFIX_2.2.4", raw)
         self.assertIn("git merge-base --is-ancestor", raw)
         self.assertIn("https://github.com/higress-group/higress.git", raw)
         self.assertIn(recovery.ORIGINAL_CONSOLE_COMMIT, raw)
         self.assertIn(recovery.ORIGINAL_IMAGE_DIGEST, raw)
-        self.assertIn('test "$EXPECTED_OLD_DIGEST" = "$manifest_old"', raw)
+        self.assertIn(recovery.REQUIRED_HOTFIX_COMMIT, raw)
+        self.assertIn('test "$SOURCE_COMMIT" = "$(git rev-parse origin/main^{commit})"', raw)
+        self.assertIn('git merge-base --is-ancestor 1aa0c03da2279b8c7d2eec025d39f9951d329bf1 "$SOURCE_COMMIT"', raw)
+        self.assertIn(recovery.REPLACEMENT_BASE_IMAGE_DIGEST, raw)
+        self.assertIn("6efb6fbbb7cb44198bfb503a7f8a93f1d1b7d86c85ed5f08909c453bd581dde4", raw)
+        self.assertIn('test "$(jq -er .newDigest "$previous_evidence")" = "$EXPECTED_OLD_DIGEST"', raw)
         self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', raw)
-        self.assertIn("console-image-recovery-2.2.4.json", raw)
+        self.assertIn('evidence_basename="console-image-recovery-2.2.4-${SOURCE_COMMIT:0:12}"', raw)
+        self.assertIn('previousRecovery:{asset:"console-image-recovery-2.2.4.json"', raw)
         self.assertIn("--index-file /tmp/candidate-index.json", raw)
-        copy_start = raw.index("- name: Replace only the exact not-yet-public 2.2.4 tag")
+        copy_start = raw.index("- name: Replace only the exact approved 2.2.4 tag")
         copy_end = raw.index("- name: Publish separate immutable recovery evidence", copy_start)
         copy_step = raw[copy_start:copy_end]
         recheck = 'pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)'
         self.assertIn(recheck, copy_step)
         self.assertIn('--pre-copy-current-digest "$pre_copy_current"', copy_step)
         self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', copy_step)
-        self.assertNotIn("EXPECTED_OLD_DIGEST", copy_step)
+        self.assertIn('--expected-old-digest "$EXPECTED_OLD_DIGEST"', copy_step)
         self.assertLess(copy_step.index(recheck), copy_step.index('oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST"'))
         self.assertIn("group: console-image-publish-v2.2.4", raw)
         publisher = (ROOT / ".github/workflows/deploy-to-k8s.yaml").read_text(encoding="utf-8")

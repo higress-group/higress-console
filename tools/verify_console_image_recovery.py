@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fail-closed contract checks for the one-time Console 2.2.4 image repair."""
+"""Fail-closed contract checks for the approved Console 2.2.4 image repair."""
 import argparse
 import json
 import re
@@ -23,6 +23,8 @@ import sys
 IMAGE_REPOSITORY = "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console"
 ORIGINAL_CONSOLE_COMMIT = "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
 ORIGINAL_IMAGE_DIGEST = "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
+REQUIRED_HOTFIX_COMMIT = "1aa0c03da2279b8c7d2eec025d39f9951d329bf1"
+REPLACEMENT_BASE_IMAGE_DIGEST = "sha256:4a07fedf9925a2775e9e9b7dfdbf99194651e51a7ee2c0b6bb8fab62e61d2da8"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 ATTESTATION_MEDIA_TYPE = "application/vnd.oci.image.manifest.v1+json"
@@ -89,8 +91,8 @@ def validate(operation, version, image_repository, source_commit, higress_commit
                         ("current", current_digest)):
         if not DIGEST_RE.fullmatch(value or ""):
             raise ValueError(name + " digest is invalid")
-    if expected_old_digest != manifest_old_digest:
-        raise ValueError("operator expected-old digest differs from the fixed recovery manifest")
+    if expected_old_digest != REPLACEMENT_BASE_IMAGE_DIGEST:
+        raise ValueError("operator expected-old digest differs from the approved replacement base")
     if operation == "build-candidate":
         if expected_new_digest or candidate_digest:
             raise ValueError("candidate build must not pre-authorize a replacement digest")
@@ -110,17 +112,20 @@ def validate(operation, version, image_repository, source_commit, higress_commit
     return "replace"
 
 
-def validate_pre_copy(mode, current_digest, manifest_old_digest):
-    """Recheck the mutable tag immediately before the one authorized replacement."""
+def validate_pre_copy(mode, current_digest, expected_old_digest, manifest_old_digest):
+    """Recheck the mutable tag immediately before the authorized replacement."""
     if manifest_old_digest != ORIGINAL_IMAGE_DIGEST:
         raise ValueError("pre-copy check does not bind the fixed original image digest")
-    if not DIGEST_RE.fullmatch(current_digest or ""):
-        raise ValueError("pre-copy current digest is invalid")
+    for name, value in (("pre-copy current", current_digest), ("expected old", expected_old_digest)):
+        if not DIGEST_RE.fullmatch(value or ""):
+            raise ValueError(name + " digest is invalid")
+    if expected_old_digest != REPLACEMENT_BASE_IMAGE_DIGEST:
+        raise ValueError("pre-copy check does not bind the approved replacement base")
     if mode == "already-replaced":
         return "skip"
     if mode != "replace":
         raise ValueError("pre-copy check requires a validated replacement mode")
-    if current_digest != manifest_old_digest:
+    if current_digest != expected_old_digest:
         raise ValueError("tag changed after validation; replacement refused")
     return "copy"
 
@@ -151,7 +156,7 @@ def main():
             return 0
         if args.pre_copy_mode:
             mode = validate_pre_copy(args.pre_copy_mode, args.pre_copy_current_digest,
-                                     args.manifest_old_digest)
+                                     args.expected_old_digest, args.manifest_old_digest)
             print(json.dumps({"mode": mode}, sort_keys=True))
             return 0
         mode = validate(args.operation, args.version, args.image_repository, args.source_commit,
