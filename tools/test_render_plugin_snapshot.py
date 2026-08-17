@@ -242,30 +242,31 @@ class RenderTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "immutable"):
                 renderer.bundle_sources({"plugins": [self.plugin(bundle)]}, HIGRESS_COMMIT)
 
-    def test_recovery_is_exactly_224_and_binds_existing_snapshot_lock(self):
+    def test_recovery_contract_is_version_independent_and_binds_snapshot_lock(self):
         with tempfile.TemporaryDirectory() as temp:
             work = self.workspace(temp)
             cache, bundle = self.cache_bundle(temp, renderer.HIGRESS_REPOSITORY, HIGRESS_COMMIT)
             current = json.loads((work / "backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json").read_text())
-            manifest = {"schemaVersion": 1, "gatewayVersion": "2.2.4",
+            manifest = {"schemaVersion": 1, "gatewayVersion": "3.1.0",
+                        "snapshotPath": "plugins/release/snapshots/3.1.0.json",
                         "snapshotSha256": current["snapshotSha256"],
-                        "imageRepository": "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console",
-                        "originalConsoleCommit": renderer.ORIGINAL_CONSOLE_COMMIT,
-                        "originalImageDigest": renderer.ORIGINAL_IMAGE_DIGEST,
+                        "imageRepository": renderer.CONSOLE_IMAGE_REPOSITORY,
+                        "originalConsoleCommit": "c" * 40,
+                        "originalImageDigest": "sha256:" + "d" * 64,
                         "requiredSourceBranch": "main",
                         "plugins": [dict(self.plugin(bundle), console=self.plugin(bundle)["consumers"]["console"])]}
             manifest["plugins"][0].pop("consumers")
             path = pathlib.Path(temp) / "recovery.json"; path.write_text(json.dumps(manifest))
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
             renderer.render_recovery(work, path, digest, cache, HIGRESS_COMMIT)
-            self.assertEqual(renderer.validate_rendered(work)["marketplaceRecovery"]["gatewayVersion"], "2.2.4")
-            manifest["gatewayVersion"] = "2.2.5"; path.write_text(json.dumps(manifest))
-            with self.assertRaisesRegex(ValueError, "restricted"):
+            self.assertEqual(renderer.validate_rendered(work)["marketplaceRecovery"]["gatewayVersion"], "3.1.0")
+            manifest["gatewayVersion"] = "3.1.1"; path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError, "snapshot path"):
                 renderer.render_recovery(work, path, hashlib.sha256(path.read_bytes()).hexdigest(), cache, HIGRESS_COMMIT)
-            manifest["gatewayVersion"] = "2.2.4"
-            manifest["originalImageDigest"] = "sha256:" + "0" * 64
+            manifest["gatewayVersion"] = "3.1.0"
+            manifest["originalImageDigest"] = "invalid"
             path.write_text(json.dumps(manifest))
-            with self.assertRaisesRegex(ValueError, "fixed original"):
+            with self.assertRaisesRegex(ValueError, "original image digest"):
                 renderer.render_recovery(work, path, hashlib.sha256(path.read_bytes()).hexdigest(), cache, HIGRESS_COMMIT)
 
     def test_real_224_marketplace_inventory_contains_all_recovered_plugins(self):

@@ -1,35 +1,47 @@
-name: Recover Console 2.2.4 Image
+name: Recover Console Image
 
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Build the approved hotfix candidate, or replace the exact 2.2.4 tag with its reviewed digest
+        description: Build a reviewed hotfix candidate, or replace the release tag with its approved digest
         required: true
         type: choice
         options: [build-candidate, replace]
+      version:
+        description: Released Console version without the v prefix (for example, 2.2.4)
+        required: true
+        type: string
       console_source_commit:
-        description: Exact approved merged higress-console commit containing PR 763
+        description: Exact merged higress-console commit to rebuild
         required: true
         type: string
       higress_commit:
-        description: Exact merged Higress commit containing the recovery manifest and resource bundles
+        description: Exact merged Higress commit containing plugins/release/console-recovery/<version>.json
         required: true
         type: string
       recovery_manifest_sha256:
-        description: SHA-256 of plugins/release/console-recovery/2.2.4.json at higress_commit
+        description: SHA-256 of the versioned recovery manifest at higress_commit
         required: true
         type: string
       expected_old_digest:
-        description: Fixed current 2.2.4 digest recorded by the previous recovery evidence
+        description: Exact current release image digest authorized by the manifest or previous recovery evidence
         required: true
+        type: string
+      previous_recovery_asset:
+        description: Previous recovery JSON asset name when this is not the first replacement
+        required: false
+        type: string
+      previous_recovery_sha256:
+        description: SHA-256 of previous_recovery_asset; required together with the asset name
+        required: false
         type: string
       expected_new_digest:
         description: Exact candidate digest; required only for replace and reported by build-candidate
         required: false
         type: string
       confirmation:
-        description: BUILD_APPROVED_HOTFIX_2.2.4 or REPLACE_APPROVED_HOTFIX_2.2.4
+        description: BUILD_APPROVED_HOTFIX_<version> or REPLACE_APPROVED_HOTFIX_<version>
         required: true
         type: string
 
@@ -37,7 +49,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: console-image-publish-v2.2.4
+  group: console-image-publish-v${{ inputs.version }}
   cancel-in-progress: false
 
 jobs:
@@ -45,17 +57,17 @@ jobs:
     runs-on: ubuntu-latest
     environment: console-chart-production
     env:
-      VERSION: 2.2.4
+      VERSION: ${{ inputs.version }}
       IMAGE_REPOSITORY: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console
       REGISTRY: higress-registry.cn-hangzhou.cr.aliyuncs.com
-      MANIFEST_PATH: plugins/release/console-recovery/2.2.4.json
+      MANIFEST_PATH: plugins/release/console-recovery/${{ inputs.version }}.json
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ inputs.console_source_commit }}
           fetch-depth: 0
 
-      - name: Validate exact merged inputs and explicit operator confirmation
+      - name: Validate merged inputs, release tag, and operator confirmation
         env:
           OPERATION: ${{ inputs.operation }}
           SOURCE_COMMIT: ${{ inputs.console_source_commit }}
@@ -65,14 +77,15 @@ jobs:
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
           set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           [[ "$HIGRESS_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           test "$(git rev-parse HEAD^{commit})" = "$SOURCE_COMMIT"
-          git fetch origin main
-          test "$SOURCE_COMMIT" = "$(git rev-parse origin/main^{commit})"
+          git fetch origin main "refs/tags/v$VERSION:refs/tags/v$VERSION"
           git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
-          git merge-base --is-ancestor 1aa0c03da2279b8c7d2eec025d39f9951d329bf1 "$SOURCE_COMMIT"
+          tag_commit=$(git rev-parse "refs/tags/v$VERSION^{commit}")
+          [[ "$tag_commit" =~ ^[0-9a-f]{40}$ ]]
           higress_check=$(mktemp -d)
           git -C "$higress_check" init -q
           git -C "$higress_check" remote add canonical https://github.com/higress-group/higress.git
@@ -81,58 +94,89 @@ jobs:
           test "$(git -C "$higress_check" rev-parse "$HIGRESS_COMMIT^{commit}")" = "$HIGRESS_COMMIT"
           git -C "$higress_check" merge-base --is-ancestor "$HIGRESS_COMMIT" "$canonical_main"
           if [ "$OPERATION" = build-candidate ]; then
-            test "$CONFIRMATION" = BUILD_APPROVED_HOTFIX_2.2.4
+            test "$CONFIRMATION" = "BUILD_APPROVED_HOTFIX_$VERSION"
             test -z "$EXPECTED_NEW_DIGEST"
           else
             test "$OPERATION" = replace
-            test "$CONFIRMATION" = REPLACE_APPROVED_HOTFIX_2.2.4
+            test "$CONFIRMATION" = "REPLACE_APPROVED_HOTFIX_$VERSION"
             [[ "$EXPECTED_NEW_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           fi
+          echo "RELEASE_TAG_COMMIT=$tag_commit" >> "$GITHUB_ENV"
 
       - uses: oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3
         with:
           version: 1.2.3
 
-      - name: Fetch exact recovery contract and verify merged marketplace inventory
+      - name: Verify recovery contract, release provenance, and previous evidence
         env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_COMMIT: ${{ inputs.console_source_commit }}
           HIGRESS_COMMIT: ${{ inputs.higress_commit }}
           MANIFEST_SHA256: ${{ inputs.recovery_manifest_sha256 }}
           EXPECTED_OLD_DIGEST: ${{ inputs.expected_old_digest }}
+          PREVIOUS_ASSET: ${{ inputs.previous_recovery_asset }}
+          PREVIOUS_SHA256: ${{ inputs.previous_recovery_sha256 }}
         run: |
           set -euo pipefail
+          [[ "$EXPECTED_OLD_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           curl --fail --silent --show-error \
             "https://raw.githubusercontent.com/higress-group/higress/$HIGRESS_COMMIT/$MANIFEST_PATH" \
             -o /tmp/console-recovery.json
           test "$(sha256sum /tmp/console-recovery.json | awk '{print $1}')" = "$MANIFEST_SHA256"
+          jq -e --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
+            '.schemaVersion == 1 and .gatewayVersion == $version and .imageRepository == $image and
+             .requiredSourceBranch == "main" and (.snapshotSha256 | test("^[0-9a-f]{64}$")) and
+             (.originalConsoleCommit | test("^[0-9a-f]{40}$")) and
+             (.originalImageDigest | test("^sha256:[0-9a-f]{64}$")) and (.plugins | type == "array")' \
+            /tmp/console-recovery.json >/dev/null
           original_commit=$(jq -er .originalConsoleCommit /tmp/console-recovery.json)
           manifest_old=$(jq -er .originalImageDigest /tmp/console-recovery.json)
-          required_branch=$(jq -er .requiredSourceBranch /tmp/console-recovery.json)
-          test "$original_commit" = 36aa9c67fb0057164dab9b1fe687b38fe5b8a022
-          test "$manifest_old" = sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6
-          test "$EXPECTED_OLD_DIGEST" = sha256:4a07fedf9925a2775e9e9b7dfdbf99194651e51a7ee2c0b6bb8fab62e61d2da8
-          test "$required_branch" = main
-          previous_evidence=/tmp/console-image-recovery-2.2.4.json
-          previous_checksum=/tmp/console-image-recovery-2.2.4.json.sha256
-          curl --fail --silent --show-error --location \
-            "https://github.com/higress-group/higress-console/releases/download/v2.2.4/console-image-recovery-2.2.4.json" \
-            -o "$previous_evidence"
-          curl --fail --silent --show-error --location \
-            "https://github.com/higress-group/higress-console/releases/download/v2.2.4/console-image-recovery-2.2.4.json.sha256" \
-            -o "$previous_checksum"
-          (cd /tmp && sha256sum -c "${previous_checksum##*/}")
-          test "$(jq -er .oldDigest "$previous_evidence")" = "$manifest_old"
-          test "$(jq -er .newDigest "$previous_evidence")" = "$EXPECTED_OLD_DIGEST"
-          test "$(jq -er .consoleSourceCommit "$previous_evidence")" = 7118cc192522deb144298175318b3ea91d94c715
-          previous_evidence_sha=$(sha256sum "$previous_evidence" | awk '{print $1}')
-          test "$previous_evidence_sha" = 6efb6fbbb7cb44198bfb503a7f8a93f1d1b7d86c85ed5f08909c453bd581dde4
-          jq -e --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
-            '.schemaVersion == 1 and .gatewayVersion == $version and .imageRepository == $image and (.plugins | length == 8)' \
-            /tmp/console-recovery.json >/dev/null
+          snapshot_sha=$(jq -er .snapshotSha256 /tmp/console-recovery.json)
+          test "$RELEASE_TAG_COMMIT" = "$original_commit"
+          git merge-base --is-ancestor "$original_commit" "$SOURCE_COMMIT"
+
+          mkdir -p /tmp/original-provenance
+          gh release download "v$VERSION" --pattern plugin-release-provenance.json \
+            --dir /tmp/original-provenance
+          gh release download "v$VERSION" --pattern plugin-release-provenance.json.sha256 \
+            --dir /tmp/original-provenance
+          (cd /tmp/original-provenance && sha256sum -c plugin-release-provenance.json.sha256)
+          provenance=/tmp/original-provenance/plugin-release-provenance.json
+          jq -e --arg version "v$VERSION" --arg commit "$original_commit" --arg snapshot "$snapshot_sha" \
+            '.schemaVersion == 1 and .tag == $version and .commit == $commit and
+             .pluginLock.snapshotSha256 == $snapshot' "$provenance" >/dev/null
+          provenance_sha=$(sha256sum "$provenance" | awk '{print $1}')
+
+          if [ -z "$PREVIOUS_ASSET" ] && [ -z "$PREVIOUS_SHA256" ]; then
+            test "$EXPECTED_OLD_DIGEST" = "$manifest_old"
+            previous_asset=""
+            previous_sha=""
+          else
+            test -n "$PREVIOUS_ASSET"
+            [[ "$PREVIOUS_SHA256" =~ ^[0-9a-f]{64}$ ]]
+            [[ "$PREVIOUS_ASSET" =~ ^console-image-recovery-[0-9]+\.[0-9]+\.[0-9]+(-[0-9a-f]{12}){0,2}\.json$ ]]
+            previous_dir=$(mktemp -d)
+            gh release download "v$VERSION" --pattern "$PREVIOUS_ASSET" --dir "$previous_dir"
+            gh release download "v$VERSION" --pattern "$PREVIOUS_ASSET.sha256" --dir "$previous_dir"
+            (cd "$previous_dir" && sha256sum -c "$PREVIOUS_ASSET.sha256")
+            previous_evidence="$previous_dir/$PREVIOUS_ASSET"
+            test "$(sha256sum "$previous_evidence" | awk '{print $1}')" = "$PREVIOUS_SHA256"
+            jq -e --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
+              --arg digest "$EXPECTED_OLD_DIGEST" --arg tagCommit "$original_commit" \
+              '.schemaVersion == 1 and .version == $version and .imageRepository == $image and
+               .newDigest == $digest and .unchangedRelease.tagCommit == $tagCommit' \
+              "$previous_evidence" >/dev/null
+            previous_asset="$PREVIOUS_ASSET"
+            previous_sha="$PREVIOUS_SHA256"
+          fi
           {
             echo "MANIFEST_ORIGINAL_CONSOLE_COMMIT=$original_commit"
             echo "MANIFEST_OLD_DIGEST=$manifest_old"
-            echo "PREVIOUS_RECOVERY_EVIDENCE_SHA256=$previous_evidence_sha"
+            echo "ORIGINAL_PROVENANCE_SHA256=$provenance_sha"
+            echo "PREVIOUS_RECOVERY_ASSET=$previous_asset"
+            echo "PREVIOUS_RECOVERY_EVIDENCE_SHA256=$previous_sha"
           } >> "$GITHUB_ENV"
+
           bundle_cache=/tmp/plugin-marketplace-bundles
           mkdir -p "$bundle_cache"
           while IFS=$'\t' read -r repository source_commit; do
@@ -147,9 +191,26 @@ jobs:
             --sha256 "$MANIFEST_SHA256" --higress-commit "$HIGRESS_COMMIT" --print-bundle-sources)
           inventory_sha=$(python3 tools/render_plugin_snapshot.py --root . \
             --recovery-manifest /tmp/console-recovery.json --sha256 "$MANIFEST_SHA256" \
-            --higress-commit "$HIGRESS_COMMIT" --bundle-cache "$bundle_cache" --validate-recovery-source)
+            --higress-commit "$HIGRESS_COMMIT" --bundle-cache "$bundle_cache" \
+            --expected-version "$VERSION" --validate-recovery-source)
           [[ "$inventory_sha" =~ ^[0-9a-f]{64}$ ]]
-          echo "INVENTORY_SHA256=$inventory_sha" >> "$GITHUB_ENV"
+
+          expected_parent=$(mktemp -d)
+          expected_root="$expected_parent/release"
+          git worktree add --detach "$expected_root" "refs/tags/v$VERSION"
+          python3 tools/render_plugin_snapshot.py --root "$expected_root" \
+            --recovery-manifest /tmp/console-recovery.json --sha256 "$MANIFEST_SHA256" \
+            --higress-commit "$HIGRESS_COMMIT" --bundle-cache "$bundle_cache" --validate-rendered
+          actual_plugins=backend/sdk/src/main/resources/plugins
+          expected_plugins="$expected_root/$actual_plugins"
+          test -z "$(find "$actual_plugins" "$expected_plugins" -type l -print -quit)"
+          actual_tree_sha=$(cd "$actual_plugins" && find . -type f ! -path './plugin-snapshot.lock.json' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
+          expected_tree_sha=$(cd "$expected_plugins" && find . -type f ! -path './plugin-snapshot.lock.json' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
+          test "$actual_tree_sha" = "$expected_tree_sha"
+          {
+            echo "INVENTORY_SHA256=$inventory_sha"
+            echo "PLUGIN_RESOURCES_SHA256=$actual_tree_sha"
+          } >> "$GITHUB_ENV"
 
       - name: Login to the approved production image repository
         env:
@@ -163,11 +224,8 @@ jobs:
           printf '%s' "$REGISTRY_PASSWORD" | oras login "$REGISTRY" --username "$REGISTRY_USERNAME" --password-stdin
 
       - name: Resolve exact current tag state
-        env:
-          EXPECTED_OLD_DIGEST: ${{ inputs.expected_old_digest }}
         run: |
           set -euo pipefail
-          [[ "$EXPECTED_OLD_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)
           [[ "$current" =~ ^sha256:[0-9a-f]{64}$ ]]
           echo "CURRENT_DIGEST=$current" >> "$GITHUB_ENV"
@@ -184,7 +242,8 @@ jobs:
             --higress-commit "$HIGRESS_COMMIT" \
             --manifest-original-console-commit "$MANIFEST_ORIGINAL_CONSOLE_COMMIT" \
             --manifest-old-digest "$MANIFEST_OLD_DIGEST" --expected-old-digest "$EXPECTED_OLD_DIGEST" \
-            --current-digest "$CURRENT_DIGEST" --source-is-merged true
+            --current-digest "$CURRENT_DIGEST" --source-is-merged true --source-descends-release true \
+            --release-tag-matches-manifest true --old-digest-is-authorized true
 
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         if: ${{ inputs.operation == 'build-candidate' }}
@@ -198,7 +257,7 @@ jobs:
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         if: ${{ inputs.operation == 'build-candidate' }}
 
-      - name: Build reviewed hotfix candidate without touching 2.2.4
+      - name: Build reviewed hotfix candidate without touching the release tag
         if: ${{ inputs.operation == 'build-candidate' }}
         env:
           SOURCE_COMMIT: ${{ inputs.console_source_commit }}
@@ -207,7 +266,7 @@ jobs:
         run: |
           set -euo pipefail
           mvn clean package -DskipTests=true -Dapp.build.version="$VERSION" -Dapp.build.dev=false -f ./backend/pom.xml
-          candidate_tag="recovery-candidate-2.2.4-${SOURCE_COMMIT:0:12}"
+          candidate_tag="recovery-candidate-$VERSION-${SOURCE_COMMIT:0:12}"
           docker buildx build ./backend --platform linux/amd64,linux/arm64 --push \
             --tag "$IMAGE_REPOSITORY:$candidate_tag" \
             --label "org.opencontainers.image.revision=$SOURCE_COMMIT" \
@@ -217,9 +276,9 @@ jobs:
           candidate_digest=$(oras manifest fetch "$IMAGE_REPOSITORY:$candidate_tag" --descriptor | jq -er .digest)
           [[ "$candidate_digest" =~ ^sha256:[0-9a-f]{64}$ ]]
           {
-            echo "## Console 2.2.4 recovery candidate"
+            echo "## Console $VERSION recovery candidate"
             echo "Candidate: \`$IMAGE_REPOSITORY@$candidate_digest\`"
-            echo "This step did not write \`$IMAGE_REPOSITORY:$VERSION\`. Re-run with operation=replace and expected_new_digest=$candidate_digest after review."
+            echo "The release tag was not changed. Re-run with operation=replace and expected_new_digest=$candidate_digest after review."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate approved candidate and replacement state
@@ -238,7 +297,8 @@ jobs:
             --manifest-original-console-commit "$MANIFEST_ORIGINAL_CONSOLE_COMMIT" \
             --manifest-old-digest "$MANIFEST_OLD_DIGEST" --expected-old-digest "$EXPECTED_OLD_DIGEST" \
             --expected-new-digest "$EXPECTED_NEW_DIGEST" --current-digest "$CURRENT_DIGEST" \
-            --candidate-digest "$candidate" --source-is-merged true | jq -er .mode)
+            --candidate-digest "$candidate" --source-is-merged true --source-descends-release true \
+            --release-tag-matches-manifest true --old-digest-is-authorized true | jq -er .mode)
           echo "RECOVERY_MODE=$mode" >> "$GITHUB_ENV"
 
       - name: Verify candidate platform labels
@@ -262,7 +322,7 @@ jobs:
                ."io.higress.marketplace-recovery-higress-commit" == $higress' <<<"$labels" >/dev/null
           done </tmp/candidate-runnable-digests
 
-      - name: Replace only the exact approved 2.2.4 tag
+      - name: Replace only the exact approved release tag
         if: ${{ inputs.operation == 'replace' && env.RECOVERY_MODE == 'replace' }}
         env:
           EXPECTED_OLD_DIGEST: ${{ inputs.expected_old_digest }}
@@ -271,9 +331,7 @@ jobs:
           set -euo pipefail
           pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)
           python3 tools/verify_console_image_recovery.py --pre-copy-mode "$RECOVERY_MODE" \
-            --pre-copy-current-digest "$pre_copy_current" \
-            --manifest-old-digest "$MANIFEST_OLD_DIGEST" \
-            --expected-old-digest "$EXPECTED_OLD_DIGEST" >/dev/null
+            --pre-copy-current-digest "$pre_copy_current" --expected-old-digest "$EXPECTED_OLD_DIGEST" >/dev/null
           oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST" "$IMAGE_REPOSITORY:$VERSION"
           test "$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)" = "$EXPECTED_NEW_DIGEST"
 
@@ -290,25 +348,30 @@ jobs:
           set -euo pipefail
           final=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)
           test "$final" = "$EXPECTED_NEW_DIGEST"
-          mkdir -p /tmp/original-provenance
-          gh release download "v$VERSION" --pattern plugin-release-provenance.json --dir /tmp/original-provenance
-          provenance_sha=$(sha256sum /tmp/original-provenance/plugin-release-provenance.json | awk '{print $1}')
-          chart_ref=$(jq -er .chart.ref /tmp/original-provenance/plugin-release-provenance.json)
-          chart_digest=$(jq -er .chart.digest /tmp/original-provenance/plugin-release-provenance.json)
-          tag_commit=$(jq -er .commit /tmp/original-provenance/plugin-release-provenance.json)
-          evidence_basename="console-image-recovery-2.2.4-${SOURCE_COMMIT:0:12}"
+          provenance=/tmp/original-provenance/plugin-release-provenance.json
+          chart_ref=$(jq -er .chart.ref "$provenance")
+          chart_digest=$(jq -er .chart.digest "$provenance")
+          tag_commit=$(jq -er .commit "$provenance")
+          evidence_basename="console-image-recovery-$VERSION-${SOURCE_COMMIT:0:12}-${EXPECTED_NEW_DIGEST:7:12}"
+          test "$PREVIOUS_RECOVERY_ASSET" != "$evidence_basename.json"
+          previous=null
+          if [ -n "$PREVIOUS_RECOVERY_ASSET" ]; then
+            previous=$(jq -cn --arg asset "$PREVIOUS_RECOVERY_ASSET" \
+              --arg sha "$PREVIOUS_RECOVERY_EVIDENCE_SHA256" --arg resulting "$EXPECTED_OLD_DIGEST" \
+              '{asset:$asset,sha256:$sha,resultingDigest:$resulting}')
+          fi
           jq -cnS --arg version "$VERSION" --arg image "$IMAGE_REPOSITORY" \
             --arg old "$EXPECTED_OLD_DIGEST" --arg new "$EXPECTED_NEW_DIGEST" \
             --arg source "$SOURCE_COMMIT" --arg higress "$HIGRESS_COMMIT" --arg manifest "$MANIFEST_SHA256" \
-            --arg inventory "$INVENTORY_SHA256" --arg provenance "$provenance_sha" \
-            --arg previousEvidenceSha "$PREVIOUS_RECOVERY_EVIDENCE_SHA256" \
+            --arg inventory "$INVENTORY_SHA256" --arg resources "$PLUGIN_RESOURCES_SHA256" \
+            --arg provenance "$ORIGINAL_PROVENANCE_SHA256" \
             --arg tagCommit "$tag_commit" --arg chartRef "$chart_ref" --arg chartDigest "$chart_digest" \
+            --argjson previous "$previous" \
             '{schemaVersion:1,version:$version,imageRepository:$image,oldDigest:$old,newDigest:$new,
               consoleSourceCommit:$source,higressCommit:$higress,recoveryManifestSha256:$manifest,
-              marketplaceInventorySha256:$inventory,unchangedRelease:{tagCommit:$tagCommit,chartRef:$chartRef,
-              chartDigest:$chartDigest,pluginReleaseProvenanceSha256:$provenance},
-              previousRecovery:{asset:"console-image-recovery-2.2.4.json",sha256:$previousEvidenceSha,
-              resultingDigest:$old}}' \
+              marketplaceInventorySha256:$inventory,pluginResourcesSha256:$resources,
+              unchangedRelease:{tagCommit:$tagCommit,chartRef:$chartRef,
+              chartDigest:$chartDigest,pluginReleaseProvenanceSha256:$provenance},previousRecovery:$previous}' \
             > "$evidence_basename.json"
           sha256sum "$evidence_basename.json" > "$evidence_basename.json.sha256"
           mkdir -p /tmp/existing-recovery
@@ -321,4 +384,4 @@ jobs:
               gh release upload "v$VERSION" "$asset"
             fi
           done
-          echo "Recovered \`$IMAGE_REPOSITORY:$VERSION@$EXPECTED_NEW_DIGEST\`; the Git release tag, chart, and plugin provenance asset were not modified." >> "$GITHUB_STEP_SUMMARY"
+          echo "Recovered \`$IMAGE_REPOSITORY:$VERSION@$EXPECTED_NEW_DIGEST\`; the Git tag, chart, and plugin provenance asset were not modified." >> "$GITHUB_STEP_SUMMARY"

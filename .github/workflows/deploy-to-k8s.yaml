@@ -16,7 +16,7 @@ on:
     #     required: false
 
 concurrency:
-  # Serialize the normal tag publisher with the one-time v2.2.4 recovery.
+  # Serialize the normal tag publisher with guarded recovery for the same version.
   group: console-image-publish-${{ github.ref_name }}
   cancel-in-progress: false
 

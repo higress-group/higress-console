@@ -30,75 +30,63 @@ SPEC.loader.exec_module(recovery)
 
 class RecoveryContractTest(unittest.TestCase):
     def values(self):
-        return dict(operation="replace", version="2.2.4", image_repository=recovery.IMAGE_REPOSITORY,
+        return dict(operation="replace", version="3.1.0", image_repository=recovery.IMAGE_REPOSITORY,
                     source_commit="a" * 40, higress_commit="b" * 40,
-                    manifest_original_console_commit=recovery.ORIGINAL_CONSOLE_COMMIT,
-                    manifest_old_digest=recovery.ORIGINAL_IMAGE_DIGEST,
-                    expected_old_digest=recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
+                    manifest_original_console_commit="c" * 40,
+                    manifest_old_digest="sha256:" + "c" * 64,
+                    expected_old_digest="sha256:" + "c" * 64,
                     expected_new_digest="sha256:" + "d" * 64,
-                    current_digest=recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                    candidate_digest="sha256:" + "d" * 64, source_is_merged=True)
+                    current_digest="sha256:" + "c" * 64,
+                    candidate_digest="sha256:" + "d" * 64, source_is_merged=True,
+                    source_descends_release=True, release_tag_matches_manifest=True,
+                    old_digest_is_authorized=True)
 
-    def test_exact_replacement_and_idempotent_retry(self):
+    def test_exact_replacement_and_idempotent_retry_are_version_independent(self):
         values = self.values()
         self.assertEqual(recovery.validate(**values), "replace")
         values["current_digest"] = values["expected_new_digest"]
         self.assertEqual(recovery.validate(**values), "already-replaced")
+        values.update(version="2.2.4", current_digest=values["expected_old_digest"])
+        self.assertEqual(recovery.validate(**values), "replace")
 
-    def test_rejects_other_version_stale_digest_unmerged_source_and_candidate_drift(self):
-        for field, value in (("version", "2.2.5"), ("source_commit", "invalid"),
+    def test_rejects_invalid_version_stale_digest_unmerged_source_and_candidate_drift(self):
+        for field, value in (("version", "latest"), ("version", "3.1.0-rc1"),
+                             ("source_commit", "invalid"),
                              ("current_digest", "sha256:" + "e" * 64),
-                             ("source_is_merged", False), ("candidate_digest", "sha256:" + "e" * 64)):
+                             ("source_is_merged", False), ("source_descends_release", False),
+                             ("release_tag_matches_manifest", False),
+                             ("old_digest_is_authorized", False),
+                             ("candidate_digest", "sha256:" + "e" * 64)):
             with self.subTest(field=field):
                 values = self.values(); values[field] = value
                 with self.assertRaises(ValueError):
                     recovery.validate(**values)
 
-    def test_candidate_build_requires_old_digest_and_cannot_preapprove_new_digest(self):
+    def test_candidate_build_requires_current_authorized_digest_and_cannot_preapprove_new_digest(self):
         values = self.values(); values.update(operation="build-candidate", expected_new_digest="", candidate_digest="")
         self.assertEqual(recovery.validate(**values), "build")
         values["expected_new_digest"] = "sha256:" + "d" * 64
         with self.assertRaises(ValueError):
             recovery.validate(**values)
 
-    def test_approved_replacement_base_prevents_an_unreviewed_chain(self):
+    def test_rejects_malformed_manifest_digest_without_hardcoded_release_values(self):
         values = self.values()
-        values["expected_old_digest"] = values["expected_new_digest"]
-        values["current_digest"] = values["expected_new_digest"]
-        values["expected_new_digest"] = "sha256:" + "e" * 64
-        values["candidate_digest"] = values["expected_new_digest"]
-        with self.assertRaisesRegex(ValueError, "approved replacement base"):
+        values["manifest_old_digest"] = "invalid"
+        with self.assertRaisesRegex(ValueError, "manifest old digest"):
             recovery.validate(**values)
-
-    def test_rejects_mismatched_fixed_old_manifest(self):
         values = self.values()
         values["manifest_old_digest"] = "sha256:" + "f" * 64
-        values["expected_old_digest"] = values["manifest_old_digest"]
-        values["current_digest"] = values["manifest_old_digest"]
-        with self.assertRaisesRegex(ValueError, "fixed original image digest"):
-            recovery.validate(**values)
+        self.assertEqual(recovery.validate(**values), "replace")
 
-    def test_pre_copy_recheck_requires_the_approved_replacement_base(self):
-        self.assertEqual(recovery.validate_pre_copy("replace", recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                                    recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                                    recovery.ORIGINAL_IMAGE_DIGEST), "copy")
+    def test_pre_copy_recheck_is_generic_and_race_safe(self):
+        old = "sha256:" + "c" * 64
+        self.assertEqual(recovery.validate_pre_copy("replace", old, old), "copy")
         with self.assertRaisesRegex(ValueError, "tag changed after validation"):
-            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
-                                       recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                       recovery.ORIGINAL_IMAGE_DIGEST)
-        with self.assertRaisesRegex(ValueError, "approved replacement base"):
-            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64,
-                                       "sha256:" + "e" * 64,
-                                       recovery.ORIGINAL_IMAGE_DIGEST)
-        with self.assertRaisesRegex(ValueError, "fixed original image digest"):
-            recovery.validate_pre_copy("replace", recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                       recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                       "sha256:" + "e" * 64)
+            recovery.validate_pre_copy("replace", "sha256:" + "e" * 64, old)
 
     def test_already_replaced_mode_remains_an_idempotent_no_copy(self):
         self.assertEqual(recovery.validate_pre_copy("already-replaced", "sha256:" + "d" * 64,
-                                                    recovery.REPLACEMENT_BASE_IMAGE_DIGEST,
-                                                    recovery.ORIGINAL_IMAGE_DIGEST), "skip")
+                                                    "sha256:" + "c" * 64), "skip")
 
     def descriptor(self, architecture, digest_char, *, os_name="linux"):
         return {"mediaType": "application/vnd.oci.image.manifest.v1+json",
@@ -151,40 +139,38 @@ class RecoveryContractTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), ["sha256:" + "a" * 64, "sha256:" + "b" * 64])
 
-    def test_workflow_uses_existing_protected_environment_and_production_image_secrets(self):
-        workflow_path = ROOT / ".github/workflows/recover-console-image-2.2.4.yaml"
+    def test_workflow_is_generic_guarded_and_uses_production_secrets(self):
+        workflow_path = ROOT / ".github/workflows/recover-console-image.yaml"
         raw = workflow_path.read_text(encoding="utf-8")
         self.assertIn("environment: console-chart-production", raw)
         self.assertIn("secrets.PRODUCTION_REGISTRY_USERNAME", raw)
         self.assertIn("secrets.PRODUCTION_REGISTRY_PASSWORD", raw)
         self.assertNotIn("CONSOLE_CHART_REGISTRY_USERNAME", raw)
         self.assertNotIn("CONSOLE_CHART_REGISTRY_PASSWORD", raw)
-        self.assertIn("higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console", raw)
-        self.assertIn("REPLACE_APPROVED_HOTFIX_2.2.4", raw)
+        self.assertIn("VERSION: ${{ inputs.version }}", raw)
+        self.assertIn("plugins/release/console-recovery/${{ inputs.version }}.json", raw)
+        self.assertIn('test "$CONFIRMATION" = "REPLACE_APPROVED_HOTFIX_$VERSION"', raw)
         self.assertIn("git merge-base --is-ancestor", raw)
         self.assertIn("https://github.com/higress-group/higress.git", raw)
-        self.assertIn(recovery.ORIGINAL_CONSOLE_COMMIT, raw)
-        self.assertIn(recovery.ORIGINAL_IMAGE_DIGEST, raw)
-        self.assertIn(recovery.REQUIRED_HOTFIX_COMMIT, raw)
-        self.assertIn('test "$SOURCE_COMMIT" = "$(git rev-parse origin/main^{commit})"', raw)
-        self.assertIn('git merge-base --is-ancestor 1aa0c03da2279b8c7d2eec025d39f9951d329bf1 "$SOURCE_COMMIT"', raw)
-        self.assertIn(recovery.REPLACEMENT_BASE_IMAGE_DIGEST, raw)
-        self.assertIn("6efb6fbbb7cb44198bfb503a7f8a93f1d1b7d86c85ed5f08909c453bd581dde4", raw)
-        self.assertIn('test "$(jq -er .newDigest "$previous_evidence")" = "$EXPECTED_OLD_DIGEST"', raw)
-        self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', raw)
-        self.assertIn('evidence_basename="console-image-recovery-2.2.4-${SOURCE_COMMIT:0:12}"', raw)
-        self.assertIn('previousRecovery:{asset:"console-image-recovery-2.2.4.json"', raw)
+        self.assertNotIn("1aa0c03da2279b8c7d2eec025d39f9951d329bf1", raw)
+        self.assertNotIn("sha256:4a07fedf9925a2775e9e9b7dfdbf99194651e51a7ee2c0b6bb8fab62e61d2da8", raw)
+        self.assertIn("previous_recovery_asset", raw)
+        self.assertIn('.newDigest == $digest', raw)
+        self.assertIn('--expected-version "$VERSION"', raw)
+        self.assertIn('git worktree add --detach "$expected_root" "refs/tags/v$VERSION"', raw)
+        self.assertIn('test "$actual_tree_sha" = "$expected_tree_sha"', raw)
+        self.assertIn('pluginResourcesSha256:$resources', raw)
+        self.assertIn('evidence_basename="console-image-recovery-$VERSION-${SOURCE_COMMIT:0:12}-${EXPECTED_NEW_DIGEST:7:12}"', raw)
         self.assertIn("--index-file /tmp/candidate-index.json", raw)
-        copy_start = raw.index("- name: Replace only the exact approved 2.2.4 tag")
+        copy_start = raw.index("- name: Replace only the exact approved release tag")
         copy_end = raw.index("- name: Publish separate immutable recovery evidence", copy_start)
         copy_step = raw[copy_start:copy_end]
         recheck = 'pre_copy_current=$(oras manifest fetch "$IMAGE_REPOSITORY:$VERSION" --descriptor | jq -er .digest)'
         self.assertIn(recheck, copy_step)
         self.assertIn('--pre-copy-current-digest "$pre_copy_current"', copy_step)
-        self.assertIn('--manifest-old-digest "$MANIFEST_OLD_DIGEST"', copy_step)
         self.assertIn('--expected-old-digest "$EXPECTED_OLD_DIGEST"', copy_step)
         self.assertLess(copy_step.index(recheck), copy_step.index('oras cp "$IMAGE_REPOSITORY@$EXPECTED_NEW_DIGEST"'))
-        self.assertIn("group: console-image-publish-v2.2.4", raw)
+        self.assertIn("group: console-image-publish-v${{ inputs.version }}", raw)
         publisher = (ROOT / ".github/workflows/deploy-to-k8s.yaml").read_text(encoding="utf-8")
         self.assertIn("group: console-image-publish-${{ github.ref_name }}", publisher)
         actions = re.findall(r"(?m)^\s*- uses:\s*[^@\s]+@([^\s#]+)", raw)
