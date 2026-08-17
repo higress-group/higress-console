@@ -437,6 +437,8 @@
       "custom": "Custom"
     },
     "enabled": "Enabled",
+    "productCovered": "Not Recommended",
+    "productCoveredTip": "This plugin is managed by a dedicated product feature (e.g. AI Route, MCP Server, Consumer). Manually enabling it here is not recommended. If you must use it, do not enable it together with the corresponding product feature, or conflicts may occur.",
     "emptyPlugins": "No plugins configured.",
     "addPlugin": "Add Plugin",
     "editPlugin": "Edit Plugin",

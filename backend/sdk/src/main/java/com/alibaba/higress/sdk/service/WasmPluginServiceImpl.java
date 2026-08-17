@@ -44,6 +44,7 @@ import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.constant.plugin.ProductCoveredPlugin;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginConfig;
 import com.alibaba.higress.sdk.model.WasmPluginPageQuery;
@@ -703,6 +704,14 @@ class WasmPluginServiceImpl implements WasmPluginService {
             return readmes.get(language);
         }
 
+        private boolean isProductCoveredPlugin(String pluginName) {
+            return ProductCoveredPlugin.AI_PROXY.equals(pluginName)
+                || ProductCoveredPlugin.MODEL_ROUTER.equals(pluginName)
+                || ProductCoveredPlugin.MODEL_MAPPER.equals(pluginName)
+                || ProductCoveredPlugin.MCP_SERVER.equals(pluginName)
+                || ProductCoveredPlugin.KEY_AUTH.equals(pluginName);
+        }
+
         public void setReadme(String language, String content) {
             if (StringUtils.isNotEmpty(content)) {
                 readmes.put(language, content);
@@ -722,6 +731,7 @@ class WasmPluginServiceImpl implements WasmPluginService {
             wasmPlugin.setImagePullSecret(imagePullSecret);
             wasmPlugin.setImagePullPolicy(imagePullPolicy);
             wasmPlugin.setBuiltIn(true);
+            wasmPlugin.setProductCovered(isProductCoveredPlugin(name));
 
             PluginInfo info = plugin.getInfo();
             if (info != null) {
