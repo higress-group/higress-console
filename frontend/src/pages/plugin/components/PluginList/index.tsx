@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { getI18nValue, QueryType } from '../../utils';
 import PluginCategory from '../PluginCategory';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
+import { Tooltip } from 'antd';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -210,6 +211,16 @@ const PluginList = forwardRef((props: Props, ref) => {
                       style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
                     >{t('plugins.enabled')}
                     </Tag>
+                  )
+                }
+                {
+                  item.productCovered && !item.enabled && (
+                    <Tooltip title={t('plugins.productCoveredTip')}>
+                      <Tag
+                        color="orange"
+                        style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
+                      >{t('plugins.productCovered')}</Tag>
+                    </Tooltip>
                   )
                 }
                 {

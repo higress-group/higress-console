@@ -44,6 +44,7 @@ import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.PaginatedResult;
+import com.alibaba.higress.sdk.constant.plugin.ProductCoveredPlugin;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginConfig;
 import com.alibaba.higress.sdk.model.WasmPluginPageQuery;
@@ -722,6 +723,8 @@ class WasmPluginServiceImpl implements WasmPluginService {
             wasmPlugin.setImagePullSecret(imagePullSecret);
             wasmPlugin.setImagePullPolicy(imagePullPolicy);
             wasmPlugin.setBuiltIn(true);
+            wasmPlugin.setProductCovered(ProductCoveredPlugin.AI_PROXY.equals(name)
+                || ProductCoveredPlugin.MCP_SERVER.equals(name));
 
             PluginInfo info = plugin.getInfo();
             if (info != null) {
