@@ -385,6 +385,7 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
         KubernetesUtil.setLabel(existedCr.getMetadata(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY,
             OLD_VERSION);
+        existedCr.getSpec().setUrl("oci://docker.io/basic-auth:" + OLD_VERSION);
         when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
             .thenReturn(Lists.newArrayList(existedCr));
 
@@ -394,7 +395,7 @@ public class WasmPluginInstanceServiceTest {
         WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
 
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedInstance.getPluginName());
-        Assertions.assertEquals(OLD_VERSION, updatedInstance.getPluginVersion());
+        Assertions.assertEquals(DEFAULT_VERSION, updatedInstance.getPluginVersion());
         Assertions.assertEquals(instance.getEnabled(), updatedInstance.getEnabled());
         Assertions.assertEquals(instance.getConfigurations(), updatedInstance.getConfigurations());
         Assertions.assertTrue(updatedInstance.getInternal());
@@ -407,8 +408,10 @@ public class WasmPluginInstanceServiceTest {
         V1alpha1WasmPlugin cr = crCaptor.getValue();
         Assertions.assertNotNull(cr);
         Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME, cr.getMetadata().getName());
-        Assertions.assertEquals(OLD_VERSION,
+        Assertions.assertEquals(DEFAULT_VERSION,
             KubernetesUtil.getLabel(cr.getMetadata(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
+        Assertions.assertEquals("oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/basic-auth:2.0.0",
+            cr.getSpec().getUrl());
         Assertions.assertNotEquals(instance.getEnabled(), cr.getSpec().getDefaultConfigDisable());
         Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
         Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));

@@ -208,6 +208,12 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
             V1alpha1WasmPlugin result;
             if (existedCr != null) {
                 result = existedCr;
+                if (internal && Boolean.TRUE.equals(plugin.getBuiltIn())) {
+                    V1alpha1WasmPlugin currentCr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
+                    currentCr.getMetadata().setResourceVersion(existedCr.getMetadata().getResourceVersion());
+                    kubernetesModelConverter.mergeWasmPluginSpec(existedCr, currentCr);
+                    result = currentCr;
+                }
             } else if (version.equals(plugin.getPluginVersion())) {
                 result = kubernetesModelConverter.wasmPluginToCr(plugin, internal);
             } else {
