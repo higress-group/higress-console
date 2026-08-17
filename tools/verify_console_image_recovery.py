@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fail-closed contract checks for the approved Console 2.2.4 image repair."""
+"""Fail-closed contract checks for guarded Console image recovery."""
 import argparse
 import json
 import re
@@ -21,12 +21,9 @@ import sys
 
 
 IMAGE_REPOSITORY = "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console"
-ORIGINAL_CONSOLE_COMMIT = "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
-ORIGINAL_IMAGE_DIGEST = "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
-REQUIRED_HOTFIX_COMMIT = "1aa0c03da2279b8c7d2eec025d39f9951d329bf1"
-REPLACEMENT_BASE_IMAGE_DIGEST = "sha256:4a07fedf9925a2775e9e9b7dfdbf99194651e51a7ee2c0b6bb8fab62e61d2da8"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 ATTESTATION_MEDIA_TYPE = "application/vnd.oci.image.manifest.v1+json"
 
 
@@ -74,25 +71,30 @@ def validate_platform_index(document):
 def validate(operation, version, image_repository, source_commit, higress_commit,
              manifest_original_console_commit, manifest_old_digest,
              expected_old_digest, expected_new_digest, current_digest,
-             candidate_digest, source_is_merged):
+             candidate_digest, source_is_merged, source_descends_release,
+             release_tag_matches_manifest, old_digest_is_authorized):
     if operation not in {"build-candidate", "replace"}:
         raise ValueError("unsupported recovery operation")
-    if version != "2.2.4" or image_repository != IMAGE_REPOSITORY:
-        raise ValueError("recovery is restricted to higress/console:2.2.4")
-    if not COMMIT_RE.fullmatch(source_commit or "") or not COMMIT_RE.fullmatch(higress_commit or ""):
-        raise ValueError("exact lowercase source commits are required")
+    if not VERSION_RE.fullmatch(version or ""):
+        raise ValueError("release version is not a supported image tag")
+    if image_repository != IMAGE_REPOSITORY:
+        raise ValueError("recovery is restricted to the production higress/console repository")
+    for name, value in (("source", source_commit), ("Higress", higress_commit),
+                        ("original Console", manifest_original_console_commit)):
+        if not COMMIT_RE.fullmatch(value or ""):
+            raise ValueError(name + " commit must be an exact lowercase SHA")
     if not source_is_merged:
         raise ValueError("Console recovery source must already be merged into main")
-    if manifest_original_console_commit != ORIGINAL_CONSOLE_COMMIT:
-        raise ValueError("recovery manifest does not bind the fixed original Console commit")
-    if manifest_old_digest != ORIGINAL_IMAGE_DIGEST:
-        raise ValueError("recovery manifest does not bind the fixed original image digest")
+    if not source_descends_release:
+        raise ValueError("Console recovery source must descend from the release commit")
+    if not release_tag_matches_manifest:
+        raise ValueError("release tag commit differs from the reviewed recovery manifest")
+    if not old_digest_is_authorized:
+        raise ValueError("expected-old digest is not authorized by the recovery evidence chain")
     for name, value in (("manifest old", manifest_old_digest), ("expected old", expected_old_digest),
                         ("current", current_digest)):
         if not DIGEST_RE.fullmatch(value or ""):
             raise ValueError(name + " digest is invalid")
-    if expected_old_digest != REPLACEMENT_BASE_IMAGE_DIGEST:
-        raise ValueError("operator expected-old digest differs from the approved replacement base")
     if operation == "build-candidate":
         if expected_new_digest or candidate_digest:
             raise ValueError("candidate build must not pre-authorize a replacement digest")
@@ -112,15 +114,11 @@ def validate(operation, version, image_repository, source_commit, higress_commit
     return "replace"
 
 
-def validate_pre_copy(mode, current_digest, expected_old_digest, manifest_old_digest):
+def validate_pre_copy(mode, current_digest, expected_old_digest):
     """Recheck the mutable tag immediately before the authorized replacement."""
-    if manifest_old_digest != ORIGINAL_IMAGE_DIGEST:
-        raise ValueError("pre-copy check does not bind the fixed original image digest")
     for name, value in (("pre-copy current", current_digest), ("expected old", expected_old_digest)):
         if not DIGEST_RE.fullmatch(value or ""):
             raise ValueError(name + " digest is invalid")
-    if expected_old_digest != REPLACEMENT_BASE_IMAGE_DIGEST:
-        raise ValueError("pre-copy check does not bind the approved replacement base")
     if mode == "already-replaced":
         return "skip"
     if mode != "replace":
@@ -147,6 +145,9 @@ def main():
     parser.add_argument("--current-digest")
     parser.add_argument("--candidate-digest", default="")
     parser.add_argument("--source-is-merged", choices=["true", "false"])
+    parser.add_argument("--source-descends-release", choices=["true", "false"])
+    parser.add_argument("--release-tag-matches-manifest", choices=["true", "false"])
+    parser.add_argument("--old-digest-is-authorized", choices=["true", "false"])
     args = parser.parse_args()
     try:
         if args.index_file:
@@ -156,13 +157,16 @@ def main():
             return 0
         if args.pre_copy_mode:
             mode = validate_pre_copy(args.pre_copy_mode, args.pre_copy_current_digest,
-                                     args.expected_old_digest, args.manifest_old_digest)
+                                     args.expected_old_digest)
             print(json.dumps({"mode": mode}, sort_keys=True))
             return 0
-        mode = validate(args.operation, args.version, args.image_repository, args.source_commit,
-                        args.higress_commit, args.manifest_original_console_commit, args.manifest_old_digest,
-                        args.expected_old_digest, args.expected_new_digest,
-                        args.current_digest, args.candidate_digest, args.source_is_merged == "true")
+        mode = validate(
+            args.operation, args.version, args.image_repository, args.source_commit,
+            args.higress_commit, args.manifest_original_console_commit, args.manifest_old_digest,
+            args.expected_old_digest, args.expected_new_digest, args.current_digest,
+            args.candidate_digest, args.source_is_merged == "true",
+            args.source_descends_release == "true", args.release_tag_matches_manifest == "true",
+            args.old_digest_is_authorized == "true")
         print(json.dumps({"mode": mode}, sort_keys=True))
     except ValueError as error:
         print("Console image recovery rejected: " + str(error), file=sys.stderr)

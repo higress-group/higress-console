@@ -30,9 +30,10 @@ ALLOWED_TARGETS = {"spec.yaml", "README.md", "README_EN.md", "icon.png"}
 REQUIRED_TARGETS = {"spec.yaml", "README.md", "README_EN.md"}
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 SAFE_ID_RE = re.compile(r"^[a-z0-9]+(?:[a-z0-9._-]*[a-z0-9])?$")
-ORIGINAL_CONSOLE_COMMIT = "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
-ORIGINAL_IMAGE_DIGEST = "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
+CONSOLE_IMAGE_REPOSITORY = "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console"
 PLUGIN_RESOURCE_PARTS = ("backend", "sdk", "src", "main", "resources", "plugins")
 DIRECTORY_OPEN_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 
@@ -59,13 +60,27 @@ def replace_version(spec, version):
     return updated
 
 
-def validate_recovery_manifest_contract(manifest):
-    if (manifest.get("schemaVersion") != 1 or manifest.get("gatewayVersion") != "2.2.4" or
-            manifest.get("imageRepository") != "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console" or
-            manifest.get("originalConsoleCommit") != ORIGINAL_CONSOLE_COMMIT or
-            manifest.get("originalImageDigest") != ORIGINAL_IMAGE_DIGEST or
-            manifest.get("requiredSourceBranch") != "main"):
-        raise ValueError("recovery manifest is restricted to the fixed original higress/console:2.2.4 image")
+def validate_recovery_manifest_contract(manifest, expected_version=None):
+    version = manifest.get("gatewayVersion")
+    if manifest.get("schemaVersion") != 1:
+        raise ValueError("unsupported recovery manifest schema")
+    if not VERSION_RE.fullmatch(version or "") or (expected_version and version != expected_version):
+        raise ValueError("recovery manifest gateway version is invalid or unexpected")
+    if manifest.get("snapshotPath") != "plugins/release/snapshots/" + version + ".json":
+        raise ValueError("recovery manifest snapshot path does not match its gateway version")
+    if not SHA_RE.fullmatch(manifest.get("snapshotSha256", "")):
+        raise ValueError("recovery manifest snapshot SHA-256 is invalid")
+    if manifest.get("imageRepository") != CONSOLE_IMAGE_REPOSITORY:
+        raise ValueError("recovery manifest targets an unsupported image repository")
+    if not COMMIT_RE.fullmatch(manifest.get("originalConsoleCommit", "")):
+        raise ValueError("recovery manifest original Console commit is invalid")
+    if not DIGEST_RE.fullmatch(manifest.get("originalImageDigest", "")):
+        raise ValueError("recovery manifest original image digest is invalid")
+    if manifest.get("requiredSourceBranch") != "main":
+        raise ValueError("recovery manifest must require the canonical main branch")
+    if not isinstance(manifest.get("plugins"), list):
+        raise ValueError("recovery manifest plugins must be a list")
+    return version
 
 
 def validate_spec(spec, resource):
@@ -408,7 +423,7 @@ def render_recovery(root, manifest_path, expected_sha256, bundle_cache, higress_
     if sha256(raw) != expected_sha256:
         raise ValueError("recovery manifest SHA-256 mismatch")
     manifest = json.loads(raw)
-    validate_recovery_manifest_contract(manifest)
+    version = validate_recovery_manifest_contract(manifest)
     with PluginResourceStore(root) as store:
         store.preflight_file("plugins.properties")
         store.preflight_file("plugin-snapshot.lock.json")
@@ -417,7 +432,7 @@ def render_recovery(root, manifest_path, expected_sha256, bundle_cache, higress_
             raise ValueError("recovery manifest does not match the unchanged Console snapshot lock")
         lock["schemaVersion"] = 2
         lock["marketplaceRecovery"] = {
-            "gatewayVersion": "2.2.4", "manifestSha256": expected_sha256,
+            "gatewayVersion": version, "manifestSha256": expected_sha256,
             "higressCommit": higress_commit, "imageRepository": manifest["imageRepository"],
             "originalConsoleCommit": manifest["originalConsoleCommit"],
             "originalImageDigest": manifest["originalImageDigest"],
@@ -427,10 +442,13 @@ def render_recovery(root, manifest_path, expected_sha256, bundle_cache, higress_
         store.write_text("plugin-snapshot.lock.json", json.dumps(lock, indent=2, sort_keys=True) + "\n")
 
 
-def validate_recovery_source(root, manifest, bundle_cache, higress_commit):
+def validate_recovery_source(root, manifest, bundle_cache, higress_commit, expected_version=None):
     """Prove merged Console bytes match the reviewed recovery manifest without mutation."""
-    validate_recovery_manifest_contract(manifest)
+    validate_recovery_manifest_contract(manifest, expected_version)
     with PluginResourceStore(root) as store:
+        lock = json.loads(store.read_text("plugin-snapshot.lock.json"))
+        if lock.get("snapshotSha256") != manifest.get("snapshotSha256"):
+            raise ValueError("recovery manifest does not match the merged Console snapshot lock")
         properties = store.read_text("plugins.properties").splitlines()
         property_map = dict(line.split("=", 1) for line in properties if line and not line.startswith("#"))
         inventory = []
@@ -447,6 +465,10 @@ def validate_recovery_source(root, manifest, bundle_cache, higress_commit):
             seen_resources.add(resource)
             mappings.append((plugin, mapping, key, resource))
         for plugin, mapping, key, resource in mappings:
+            if (not VERSION_RE.fullmatch(plugin.get("version", "")) or
+                    not DIGEST_RE.fullmatch(plugin.get("digest", "")) or
+                    not plugin.get("ociRef", "").endswith(":" + plugin.get("version", ""))):
+                raise ValueError(key + " recovery plugin identity is malformed")
             if property_map.get(key) != "oci://" + plugin.get("ociRef", ""):
                 raise ValueError(key + " merged properties do not match recovery artifact")
             bundle = mapping.get("marketplace")
@@ -517,6 +539,7 @@ def main():
     parser.add_argument("--base-sha")
     parser.add_argument("--print-bundle-sources", action="store_true")
     parser.add_argument("--validate-recovery-source", action="store_true")
+    parser.add_argument("--expected-version")
     parser.add_argument("--validate-rendered", action="store_true")
     args = parser.parse_args()
     try:
@@ -535,7 +558,8 @@ def main():
         if args.validate_recovery_source:
             if not args.recovery_manifest:
                 raise ValueError("recovery source validation requires --recovery-manifest")
-            print(validate_recovery_source(root, document, cache, args.higress_commit))
+            print(validate_recovery_source(root, document, cache, args.higress_commit,
+                                           args.expected_version))
             return 0
         if args.snapshot:
             render(root, document_path, args.sha256, args.plugin_server_commit, args.plugin_server_image,

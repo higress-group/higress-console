@@ -28,7 +28,7 @@ Configure these protected Environments in `higress-group/higress-console`:
 
 | Environment | Allowed deployment refs | Variables | Secrets |
 | --- | --- | --- | --- |
-| `console-chart-production` | Release tags matching `v*.*.*` | `CONSOLE_CHART_REGISTRY=higress-registry.cn-hangzhou.cr.aliyuncs.com/higress`; `CONSOLE_CHART_REGISTRY_IMMUTABLE_TAGS=true` | `CONSOLE_CHART_REGISTRY_USERNAME`, `CONSOLE_CHART_REGISTRY_PASSWORD`; existing OSS publisher secrets `ACCESS_KEYID`, `ACCESS_KEYSECRET` if they are not retained as repository secrets |
+| `console-chart-production` | `main` and release tags matching `v*.*.*` | `CONSOLE_CHART_REGISTRY=higress-registry.cn-hangzhou.cr.aliyuncs.com/higress`; `CONSOLE_CHART_REGISTRY_IMMUTABLE_TAGS=true` | `CONSOLE_CHART_REGISTRY_USERNAME`, `CONSOLE_CHART_REGISTRY_PASSWORD`; existing OSS publisher secrets `ACCESS_KEYID`, `ACCESS_KEYSECRET` if they are not retained as repository secrets |
 | `console-plugin-sync` | `main` | `CONSOLE_RELEASE_APP_ID` | `CONSOLE_RELEASE_APP_PRIVATE_KEY` |
 
 The OCI publisher credential must write only the
@@ -37,13 +37,13 @@ publisher credential. The snapshot receiver uses the release automation GitHub
 App private key only from `console-plugin-sync`; its dry run never requests an
 App token or creates a branch/PR.
 
-The one-time, not-yet-public `2.2.4` Console image repair reuses the existing
-`console-chart-production` reviewers and the repository-level
+Guarded Console image recovery reuses the existing `console-chart-production`
+reviewers and the repository-level
 `PRODUCTION_REGISTRY_USERNAME` / `PRODUCTION_REGISTRY_PASSWORD` image
-credentials. It does not use the chart registry credentials. Before that
-manual dispatch, temporarily add the exact `main` branch to the Environment's
-allowed deployment refs; the existing `v*` tag rule alone does not admit a
-merged source commit. The temporary branch rule may be removed after recovery.
+credentials. It does not use the chart registry credentials. Keep `main` in
+the Environment's allowed deployment refs because manual recovery dispatches
+run from the protected default branch while checking out an exact merged
+source commit.
 
 The Standalone receiver has a separate protected Environment in
 `higress-group/higress-standalone`: `standalone-release-sync` (normally limited
@@ -68,47 +68,51 @@ neither OCI nor OSS artifacts. A tagged release is the only path that enters
 `<CONSOLE_CHART_REGISTRY>/higress-console:<version>` before the release
 provenance workflow resolves and records its digest.
 
-## One-time not-yet-public Console 2.2.4 image recovery
+## Guarded Console image recovery
 
-This exception replaces only
-`higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console:2.2.4`. It does
-not rebuild or overwrite the `v2.2.4` Git tag, GitHub Release, Helm chart,
-plugin-server image, plugin images, or the existing
-`plugin-release-provenance.json` asset.
+Prefer a new patch release for a released Console defect. `Recover Console
+Image` is the generic emergency path for an explicitly approved replacement of
+`higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console:<version>`. It
+does not move the Git tag or modify the GitHub Release, Helm chart,
+plugin-server image, plugin images, or `plugin-release-provenance.json`.
 
-1. Merge the Higress marketplace bundle/catalog PR, then merge the Console
-   resource/renderer PR. Record both exact merged `main` commits and the
-   SHA-256 of
-   `plugins/release/console-recovery/2.2.4.json` from the Higress commit.
-2. Confirm that the manifest fixes the original Console commit to
-   `36aa9c67fb0057164dab9b1fe687b38fe5b8a022` and the original
-   `higress/console:2.2.4` multi-platform digest to
-   `sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6`.
-   The workflow accepts only this digest as `expected_old_digest`; changing
-   the input cannot authorize a second replacement. Keep the ACR immutable-tag
-   rule enabled.
-3. Run `Recover Not-Yet-Public Console 2.2.4 Image` with operation
-   `build-candidate`, both exact commits, the manifest hash, the fixed original
-   manifest digest as `expected_old_digest`, no new digest, and confirmation
-   `BUILD_NOT_YET_PUBLIC_2.2.4`. The workflow verifies merged marketplace
-   bytes and publishes only a source-addressed recovery candidate. Copy its
-   reported digest from the run summary.
-4. Independently inspect the candidate digest and marketplace inventory. Only
-   then temporarily relax the ACR immutable rule that covers the single
+Before dispatching it, merge a reviewed Higress recovery manifest at
+`plugins/release/console-recovery/<version>.json`. The manifest binds the
+stable release version, original Console tag commit and image digest, plugin
+snapshot, marketplace source files and hashes, and the production Console
+repository. The exact manifest commit must be on canonical Higress `main`.
+The Console hotfix source must likewise be an exact commit already merged into
+canonical Console `main` and must descend from the release tag.
+
+1. Record the version, exact Console hotfix commit, exact Higress manifest
+   commit, manifest SHA-256, and current Console image digest. Keep the ACR
+   immutable-tag rule enabled.
+2. For the first replacement, set `expected_old_digest` to the manifest's
+   `originalImageDigest` and leave both previous-recovery inputs empty. For a
+   later replacement, set it to the current digest and provide the immediately
+   preceding `console-image-recovery-*.json` release asset name and exact
+   SHA-256. The workflow requires that evidence's `newDigest` to equal the
+   expected old digest.
+3. Run `Recover Console Image` with operation `build-candidate`, no new digest,
+   and confirmation `BUILD_APPROVED_HOTFIX_<version>`. The protected job
+   verifies the release provenance and evidence chain, reconstructs the full
+   plugin resource tree from the release tag plus the reviewed manifest,
+   compares it with the merged source, and publishes only a source-addressed
+   multi-platform candidate.
+4. Independently inspect the candidate digest, platforms, labels, and plugin
+   inventory. Only then temporarily relax the immutable rule for the single
    `higress/console` repository.
-5. Run the same workflow with operation `replace`, the same commits, manifest
-   hash and the same fixed old digest, the reviewed candidate as
-   `expected_new_digest`, and confirmation `REPLACE_NOT_YET_PUBLIC_2.2.4`.
-   The protected job refuses a
-   non-2.2.4 target, unmerged source, stale current digest, candidate-label
-   drift, or a different candidate digest.
-6. Verify the new `higress/console:2.2.4` digest and the eight-plugin market
-   inventory, then immediately restore the ACR immutable rule. The workflow
-   uploads separately named immutable recovery evidence to the existing
-   `v2.2.4` release and records the unchanged tag/chart/provenance identity.
+5. Run the same workflow with operation `replace`, identical contract inputs,
+   the reviewed candidate digest as `expected_new_digest`, and confirmation
+   `REPLACE_APPROVED_HOTFIX_<version>`. Immediately before copying the digest,
+   the workflow repeats the current-tag comparison to reject concurrent or
+   stale updates.
+6. Verify the stable tag digest and restore the ACR immutable rule. The
+   workflow appends content-addressed recovery evidence to the existing
+   release, including the previous evidence link when present and the
+   unchanged tag/chart/provenance identity.
 
-An identical retry accepts the already-replaced digest and reuses byte-equal
-recovery evidence. A later different digest fails because the operator's old
-digest must still equal the immutable original digest in the manifest. All
-subsequent Console versions use the normal immutable tag
-path; this workflow remains hard-coded to `2.2.4`.
+An identical retry recognizes the already-replaced digest and requires the
+existing evidence assets to be byte-identical. A different follow-up digest
+must extend the evidence chain; an arbitrary `expected_old_digest` cannot
+authorize an overwrite.
