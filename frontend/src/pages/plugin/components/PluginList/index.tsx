@@ -4,14 +4,13 @@ import { WasmPluginData } from '@/interfaces/wasm-plugin';
 import { getDomainPluginInstances, getGatewayRouteDetail, getGlobalPluginInstances, getWasmPlugins } from '@/services';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Tag, Typography } from 'antd';
+import { Avatar, Button, Card, Col, Dropdown, Popconfirm, Tag, Tooltip, Typography } from 'antd';
 import { useSearchParams } from 'ice';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getI18nValue, QueryType } from '../../utils';
 import PluginCategory from '../PluginCategory';
 import { BUILTIN_ROUTE_PLUGIN_LIST, DEFAULT_PLUGIN_IMG } from './constant';
-import { Tooltip } from 'antd';
 
 const { Paragraph } = Typography;
 const { Meta } = Card;
@@ -219,7 +218,9 @@ const PluginList = forwardRef((props: Props, ref) => {
                       <Tag
                         color="orange"
                         style={{ marginLeft: 6, fontSize: '10px', lineHeight: '16px', padding: '0 4px', borderRadius: '2px' }}
-                      >{t('plugins.productCovered')}</Tag>
+                      >
+                      {t('plugins.productCovered')}
+                    </Tag>
                     </Tooltip>
                   )
                 }
