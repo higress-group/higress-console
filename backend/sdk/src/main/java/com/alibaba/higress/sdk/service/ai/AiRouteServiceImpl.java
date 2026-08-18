@@ -15,7 +15,9 @@ package com.alibaba.higress.sdk.service.ai;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -348,13 +350,30 @@ public class AiRouteServiceImpl implements AiRouteService {
         }
 
         final String pluginName = BuiltInPluginName.MODEL_MAPPER;
+        Map<String, Map<WasmPluginInstanceScope, String>> targetsByService = new LinkedHashMap<>();
+        Map<String, List<AiUpstream>> upstreamsByService = new LinkedHashMap<>();
         for (AiUpstream upstream : upstreams) {
             UpstreamService upstreamService = llmProviderService.buildUpstreamService(upstream.getProvider());
 
             Map<WasmPluginInstanceScope, String> targets = MapUtil.of(WasmPluginInstanceScope.ROUTE, routeName,
                 WasmPluginInstanceScope.SERVICE, upstreamService.getName());
+            targetsByService.putIfAbsent(upstreamService.getName(), targets);
+            upstreamsByService.computeIfAbsent(upstreamService.getName(), k -> new ArrayList<>()).add(upstream);
+        }
 
-            if (MapUtils.isEmpty(upstream.getModelMapping())) {
+        for (Map.Entry<String, List<AiUpstream>> entry : upstreamsByService.entrySet()) {
+            Map<WasmPluginInstanceScope, String> targets = targetsByService.get(entry.getKey());
+            Map<String, String> modelMapping = new HashMap<>();
+            entry.getValue()
+                .stream()
+                .sorted(Comparator.comparingInt(upstream -> Optional.ofNullable(upstream.getWeight()).orElse(0)))
+                .forEach(upstream -> {
+                    if (MapUtils.isNotEmpty(upstream.getModelMapping())) {
+                        modelMapping.putAll(upstream.getModelMapping());
+                    }
+                });
+
+            if (MapUtils.isEmpty(modelMapping)) {
                 wasmPluginInstanceService.delete(targets, pluginName, true);
                 continue;
             }
@@ -374,7 +393,7 @@ public class AiRouteServiceImpl implements AiRouteService {
                 instance.setConfigurations(configurations);
             }
 
-            configurations.put(ModelMapperConfig.MODEL_MAPPING, new HashMap<>(upstream.getModelMapping()));
+            configurations.put(ModelMapperConfig.MODEL_MAPPING, modelMapping);
 
             wasmPluginInstanceService.addOrUpdate(instance);
         }
