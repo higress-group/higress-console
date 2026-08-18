@@ -40,6 +40,18 @@ interface LlmProviderHandler {
 
     String getServiceSourceName(String providerName);
 
+    /**
+     * Get the effective service source name for a provider, considering custom upstream configurations.
+     * By default, this returns the same as {@link #getServiceSourceName(String)}.
+     *
+     * @param providerName the provider name
+     * @param providerConfig the provider configuration which may contain custom upstream settings
+     * @return the effective service source name
+     */
+    default String getEffectiveServiceSourceName(String providerName, Map<String, Object> providerConfig) {
+        return getServiceSourceName(providerName);
+    }
+
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);
 
     default List<ServiceSource> getExtraServiceSources(String providerName, Map<String, Object> providerConfig,
