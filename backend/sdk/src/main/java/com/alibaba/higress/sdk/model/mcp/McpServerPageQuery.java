@@ -36,4 +36,6 @@ public class McpServerPageQuery extends CommonPageQuery {
     @Schema(description = "Mcp server type")
     private String type;
 
+    @Schema(description = "Mcp server username")
+    private String username;
 }

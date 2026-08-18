@@ -16,6 +16,8 @@ import javax.annotation.Resource;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
+import com.alibaba.higress.console.model.User;
+import com.alibaba.higress.console.service.SessionUserHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +62,11 @@ public class AiRoutesController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Routes listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<AiRoute>> list(@ParameterObject CommonPageQuery query) {
+        User user = SessionUserHelper.getCurrentUser();
+        String username = user.getName();
+        if(!"admin".equals(username)){
+            query.setUsername(user.getName());
+        }
         PaginatedResult<AiRoute> routes = aiRouteService.list(query);
         return ControllerUtil.buildResponseEntity(routes);
     }
@@ -72,6 +79,8 @@ public class AiRoutesController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<AiRoute>> add(@RequestBody AiRoute route) {
         route.validate();
+        User user = SessionUserHelper.getCurrentUser();
+        route.setUsername(user.getName());
         AiRoute newRoute = aiRouteService.add(route);
         return ControllerUtil.buildResponseEntity(newRoute);
     }

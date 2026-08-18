@@ -17,6 +17,9 @@ import javax.validation.Valid;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotBlank;
 
+import com.alibaba.higress.console.model.User;
+import com.alibaba.higress.console.service.SessionUserHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +56,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController("McpServerController")
 @RequestMapping("/v1/mcpServer")
 @Validated
+@Slf4j
 @Tag(name = "Mcp APIs")
 public class McpServerController {
 
@@ -75,6 +79,8 @@ public class McpServerController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Instances saved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<McpServer>> addOrUpdateMcpInstance(@RequestBody McpServer instance) {
+        User user = SessionUserHelper.getCurrentUser();
+        instance.setUsername(user.getName());
         instance = mcpServerService.addOrUpdateWithAuthorization(instance);
         return ControllerUtil.buildResponseEntity(instance);
     }
@@ -84,6 +90,12 @@ public class McpServerController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "McpServers listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<PaginatedResponse<McpServer>> list(@ParameterObject McpServerPageQuery query) {
+        User user = SessionUserHelper.getCurrentUser();
+        String name = user.getName();
+        log.info("当前用户名为：{}",name);
+        if(!"admin".equals(name)){
+            query.setUsername(name);
+        }
         return ControllerUtil.buildResponseEntity(mcpServerService.list(query));
     }
 

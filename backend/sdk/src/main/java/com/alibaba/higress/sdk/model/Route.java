@@ -107,6 +107,12 @@ public class Route implements VersionedDto {
     @Schema(hidden = true)
     private Boolean readonly;
 
+    private String username;
+
+    @Schema(description = "平台标识（1:AI能力接入及管理平台，2:AIEngine，3:IT）")
+    private String platform;
+
+
     public void validate() {
         if (StringUtils.isBlank(name)) {
             throw new ValidationException("name cannot be blank.");

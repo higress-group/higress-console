@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Resource;
@@ -62,6 +63,8 @@ public class SessionServiceImpl implements SessionService {
     private static final String ENCRYPT_IV_KEY = "iv";
     private static final int ENCRYPT_IV_LENGTH = 16;
     private static final String TOKEN_PART_SEPARATOR = "\1";
+    private static final String ADMIN_USERNAME = "admin";
+    private static final String SECRET_NAME_USER_PREFIX = "higress-console-user-";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -70,7 +73,7 @@ public class SessionServiceImpl implements SessionService {
     private int cookieMaxAge = SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
 
     @Value("${" + SystemConfigKey.SECRET_NAME_KEY + ":" + SystemConfigKey.SECRET_NAME_DEFAULT + "}")
-    private String secretName = SystemConfigKey.SECRET_NAME_DEFAULT;
+    private String defaultSecretName = SystemConfigKey.SECRET_NAME_DEFAULT;
 
     @Value("${" + SystemConfigKey.ADMIN_CONFIG_TTL_KEY + ":" + SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT + "}")
     private long configTtl = SystemConfigKey.ADMIN_CONFIG_TTL_DEFAULT;
@@ -78,7 +81,8 @@ public class SessionServiceImpl implements SessionService {
     private ConfigService configService;
     private KubernetesClientService kubernetesClientService;
 
-    private final AtomicReference<AdminConfig> adminConfigCache = new AtomicReference<>();
+    // 多用户缓存：key=用户名，value=该用户的AdminConfig
+    private final Map<String, AdminConfig> adminConfigCache = new ConcurrentHashMap<>();
 
     @Resource
     public void setConfigService(ConfigService configService) {
@@ -92,37 +96,44 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public boolean isAdminInitialized() {
-        return tryGetAdminConfig() != null;
+        // 仅检查admin账号是否初始化
+        return tryGetAdminConfig(ADMIN_USERNAME) != null;
     }
 
     @Override
     public void initializeAdmin(User user) {
-        boolean initialized = isAdminInitialized();
-        if (initialized) {
-            throw new IllegalStateException("Admin user is already initialized.");
+        String username = user.getName();
+        String targetSecretName = getSecretNameByUsername(username);
+
+        // 检查目标用户是否已初始化
+        if (tryGetAdminConfig(username) != null) {
+            throw new IllegalStateException(String.format("User [%s] is already initialized.", username));
         }
+
         V1Secret secret;
         try {
-            secret = kubernetesClientService.readSecret(secretName);
+            secret = kubernetesClientService.readSecret(targetSecretName);
         } catch (ApiException e) {
-            throw new BusinessException("Unable to load secret from K8s.", e);
+            throw new BusinessException(String.format("Unable to load secret [%s] from K8s.", targetSecretName), e);
         }
+
         Map<String, byte[]> data = new HashMap<>();
-        data.put(USERNAME_KEY, user.getName().getBytes());
+        data.put(USERNAME_KEY, username.getBytes());
         data.put(PASSWORD_KEY, user.getPassword().getBytes());
         data.put(DISPLAY_NAME_KEY, user.getDisplayName().getBytes());
         data.put(ENCRYPT_KEY_KEY, RandomStringUtils.randomGraph(ENCRYPT_KEY_LENGTH).getBytes());
         data.put(ENCRYPT_IV_KEY, RandomStringUtils.randomGraph(ENCRYPT_IV_LENGTH).getBytes());
+
         if (secret == null) {
             secret = new V1Secret();
             V1ObjectMeta metadata = new V1ObjectMeta();
-            metadata.setName(secretName);
+            metadata.setName(targetSecretName);
             secret.setMetadata(metadata);
             secret.setData(data);
             try {
                 kubernetesClientService.createSecret(secret);
             } catch (ApiException e) {
-                throw new BusinessException("Error occurs when trying to add admin secret.", e);
+                throw new BusinessException(String.format("Error occurs when trying to add secret [%s].", targetSecretName), e);
             }
         } else {
             Map<String, byte[]> newData;
@@ -136,20 +147,21 @@ public class SessionServiceImpl implements SessionService {
             try {
                 kubernetesClientService.replaceSecret(secret);
             } catch (ApiException e) {
-                throw new BusinessException("Error occurs when trying to update admin secret.", e);
+                throw new BusinessException(String.format("Error occurs when trying to update secret [%s].", targetSecretName), e);
             }
         }
 
-        adminConfigCache.set(null);
+        // 清除该用户的缓存
+        adminConfigCache.remove(username);
     }
 
     @Override
     public User login(String username, String password) {
-        AdminConfig config = getAdminConfig();
-        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
-            return null;
+        AdminConfig config = getAdminConfig(username);
+        if (config != null && config.getUsername().equals(username) && config.getPassword().equals(password)) {
+            return config.toUser();
         }
-        return config.toUser();
+        return null;
     }
 
     @Override
@@ -183,21 +195,34 @@ public class SessionServiceImpl implements SessionService {
         if (cookies == null || cookies.length == 0) {
             return null;
         }
-        String token = Arrays.stream(cookies).filter(c -> cookieName.equals(c.getName())).map(Cookie::getValue)
-            .findFirst().orElse(null);
+        String token = Arrays.stream(cookies)
+                .filter(c -> cookieName.equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
         if (Strings.isNullOrEmpty(token)) {
             return null;
         }
 
-        AdminConfig config = tryGetAdminConfig();
-        if (config == null) {
-            return null;
-        }
-
-        String rawToken;
+        // 解密token获取用户名，再加载对应用户的配置
+        String rawToken = null;
+        String username = null;
         try {
-            rawToken = AesUtil.decrypt(config.getEncryptKey(), config.getEncryptIv(), token);
-        } catch (GeneralSecurityException e) {
+            // 先遍历缓存找能解密token的用户（兜底方案，建议token中包含用户名）
+            for (Map.Entry<String, AdminConfig> entry : adminConfigCache.entrySet()) {
+                AdminConfig config = entry.getValue();
+                try {
+                    rawToken = AesUtil.decrypt(config.getEncryptKey(), config.getEncryptIv(), token);
+                    username = entry.getKey();
+                    break;
+                } catch (GeneralSecurityException e) {
+                    continue;
+                }
+            }
+            if (rawToken == null) {
+                return null;
+            }
+        } catch (Exception e) {
             log.warn("Error occurs when decrypting token: " + token, e);
             return null;
         }
@@ -227,14 +252,14 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private User validateCredential(String username, String password) {
-        AdminConfig config = tryGetAdminConfig();
+        AdminConfig config = tryGetAdminConfig(username);
         if (config == null) {
             return null;
         }
-        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
-            return null;
+        if (config.getUsername().equals(username) && config.getPassword().equals(password)) {
+            return config.toUser();
         }
-        return config.toUser();
+        return null;
     }
 
     @Override
@@ -244,7 +269,7 @@ public class SessionServiceImpl implements SessionService {
             throw new IllegalStateException("Password change is disabled.");
         }
 
-        AdminConfig adminConfig = getAdminConfig();
+        AdminConfig adminConfig = getAdminConfig(username);
         if (!adminConfig.getUsername().equals(username)) {
             throw new ValidationException("Unknown username: " + username);
         }
@@ -252,15 +277,17 @@ public class SessionServiceImpl implements SessionService {
             throw new ValidationException("Incorrect old password.");
         }
 
+        String targetSecretName = getSecretNameByUsername(username);
         V1Secret secret;
         try {
-            secret = kubernetesClientService.readSecret(secretName);
+            secret = kubernetesClientService.readSecret(targetSecretName);
         } catch (ApiException e) {
-            throw new BusinessException("Unable to load secret from K8s.", e);
+            throw new BusinessException(String.format("Unable to load secret [%s] from K8s.", targetSecretName), e);
         }
 
-        assert secret != null;
-        assert MapUtils.isNotEmpty(secret.getData());
+        if (secret == null || MapUtils.isEmpty(secret.getData())) {
+            throw new BusinessException(String.format("Secret [%s] is not exist or empty.", targetSecretName));
+        }
 
         Map<String, byte[]> newData = new HashMap<>(secret.getData());
         newData.put(PASSWORD_KEY, newPassword.getBytes());
@@ -269,10 +296,11 @@ public class SessionServiceImpl implements SessionService {
         try {
             kubernetesClientService.replaceSecret(secret);
         } catch (ApiException e) {
-            throw new BusinessException("Error occurs when trying to update admin secret.", e);
+            throw new BusinessException(String.format("Error occurs when trying to update secret [%s].", targetSecretName), e);
         }
 
-        adminConfigCache.set(null);
+        // 清除该用户的缓存
+        adminConfigCache.remove(username);
     }
 
     private Cookie buildEmptyCookie() {
@@ -283,44 +311,69 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private String generateToken(User user) {
-        AdminConfig config = getAdminConfig();
-        if (!config.getUsername().equals(user.getName())) {
+        String username = user.getName();
+        AdminConfig config = getAdminConfig(username);
+        if (config == null || !config.getUsername().equals(username)) {
             return null;
         }
-        String rawToken = String.join(TOKEN_PART_SEPARATOR, config.getUsername(), config.getPassword(),
-            String.valueOf(System.currentTimeMillis()));
+        String rawToken = String.join(TOKEN_PART_SEPARATOR,
+                config.getUsername(), config.getPassword(), String.valueOf(System.currentTimeMillis()));
         try {
             return AesUtil.encrypt(config.getEncryptKey(), config.getEncryptIv(), rawToken);
         } catch (GeneralSecurityException e) {
-            throw new BusinessException("Error occurs when generating token for user " + user.getName(), e);
+            throw new BusinessException("Error occurs when generating token for user " + username, e);
         }
     }
 
-    private AdminConfig getAdminConfig() {
-        AdminConfig config = tryGetAdminConfig();
+    private AdminConfig getAdminConfig(String username) {
+        AdminConfig config = tryGetAdminConfig(username);
         if (config == null) {
-            throw new IllegalStateException("No valid admin config is available.");
+            throw new IllegalStateException(String.format("No valid config for user [%s] is available.", username));
         }
         return config;
     }
 
-    private AdminConfig tryGetAdminConfig() {
-        AdminConfig localAdminConfig = adminConfigCache.get();
-        if (localAdminConfig == null || !localAdminConfig.isExpired(configTtl)) {
-            localAdminConfig = loadAdminConfig();
+    // 兼容无参调用（仅用于admin）
+    private AdminConfig getAdminConfig() {
+        return getAdminConfig(ADMIN_USERNAME);
+    }
+
+    // 核心改造：根据用户名加载对应Secret
+    private AdminConfig tryGetAdminConfig(String username) {
+        if (StringUtils.isBlank(username)) {
+            return null;
+        }
+
+        // 1. 先查缓存
+        AdminConfig localAdminConfig = adminConfigCache.get(username);
+        // 2. 缓存不存在/过期，重新加载
+        if (localAdminConfig == null || localAdminConfig.isExpired(configTtl)) {
+            localAdminConfig = loadAdminConfig(username);
             if (localAdminConfig != null && localAdminConfig.isValid()) {
                 localAdminConfig.setLastUpdateTimestamp(System.currentTimeMillis());
-                adminConfigCache.set(localAdminConfig);
+                adminConfigCache.put(username, localAdminConfig);
+            } else {
+                adminConfigCache.remove(username);
             }
         }
         return localAdminConfig;
     }
 
-    private AdminConfig loadAdminConfig() {
+    // 兼容原无参方法（仅用于admin）
+    private AdminConfig tryGetAdminConfig() {
+        return tryGetAdminConfig(ADMIN_USERNAME);
+    }
+
+    // 根据用户名加载对应Secret
+    private AdminConfig loadAdminConfig(String username) {
+        log.info("用户名：" + username);
+        String targetSecretName = getSecretNameByUsername(username);
+        log.info("目标用户名：" + targetSecretName);
         V1Secret secret;
         try {
-            secret = kubernetesClientService.readSecret(secretName);
+            secret = kubernetesClientService.readSecret(targetSecretName);
         } catch (ApiException e) {
+            log.warn(String.format("Load secret [%s] failed: %s", targetSecretName, e.getMessage()));
             return null;
         }
         if (secret == null) {
@@ -330,12 +383,22 @@ public class SessionServiceImpl implements SessionService {
         if (MapUtils.isEmpty(data)) {
             return null;
         }
-        AdminConfig adminConfig = AdminConfig.builder().username(getString(data, USERNAME_KEY))
-            .displayName(getString(data, DISPLAY_NAME_KEY)).password(getString(data, PASSWORD_KEY))
-            .encryptKey(getString(data, ENCRYPT_KEY_KEY)).encryptIv(getString(data, ENCRYPT_IV_KEY)).build();
-        // AdminConfig adminConfig = AdminConfig.builder().name("admin").displayName("Admin").password("123456")
-        // .encryptKey("").encryptIv("").build();
+        AdminConfig adminConfig = AdminConfig.builder()
+                .username(getString(data, USERNAME_KEY))
+                .displayName(getString(data, DISPLAY_NAME_KEY))
+                .password(getString(data, PASSWORD_KEY))
+                .encryptKey(getString(data, ENCRYPT_KEY_KEY))
+                .encryptIv(getString(data, ENCRYPT_IV_KEY))
+                .build();
         return adminConfig.isValid() ? adminConfig : null;
+    }
+
+    // 核心方法：根据用户名生成Secret名称
+    private String getSecretNameByUsername(String username) {
+        if (ADMIN_USERNAME.equals(username)) {
+            return defaultSecretName; // admin用默认名称
+        }
+        return SECRET_NAME_USER_PREFIX + username; // 普通用户用前缀+用户名
     }
 
     private static String getString(Map<String, byte[]> map, String key) {
@@ -348,15 +411,10 @@ public class SessionServiceImpl implements SessionService {
     private static class AdminConfig {
 
         private String username;
-
         private String displayName;
-
         private String password;
-
         private String encryptKey;
-
         private String encryptIv;
-
         private long lastUpdateTimestamp;
 
         public boolean isValid() {

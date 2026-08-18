@@ -71,6 +71,9 @@ public class AiRoute {
     private Map<String, String> customConfigs;
     @Schema(description = "Custom labels")
     private Map<String, String> customLabels;
+    // 用户名
+    private String username;
+
 
     public void validate() {
         if (StringUtils.isBlank(name)) {
