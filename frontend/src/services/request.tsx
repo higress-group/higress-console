@@ -1,6 +1,7 @@
 import { Modal } from "antd";
 import axios from "axios";
 import i18next from 'i18next';
+import { buildRedirectSearch } from "@/utils/redirect";
 import { ErrorComp } from './exception';
 import { resolveRequestTimeout } from './timeout';
 
@@ -55,7 +56,8 @@ request.interceptors.response.use(
         // Unauthorized. Jump to the login page.
         Promise.reject(error);
         if (window.location.href.indexOf('/init') === -1 && window.location.href.indexOf('/login') === -1) {
-          window.location.href = `/login?redirect=${window.location.pathname}`;
+          const search = buildRedirectSearch(window.location.pathname, window.location.search);
+          window.location.href = search ? `/login?${search}` : '/login';
         }
         return;
       }
