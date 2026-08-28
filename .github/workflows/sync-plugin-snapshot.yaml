@@ -1,0 +1,170 @@
+name: Sync Immutable Higress Plugin Snapshot
+
+on:
+  repository_dispatch:
+    types: [higress-plugin-snapshot]
+  workflow_dispatch:
+    inputs:
+      higress_commit: {required: true, type: string}
+      snapshot_path: {required: true, type: string}
+      snapshot_sha256: {required: true, type: string}
+      plugin_server_commit: {required: true, type: string}
+      plugin_server_image: {required: true, type: string}
+      console_base_sha: {required: true, type: string}
+      dry_run: {required: true, default: true, type: boolean}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: console-plugin-snapshot-${{ github.event.client_payload.snapshot_sha256 || inputs.snapshot_sha256 }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    # CONSOLE_RELEASE_APP_PRIVATE_KEY is scoped to this protected environment.
+    environment: console-plugin-sync
+    steps:
+      - uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        if: ${{ !inputs.dry_run }}
+        id: app-token
+        with:
+          app-id: ${{ vars.CONSOLE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.CONSOLE_RELEASE_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          token: ${{ inputs.dry_run && github.token || steps.app-token.outputs.token }}
+      - name: Resolve immutable dispatch payload
+        id: input
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_COMMIT: ${{ github.event.client_payload.higress_commit }}
+          EVENT_PATH: ${{ github.event.client_payload.snapshot_path }}
+          EVENT_SHA: ${{ github.event.client_payload.snapshot_sha256 }}
+          EVENT_PLUGIN_SERVER_COMMIT: ${{ github.event.client_payload.plugin_server_commit }}
+          EVENT_PLUGIN_SERVER_IMAGE: ${{ github.event.client_payload.plugin_server_image }}
+          EVENT_BASE_SHA: ${{ github.event.client_payload.console_base_sha }}
+          EVENT_KEY: ${{ github.event.client_payload.delivery_key }}
+          INPUT_COMMIT: ${{ inputs.higress_commit }}
+          INPUT_PATH: ${{ inputs.snapshot_path }}
+          INPUT_SHA: ${{ inputs.snapshot_sha256 }}
+          INPUT_PLUGIN_SERVER_COMMIT: ${{ inputs.plugin_server_commit }}
+          INPUT_PLUGIN_SERVER_IMAGE: ${{ inputs.plugin_server_image }}
+          INPUT_BASE_SHA: ${{ inputs.console_base_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = repository_dispatch ]; then commit="$EVENT_COMMIT"; path="$EVENT_PATH"; sha="$EVENT_SHA"; plugin_server_commit="$EVENT_PLUGIN_SERVER_COMMIT"; plugin_server_image="$EVENT_PLUGIN_SERVER_IMAGE"; base_sha="$EVENT_BASE_SHA"; else commit="$INPUT_COMMIT"; path="$INPUT_PATH"; sha="$INPUT_SHA"; plugin_server_commit="$INPUT_PLUGIN_SERVER_COMMIT"; plugin_server_image="$INPUT_PLUGIN_SERVER_IMAGE"; base_sha="$INPUT_BASE_SHA"; fi
+          [[ "$commit" =~ ^[0-9a-fA-F]{40}$ ]]; [[ "$path" =~ ^plugins/release/snapshots/[0-9]+\.[0-9]+\.[0-9]+\.json$ ]]; [[ "$sha" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$plugin_server_commit" =~ ^[0-9a-fA-F]{40}$ ]]; [[ "$plugin_server_image" =~ ^[^@[:space:]]+@sha256:[0-9a-f]{64}$ ]]
+          [[ "$base_sha" =~ ^[0-9a-fA-F]{40}$ ]]
+          key="${sha}-${plugin_server_commit}-${plugin_server_image##*@}"
+          if [ "$EVENT_NAME" = repository_dispatch ]; then test "$EVENT_KEY" = "$key"; fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"; echo "path=$path" >> "$GITHUB_OUTPUT"; echo "sha=$sha" >> "$GITHUB_OUTPUT"; echo "plugin_server_commit=$plugin_server_commit" >> "$GITHUB_OUTPUT"; echo "plugin_server_image=$plugin_server_image" >> "$GITHUB_OUTPUT"; echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"; echo "key=$key" >> "$GITHUB_OUTPUT"
+      - name: Check out immutable Console rendering base
+        env:
+          BASE_SHA: ${{ steps.input.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$BASE_SHA"
+          test "$(git rev-parse "$BASE_SHA^{commit}")" = "$BASE_SHA"
+          git checkout --detach "$BASE_SHA"
+      - name: Install ORAS for immutable receiver verification
+        uses: oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3
+        with:
+          version: 1.2.3
+      - name: Fetch and verify snapshot from exact Higress commit
+        env:
+          COMMIT: ${{ steps.input.outputs.commit }}
+          PATH_IN_REPO: ${{ steps.input.outputs.path }}
+          SHA: ${{ steps.input.outputs.sha }}
+          PLUGIN_SERVER_COMMIT: ${{ steps.input.outputs.plugin_server_commit }}
+          PLUGIN_SERVER_IMAGE: ${{ steps.input.outputs.plugin_server_image }}
+          BASE_SHA: ${{ steps.input.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          verify_plugin_server_index() {
+            jq -e '
+              def runnable: (.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64"));
+              [.manifests[] | select(runnable)] as $runnable |
+              [.manifests[] | select(runnable | not)] as $extra |
+              (([$runnable[] | .platform.os + "/" + .platform.architecture] | sort) == ["linux/amd64","linux/arm64"]) and
+              (($runnable | length) == 2) and
+              (($extra | length) == 0 or
+                (($extra | length) == 2 and
+                 all($extra[];
+                   .mediaType == "application/vnd.oci.image.manifest.v1+json" and
+                   .platform.os == "unknown" and .platform.architecture == "unknown" and
+                   .annotations["vnd.docker.reference.type"] == "attestation-manifest") and
+                 (([$extra[].annotations["vnd.docker.reference.digest"]] | sort) == ([$runnable[].digest] | sort))))
+            ' "$1" >/dev/null
+          }
+          curl --fail --silent --show-error "https://raw.githubusercontent.com/higress-group/higress/$COMMIT/$PATH_IN_REPO" -o /tmp/snapshot.json
+          test "$(sha256sum /tmp/snapshot.json | awk '{print $1}')" = "$SHA"
+          bundle_cache=/tmp/plugin-marketplace-bundles
+          mkdir -p "$bundle_cache"
+          while IFS=$'\t' read -r repository source_commit; do
+            [[ "$repository" == "higress-group/higress" || "$repository" == "higress-group/higress-console" ]]
+            [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+            key=${repository//\//__}
+            destination="$bundle_cache/$key/$source_commit"
+            mkdir -p "$destination"
+            curl --fail --silent --show-error --location \
+              "https://codeload.github.com/$repository/tar.gz/$source_commit" -o /tmp/plugin-marketplace-source.tgz
+            tar -xzf /tmp/plugin-marketplace-source.tgz --strip-components=1 -C "$destination"
+          done < <(python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" \
+            --higress-commit "$COMMIT" --print-bundle-sources)
+          oras manifest fetch "$PLUGIN_SERVER_IMAGE" >/tmp/plugin-server-index.json
+          verify_plugin_server_index /tmp/plugin-server-index.json
+          plugin_server_repo=${PLUGIN_SERVER_IMAGE%@*}
+          if [[ "${plugin_server_repo##*/}" == *:* ]]; then plugin_server_repo=${plugin_server_repo%:*}; fi
+          while read -r platform; do
+            manifest=$(oras manifest fetch "$plugin_server_repo@$platform")
+            config=$(jq -r .config.digest <<<"$manifest")
+            labels=$(oras blob fetch "$plugin_server_repo@$config" -o - | jq -c '.config.Labels')
+            jq -e --arg plugin "$PLUGIN_SERVER_COMMIT" --arg higress "$COMMIT" --arg snapshot "$SHA" \
+              '."org.opencontainers.image.revision" == $plugin and ."io.higress.higress-source-commit" == $higress and ."io.higress.plugin-snapshot-sha256" == $snapshot' <<<"$labels" >/dev/null
+          done < <(jq -r '.manifests[] | select(.platform.os == "linux" and (.platform.architecture == "amd64" or .platform.architecture == "arm64")) | .digest' /tmp/plugin-server-index.json)
+          jq -c '.plugins[] | select(.consumers.console != null)' /tmp/snapshot.json | while read -r plugin; do
+            ref=$(jq -r .ociRef <<<"$plugin"); digest=$(jq -r .digest <<<"$plugin")
+            test "$(oras manifest fetch "$ref" --descriptor | jq -r .digest)" = "$digest"
+          done
+          python3 tools/render_plugin_snapshot.py --snapshot /tmp/snapshot.json --sha256 "$SHA" \
+            --higress-commit "$COMMIT" --bundle-cache "$bundle_cache" \
+            --plugin-server-commit "$PLUGIN_SERVER_COMMIT" --plugin-server-image "$PLUGIN_SERVER_IMAGE" \
+            --base-sha "$BASE_SHA" --validate-rendered
+          git diff --check
+      - name: Dry-run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Dry run: rendered and verified locally; no branch or PR was created." >> "$GITHUB_STEP_SUMMARY"
+      - name: Create or update deterministic snapshot PR
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          COMMIT: ${{ steps.input.outputs.commit }}
+          SHA: ${{ steps.input.outputs.sha }}
+          BASE_SHA: ${{ steps.input.outputs.base_sha }}
+          PLUGIN_SERVER_COMMIT: ${{ steps.input.outputs.plugin_server_commit }}
+          PLUGIN_SERVER_IMAGE: ${{ steps.input.outputs.plugin_server_image }}
+        run: |
+          set -euo pipefail
+          branch="release/plugin-snapshot-${SHA:0:12}"
+          remote_error=/tmp/branch-lookup.err
+          if remote=$(gh api "repos/higress-group/higress-console/git/ref/heads/$branch" 2>"$remote_error"); then
+            remote_sha=$(jq -r .object.sha <<<"$remote")
+            git fetch origin "$branch"
+            git checkout -B "$branch" "$remote_sha"
+            jq -e --arg sha "$SHA" --arg base "$BASE_SHA" --arg plugin "$PLUGIN_SERVER_COMMIT" --arg image "$PLUGIN_SERVER_IMAGE" '.snapshotSha256 == $sha and .baseSha == $base and .pluginServerCommit == $plugin and .pluginServerImage == $image' backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json >/dev/null
+          elif grep -Eqi 'HTTP 404|Not Found' "$remote_error"; then
+            git fetch origin "$BASE_SHA"
+            git checkout -B "$branch" "$BASE_SHA"
+          else
+            cat "$remote_error" >&2; echo "deterministic branch lookup failed" >&2; exit 1
+          fi
+          git config user.name "higress-console-release-bot"; git config user.email "release-bot@higress.io"
+          git add backend/sdk/src/main/resources/plugins
+          git commit -m "chore: sync plugin snapshot $SHA" || true
+          git push --force-with-lease origin "$branch"
+          existing=$(gh pr list --head "$branch" --base main --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then gh pr edit "$existing" --title "chore: sync Higress plugin snapshot" --body "Higress source commit: $COMMIT; snapshot SHA-256: $SHA"; else gh pr create --base main --head "$branch" --title "chore: sync Higress plugin snapshot" --body "Higress source commit: $COMMIT; snapshot SHA-256: $SHA"; fi

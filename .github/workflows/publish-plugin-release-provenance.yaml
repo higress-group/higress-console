@@ -1,0 +1,75 @@
+name: Publish Console Plugin Release Provenance
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: console-plugin-release-provenance-${{ github.event.release.id }}
+  cancel-in-progress: false
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+      - uses: oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3
+        with:
+          version: 1.2.3
+      - name: Publish immutable plugin lock asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          CHART_REGISTRY: ${{ vars.CONSOLE_CHART_REGISTRY }}
+        run: |
+          set -euo pipefail
+          release=$(gh api "repos/higress-group/higress-console/releases/$RELEASE_ID")
+          test "$(jq -r .tag_name <<<"$release")" = "$TAG"
+          test "$(jq -r .draft <<<"$release")" = false
+          test "$(jq -r .prerelease <<<"$release")" = false
+          commit=$(git rev-parse "refs/tags/$TAG^{commit}")
+          test -f backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json
+          test -n "$CHART_REGISTRY"
+          version="${TAG#v}"
+          test "$TAG" = "v$version"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$CHART_REGISTRY" =~ ^[a-z0-9][a-z0-9.-]*(:[0-9]+)?(/[a-z0-9][a-z0-9._-]*)+$ ]]
+          chart_ref="$CHART_REGISTRY/higress-console:$version"
+          chart_descriptor=""
+          for attempt in $(seq 1 30); do
+            if chart_descriptor=$(oras manifest fetch "$chart_ref" --descriptor 2>/tmp/chart-descriptor.err); then
+              break
+            fi
+            sleep 10
+          done
+          if [ -z "$chart_descriptor" ]; then
+            cat /tmp/chart-descriptor.err >&2
+            echo "published Console OCI chart is unavailable: $chart_ref" >&2
+            exit 1
+          fi
+          chart_digest=$(jq -er '.digest' <<<"$chart_descriptor")
+          [[ "$chart_digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          lock=$(jq -cS . backend/sdk/src/main/resources/plugins/plugin-snapshot.lock.json)
+          properties=$(sha256sum backend/sdk/src/main/resources/plugins/plugins.properties | awk '{print $1}')
+          specs=$(find backend/sdk/src/main/resources/plugins -name spec.yaml -print0 | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
+          jq -cn --arg tag "$TAG" --arg commit "$commit" --arg chartRef "$chart_ref" --arg chartDigest "$chart_digest" --arg propertiesSha256 "$properties" --arg specsSha256 "$specs" --argjson lock "$lock" '{schemaVersion:1,tag:$tag,commit:$commit,chart:{ref:$chartRef,digest:$chartDigest},propertiesSha256:$propertiesSha256,specsSha256:$specsSha256,pluginLock:$lock}' | jq -cS . > plugin-release-provenance.json
+          sha256sum plugin-release-provenance.json > plugin-release-provenance.json.sha256
+          existing_json=$(gh release view "$TAG" --json assets)
+          existing=$(jq -r '.assets[] | select(.name == "plugin-release-provenance.json") | .id' <<<"$existing_json")
+          existing_sha=$(jq -r '.assets[] | select(.name == "plugin-release-provenance.json.sha256") | .id' <<<"$existing_json")
+          if [ -n "$existing" ] && [ -n "$existing_sha" ]; then
+            gh api "repos/higress-group/higress-console/releases/assets/$existing" -H 'Accept: application/octet-stream' > /tmp/existing.json
+            gh api "repos/higress-group/higress-console/releases/assets/$existing_sha" -H 'Accept: application/octet-stream' > /tmp/existing.sha256
+            cmp /tmp/existing.json plugin-release-provenance.json && cmp /tmp/existing.sha256 plugin-release-provenance.json.sha256 || { echo "immutable provenance asset conflict" >&2; exit 1; }
+          elif [ -z "$existing" ] && [ -z "$existing_sha" ]; then
+            gh release upload "$TAG" plugin-release-provenance.json plugin-release-provenance.json.sha256
+          else
+            echo "one-sided immutable provenance asset state" >&2; exit 1
+          fi

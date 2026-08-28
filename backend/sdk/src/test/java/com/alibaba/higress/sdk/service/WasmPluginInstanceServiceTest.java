@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
@@ -43,6 +44,7 @@ import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
 import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
@@ -55,6 +57,7 @@ public class WasmPluginInstanceServiceTest {
 
     private static final String TEST_BUILT_IN_PLUGIN_NAME = "basic-auth";
     private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String OLD_VERSION = "0.9.0";
     private static final String TEST_BUILT_IN_PLUGIN_USER_CR_NAME =
         TEST_BUILT_IN_PLUGIN_NAME + Separators.DASH + DEFAULT_VERSION;
     private static final String TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME =
@@ -375,6 +378,94 @@ public class WasmPluginInstanceServiceTest {
         Assertions.assertNotEquals(instance.getEnabled(), cr.getSpec().getDefaultConfigDisable());
         Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
         Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));
+    }
+
+    @Test
+    public void addOrUpdateTestUpdateInternalConfigFromOldVersion() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        KubernetesUtil.setLabel(existedCr.getMetadata(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY,
+            OLD_VERSION);
+        existedCr.getSpec().setUrl("oci://docker.io/basic-auth:" + OLD_VERSION);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(existedCr));
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(false)
+            .configurations(MapUtil.of("k2", "v2")).internal(true).build();
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+
+        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_NAME, updatedInstance.getPluginName());
+        Assertions.assertEquals(DEFAULT_VERSION, updatedInstance.getPluginVersion());
+        Assertions.assertEquals(instance.getEnabled(), updatedInstance.getEnabled());
+        Assertions.assertEquals(instance.getConfigurations(), updatedInstance.getConfigurations());
+        Assertions.assertTrue(updatedInstance.getInternal());
+
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, never()).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString());
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin cr = crCaptor.getValue();
+        Assertions.assertNotNull(cr);
+        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME, cr.getMetadata().getName());
+        Assertions.assertEquals(DEFAULT_VERSION,
+            KubernetesUtil.getLabel(cr.getMetadata(), KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
+        Assertions.assertEquals("oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/basic-auth:2.0.0",
+            cr.getSpec().getUrl());
+        Assertions.assertNotEquals(instance.getEnabled(), cr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
+        Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));
+    }
+
+    @Test
+    public void addOrUpdateTestUpdateUserConfigWithVersionedLookup() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), eq(DEFAULT_VERSION)))
+            .thenReturn(Lists.newArrayList(existedCr));
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(false)
+            .configurations(MapUtil.of("k2", "v2")).internal(false).build();
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+        updatedInstance.setRawConfigurations(null);
+        Assertions.assertEquals(instance, updatedInstance);
+
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), eq(DEFAULT_VERSION));
+        verify(kubernetesClientService, never()).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin cr = crCaptor.getValue();
+        Assertions.assertNotNull(cr);
+        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, cr.getMetadata().getName());
+        Assertions.assertNotEquals(instance.getEnabled(), cr.getSpec().getDefaultConfigDisable());
+        Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
+        Assertions.assertTrue(CollectionUtils.isEmpty(cr.getSpec().getMatchRules()));
+    }
+
+    @Test
+    public void addOrUpdateTestKeepInternalConfigWithCustomImageOnCurrentVersion() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        existedCr.getSpec().setUrl("oci://private-registry.example.com/plugins/basic-auth:custom");
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(existedCr));
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).scope(WasmPluginInstanceScope.GLOBAL).enabled(true)
+            .configurations(MapUtil.of("k", "v")).internal(true).build();
+        WasmPluginInstance updatedInstance = service.addOrUpdate(instance);
+
+        Assertions.assertTrue(updatedInstance.getInternal());
+
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin cr = crCaptor.getValue();
+        Assertions.assertNotNull(cr);
+        Assertions.assertSame(existedCr, cr);
+        Assertions.assertEquals("oci://private-registry.example.com/plugins/basic-auth:custom", cr.getSpec().getUrl());
+        Assertions.assertEquals(instance.getConfigurations(), cr.getSpec().getDefaultConfig());
     }
 
     @Test
