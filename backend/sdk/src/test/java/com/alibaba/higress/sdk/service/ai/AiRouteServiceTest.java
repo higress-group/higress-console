@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.sdk.service.ai;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.StringWriter;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -125,7 +125,7 @@ public class AiRouteServiceTest {
 	}
 
 	@Test
-	public void modelMappingsAreMergedByServiceWithHigherWeightPrecedence() throws Exception {
+	public void modelMappingsAreMergedByServiceWithHigherWeightPrecedence() {
 		KubernetesModelConverter kubernetesModelConverter = mock(KubernetesModelConverter.class);
 		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
 		RouteService routeService = mock(RouteService.class);
@@ -152,10 +152,7 @@ public class AiRouteServiceTest {
 				MapUtil.of(WasmPluginInstanceScope.ROUTE, "ai-route-test.internal", WasmPluginInstanceScope.SERVICE,
 						"shared-provider.dns");
 
-		Method method = AiRouteServiceImpl.class.getDeclaredMethod("writeModelMappingResources", String.class,
-				List.class);
-		method.setAccessible(true);
-		method.invoke(service, "ai-route-test.internal", upstreams);
+		service.writeModelMappingResources("ai-route-test.internal", upstreams);
 
 		ArgumentCaptor<WasmPluginInstance> instanceCaptor = ArgumentCaptor.forClass(WasmPluginInstance.class);
 		verify(wasmPluginInstanceService, times(1)).addOrUpdate(instanceCaptor.capture());
@@ -167,6 +164,35 @@ public class AiRouteServiceTest {
 		Assertions.assertTrue(instance.getInternal());
 		Assertions.assertEquals(MapUtil.of("*", "high-weight-model", "glm", "glm-model"),
 				instance.getConfigurations().get(ModelMapperConfig.MODEL_MAPPING));
+	}
+
+	@Test
+	public void modelMappingDeletedWhenAllUpstreamsForServiceAreEmpty() {
+		KubernetesModelConverter kubernetesModelConverter = mock(KubernetesModelConverter.class);
+		KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+		RouteService routeService = mock(RouteService.class);
+		LlmProviderService llmProviderService = mock(LlmProviderService.class);
+		WasmPluginInstanceService wasmPluginInstanceService = mock(WasmPluginInstanceService.class);
+
+		when(kubernetesClientService.loadFromYaml(anyString(), eq(V1alpha3EnvoyFilter.class)))
+				.thenReturn(new V1alpha3EnvoyFilter());
+		when(llmProviderService.buildUpstreamService("shared-provider"))
+				.thenReturn(UpstreamService.builder().name("shared-provider.dns").build());
+
+		AiRouteServiceImpl service = new AiRouteServiceImpl(kubernetesModelConverter, kubernetesClientService,
+				routeService, llmProviderService, wasmPluginInstanceService);
+		List<AiUpstream> upstreams = Arrays.asList(
+				AiUpstream.builder().provider("shared-provider").weight(0).modelMapping(Collections.emptyMap()).build(),
+				AiUpstream.builder().provider("shared-provider").weight(100).modelMapping(Collections.emptyMap())
+						.build());
+		Map<WasmPluginInstanceScope, String> expectedTargets =
+				MapUtil.of(WasmPluginInstanceScope.ROUTE, "ai-route-test.internal", WasmPluginInstanceScope.SERVICE,
+						"shared-provider.dns");
+
+		service.writeModelMappingResources("ai-route-test.internal", upstreams);
+
+		verify(wasmPluginInstanceService, never()).addOrUpdate(any(WasmPluginInstance.class));
+		verify(wasmPluginInstanceService, times(1)).delete(expectedTargets, BuiltInPluginName.MODEL_MAPPER, true);
 	}
 
 }

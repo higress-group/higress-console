@@ -342,7 +342,7 @@ public class AiRouteServiceImpl implements AiRouteService {
         wasmPluginInstanceService.addOrUpdate(instance);
     }
 
-    private void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
+    void writeModelMappingResources(String routeName, List<AiUpstream> upstreams) {
         if (CollectionUtils.isEmpty(upstreams)) {
             wasmPluginInstanceService.delete(WasmPluginInstanceScope.ROUTE, routeName, BuiltInPluginName.MODEL_MAPPER,
                 true);
@@ -366,6 +366,7 @@ public class AiRouteServiceImpl implements AiRouteService {
             Map<String, String> modelMapping = new HashMap<>();
             entry.getValue()
                 .stream()
+                // Sort ascending so higher-weight entries overwrite lower-weight ones via putAll.
                 .sorted(Comparator.comparingInt(upstream -> Optional.ofNullable(upstream.getWeight()).orElse(0)))
                 .forEach(upstream -> {
                     if (MapUtils.isNotEmpty(upstream.getModelMapping())) {
