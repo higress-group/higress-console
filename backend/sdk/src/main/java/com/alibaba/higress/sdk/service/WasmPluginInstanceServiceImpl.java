@@ -21,6 +21,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,6 +52,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
+
+    private static final int MAX_UPDATE_ATTEMPTS = 3;
+    private static final long UPDATE_RETRY_DELAY_MILLIS = 10L;
 
     private final WasmPluginService wasmPluginService;
     private final KubernetesClientService kubernetesClientService;
@@ -192,38 +196,6 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 continue;
             }
 
-            V1alpha1WasmPlugin existedCr = null;
-            try {
-                // Internal CRs use a stable name independent of the plugin version, so they are looked up by name
-                // only to stay compatible with CRs created from older plugin versions.
-                List<V1alpha1WasmPlugin> existedCrs = internal ? kubernetesClientService.listWasmPlugin(name)
-                    : kubernetesClientService.listWasmPlugin(name, version);
-                if (CollectionUtils.isNotEmpty(existedCrs)) {
-                    existedCr = existedCrs.stream().filter(cr -> internal == KubernetesUtil.isInternalResource(cr))
-                        .findFirst().orElse(null);
-                }
-            } catch (ApiException e) {
-                throw new BusinessException("Error occurs when getting WasmPlugin.", e);
-            }
-
-            V1alpha1WasmPlugin result;
-            if (existedCr != null) {
-                result = existedCr;
-                String existedVersion = KubernetesUtil.getLabel(existedCr.getMetadata(),
-                    KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
-                if (internal && Boolean.TRUE.equals(plugin.getBuiltIn())
-                    && !plugin.getPluginVersion().equals(existedVersion)) {
-                    V1alpha1WasmPlugin currentCr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
-                    currentCr.getMetadata().setResourceVersion(existedCr.getMetadata().getResourceVersion());
-                    kubernetesModelConverter.mergeWasmPluginSpec(existedCr, currentCr);
-                    result = currentCr;
-                }
-            } else if (version.equals(plugin.getPluginVersion())) {
-                result = kubernetesModelConverter.wasmPluginToCr(plugin, internal);
-            } else {
-                throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
-            }
-
             for (WasmPluginInstance instance : instancesToUpdate) {
                 if (instance.getConfigurations() == null && StringUtils.isNotEmpty(instance.getRawConfigurations())) {
                     try {
@@ -242,22 +214,9 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     configurations = pluginConfig.validateAndCleanUp(configurations);
                 }
                 instance.setConfigurations(configurations);
-                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
             }
 
-            try {
-                if (existedCr == null) {
-                    result = kubernetesClientService.createWasmPlugin(result);
-                } else {
-                    result = kubernetesClientService.replaceWasmPlugin(result);
-                }
-            } catch (ApiException e) {
-                if (e.getCode() == HttpStatus.CONFLICT) {
-                    throw new ResourceConflictException();
-                }
-                throw new BusinessException(
-                    "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
-            }
+            V1alpha1WasmPlugin result = addOrUpdateGroupWithRetry(name, version, internal, plugin, instancesToUpdate);
 
             for (WasmPluginInstance instance : instancesToUpdate) {
                 beforeToAfterMap.put(instance,
@@ -266,6 +225,82 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
         }
 
         return instances.stream().map(beforeToAfterMap::get).collect(Collectors.toList());
+    }
+
+    private V1alpha1WasmPlugin addOrUpdateGroupWithRetry(String name, String version, boolean internal,
+        WasmPlugin plugin, List<WasmPluginInstance> instancesToUpdate) {
+        for (int attempt = 1; attempt <= MAX_UPDATE_ATTEMPTS; attempt++) {
+            V1alpha1WasmPlugin existedCr = getExistingCr(name, version, internal);
+            V1alpha1WasmPlugin result = buildCrForUpdate(version, internal, plugin, existedCr);
+            for (WasmPluginInstance instance : instancesToUpdate) {
+                kubernetesModelConverter.setWasmPluginInstanceToCr(result, instance);
+            }
+
+            try {
+                return existedCr == null ? kubernetesClientService.createWasmPlugin(result)
+                    : kubernetesClientService.replaceWasmPlugin(result);
+            } catch (ApiException e) {
+                if (e.getCode() != HttpStatus.CONFLICT) {
+                    throw new BusinessException(
+                        "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
+                }
+                if (attempt == MAX_UPDATE_ATTEMPTS) {
+                    throw new ResourceConflictException("Failed to add or update WasmPlugin " + name + " (internal="
+                        + internal + ") after " + MAX_UPDATE_ATTEMPTS + " attempts due to concurrent updates.");
+                }
+                log.warn("Conflict while updating WasmPlugin {} on attempt {}. Retrying with the latest resource.",
+                    name, attempt);
+                waitBeforeRetry(name, attempt);
+            }
+        }
+        throw new IllegalStateException("Unreachable WasmPlugin update retry state.");
+    }
+
+    private V1alpha1WasmPlugin getExistingCr(String name, String version, boolean internal) {
+        try {
+            // Internal CRs use a stable name independent of the plugin version, so they are looked up by name
+            // only to stay compatible with CRs created from older plugin versions.
+            List<V1alpha1WasmPlugin> existedCrs = internal ? kubernetesClientService.listWasmPlugin(name)
+                : kubernetesClientService.listWasmPlugin(name, version);
+            if (CollectionUtils.isEmpty(existedCrs)) {
+                return null;
+            }
+            return existedCrs.stream().filter(cr -> internal == KubernetesUtil.isInternalResource(cr)).findFirst()
+                .orElse(null);
+        } catch (ApiException e) {
+            throw new BusinessException("Error occurs when getting WasmPlugin.", e);
+        }
+    }
+
+    private V1alpha1WasmPlugin buildCrForUpdate(String version, boolean internal, WasmPlugin plugin,
+        V1alpha1WasmPlugin existedCr) {
+        if (existedCr == null) {
+            if (version.equals(plugin.getPluginVersion())) {
+                return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
+            }
+            throw new IllegalArgumentException("Add operation is only allowed for the current plugin version.");
+        }
+
+        String existedVersion = KubernetesUtil.getLabel(existedCr.getMetadata(),
+            KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+        if (!internal || !Boolean.TRUE.equals(plugin.getBuiltIn())
+            || plugin.getPluginVersion().equals(existedVersion)) {
+            return existedCr;
+        }
+
+        V1alpha1WasmPlugin currentCr = kubernetesModelConverter.wasmPluginToCr(plugin, true);
+        currentCr.getMetadata().setResourceVersion(existedCr.getMetadata().getResourceVersion());
+        kubernetesModelConverter.mergeWasmPluginSpec(existedCr, currentCr);
+        return currentCr;
+    }
+
+    private void waitBeforeRetry(String name, int attempt) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(UPDATE_RETRY_DELAY_MILLIS * attempt);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException("Interrupted while retrying WasmPlugin update for: " + name, e);
+        }
     }
 
     @Override
