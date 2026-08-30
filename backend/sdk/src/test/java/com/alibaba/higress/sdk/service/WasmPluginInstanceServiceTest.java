@@ -37,7 +37,9 @@ import com.alibaba.higress.sdk.constant.HigressConstants;
 import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.model.WasmPlugin;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.WasmPluginInstanceScope;
@@ -495,6 +497,100 @@ public class WasmPluginInstanceServiceTest {
     }
 
     @Test
+    public void addOrUpdateRetriesConflictAndMergesLatestCr() throws Exception {
+        V1alpha1WasmPlugin staleCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        staleCr.getMetadata().setResourceVersion("10");
+
+        V1alpha1WasmPlugin latestCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        latestCr.getMetadata().setResourceVersion("11");
+        WasmPluginInstance concurrentInstance = WasmPluginInstance.builder()
+            .pluginName(TEST_BUILT_IN_PLUGIN_NAME).pluginVersion(DEFAULT_VERSION)
+            .targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "concurrent-route")).enabled(true)
+            .configurations(MapUtil.of("concurrent", "config")).internal(true).build();
+        kubernetesModelConverter.setWasmPluginInstanceToCr(latestCr, concurrentInstance);
+
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(staleCr), Lists.newArrayList(latestCr));
+        when(kubernetesClientService.replaceWasmPlugin(any()))
+            .thenThrow(new ApiException(HttpStatus.CONFLICT, "Conflict"))
+            .thenAnswer(i -> i.getArguments()[0]);
+
+        WasmPluginInstance requestedInstance = WasmPluginInstance.builder()
+            .pluginName(TEST_BUILT_IN_PLUGIN_NAME).pluginVersion(DEFAULT_VERSION)
+            .targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "requested-route")).enabled(true)
+            .configurations(MapUtil.of("requested", "config")).internal(true).build();
+
+        WasmPluginInstance result = service.addOrUpdate(requestedInstance);
+
+        Assertions.assertEquals(requestedInstance.getConfigurations(), result.getConfigurations());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(2)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin retriedCr = crCaptor.getAllValues().get(1);
+        Assertions.assertEquals("11", retriedCr.getMetadata().getResourceVersion());
+        Assertions.assertNotNull(kubernetesModelConverter.getWasmPluginInstanceFromCr(retriedCr,
+            MapUtil.of(WasmPluginInstanceScope.ROUTE, "concurrent-route")));
+        Assertions.assertNotNull(kubernetesModelConverter.getWasmPluginInstanceFromCr(retriedCr,
+            MapUtil.of(WasmPluginInstanceScope.ROUTE, "requested-route")));
+    }
+
+    @Test
+    public void addOrUpdateRecoversFromCreateConflict() throws Exception {
+        V1alpha1WasmPlugin concurrentlyCreatedCr =
+            buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        concurrentlyCreatedCr.getMetadata().setResourceVersion("11");
+        WasmPluginInstance concurrentInstance = WasmPluginInstance.builder()
+            .pluginName(TEST_BUILT_IN_PLUGIN_NAME).pluginVersion(DEFAULT_VERSION)
+            .targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "concurrent-route")).enabled(true)
+            .configurations(MapUtil.of("concurrent", "config")).internal(true).build();
+        kubernetesModelConverter.setWasmPluginInstanceToCr(concurrentlyCreatedCr, concurrentInstance);
+
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Collections.emptyList(), Lists.newArrayList(concurrentlyCreatedCr));
+        when(kubernetesClientService.createWasmPlugin(any()))
+            .thenThrow(new ApiException(HttpStatus.CONFLICT, "Conflict"));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        WasmPluginInstance requestedInstance = WasmPluginInstance.builder()
+            .pluginName(TEST_BUILT_IN_PLUGIN_NAME).pluginVersion(DEFAULT_VERSION)
+            .targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "requested-route")).enabled(true)
+            .configurations(MapUtil.of("requested", "config")).internal(true).build();
+
+        WasmPluginInstance result = service.addOrUpdate(requestedInstance);
+
+        Assertions.assertEquals(requestedInstance.getConfigurations(), result.getConfigurations());
+        verify(kubernetesClientService, times(1)).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin retriedCr = crCaptor.getValue();
+        Assertions.assertNotNull(kubernetesModelConverter.getWasmPluginInstanceFromCr(retriedCr,
+            MapUtil.of(WasmPluginInstanceScope.ROUTE, "concurrent-route")));
+        Assertions.assertNotNull(kubernetesModelConverter.getWasmPluginInstanceFromCr(retriedCr,
+            MapUtil.of(WasmPluginInstanceScope.ROUTE, "requested-route")));
+    }
+
+    @Test
+    public void addOrUpdateStopsAfterRepeatedConflicts() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(existedCr));
+        when(kubernetesClientService.replaceWasmPlugin(any()))
+            .thenThrow(new ApiException(HttpStatus.CONFLICT, "Conflict"));
+
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.ROUTE, "requested-route"))
+            .enabled(true).configurations(MapUtil.of("requested", "config")).internal(true).build();
+
+        ResourceConflictException exception =
+            Assertions.assertThrows(ResourceConflictException.class, () -> service.addOrUpdate(instance));
+
+        Assertions.assertTrue(exception.getMessage().contains(TEST_BUILT_IN_PLUGIN_NAME));
+        Assertions.assertTrue(exception.getMessage().contains("internal=true"));
+        Assertions.assertTrue(exception.getMessage().contains("3 attempts"));
+        verify(kubernetesClientService, times(3)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, times(3)).replaceWasmPlugin(any());
+    }
+
+    @Test
     public void addOrUpdateAllTestVersionMismatch() {
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion("2.0.0").targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
@@ -538,6 +634,8 @@ public class WasmPluginInstanceServiceTest {
 
         Assertions
             .assertTrue(exception.getMessage().contains("Error occurs when adding or updating the WasmPlugin CR"));
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString());
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(any());
     }
 
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
