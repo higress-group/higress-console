@@ -20,8 +20,8 @@ info:
   contact:
     name: johnlanni
 spec:
-  phase: default
-  priority: 50
+  phase: AUTHN
+  priority: 901
   configSchema:
     openAPIV3Schema:
       type: object
