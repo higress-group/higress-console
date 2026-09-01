@@ -77,6 +77,21 @@ public class OpenaiLlmProviderHandler extends AbstractLlmProviderHandler {
     }
 
     @Override
+    public String getEffectiveServiceSourceName(String providerName, Map<String, Object> providerConfig) {
+        UpstreamService customUpstream = getCustomUpstreamService(providerConfig);
+        if (customUpstream != null) {
+            // Custom upstream service name format: "serviceName.type" (e.g., "openai-compat.dns")
+            String name = customUpstream.getName();
+            int dotIndex = name.lastIndexOf('.');
+            if (dotIndex > 0) {
+                return name.substring(0, dotIndex);
+            }
+            return name;
+        }
+        return getServiceSourceName(providerName);
+    }
+
+    @Override
     public ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig) {
         UpstreamService upstreamService = getCustomUpstreamService(providerConfig);
         if (upstreamService != null) {
