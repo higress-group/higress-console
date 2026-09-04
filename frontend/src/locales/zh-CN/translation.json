@@ -73,6 +73,8 @@
         "fallbackUpstream": "降级服务",
         "name": "名称",
         "fallbackResponseCodes": "需要降级的响应码",
+        "fallbackOnlyRedirectUpstreamCode": "仅对上游响应降级",
+        "fallbackOnlyRedirectUpstreamCodeExtra": "开启后，仅当上游（后端模型）返回错误时降级；网关或插件产生的状态码（如限流 429、鉴权 401/403）不再触发降级",
         "serviceName": "服务名称",
         "serviceWeight": "请求比例",
         "services": "目标AI服务",
