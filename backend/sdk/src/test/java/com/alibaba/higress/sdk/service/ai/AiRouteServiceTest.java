@@ -99,4 +99,15 @@ public class AiRouteServiceTest {
 		Assertions.assertTrue(config.contains("name: \"4xx_response\"") && config.contains("name: \"5xx_response\""));
 	}
 
+	@Test
+	public void onlyRedirectUpstreamCodePlaceholderPreservedTest() throws Exception {
+		VelocityContext context = new VelocityContext();
+		context.put("responseCodes", Arrays.asList("4xx", "5xx"));
+		StringWriter writer = new StringWriter();
+		routeFallbackEnvoyFilterConfigTemplate.merge(context, writer);
+		String config = writer.toString();
+		// Velocity 渲染后占位符必须原样保留，交由 StringUtil.replace 处理
+		Assertions.assertTrue(config.contains("only_redirect_upstream_code: ${onlyRedirectUpstreamCode}"));
+	}
+
 }

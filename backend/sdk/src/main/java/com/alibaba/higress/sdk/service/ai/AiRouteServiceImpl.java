@@ -289,6 +289,8 @@ public class AiRouteServiceImpl implements AiRouteService {
         StringUtil.replace(envoyFilterBuilder, "${name}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${routeName}", originalRouteName);
         StringUtil.replace(envoyFilterBuilder, "${fallbackHeader}", HigressConstants.FALLBACK_FROM_HEADER);
+        boolean onlyRedirectUpstreamCode = Boolean.TRUE.equals(fallbackConfig.getOnlyRedirectUpstreamCode());
+        StringUtil.replace(envoyFilterBuilder, "${onlyRedirectUpstreamCode}", String.valueOf(onlyRedirectUpstreamCode));
         V1alpha3EnvoyFilter envoyFilter =
             kubernetesClientService.loadFromYaml(envoyFilterBuilder.toString(), V1alpha3EnvoyFilter.class);
         try {
