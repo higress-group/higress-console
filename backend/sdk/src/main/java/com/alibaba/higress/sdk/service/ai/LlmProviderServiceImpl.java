@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
@@ -147,6 +148,9 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
         Map<String, Object> providerConfig =
             provider.getRawConfigs() != null ? new HashMap<>(provider.getRawConfigs()) : new HashMap<>();
+        if (StringUtils.isNotBlank(provider.getUsername())) {
+            providerConfig.put("username", provider.getUsername());
+        }
         handler.saveConfig(provider, providerConfig);
 
         boolean found = false;
@@ -247,7 +251,19 @@ public class LlmProviderServiceImpl implements LlmProviderService {
 
     @Override
     public PaginatedResult<LlmProvider> list(CommonPageQuery query) {
-        return PaginatedResult.createFromFullList(new ArrayList<>(getProviders().values()), query);
+        // 获取所有provider
+        SortedMap<String, LlmProvider> allProviders = getProviders();
+        // 过滤username
+        Collection<LlmProvider> filteredProviders = allProviders.values().stream()
+                .filter(provider -> {
+                    // 如果username为空，不过滤；否则匹配username
+                    if (ObjectUtils.isEmpty(query)||StringUtils.isBlank(query.username)) {
+                        return true;
+                    }
+                    return query.username.equals(provider.getRawConfigs().get("username"));
+                })
+                .collect(Collectors.toList());
+        return PaginatedResult.createFromFullList(new ArrayList<>(filteredProviders), query);
     }
 
     @Override

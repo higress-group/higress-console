@@ -33,4 +33,5 @@ public class AiProxyConfig {
 
     public static final String RETRY_ON_FAILURE = "retryOnFailure";
     public static final String RETRY_ENABLED = "enabled";
+    public static final String USER_NAME = "username";
 }

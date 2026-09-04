@@ -60,4 +60,11 @@ public class McpServer {
      */
     @Schema(description = "Direct route config.")
     private McpServerDirectRouteConfig directRouteConfig;
+
+    @Schema(description = "username")
+    private String username;
+
+    @Schema(description = "平台标识（1:AI能力接入及管理平台，2:AIEngine，3:IT）")
+    private String platform;
+
 }

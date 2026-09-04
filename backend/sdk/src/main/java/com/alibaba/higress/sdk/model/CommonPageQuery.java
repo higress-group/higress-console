@@ -35,4 +35,8 @@ public class CommonPageQuery {
     public boolean paginationEnabled() {
         return pageNum != null || pageSize != null;
     }
+
+
+    // 用户名称
+    public String username;
 }
