@@ -83,7 +83,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 public class McpServerServiceTest {
     private static final String TEST_MCP_SERVER_PLUGIN_NAME = "mcp-server";
     private static final String TEST_KEY_AUTH_PLUGIN_NAME = "key-auth";
-    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_VERSION = "2.0.0";
     private static final String DEFAULT_ROUTE_DOMAIN = "higress.cn";
     private static final String DEFAULT_UPSTREAM_SERVICE = "test.default.svc.cluster.local";
     private static final String DEFAULT_CONFIG_NAME = "higress-config";
