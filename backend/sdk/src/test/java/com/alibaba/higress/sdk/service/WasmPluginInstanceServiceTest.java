@@ -58,7 +58,7 @@ import io.kubernetes.client.openapi.ApiException;
 public class WasmPluginInstanceServiceTest {
 
     private static final String TEST_BUILT_IN_PLUGIN_NAME = "basic-auth";
-    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_VERSION = "2.0.0";
     private static final String OLD_VERSION = "0.9.0";
     private static final String TEST_BUILT_IN_PLUGIN_USER_CR_NAME =
         TEST_BUILT_IN_PLUGIN_NAME + Separators.DASH + DEFAULT_VERSION;
@@ -593,7 +593,7 @@ public class WasmPluginInstanceServiceTest {
     @Test
     public void addOrUpdateAllTestVersionMismatch() {
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
-            .pluginVersion("2.0.0").targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .pluginVersion("3.0.0").targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
             .configurations(MapUtil.of("k", "v")).internal(false).build();
 
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
