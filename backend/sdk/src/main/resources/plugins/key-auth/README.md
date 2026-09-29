@@ -18,6 +18,8 @@ description: Key 认证插件配置参考
 
 - 在一个规则里，鉴权配置和认证配置不可同时存在
 - 对于通过认证鉴权的请求，请求的header会被添加一个`X-Mse-Consumer`字段，用以标识调用者的名称。
+  该字段由网关**覆盖写入**而非追加：客户端请求中自带的 `X-Mse-Consumer` 会先被移除，再写入本次认证得到的 Consumer 名称。
+  因此下游读取到的始终是网关的认证结果，调用方无法通过自带该请求头伪造身份。
 
 ### 认证配置
 | 名称          | 数据类型        | 填写要求                                    | 默认值 | 描述                                                                                                                                                                            |
@@ -27,6 +29,7 @@ description: Key 认证插件配置参考
 | `keys`        | array of string | 必填                                        | -      | API Key 的来源字段名称，可以是 URL 参数或者 HTTP 请求头名称                                                                                                                     |
 | `in_query`    | bool            | `in_query` 和 `in_header` 至少有一个为 true | true   | 配置 true 时，网关会尝试从 URL 参数中解析 API Key                                                                                                                               |
 | `in_header`   | bool            | `in_query` 和 `in_header` 至少有一个为 true | true   | 配置 true 时，网关会尝试从 HTTP 请求头中解析 API Key                                                                                                                            |
+| `keep_credential` | bool       | 选填                                        | true   | 转发给后端时是否保留用于认证的 API Key 请求头；配置为 false 时，认证鉴权通过后会删除实际命中的 API Key 请求头。仅对从 HTTP 请求头解析的 API Key 生效。                         |
 
 `consumers`中每一项的配置字段说明如下：
 
