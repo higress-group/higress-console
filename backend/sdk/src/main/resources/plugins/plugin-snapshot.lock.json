@@ -413,36 +413,6 @@
       "resourceDir": "response-cache",
       "version": "1.0.1"
     },
-    "simple-jwt-auth": {
-      "digest": "sha256:fc47399ea9eb53bf3b15485a7819b1c4d00e777f8bb5223e0502087b19b1d53e",
-      "marketplace": {
-        "files": [
-          {
-            "destinationSha256": "9bb20f8c9605c8bb223f1b6d8b62db333de35dd6e99edf795b2e7ca26137fb2f",
-            "sourcePath": "plugins/release/console/simple-jwt-auth/spec.yaml",
-            "sourceSha256": "9bb20f8c9605c8bb223f1b6d8b62db333de35dd6e99edf795b2e7ca26137fb2f",
-            "targetPath": "spec.yaml"
-          },
-          {
-            "destinationSha256": "4f8caf3f72d477245a8da15c7a3ab30ecbe33dc73963cf1fd5994c869ae15c1d",
-            "sourcePath": "plugins/wasm-go/extensions/simple-jwt-auth/README.md",
-            "sourceSha256": "51d6ca11c72db254affe7b43b25ef6cd96dfc4b5aa37fa281d03f1a68a3da566",
-            "targetPath": "README.md"
-          },
-          {
-            "destinationSha256": "ff07ee2ed988153105b7869e5ff0f3e2f46097d66ffa17f0524801ad08aa7b38",
-            "sourcePath": "plugins/release/console/simple-jwt-auth/README_EN.md",
-            "sourceSha256": "ff07ee2ed988153105b7869e5ff0f3e2f46097d66ffa17f0524801ad08aa7b38",
-            "targetPath": "README_EN.md"
-          }
-        ],
-        "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
-      },
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/simple-jwt-auth:1.0.1",
-      "resourceDir": "simple-jwt-auth",
-      "version": "1.0.1"
-    },
     "traffic-tag": {
       "digest": "sha256:b5fda0cbb24440619d66629636f0a5e0388a790fc3dbe98d93e75093e6e50c3b",
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/traffic-tag:2.0.1",
