@@ -14,6 +14,9 @@ Plugin Execution Priority: `310`
 **Note:**
 - Authentication and authorization configurations cannot coexist within a single rule.
 - For requests that are authenticated, a header field `X-Mse-Consumer` will be added to identify the caller's name.
+  The gateway **replaces** this header instead of appending to it: any client-supplied `X-Mse-Consumer` is removed
+  before the consumer name from this authentication is set. Downstream therefore always reads the gateway's own
+  assertion, so a caller cannot forge its identity by sending the header itself.
 
 ### Authentication Configuration
 | Name          | Data Type        | Requirements                                    | Default Value | Description                                                                                                                                                                            |
@@ -23,6 +26,7 @@ Plugin Execution Priority: `310`
 | `keys`        | array of string  | Required                                        | -             | Source field names for the API Key, which can be URL parameters or HTTP request header names.                                                                                           |
 | `in_query`    | bool             | At least one of `in_query` and `in_header` must be true | true          | When configured as true, the gateway will attempt to parse the API Key from URL parameters.                                                                                             |
 | `in_header`   | bool             | At least one of `in_query` and `in_header` must be true | true          | When configured as true, the gateway will attempt to parse the API Key from HTTP request headers.                                                                                      |
+| `keep_credential` | bool        | Optional                                        | true          | Whether to keep the API Key request header when forwarding to the backend. When set to false, the gateway removes the matched API Key request header after successful authentication and authorization. This only applies to API keys parsed from HTTP request headers. |
 
 The configuration field descriptions for each item in `consumers` are as follows:
 | Name         | Data Type | Requirements | Default Value | Description                   |
