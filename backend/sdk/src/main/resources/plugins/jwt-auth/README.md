@@ -42,10 +42,22 @@ description: JWT 认证插件配置参考
 | `from_params`           | array of string   | 选填     | access_token                                      | 从指定的URL参数中抽取JWT                                   |
 | `from_cookies`          | array of string   | 选填     | -                                                 | 从指定的cookie中抽取JWT                                    |
 | `clock_skew_seconds`    | number            | 选填     | 60                                                | 校验JWT的exp和iat字段时允许的时钟偏移量，单位为秒          |
-| `keep_token`            | bool              | 选填     | ture                                              | 转发给后端时是否保留JWT                                    |
+| `keep_token`            | bool              | 选填     | true                                              | 转发给后端时是否保留JWT                                    |
+| `remote_jwks`           | object            | 选填     | -                                                 | 远程 JWKS 服务引用（wasm-cpp 实现支持，配置后 `jwks` 可省略）|
 
 **注意：** 
 - 只有当`from_headers`,`from_params`,`from_cookies`均未配置时，才会使用默认值
+- wasm-cpp 实现支持通过 `remote_jwks` 从远端拉取 JWKS 并缓存，`jwks` 与 `remote_jwks` 至少配置一个
+
+wasm-cpp 实现中 `remote_jwks` 的配置字段说明如下：
+
+| 名称      | 数据类型 | 填写要求 | 默认值 | 描述                                   |
+| --------- | -------- | -------- | ------ | -------------------------------------- |
+| `uri`     | string   | 必填     | -      | JWKS 的请求路径，例如 `/.well-known/jwks.json` |
+| `service` | string   | 必填     | -      | 用于构造出站集群的服务名称             |
+| `port`    | string   | 必填     | -      | JWKS 请求使用的服务端口                |
+| `timeout` | number   | 选填     | 1000   | 拉取超时时间，单位为毫秒               |
+| `ttl`     | number   | 选填     | 30000  | 缓存有效期，单位为毫秒                 |
 
 `from_headers` 中每一项的配置字段说明如下：
 
