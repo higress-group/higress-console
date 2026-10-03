@@ -4,6 +4,7 @@ import { LOGIN_PROMPT, SYSTEM_INITIALIZED } from '@/interfaces/config';
 import type { LoginParams, UserInfo } from '@/interfaces/user';
 import { login } from '@/services';
 import store from '@/store';
+import { sanitizeRedirectValue } from '@/utils/redirect';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
@@ -46,10 +47,7 @@ const Login: React.FC = () => {
       });
       await updateUserInfo(user);
       const urlParams = new URL(window.location.href).searchParams;
-      let redirectUrl = urlParams.get('redirect');
-      if (!redirectUrl || redirectUrl === '/login') {
-        redirectUrl = '/';
-      }
+      const redirectUrl = sanitizeRedirectValue(urlParams.get('redirect'));
       history?.push(redirectUrl);
       return;
     } catch (error) {
