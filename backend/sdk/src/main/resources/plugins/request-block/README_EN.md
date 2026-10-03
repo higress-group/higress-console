@@ -35,7 +35,7 @@ case_sensitive: false
 Based on this configuration, the following requests will be denied access:
 ```bash
 curl http://example.com?foo=Bar
-curl http://exmaple.com/Swagger.html
+curl http://example.com/Swagger.html
 ```
 
 ### Block requests with exact URL path matches
@@ -49,7 +49,7 @@ case_sensitive: false
 Based on this configuration, the following request will be blocked:
 
 ```bash
-curl http://exmaple.com/Swagger.html?foo=Bar
+curl http://example.com/Swagger.html?foo=Bar
 ```
 
 ### Block requests with URL path regex matches
@@ -63,7 +63,7 @@ case_sensitive: false
 Based on this configuration, the following request will be blocked:
 
 ```bash
-curl http://exmaple.com/Swagger.html?foo=Bar
+curl http://example.com/Swagger.html?foo=Bar
 ```
 
 ### Blocking Request Headers
@@ -76,7 +76,7 @@ block_headers:
 Based on this configuration, the following requests will be denied access:
 ```bash
 curl http://example.com -H 'example-key: 123'
-curl http://exmaple.com -H 'my-header: example-value'
+curl http://example.com -H 'my-header: example-value'
 ```
 
 ### Blocking Request Bodies
@@ -89,7 +89,7 @@ case_sensitive: false
 Based on this configuration, the following requests will be denied access:
 ```bash
 curl http://example.com -d 'Hello World'
-curl http://exmaple.com -d 'hello world'
+curl http://example.com -d 'hello world'
 ```
 
 ## Request Body Size Limit
