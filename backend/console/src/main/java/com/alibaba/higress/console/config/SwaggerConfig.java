@@ -92,6 +92,8 @@ public class SwaggerConfig {
         SecurityRequirement securityRequirement = new SecurityRequirement();
         securityRequirement.addList("basicAuth");
         openApi.setSecurity(Collections.singletonList(securityRequirement));
+
+        OpenApiRequestBodyCustomizer.normalize(openApi);
     }
 
     private void registerClassSchema(OpenAPI openApi, Class<?> clazz) {

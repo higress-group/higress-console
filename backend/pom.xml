@@ -72,7 +72,11 @@
 		<lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
 		<swagger-core.version>2.2.20</swagger-core.version>
 		<springdoc.version>1.8.0</springdoc.version>
-		<swagger-ui.version>5.11.10</swagger-ui.version>
+		<!-- springdoc 1.8.0 defaults to swagger-ui 5.10.3, which cannot render
+		     requestBody schemas. 5.11.10 is the first fixed release; pin a later
+		     5.18.x webjar (the same line springdoc 2.8.x uses) so Swagger UI
+		     shows Request Body fields. See higress-group/higress#3207. -->
+		<swagger-ui.version>5.18.2</swagger-ui.version>
 		<webjars-locator-core.version>0.52</webjars-locator-core.version>
 
 		<plugin.inputEncoding>${project.build.sourceEncoding}</plugin.inputEncoding>
