@@ -73,6 +73,8 @@
         "fallbackUpstream": "Fallback Service",
         "name": "Name",
         "fallbackResponseCodes": "Response codes that need fallback",
+        "fallbackOnlyRedirectUpstreamCode": "Only Fallback on Upstream Responses",
+        "fallbackOnlyRedirectUpstreamCodeExtra": "When enabled, fallback is triggered only by upstream (backend model) errors; gateway or plugin generated codes (e.g. rate limit 429, auth 401/403) will not trigger fallback",
         "serviceName": "Service Name",
         "serviceWeight": "Weight",
         "services": "Target Services",

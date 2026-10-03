@@ -43,6 +43,9 @@ public class AiRouteFallbackConfig {
     private String fallbackStrategy;
     @Schema(description = "response codes that need fallback")
     private List<String> responseCodes;
+    @Schema(description = "Whether only upstream response codes trigger fallback. "
+        + "When true, gateway-generated codes (e.g. 429 from rate limit, 401/403 from auth) won't trigger fallback.")
+    private Boolean onlyRedirectUpstreamCode;
 
     public void validate() {
         if (!Boolean.TRUE.equals(enabled)) {

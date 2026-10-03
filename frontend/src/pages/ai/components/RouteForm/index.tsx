@@ -83,7 +83,10 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
     setAuthConfigEnabled(_authConfig_enabled);
     setFallbackConfigEnabled(_fallbackConfig_enabled);
-    const fallbackInitValues = { fallbackConfig_enabled: _fallbackConfig_enabled };
+    const fallbackInitValues = {
+      fallbackConfig_enabled: _fallbackConfig_enabled,
+      fallbackConfig_onlyRedirectUpstreamCode: value?.fallbackConfig?.onlyRedirectUpstreamCode || false,
+    };
     if (_fallbackConfig_enabled && value?.fallbackConfig?.upstreams) {
       if (!value.fallbackConfig.responseCodes || value.fallbackConfig.responseCodes.length === 0) {
         fallbackInitValues['fallbackConfig_responseCodes'] = default_fallback_responseCodes;
@@ -178,6 +181,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         authConfig_allowedConsumers = [],
         fallbackConfig_modelNames = '',
         fallbackConfig_responseCodes = [],
+        fallbackConfig_onlyRedirectUpstreamCode = false,
         modelPredicates = [],
         customConfigs,
       } = values;
@@ -210,6 +214,7 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
         payload['fallbackConfig']['upstreams'] = [_upstreams];
         payload['fallbackConfig']['strategy'] = "SEQ";
         payload['fallbackConfig']['responseCodes'] = fallbackConfig_responseCodes;
+        payload['fallbackConfig']['onlyRedirectUpstreamCode'] = fallbackConfig_onlyRedirectUpstreamCode;
       }
       payload['authConfig']['allowedConsumers'] = authConfig_allowedConsumers && !Array.isArray(authConfig_allowedConsumers)
         ? [authConfig_allowedConsumers] : authConfig_allowedConsumers;
@@ -570,6 +575,15 @@ const AiRouteForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 />
               </Form.Item>
             </div>
+            <Form.Item
+              name="fallbackConfig_onlyRedirectUpstreamCode"
+              label={t('aiRoute.routeForm.label.fallbackOnlyRedirectUpstreamCode')}
+              valuePropName="checked"
+              initialValue={false}
+              extra={t('aiRoute.routeForm.label.fallbackOnlyRedirectUpstreamCodeExtra')}
+            >
+              <Switch />
+            </Form.Item>
           </>
           : null
       }
