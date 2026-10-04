@@ -1,30 +1,71 @@
 {
-  "baseSha": "cf6c6fd81f0005e6cd807679fb51b93f3fb88343",
-  "marketplaceRecovery": {
-    "gatewayVersion": "2.2.4",
-    "higressCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7",
-    "imageRepository": "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console",
-    "manifestSha256": "5fdd12fd5c839ada283675b53025c0b53293002d86c56cb88620ae9d16107a0e",
-    "originalConsoleCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022",
-    "originalImageDigest": "sha256:c8cb47ad0a550e58df4cfee57f2f358eb0b1635a0812c77e04388dfb17bbebb6"
-  },
+  "baseSha": "85774930e68eaa4a4791d833daea079859baa969",
+  "bundleHigressCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c",
   "pluginServerCommit": "e56a5556341e9d446233ae642f05abfe4e8c4a9b",
-  "pluginServerImage": "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/plugin-server:2.2.4@sha256:05a3e3615434befdb89928e491a8833255733c099dd24faefe82fea4d63165bb",
+  "pluginServerImage": "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/plugin-server:2.2.5@sha256:ec63c6dfd18e77917faaecfd5fcdebde7e0bc40d42effa3b6d6f77d4f5c2fd40",
   "plugins": {
     "ai-agent": {
-      "digest": "sha256:1ff8b5c19243765a1e19fa6ec182e408643c771edc1bf8df5332f96eeda9d69f",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-agent:2.0.1",
+      "digest": "sha256:19c2a0cccee4f5ed2f4c15f126a3ba76fdb9d4ffce9afc9d6ea2b67af572080b",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "41d29556fa7ced442cfe35247b074a8758ecf5d192888a37f98b90d848011323",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-agent/spec.yaml",
+            "sourceSha256": "b96a2745008b26cb61f3a005ac2993c583989cb2a9583639a8a88940040cc318",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "c5d210b03336a84a2b6890c9c2a0de0af0e22a93229b6ac1da6085742280887c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-agent/README.md",
+            "sourceSha256": "1b56ef86278521423f9c1a92940596b431677a6ce63653edbeb228759c423f58",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "db744ee53ac8ded2a5ca89aa4f3f09d346bd4cbbb5e0d0b5357d89606dae91f8",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-agent/README_EN.md",
+            "sourceSha256": "b214ae4e47ad49cbc55cbcab162f74238795eb988b2dc18e2dad49208a6612a9",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-agent:2.0.3",
       "resourceDir": "ai-agent",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "ai-cache": {
-      "digest": "sha256:7d34e9da7b6782b1ec6fcb8d1f54d1445998e6e97d9e9d75ddc6c4c6a00637b0",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-cache:2.0.1",
+      "digest": "sha256:a516df887d494ba3d1a6ce86fbf6664142a383a7a54ea44b24feaf0e43aa2579",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "3d6a4ab3dbc0185b29f33bd0fd484ba92da8b8578c601a813386b0d4d97e4df5",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-cache/spec.yaml",
+            "sourceSha256": "f1821f16252f0fbb6f89339d484abe96a0c851311c363977455e242f33b34f98",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "13abbe3e07b0cddcaf8ed1d63773c4037d6c2dab83df22b5bad71354dc149080",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-cache/README.md",
+            "sourceSha256": "13abbe3e07b0cddcaf8ed1d63773c4037d6c2dab83df22b5bad71354dc149080",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "26e7a2e613eb08246ae8521ccb50302f589e7dca82427978838e19b678bda94d",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-cache/README_EN.md",
+            "sourceSha256": "26e7a2e613eb08246ae8521ccb50302f589e7dca82427978838e19b678bda94d",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-cache:2.0.3",
       "resourceDir": "ai-cache",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "ai-context-limit": {
-      "digest": "sha256:6325ca94b20a3f5ab5e9df4014b60daca8d86e7d0999e74abb2c1ddd29b36f83",
+      "digest": "sha256:2a86d8826d20a35b88af498276589392ef9de3756bb250b91cabe0beba658dc1",
       "marketplace": {
         "files": [
           {
@@ -47,150 +88,708 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-context-limit:1.0.0",
       "resourceDir": "ai-context-limit",
       "version": "1.0.0"
     },
     "ai-data-masking": {
-      "digest": "sha256:673f0b54baa723b54ef64f20a18546131ac4b534fc21912d62227a01ea998966",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-data-masking:2.0.1",
-      "resourceDir": "ai-data-masking",
-      "version": "2.0.1"
-    },
-    "ai-history": {
-      "digest": "sha256:7fbff33f15cfe786c9f62bad1f7ae96526511a742b06298d7deebc1e8bb3c7f8",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-history:2.0.1",
-      "resourceDir": "ai-history",
-      "version": "2.0.1"
-    },
-    "ai-intent": {
-      "digest": "sha256:b7e086cd909fd8a570ebdf7813ff0ea2cfc9a45d1a43b209a3c567bb8be3c301",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-intent:2.0.1",
-      "resourceDir": "ai-intent",
-      "version": "2.0.1"
-    },
-    "ai-json-resp": {
-      "digest": "sha256:8b16921e60399a97d19ffb4914b0d8648206c58640b35078438036c57c12c4a8",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-json-resp:2.0.1",
-      "resourceDir": "ai-json-resp",
-      "version": "2.0.1"
-    },
-    "ai-load-balancer": {
-      "digest": "sha256:74d6644005938bb712b3848497ad7a943c1b7d15d088fc285bec537e4f47d1f4",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-load-balancer:2.0.1",
-      "resourceDir": "ai-load-balancer",
-      "version": "2.0.1"
-    },
-    "ai-prompt-decorator": {
-      "digest": "sha256:f0ce3fa99d76ddd59d10fdfcc9899053258c55bb42ef8578125d28f10762ecef",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-prompt-decorator:2.0.1",
-      "resourceDir": "ai-prompt-decorator",
-      "version": "2.0.1"
-    },
-    "ai-prompt-template": {
-      "digest": "sha256:a7470b80c435ec3bdf45bbd790f1d47a8fb05fedce70b4ddc4107b8c1b4d6830",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-prompt-template:2.0.1",
-      "resourceDir": "ai-prompt-template",
-      "version": "2.0.1"
-    },
-    "ai-proxy": {
-      "digest": "sha256:754c4d6c9e8aed2cabc4aa37c21f1e6dbf3b4973f01c18765ab83c17ad4d40db",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-proxy:2.0.1",
-      "resourceDir": "ai-proxy",
-      "version": "2.0.1"
-    },
-    "ai-quota": {
-      "digest": "sha256:1c5a0bc5cff949a194b662e9bd2aeb9599bfe18fbc8bc01398cc99e936ed3507",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-quota:2.0.1",
-      "resourceDir": "ai-quota",
-      "version": "2.0.1"
-    },
-    "ai-rag": {
-      "digest": "sha256:b02f12e1716bfa1dcc51d00c1424042bbc5fc566b4fd680a163be2239a7bf41f",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-rag:2.0.1",
-      "resourceDir": "ai-rag",
-      "version": "2.0.1"
-    },
-    "ai-search": {
-      "digest": "sha256:675b82ad3ef6f833c1f2eff07a38bd0fcd402096b2252abd2b1ee8f483fc9b1f",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-search:2.0.1",
-      "resourceDir": "ai-search",
-      "version": "2.0.1"
-    },
-    "ai-security-guard": {
-      "digest": "sha256:a0d2d07e734aabf18b560094054c61a35263d88c6b4ec93b1d275554930eb1fb",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-security-guard:2.0.1",
-      "resourceDir": "ai-security-guard",
-      "version": "2.0.1"
-    },
-    "ai-statistics": {
-      "digest": "sha256:4fa80b5b1b679097ca0d41bb8d269b589695ca140fd1a926a7b1b7c824bef838",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-statistics:2.0.1",
-      "resourceDir": "ai-statistics",
-      "version": "2.0.1"
-    },
-    "ai-token-ratelimit": {
-      "digest": "sha256:e2d899b97850600ad15764ce1ee6bc13bb0589d6d50a6c20f3a28cc0b77caca9",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-token-ratelimit:2.0.1",
-      "resourceDir": "ai-token-ratelimit",
-      "version": "2.0.1"
-    },
-    "ai-transformer": {
-      "digest": "sha256:44d062c1fb5635ff7c03dac2e132b307625c07ee15821f08883a1b1cb7806aaf",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-transformer:2.0.1",
-      "resourceDir": "ai-transformer",
-      "version": "2.0.1"
-    },
-    "cache-control": {
-      "digest": "sha256:f41bce5e679990ac9b75f94a2df4d7eba4009a0f8fc8063723024c19f36a5f96",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cache-control:2.0.1",
-      "resourceDir": "cache-control",
-      "version": "2.0.1"
-    },
-    "cluster-key-rate-limit": {
-      "digest": "sha256:9af3e19fbef7ac1765bfd69a19f4ae6cced7d70d40b026169f9df18482af41aa",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cluster-key-rate-limit:2.0.1",
-      "resourceDir": "cluster-key-rate-limit",
-      "version": "2.0.1"
-    },
-    "cors": {
-      "digest": "sha256:a94929f327aa5195ff5b16bd3d54aa8f31c8dc2aae7f2a76357758e8916b73fb",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cors:2.0.2",
-      "resourceDir": "cors",
-      "version": "2.0.2"
-    },
-    "de-graphql": {
-      "digest": "sha256:1a3964128ee623427d09e135368daf9ea6f1c352b1f9875d81adc6b9e66b3d24",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/de-graphql:2.0.1",
-      "resourceDir": "de-graphql",
-      "version": "2.0.1"
-    },
-    "ext-auth": {
-      "digest": "sha256:ed86a3642f090872a957cf28270816dfb62627cb636877b50f7174039a3645dd",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ext-auth:2.0.1",
-      "resourceDir": "ext-auth",
-      "version": "2.0.1"
-    },
-    "frontend-gray": {
-      "digest": "sha256:ef8521ffa2bc077426c313273fada1bce3dd45ff7fe2fcf2c9fbf69c6ccc842b",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/frontend-gray:2.0.1",
-      "resourceDir": "frontend-gray",
-      "version": "2.0.1"
-    },
-    "geo-ip": {
-      "digest": "sha256:844d3afade0236dd0fe07ae9d62bf1520837fe86281111e46c269a0bfc6815d1",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/geo-ip:2.0.1",
-      "resourceDir": "geo-ip",
-      "version": "2.0.1"
-    },
-    "gw-error-format": {
-      "digest": "sha256:a0b80b448e995cc3c5697397167e81d3d557205f8ec00e44b16b00997c4082e9",
+      "digest": "sha256:f792b1a0a16c69fff36fcc199df47739fc0d4054f182e9e2b6d45e89ead1c8ee",
       "marketplace": {
         "files": [
           {
-            "destinationSha256": "26ec5ed1220efb0b5bbcec6342a48fcfc01ad68321b56c1e28a99301fd34a7b1",
+            "destinationSha256": "62f9f1f6d8429ed2b2c704fa0ff8f62bfdb98e69cf8e6fcc397b24891397d12b",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-data-masking/spec.yaml",
+            "sourceSha256": "c406d06724b1bc131e3e474dc028249e4c347b9374122c360757ca45f5f77c89",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "8679676211dac5dab5add84f51798bcbb392af6facf3f7188235c481310c4e7a",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-data-masking/README.md",
+            "sourceSha256": "64e7a4feee5adc6afaef665526728d346914c5aca38862f896e5cc9d775a365f",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "8d218170f935356377255702a9a2b6090eecff5379c6fac060227ee622aebee4",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-data-masking/README_EN.md",
+            "sourceSha256": "2521550ffde81a65a15854d5fd7c55cd0b0242d489b4084c247165b93eba7da3",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-data-masking:2.0.3",
+      "resourceDir": "ai-data-masking",
+      "version": "2.0.3"
+    },
+    "ai-endpoint-picker": {
+      "digest": "sha256:3dfa628ce87b84ae4306208f7141a19389c04aa947d7a17d435952757deb9697",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "fd979d2ec24812bf5c48d8d3a90c1fe293223b20921fdcaccecb604983f047e9",
+            "sourcePath": "plugins/release/console/ai-endpoint-picker/spec.yaml",
+            "sourceSha256": "3ddf79d664a702c18b5eb9c6bd297d19c1834f4467387cf72ee4599f9f9dac77",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "4812cd4d3c11ee8f809a8b9e7acd976696af462bef6fe9c7432c1e8db6056295",
+            "sourcePath": "plugins/wasm-go/extensions/ai-endpoint-picker/README.md",
+            "sourceSha256": "4812cd4d3c11ee8f809a8b9e7acd976696af462bef6fe9c7432c1e8db6056295",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "0d262516f2a9a4fc87963557f827cf494a5d12481ff5f9c141bcd11c1e2ccb40",
+            "sourcePath": "plugins/wasm-go/extensions/ai-endpoint-picker/README_EN.md",
+            "sourceSha256": "0d262516f2a9a4fc87963557f827cf494a5d12481ff5f9c141bcd11c1e2ccb40",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress",
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-endpoint-picker:2.0.2",
+      "resourceDir": "ai-endpoint-picker",
+      "version": "2.0.2"
+    },
+    "ai-history": {
+      "digest": "sha256:a7e0e209009a9ba6d27c01905380e23138df10c32d5f9fe80956b605c30498d4",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "c86c29b72b9c382cb7d96d011ac1b1927d58fe931d94985fdd126a52bd855bb8",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-history/spec.yaml",
+            "sourceSha256": "7b92c31118ebd064c7c2974bdb56b9ec30b339de65fe5bfa7011e8aa15e66dd3",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "4b8f292c8a07bbd6609f273e2d9ca1386730f225297c71a28ef3a1ab174fdd66",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-history/README.md",
+            "sourceSha256": "4b8f292c8a07bbd6609f273e2d9ca1386730f225297c71a28ef3a1ab174fdd66",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "639d309a216a831437377805db31e0d0cccdd0489a8fee11d3092373b25d07db",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-history/README_EN.md",
+            "sourceSha256": "91cd47103136b779f34b2d667f09004be60cc739ccc0999bac56e773681a88c7",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-history:2.0.3",
+      "resourceDir": "ai-history",
+      "version": "2.0.3"
+    },
+    "ai-intent": {
+      "digest": "sha256:28056b23a92d153bbd0c578f591699e09e4bcc7ffb700341cc01929ecd6f6c3d",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "aedd930b6594e397ac5d483084fe7c8b61b1f2fbab92d479f6c9bb6bd4aad244",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-intent/spec.yaml",
+            "sourceSha256": "da3346e1229789ee5cedb3f3be1ee1d359420201666e0572e6b19fa3e74e509e",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "c0d169bbd3a6ef52e647feb38ef9ae964fe673125d0c5d13c7dd917196bbe8a2",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-intent/README.md",
+            "sourceSha256": "c0d169bbd3a6ef52e647feb38ef9ae964fe673125d0c5d13c7dd917196bbe8a2",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "6971931479ed4161b84f9b3a62d1dcd40e2ffae99f8baaf2c9ff8ba7444d666d",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-intent/README_EN.md",
+            "sourceSha256": "6971931479ed4161b84f9b3a62d1dcd40e2ffae99f8baaf2c9ff8ba7444d666d",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-intent:2.0.3",
+      "resourceDir": "ai-intent",
+      "version": "2.0.3"
+    },
+    "ai-json-resp": {
+      "digest": "sha256:75b625ea66f1bbb2e043ba9e5a9cd8871e36f4868f61a478b4edf33fba5cb8a5",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "b789c44e110c307b412d73e2b6925da9a6969ff7af0b2a76b3708e105ccb3492",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-json-resp/spec.yaml",
+            "sourceSha256": "8ab238393471044d596e1d49a197ee2b40893809573b1833281dc52a537d75bc",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "a1bb3fd86a43e4120be9770b53c09091a812a22d27dae81049aea492459a4c99",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-json-resp/README.md",
+            "sourceSha256": "6d83a2e480d21d97cd7bb6fb5b90816ac3e11337c27e8e1908e707a8f48be813",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "4c1c0d44d2fde61642e0832af8fcf620d5b411f681528e905588cefd32f2b2c7",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-json-resp/README_EN.md",
+            "sourceSha256": "4c1c0d44d2fde61642e0832af8fcf620d5b411f681528e905588cefd32f2b2c7",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-json-resp:2.0.3",
+      "resourceDir": "ai-json-resp",
+      "version": "2.0.3"
+    },
+    "ai-load-balancer": {
+      "digest": "sha256:0ee7dafb442c8be3ad10441b492bc865ead8bb02f2e835c173ac73881a2569a5",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "3dcf58f53795f02043cb1427f4b1fe81aa7050ef6228b95c4eedf50c3d8db14e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-load-balancer/spec.yaml",
+            "sourceSha256": "cf6d3fdd84e41acf58795df63dd216b24e139ffd67da71331d35cecd7035cf86",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b6225bf1d580cb01cdeb7e8b96e570c1176ace268a7adb8182e094e6f3ebc817",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-load-balancer/README.md",
+            "sourceSha256": "adc1f0126ff69d2c341c6ef96ced1aa53c288192c20ab9f430f13971d360cdcc",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "aed42298be9ea911f094266eae74e5a4b2a896b55c3c02490200d23fc4acf42a",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-load-balancer/README_EN.md",
+            "sourceSha256": "dd0e41f3f13ae14353c682d53e93b048b10138b57148211305052a00e0ba89a1",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-load-balancer:2.0.3",
+      "resourceDir": "ai-load-balancer",
+      "version": "2.0.3"
+    },
+    "ai-prompt-decorator": {
+      "digest": "sha256:106fdbe44e32f4cf67cda76341c27cfba46b35277bf8a768c6cd8828a6aa8de7",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "19518642116133afe80a8c8b005740554a87ed44663f7125693ebd7f60dca4c1",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-decorator/spec.yaml",
+            "sourceSha256": "0f9f7c5237258f1436ffea549093fa54da59117c92cd22d47cdd02b7608c78ea",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "169e884f06a5c5857db419edf6d2268f10b99cc9614b1e2127383592cbf19910",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-decorator/README.md",
+            "sourceSha256": "fe778e138bf1ca9e5c531d8d3778946877c17b0b1f4ea235aea6ec7bc64dfce1",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "e63247d286103175c2e4388d7ecf8857e7ed24e9fe2ab4016e6f939ddb0761b7",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-decorator/README_EN.md",
+            "sourceSha256": "f62464b0873dfce84859f76be5374ed7d8d2cf8384740f124ca0a4772a1bbeac",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-prompt-decorator:2.0.3",
+      "resourceDir": "ai-prompt-decorator",
+      "version": "2.0.3"
+    },
+    "ai-prompt-template": {
+      "digest": "sha256:21f82e8202f5d5ea2ec212848a87088001cda656a5e3b8614e377019cfaee20a",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "6289c213894b6530eae634fad852de12c33796b9f740463031c035d2162d8b7d",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-template/spec.yaml",
+            "sourceSha256": "5e5204ea072ed6215327c6fe040f393c2e1b9dc339cf698f5fe60dd00d5c8c97",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "049169cc67e17f694f9d6c601e9c0f7e882d3c688df6f8f6b593c4480adcfaf6",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-template/README.md",
+            "sourceSha256": "049169cc67e17f694f9d6c601e9c0f7e882d3c688df6f8f6b593c4480adcfaf6",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "6b15edc4b47dd87e1515169d40565edd34b4d24ba275bcc23198536d2515092f",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-prompt-template/README_EN.md",
+            "sourceSha256": "462f06d891e49f87111765bb3c6b090b55477370daff04783ed1b54c56f4de58",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-prompt-template:2.0.3",
+      "resourceDir": "ai-prompt-template",
+      "version": "2.0.3"
+    },
+    "ai-proxy": {
+      "digest": "sha256:cacd268f76e245bcc1d2c05f549d514038e888d460c194e0059a0e7b92f98eec",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "e070a1eeaca220ea30b639b1ad3b27755fd44da7ea4ca304d39f5d1e921b5987",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-proxy/spec.yaml",
+            "sourceSha256": "d13fbd2b205861343a5b96774e8545a4452b56187b775e3a7ab2f8ab908fb066",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "6bcb280c09754962aed116f938b67e35ed8b9382cdcd523779b3943c66fa6ae0",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-proxy/README.md",
+            "sourceSha256": "22e4e71d45de152e9f3af07dc8c5896fc66f59a8ba063a38430e5d6199a6dea1",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "8e926d9dbef900d8441b9ef1e4eba23f4622dc7a0aa8d16b5ff37c198e85750e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-proxy/README_EN.md",
+            "sourceSha256": "74405ba0c3cb1dbb1327c7b2cdce676c4790e4726f374c2ddf15135f566660db",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-proxy:2.0.3",
+      "resourceDir": "ai-proxy",
+      "version": "2.0.3"
+    },
+    "ai-quota": {
+      "digest": "sha256:2684810410de2803200f21d4971fe30161a7c0060c39ccab3906f6bcd4b8a509",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "9f56b61877327b29989c907cdd43e8c071bbac442d013fa0d9d15426fbfc5f52",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-quota/spec.yaml",
+            "sourceSha256": "c9457032ebd452265ee0dde60b1a08367d18352d4463cb8a771ef9c7a85c135f",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "8cb0150dd8fea28ddd72909987a2e9bf2673b16ac959f7b9955c14e087328314",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-quota/README.md",
+            "sourceSha256": "fb5b2a224dbf75be2b4cbc106620d2eabd3f35c29926134d3a378827ac198c55",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "7fd1d4ff7831574f41a5dd0487868a97664820d58c394d7ef6e3f1526a6c1d69",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-quota/README_EN.md",
+            "sourceSha256": "c6a75d633e380b9e47cc0cc6e0cab2c62109decda9da723c8491b862ced2155e",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-quota:2.0.3",
+      "resourceDir": "ai-quota",
+      "version": "2.0.3"
+    },
+    "ai-rag": {
+      "digest": "sha256:043b9dc12d6c0312b58a0322f3ab8b72f9016a9efde4313c9ede0ebff49669e3",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "0d582bde425d43d6f1f9ab004871384b375cfbb8c61d2d7c6de4d1d1fffbc05e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-rag/spec.yaml",
+            "sourceSha256": "e26e43743e13e84734a25eed20a3a7dfe26813875d4b32b4959f6e43c2e7b587",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "45ea4f071f43e1350b095d4b88e97fcbcccfd6e1a14e9d3e008d2c9615281e0e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-rag/README.md",
+            "sourceSha256": "45ea4f071f43e1350b095d4b88e97fcbcccfd6e1a14e9d3e008d2c9615281e0e",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "7b6270057283ca701a49c42dae14ad1de5da389f1b51a02b9444efb8788c14f9",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-rag/README_EN.md",
+            "sourceSha256": "815979192ba10cf018fc42ef1710203f42aa120560c98925822eedc2e4b19b2d",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-rag:2.0.3",
+      "resourceDir": "ai-rag",
+      "version": "2.0.3"
+    },
+    "ai-search": {
+      "digest": "sha256:ed6c6d7fdcc77de37c2d97fea7f5cce8fe91c4b1cc1d065adf455a2ee2f2adce",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "1232642d0ab014b73050199b8cd953bb1832a1f4f9f43c1c0079b276a3249ce4",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-search/spec.yaml",
+            "sourceSha256": "e3d1e2d30d0e1dae6eaa60497e7b221652b72c5ddde2131c45476c56f658fbb1",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "69757dad1485492bf1cf9d8b4a1f4e6fa95c48ce59a16489e7049db2b171276e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-search/README.md",
+            "sourceSha256": "8650d2dfc5d6658686129920129d82f1ae2a564e84edd4aa8275aaa4b57eaba5",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "6676acfc360bc5cd417626dbe8f94dd24e9088e23f60ac53927699987e66762c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-search/README_EN.md",
+            "sourceSha256": "bf689a21084161a59feadb4929ebfd7e9fd9a0efdee973c7b7a308ca6b220c33",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-search:2.0.3",
+      "resourceDir": "ai-search",
+      "version": "2.0.3"
+    },
+    "ai-security-guard": {
+      "digest": "sha256:23212fa3ed833b32d5d796adc7ed24585f160a7dbce99713dd89f1bc8ecf29ad",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "064e6d06f2421fc0f016d844ad0753a14dd9650e46cfc63de16731a536b70b2a",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-security-guard/spec.yaml",
+            "sourceSha256": "7ce1414b0f54ccbbeaa81d2aee6be9fe7df185b9d09278f826aeb2ef829fbfd3",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "0e87815c2b589308e40e049ecf3e682c5131e6339598f3dd717cc15d6f2b7bec",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-security-guard/README.md",
+            "sourceSha256": "0e87815c2b589308e40e049ecf3e682c5131e6339598f3dd717cc15d6f2b7bec",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "87c40b0e306dfdc3266407d5661671872b6e4caba3d8687edb19674d79223836",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-security-guard/README_EN.md",
+            "sourceSha256": "ed496ff87a10d17b5246cbbc9779cc8366674b1549eed90a63039c3dd82e2663",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-security-guard:2.0.3",
+      "resourceDir": "ai-security-guard",
+      "version": "2.0.3"
+    },
+    "ai-statistics": {
+      "digest": "sha256:c8c16f5295e14509710af9ea962ac7ebefe3b7f995bd6fd33885bbe2761c1d56",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "49ca9cc341d90727c56834aceae8b2de85d5b5c9a32a62fe7ede58c9875bb204",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-statistics/spec.yaml",
+            "sourceSha256": "ecac61641b8e874a5500a71d16b3238179f610743561827436f2febe0e7641e7",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b56c77f0a949fb5c6ab9d6242115961c8a884c40b314e959998d81943677126c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-statistics/README.md",
+            "sourceSha256": "19fc2f8a2f1097f9d9f2772886fb8b5bafb9cf5bb1beffc70b58094d13311886",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "e0b388789abac2579ec4916234884e550295885e9953898082f9d68659c5a54e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-statistics/README_EN.md",
+            "sourceSha256": "99e323591f347496a38456da65ced3f5cb30b7cf3b1090b8ed7487b2026a66d0",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-statistics:2.0.3",
+      "resourceDir": "ai-statistics",
+      "version": "2.0.3"
+    },
+    "ai-token-ratelimit": {
+      "digest": "sha256:9276a7d4cbd7afef668fd1aaf41212e663fd7fa98661c619398a7f2fb2736679",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "b6cd91cc054900497850bfbe7e6419a7ecda1cb5c9cab06cdb6ba6f11d4c34b0",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-token-ratelimit/spec.yaml",
+            "sourceSha256": "482107852c0be578076840e5c51943251e606b41728e7a93b68254298ce4dad6",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b3f7465bb66dc5ae11cc26891eb9fa62c9a6d1c56dd5965220af16c49990e015",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-token-ratelimit/README.md",
+            "sourceSha256": "81d96123e6c0466de34956530356c5ca07e7ef656293b514738fb365189473ba",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "0ff22a11735eb91343ef8486f58c7289dfac3c3f1cd65cd6c262d52956509ad4",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-token-ratelimit/README_EN.md",
+            "sourceSha256": "a53950796c2ff267c7262cf3a831644f303fd653a7fea354c14c6769d22c3c1a",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-token-ratelimit:2.0.3",
+      "resourceDir": "ai-token-ratelimit",
+      "version": "2.0.3"
+    },
+    "ai-transformer": {
+      "digest": "sha256:4066a24de242b0037a0665621190718f9f10040058551f4efea3f6237cdc64f8",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "dfa4b91dd01bd60804c5610a5c1d7b0b32c7e796d2ec10b537aee1f760146b52",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-transformer/spec.yaml",
+            "sourceSha256": "9366b4928fd157c8e0c25fac876ee3c595025ad2e4abd8f3ba15fa74a645ceea",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "46e4ac5f9f8a78baf03a84cbf9f415cfc79a500c670dd16c8c4f070311187cdf",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-transformer/README.md",
+            "sourceSha256": "34d1523201be16aecc73665af4257f5ce29d0b8e85f68277a748c41af915c08a",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "d6d48de063cb827113abbd7f20e4ae68d132fb7387177a3e956d2646906ab8b2",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ai-transformer/README_EN.md",
+            "sourceSha256": "2ff073e9dc69815cc9254a656f81902404447761184c1dca78edf87b422ed906",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-transformer:2.0.3",
+      "resourceDir": "ai-transformer",
+      "version": "2.0.3"
+    },
+    "cache-control": {
+      "digest": "sha256:8a1e10934fbffbcd560114d06fc4fdf5f5e5ceb495995da20bc8264759f4ebc7",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "b3f3bc5ffad4eda599018150f2af5a9d1f05a6ef72592385908d373a0e1e4dc3",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cache-control/spec.yaml",
+            "sourceSha256": "344c19e3f4a6d3cb2311ad346e2bfdf0ca3a09399537cb9530a49164d78009e0",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "01959f87f8d7585096995b9b65f8a5eaef4208d49a05f9dccc9d89d2db8454b9",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cache-control/README.md",
+            "sourceSha256": "9b1faf5542c02b70ef59e10541c63456ec2e7caa985b90ce654e91cef77c8650",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "77215407db404df39f6a8912affb5f434151a593755ed4bb3fa69ffdb64cbe2f",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cache-control/README_EN.md",
+            "sourceSha256": "fc1c2e98361dab3cce98ddc1d52712a484a8b5f723285bb5e87552a2b88e7555",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cache-control:2.0.3",
+      "resourceDir": "cache-control",
+      "version": "2.0.3"
+    },
+    "cluster-key-rate-limit": {
+      "digest": "sha256:95548e1946456153cbc3a119e293524edcd530a50157decc7af8825287affae9",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "d53717b3b8012ff2d21c8b46a6be78d406e8b0165bf6eb3e672f616a2bf302a0",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cluster-key-rate-limit/spec.yaml",
+            "sourceSha256": "77324f022126fe4211183beaa3d9d3f6c66a59198c569997dbb2514030b555b0",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b9e704d14e15f8fa290783d7dee6cea128444dd7396c51f04e102ef1b325a367",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cluster-key-rate-limit/README.md",
+            "sourceSha256": "b960b9a878ac6466995d33658ab6a66fac73ba93e12037dc49b7db2e26e1eda5",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "5b6d433726efa2c9a75a0a3c5f897687a0a36727a679f2911baef4782be06978",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cluster-key-rate-limit/README_EN.md",
+            "sourceSha256": "49791f87ce1599b0425259c7d4d9989768045c78e81560433bcf137d0655e3b0",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cluster-key-rate-limit:2.0.3",
+      "resourceDir": "cluster-key-rate-limit",
+      "version": "2.0.3"
+    },
+    "cors": {
+      "digest": "sha256:8cacf4fa36c361acf7879060506e2fc5e7d0f9d64f1aa3cee1d706742f2fa537",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "29e16cada804c5437eebda5a28c9f926a969ac29dadce084d73771a1a3b4cf61",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cors/spec.yaml",
+            "sourceSha256": "bc5317892338e1ac756be8dcd95d9d4b538276d4bbdc5bc4d49a4b385d485def",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "20b56ab9465412b7e01aecb59bb2725bb2a8db92779d9d41cd3cef32cfab6787",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cors/README.md",
+            "sourceSha256": "9a22711f04604fba2ebb520c47a619ee3e990c837de8562c96cc6b9741c8a5f8",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "d643cc28ec39a2be3a4d7283fb79cb043bb30d1d0c5bf2960b6922b98859c112",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/cors/README_EN.md",
+            "sourceSha256": "d5f74764c286e3827e4b62ab02fcd6bf5fad74fc22115161354da85d7f6a62e2",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/cors:2.0.4",
+      "resourceDir": "cors",
+      "version": "2.0.4"
+    },
+    "de-graphql": {
+      "digest": "sha256:b7ccfd83ca13108d628292c7b5158e9eec941d150237860af234675000abfb58",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "4608c726cd879ac222894b0acd5ccbd9d49c5b694d52892722affc9bab8f6a06",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/de-graphql/spec.yaml",
+            "sourceSha256": "0f2b45f743297ed923b711cb53781d206c0be2ed82b894c82b3f1e051121070c",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "991f85d888df85da4c06a4d88ce80ab79d2580b7006c1d29a524ba66cbb1df32",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/de-graphql/README.md",
+            "sourceSha256": "c0adccbcd642586f9e04d1dd62e24877bee81f16f55a3c96cbc5589bdec7963f",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "695c5abbe4f34de4b52af0ed9e22533009456589d65ee112ad541d6779877c52",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/de-graphql/README_EN.md",
+            "sourceSha256": "695c5abbe4f34de4b52af0ed9e22533009456589d65ee112ad541d6779877c52",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/de-graphql:2.0.3",
+      "resourceDir": "de-graphql",
+      "version": "2.0.3"
+    },
+    "ext-auth": {
+      "digest": "sha256:35abb074337b06c67d47b1a4da43422657dec8b7853a602e144eea0366174229",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "bb2063277f252568a2a6930c74ca4c17b3c694f5199ab9356e76b825230d5dac",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ext-auth/spec.yaml",
+            "sourceSha256": "6208bf6d750f03acde615d225b8a70c47481a763075e393b3b5c48598de2542c",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "12b972cc3e9efbfdae096ec0e8d959ae226531ad390d9abae69f6602062091e1",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ext-auth/README.md",
+            "sourceSha256": "12b972cc3e9efbfdae096ec0e8d959ae226531ad390d9abae69f6602062091e1",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "9090f265176a7fe270f71b23ffdda6ead06d8269870570f8a7659d042bb12cde",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ext-auth/README_EN.md",
+            "sourceSha256": "3026082686454067aa06b8bf4b286b8dded881863092ba26cc58cc66cc7d2c87",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ext-auth:2.0.3",
+      "resourceDir": "ext-auth",
+      "version": "2.0.3"
+    },
+    "frontend-gray": {
+      "digest": "sha256:ec917c39643d5922ed93d50a6ede43e045bb01ed6a6abacf92fc23dcc911fa9d",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "13cc53ad1d856a9b100437f68234ee25014ee53f9e441e5a493fd5b9c67447ed",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/frontend-gray/spec.yaml",
+            "sourceSha256": "d3ec4bfc85f3ae49d58345ed713cb5f995965d915b492a12195cb507ab1604ca",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "54941f42ed2d7cff48eeafbfc7ba73b319c1e01ef996421413cacb485b71291e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/frontend-gray/README.md",
+            "sourceSha256": "33e9348e29b37789d36a01aca0925e9e07b2134e948e285dccfd825bd02770a1",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "b5776a7fa946d5e8dad8dca92ba9ccfee525f812bfe53e01c5ce21373fc5d1fb",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/frontend-gray/README_EN.md",
+            "sourceSha256": "dbc19cfb4ad5b52a075d26f6e99d5a3b44db5095589075863d9318df19c4fab4",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/frontend-gray:2.0.3",
+      "resourceDir": "frontend-gray",
+      "version": "2.0.3"
+    },
+    "geo-ip": {
+      "digest": "sha256:4a053f5c72139db1eb605b860a5aac675ec0534757a95f82aa46d9de60d182eb",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "381a1e9d80d146c88205a3b735bdd619aec16b6cf433b21365836b5c5342e538",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/geo-ip/spec.yaml",
+            "sourceSha256": "b4b5ec8aa3c48d93d809bf580e02578b5d012883025d7299a846d81169e2a51a",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "67408e4c774ec7c0123b33cb706da8636d7aed89564bcd51e03e7604697ec46c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/geo-ip/README.md",
+            "sourceSha256": "67408e4c774ec7c0123b33cb706da8636d7aed89564bcd51e03e7604697ec46c",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "749dd89ca0af0757bee3523d03fcdbf45e49b847db5fc7e73fcfe3758057e46c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/geo-ip/README_EN.md",
+            "sourceSha256": "5992b0ac4ffe63d8e7997e8c7af54ea7ef230b014569ea6a2c5301694d887f99",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/geo-ip:2.0.3",
+      "resourceDir": "geo-ip",
+      "version": "2.0.3"
+    },
+    "gw-error-format": {
+      "digest": "sha256:72ca3e95fb2b6525d8983d7c4813f5709e473029519a5cd84c3cb59ae080d3f3",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "e48e2fd98881c63446946c2a9cd88c7569d1d7dc1941e61ad352fad49d4a1f35",
             "sourcePath": "plugins/release/console/gw-error-format/spec.yaml",
             "sourceSha256": "26ec5ed1220efb0b5bbcec6342a48fcfc01ad68321b56c1e28a99301fd34a7b1",
             "targetPath": "spec.yaml"
@@ -209,56 +808,104 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/gw-error-format:1.0.0",
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/gw-error-format:1.0.2",
       "resourceDir": "gw-error-format",
-      "version": "1.0.0"
+      "version": "1.0.2"
     },
     "hmac-auth-apisix": {
-      "digest": "sha256:9c4ffddfd75efc557840d2b5844a03d7292268ed97deb3af69ebf3583d3a0633",
+      "digest": "sha256:b798964fa478a83d9dda44c580f81abe56c72ee2b4c225b8ab4d75fcf03653af",
       "marketplace": {
         "files": [
           {
-            "destinationSha256": "d8ea901848ebe354471297840a4ba8da3f50fff55998e85bd656396b5608815b",
+            "destinationSha256": "4999ee7b6a946049fa01fdfb6614696ee2d79f16ad5205d337eb7007bd29abe0",
             "sourcePath": "plugins/release/console/hmac-auth-apisix/spec.yaml",
             "sourceSha256": "d8ea901848ebe354471297840a4ba8da3f50fff55998e85bd656396b5608815b",
             "targetPath": "spec.yaml"
           },
           {
-            "destinationSha256": "98d7343ae8d21ac42dc7e151c2bc79193103a4802d4532b593214ee3c9019c72",
+            "destinationSha256": "a90bafd44c8baaef47bd8af7969e089262f7391fb501ee520de12b1ed7287aa6",
             "sourcePath": "plugins/wasm-go/extensions/hmac-auth-apisix/README.md",
-            "sourceSha256": "fa896d226dd92482ca1e273387831f4048445499aa0410935da242369f6ebd97",
+            "sourceSha256": "388842967031d5167c701ec3dd5aea7ed045ac08346813af0d39aef7e659518e",
             "targetPath": "README.md"
           },
           {
-            "destinationSha256": "ec88074353d6a73ab5a5a0244846c7fc4785ec8e3dd07c68081e31208bd4af0f",
+            "destinationSha256": "9afde744e41f5194442f0bb0aa17f7beef2edbe5d8f7bf599789a3a0a3398639",
             "sourcePath": "plugins/wasm-go/extensions/hmac-auth-apisix/README_EN.md",
-            "sourceSha256": "c076fc3d6ca469456f6d53b3b8b61e4e87c721999217445e47fc19d63d6aa34d",
+            "sourceSha256": "7447afe454db1452f715b3041d59b2fbfee253d5fb6ba001a99ae309507edc49",
             "targetPath": "README_EN.md"
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/hmac-auth-apisix:2.0.1",
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/hmac-auth-apisix:2.0.3",
       "resourceDir": "hmac-auth-apisix",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "ip-restriction": {
-      "digest": "sha256:1db058146bf088af90e232a4a54dc552f11d5b2a022ef6544d3f69bb55f817e1",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ip-restriction:2.0.1",
+      "digest": "sha256:bc92eb2b3c26a534d79c0fa5031774d9dee198037bf42d7f6961bb6135418afa",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "13b088e50280e5923469ecb1d54bd7328a942bd78d771a1381707dbbb4e70a3c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ip-restriction/spec.yaml",
+            "sourceSha256": "a3dd47a0f22b54bf560470de6e68ec163844b3de8c4cfe5f203864d11eef0f3a",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "79d31d86a2e6408ce9496a020a8012eb7f5062d819480c5d761a5eb19a74b7e7",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ip-restriction/README.md",
+            "sourceSha256": "db580cad8eb73240bb0296d6e20eed3613fd20716462096163ff6bd5b3df50e7",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "b9ac3ac76d68bd82cb660e71f8be104b669af961b7ab95d5945fbe72d1278d99",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/ip-restriction/README_EN.md",
+            "sourceSha256": "b9ac3ac76d68bd82cb660e71f8be104b669af961b7ab95d5945fbe72d1278d99",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ip-restriction:2.0.3",
       "resourceDir": "ip-restriction",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "json-converter": {
-      "digest": "sha256:c169476e09115062ce717257531407576d42761a7ce1888215a1ae37b5f179a0",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/jsonrpc-converter:2.0.1",
+      "digest": "sha256:437746e52b1c46a39352c04e84c3abb4049067452a489c86ceff1972c482589b",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "c8abd636a8c6901b06ca7525aeace8439962e429c34b2c030bb2be0dd282534e",
+            "sourcePath": "plugins/release/console/json-converter/spec.yaml",
+            "sourceSha256": "3fbdeddef013793e6e7537bc528002a3b6a70b81eca0daf497da4b8b8b6f7bb5",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b873b07c9a1ada5b5c455d3fac638aa2a4612395a4c2d1ddc2c72b3370c9b03a",
+            "sourcePath": "plugins/release/console/json-converter/README.md",
+            "sourceSha256": "b873b07c9a1ada5b5c455d3fac638aa2a4612395a4c2d1ddc2c72b3370c9b03a",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "012f1ec63b7a0b6d917794caf1bdcfb4cfc6a7690121cf1e160a0a08655dbaed",
+            "sourcePath": "plugins/release/console/json-converter/README_EN.md",
+            "sourceSha256": "012f1ec63b7a0b6d917794caf1bdcfb4cfc6a7690121cf1e160a0a08655dbaed",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress",
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/jsonrpc-converter:2.0.3",
       "resourceDir": "json-converter",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "log-request-response": {
-      "digest": "sha256:a3e915062ffc312b79f67dd1a6a8a9e199f6f6d2bdd2afb4b272327552b68731",
+      "digest": "sha256:c086bdcf6cfe9c0bdab057e984e227beaf19e882f9543e8c8ae4f2898cfbea10",
       "marketplace": {
         "files": [
           {
@@ -281,18 +928,18 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/log-request-response:1.0.0",
       "resourceDir": "log-request-response",
       "version": "1.0.0"
     },
     "mcp-router": {
-      "digest": "sha256:2f888548c5284d514ed9f0384711610dfdb8b72f572e95bfcd1c64e41d199203",
+      "digest": "sha256:4de7c7ea44d7fd26eff6a1ee61e8221980bfb825c71ab581f4708d3270ff7fd1",
       "marketplace": {
         "files": [
           {
-            "destinationSha256": "b00360eba38939b01dd96b943e994b0d92c55a18248eaa0fd732c548fb477d05",
+            "destinationSha256": "3a6dfcc82801221aa4dae85e872b0d294ba224b2564d091e9dbf286ce50cf2dc",
             "sourcePath": "plugins/release/console/mcp-router/spec.yaml",
             "sourceSha256": "b00360eba38939b01dd96b943e994b0d92c55a18248eaa0fd732c548fb477d05",
             "targetPath": "spec.yaml"
@@ -311,32 +958,104 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/mcp-router:2.0.1",
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/mcp-router:2.0.3",
       "resourceDir": "mcp-router",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "mcp-server": {
-      "digest": "sha256:1fe9a60eae0563e855cf66ead8062e14bc57f823b431a90963b4a026373cd6da",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/mcp-server:2.0.1",
+      "digest": "sha256:9848a9b11fa253dc2f1b458acda652aa7dd7ee8dc6de31a25ab2a5bb6585a77b",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "27533c7e8682822a9f74e1268d392485885e1f98edd927d6aedebb324ae87981",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/mcp-server/spec.yaml",
+            "sourceSha256": "7a4bc50af6572203626bee097850aae770e71098fbac3c90f79f30067b887cfe",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "fd9e04eabc71388e5e6406f47de376f2f81ad4c2905fff94074b03a2ebfd96f1",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/mcp-server/README.md",
+            "sourceSha256": "9b5226a877d174ec3e735050e189d6ff669f16f95ca6d490f945095ac6d440c7",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "a62791632aed0d8090b83f6c511a9ce3e21767d75b99fd41d31b04cc75a16f92",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/mcp-server/README_EN.md",
+            "sourceSha256": "33c89610906161e2f525aa824ca3c0212bdb225519efb4eb9c1d3fc55599062b",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/mcp-server:2.0.3",
       "resourceDir": "mcp-server",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "model-mapper": {
-      "digest": "sha256:e587c00a42abae26ce7086d8fc1652ab560e2b3f72125ae655fc8aeaf504181b",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/model-mapper:2.0.1",
+      "digest": "sha256:19f4a0670b4aab25a978eaef63341495b5c5691c280afc34cfe6b486a54a4622",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "2ef5edc8c8c9695222dd779cd7b8facf05c85226096d21fd86a123064378b2be",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-mapper/spec.yaml",
+            "sourceSha256": "1b3a06e647f57c84a0a8be5222a3543000d1dd4bfe33e8c57590e72293db3e91",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "9ae64570f720e106736ba96a141156d2fb93c905d1797bb8d0a4a8cfb088c31b",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-mapper/README.md",
+            "sourceSha256": "9ae64570f720e106736ba96a141156d2fb93c905d1797bb8d0a4a8cfb088c31b",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "ac10e3ab48c25c04662213450d52454bbc7994360c2de6e5c7f5d67bb333627c",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-mapper/README_EN.md",
+            "sourceSha256": "ac10e3ab48c25c04662213450d52454bbc7994360c2de6e5c7f5d67bb333627c",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/model-mapper:2.0.3",
       "resourceDir": "model-mapper",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "model-router": {
-      "digest": "sha256:19cdd07e82b4deb4550a988285e55cc08fc308414d94ffcc9d3ca0d45fe0c8fc",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/model-router:2.0.1",
+      "digest": "sha256:14e142764fb83a71035e0d714039158cdd38c9c1dfbcff115dcc3b7f46144ec5",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "68f45c36980b93e8d1ed1dd178eba5bf0b51569e6037287f61e355f98fda1b20",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-router/spec.yaml",
+            "sourceSha256": "7be7a23db581b4a5c5dac72b3c0484dd7a75428f58d5f97f8a22f20dd934e806",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "8244393021824e31d234e4b8e62f65143a83cbad9ce4cfcbdf2c45c515826e68",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-router/README.md",
+            "sourceSha256": "8244393021824e31d234e4b8e62f65143a83cbad9ce4cfcbdf2c45c515826e68",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "d1354c915f2be8f9115c27cb59b4a8b0c500bee438c3956e8a86b26af6966ad5",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/model-router/README_EN.md",
+            "sourceSha256": "d1354c915f2be8f9115c27cb59b4a8b0c500bee438c3956e8a86b26af6966ad5",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/model-router:2.0.3",
       "resourceDir": "model-router",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "nginx-rewrite-compatible": {
-      "digest": "sha256:9ab80c0c7e9abd30e099ef92964efc0291f1161175ea2a6873019d1d47a06922",
+      "digest": "sha256:1a140fbfa1d3d3c7ae2dc64e5c09feaeba6b2ae43ae38703330f9e712f40ba11",
       "marketplace": {
         "files": [
           {
@@ -359,36 +1078,108 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
       "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/nginx-rewrite-compatible:1.0.0",
       "resourceDir": "nginx-rewrite-compatible",
       "version": "1.0.0"
     },
     "oidc": {
-      "digest": "sha256:a819327246c31bd77d66cd7b931bfd6f363ddcdfa3dc25ca68ae736e2e49e4a4",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/oidc:2.0.1",
-      "resourceDir": "oidc",
-      "version": "2.0.1"
-    },
-    "opa": {
-      "digest": "sha256:58c890242b106694b8aec3247e03ef0954e3e7f5e284b9116b3590bf9bf0b5f4",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/opa:2.0.1",
-      "resourceDir": "opa",
-      "version": "2.0.1"
-    },
-    "request-validation": {
-      "digest": "sha256:5450d67db6d50c29bdcd966b5a7eb7e01a9e81672aa4ae3c96462937a6b7b559",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-validation:2.0.1",
-      "resourceDir": "request-validation",
-      "version": "2.0.1"
-    },
-    "response-cache": {
-      "digest": "sha256:48ac08f29879b14b76e154ec5107a67137a82dc2b90964726177e7f5abdd97e5",
+      "digest": "sha256:24e57bdb62e7b2a7abbe6a92da311e05a9b636200235a5ac3be553c16a3f7111",
       "marketplace": {
         "files": [
           {
-            "destinationSha256": "d16817a650a724cac0e39b01522f759c9ef158240d4f91f4b60339152c2d6700",
+            "destinationSha256": "7ffa7c416375c0db10a469a1a4cc60253e5d68878a7f9629d5c03992b3486a0f",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/oidc/spec.yaml",
+            "sourceSha256": "0b14902953625996a2ea6e5fd6f8f6190bd2b966569da47521023383576eaa07",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "4f1075e530518fc5c2fc9352511efcfa27d680133134dec108bb99eaab5b44ed",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/oidc/README.md",
+            "sourceSha256": "fa5e298187b14cbffcbed4ae3016b759985064ef61e6e9286f08b0a114e3fd55",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "df85a5c0211d9457b9d0b33db0c38bf60d84656c13b37cc824c8f839a10d5c5e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/oidc/README_EN.md",
+            "sourceSha256": "df85a5c0211d9457b9d0b33db0c38bf60d84656c13b37cc824c8f839a10d5c5e",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/oidc:2.0.3",
+      "resourceDir": "oidc",
+      "version": "2.0.3"
+    },
+    "opa": {
+      "digest": "sha256:1dc121bad1ec04118181e3b5cb5c85130e53d350d9cc264826fd51d02b5fd874",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "fa739aaa9b73e02d57409f073c04c885e67807b7634e9c90d886e8cc4aef1313",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/opa/spec.yaml",
+            "sourceSha256": "7b4e9547acef763c3616e4e9b5810b9f4af31c02c94e070fd03c976cb70bc0e4",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "c701c8b38a7911030b3f83079b6ee3181caea5ff96725d3ea8a48d37d403a86e",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/opa/README.md",
+            "sourceSha256": "c701c8b38a7911030b3f83079b6ee3181caea5ff96725d3ea8a48d37d403a86e",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "7fe564d61c04116c39bf12b40b1b224a0426cdd4281226798bb438aaded88c3d",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/opa/README_EN.md",
+            "sourceSha256": "7e4fbc8b81ea42cb31de0760f1051b401c2319e39e28a18e87991e548b4bdc47",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/opa:2.0.3",
+      "resourceDir": "opa",
+      "version": "2.0.3"
+    },
+    "request-validation": {
+      "digest": "sha256:efeb7f1786cc699918fca2c4d1ce8fb8bbd6f78b265068d87eb0532731dcd546",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "40d45d39970c64e5370fd0f2a6588a132446e8a5673496ad2469f239f5059a69",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/request-validation/spec.yaml",
+            "sourceSha256": "e08f8d935ef7da131c7d3042654e9626c40d8d698eaf59768724b44c68066570",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "b216518e830582a644396ed92b6ae3450b9a07f0950cff4e5fabf8afd99ce6a7",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/request-validation/README.md",
+            "sourceSha256": "af13d0f9249f125df463578566a3a1e4890b56586aa8ff0715ac1f2ad0128188",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "ea68ecf96f9ea36873d29fd689049efbdcace43ec766a1a5a7cc9daec14d75cc",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/request-validation/README_EN.md",
+            "sourceSha256": "97b63c0554d5bd57b9a17d29ab48223bf97b080f646547e3e8195b27431f3868",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/request-validation:2.0.3",
+      "resourceDir": "request-validation",
+      "version": "2.0.3"
+    },
+    "response-cache": {
+      "digest": "sha256:74511af1a6ba0937bccd99ae1deff0b7a189b01a78e2527eaa3bcebd6cb6841d",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "719b225eff66a2c20c2e7715a41d06c6e849bdcd0d8cd85c5fac7e76e946b97e",
             "sourcePath": "plugins/release/console/response-cache/spec.yaml",
             "sourceSha256": "d16817a650a724cac0e39b01522f759c9ef158240d4f91f4b60339152c2d6700",
             "targetPath": "spec.yaml"
@@ -407,32 +1198,104 @@
           }
         ],
         "repository": "higress-group/higress",
-        "sourceCommit": "c1773b49cbcab96dace771caa22d2c2a44c754f7"
+        "sourceCommit": "13558bb73e0ef36fac6d7b7446e4da4801693f7c"
       },
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/response-cache:1.0.1",
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/response-cache:1.0.3",
       "resourceDir": "response-cache",
-      "version": "1.0.1"
+      "version": "1.0.3"
     },
     "traffic-tag": {
-      "digest": "sha256:b5fda0cbb24440619d66629636f0a5e0388a790fc3dbe98d93e75093e6e50c3b",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/traffic-tag:2.0.1",
+      "digest": "sha256:3d6aef4eeab9be0e36ae2b8432922ffadf8afa5a6285264ba1d706257408d1e1",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "90035f98ff03b89e30c20fc56a2630403e22a758918b8774b395c2f6b3d07726",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/traffic-tag/spec.yaml",
+            "sourceSha256": "8a1512116848e04f740f3a7e0e831e2c64396f1cf714b371a3987a3d38b084ac",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "3608241736cc845c63252a2decac08975f0b6bce1e24f7fa46584af2646aab41",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/traffic-tag/README.md",
+            "sourceSha256": "af7918c6d3b0c41ddd40be5cb2e402aec1637dae2187adda0652cf414ceb62d9",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "6351c67d94b24059bd24b8d7ae537b8853885d6699e7e89d4da2d76317c40ebc",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/traffic-tag/README_EN.md",
+            "sourceSha256": "082e211700bcf3014b81c42c4b01934fdfa6e62bb73ae2d80d1cd56d9047b9c3",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/traffic-tag:2.0.3",
       "resourceDir": "traffic-tag",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "transformer": {
-      "digest": "sha256:192ab149cca30ed38b05a9263a8c0ec064c90f0064bf1801ff42f017782d45c3",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/transformer:2.0.1",
+      "digest": "sha256:74474c68d29625b537908bfb5ad8a5f200616498a8957ae063ae9987bb540a52",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "c89da993558a20d1bfa564d9cf59c8113305ac32e773fc3c066df7e3662cf1e2",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/transformer/spec.yaml",
+            "sourceSha256": "872b8d7282790d4a445d0a10ca5107aaa190c423bb54bd29c4a6b94ae3f08a4c",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "896885b556f3be8663401c1822de1c8604e75a009450a985bc25bd5c668ab06f",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/transformer/README.md",
+            "sourceSha256": "fd3710eea3a8a3d0de0b4a66df7dc217933d6ed1955e11b94fa79388d4e57d13",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "5cc76cbfe5fdf3a57e7a10488724fe2cc1a909960c9fa7ab13e24ee421a098f2",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/transformer/README_EN.md",
+            "sourceSha256": "9700f3a7b639963252bae1e55dcaeddf6794c60f44f35011c3984bac9d79a39d",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/transformer:2.0.3",
       "resourceDir": "transformer",
-      "version": "2.0.1"
+      "version": "2.0.3"
     },
     "waf": {
-      "digest": "sha256:c137f884daf936f527cdbc1501833fd768cf9f545f51e85799bdbe81576b6ab1",
-      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/waf:2.0.1",
+      "digest": "sha256:6cccfe9dae6572781feb59d808492a0188176a252c1760e73ff1a4797d3feb9e",
+      "marketplace": {
+        "files": [
+          {
+            "destinationSha256": "acf2d53e04b75e99c638479e66479190aef95f8b5c71243427c501a4e2702f70",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/waf/spec.yaml",
+            "sourceSha256": "1919b9d9b13f7b33977987b43be291c025d731221c8893599f90456145c01924",
+            "targetPath": "spec.yaml"
+          },
+          {
+            "destinationSha256": "e688de9b346bbadf23628923dd2175ef609a34fd8e50d4ab354682912fc733a3",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/waf/README.md",
+            "sourceSha256": "0a002d09f4d2238a034341b3ce754fec3b7ec93df3e5cf70b3383ac178774974",
+            "targetPath": "README.md"
+          },
+          {
+            "destinationSha256": "b557a4521dd84bfe9c92a798aecd3eaafdf45fbd9d236126932685ac273d8079",
+            "sourcePath": "backend/sdk/src/main/resources/plugins/waf/README_EN.md",
+            "sourceSha256": "e6da07d6474a22540222e1fea42c692629a8516b8e1270aa0b749a6cdbd0f27d",
+            "targetPath": "README_EN.md"
+          }
+        ],
+        "repository": "higress-group/higress-console",
+        "sourceCommit": "36aa9c67fb0057164dab9b1fe687b38fe5b8a022"
+      },
+      "ociRef": "oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/waf:2.0.3",
       "resourceDir": "waf",
-      "version": "2.0.1"
+      "version": "2.0.3"
     }
   },
   "schemaVersion": 2,
-  "snapshotSha256": "09bc798df37e50dae2e684947885c31eb756636c76a98761a9a980fc031e3a1a",
-  "sourceCommit": "7774663e4353652f5c3cecd7e98a1a43b05ee15c"
+  "snapshotSha256": "9289508efb6a16e28c41d43b1a449f9c1592a0b1e16d3185cf4ee53b0f3065b8",
+  "sourceCommit": "22975c83b858ee392e4dd912b8f47dd4dcc1128f"
 }

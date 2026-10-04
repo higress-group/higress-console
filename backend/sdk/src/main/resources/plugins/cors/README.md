@@ -37,7 +37,7 @@ description: 跨域资源共享插件配置参考
 allow_origins:
   - '*'
 allow_methods:
-  - '*'  
+  - '*'
 allow_headers:
   - '*'
 expose_headers:
@@ -51,7 +51,7 @@ max_age: 7200
 allow_origin_patterns:
   - '*'
 allow_methods:
-  - '*'  
+  - '*'
 allow_headers:
   - '*'
 expose_headers:

@@ -7,7 +7,7 @@ description: Configuration reference for request protocol validation plugin
 The `request-validation` plugin is used to validate requests forwarded to upstream services in advance. This plugin utilizes the `JSON Schema` mechanism for data validation, capable of validating both the body and header data of requests.
 
 ## Execution Attributes
-Plugin Execution Phase: `Authentication Phase`  
+Plugin Execution Phase: `Authentication Phase`
 Plugin Execution Priority: `220`
 
 ## Configuration Fields

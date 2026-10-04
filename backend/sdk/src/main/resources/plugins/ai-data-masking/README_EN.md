@@ -22,7 +22,7 @@ description: AI Data Masking Plugin Configuration Reference
   - Custom rules support standard regular expressions and grok rules, and replacement strings support variable substitution
 
 ## Execution Properties
-Plugin Execution Phase: `Authentication Phase`  
+Plugin Execution Phase: `Authentication Phase`
 Plugin Execution Priority: `991`
 
 ## Configuration Fields

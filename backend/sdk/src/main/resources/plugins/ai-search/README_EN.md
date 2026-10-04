@@ -106,7 +106,7 @@ searchFrom:
 ```yaml
 searchFrom:
 - type: arxiv
-  serviceName: "arxiv-svc.dns" 
+  serviceName: "arxiv-svc.dns"
   servicePort: 443
   arxivCategory: "cs.AI"
   count: 10
@@ -117,7 +117,7 @@ searchFrom:
 ```yaml
 searchFrom:
 - type: quark
-  serviceName: "quark-svc.dns" 
+  serviceName: "quark-svc.dns"
   servicePort: 443
   apiKey: "quark api key"
   contentMode: "full"  # Optional values: "summary"(default) or "full"
@@ -130,8 +130,8 @@ defaultLang: "en-US"
 promptTemplate: |
   # Search Results:
   {search_results}
-  
-  # Please answer this question: 
+
+  # Please answer this question:
   {question}
 searchFrom:
 - type: google
@@ -141,7 +141,7 @@ searchFrom:
   servicePort: 443
 - type: google
   apiKey: "google-key"
-  cx: "news-search-id"    # Search engine ID specifically for Google News content 
+  cx: "news-search-id"    # Search engine ID specifically for Google News content
   serviceName: "google-svc.dns"
   servicePort: 443
 - type: bing
@@ -183,7 +183,7 @@ searchFrom:
   serviceName: "google-svc.dns"
   servicePort: 443
   start: 20
-  count: 10 
+  count: 10
 ```
 
 Note that excessive concurrency may lead to rate limiting, adjust according to actual situation.
@@ -198,7 +198,7 @@ searchFrom:
   servicePort: 80
   index: "knowledge_base"
   contentField: "content"
-  linkField: "url" 
+  linkField: "url"
   titleField: "title"
 ```
 
@@ -207,7 +207,7 @@ searchFrom:
 ```yaml
 needReference: true
 referenceFormat: "### Data Sources\n%s"
-searchFrom: 
+searchFrom:
 - type: bing
   apiKey: "your-bing-key"
   serviceName: "search-service.dns"

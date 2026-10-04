@@ -7,7 +7,7 @@ description: The Ext Authentication plugin implements the capability to call ext
 The `ext-auth` plugin implements sending authentication requests to an external authorization service to check whether the client request is authorized. This plugin is implemented with reference to Envoy's native [ext_authz filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter), which covers some capabilities for connecting to HTTP services.
 
 ## Execution Properties
-Plugin Execution Phase: `Authentication Phase`  
+Plugin Execution Phase: `Authentication Phase`
 Plugin Execution Priority: `360`
 
 ## Configuration Fields

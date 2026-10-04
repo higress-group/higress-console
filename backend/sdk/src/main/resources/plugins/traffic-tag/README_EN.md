@@ -7,7 +7,7 @@ description: Traffic tagging plugin configuration reference
 The `traffic-tag` plugin allows for tagging request traffic by adding specific request headers based on weight or specific request content. It supports complex logic to determine how to tag traffic according to user-defined standards.
 
 ## Running Attributes
-Plugin execution phase: `Default Phase`  
+Plugin execution phase: `Default Phase`
 Plugin execution priority: `400`
 
 ## Configuration Fields
@@ -69,7 +69,7 @@ The configuration fields for each item in `weightGroups` are described as follow
 > When using `percentage` for conditional matching, it assesses whether each request meets specific percentage conditions; while `weight` is a static random allocation of overall traffic distribution.
 
 ## Configuration Example
-**Example 1: Content-based Matching**  
+**Example 1: Content-based Matching**
 According to the configuration below, requests where the request header `role` has a value of `user`, `viewer`, or `editor` and contain query parameter `foo=bar` will have the request header `x-mse-tag: gray` added. Since `defaultTagKey` and `defaultTagVal` are configured, when no conditions are matched, the request will have the request header `x-mse-tag: base` added.
 
 ```yaml
@@ -94,7 +94,7 @@ conditionGroups:
           - bar
 ```
 
-**Example 2: Weight-based Matching**  
+**Example 2: Weight-based Matching**
 According to the configuration below, there is a 30% chance that the request will have the request header `x-mse-tag: gray` added, a 30% chance it will have `x-mse-tag: blue` added, and a 40% chance that no header will be added.
 
 ```yaml

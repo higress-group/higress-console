@@ -9,7 +9,7 @@ The waf plugin implements a ModSecurity-based rule protection engine, which can 
 
 ## Running Attributes
 
-Plugin execution phase: `authorization phase`  
+Plugin execution phase: `authorization phase`
 Plugin execution priority: `330`
 
 ## Configuration Fields
@@ -21,19 +21,19 @@ Plugin execution priority: `330`
 
 ## Configuration Example
 
-```yaml  
-useCRS: true  
-secRules:  
-  - "SecDebugLogLevel 3"  
-  - "SecRuleEngine On"  
-  - "SecAction \"id:100,phase:1,pass\""  
-  - "SecRule REQUEST_URI \"@streq /admin\" \"id:101,phase:1,t:lowercase,deny\""  
-  - "SecRule REQUEST_BODY \"@rx maliciouspayload\" \"id:102,phase:2,t:lowercase,deny\""  
+```yaml
+useCRS: true
+secRules:
+  - "SecDebugLogLevel 3"
+  - "SecRuleEngine On"
+  - "SecAction \"id:100,phase:1,pass\""
+  - "SecRule REQUEST_URI \"@streq /admin\" \"id:101,phase:1,t:lowercase,deny\""
+  - "SecRule REQUEST_BODY \"@rx maliciouspayload\" \"id:102,phase:2,t:lowercase,deny\""
 ```
 
 Based on this configuration, the following requests will be prohibited from access:
 
-```bash  
-curl http://example.com/admin  
-curl http://example.com -d "maliciouspayload"  
+```bash
+curl http://example.com/admin
+curl http://example.com -d "maliciouspayload"
 ```

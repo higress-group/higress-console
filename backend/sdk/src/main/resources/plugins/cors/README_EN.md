@@ -7,7 +7,7 @@ description: Cross-Origin Resource Sharing plugin configuration reference
 The `cors` plugin can enable CORS (Cross-Origin Resource Sharing) HTTP response headers for the server.
 
 ## Execution Attributes
-Plugin execution phase: `Authorization Phase`  
+Plugin execution phase: `Authorization Phase`
 Plugin execution priority: `340`
 
 ## Configuration Fields

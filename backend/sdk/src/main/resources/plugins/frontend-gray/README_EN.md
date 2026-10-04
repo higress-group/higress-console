@@ -7,7 +7,7 @@ description: Frontend gray plugin configuration reference
 The `frontend-gray` plugin implements the functionality of user gray release on the frontend. Through this plugin, it can be used for business `A/B testing`, while the `gradual release` combined with `monitorable` and `rollback` strategies ensures the stability of system release operations.
 
 ## Runtime Attributes
-Plugin execution phase: `Authentication Phase`  
+Plugin execution phase: `Authentication Phase`
 Plugin execution priority: `450`
 
 ## Configuration Fields
@@ -29,7 +29,7 @@ Plugin execution priority: `450`
 | `grayTagValue`   | array of string   | Optional      | -             | Label value for user classification tagging, derived from Cookie.                             |
 
 `rewrite` field configuration description:
-> `indexRouting` homepage rewrite and `fileRouting` file rewrite essentially use prefix matching, for example, `/app1`: `/mfe/app1/{version}/index.html` represents requests with the prefix /app1 routed to `/mfe/app1/{version}/index.html` page, where `{version}` represents the version number, which will be dynamically replaced by `baseDeployment.version` or `grayDeployments[].version` during execution.  
+> `indexRouting` homepage rewrite and `fileRouting` file rewrite essentially use prefix matching, for example, `/app1`: `/mfe/app1/{version}/index.html` represents requests with the prefix /app1 routed to `/mfe/app1/{version}/index.html` page, where `{version}` represents the version number, which will be dynamically replaced by `baseDeployment.version` or `grayDeployments[].version` during execution.
 > `{version}` will be replaced dynamically during execution by the frontend version from `baseDeployment.version` or `grayDeployments[].version`.
 
 | Name             | Data Type         | Requirements  | Default Value | Description                           |
@@ -77,10 +77,10 @@ grayDeployments:
     enabled: true
 ```
 
-The unique identifier of the user in the cookie is `userid`, and the current gray release rule has configured the `beta-user` rule.  
+The unique identifier of the user in the cookie is `userid`, and the current gray release rule has configured the `beta-user` rule.
 When the following conditions are met, the version `version: gray` will be used:
 - `userid` in the cookie equals `00000002` or `00000003`
-- Users whose `level` in the cookie equals `level3` or `level5`  
+- Users whose `level` in the cookie equals `level3` or `level5`
 Otherwise, use version `version: base`.
 
 ### User Information Exists in JSON
@@ -108,11 +108,11 @@ grayDeployments:
     enabled: true
 ```
 
-The cookie contains JSON data for `appInfo`, which includes the field `userId` as the current unique identifier.  
-The current gray release rule has configured the `beta-user` rule.  
+The cookie contains JSON data for `appInfo`, which includes the field `userId` as the current unique identifier.
+The current gray release rule has configured the `beta-user` rule.
 When the following conditions are met, the version `version: gray` will be used:
 - `userid` in the cookie equals `00000002` or `00000003`
-- Users whose `level` in the cookie equals `level3` or `level5`  
+- Users whose `level` in the cookie equals `level3` or `level5`
 Otherwise, use version `version: base`.
 
 ### Rewrite Configuration

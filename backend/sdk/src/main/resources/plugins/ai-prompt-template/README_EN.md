@@ -7,28 +7,28 @@ description: AI Prompt Template Configuration Reference
 AI prompt templates are used to quickly build similar types of AI requests.
 
 ## Execution Properties
-Plugin Execution Phase: `Default Phase`  
-Plugin Execution Priority: `500`  
+Plugin Execution Phase: `Default Phase`
+Plugin Execution Priority: `500`
 
 ## Configuration Description
 | Name            | Data Type         | Required | Default Value | Description                       |
 |-----------------|-------------------|----------|---------------|-----------------------------------|
 | `templates`     | array of object   | Required | -             | Template settings                 |
 
-Template object configuration description:  
+Template object configuration description:
 | Name                  | Data Type         | Required | Default Value | Description                       |
 |-----------------------|-------------------|----------|---------------|-----------------------------------|
 | `name`                | string            | Required | -             | Template name                     |
 | `template.model`     | string            | Required | -             | Model name                        |
 | `template.messages`   | array of object   | Required | -             | Input for large model            |
 
-Message object configuration description:  
+Message object configuration description:
 | Name           | Data Type         | Required | Default Value | Description                       |
 |----------------|-------------------|----------|---------------|-----------------------------------|
 | `role`         | string            | Required | -             | Role                              |
 | `content`      | string            | Required | -             | Message                           |
 
-Configuration example:  
+Configuration example:
 ```yaml
 templates:
 - name: "developer-chat"
@@ -41,7 +41,7 @@ templates:
       content: "Write me a {{program}} program."
 ```
 
-Example request body using the above configuration:  
+Example request body using the above configuration:
 ```json
 {
   "template": "developer-chat",
@@ -50,4 +50,4 @@ Example request body using the above configuration:
     "language": "python"
   }
 }
-```  
+```

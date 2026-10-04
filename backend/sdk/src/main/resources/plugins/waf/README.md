@@ -22,7 +22,7 @@ waf插件实现了基于ModSecurity的规则防护引擎，可以根据用户配
 ## 配置示例
 ```yaml
 useCRS: true
-secRules: 
+secRules:
   - "SecDebugLogLevel 3"
   - "SecRuleEngine On"
   - "SecAction \"id:100,phase:1,pass\""

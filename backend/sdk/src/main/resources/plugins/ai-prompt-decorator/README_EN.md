@@ -7,7 +7,7 @@ description: AI Prompts plugin configuration reference
 The AI Prompts plugin allows inserting prompts before and after requests in LLM.
 
 ## Execution Properties
-Plugin execution phase: `Default Phase`  
+Plugin execution phase: `Default Phase`
 Plugin execution priority: `450`
 
 ## Configuration Description
