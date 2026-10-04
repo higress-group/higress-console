@@ -6,7 +6,7 @@ description: LLM-oriented load balance policies
 
 # Introduction
 
-**Attention**: 
+**Attention**:
 - Version of Higress should >= v2.1.5
 
 This plug-in provides the llm-oriented load balancing capability in a hot-swappable manner. If the plugin is closed, the load balancing strategy will degenerate into the load balancing strategy of the service itself (round robin, local minimum request number, random, consistent hash, etc.).

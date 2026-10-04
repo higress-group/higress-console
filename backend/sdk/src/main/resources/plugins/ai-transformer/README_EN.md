@@ -7,8 +7,8 @@ description: AI Request-Response Transformation plugin configuration reference
 The AI Request-Response Transformation plugin modifies the header and body of requests/responses using LLM.
 
 ## Execution Attributes
-Plugin execution phase: `Authentication Phase`  
-Plugin execution priority: `410`  
+Plugin execution phase: `Authentication Phase`
+Plugin execution priority: `410`
 
 ## Configuration Description
 | Name | Type | Requirement | Default | Description |

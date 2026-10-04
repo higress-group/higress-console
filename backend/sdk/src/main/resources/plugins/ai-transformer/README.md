@@ -29,10 +29,10 @@ AI 请求响应转换插件，通过LLM对请求/响应的header以及body进行
 request:
     enable: false
     prompt: "如果请求path是以/httpbin开头的，帮我去掉/httpbin前缀，其他的不要改。"
-response: 
+response:
     enable: true
     prompt: "帮我修改以下HTTP应答信息，要求：1. content-type修改为application/json；2. body由xml转化为json；3. 移除content-length。"
-provider: 
+provider:
     serviceName: qwen
     domain: dashscope.aliyuncs.com
     apiKey: xxxxxxxxxxxxx
@@ -44,7 +44,7 @@ provider:
 
 <!--  A SAMPLE set of slides  -->
 
-<slideshow 
+<slideshow
     title="Sample Slide Show"
     date="Date of publication"
     author="Yours Truly"

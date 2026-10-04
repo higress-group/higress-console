@@ -7,7 +7,7 @@ description: Browser cache control plugin configuration reference
 The `cache-control` plugin implements adding `Expires` and `Cache-Control` headers to the response based on the URL file extensions, making it easier for the browser to cache files with specific extensions, such as `jpg`, `png`, and other image files.
 
 ## Runtime Attributes
-Plugin execution phase: `Authentication Phase`  
+Plugin execution phase: `Authentication Phase`
 Plugin execution priority: `420`
 
 ## Configuration Fields

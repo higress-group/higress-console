@@ -14,7 +14,7 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/response-cache/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/response-cache/README_EN.md
-  version: 1.0.1
+  version: 1.0.3
   contact:
     name: Higress Team
     url: https://higress.io/

@@ -143,5 +143,3 @@ curl http://localhost/test \
   ]
 }'
 ```
-
-

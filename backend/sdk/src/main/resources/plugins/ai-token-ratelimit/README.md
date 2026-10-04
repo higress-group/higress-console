@@ -112,7 +112,7 @@ rule_items:
         token_per_minute: 100
       # 兜底用，匹配所有请求，每个apikey对应的请求1000qdh
       - key: "*"
-        token_per_hour: 1000            
+        token_per_hour: 1000
 redis:
   service_name: redis.static
 ```
@@ -160,7 +160,7 @@ rule_items:
         token_per_minute: 100
       # 兜底用，匹配所有请求，每个consumer对应的请求1000qdh
       - key: "*"
-        token_per_hour: 1000     
+        token_per_hour: 1000
 redis:
   service_name: redis.static
 ```
@@ -188,7 +188,7 @@ rule_items:
         token_per_minute: 100
       # 兜底用，匹配所有请求，每个cookie中的value对应的请求1000qdh
       - key: "*"
-        token_per_hour: 1000 
+        token_per_hour: 1000
 rejected_code: 200
 rejected_msg: '{"code":-1,"msg":"Too many requests"}'
 redis:

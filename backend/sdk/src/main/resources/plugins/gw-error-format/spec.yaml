@@ -14,7 +14,7 @@ info:
   readmeUrl: https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/gw-error-format/README.md
   x-readmeUrl-i18n:
     en-US: https://github.com/alibaba/higress/blob/main/plugins/release/console/gw-error-format/README_EN.md
-  version: 1.0.0
+  version: 1.0.2
   contact:
     name: Higress Team
     url: https://higress.io/

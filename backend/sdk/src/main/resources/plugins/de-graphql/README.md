@@ -50,7 +50,7 @@ metadata:
   name: github-api
   namespace: higress-system
 spec:
-  ingressClassName: higress  
+  ingressClassName: higress
   rules:
   - http:
       paths:
@@ -165,7 +165,7 @@ query ($owner : String!, $name : String!) {
 
 curl https://api.github.com/graphql -X POST \
 -H "Authorization: bearer <PAT>" \
--d "{\"query\": \"query { viewer { login }}\"}" 
+-d "{\"query\": \"query { viewer { login }}\"}"
 
 {
 	"data": {
@@ -197,9 +197,3 @@ curl 'https://api.github.com/graphql' -X POST \
 - https://github.com/graphql/graphql-spec
 - https://docs.github.com/zh/graphql/guides/forming-calls-with-graphql
 - https://github.com/altair-graphql/altair
-
-
-
-
-
-

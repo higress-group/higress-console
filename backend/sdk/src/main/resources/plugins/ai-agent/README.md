@@ -100,7 +100,7 @@ apis:
     domain: restapi.amap.com
     serviceName: geo.dns
     servicePort: 80
-    apiKey: 
+    apiKey:
       in: query
       name: key
       value: xxxxxxxxxxxxxxx
@@ -155,7 +155,7 @@ apis:
     domain: api.seniverse.com
     serviceName: seniverse.dns
     servicePort: 80
-    apiKey: 
+    apiKey:
       in: query
       name: key
       value: xxxxxxxxxxxxxxx
@@ -185,21 +185,21 @@ apis:
               required: true
               schema:
                 type: string
-                default: zh-Hans 
+                default: zh-Hans
                 enum:
-                  - zh-Hans 
-                  - en 
-                  - ja 
+                  - zh-Hans
+                  - en
+                  - ja
             - name: unit
               in: query
               description: 表示温度的的单位，有摄氏度和华氏度两种
               required: true
               schema:
                 type: string
-                default: c 
+                default: c
                 enum:
-                  - c 
-                  - f 
+                  - c
+                  - f
           deprecated: false
     components:
       schemas: {}
