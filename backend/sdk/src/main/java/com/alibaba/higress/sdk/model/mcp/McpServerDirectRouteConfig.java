@@ -12,6 +12,10 @@
  */
 package com.alibaba.higress.sdk.model.mcp;
 
+import java.util.List;
+
+import com.alibaba.higress.sdk.model.route.Header;
+
 import lombok.Data;
 
 /**
@@ -24,5 +28,9 @@ public class McpServerDirectRouteConfig {
      * transportType: streamable,sse
      */
     private String transportType;
+    /**
+     * Custom headers sent to the upstream MCP Server (e.g., authentication)
+     */
+    private List<Header> headers;
 
 }
