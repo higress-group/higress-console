@@ -77,7 +77,7 @@ spec:
                                 # 使用原始的请求 body 进行重试
                                 use_original_request_body: true
                                 # 非后端服务返回的状态码，而是网关产生的状态码，也会重试，例如命中限流返回4xx，匹配到上面的规则
-                                only_redirect_upstream_code: false
+                                only_redirect_upstream_code: ${onlyRedirectUpstreamCode}
                                 # 请求头添加这个 header，用于重试时匹配到对应的 fallback 路由
                                 request_headers_to_add:
                                   - header:
