@@ -34,5 +34,7 @@ public interface SessionService {
 
     User validateSession(HttpServletRequest request);
 
+    void renewSession(HttpServletRequest request);
+
     void changePassword(String username, String oldPassword, String newPassword);
 }
