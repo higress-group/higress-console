@@ -38,6 +38,9 @@ public class McpServerConstants {
     public static final class Label {
         public static final String MCP_SERVER_BIZ_TYPE_VALUE = "mcp-server";
         public static final String RESOURCE_MCP_SERVER_TYPE_KEY = "higress.io/mcp-server-type";
+
+        public static final String RESOURCE_MCP_SERVER_USERNAME_KEY = "higress.io/mcp-server-username";
+        public static final String RESOURCE_MCP_SERVER_PLATFROM_KEY = "higress.io/mcp-server-platform";
     }
 
 }
