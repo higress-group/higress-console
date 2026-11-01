@@ -30,7 +30,7 @@ public interface SessionService {
 
     void saveSession(HttpServletResponse response, User user, boolean persistent);
 
-    void clearSession(HttpServletResponse response);
+    void clearSession(HttpServletRequest request, HttpServletResponse response);
 
     User validateSession(HttpServletRequest request);
 

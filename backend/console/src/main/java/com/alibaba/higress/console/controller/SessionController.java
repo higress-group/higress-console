@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -75,8 +76,8 @@ public class SessionController {
     @Operation(summary = "Logout")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged out successfully."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        sessionService.clearSession(response);
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        sessionService.clearSession(request, response);
         return ControllerUtil.buildSuccessResponseEntity();
     }
 }
