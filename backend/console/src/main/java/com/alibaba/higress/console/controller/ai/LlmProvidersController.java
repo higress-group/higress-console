@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.higress.console.controller.dto.LlmProviderResponse;
 import com.alibaba.higress.console.controller.dto.PaginatedResponse;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.util.ControllerUtil;
@@ -59,9 +60,10 @@ public class LlmProvidersController {
     @Operation(summary = "List LLM providers")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Providers listed successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<PaginatedResponse<LlmProvider>> list(@RequestParam(required = false) CommonPageQuery query) {
+    public ResponseEntity<PaginatedResponse<LlmProviderResponse>> list(
+        @RequestParam(required = false) CommonPageQuery query) {
         PaginatedResult<LlmProvider> providers = llmProviderService.list(query);
-        return ControllerUtil.buildResponseEntity(providers);
+        return ControllerUtil.buildResponseEntity(providers, LlmProviderResponse::from);
     }
 
     @PostMapping
@@ -70,10 +72,10 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "400", description = "Route data is not valid"),
         @ApiResponse(responseCode = "409", description = "Route already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<LlmProvider>> add(@RequestBody LlmProvider provider) {
+    public ResponseEntity<Response<LlmProviderResponse>> add(@RequestBody LlmProvider provider) {
         provider.validate(false);
         LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
-        return ControllerUtil.buildResponseEntity(newProvider);
+        return ControllerUtil.buildResponseEntity(LlmProviderResponse.from(newProvider));
     }
 
     @GetMapping(value = "/{name}")
@@ -81,9 +83,9 @@ public class LlmProvidersController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Provider found"),
         @ApiResponse(responseCode = "404", description = "Provider not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<LlmProvider>> query(@PathVariable("name") @NotBlank String name) {
+    public ResponseEntity<Response<LlmProviderResponse>> query(@PathVariable("name") @NotBlank String name) {
         LlmProvider provider = llmProviderService.query(name);
-        return ControllerUtil.buildResponseEntity(provider);
+        return ControllerUtil.buildResponseEntity(LlmProviderResponse.from(provider));
     }
 
     @PutMapping("/{name}")
@@ -92,7 +94,7 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "400",
             description = "Provider data is not valid or provider name in the URL doesn't match the one in the body."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<LlmProvider>> put(@PathVariable("name") @NotBlank String name,
+    public ResponseEntity<Response<LlmProviderResponse>> put(@PathVariable("name") @NotBlank String name,
         @RequestBody LlmProvider provider) {
         if (StringUtils.isNotEmpty(provider.getName())) {
             provider.setName(name);
@@ -101,7 +103,7 @@ public class LlmProvidersController {
         }
         provider.validate(false);
         LlmProvider updatedProvider = llmProviderService.addOrUpdate(provider);
-        return ControllerUtil.buildResponseEntity(updatedProvider);
+        return ControllerUtil.buildResponseEntity(LlmProviderResponse.from(updatedProvider));
     }
 
     @DeleteMapping("/{name}")

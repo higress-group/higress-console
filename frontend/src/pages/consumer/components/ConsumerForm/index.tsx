@@ -1,6 +1,7 @@
 import { CredentialType } from '@/interfaces/consumer';
+import { resolveWriteOnlyList } from '@/utils/write-only';
 import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select, Tabs } from 'antd';
+import { Button, Form, Input, Select, Tabs, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +11,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const [form] = Form.useForm();
   const [activeTabKey, setActiveTabKey] = useState('');
   const [keyAuthCredentialSource, setKeyAuthCredentialSource] = useState();
+  const [clearKeyAuthRequested, setClearKeyAuthRequested] = useState(false);
+  const keyAuthCredential = value?.credentials?.find(credential => credential.type === CredentialType.KEY_AUTH.key);
+  const keyAuthCredentialCount = keyAuthCredential?.credentialCount || 0;
 
   const credentialEnabledCheckers = {};
   credentialEnabledCheckers[CredentialType.KEY_AUTH.key] = () => true;
@@ -21,13 +25,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       const credentials = {};
       if (value.credentials) {
         for (const credential of value.credentials) {
-          credentials[credential.type] = credential;
+          credentials[credential.type] = { ...credential, values: [''] };
           activeTabKey_ = activeTabKey_ || credential.type;
         }
       }
       formValues = Object.assign({}, value, { credentials });
     }
     formValues ? form.setFieldsValue(formValues) : form.resetFields();
+    setClearKeyAuthRequested(false);
     setActiveTabKey(activeTabKey_ || CredentialType.KEY_AUTH.key);
     setKeyAuthCredentialSource(form.getFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'source']) || 'BEARER');
   }, [value]);
@@ -35,6 +40,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     reset: () => {
       form.resetFields();
+      setClearKeyAuthRequested(false);
     },
     handleSubmit: async () => {
       const values = await form.validateFields();

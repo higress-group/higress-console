@@ -7,7 +7,6 @@ import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
-import TokenList from './components/TokenList';
 import { aiModelProviders } from './configs';
 
 interface FormRef {
@@ -56,19 +55,19 @@ const LlmProviderList: React.FC = () => {
       },
     },
     {
-      title: t('llmProvider.columns.tokens'),
-      dataIndex: 'tokens',
-      key: 'tokens',
-      width: 300,
-      render: (value, record) => {
-        const providerConfig = aiModelProviders.find(p => p.value === record.type);
-        if (providerConfig && providerConfig.useCustomCredentials) {
-          value = providerConfig.getCredentialsForDisplay(record);
+      title: t('llmProvider.columns.credentials'),
+      dataIndex: 'tokenCount',
+      key: 'credentials',
+      width: 180,
+      render: (_, record) => {
+        if (record.type === 'bedrock') {
+          const count = [record.awsAccessKeyConfigured, record.awsSecretKeyConfigured].filter(Boolean).length;
+          return t('llmProvider.configuredCount', { count });
         }
-        if (!Array.isArray(value) || !value.length) {
-          return '-';
+        if (record.type === 'vertex') {
+          return t(record.vertexAuthKeyConfigured ? 'llmProvider.configured' : 'llmProvider.notConfigured');
         }
-        return <TokenList tokens={value} />;
+        return t('llmProvider.configuredCount', { count: record.tokenCount || 0 });
       },
     },
     {

@@ -3,6 +3,7 @@ import { ProxyServer } from '@/interfaces/proxy-server';
 import { Service, serviceToString } from '@/interfaces/service';
 import { getGatewayServices } from '@/services';
 import { getProxyServers } from '@/services/proxy-server';
+import { resolveWriteOnlyList, resolveWriteOnlyScalar } from '@/utils/write-only';
 import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Empty, Form, Input, InputNumber, Modal, Select, Switch, Tooltip, Typography } from 'antd';
 import { useRequest } from 'ice';
@@ -29,6 +30,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
   const [claudeServerType, setClaudeServerType] = useState<string | null>();
   const [qwenServerType, setQwenServerType] = useState<string | null>();
   const [providerConfig, setProviderConfig] = useState<object | null>();
+  const [clearSecretRequests, setClearSecretRequests] = useState<Record<string, boolean>>({});
   // Preserve rawConfigs fields that have no corresponding form control (e.g. fields
   // set directly via API). They are merged back on submit so UI edits don't erase them.
   const originalRawConfigsRef = useRef<Record<string, any>>({});
@@ -73,6 +75,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       proxyName: '',
     });
     setFailoverEnabled(false);
+    setClearSecretRequests({});
     setProviderType(null);
     onProviderTypeChanged(null);
     setProviderConfig(null);
@@ -93,6 +96,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       serviceResult.run();
     }
     originalRawConfigsRef.current = {}
+    setClearSecretRequests({});
     if (props.value) {
       const {
         name,
@@ -250,7 +254,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
       const result = {
         type: values.type,
         name: values.name,
-        tokens: values.tokens ? values.tokens.filter(v => v) : null,
+        tokens: resolveWriteOnlyList(values.tokens, clearSecretRequests.tokens),
         version: 0,
         protocol: values.protocol,
         tokenFailoverConfig: {
@@ -266,6 +270,13 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         // rawConfigs so they are not silently dropped when the user saves via the UI.
         rawConfigs: { ...filteredOriginal, ...(values.rawConfigs || {}) },
       };
+
+      const scalarSecretKeys = values.type === 'bedrock'
+        ? ['awsAccessKey', 'awsSecretKey']
+        : values.type === 'vertex' ? ['vertexAuthKey'] : [];
+      for (const key of scalarSecretKeys) {
+        result.rawConfigs[key] = resolveWriteOnlyScalar(values.rawConfigs?.[key], clearSecretRequests[key]);
+      }
 
       return result;
     },
@@ -301,6 +312,18 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   function getProviderConfigByType(type: string | null) {
     return aiModelProviders.find(p => p.value === type) || null;
+  }
+
+  function updateSecretClearRequest(key: string, clearRequested: boolean) {
+    setClearSecretRequests(previous => ({ ...previous, [key]: clearRequested }));
+    if (!clearRequested) {
+      return;
+    }
+    if (key === 'tokens') {
+      form.setFieldValue('tokens', ['']);
+    } else {
+      form.setFieldValue(['rawConfigs', key], '');
+    }
   }
 
   function openSecretRefModal() {
@@ -409,6 +432,25 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         <Form.List name="tokens" initialValue={[null]}>
           {(fields, { add, remove }, { errors }) => (
             <>
+              {props.value && (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <Text type="secondary">
+                    {t('llmProvider.configuredCount', { count: props.value.tokenCount || 0 })}
+                    {' '}
+                    {t('llmProvider.providerForm.leaveBlankToKeep')}
+                  </Text>
+                  {!!props.value.tokenCount && (
+                    <Link
+                      style={{ marginLeft: '0.5rem' }}
+                      onClick={() => updateSecretClearRequest('tokens', !clearSecretRequests.tokens)}
+                    >
+                      {t(clearSecretRequests.tokens
+                        ? 'llmProvider.providerForm.keepTokens'
+                        : 'llmProvider.providerForm.clearTokens')}
+                    </Link>
+                  )}
+                </div>
+              )}
               {!fields.length ?
                 <div
                   style={{ marginBottom: '8px' }}
@@ -433,6 +475,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                           if (value) {
                             return Promise.resolve();
                           }
+                          if (props.value && (props.value.tokenCount > 0 || clearSecretRequests.tokens)) {
+                            return Promise.resolve();
+                          }
                           if (providerConfig) {
                             if (providerConfig.tokenRequired === false) {
                               return Promise.resolve();
@@ -449,6 +494,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   >
                     <Input
                       style={{ width: '94%' }}
+                      onChange={() => updateSecretClearRequest('tokens', false)}
                     />
                   </Form.Item>
                   {/* 删除按钮 */}
@@ -1007,11 +1053,11 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             </Form.Item>
             <Form.Item
               label={t('llmProvider.providerForm.label.awsAccessKey')}
-              required
+              required={!props.value?.awsAccessKeyConfigured}
               name={["rawConfigs", "awsAccessKey"]}
               rules={[
                 {
-                  required: true,
+                  required: !props.value?.awsAccessKeyConfigured,
                   message: t('llmProvider.providerForm.rules.awsAccessKeyRequired'),
                 },
               ]}
@@ -1020,15 +1066,16 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 showCount
                 allowClear
                 maxLength={256}
+                onChange={() => updateSecretClearRequest('awsAccessKey', false)}
               />
             </Form.Item>
             <Form.Item
               label={t('llmProvider.providerForm.label.awsSecretKey')}
-              required
+              required={!props.value?.awsSecretKeyConfigured}
               name={["rawConfigs", "awsSecretKey"]}
               rules={[
                 {
-                  required: true,
+                  required: !props.value?.awsSecretKeyConfigured,
                   message: t('llmProvider.providerForm.rules.awsSecretKeyRequired'),
                 },
               ]}
@@ -1037,8 +1084,35 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                 showCount
                 allowClear
                 maxLength={256}
+                onChange={() => updateSecretClearRequest('awsSecretKey', false)}
               />
             </Form.Item>
+            {props.value && (
+              <div style={{ marginBottom: '1rem' }}>
+                <Text type="secondary">
+                  {t('llmProvider.configuredCount', {
+                    count: [props.value.awsAccessKeyConfigured, props.value.awsSecretKeyConfigured]
+                      .filter(Boolean).length,
+                  })}
+                  {' '}
+                  {t('llmProvider.providerForm.leaveBlankToKeep')}
+                </Text>
+                {(props.value.awsAccessKeyConfigured || props.value.awsSecretKeyConfigured) && (
+                  <Link
+                    style={{ marginLeft: '0.5rem' }}
+                    onClick={() => {
+                      const clearRequested = !(clearSecretRequests.awsAccessKey && clearSecretRequests.awsSecretKey);
+                      updateSecretClearRequest('awsAccessKey', clearRequested);
+                      updateSecretClearRequest('awsSecretKey', clearRequested);
+                    }}
+                  >
+                    {t(clearSecretRequests.awsAccessKey && clearSecretRequests.awsSecretKey
+                      ? 'llmProvider.providerForm.keepCredentials'
+                      : 'llmProvider.providerForm.clearCredentials')}
+                  </Link>
+                )}
+              </div>
+            )}
           </>
         )
       }
@@ -1085,7 +1159,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
             </Form.Item>
             <Form.Item
               label={t('llmProvider.providerForm.label.vertexAuthKey')}
-              required
+              required={!props.value?.vertexAuthKeyConfigured}
             >
               <Form.Item
                 name={["rawConfigs", "vertexAuthKey"]}
@@ -1094,6 +1168,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   {
                     validator(rule, value) {
                       if (!value) {
+                        if (props.value?.vertexAuthKeyConfigured || clearSecretRequests.vertexAuthKey) {
+                          return Promise.resolve();
+                        }
                         return Promise.reject(t('llmProvider.providerForm.rules.vertexAuthKeyRequired'));
                       }
                       try {
@@ -1114,8 +1191,30 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                   },
                 ]}
               >
-                <TextArea rows={15} />
+                <TextArea
+                  rows={15}
+                  onChange={() => updateSecretClearRequest('vertexAuthKey', false)}
+                />
               </Form.Item>
+              {props.value && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <Text type="secondary">
+                    {t(props.value.vertexAuthKeyConfigured ? 'llmProvider.configured' : 'llmProvider.notConfigured')}
+                    {' '}
+                    {t('llmProvider.providerForm.leaveBlankToKeep')}
+                  </Text>
+                  {props.value.vertexAuthKeyConfigured && (
+                    <Link
+                      style={{ marginLeft: '0.5rem' }}
+                      onClick={() => updateSecretClearRequest('vertexAuthKey', !clearSecretRequests.vertexAuthKey)}
+                    >
+                      {t(clearSecretRequests.vertexAuthKey
+                        ? 'llmProvider.providerForm.keepCredentials'
+                        : 'llmProvider.providerForm.clearCredentials')}
+                    </Link>
+                  )}
+                </div>
+              )}
               <div style={{ marginTop: '1rem' }}>
                 <Link onClick={openSecretRefModal}>{t("llmProvider.providerForm.secretRefModal.entry")}</Link>
               </div>
