@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -35,6 +36,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.alibaba.higress.console.controller.exception.LoginRateLimitException;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
@@ -45,6 +47,7 @@ class SessionServiceImplTest {
 
     private static final String ADMIN = "admin";
     private static final String PASSWORD = "correct-password";
+    private static final String CLIENT_IP = "192.0.2.10";
 
     private SessionServiceImpl sessionService;
 
@@ -52,8 +55,12 @@ class SessionServiceImplTest {
     void setUp() throws Exception {
         KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
         when(kubernetesClientService.readSecret(anyString())).thenReturn(adminSecret());
+        MutableClock clock = new MutableClock(1_000_000L);
+        LoginFailureBudgetService budgetService = LoginFailureBudgetServiceTest
+            .createService(new InMemoryLoginAttemptStore(), clock);
         sessionService = new SessionServiceImpl();
         sessionService.setKubernetesClientService(kubernetesClientService);
+        sessionService.setLoginFailureBudgetService(budgetService);
     }
 
     @Test
@@ -151,14 +158,86 @@ class SessionServiceImplTest {
     private static MockHttpServletRequest request(boolean secure) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setSecure(secure);
+        request.setRemoteAddr(CLIENT_IP);
         return request;
     }
 
+    private static MockHttpServletRequest request() {
+        return request(false);
+    }
+
+    @Test
+    void loginAndBasicShareBudgetAndSuccessfulLoginResetsIt() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        failedLogin();
+        failedBasic();
+        failedLogin();
+        failedBasic();
+
+        assertNotNull(sessionService.login(ADMIN, PASSWORD, request()));
+
+        failedBasic();
+        failedLogin();
+        failedBasic();
+        failedLogin();
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+        assertThrows(LoginRateLimitException.class,
+            () -> sessionService.login(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void successfulBasicAuthenticationResetsTheSharedBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+
+        assertNotNull(sessionService.validateSession(basicRequest(ADMIN, PASSWORD)));
+
+        for (int i = 0; i < 4; i++) {
+            failedBasic();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+    }
+
+    @Test
+    void missingAndMalformedCredentialsDoNotConsumeBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        assertNull(sessionService.login("", PASSWORD, request()));
+        assertNull(sessionService.login(ADMIN, "", request()));
+        assertNull(sessionService.validateSession(request()));
+        assertNull(sessionService.validateSession(authorizationRequest("Basic not-base64")));
+        assertNull(sessionService.validateSession(basicValueRequest("missing-separator")));
+        assertNull(sessionService.validateSession(basicValueRequest(":password")));
+        assertNull(sessionService.validateSession(basicValueRequest("admin:")));
+        assertNull(sessionService.validateSession(authorizationRequest("Bearer credentials")));
+
+        for (int i = 0; i < 4; i++) {
+            failedBasic();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+    }
+
+    private void failedLogin() {
+        assertNull(sessionService.login(ADMIN, "incorrect", request()));
+    }
+
+    private void failedBasic() {
+        assertNull(sessionService.validateSession(basicRequest(ADMIN, "incorrect")));
+    }
+
     private static MockHttpServletRequest basicRequest(String username, String password) {
-        MockHttpServletRequest request = request(false);
-        String credentials = Base64.getEncoder()
-            .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + credentials);
+        return basicValueRequest(username + ":" + password);
+    }
+
+    private static MockHttpServletRequest basicValueRequest(String value) {
+        String encoded = Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+        return authorizationRequest("Basic " + encoded);
+    }
+
+    private static MockHttpServletRequest authorizationRequest(String value) {
+        MockHttpServletRequest request = request();
+        request.addHeader(HttpHeaders.AUTHORIZATION, value);
         return request;
     }
 

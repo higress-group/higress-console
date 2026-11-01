@@ -58,6 +58,7 @@ public class SessionController {
     @Operation(summary = "Login")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
         @ApiResponse(responseCode = "400", description = "Missing user name or password."),
+        @ApiResponse(responseCode = "429", description = "Too many failed login attempts."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest,
         HttpServletResponse response) {
@@ -65,7 +66,7 @@ public class SessionController {
             throw new ValidationException("Missing user name or password.");
         }
 
-        User user = sessionService.login(request.getUsername(), request.getPassword());
+        User user = sessionService.login(request.getUsername(), request.getPassword(), httpRequest);
         if (user == null) {
             throw new AuthException("Incorrect username or password");
         }

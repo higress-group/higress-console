@@ -27,6 +27,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.MDC;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.exception.AuthException;
+import com.alibaba.higress.console.controller.exception.LoginRateLimitException;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.SessionService;
 import com.alibaba.higress.console.service.SessionUserHelper;
@@ -106,7 +108,12 @@ public class ApiStandardizationAspect {
                 logException(log::error, msg, t);
             }
             Response<Object> response = Response.failure(t);
-            return ResponseEntity.status(getHttpStatus(t)).body(response);
+            ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(getHttpStatus(t));
+            if (t instanceof LoginRateLimitException) {
+                LoginRateLimitException rateLimitException = (LoginRateLimitException)t;
+                responseBuilder.header(HttpHeaders.RETRY_AFTER, String.valueOf(rateLimitException.getRetryAfterSeconds()));
+            }
+            return responseBuilder.body(response);
         } finally {
             SessionUserHelper.clearCurrentUser();
             HttpContext.release();
@@ -164,6 +171,9 @@ public class ApiStandardizationAspect {
     private static int getHttpStatus(Throwable t) {
         if (t instanceof ValidationException) {
             return HttpStatus.BAD_REQUEST.value();
+        }
+        if (t instanceof LoginRateLimitException) {
+            return HttpStatus.TOO_MANY_REQUESTS.value();
         }
         if (t instanceof AuthException) {
             return HttpStatus.UNAUTHORIZED.value();
