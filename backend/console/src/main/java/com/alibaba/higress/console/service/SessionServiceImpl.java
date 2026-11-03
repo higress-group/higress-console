@@ -297,6 +297,8 @@ public class SessionServiceImpl implements SessionService {
         assert secret != null;
         assert MapUtils.isNotEmpty(secret.getData());
 
+        sessionStore.deleteByUsername(username);
+
         Map<String, byte[]> newData = new HashMap<>(secret.getData());
         newData.put(PASSWORD_KEY, newPassword.getBytes());
         secret.setData(newData);
@@ -307,7 +309,6 @@ public class SessionServiceImpl implements SessionService {
             throw new BusinessException("Error occurs when trying to update admin secret.", e);
         }
 
-        sessionStore.deleteByUsername(username);
         adminConfigCache.set(null);
     }
 

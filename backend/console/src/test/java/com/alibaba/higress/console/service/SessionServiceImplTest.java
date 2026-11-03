@@ -12,13 +12,20 @@
  */
 package com.alibaba.higress.console.service;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
@@ -146,6 +153,24 @@ class SessionServiceImplTest {
     }
 
     @Test
+    void failedRevocationDoesNotCommitPasswordAndLeavesOldSessionValid() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        V1Secret adminSecret = adminSecret();
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        when(client.readSecret(SystemConfigKey.SECRET_NAME_DEFAULT)).thenReturn(adminSecret);
+        SessionServiceImpl service = newService(store, client);
+        Cookie sessionCookie = createSession(service, ADMIN, false);
+        doThrow(new IllegalStateException("Revocation failed.")).when(store).deleteByUsername(ADMIN);
+
+        assertThrows(IllegalStateException.class, () -> service.changePassword(ADMIN, OLD_PASSWORD, "new-password"));
+
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        assertNotNull(service.login(ADMIN, OLD_PASSWORD));
+        assertAll(() -> verify(client, never()).replaceSecret(any(V1Secret.class)),
+            () -> assertEquals(OLD_PASSWORD, new String(adminSecret.getData().get("adminPassword"), StandardCharsets.UTF_8)));
+    }
+
+    @Test
     void twoServiceInstancesShareSessionStateThroughStore() throws ApiException {
         SessionServiceImpl secondService = newService(sessionStore);
         Cookie sessionCookie = createSession(sessionService, ADMIN, false);
@@ -176,11 +201,15 @@ class SessionServiceImplTest {
     }
 
     private SessionServiceImpl newService(SessionStore store) throws ApiException {
+        return newService(store, kubernetesClientService());
+    }
+
+    private SessionServiceImpl newService(SessionStore store, KubernetesClientService client) {
         SessionServiceImpl service = new SessionServiceImpl();
         service.setClock(clock);
         service.setSessionStore(store);
         service.setConfigService(mock(ConfigService.class));
-        service.setKubernetesClientService(kubernetesClientService());
+        service.setKubernetesClientService(client);
         return service;
     }
 
@@ -246,7 +275,7 @@ class SessionServiceImplTest {
     }
 
     /** Test-only store shared explicitly between service instances. */
-    private static final class InMemorySessionStore implements SessionStore {
+    private static class InMemorySessionStore implements SessionStore {
 
         private final Map<String, SessionData> sessions = new ConcurrentHashMap<>();
 

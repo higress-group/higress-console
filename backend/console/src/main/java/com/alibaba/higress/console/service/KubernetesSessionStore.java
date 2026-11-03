@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +21,12 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.google.common.hash.Hashing;
 
@@ -42,25 +46,39 @@ public class KubernetesSessionStore implements SessionStore {
     private static final String USERNAME_KEY = "username";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String LAST_ACCESS_AT_KEY = "lastAccessAt";
+    private static final int MAX_MUTATION_ATTEMPTS = 5;
+    private static final long CONFLICT_BACKOFF_MILLIS = 10L;
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
+    private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
+    private long absoluteTimeout = SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT;
 
     private KubernetesClientService kubernetesClientService;
+    private Clock clock = Clock.systemUTC();
 
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
     }
 
+    @Resource
+    public void setClock(Clock clock) {
+        this.clock = clock;
+    }
+
     @Override
     public void create(String sessionId, SessionData session) {
-        V1Secret secret = new V1Secret();
-        secret.setMetadata(new V1ObjectMeta().name(getResourceName(sessionId)));
-        secret.setType(SESSION_SECRET_TYPE);
-        secret.setData(toSecretData(session));
-        try {
+        mutateWithRetry("Unable to create session secret in K8s.", () -> {
+            V1Secret secret = new V1Secret();
+            secret.setMetadata(new V1ObjectMeta().name(getResourceName(sessionId)));
+            secret.setType(SESSION_SECRET_TYPE);
+            secret.setData(toSecretData(session));
             kubernetesClientService.createSecret(secret);
-        } catch (ApiException e) {
-            throw new BusinessException("Unable to create session secret in K8s.", e);
-        }
+        });
     }
 
     @Override
@@ -74,25 +92,20 @@ public class KubernetesSessionStore implements SessionStore {
 
     @Override
     public void update(String sessionId, SessionData session) {
-        try {
+        mutateWithRetry("Unable to update session secret in K8s.", () -> {
             V1Secret secret = kubernetesClientService.readSecret(getResourceName(sessionId));
             if (secret == null) {
                 return;
             }
             secret.setData(toSecretData(session));
             kubernetesClientService.replaceSecret(secret);
-        } catch (ApiException e) {
-            throw new BusinessException("Unable to update session secret in K8s.", e);
-        }
+        });
     }
 
     @Override
     public void delete(String sessionId) {
-        try {
-            kubernetesClientService.deleteSecret(getResourceName(sessionId));
-        } catch (ApiException e) {
-            throw new BusinessException("Unable to delete session secret from K8s.", e);
-        }
+        mutateWithRetry("Unable to delete session secret from K8s.",
+            () -> kubernetesClientService.deleteSecret(getResourceName(sessionId)));
     }
 
     @Override
@@ -102,16 +115,60 @@ public class KubernetesSessionStore implements SessionStore {
             if (secrets == null) {
                 return;
             }
+            long now = clock.millis();
             for (V1Secret secret : secrets) {
                 SessionData session = toSession(secret);
-                if (session == null || !username.equals(session.getUsername()) || secret.getMetadata() == null) {
+                if (session == null || secret.getMetadata() == null) {
                     continue;
                 }
-                kubernetesClientService.deleteSecret(secret.getMetadata().getName());
+                // Listing also performs a lazy amortized sweep of every expired session encountered.
+                if (isExpired(session, now) || username.equals(session.getUsername())) {
+                    deleteSecret(secret.getMetadata().getName());
+                }
             }
         } catch (ApiException e) {
             throw new BusinessException("Unable to delete user session secrets from K8s.", e);
         }
+    }
+
+    private boolean isExpired(SessionData session, long now) {
+        return now - session.getLastAccessAt() >= idleTimeout || now - session.getCreatedAt() >= absoluteTimeout;
+    }
+
+    private void deleteSecret(String name) {
+        mutateWithRetry("Unable to delete session secret from K8s.", () -> kubernetesClientService.deleteSecret(name));
+    }
+
+    private void mutateWithRetry(String errorMessage, KubernetesMutation mutation) {
+        for (int attempt = 1; attempt <= MAX_MUTATION_ATTEMPTS; attempt++) {
+            try {
+                mutation.execute();
+                return;
+            } catch (ApiException e) {
+                if (e.getCode() != HttpStatus.CONFLICT) {
+                    throw new BusinessException(errorMessage, e);
+                }
+                if (attempt == MAX_MUTATION_ATTEMPTS) {
+                    throw new SessionStoreRetryableException(errorMessage, e);
+                }
+                backoff(attempt, errorMessage, e);
+            }
+        }
+    }
+
+    private static void backoff(int attempt, String errorMessage, ApiException conflict) {
+        try {
+            Thread.sleep(CONFLICT_BACKOFF_MILLIS * attempt);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessException(errorMessage, conflict);
+        }
+    }
+
+    @FunctionalInterface
+    private interface KubernetesMutation {
+
+        void execute() throws ApiException;
     }
 
     private static String getResourceName(String sessionId) {

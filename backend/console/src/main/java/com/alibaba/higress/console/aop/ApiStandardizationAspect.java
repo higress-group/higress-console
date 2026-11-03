@@ -39,6 +39,7 @@ import com.alibaba.higress.console.controller.dto.Response;
 import com.alibaba.higress.console.controller.exception.AuthException;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.console.service.SessionService;
+import com.alibaba.higress.console.service.SessionStoreRetryableException;
 import com.alibaba.higress.console.service.SessionUserHelper;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
@@ -173,6 +174,9 @@ public class ApiStandardizationAspect {
         }
         if (t instanceof ResourceConflictException) {
             return HttpStatus.CONFLICT.value();
+        }
+        if (t instanceof SessionStoreRetryableException) {
+            return HttpStatus.SERVICE_UNAVAILABLE.value();
         }
         return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }

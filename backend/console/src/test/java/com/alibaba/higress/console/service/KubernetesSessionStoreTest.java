@@ -14,8 +14,13 @@ package com.alibaba.higress.console.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,12 +29,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
+import com.alibaba.higress.console.aop.ApiStandardizationAspect;
+import com.alibaba.higress.console.controller.SessionController;
+import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.google.common.hash.Hashing;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 
@@ -61,6 +74,76 @@ class KubernetesSessionStoreTest {
     }
 
     @Test
+    void createRetriesConflict() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(2000L).build();
+        when(client.createSecret(any(V1Secret.class))).thenThrow(conflict()).thenReturn(new V1Secret());
+
+        store.create("session-id", session);
+
+        verify(client, times(2)).createSecret(any(V1Secret.class));
+    }
+
+    @Test
+    void updateRereadsAndRetriesConflict() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String sessionId = "session-id";
+        String resourceName = resourceName(sessionId);
+        V1Secret original = sessionSecret(resourceName, "admin");
+        original.getMetadata().setResourceVersion("1");
+        V1Secret concurrentlyUpdated = sessionSecret(resourceName, "admin");
+        concurrentlyUpdated.getMetadata().setResourceVersion("2");
+        when(client.readSecret(resourceName)).thenReturn(original, concurrentlyUpdated);
+        when(client.replaceSecret(any(V1Secret.class))).thenThrow(conflict()).thenReturn(concurrentlyUpdated);
+        SessionData updated = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(3000L).build();
+
+        store.update(sessionId, updated);
+
+        verify(client, times(2)).readSecret(resourceName);
+        ArgumentCaptor<V1Secret> captor = ArgumentCaptor.forClass(V1Secret.class);
+        verify(client, times(2)).replaceSecret(captor.capture());
+        assertSame(original, captor.getAllValues().get(0));
+        assertSame(concurrentlyUpdated, captor.getAllValues().get(1));
+        assertEquals("2", captor.getAllValues().get(1).getMetadata().getResourceVersion());
+        assertEquals("3000", value(concurrentlyUpdated, "lastAccessAt"));
+    }
+
+    @Test
+    void updateExhaustsRetriesAndMapsToServiceUnavailable() throws Throwable {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String sessionId = "session-id";
+        String resourceName = resourceName(sessionId);
+        when(client.readSecret(resourceName)).thenReturn(sessionSecret(resourceName, "admin"));
+        when(client.replaceSecret(any(V1Secret.class))).thenThrow(conflict());
+        SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(3000L).build();
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> store.update(sessionId, session));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, httpStatus(exception));
+        verify(client, times(5)).readSecret(resourceName);
+        verify(client, times(5)).replaceSecret(any(V1Secret.class));
+    }
+
+    @Test
+    void deleteRetriesConflict() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String resourceName = resourceName("session-id");
+        doThrow(conflict()).doNothing().when(client).deleteSecret(resourceName);
+
+        store.delete("session-id");
+
+        verify(client, times(2)).deleteSecret(resourceName);
+    }
+
+    @Test
     void deleteByUsernameDeletesOnlyMatchingSessionSecrets() throws Exception {
         KubernetesClientService client = mock(KubernetesClientService.class);
         KubernetesSessionStore store = new KubernetesSessionStore();
@@ -76,16 +159,63 @@ class KubernetesSessionStoreTest {
         verify(client, never()).deleteSecret("session-other");
     }
 
+    @Test
+    void deleteByUsernameSweepsExpiredSessionsForOtherUsers() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        long now = System.currentTimeMillis();
+        V1Secret adminSession = sessionSecret("session-admin", "admin", now, now);
+        V1Secret activeOtherSession = sessionSecret("session-other", "other", now, now);
+        V1Secret expiredOtherSession = sessionSecret("session-expired-other", "other", 1000L, 2000L);
+        when(client.listSecret(KubernetesSessionStore.SESSION_SECRET_TYPE))
+            .thenReturn(Arrays.asList(adminSession, activeOtherSession, expiredOtherSession));
+
+        store.deleteByUsername("admin");
+
+        verify(client).deleteSecret("session-admin");
+        verify(client).deleteSecret("session-expired-other");
+        verify(client, never()).deleteSecret("session-other");
+    }
+
     private static V1Secret sessionSecret(String name, String username) {
+        long now = System.currentTimeMillis();
+        return sessionSecret(name, username, now, now);
+    }
+
+    private static V1Secret sessionSecret(String name, String username, long createdAt, long lastAccessAt) {
         Map<String, byte[]> data = new HashMap<>();
         data.put("username", username.getBytes(StandardCharsets.UTF_8));
-        data.put("createdAt", "1000".getBytes(StandardCharsets.UTF_8));
-        data.put("lastAccessAt", "2000".getBytes(StandardCharsets.UTF_8));
+        data.put("createdAt", String.valueOf(createdAt).getBytes(StandardCharsets.UTF_8));
+        data.put("lastAccessAt", String.valueOf(lastAccessAt).getBytes(StandardCharsets.UTF_8));
         V1Secret secret = new V1Secret();
         secret.setMetadata(new V1ObjectMeta().name(name));
         secret.setType(KubernetesSessionStore.SESSION_SECRET_TYPE);
         secret.setData(data);
         return secret;
+    }
+
+    private static ApiException conflict() {
+        return new ApiException(HttpStatus.CONFLICT.value(), "Conflict");
+    }
+
+    private static String resourceName(String sessionId) {
+        String idHash = Hashing.sha256().hashString(sessionId, StandardCharsets.UTF_8).toString();
+        return "higress-console-session-" + idHash;
+    }
+
+    private static HttpStatus httpStatus(BusinessException exception) throws Throwable {
+        ProceedingJoinPoint point = mock(ProceedingJoinPoint.class);
+        Signature signature = mock(Signature.class);
+        when(point.getTarget()).thenReturn(new SessionController());
+        when(point.getSignature()).thenReturn(signature);
+        when(signature.getDeclaringTypeName()).thenReturn(SessionController.class.getName());
+        when(signature.getName()).thenReturn("login");
+        when(point.proceed()).thenThrow(exception);
+
+        Object result = new ApiStandardizationAspect().intercept(point);
+
+        return ((ResponseEntity<?>)result).getStatusCode();
     }
 
     private static String value(V1Secret secret, String key) {
