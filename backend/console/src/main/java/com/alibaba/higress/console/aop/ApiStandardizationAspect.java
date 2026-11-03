@@ -34,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.dto.Response;
@@ -183,6 +184,9 @@ public class ApiStandardizationAspect {
         }
         if (t instanceof ResourceConflictException) {
             return HttpStatus.CONFLICT.value();
+        }
+        if (t instanceof ResponseStatusException) {
+            return ((ResponseStatusException)t).getStatus().value();
         }
         return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }

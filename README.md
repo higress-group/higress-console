@@ -7,6 +7,14 @@
 Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能力集成，首个可用版本考虑基于 kubernetes 部署环境，预期包含服务管理、路由管理、域名管理等基础能力。
 后续规划逐步迭代可观测能力、插件能力、登录管理能力，感兴趣的小伙伴一起 Hi~ gress~
 
+## Authentication attempts and trusted proxies
+
+The console sets `server.forward-headers-strategy=none`, so login and Basic authentication attempts are accounted by
+account and direct peer address; forwarding headers do not create separate budgets. Deployments fronted by a trusted
+proxy must configure proxy trust and forwarded-header handling explicitly. Without that configuration, attempts are
+aggregated per proxy peer address. When enabling forwarded-header handling, ensure that only trusted proxies can supply
+those headers and account for the resulting per-account and per-client-address budgets.
+
 ## 前置介绍
 
 此项目包含前端（NodeJS）、后端（Java）两个部分，前端（frontend）部分在构建完成后会随着后端代码（SpringBoot）一起部署。

@@ -46,17 +46,15 @@ public class LoginFailureBudgetService {
         this.store = store;
     }
 
-    public void checkActiveLock(LoginAttemptKey key) {
-        throwIfLocked(store.get(key), clock.millis());
-    }
-
-    public void recordFailure(LoginAttemptKey key) {
+    public void recordAttempt(LoginAttemptKey key) {
         long now = clock.millis();
         long windowMillis = secondsToMillis(failureWindowSeconds);
         long lockMillis = secondsToMillis(lockSeconds);
         int limit = Math.max(1, failureLimit);
-        LoginAttemptState updated = store.update(key, state -> nextFailure(state, now, windowMillis, lockMillis, limit));
-        throwIfLocked(updated, now);
+        LoginAttemptState updated = store.update(key, state -> nextAttempt(state, now, windowMillis, lockMillis, limit));
+        if (updated.getAttemptCount() > limit) {
+            throwIfLocked(updated, now);
+        }
     }
 
     public void reset(LoginAttemptKey key) {
@@ -67,16 +65,16 @@ public class LoginFailureBudgetService {
         this.clock = clock;
     }
 
-    private static LoginAttemptState nextFailure(LoginAttemptState state, long now, long windowMillis, long lockMillis,
+    private static LoginAttemptState nextAttempt(LoginAttemptState state, long now, long windowMillis, long lockMillis,
         int limit) {
         if (state.isLocked(now)) {
-            return state;
+            return new LoginAttemptState(state.getWindowStartedAt(), state.getAttemptCount() + 1, state.getLockedUntil());
         }
         if (state.getLockedUntil() != 0 || now < state.getWindowStartedAt()
             || now - state.getWindowStartedAt() >= windowMillis) {
             state = LoginAttemptState.EMPTY;
         }
-        int count = state.getFailureCount() + 1;
+        int count = state.getAttemptCount() + 1;
         long windowStartedAt = state.isEmpty() ? now : state.getWindowStartedAt();
         long lockedUntil = count >= limit ? now + lockMillis : 0;
         return new LoginAttemptState(windowStartedAt, count, lockedUntil);

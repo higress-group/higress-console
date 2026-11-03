@@ -165,7 +165,7 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
         LoginAttemptKey key = createLoginAttemptKey(username, request);
-        checkActiveLock(key);
+        recordAttempt(key);
         AdminConfig config = getAdminConfig();
         User user = config.getUsername().equals(username) && config.getPassword().equals(password) ? config.toUser() : null;
         return completeAuthentication(key, user);
@@ -246,7 +246,7 @@ public class SessionServiceImpl implements SessionService {
         String username = decoded.substring(0, separator);
         String password = decoded.substring(separator + 1);
         LoginAttemptKey key = createLoginAttemptKey(username, request);
-        checkActiveLock(key);
+        recordAttempt(key);
         return completeAuthentication(key, validateCredential(username, password));
     }
 
@@ -258,9 +258,9 @@ public class SessionServiceImpl implements SessionService {
         return new LoginAttemptKey(username, clientIp);
     }
 
-    private void checkActiveLock(LoginAttemptKey key) {
+    private void recordAttempt(LoginAttemptKey key) {
         if (key != null) {
-            loginFailureBudgetService.checkActiveLock(key);
+            loginFailureBudgetService.recordAttempt(key);
         }
     }
 
@@ -268,11 +268,9 @@ public class SessionServiceImpl implements SessionService {
         if (key == null) {
             return user;
         }
-        if (user == null) {
-            loginFailureBudgetService.recordFailure(key);
-            return null;
+        if (user != null) {
+            loginFailureBudgetService.reset(key);
         }
-        loginFailureBudgetService.reset(key);
         return user;
     }
 

@@ -23,14 +23,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.Cookie;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -180,7 +191,7 @@ class SessionServiceImplTest {
         failedLogin();
         failedBasic();
         failedLogin();
-        assertThrows(LoginRateLimitException.class, this::failedBasic);
+        failedBasic();
         assertThrows(LoginRateLimitException.class,
             () -> sessionService.login(ADMIN, PASSWORD, request()));
     }
@@ -197,6 +208,7 @@ class SessionServiceImplTest {
         for (int i = 0; i < 4; i++) {
             failedBasic();
         }
+        failedBasic();
         assertThrows(LoginRateLimitException.class, this::failedLogin);
     }
 
@@ -215,7 +227,69 @@ class SessionServiceImplTest {
         for (int i = 0; i < 4; i++) {
             failedBasic();
         }
+        failedBasic();
         assertThrows(LoginRateLimitException.class, this::failedBasic);
+    }
+
+    @Test
+    void forwardedHeadersDoNotChangeTheDirectPeerBudgetWhenForwardingIsDisabled() throws Exception {
+        Properties properties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("application.properties"));
+        assertEquals("none", properties.getProperty("server.forward-headers-strategy"));
+
+        for (int i = 0; i < 4; i++) {
+            MockHttpServletRequest request = request();
+            request.addHeader("X-Forwarded-For", "198.51.100." + i);
+            assertNull(sessionService.login(ADMIN, "incorrect", request));
+        }
+        MockHttpServletRequest request = request();
+        request.addHeader("X-Forwarded-For", "203.0.113.100");
+        assertNull(sessionService.login(ADMIN, "incorrect", request));
+
+        MockHttpServletRequest spoofedRequest = request();
+        spoofedRequest.addHeader("X-Forwarded-For", "203.0.113.101");
+        assertThrows(LoginRateLimitException.class,
+            () -> sessionService.login(ADMIN, PASSWORD, spoofedRequest));
+    }
+
+    @Test
+    void concurrentAttemptsBoundCredentialVerifications() throws Exception {
+        KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+        AtomicInteger verifications = new AtomicInteger();
+        when(kubernetesClientService.readSecret(anyString())).thenAnswer(invocation -> {
+            verifications.incrementAndGet();
+            Thread.sleep(50);
+            return adminSecret();
+        });
+        SessionServiceImpl concurrentService = new SessionServiceImpl();
+        concurrentService.setKubernetesClientService(kubernetesClientService);
+        concurrentService.setLoginFailureBudgetService(LoginFailureBudgetServiceTest
+            .createService(new InMemoryLoginAttemptStore(), new MutableClock(1_000_000L)));
+
+        int taskCount = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(taskCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<Boolean>> results = new ArrayList<>();
+        try {
+            for (int i = 0; i < taskCount; i++) {
+                results.add(executor.submit(() -> {
+                    start.await();
+                    try {
+                        concurrentService.login(ADMIN, "incorrect", request());
+                        return true;
+                    } catch (LoginRateLimitException e) {
+                        return false;
+                    }
+                }));
+            }
+            start.countDown();
+            for (Future<Boolean> result : results) {
+                result.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        assertEquals(5, verifications.get());
     }
 
     private void failedLogin() {

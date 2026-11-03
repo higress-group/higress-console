@@ -19,12 +19,12 @@ public final class LoginAttemptState {
     public static final LoginAttemptState EMPTY = new LoginAttemptState(0, 0, 0);
 
     private final long windowStartedAt;
-    private final int failureCount;
+    private final int attemptCount;
     private final long lockedUntil;
 
-    public LoginAttemptState(long windowStartedAt, int failureCount, long lockedUntil) {
+    public LoginAttemptState(long windowStartedAt, int attemptCount, long lockedUntil) {
         this.windowStartedAt = windowStartedAt;
-        this.failureCount = failureCount;
+        this.attemptCount = attemptCount;
         this.lockedUntil = lockedUntil;
     }
 
@@ -32,8 +32,8 @@ public final class LoginAttemptState {
         return windowStartedAt;
     }
 
-    public int getFailureCount() {
-        return failureCount;
+    public int getAttemptCount() {
+        return attemptCount;
     }
 
     public long getLockedUntil() {
@@ -57,12 +57,12 @@ public final class LoginAttemptState {
             return false;
         }
         LoginAttemptState that = (LoginAttemptState)o;
-        return windowStartedAt == that.windowStartedAt && failureCount == that.failureCount
+        return windowStartedAt == that.windowStartedAt && attemptCount == that.attemptCount
             && lockedUntil == that.lockedUntil;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(windowStartedAt, failureCount, lockedUntil);
+        return Objects.hash(windowStartedAt, attemptCount, lockedUntil);
     }
 }

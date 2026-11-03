@@ -14,23 +14,30 @@ package com.alibaba.higress.console.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.google.common.hash.Hashing;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -59,9 +66,9 @@ class KubernetesLoginAttemptStoreTest {
             .thenAnswer(invocation -> invocation.getArgument(0));
 
         LoginAttemptState result = store.update(KEY,
-            state -> new LoginAttemptState(state.getWindowStartedAt(), state.getFailureCount() + 1, 0));
+            state -> new LoginAttemptState(state.getWindowStartedAt(), state.getAttemptCount() + 1, 0));
 
-        assertEquals(3, result.getFailureCount());
+        assertEquals(3, result.getAttemptCount());
         ArgumentCaptor<V1ConfigMap> captor = ArgumentCaptor.forClass(V1ConfigMap.class);
         verify(kubernetesClientService, times(2)).replaceConfigMap(captor.capture());
         List<V1ConfigMap> updates = captor.getAllValues();
@@ -71,22 +78,23 @@ class KubernetesLoginAttemptStoreTest {
     }
 
     @Test
-    void createConflictRetriesWithCompareAndSwapAndHashedName() throws Exception {
+    void createConflictRetriesWithCompareAndSwapAndHashedDataKey() throws Exception {
         V1ConfigMap concurrentlyCreated = configMap("7", new LoginAttemptState(100, 1, 0));
         when(kubernetesClientService.readConfigMap(anyString())).thenReturn(null, concurrentlyCreated);
         when(kubernetesClientService.createConfigMap(any())).thenThrow(new ApiException(HttpStatus.CONFLICT, "Conflict"));
         when(kubernetesClientService.replaceConfigMap(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         LoginAttemptState result = store.update(KEY,
-            state -> new LoginAttemptState(state.getWindowStartedAt(), state.getFailureCount() + 1, 0));
+            state -> new LoginAttemptState(state.getWindowStartedAt(), state.getAttemptCount() + 1, 0));
 
-        assertEquals(2, result.getFailureCount());
+        assertEquals(2, result.getAttemptCount());
         ArgumentCaptor<V1ConfigMap> createCaptor = ArgumentCaptor.forClass(V1ConfigMap.class);
         verify(kubernetesClientService).createConfigMap(createCaptor.capture());
         String name = createCaptor.getValue().getMetadata().getName();
-        assertTrue(name.matches("higress-console-login-[0-9a-f]{64}"));
+        assertEquals("higress-console-login-attempts", name);
         assertFalse(name.contains(KEY.getAccount()));
         assertFalse(name.contains(KEY.getClientIp()));
+        assertTrue(createCaptor.getValue().getData().containsKey(entryKey(KEY)));
         ArgumentCaptor<V1ConfigMap> replaceCaptor = ArgumentCaptor.forClass(V1ConfigMap.class);
         verify(kubernetesClientService).replaceConfigMap(replaceCaptor.capture());
         assertEquals("7", replaceCaptor.getValue().getMetadata().getResourceVersion());
@@ -107,9 +115,63 @@ class KubernetesLoginAttemptStoreTest {
         assertEquals("3", captor.getValue().getMetadata().getResourceVersion());
     }
 
+    @Test
+    void fullSharedConfigMapEvictsExpiredEntriesBeforeInserting() throws Exception {
+        Map<String, String> data = new HashMap<>();
+        data.put("expired", value(new LoginAttemptState(0, 1, 0)));
+        long now = System.currentTimeMillis();
+        for (int i = 0; i < 4095; i++) {
+            data.put("key-" + i, value(new LoginAttemptState(now, 1, 0)));
+        }
+        V1ConfigMap existing = new V1ConfigMap()
+            .metadata(new V1ObjectMeta().name("higress-console-login-attempts").resourceVersion("4")).data(data);
+        when(kubernetesClientService.readConfigMap("higress-console-login-attempts")).thenReturn(existing);
+        when(kubernetesClientService.replaceConfigMap(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LoginAttemptState result = store.update(KEY,
+            state -> new LoginAttemptState(System.currentTimeMillis(), state.getAttemptCount() + 1, 0));
+
+        assertEquals(1, result.getAttemptCount());
+        ArgumentCaptor<V1ConfigMap> captor = ArgumentCaptor.forClass(V1ConfigMap.class);
+        verify(kubernetesClientService).replaceConfigMap(captor.capture());
+        assertEquals("higress-console-login-attempts", captor.getValue().getMetadata().getName());
+        assertFalse(captor.getValue().getData().containsKey("expired"));
+        assertTrue(captor.getValue().getData().containsKey(entryKey(KEY)));
+        assertEquals(4096, captor.getValue().getData().size());
+        verify(kubernetesClientService, never()).createConfigMap(any());
+    }
+
+    @Test
+    void fullSharedConfigMapRejectsNewEntriesAsServiceUnavailable() throws Exception {
+        Map<String, String> data = new HashMap<>();
+        long now = System.currentTimeMillis();
+        for (int i = 0; i < 4096; i++) {
+            data.put("key-" + i, value(new LoginAttemptState(now, 1, 0)));
+        }
+        V1ConfigMap existing = new V1ConfigMap()
+            .metadata(new V1ObjectMeta().name("higress-console-login-attempts").resourceVersion("5")).data(data);
+        when(kubernetesClientService.readConfigMap("higress-console-login-attempts")).thenReturn(existing);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> store.update(KEY,
+            state -> new LoginAttemptState(state.getWindowStartedAt(), state.getAttemptCount() + 1, 0)));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getStatus().value());
+        verify(kubernetesClientService, never()).replaceConfigMap(any());
+        verify(kubernetesClientService, never()).createConfigMap(any());
+    }
+
+    private static String entryKey(LoginAttemptKey key) {
+        String material = key.getAccount().length() + ":" + key.getAccount() + "|" + key.getClientIp().length()
+            + ":" + key.getClientIp();
+        return Hashing.sha256().hashString(material, StandardCharsets.UTF_8).toString();
+    }
+
+    private static String value(LoginAttemptState state) {
+        return state.getWindowStartedAt() + ":" + state.getAttemptCount() + ":" + state.getLockedUntil();
+    }
+
     private static V1ConfigMap configMap(String resourceVersion, LoginAttemptState state) {
-        String value = state.getWindowStartedAt() + ":" + state.getFailureCount() + ":" + state.getLockedUntil();
-        return new V1ConfigMap().metadata(new V1ObjectMeta().name("higress-console-login-test")
-            .resourceVersion(resourceVersion)).data(Collections.singletonMap("state", value));
+        return new V1ConfigMap().metadata(new V1ObjectMeta().name("higress-console-login-attempts")
+            .resourceVersion(resourceVersion)).data(Collections.singletonMap(entryKey(KEY), value(state)));
     }
 }

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.alibaba.higress.console.controller.SessionController;
 import com.alibaba.higress.console.controller.dto.Response;
@@ -52,6 +53,15 @@ class ApiStandardizationAspectTest {
         assertNull(response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER));
         Response<?> body = (Response<?>)response.getBody();
         assertFalse(body.isSuccess());
+    }
+
+    @Test
+    void fullAttemptStoreReturnsServiceUnavailable() throws Throwable {
+        ResponseEntity<?> response = intercept(
+            new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Login attempt store is full."));
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertNull(response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER));
     }
 
     private ResponseEntity<?> intercept(Throwable throwable) throws Throwable {
