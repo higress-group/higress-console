@@ -32,3 +32,24 @@ test('an explicit scalar clear submits an empty string', () => {
   assert.equal(resolveWriteOnlyScalar('', true), '');
   assert.equal(resolveWriteOnlyScalar('ignored', true), '');
 });
+
+test('an unchanged consumer save submits the keep payload', () => {
+  assert.deepEqual(
+    { type: 'key-auth', values: resolveWriteOnlyList(['']) },
+    { type: 'key-auth', values: null },
+  );
+});
+
+test('an explicit consumer clear submits the clear payload', () => {
+  assert.deepEqual(
+    { type: 'key-auth', values: resolveWriteOnlyList([''], true) },
+    { type: 'key-auth', values: [] },
+  );
+});
+
+test('a consumer replacement submits only the new credential values', () => {
+  assert.deepEqual(
+    { type: 'key-auth', values: resolveWriteOnlyList(['new-key', '']) },
+    { type: 'key-auth', values: ['new-key'] },
+  );
+});

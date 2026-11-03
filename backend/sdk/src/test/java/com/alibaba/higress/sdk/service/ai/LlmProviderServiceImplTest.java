@@ -229,6 +229,27 @@ public class LlmProviderServiceImplTest {
     }
 
     @Test
+    public void addOrUpdate_bedrockSecretsCanBeReplaced() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.BEDROCK);
+        providerConfig.put("awsRegion", "us-east-1");
+        providerConfig.put("awsAccessKey", "old-access-key");
+        providerConfig.put("awsSecretKey", "old-secret-key");
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.BEDROCK);
+        provider.getRawConfigs().put("awsRegion", "us-east-1");
+        provider.getRawConfigs().put("awsAccessKey", "new-access-key");
+        provider.getRawConfigs().put("awsSecretKey", "new-secret-key");
+        service.addOrUpdate(provider);
+
+        Assertions.assertEquals("new-access-key", getProviderConfig(globalInstance).get("awsAccessKey"));
+        Assertions.assertEquals("new-secret-key", getProviderConfig(globalInstance).get("awsSecretKey"));
+    }
+
+    @Test
     public void addOrUpdate_vertexSecretMergesBeforeValidationAndCanBeCleared() {
         Map<String, Object> providerConfig = new HashMap<>();
         providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
@@ -251,6 +272,29 @@ public class LlmProviderServiceImplTest {
         provider.getRawConfigs().put("vertexAuthKey", "");
         service.addOrUpdate(provider);
         Assertions.assertEquals("", getProviderConfig(globalInstance).get("vertexAuthKey"));
+    }
+
+    @Test
+    public void addOrUpdate_vertexSecretCanBeReplaced() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.VERTEX);
+        providerConfig.put("vertexRegion", "us-central1");
+        providerConfig.put("vertexProjectId", "project");
+        providerConfig.put("vertexAuthKey", createVertexAuthKey());
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        String replacementAuthKey = "{\"client_email\":\"replacement@example.com\","
+            + "\"private_key_id\":\"replacement-key-id\",\"private_key\":\"replacement-private-key\","
+            + "\"token_uri\":\"https://oauth2.googleapis.com/token\"}";
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.VERTEX);
+        provider.getRawConfigs().put("vertexRegion", "us-central1");
+        provider.getRawConfigs().put("vertexProjectId", "project");
+        provider.getRawConfigs().put("vertexAuthKey", replacementAuthKey);
+        service.addOrUpdate(provider);
+
+        Assertions.assertEquals(replacementAuthKey, getProviderConfig(globalInstance).get("vertexAuthKey"));
     }
 
     private void prepareExistingProvider(WasmPluginInstance globalInstance) {
