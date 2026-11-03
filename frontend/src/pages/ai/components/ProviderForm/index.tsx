@@ -271,9 +271,7 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
         rawConfigs: { ...filteredOriginal, ...(values.rawConfigs || {}) },
       };
 
-      const scalarSecretKeys = values.type === 'bedrock'
-        ? ['awsAccessKey', 'awsSecretKey']
-        : values.type === 'vertex' ? ['vertexAuthKey'] : [];
+      const scalarSecretKeys = getScalarSecretKeys(values.type);
       for (const key of scalarSecretKeys) {
         result.rawConfigs[key] = resolveWriteOnlyScalar(values.rawConfigs?.[key], clearSecretRequests[key]);
       }
@@ -312,6 +310,16 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
 
   function getProviderConfigByType(type: string | null) {
     return aiModelProviders.find(p => p.value === type) || null;
+  }
+
+  function getScalarSecretKeys(type: string | null) {
+    if (type === 'bedrock') {
+      return ['awsAccessKey', 'awsSecretKey'];
+    }
+    if (type === 'vertex') {
+      return ['vertexAuthKey'];
+    }
+    return [];
   }
 
   function updateSecretClearRequest(key: string, clearRequested: boolean) {
