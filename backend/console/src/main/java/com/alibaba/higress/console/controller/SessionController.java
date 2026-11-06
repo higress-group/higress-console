@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +59,8 @@ public class SessionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
         @ApiResponse(responseCode = "400", description = "Missing user name or password."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest,
+        HttpServletResponse response) {
         if (StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())) {
             throw new ValidationException("Missing user name or password.");
         }
@@ -67,7 +69,7 @@ public class SessionController {
         if (user == null) {
             throw new AuthException("Incorrect username or password");
         }
-        sessionService.saveSession(response, user, Boolean.TRUE.equals(request.getAutoLogin()));
+        sessionService.saveSession(httpRequest, response, user, Boolean.TRUE.equals(request.getAutoLogin()));
         return ControllerUtil.buildResponseEntity(user);
     }
 
@@ -75,8 +77,8 @@ public class SessionController {
     @Operation(summary = "Logout")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged out successfully."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        sessionService.clearSession(response);
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        sessionService.clearSession(request, response);
         return ControllerUtil.buildSuccessResponseEntity();
     }
 }

@@ -114,6 +114,10 @@ admin:
   username: admin
   displayName: Admin
   password: "" # If set, the value will be used as the admin password for login.
+  # Opt-in fallback for API clients that authenticate with HTTP Basic.
+  # Cookie-based login is unaffected; enable only when Basic access is required.
+  basicAuth:
+    enabled: false
 
 chat:
   enabled: false

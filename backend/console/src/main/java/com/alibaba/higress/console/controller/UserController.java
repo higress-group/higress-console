@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,7 +65,8 @@ public class UserController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Password changed successfully."),
         @ApiResponse(responseCode = "404", description = "Invalid request data"),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
-    public ResponseEntity<?> logout(@RequestBody ChangePasswordRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(@RequestBody ChangePasswordRequest request, HttpServletRequest httpRequest,
+        HttpServletResponse response) {
         if (StringUtils.isEmpty(request.getOldPassword())) {
             throw new ValidationException("Missing old password.");
         }
@@ -73,7 +75,7 @@ public class UserController {
         }
         User user = SessionUserHelper.getCurrentUser();
         sessionService.changePassword(user.getName(), request.getOldPassword(), request.getNewPassword());
-        sessionService.clearSession(response);
+        sessionService.clearSession(httpRequest, response);
         return ControllerUtil.buildSuccessResponseEntity();
     }
 }
