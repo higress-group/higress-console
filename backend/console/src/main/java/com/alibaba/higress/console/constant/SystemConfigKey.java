@@ -64,6 +64,14 @@ public class SystemConfigKey {
 
     public static final int ADMIN_COOKIE_MAX_AGE_DEFAULT = 30 * 24 * 60 * 60;
 
+    public static final String ADMIN_COOKIE_SECURE_KEY = CONFIG_KEY_PREFIX + "admin.cookie.secure";
+
+    public static final boolean ADMIN_COOKIE_SECURE_DEFAULT = false;
+
+    public static final String ADMIN_BASIC_AUTH_ENABLED_KEY = CONFIG_KEY_PREFIX + "admin.basic-auth.enabled";
+
+    public static final boolean ADMIN_BASIC_AUTH_ENABLED_DEFAULT = false;
+
     public static final String ADMIN_CONFIG_TTL_KEY = CONFIG_KEY_PREFIX + "admin.config-ttl";
 
     public static final long ADMIN_CONFIG_TTL_DEFAULT = 10 * 1000;

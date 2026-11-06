@@ -29,6 +29,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
@@ -62,12 +63,20 @@ public class SessionServiceImpl implements SessionService {
     private static final String ENCRYPT_IV_KEY = "iv";
     private static final int ENCRYPT_IV_LENGTH = 16;
     private static final String TOKEN_PART_SEPARATOR = "\1";
+    private static final String SESSION_COOKIE_SAME_SITE = "Lax";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT + "}")
     private int cookieMaxAge = SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
+
+    @Value("${" + SystemConfigKey.ADMIN_COOKIE_SECURE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_SECURE_DEFAULT + "}")
+    private boolean cookieSecure = SystemConfigKey.ADMIN_COOKIE_SECURE_DEFAULT;
+
+    @Value("${" + SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_KEY + ":"
+        + SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_DEFAULT + "}")
+    private boolean basicAuthEnabled = SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_DEFAULT;
 
     @Value("${" + SystemConfigKey.SECRET_NAME_KEY + ":" + SystemConfigKey.SECRET_NAME_DEFAULT + "}")
     private String secretName = SystemConfigKey.SECRET_NAME_DEFAULT;
@@ -153,20 +162,13 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public void saveSession(HttpServletResponse response, User user, boolean persistent) {
-        Cookie cookie = buildEmptyCookie();
-        cookie.setValue(generateToken(user));
-        if (persistent) {
-            cookie.setMaxAge(cookieMaxAge);
-        }
-        response.addCookie(cookie);
+    public void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent) {
+        addSessionCookie(request, response, generateToken(user), persistent ? Long.valueOf(cookieMaxAge) : null);
     }
 
     @Override
-    public void clearSession(HttpServletResponse response) {
-        Cookie cookie = buildEmptyCookie();
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+    public void clearSession(HttpServletRequest request, HttpServletResponse response) {
+        addSessionCookie(request, response, StringUtils.EMPTY, 0L);
     }
 
     @Override
@@ -210,6 +212,9 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private User tryExtractUserFromAuthHeader(HttpServletRequest request) {
+        if (!basicAuthEnabled) {
+            return null;
+        }
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.isBlank(header)) {
             return null;
@@ -275,11 +280,15 @@ public class SessionServiceImpl implements SessionService {
         adminConfigCache.set(null);
     }
 
-    private Cookie buildEmptyCookie() {
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        return cookie;
+    private void addSessionCookie(HttpServletRequest request, HttpServletResponse response, String value,
+        Long maxAge) {
+        ResponseCookie.ResponseCookieBuilder builder =
+            ResponseCookie.from(cookieName, StringUtils.defaultString(value)).httpOnly(true).path("/")
+                .sameSite(SESSION_COOKIE_SAME_SITE).secure(cookieSecure || request.isSecure());
+        if (maxAge != null) {
+            builder.maxAge(maxAge);
+        }
+        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
     }
 
     private String generateToken(User user) {
