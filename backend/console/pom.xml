@@ -43,6 +43,20 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
+			<exclusions>
+				<!-- springdoc-openapi-ui 1.8.0 transitively ships swagger-ui 5.10.3,
+				     which leaves Request Body schemas blank (higress-group/higress#3207). -->
+				<exclusion>
+					<groupId>org.webjars</groupId>
+					<artifactId>swagger-ui</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- Direct pin so all-in-one / console images always serve a Swagger UI
+		     that can render requestBody schemas. Version is managed in the parent POM. -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>swagger-ui</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
