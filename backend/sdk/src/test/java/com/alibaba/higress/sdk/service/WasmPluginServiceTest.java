@@ -14,8 +14,8 @@ package com.alibaba.higress.sdk.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -25,8 +25,12 @@ import static org.mockito.Mockito.when;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -42,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.alibaba.higress.sdk.constant.HigressConstants;
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.constant.Separators;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPlugin;
@@ -51,7 +56,9 @@ import com.alibaba.higress.sdk.model.wasmplugin.WasmPluginServiceConfig;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.alibaba.higress.sdk.service.kubernetes.ImageUrl;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesModelConverter;
+import com.alibaba.higress.sdk.service.kubernetes.KubernetesUtil;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.ImagePullPolicy;
+import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.MatchRule;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.PluginPhase;
 import com.alibaba.higress.sdk.service.kubernetes.crd.wasm.V1alpha1WasmPlugin;
 import com.alibaba.higress.sdk.util.MapUtil;
@@ -175,7 +182,7 @@ public class WasmPluginServiceTest {
         Assertions.assertEquals("http://plugin-server:8080/plugins/ai-load-balancer/" + version + "/plugin.wasm",
             serverPlugin.getImageRepository());
 
-        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), any(), anyBoolean())).thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         service.updateBuiltIn(serverPlugin);
         ArgumentCaptor<V1alpha1WasmPlugin> captured = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
@@ -229,7 +236,7 @@ public class WasmPluginServiceTest {
     public void updateBuiltInTestNotConfigured() throws Exception {
         service.initialize();
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), any(), anyBoolean()))
             .thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -278,7 +285,7 @@ public class WasmPluginServiceTest {
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
             .scope(WasmPluginInstanceScope.DOMAIN).target("test").configurations(MapUtil.of("ki", "vi")).build());
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), any(), anyBoolean()))
             .thenReturn(Lists.newArrayList(existedCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -326,7 +333,7 @@ public class WasmPluginServiceTest {
         kubernetesModelConverter.setWasmPluginInstanceToCr(existedCr, WasmPluginInstance.builder()
             .scope(WasmPluginInstanceScope.DOMAIN).target("test").configurations(MapUtil.of("ki", "vi")).build());
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), any(), anyBoolean()))
             .thenReturn(Lists.newArrayList(existedCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -399,7 +406,7 @@ public class WasmPluginServiceTest {
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), anyString(), anyBoolean()))
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), any(), anyBoolean()))
             .thenReturn(Lists.newArrayList(userCr, internalCr));
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -454,8 +461,145 @@ public class WasmPluginServiceTest {
         Assertions.assertEquals(plugin.getImagePullSecret(), userCr.getSpec().getImagePullSecret());
     }
 
+    @Test
+    public void updateBuiltInTestUpgradedInternalCr() throws Exception {
+        service.initialize();
+
+        final String oldVersion = "1.0.0";
+        V1alpha1WasmPlugin currentCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, DEFAULT_VERSION, true, false);
+        V1alpha1WasmPlugin internalCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, oldVersion, true, true);
+        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr, WasmPluginInstance.builder()
+            .scope(WasmPluginInstanceScope.GLOBAL).configurations(MapUtil.of("k", "v")).build());
+        kubernetesModelConverter.setWasmPluginInstanceToCr(internalCr,
+            WasmPluginInstance.builder().scope(WasmPluginInstanceScope.DOMAIN).target("www.test.com")
+                .configurations(MapUtil.of("kd", "vd")).build());
+        final List<MatchRule> originalMatchRules = new ArrayList<>(internalCr.getSpec().getMatchRules());
+        final Map<String, Object> originalDefaultConfig = new HashMap<>(internalCr.getSpec().getDefaultConfig());
+        final String originalPhase = internalCr.getSpec().getPhase();
+        final Integer originalPriority = internalCr.getSpec().getPriority();
+        final String originalImagePullPolicy = internalCr.getSpec().getImagePullPolicy();
+        final String originalImagePullSecret = internalCr.getSpec().getImagePullSecret();
+
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), isNull(), eq(true)))
+            .thenReturn(Lists.newArrayList(currentCr, internalCr));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final String newRepo = "oci://docker.io/plugins/" + TEST_BUILT_IN_PLUGIN_NAME;
+        final String newVersion = "9.9.9";
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.getName());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
+        service.updateBuiltIn(plugin);
+
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(2)).replaceWasmPlugin(crCaptor.capture());
+
+        V1alpha1WasmPlugin updatedInternalCr = crCaptor.getAllValues().stream()
+            .filter(cr -> TEST_BUILT_IN_PLUGIN_INTERNAL_CR_NAME.equals(cr.getMetadata().getName())).findFirst()
+            .orElse(null);
+        Assertions.assertNotNull(updatedInternalCr);
+        Assertions.assertEquals(new ImageUrl(newRepo, newVersion).toUrlString(),
+            updatedInternalCr.getSpec().getUrl());
+        Assertions.assertEquals(oldVersion, KubernetesUtil.getLabel(updatedInternalCr,
+            KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
+        Assertions.assertEquals(originalMatchRules, updatedInternalCr.getSpec().getMatchRules());
+        Assertions.assertEquals(originalDefaultConfig, updatedInternalCr.getSpec().getDefaultConfig());
+        Assertions.assertEquals(originalPhase, updatedInternalCr.getSpec().getPhase());
+        Assertions.assertEquals(originalPriority, updatedInternalCr.getSpec().getPriority());
+        Assertions.assertEquals(originalImagePullPolicy, updatedInternalCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(originalImagePullSecret, updatedInternalCr.getSpec().getImagePullSecret());
+
+        V1alpha1WasmPlugin updatedCurrentCr = crCaptor.getAllValues().stream()
+            .filter(cr -> (TEST_BUILT_IN_PLUGIN_NAME + Separators.DASH + DEFAULT_VERSION)
+                .equals(cr.getMetadata().getName())).findFirst().orElse(null);
+        Assertions.assertNotNull(updatedCurrentCr);
+        Assertions.assertEquals(new ImageUrl(newRepo, newVersion).toUrlString(), updatedCurrentCr.getSpec().getUrl());
+        Assertions.assertEquals(plugin.getPhase(), updatedCurrentCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), updatedCurrentCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), updatedCurrentCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), updatedCurrentCr.getSpec().getImagePullSecret());
+    }
+
+    @Test
+    public void updateBuiltInTestNonUpgradedDeployment() throws Exception {
+        service.initialize();
+
+        V1alpha1WasmPlugin currentCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, DEFAULT_VERSION, true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME), isNull(), eq(true)))
+            .thenReturn(Lists.newArrayList(currentCr));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final String newRepo = "oci://docker.io/plugins/" + TEST_BUILT_IN_PLUGIN_NAME;
+        final String newVersion = "9.9.9";
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(TEST_BUILT_IN_PLUGIN_NAME);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.getName());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
+        service.updateBuiltIn(plugin);
+
+        verify(kubernetesClientService, never()).createWasmPlugin(any());
+        ArgumentCaptor<V1alpha1WasmPlugin> crCaptor = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(crCaptor.capture());
+        V1alpha1WasmPlugin updatedCr = crCaptor.getValue();
+        Assertions.assertEquals(TEST_BUILT_IN_PLUGIN_USER_CR_NAME, updatedCr.getMetadata().getName());
+        Assertions.assertEquals(new ImageUrl(newRepo, newVersion).toUrlString(), updatedCr.getSpec().getUrl());
+        Assertions.assertEquals(DEFAULT_VERSION, KubernetesUtil.getLabel(updatedCr,
+            KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY));
+        Assertions.assertEquals(plugin.getPhase(), updatedCr.getSpec().getPhase());
+        Assertions.assertEquals(plugin.getPriority(), updatedCr.getSpec().getPriority());
+        Assertions.assertEquals(plugin.getImagePullPolicy(), updatedCr.getSpec().getImagePullPolicy());
+        Assertions.assertEquals(plugin.getImagePullSecret(), updatedCr.getSpec().getImagePullSecret());
+    }
+
+    @Test
+    public void queryBuiltInPluginTestReflectsUpdatedAddress() throws Exception {
+        service.initialize();
+
+        final String pluginName = "mcp-server";
+        WasmPlugin builtInPlugin = service.list(null).getData().stream()
+            .filter(item -> pluginName.equals(item.getName())).findFirst().orElse(null);
+        Assertions.assertNotNull(builtInPlugin);
+        V1alpha1WasmPlugin currentCr =
+            buildWasmPluginResource(pluginName, builtInPlugin.getPluginVersion(), true, false);
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), isNull(), eq(true)))
+            .thenReturn(Lists.newArrayList(currentCr));
+        when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final String newRepo = "oci://docker.io/plugins/" + pluginName;
+        final String newVersion = "9.9.9";
+        WasmPlugin plugin = new WasmPlugin();
+        plugin.setName(pluginName);
+        plugin.setImageRepository(newRepo);
+        plugin.setImageVersion(newVersion);
+        plugin.setPhase(PluginPhase.AUTHN.getName());
+        plugin.setPriority(500);
+        plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
+        plugin.setImagePullSecret("test-secret");
+        service.updateBuiltIn(plugin);
+
+        WasmPlugin queriedPlugin = service.query(pluginName, null);
+        Assertions.assertNotNull(queriedPlugin);
+        Assertions.assertEquals(newRepo, queriedPlugin.getImageRepository());
+        Assertions.assertEquals(newVersion, queriedPlugin.getImageVersion());
+    }
+
     private V1alpha1WasmPlugin buildWasmPluginResource(String name, boolean builtIn, boolean internal) {
-        WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(DEFAULT_VERSION).builtIn(builtIn)
+        return buildWasmPluginResource(name, DEFAULT_VERSION, builtIn, internal);
+    }
+
+    private V1alpha1WasmPlugin buildWasmPluginResource(String name, String version, boolean builtIn,
+        boolean internal) {
+        WasmPlugin plugin = WasmPlugin.builder().name(name).pluginVersion(version).builtIn(builtIn)
             .category("TEST").icon("http://dummy-icon").phase(PluginPhase.UNSPECIFIED.name()).priority(1000)
             .imageRepository("oci://docker.io/" + name).build();
         return kubernetesModelConverter.wasmPluginToCr(plugin, internal);
@@ -470,7 +614,7 @@ public class WasmPluginServiceTest {
         plugin.setPhase(PluginPhase.UNSPECIFIED.getName());
         plugin.setPriority(1000);
         plugin.setImagePullPolicy(ImagePullPolicy.ALWAYS.getName());
-        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Collections.emptyList());
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), any(), anyBoolean())).thenReturn(Collections.emptyList());
         when(kubernetesClientService.createWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         service.updateBuiltIn(plugin);
         ArgumentCaptor<V1alpha1WasmPlugin> created = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
@@ -478,7 +622,7 @@ public class WasmPluginServiceTest {
         Assertions.assertEquals(new ImageUrl(repository, imageVersion).toUrlString(), created.getValue().getSpec().getUrl());
 
         V1alpha1WasmPlugin existing = buildWasmPluginResource(pluginName, true, false);
-        when(kubernetesClientService.listWasmPlugin(eq(pluginName), anyString(), anyBoolean())).thenReturn(Lists.newArrayList(existing));
+        when(kubernetesClientService.listWasmPlugin(eq(pluginName), any(), anyBoolean())).thenReturn(Lists.newArrayList(existing));
         when(kubernetesClientService.replaceWasmPlugin(any())).thenAnswer(invocation -> invocation.getArgument(0));
         service.updateBuiltIn(plugin);
         ArgumentCaptor<V1alpha1WasmPlugin> replaced = ArgumentCaptor.forClass(V1alpha1WasmPlugin.class);
