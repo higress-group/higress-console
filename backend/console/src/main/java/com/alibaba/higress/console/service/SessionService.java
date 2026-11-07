@@ -28,7 +28,7 @@ public interface SessionService {
 
     User login(String username, String password);
 
-    void saveSession(HttpServletResponse response, User user, boolean persistent);
+    void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent);
 
     void clearSession(HttpServletRequest request, HttpServletResponse response);
 

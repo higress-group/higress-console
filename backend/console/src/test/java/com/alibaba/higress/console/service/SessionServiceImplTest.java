@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Alibaba Group Holding Ltd.
+ * Copyright (c) 2022-2026 Alibaba Group Holding Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -46,10 +46,12 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -118,7 +120,7 @@ class SessionServiceImplTest {
         Cookie sessionCookie = createSession(sessionService, ADMIN, false);
         MockHttpServletResponse logoutResponse = new MockHttpServletResponse();
         sessionService.clearSession(requestWith(sessionCookie), logoutResponse);
-        assertEquals(0, logoutResponse.getCookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT).getMaxAge());
+        assertTrue(setCookie(logoutResponse).contains("Max-Age=0"));
         assertNull(sessionStore.find(sessionCookie.getValue()));
 
         MockHttpServletRequest replayRequest = requestWith(sessionCookie);
@@ -200,6 +202,93 @@ class SessionServiceImplTest {
         assertNull(sessionService.validateSession(requestWith(legacyCookie)));
     }
 
+    @Test
+    void saveSessionOverHttpUsesLaxHttpOnlyCookieWithoutSecure() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        sessionService.saveSession(request(false), response, user(), false);
+
+        String setCookie = setCookie(response);
+        assertTrue(setCookie.startsWith(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "="));
+        assertTrue(setCookie.contains("Path=/"));
+        assertTrue(setCookie.contains("HttpOnly"));
+        assertTrue(setCookie.contains("SameSite=Lax"));
+        assertFalse(setCookie.contains("Secure"));
+        assertFalse(setCookie.contains("Max-Age"));
+    }
+
+    @Test
+    void saveSessionOverHttpsAddsSecure() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        sessionService.saveSession(request(true), response, user(), false);
+
+        String setCookie = setCookie(response);
+        assertTrue(setCookie.contains("Secure"));
+        assertTrue(setCookie.contains("HttpOnly"));
+        assertTrue(setCookie.contains("SameSite=Lax"));
+    }
+
+    @Test
+    void saveSessionAddsSecureWhenExplicitlyConfigured() {
+        ReflectionTestUtils.setField(sessionService, "cookieSecure", true);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        sessionService.saveSession(request(false), response, user(), false);
+
+        assertTrue(setCookie(response).contains("Secure"));
+    }
+
+    @Test
+    void persistentSessionKeepsConfiguredMaxAge() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        sessionService.saveSession(request(false), response, user(), true);
+
+        assertTrue(setCookie(response).contains("Max-Age=" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT));
+    }
+
+    @Test
+    void clearSessionUsesSameAttributesAndExpiresCookie() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        sessionService.clearSession(request(true), response);
+
+        String setCookie = setCookie(response);
+        assertTrue(setCookie.startsWith(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "=;"));
+        assertTrue(setCookie.contains("Max-Age=0"));
+        assertTrue(setCookie.contains("Path=/"));
+        assertTrue(setCookie.contains("HttpOnly"));
+        assertTrue(setCookie.contains("SameSite=Lax"));
+        assertTrue(setCookie.contains("Secure"));
+    }
+
+    @Test
+    void basicAuthIsIgnoredByDefault() {
+        assertNull(sessionService.validateSession(basicRequest(ADMIN, OLD_PASSWORD)));
+    }
+
+    @Test
+    void basicAuthWorksWhenExplicitlyEnabled() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+
+        User user = sessionService.validateSession(basicRequest(ADMIN, OLD_PASSWORD));
+
+        assertNotNull(user);
+        assertEquals(ADMIN, user.getName());
+        assertNull(sessionService.validateSession(basicRequest(ADMIN, "incorrect-password")));
+    }
+
+    @Test
+    void cookieSessionWorksWhenBasicAuthIsDisabled() {
+        Cookie sessionCookie = createSession(sessionService, ADMIN, false);
+
+        User user = sessionService.validateSession(requestWith(sessionCookie));
+
+        assertNotNull(user);
+        assertEquals(ADMIN, user.getName());
+    }
+
     private SessionServiceImpl newService(SessionStore store) throws ApiException {
         return newService(store, kubernetesClientService());
     }
@@ -234,14 +323,55 @@ class SessionServiceImplTest {
 
     private static Cookie createSession(SessionServiceImpl service, String username, boolean persistent) {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        service.saveSession(response, User.builder().name(username).displayName("Administrator").build(), persistent);
-        return response.getCookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT);
+        service.saveSession(request(false), response, User.builder().name(username).displayName("Administrator").build(),
+            persistent);
+        Cookie cookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
+        String setCookie = setCookie(response);
+        String maxAgeAttribute = "Max-Age=";
+        int maxAgeStart = setCookie.indexOf(maxAgeAttribute);
+        if (maxAgeStart >= 0) {
+            int valueStart = maxAgeStart + maxAgeAttribute.length();
+            int valueEnd = setCookie.indexOf(';', valueStart);
+            cookie.setMaxAge(Integer.parseInt(setCookie.substring(valueStart, valueEnd >= 0 ? valueEnd : setCookie.length())));
+        }
+        return cookie;
     }
 
     private static MockHttpServletRequest requestWith(Cookie sessionCookie) {
-        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletRequest request = request(false);
         request.setCookies(new Cookie(sessionCookie.getName(), sessionCookie.getValue()));
         return request;
+    }
+
+    private static MockHttpServletRequest request(boolean secure) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setSecure(secure);
+        return request;
+    }
+
+    private static MockHttpServletRequest basicRequest(String username, String password) {
+        MockHttpServletRequest request = request(false);
+        String credentials = Base64.getEncoder()
+            .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + credentials);
+        return request;
+    }
+
+    private static User user() {
+        return User.builder().name(ADMIN).displayName("Administrator").build();
+    }
+
+    private static String setCookie(MockHttpServletResponse response) {
+        String setCookie = response.getHeader(HttpHeaders.SET_COOKIE);
+        assertNotNull(setCookie);
+        return setCookie;
+    }
+
+    private static String cookieValue(MockHttpServletResponse response) {
+        String setCookie = setCookie(response);
+        String prefix = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "=";
+        int end = setCookie.indexOf(';');
+        return setCookie.substring(prefix.length(), end >= 0 ? end : setCookie.length());
     }
 
     private static final class MutableClock extends Clock {

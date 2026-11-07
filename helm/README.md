@@ -17,3 +17,24 @@ After upgrading to the server-side session store, previous console cookies are n
 | `higress-console.admin.cookie.max-age` | `2592000` seconds (30 days) | Cookie `Max-Age` used only when login requests set `autoLogin` to `true`. |
 
 When `autoLogin` is `false`, the browser receives a session cookie without `Max-Age`. `autoLogin` and the cookie maximum age do not change either server-side timeout; in particular, a persistent cookie cannot extend the eight-hour absolute session lifetime.
+
+## TLS and authentication
+
+The console container serves plain HTTP on port 8080. For production deployments, terminate TLS at an Ingress or another trusted reverse proxy instead of exposing the Service directly. Direct Service access and `kubectl port-forward` do not provide transport encryption.
+
+When `ingress.enabled=true` and `ingress.tlsSecretName` is set, the chart creates a TLS Ingress, redirects HTTP to HTTPS, and automatically sets `HIGRESS_CONSOLE_ADMIN_COOKIE_SECURE=true` for the console pod. If TLS is terminated outside this chart, set the same environment variable explicitly:
+
+```yaml
+podEnvs:
+  HIGRESS_CONSOLE_ADMIN_COOKIE_SECURE: "true"
+```
+
+HTTP Basic authentication for console APIs is disabled by default. Cookie-based login continues to work without it. If existing automation requires Basic authentication, opt in explicitly:
+
+```yaml
+admin:
+  basicAuth:
+    enabled: true
+```
+
+The equivalent environment variable is `HIGRESS_CONSOLE_ADMIN_BASIC_AUTH_ENABLED=true`. Enable Basic authentication only for clients that require it, and use HTTPS for those connections.
