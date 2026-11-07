@@ -1,7 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
+import CreatedSecretModal, { SecretEntry } from '@/components/CreatedSecretModal';
 import { Consumer, CredentialType, ServiceSourceFormProps as FormProps } from '@/interfaces/consumer';
 import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/services/consumer';
+import { redactForLog } from '@/utils/redact-secrets';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -79,6 +81,8 @@ const ConsumerList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [createdSecretVisible, setCreatedSecretVisible] = useState(false);
+  const [createdSecrets, setCreatedSecrets] = useState<SecretEntry[]>([]);
 
   const { loading, run, refresh } = useRequest(getConsumers, {
     manual: true,
@@ -106,6 +110,20 @@ const ConsumerList: React.FC = () => {
     setCurrentConsumer(null);
   };
 
+  const collectConsumerSecrets = (created: Consumer): SecretEntry[] => {
+    const secrets: SecretEntry[] = [];
+    let index = 0;
+    (created?.credentials || []).forEach((credential) => {
+      (credential.values || []).forEach((value) => {
+        if (typeof value === 'string' && value) {
+          index += 1;
+          secrets.push({ label: t('createdSecret.consumerCredential', { index }), value });
+        }
+      });
+    });
+    return secrets;
+  };
+
   const handleDrawerOK = async () => {
     const values: FormProps = formRef.current ? await formRef.current.handleSubmit() : {} as FormProps;
     if (!values) {
@@ -115,15 +133,33 @@ const ConsumerList: React.FC = () => {
     try {
       if (currentConsumer) {
         await updateConsumer({ version: currentConsumer.version, ...values } as Consumer);
-      } else {
-        await addConsumer({ ...values, version: 0 } as Consumer);
+        setOpenDrawer(false);
+        formRef.current && formRef.current.reset();
+        refresh();
+        return;
+      }
+
+      const created = await addConsumer({ ...values, version: 0 } as Consumer);
+      const secrets = collectConsumerSecrets(created);
+      refresh();
+      if (secrets.length > 0) {
+        setCreatedSecrets(secrets);
+        setCreatedSecretVisible(true);
+        return;
       }
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
-      refresh();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      console.error('Save failed: ', redactForLog(errInfo));
     }
+  };
+
+  const handleCreatedSecretConfirm = () => {
+    setCreatedSecretVisible(false);
+    setCreatedSecrets([]);
+    setOpenDrawer(false);
+    formRef.current && formRef.current.reset();
+    setCurrentConsumer(null);
   };
 
   const handleDrawerCancel = () => {
@@ -261,6 +297,11 @@ const ConsumerList: React.FC = () => {
           </Trans>
         </p>
       </Modal>
+      <CreatedSecretModal
+        open={createdSecretVisible}
+        entries={createdSecrets}
+        onConfirm={handleCreatedSecretConfirm}
+      />
     </PageContainer>
   );
 };

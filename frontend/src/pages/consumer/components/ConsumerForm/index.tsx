@@ -1,8 +1,11 @@
 import { CredentialType } from '@/interfaces/consumer';
+import { resolveWriteOnlyList } from '@/utils/write-only';
 import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select, Tabs } from 'antd';
+import { Button, Form, Input, Select, Tabs, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+const { Text, Link } = Typography;
 
 const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const { t } = useTranslation();
@@ -10,6 +13,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   const [form] = Form.useForm();
   const [activeTabKey, setActiveTabKey] = useState('');
   const [keyAuthCredentialSource, setKeyAuthCredentialSource] = useState();
+  const [clearKeyAuthRequested, setClearKeyAuthRequested] = useState(false);
+  const keyAuthCredential = value?.credentials?.find(credential => credential.type === CredentialType.KEY_AUTH.key);
+  const keyAuthCredentialCount = keyAuthCredential?.credentialCount || 0;
 
   const credentialEnabledCheckers = {};
   credentialEnabledCheckers[CredentialType.KEY_AUTH.key] = () => true;
@@ -21,13 +27,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
       const credentials = {};
       if (value.credentials) {
         for (const credential of value.credentials) {
-          credentials[credential.type] = credential;
+          credentials[credential.type] = { ...credential, values: [''] };
           activeTabKey_ = activeTabKey_ || credential.type;
         }
       }
       formValues = Object.assign({}, value, { credentials });
     }
     formValues ? form.setFieldsValue(formValues) : form.resetFields();
+    setClearKeyAuthRequested(false);
     setActiveTabKey(activeTabKey_ || CredentialType.KEY_AUTH.key);
     setKeyAuthCredentialSource(form.getFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'source']) || 'BEARER');
   }, [value]);
@@ -35,6 +42,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     reset: () => {
       form.resetFields();
+      setClearKeyAuthRequested(false);
     },
     handleSubmit: async () => {
       const values = await form.validateFields();
@@ -45,6 +53,9 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
           continue;
         }
         credential.type = key;
+        if (key === CredentialType.KEY_AUTH.key) {
+          credential.values = resolveWriteOnlyList(credential.values, clearKeyAuthRequested);
+        }
         const checker = credentialEnabledCheckers[key];
         if (!checker || checker(credential)) {
           credentials.push(credential);
@@ -65,9 +76,26 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
     });
   };
 
+  const updateClearKeyAuthRequested = (clearRequested: boolean) => {
+    setClearKeyAuthRequested(clearRequested);
+    if (!clearRequested) {
+      return;
+    }
+    form.setFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'values'], ['']);
+  };
+
+  const toggleKeyAuthClearRequest = () => {
+    updateClearKeyAuthRequested(!clearKeyAuthRequested);
+  };
+
+  const handleKeyAuthValueChange = () => {
+    updateClearKeyAuthRequested(false);
+  };
+
   const randomizeKeyAuthToken = (i) => {
     const uuid = generateUUID();
     form.setFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'values', i], uuid);
+    updateClearKeyAuthRequested(false);
   }
 
   return (
@@ -125,6 +153,25 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                 >
                   {(fields, { add, remove }, { errors }) => (
                     <>
+                      {value && (
+                        <div style={{ marginBottom: '0.5rem' }}>
+                          <Text type="secondary">
+                            {t('consumer.consumerForm.configuredCount', { count: keyAuthCredentialCount })}
+                            {' '}
+                            {t('consumer.consumerForm.leaveBlankToKeep')}
+                          </Text>
+                          {!!keyAuthCredentialCount && (
+                            <Link
+                              style={{ marginLeft: '0.5rem' }}
+                              onClick={toggleKeyAuthClearRequest}
+                            >
+                              {t(clearKeyAuthRequested
+                                ? 'consumer.consumerForm.keepCredentials'
+                                : 'consumer.consumerForm.clearCredentials')}
+                            </Link>
+                          )}
+                        </div>
+                      )}
                       {fields.map((field, index) => (
                         <Form.Item
                           required={false}
@@ -134,10 +181,25 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                           <Form.Item
                             {...field}
                             validateTrigger={['onChange', 'onBlur']}
-                            rules={[{ required: true, message: t("consumer.consumerForm.authTokenRequired") || '' }]}
+                            rules={[
+                              {
+                                validator(rule, fieldValue) {
+                                  if (fieldValue) {
+                                    return Promise.resolve();
+                                  }
+                                  if (value && (keyAuthCredentialCount > 0 || clearKeyAuthRequested)) {
+                                    return Promise.resolve();
+                                  }
+                                  return Promise.reject(t('consumer.consumerForm.authTokenRequired'));
+                                },
+                              },
+                            ]}
                             noStyle
                           >
-                            <Input style={{ width: '85%' }} />
+                            <Input
+                              style={{ width: '85%' }}
+                              onChange={handleKeyAuthValueChange}
+                            />
                           </Form.Item>
                           <div style={{ display: "inline-block", width: '15%', textAlign: 'right' }}>
                             <Button

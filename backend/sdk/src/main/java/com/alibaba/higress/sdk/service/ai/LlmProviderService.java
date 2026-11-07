@@ -19,6 +19,8 @@ import com.alibaba.higress.sdk.model.route.UpstreamService;
 
 public interface LlmProviderService {
 
+    LlmProvider add(LlmProvider provider);
+
     LlmProvider addOrUpdate(LlmProvider provider);
 
     PaginatedResult<LlmProvider> list(CommonPageQuery query);
