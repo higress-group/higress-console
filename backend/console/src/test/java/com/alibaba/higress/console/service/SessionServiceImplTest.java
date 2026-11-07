@@ -18,8 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
@@ -279,12 +282,96 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void concurrentAttemptsBoundCredentialVerifications() throws Exception {
+    void sequentialCorrectLoginsNeverConsumeFailureBudget() {
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+        for (int i = 0; i < 20; i++) {
+            assertNotNull(sessionService.login(ADMIN, PASSWORD, request()));
+        }
+
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+        assertNotNull(sessionService.login(ADMIN, PASSWORD, request()));
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, () -> sessionService.login(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void parallelCorrectLoginsNeverConsumeFailureBudget() throws Exception {
+        int taskCount = 12;
+        LoginFailureBudgetService budgetService = LoginFailureBudgetServiceTest
+            .createService(new InMemoryLoginAttemptStore(), new MutableClock(1_000_000L));
+        sessionService.setLoginFailureBudgetService(budgetService);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+
+        LoginFailureBudgetService concurrentBudgetService = spy(budgetService);
+        CountDownLatch successfulResets = new CountDownLatch(taskCount);
+        doAnswer(invocation -> {
+            successfulResets.countDown();
+            assertTrue(successfulResets.await(10, TimeUnit.SECONDS));
+            invocation.callRealMethod();
+            return null;
+        }).when(concurrentBudgetService).reset(any(LoginAttemptKey.class));
+        sessionService.setLoginFailureBudgetService(concurrentBudgetService);
+
+        ExecutorService executor = Executors.newFixedThreadPool(taskCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<User>> results = new ArrayList<>();
+        try {
+            for (int i = 0; i < taskCount; i++) {
+                results.add(executor.submit(() -> {
+                    start.await();
+                    return sessionService.login(ADMIN, PASSWORD, request());
+                }));
+            }
+            start.countDown();
+            for (Future<User> result : results) {
+                assertNotNull(result.get(15, TimeUnit.SECONDS));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, () -> sessionService.login(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void blankAndNullRemoteAddressesShareAFailureBudget() {
+        MockHttpServletRequest blankRequest = request();
+        blankRequest.setRemoteAddr("  ");
+        MockHttpServletRequest nullRequest = request();
+        nullRequest.setRemoteAddr(null);
+
+        for (int i = 0; i < 2; i++) {
+            assertNull(sessionService.login(ADMIN, "incorrect", blankRequest));
+        }
+        for (int i = 0; i < 3; i++) {
+            assertNull(sessionService.login(ADMIN, "incorrect", nullRequest));
+        }
+
+        assertThrows(LoginRateLimitException.class, () -> sessionService.login(ADMIN, PASSWORD, blankRequest));
+        assertThrows(LoginRateLimitException.class, () -> sessionService.login(ADMIN, PASSWORD, nullRequest));
+    }
+
+    @Test
+    void concurrentFailuresAreCountedAfterCredentialVerification() throws Exception {
         KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
         AtomicInteger verifications = new AtomicInteger();
+        int taskCount = 8;
+        CountDownLatch verificationsStarted = new CountDownLatch(taskCount);
         when(kubernetesClientService.readSecret(anyString())).thenAnswer(invocation -> {
             verifications.incrementAndGet();
-            Thread.sleep(50);
+            verificationsStarted.countDown();
+            assertTrue(verificationsStarted.await(10, TimeUnit.SECONDS));
             return adminSecret();
         });
         SessionServiceImpl concurrentService = new SessionServiceImpl();
@@ -292,7 +379,6 @@ class SessionServiceImplTest {
         concurrentService.setLoginFailureBudgetService(LoginFailureBudgetServiceTest
             .createService(new InMemoryLoginAttemptStore(), new MutableClock(1_000_000L)));
 
-        int taskCount = 8;
         ExecutorService executor = Executors.newFixedThreadPool(taskCount);
         CountDownLatch start = new CountDownLatch(1);
         List<Future<Boolean>> results = new ArrayList<>();
@@ -310,13 +396,14 @@ class SessionServiceImplTest {
             }
             start.countDown();
             for (Future<Boolean> result : results) {
-                result.get(10, TimeUnit.SECONDS);
+                assertTrue(result.get(15, TimeUnit.SECONDS));
             }
         } finally {
             executor.shutdownNow();
         }
 
-        assertEquals(5, verifications.get());
+        assertEquals(taskCount, verifications.get());
+        assertThrows(LoginRateLimitException.class, () -> concurrentService.login(ADMIN, PASSWORD, request()));
     }
 
     private void failedLogin() {

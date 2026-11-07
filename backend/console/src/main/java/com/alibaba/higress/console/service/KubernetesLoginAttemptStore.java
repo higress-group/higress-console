@@ -28,7 +28,6 @@ import javax.annotation.Resource;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.sdk.exception.BusinessException;
@@ -71,17 +70,15 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
         for (int attempt = 0; attempt < MAX_UPDATE_ATTEMPTS; attempt++) {
             V1ConfigMap configMap = read();
             Map<String, LoginAttemptState> states = deserialize(configMap);
+            evictExpired(states);
             LoginAttemptState previous = states.getOrDefault(dataKey, LoginAttemptState.EMPTY);
             LoginAttemptState updated = Objects.requireNonNull(update.apply(previous), "Updated state must not be null.");
 
-            // Eviction cannot be lockout-safe across replica clocks; rejecting a full store with 503 avoids silent bypass.
-            evictExpired(states);
             if (updated.isEmpty()) {
                 states.remove(dataKey);
             } else {
-                if (!states.containsKey(dataKey) && states.size() >= MAX_ENTRIES) {
-                    throw new ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                        "Login attempt store is full.");
+                while (!states.containsKey(dataKey) && states.size() >= MAX_ENTRIES) {
+                    evictOldest(states);
                 }
                 states.put(dataKey, updated);
             }
@@ -176,5 +173,13 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
     private long getExpiresAt(LoginAttemptState state) {
         long windowMillis = TimeUnit.SECONDS.toMillis(Math.max(1, attemptWindowSeconds));
         return Math.max(state.getWindowStartedAt() + windowMillis, state.getLockedUntil());
+    }
+
+    private static void evictOldest(Map<String, LoginAttemptState> states) {
+        Map.Entry<String, LoginAttemptState> oldest = states.entrySet().stream()
+            .min(Comparator.comparingLong(entry -> entry.getValue().getWindowStartedAt())).orElse(null);
+        if (oldest != null) {
+            states.remove(oldest.getKey());
+        }
     }
 }

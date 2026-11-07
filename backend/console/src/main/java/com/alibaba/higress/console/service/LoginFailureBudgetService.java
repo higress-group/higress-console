@@ -46,15 +46,16 @@ public class LoginFailureBudgetService {
         this.store = store;
     }
 
-    public void recordAttempt(LoginAttemptKey key) {
+    public void ensureNotLocked(LoginAttemptKey key) {
+        throwIfLocked(store.get(key), clock.millis());
+    }
+
+    public void recordFailure(LoginAttemptKey key) {
         long now = clock.millis();
         long windowMillis = secondsToMillis(failureWindowSeconds);
         long lockMillis = secondsToMillis(lockSeconds);
         int limit = Math.max(1, failureLimit);
-        LoginAttemptState updated = store.update(key, state -> nextAttempt(state, now, windowMillis, lockMillis, limit));
-        if (updated.getAttemptCount() > limit) {
-            throwIfLocked(updated, now);
-        }
+        store.update(key, state -> nextFailure(state, now, windowMillis, lockMillis, limit));
     }
 
     public void reset(LoginAttemptKey key) {
@@ -65,7 +66,7 @@ public class LoginFailureBudgetService {
         this.clock = clock;
     }
 
-    private static LoginAttemptState nextAttempt(LoginAttemptState state, long now, long windowMillis, long lockMillis,
+    private static LoginAttemptState nextFailure(LoginAttemptState state, long now, long windowMillis, long lockMillis,
         int limit) {
         if (state.isLocked(now)) {
             return new LoginAttemptState(state.getWindowStartedAt(), state.getAttemptCount() + 1, state.getLockedUntil());

@@ -65,6 +65,7 @@ public class SessionServiceImpl implements SessionService {
     private static final int ENCRYPT_IV_LENGTH = 16;
     private static final String TOKEN_PART_SEPARATOR = "\1";
     private static final String SESSION_COOKIE_SAME_SITE = "Lax";
+    private static final String UNKNOWN_CLIENT_IP = "unknown";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -165,7 +166,7 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
         LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.FORM, username, request);
-        recordAttempt(key);
+        loginFailureBudgetService.ensureNotLocked(key);
         AdminConfig config = getAdminConfig();
         User user = config.getUsername().equals(username) && config.getPassword().equals(password) ? config.toUser() : null;
         return completeAuthentication(key, user);
@@ -246,31 +247,21 @@ public class SessionServiceImpl implements SessionService {
         String username = decoded.substring(0, separator);
         String password = decoded.substring(separator + 1);
         LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.BASIC, username, request);
-        recordAttempt(key);
+        loginFailureBudgetService.ensureNotLocked(key);
         return completeAuthentication(key, validateCredential(username, password));
     }
 
     private LoginAttemptKey createLoginAttemptKey(LoginAuthSource source, String username,
         HttpServletRequest request) {
         String clientIp = request != null ? request.getRemoteAddr() : null;
-        if (StringUtils.isBlank(clientIp)) {
-            return null;
-        }
-        return new LoginAttemptKey(source, username, clientIp);
-    }
-
-    private void recordAttempt(LoginAttemptKey key) {
-        if (key != null) {
-            loginFailureBudgetService.recordAttempt(key);
-        }
+        return new LoginAttemptKey(source, username, StringUtils.defaultIfBlank(clientIp, UNKNOWN_CLIENT_IP));
     }
 
     private User completeAuthentication(LoginAttemptKey key, User user) {
-        if (key == null) {
-            return user;
-        }
         if (user != null) {
             loginFailureBudgetService.reset(key);
+        } else {
+            loginFailureBudgetService.recordFailure(key);
         }
         return user;
     }

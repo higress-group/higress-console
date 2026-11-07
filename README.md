@@ -24,7 +24,10 @@ All three values must be at least 1. `0` (and negative values) is invalid and is
 Budgets are keyed by authentication source, account and client address, so the form login and Basic authentication
 budgets are independent (`form:<username>:<ip>` and `basic:<username>:<ip>`). A script retrying old credentials over
 Basic authentication cannot lock out a human using the form login for the same account and address, and vice versa. A
-successful authentication resets only the budget of the source that authenticated.
+successful authentication resets only the budget of the source that authenticated. The lock check happens before
+password verification, and only verified failures increment the failure count; correct credentials never consume the
+budget. Writes prune expired states first and evict the oldest state if the shared store is full instead of rejecting a
+new key with HTTP 503.
 
 The client address is taken from the direct peer (`HttpServletRequest.getRemoteAddr()`). The console ships with
 `server.forward-headers-strategy=none`, so forwarding headers do not create separate budgets. Behind a reverse proxy,
@@ -32,6 +35,8 @@ all requests can therefore appear to come from the proxy address and share one b
 proxy is trusted, configure `server.forward-headers-strategy` (for example, via the `SERVER_FORWARD_HEADERS_STRATEGY`
 environment variable) so that the real client address is used. Enable forwarded-header handling only when untrusted
 clients cannot reach the console directly, because clients can otherwise spoof these headers.
+If the client address is missing or blank, the console uses `unknown`, so those requests remain subject to a shared
+budget per account and source.
 
 ## 前置介绍
 

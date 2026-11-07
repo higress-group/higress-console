@@ -35,6 +35,10 @@ Budgets are independent per authentication source. Form login uses `form:<userna
 `basic:<username>:<ip>`, so repeated Basic authentication failures with old credentials do not lock out the form login
 for the same account and address, and vice versa. A successful authentication resets only its own source budget. If you
 tested an earlier build with a shared budget, expect failed attempts in one source no longer to affect the other.
+The lock check happens before password verification, and only verified failures increment the failure count. Correct
+credentials never consume the budget. Expired states are pruned before writes, and a full shared store evicts its
+oldest state rather than rejecting a new key with HTTP 503. Missing or blank client addresses use `unknown`, so they
+remain subject to a shared budget per account and source.
 
 The chart keeps the console defaults. Override them through `podEnvs` when needed:
 

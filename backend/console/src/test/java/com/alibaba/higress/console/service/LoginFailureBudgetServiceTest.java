@@ -51,55 +51,53 @@ class LoginFailureBudgetServiceTest {
     }
 
     @Test
-    void fifthAttemptStartsTheLockAndSixthIsRejected() {
-        for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+    void fifthFailureStartsTheLockAndNextAttemptIsRejected() {
+        for (int i = 0; i < 5; i++) {
+            service.recordFailure(KEY);
         }
-        assertDoesNotThrow(() -> service.recordAttempt(KEY));
 
-        LoginRateLimitException exception = assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        LoginRateLimitException exception = assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
 
         assertEquals(900, exception.getRetryAfterSeconds());
-        assertEquals(6, store.get(KEY).getAttemptCount());
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        assertEquals(5, store.get(KEY).getAttemptCount());
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
     }
 
     @Test
     void failureWindowStartsANewBudget() {
         for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+            service.recordFailure(KEY);
         }
         clock.advanceSeconds(600);
 
-        service.recordAttempt(KEY);
+        service.recordFailure(KEY);
 
         assertEquals(1, store.get(KEY).getAttemptCount());
-        for (int i = 0; i < 3; i++) {
-            service.recordAttempt(KEY);
+        for (int i = 0; i < 4; i++) {
+            service.recordFailure(KEY);
         }
-        service.recordAttempt(KEY);
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
     }
 
     @Test
     void lockExpiresAndRetryAfterRoundsUp() {
-        for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+        for (int i = 0; i < 5; i++) {
+            service.recordFailure(KEY);
         }
-        service.recordAttempt(KEY);
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
 
         clock.advanceMillis(1500);
         LoginRateLimitException exception = assertThrows(LoginRateLimitException.class,
-            () -> service.recordAttempt(KEY));
+            () -> service.ensureNotLocked(KEY));
         assertEquals(899, exception.getRetryAfterSeconds());
 
         clock.advanceMillis(898_499);
-        exception = assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        exception = assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
         assertEquals(1, exception.getRetryAfterSeconds());
 
         clock.advanceMillis(1);
-        assertDoesNotThrow(() -> service.recordAttempt(KEY));
+        assertDoesNotThrow(() -> service.ensureNotLocked(KEY));
+        service.recordFailure(KEY);
         assertEquals(1, store.get(KEY).getAttemptCount());
         assertEquals(0, store.get(KEY).getLockedUntil());
     }
@@ -107,16 +105,15 @@ class LoginFailureBudgetServiceTest {
     @Test
     void resetRestoresTheFullBudget() {
         for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+            service.recordFailure(KEY);
         }
         service.reset(KEY);
 
         assertTrue(store.get(KEY).isEmpty());
-        for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+        for (int i = 0; i < 5; i++) {
+            service.recordFailure(KEY);
         }
-        service.recordAttempt(KEY);
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
     }
 
     @Test
@@ -124,15 +121,17 @@ class LoginFailureBudgetServiceTest {
         LoginAttemptKey otherAddress = new LoginAttemptKey(LoginAuthSource.FORM, "admin", "192.0.2.11");
         LoginAttemptKey otherAccount = new LoginAttemptKey(LoginAuthSource.FORM, "other", "192.0.2.10");
         for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
+            service.recordFailure(KEY);
         }
-        service.recordAttempt(otherAddress);
-        service.recordAttempt(otherAccount);
+        service.recordFailure(otherAddress);
+        service.recordFailure(otherAccount);
 
-        service.recordAttempt(KEY);
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
-        assertDoesNotThrow(() -> service.recordAttempt(otherAddress));
-        assertDoesNotThrow(() -> service.recordAttempt(otherAccount));
+        service.recordFailure(KEY);
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
+        assertDoesNotThrow(() -> service.ensureNotLocked(otherAddress));
+        assertDoesNotThrow(() -> service.ensureNotLocked(otherAccount));
+        service.recordFailure(otherAddress);
+        service.recordFailure(otherAccount);
         assertEquals(2, store.get(otherAddress).getAttemptCount());
         assertEquals(2, store.get(otherAccount).getAttemptCount());
     }
@@ -140,22 +139,22 @@ class LoginFailureBudgetServiceTest {
     @Test
     void formAndBasicBudgetsAreIndependent() {
         for (int i = 0; i < 5; i++) {
-            service.recordAttempt(BASIC_KEY);
+            service.recordFailure(BASIC_KEY);
         }
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(BASIC_KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(BASIC_KEY));
 
         for (int i = 0; i < 5; i++) {
-            assertDoesNotThrow(() -> service.recordAttempt(KEY));
+            service.recordFailure(KEY);
         }
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
-        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(BASIC_KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(BASIC_KEY));
     }
 
     @Test
     void resettingOneSourceDoesNotResetTheOther() {
         for (int i = 0; i < 4; i++) {
-            service.recordAttempt(KEY);
-            service.recordAttempt(BASIC_KEY);
+            service.recordFailure(KEY);
+            service.recordFailure(BASIC_KEY);
         }
 
         service.reset(KEY);
@@ -165,7 +164,7 @@ class LoginFailureBudgetServiceTest {
     }
 
     @Test
-    void twoServiceInstancesShareAtomicUpdates() throws Exception {
+    void parallelFailuresAreCountedAtomicallyAcrossServiceInstances() throws Exception {
         Map<LoginAttemptKey, LoginAttemptState> sharedState = new HashMap<>();
         InMemoryLoginAttemptStore firstStore = new InMemoryLoginAttemptStore(sharedState);
         InMemoryLoginAttemptStore secondStore = new InMemoryLoginAttemptStore(sharedState);
@@ -180,28 +179,22 @@ class LoginFailureBudgetServiceTest {
                 LoginFailureBudgetService selected = i % 2 == 0 ? first : second;
                 results.add(executor.submit(() -> {
                     start.await();
-                    try {
-                        selected.recordAttempt(KEY);
-                        return true;
-                    } catch (LoginRateLimitException e) {
-                        return false;
-                    }
+                    selected.recordFailure(KEY);
+                    return true;
                 }));
             }
             start.countDown();
-            int accepted = 0;
             for (Future<Boolean> result : results) {
-                if (result.get(10, TimeUnit.SECONDS)) {
-                    accepted++;
-                }
+                assertTrue(result.get(10, TimeUnit.SECONDS));
             }
-            assertEquals(5, accepted);
         } finally {
             executor.shutdownNow();
         }
         LoginAttemptState state = firstStore.get(KEY);
         assertEquals(taskCount, state.getAttemptCount());
         assertTrue(state.isLocked(clock.millis()));
+        assertThrows(LoginRateLimitException.class, () -> first.ensureNotLocked(KEY));
+        assertThrows(LoginRateLimitException.class, () -> second.ensureNotLocked(KEY));
     }
 
     static LoginFailureBudgetService createService(LoginAttemptStore store, MutableClock clock) {
