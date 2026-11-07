@@ -178,38 +178,65 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void loginAndBasicShareBudgetAndSuccessfulLoginResetsIt() {
+    void basicLockDoesNotAffectFormLogin() {
         ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
-        failedLogin();
-        failedBasic();
-        failedLogin();
-        failedBasic();
+        for (int i = 0; i < 5; i++) {
+            failedBasic();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
 
         assertNotNull(sessionService.login(ADMIN, PASSWORD, request()));
-
-        failedBasic();
-        failedLogin();
-        failedBasic();
-        failedLogin();
-        failedBasic();
-        assertThrows(LoginRateLimitException.class,
-            () -> sessionService.login(ADMIN, PASSWORD, request()));
     }
 
     @Test
-    void successfulBasicAuthenticationResetsTheSharedBudget() {
+    void formLockDoesNotAffectBasicLogin() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+
+        assertNotNull(sessionService.validateSession(basicRequest(ADMIN, PASSWORD)));
+    }
+
+    @Test
+    void successfulFormLoginResetsOnlyFormBudget() {
         ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
         for (int i = 0; i < 4; i++) {
             failedLogin();
+            failedBasic();
+        }
+
+        assertNotNull(sessionService.login(ADMIN, PASSWORD, request()));
+
+        failedLogin();
+        failedBasic();
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+        for (int i = 0; i < 3; i++) {
+            failedLogin();
+        }
+        failedLogin();
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+    }
+
+    @Test
+    void successfulBasicLoginResetsOnlyBasicBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+            failedBasic();
         }
 
         assertNotNull(sessionService.validateSession(basicRequest(ADMIN, PASSWORD)));
 
-        for (int i = 0; i < 4; i++) {
+        failedBasic();
+        failedLogin();
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+        for (int i = 0; i < 3; i++) {
             failedBasic();
         }
         failedBasic();
-        assertThrows(LoginRateLimitException.class, this::failedLogin);
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
     }
 
     @Test

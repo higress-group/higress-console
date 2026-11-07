@@ -45,7 +45,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 
 class KubernetesLoginAttemptStoreTest {
 
-    private static final LoginAttemptKey KEY = new LoginAttemptKey("admin", "192.0.2.10");
+    private static final LoginAttemptKey KEY = new LoginAttemptKey(LoginAuthSource.FORM, "admin", "192.0.2.10");
 
     private KubernetesClientService kubernetesClientService;
     private KubernetesLoginAttemptStore store;
@@ -161,8 +161,9 @@ class KubernetesLoginAttemptStoreTest {
     }
 
     private static String entryKey(LoginAttemptKey key) {
-        String material = key.getAccount().length() + ":" + key.getAccount() + "|" + key.getClientIp().length()
-            + ":" + key.getClientIp();
+        String material = key.getSource().getKey().length() + ":" + key.getSource().getKey() + "|"
+            + key.getAccount().length() + ":" + key.getAccount() + "|" + key.getClientIp().length() + ":"
+            + key.getClientIp();
         return Hashing.sha256().hashString(material, StandardCharsets.UTF_8).toString();
     }
 

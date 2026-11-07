@@ -45,6 +45,8 @@
     "buttonText": "登录",
     "loginSuccess": "登录成功！",
     "loginFailed": "登录失败，请重试！",
+    "rateLimited": "登录失败次数过多，请在 {{seconds}} 秒后重试。",
+    "rateLimitedWithoutRetryAfter": "登录失败次数过多，请稍后重试。",
     "autoLogin": "自动登录",
     "forgotPassword": "忘记密码",
     "usernamePlaceholder": "用户名",

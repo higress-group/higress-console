@@ -45,6 +45,8 @@
     "buttonText": "Login",
     "loginSuccess": "Login successful!",
     "loginFailed": "Login failed. Please try again.",
+    "rateLimited": "Too many failed login attempts. Try again in {{seconds}} seconds.",
+    "rateLimitedWithoutRetryAfter": "Too many failed login attempts. Try again later.",
     "autoLogin": "Auto login",
     "forgotPassword": "Forgot password",
     "usernamePlaceholder": "Username",

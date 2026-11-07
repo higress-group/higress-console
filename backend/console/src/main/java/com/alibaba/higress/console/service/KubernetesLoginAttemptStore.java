@@ -118,8 +118,9 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
     }
 
     private static String getDataKey(LoginAttemptKey key) {
-        String material = key.getAccount().length() + STATE_SEPARATOR + key.getAccount() + "|"
-            + key.getClientIp().length() + STATE_SEPARATOR + key.getClientIp();
+        String material = key.getSource().getKey().length() + STATE_SEPARATOR + key.getSource().getKey() + "|"
+            + key.getAccount().length() + STATE_SEPARATOR + key.getAccount() + "|" + key.getClientIp().length()
+            + STATE_SEPARATOR + key.getClientIp();
         return Hashing.sha256().hashString(material, StandardCharsets.UTF_8).toString();
     }
 

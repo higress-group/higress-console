@@ -164,7 +164,7 @@ public class SessionServiceImpl implements SessionService {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return null;
         }
-        LoginAttemptKey key = createLoginAttemptKey(username, request);
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.FORM, username, request);
         recordAttempt(key);
         AdminConfig config = getAdminConfig();
         User user = config.getUsername().equals(username) && config.getPassword().equals(password) ? config.toUser() : null;
@@ -245,17 +245,18 @@ public class SessionServiceImpl implements SessionService {
         }
         String username = decoded.substring(0, separator);
         String password = decoded.substring(separator + 1);
-        LoginAttemptKey key = createLoginAttemptKey(username, request);
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.BASIC, username, request);
         recordAttempt(key);
         return completeAuthentication(key, validateCredential(username, password));
     }
 
-    private LoginAttemptKey createLoginAttemptKey(String username, HttpServletRequest request) {
+    private LoginAttemptKey createLoginAttemptKey(LoginAuthSource source, String username,
+        HttpServletRequest request) {
         String clientIp = request != null ? request.getRemoteAddr() : null;
         if (StringUtils.isBlank(clientIp)) {
             return null;
         }
-        return new LoginAttemptKey(username, clientIp);
+        return new LoginAttemptKey(source, username, clientIp);
     }
 
     private void recordAttempt(LoginAttemptKey key) {

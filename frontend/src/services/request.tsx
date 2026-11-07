@@ -59,6 +59,9 @@ request.interceptors.response.use(
         }
         return;
       }
+      if (status === 429 && config.url.indexOf('/login') !== -1) {
+        return Promise.reject(error);
+      }
       const messageKeys = [`request.error.${status}_${config.method}`, `request.error.${status}`];
       for (const key of messageKeys) {
         const localizedMessage = i18next.t(key);

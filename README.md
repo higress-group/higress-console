@@ -7,13 +7,31 @@
 Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能力集成，首个可用版本考虑基于 kubernetes 部署环境，预期包含服务管理、路由管理、域名管理等基础能力。
 后续规划逐步迭代可观测能力、插件能力、登录管理能力，感兴趣的小伙伴一起 Hi~ gress~
 
-## Authentication attempts and trusted proxies
+## Authentication attempts and rate limiting
 
-The console sets `server.forward-headers-strategy=none`, so login and Basic authentication attempts are accounted by
-account and direct peer address; forwarding headers do not create separate budgets. Deployments fronted by a trusted
-proxy must configure proxy trust and forwarded-header handling explicitly. Without that configuration, attempts are
-aggregated per proxy peer address. When enabling forwarded-header handling, ensure that only trusted proxies can supply
-those headers and account for the resulting per-account and per-client-address budgets.
+The console limits failed password authentication for both the form login endpoint and HTTP Basic authentication. The
+defaults are 5 failures within 10 minutes for each budget, followed by a 15-minute lock. When a budget is exhausted the
+API returns HTTP 429 with a `Retry-After` header, and the login page shows the remaining lock time.
+
+| Environment variable | Spring property | Default | Description |
+| --- | --- | --- | --- |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_LIMIT` | `higress-console.login.failure-limit` | `5` | Failures allowed within the window before the budget is locked. |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_WINDOW_SECONDS` | `higress-console.login.failure-window-seconds` | `600` | Length of the failure accounting window in seconds. |
+| `HIGRESS_CONSOLE_LOGIN_LOCK_SECONDS` | `higress-console.login.lock-seconds` | `900` | Lock duration in seconds after the failure limit is reached. |
+
+All three values must be at least 1. `0` (and negative values) is invalid and is treated as `1`.
+
+Budgets are keyed by authentication source, account and client address, so the form login and Basic authentication
+budgets are independent (`form:<username>:<ip>` and `basic:<username>:<ip>`). A script retrying old credentials over
+Basic authentication cannot lock out a human using the form login for the same account and address, and vice versa. A
+successful authentication resets only the budget of the source that authenticated.
+
+The client address is taken from the direct peer (`HttpServletRequest.getRemoteAddr()`). The console ships with
+`server.forward-headers-strategy=none`, so forwarding headers do not create separate budgets. Behind a reverse proxy,
+all requests can therefore appear to come from the proxy address and share one budget per account and source. If the
+proxy is trusted, configure `server.forward-headers-strategy` (for example, via the `SERVER_FORWARD_HEADERS_STRATEGY`
+environment variable) so that the real client address is used. Enable forwarded-header handling only when untrusted
+clients cannot reach the console directly, because clients can otherwise spoof these headers.
 
 ## 前置介绍
 

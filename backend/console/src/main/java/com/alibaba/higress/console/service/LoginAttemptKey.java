@@ -15,24 +15,35 @@ package com.alibaba.higress.console.service;
 import java.util.Objects;
 
 /**
- * Account and client address pair used by both password authentication paths. The client address comes only from
- * {@code HttpServletRequest.getRemoteAddr()}. Deployments using trusted proxies must configure the container or server
- * to resolve those proxies; forwarding headers are not read by the console authentication code.
+ * Authentication source, account and client address tuple used by the password authentication paths. Budgets are
+ * independent per source, so failed form logins do not consume the Basic authentication budget and vice versa. The
+ * client address comes only from {@code HttpServletRequest.getRemoteAddr()}. Deployments using trusted proxies must
+ * configure the container or server to resolve those proxies; forwarding headers are not read by the console
+ * authentication code.
  */
 public final class LoginAttemptKey {
 
+    private final LoginAuthSource source;
     private final String account;
     private final String clientIp;
 
-    public LoginAttemptKey(String account, String clientIp) {
+    public LoginAttemptKey(LoginAuthSource source, String account, String clientIp) {
+        if (source == null) {
+            throw new IllegalArgumentException("Authentication source must not be null.");
+        }
         if (account == null || account.isEmpty()) {
             throw new IllegalArgumentException("Account must not be empty.");
         }
         if (clientIp == null || clientIp.trim().isEmpty()) {
             throw new IllegalArgumentException("Client IP must not be empty.");
         }
+        this.source = source;
         this.account = account;
         this.clientIp = clientIp;
+    }
+
+    public LoginAuthSource getSource() {
+        return source;
     }
 
     public String getAccount() {
@@ -52,11 +63,11 @@ public final class LoginAttemptKey {
             return false;
         }
         LoginAttemptKey that = (LoginAttemptKey)o;
-        return account.equals(that.account) && clientIp.equals(that.clientIp);
+        return source == that.source && account.equals(that.account) && clientIp.equals(that.clientIp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(account, clientIp);
+        return Objects.hash(source, account, clientIp);
     }
 }

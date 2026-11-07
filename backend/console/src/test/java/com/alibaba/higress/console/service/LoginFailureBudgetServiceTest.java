@@ -35,7 +35,9 @@ import com.alibaba.higress.console.controller.exception.LoginRateLimitException;
 
 class LoginFailureBudgetServiceTest {
 
-    private static final LoginAttemptKey KEY = new LoginAttemptKey("admin", "192.0.2.10");
+    private static final LoginAttemptKey KEY = new LoginAttemptKey(LoginAuthSource.FORM, "admin", "192.0.2.10");
+    private static final LoginAttemptKey BASIC_KEY =
+        new LoginAttemptKey(LoginAuthSource.BASIC, "admin", "192.0.2.10");
 
     private MutableClock clock;
     private InMemoryLoginAttemptStore store;
@@ -119,8 +121,8 @@ class LoginFailureBudgetServiceTest {
 
     @Test
     void accountsAndClientAddressesHaveIndependentBudgets() {
-        LoginAttemptKey otherAddress = new LoginAttemptKey("admin", "192.0.2.11");
-        LoginAttemptKey otherAccount = new LoginAttemptKey("other", "192.0.2.10");
+        LoginAttemptKey otherAddress = new LoginAttemptKey(LoginAuthSource.FORM, "admin", "192.0.2.11");
+        LoginAttemptKey otherAccount = new LoginAttemptKey(LoginAuthSource.FORM, "other", "192.0.2.10");
         for (int i = 0; i < 4; i++) {
             service.recordAttempt(KEY);
         }
@@ -133,6 +135,33 @@ class LoginFailureBudgetServiceTest {
         assertDoesNotThrow(() -> service.recordAttempt(otherAccount));
         assertEquals(2, store.get(otherAddress).getAttemptCount());
         assertEquals(2, store.get(otherAccount).getAttemptCount());
+    }
+
+    @Test
+    void formAndBasicBudgetsAreIndependent() {
+        for (int i = 0; i < 5; i++) {
+            service.recordAttempt(BASIC_KEY);
+        }
+        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(BASIC_KEY));
+
+        for (int i = 0; i < 5; i++) {
+            assertDoesNotThrow(() -> service.recordAttempt(KEY));
+        }
+        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(KEY));
+        assertThrows(LoginRateLimitException.class, () -> service.recordAttempt(BASIC_KEY));
+    }
+
+    @Test
+    void resettingOneSourceDoesNotResetTheOther() {
+        for (int i = 0; i < 4; i++) {
+            service.recordAttempt(KEY);
+            service.recordAttempt(BASIC_KEY);
+        }
+
+        service.reset(KEY);
+
+        assertTrue(store.get(KEY).isEmpty());
+        assertEquals(4, store.get(BASIC_KEY).getAttemptCount());
     }
 
     @Test
