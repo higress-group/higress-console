@@ -26,8 +26,10 @@ budgets are independent (`form:<username>:<ip>` and `basic:<username>:<ip>`). A 
 Basic authentication cannot lock out a human using the form login for the same account and address, and vice versa. A
 successful authentication resets only the budget of the source that authenticated. The lock check happens before
 password verification, and only verified failures increment the failure count; correct credentials never consume the
-budget. Writes prune expired states first and evict the oldest state if the shared store is full instead of rejecting a
-new key with HTTP 503.
+budget. Writes prune expired states first. If the shared store is full, a new key evicts the oldest state without an
+active lock; active locks are never evicted. If every entry is actively locked, the new key is not tracked and fails
+open until capacity is available, while all existing locks remain enforced. This saturation behavior does not return
+HTTP 503.
 
 The client address is taken from the direct peer (`HttpServletRequest.getRemoteAddr()`). The console ships with
 `server.forward-headers-strategy=none`, so forwarding headers do not create separate budgets. Behind a reverse proxy,

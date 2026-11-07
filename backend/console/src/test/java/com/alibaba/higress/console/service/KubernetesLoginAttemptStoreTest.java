@@ -12,8 +12,10 @@
  */
 package com.alibaba.higress.console.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,11 +30,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.alibaba.higress.console.controller.exception.LoginRateLimitException;
 import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.google.common.hash.Hashing;
@@ -141,11 +145,12 @@ class KubernetesLoginAttemptStoreTest {
     }
 
     @Test
-    void fullSharedConfigMapEvictsOldestEntryForNewKey() throws Exception {
+    void fullSharedConfigMapEvictsOldestUnlockedEntryForNewKey() throws Exception {
         Map<String, String> data = new HashMap<>();
         long now = System.currentTimeMillis();
+        data.put("locked", value(new LoginAttemptState(now - 2000, 5, now + 60_000)));
         data.put("oldest", value(new LoginAttemptState(now - 1000, 1, 0)));
-        for (int i = 0; i < 4095; i++) {
+        for (int i = 0; i < 4094; i++) {
             data.put("key-" + i, value(new LoginAttemptState(now, 1, 0)));
         }
         V1ConfigMap existing = new V1ConfigMap()
@@ -158,11 +163,70 @@ class KubernetesLoginAttemptStoreTest {
         assertEquals(1, result.getAttemptCount());
         ArgumentCaptor<V1ConfigMap> captor = ArgumentCaptor.forClass(V1ConfigMap.class);
         verify(kubernetesClientService).replaceConfigMap(captor.capture());
+        assertTrue(captor.getValue().getData().containsKey("locked"));
         assertFalse(captor.getValue().getData().containsKey("oldest"));
         assertTrue(captor.getValue().getData().containsKey("key-0"));
         assertTrue(captor.getValue().getData().containsKey(entryKey(KEY)));
         assertEquals(4096, captor.getValue().getData().size());
         verify(kubernetesClientService, never()).createConfigMap(any());
+    }
+
+    @Test
+    void activeLockSurvivesMoreThanCapacityChurnAndStillRejectsAttempts() throws Exception {
+        AtomicReference<V1ConfigMap> current = new AtomicReference<>();
+        when(kubernetesClientService.readConfigMap(anyString())).thenAnswer(invocation -> current.get());
+        when(kubernetesClientService.createConfigMap(any())).thenAnswer(invocation -> {
+            current.set(invocation.getArgument(0));
+            return current.get();
+        });
+        when(kubernetesClientService.replaceConfigMap(any())).thenAnswer(invocation -> {
+            current.set(invocation.getArgument(0));
+            return current.get();
+        });
+        MutableClock clock = new MutableClock(System.currentTimeMillis());
+        LoginFailureBudgetService service = LoginFailureBudgetServiceTest.createService(store, clock);
+        LoginAttemptKey lockedKey = new LoginAttemptKey(LoginAuthSource.BASIC, "admin", "192.0.2.10");
+        for (int i = 0; i < 5; i++) {
+            service.recordFailure(lockedKey);
+        }
+
+        for (int i = 0; i <= 4096; i++) {
+            service.recordFailure(new LoginAttemptKey(LoginAuthSource.BASIC, "user-" + i, "192.0.2.10"));
+        }
+
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(lockedKey));
+        assertTrue(current.get().getData().containsKey(entryKey(lockedKey)));
+        assertEquals(4096, current.get().getData().size());
+    }
+
+    @Test
+    void allLockedConfigMapFailsOpenOnlyForNewKeys() throws Exception {
+        long now = System.currentTimeMillis();
+        Map<String, String> data = new HashMap<>();
+        data.put(entryKey(KEY), value(new LoginAttemptState(now - 1000, 5, now + 900_000)));
+        for (int i = 0; i < 4095; i++) {
+            data.put("locked-" + i, value(new LoginAttemptState(now, 5, now + 900_000)));
+        }
+        Map<String, String> originalData = new HashMap<>(data);
+        V1ConfigMap existing = new V1ConfigMap()
+            .metadata(new V1ObjectMeta().name("higress-console-login-attempts").resourceVersion("6")).data(data);
+        when(kubernetesClientService.readConfigMap(anyString())).thenReturn(existing);
+        MutableClock clock = new MutableClock(now);
+        LoginFailureBudgetService service = LoginFailureBudgetServiceTest.createService(store, clock);
+        LoginAttemptKey newKey = new LoginAttemptKey(LoginAuthSource.FORM, "new-user", "192.0.2.10");
+
+        assertDoesNotThrow(() -> {
+            for (int i = 0; i < 5; i++) {
+                service.recordFailure(newKey);
+            }
+        });
+
+        assertDoesNotThrow(() -> service.ensureNotLocked(newKey));
+        assertTrue(store.get(newKey).isEmpty());
+        assertThrows(LoginRateLimitException.class, () -> service.ensureNotLocked(KEY));
+        assertEquals(originalData, existing.getData());
+        verify(kubernetesClientService, never()).createConfigMap(any());
+        verify(kubernetesClientService, never()).replaceConfigMap(any());
     }
 
     private static String entryKey(LoginAttemptKey key) {

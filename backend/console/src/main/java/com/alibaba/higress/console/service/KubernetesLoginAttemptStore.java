@@ -70,21 +70,32 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
         for (int attempt = 0; attempt < MAX_UPDATE_ATTEMPTS; attempt++) {
             V1ConfigMap configMap = read();
             Map<String, LoginAttemptState> states = deserialize(configMap);
-            evictExpired(states);
+            long now = System.currentTimeMillis();
+            evictExpired(states, now);
             LoginAttemptState previous = states.getOrDefault(dataKey, LoginAttemptState.EMPTY);
             LoginAttemptState updated = Objects.requireNonNull(update.apply(previous), "Updated state must not be null.");
+            LoginAttemptState result = updated;
 
             if (updated.isEmpty()) {
                 states.remove(dataKey);
             } else {
-                while (!states.containsKey(dataKey) && states.size() >= MAX_ENTRIES) {
-                    evictOldest(states);
+                boolean tracked = true;
+                if (!states.containsKey(dataKey)) {
+                    while (states.size() >= MAX_ENTRIES) {
+                        if (!evictOldestUnlocked(states, now)) {
+                            tracked = false;
+                            result = LoginAttemptState.EMPTY;
+                            break;
+                        }
+                    }
                 }
-                states.put(dataKey, updated);
+                if (tracked) {
+                    states.put(dataKey, updated);
+                }
             }
             Map<String, String> data = serialize(states);
             if (configMap == null && data.isEmpty() || configMap != null && Objects.equals(configMap.getData(), data)) {
-                return updated;
+                return result;
             }
             try {
                 if (configMap == null) {
@@ -95,7 +106,7 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
                     configMap.setData(data);
                     kubernetesClientService.replaceConfigMap(configMap);
                 }
-                return updated;
+                return result;
             } catch (ApiException e) {
                 if (e.getCode() != HttpStatus.CONFLICT) {
                     throw new BusinessException("Unable to update login budget ConfigMap " + RESOURCE_NAME, e);
@@ -156,8 +167,7 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
         return states;
     }
 
-    private void evictExpired(Map<String, LoginAttemptState> states) {
-        long now = System.currentTimeMillis();
+    private void evictExpired(Map<String, LoginAttemptState> states, long now) {
         List<Map.Entry<String, LoginAttemptState>> expired = new ArrayList<>();
         for (Map.Entry<String, LoginAttemptState> entry : states.entrySet()) {
             if (getExpiresAt(entry.getValue()) <= now) {
@@ -175,11 +185,14 @@ public class KubernetesLoginAttemptStore implements LoginAttemptStore {
         return Math.max(state.getWindowStartedAt() + windowMillis, state.getLockedUntil());
     }
 
-    private static void evictOldest(Map<String, LoginAttemptState> states) {
+    private static boolean evictOldestUnlocked(Map<String, LoginAttemptState> states, long now) {
         Map.Entry<String, LoginAttemptState> oldest = states.entrySet().stream()
+            .filter(entry -> !entry.getValue().isLocked(now))
             .min(Comparator.comparingLong(entry -> entry.getValue().getWindowStartedAt())).orElse(null);
-        if (oldest != null) {
-            states.remove(oldest.getKey());
+        if (oldest == null) {
+            return false;
         }
+        states.remove(oldest.getKey());
+        return true;
     }
 }
