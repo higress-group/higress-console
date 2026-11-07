@@ -46,6 +46,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -143,6 +145,28 @@ public class ConsumerServiceTest {
         assertEquals(true, consumerConfig.get("in_header"), "Consumer should be configured for header authentication");
         assertEquals(Lists.newArrayList("test-key"), consumerConfig.get("credentials"),
             "Credentials should match the added consumer's credentials");
+    }
+
+    @Test
+    void testAdd_ExistingConsumer_ThrowsConflictWithoutReturningStoredCredentials() {
+        String consumerName = "testUser";
+        WasmPluginInstance instance = createTestInstance();
+        instance.setGlobalTarget();
+        Map<String, Object> config = new HashMap<>();
+        config.put("consumers", Lists.newArrayList(ImmutableMap.of("name", consumerName,
+            "keys", Lists.newArrayList("Authorization"), "in_header", true, "credentials",
+            Lists.newArrayList("stored-secret"))));
+        instance.setConfigurations(config);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+
+        Consumer consumer = createTestConsumer(consumerName);
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> consumerService.add(consumer));
+        assertTrue(exception.getMessage().contains(consumerName));
+        assertFalse(exception.getMessage().contains("stored-secret"));
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
     }
 
     private void validateDefaultGlobalConfig(Map<String, Object> configurations) {
@@ -768,6 +792,75 @@ public class ConsumerServiceTest {
         assertNotNull(targetInstance);
         assertEquals(targets, targetInstance.getTargets());
         assertFalse(targetInstance.getEnabled(), "Auth should be disabled by default when not explicitly set");
+    }
+
+    @Test
+    void testAddOrUpdate_NullKeyAuthValuesKeepExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(null);
+
+        consumerService.addOrUpdate(consumer);
+
+        assertEquals(Lists.newArrayList("old-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_EmptyKeyAuthValuesClearExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Collections.emptyList());
+
+        Consumer result = consumerService.addOrUpdate(consumer);
+
+        assertEquals(Collections.emptyList(), getConsumerConfig(instance).get("credentials"));
+        assertEquals(Collections.emptyList(), ((KeyAuthCredential)result.getCredentials().get(0)).getValues());
+    }
+
+    @Test
+    void testAddOrUpdate_NewKeyAuthValuesReplaceExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Lists.newArrayList("new-key"));
+
+        consumerService.addOrUpdate(consumer);
+
+        assertEquals(Lists.newArrayList("new-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_NewConsumerStillRequiresKeyAuthValues() {
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Collections.emptyList());
+
+        assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
+    }
+
+    private static WasmPluginInstance createExistingKeyAuthInstance() {
+        WasmPluginInstance instance = createTestInstance();
+        instance.setGlobalTarget();
+        Map<String, Object> consumerConfig = new HashMap<>();
+        consumerConfig.put("name", "testUser");
+        consumerConfig.put("keys", Lists.newArrayList("Authorization"));
+        consumerConfig.put("in_header", true);
+        consumerConfig.put("credentials", Lists.newArrayList("old-key"));
+        Map<String, Object> configurations = new HashMap<>();
+        configurations.put("consumers", Lists.newArrayList(consumerConfig));
+        instance.setConfigurations(configurations);
+        return instance;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> getConsumerConfig(WasmPluginInstance instance) {
+        List<Map<String, Object>> consumers =
+            (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
+        return consumers.get(0);
     }
 
     private static Consumer createTestConsumer(String name) {

@@ -5,8 +5,8 @@ export const getConsumers = (): Promise<Consumer[]> => {
   return request.get<any, Consumer[]>('/v1/consumers');
 };
 
-export const addConsumer = (payload: Consumer): Promise<any> => {
-  return request.post<any, any>('/v1/consumers', payload);
+export const addConsumer = (payload: Consumer): Promise<Consumer> => {
+  return request.post<any, Consumer>('/v1/consumers', payload);
 };
 
 export const deleteConsumer = (name: string): Promise<any> => {

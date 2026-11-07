@@ -38,6 +38,16 @@ interface LlmProviderHandler {
      */
     void normalizeConfigs(Map<String, Object> configurations);
 
+    /**
+     * Validate and normalize configurations with update-aware handling for deliberately cleared credentials.
+     *
+     * @param configurations provider configurations
+     * @param forUpdate whether an existing provider is being updated
+     */
+    default void normalizeConfigs(Map<String, Object> configurations, boolean forUpdate) {
+        normalizeConfigs(configurations);
+    }
+
     String getServiceSourceName(String providerName);
 
     ServiceSource buildServiceSource(String providerName, Map<String, Object> providerConfig);

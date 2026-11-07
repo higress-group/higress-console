@@ -131,6 +131,13 @@
       "reset": "Reset"
     }
   },
+  "createdSecret": {
+    "title": "Copy the secret now",
+    "description": "This value will not be shown again. Copy it and store it securely before closing this dialog.",
+    "confirm": "I have saved it",
+    "providerToken": "Token {{index}}",
+    "consumerCredential": "Credential {{index}}"
+  },
   "consumer": {
     "columns": {
       "name": "Name",
@@ -146,7 +153,11 @@
       "authTokenRequired": "Please input auth token",
       "headerNameRequired": "Please input header name",
       "paramNameRequired": "Please input parameter key",
-      "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters."
+      "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters.",
+      "configuredCount": "{{count}} configured",
+      "leaveBlankToKeep": "Leave blank to keep the current credentials.",
+      "keepCredentials": "Keep credentials",
+      "clearCredentials": "Clear credentials"
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "Custom HTTP Header",
@@ -221,8 +232,12 @@
     "columns": {
       "type": "Type",
       "name": "Name",
-      "tokens": "Tokens"
+      "tokens": "Tokens",
+      "credentials": "Credentials"
     },
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "configuredCount": "{{count}} configured",
     "providerTypes": {
       "openai": "OpenAI/OpenAI Compatible",
       "qwen": "Tongyi Qianwen",
@@ -306,6 +321,11 @@
         "reasoningModeConcat": "Concatenate (concat)",
         "firstByteTimeout": "First-packet Timeout (ms)"
       },
+      "leaveBlankToKeep": "Leave blank to keep the current credentials.",
+      "keepTokens": "Keep tokens",
+      "clearTokens": "Clear tokens",
+      "keepCredentials": "Keep credentials",
+      "clearCredentials": "Clear credentials",
       "rules": {
         "tokenRequired": "Please input auth token",
         "typeRequired": "Please select a LLM provider",
