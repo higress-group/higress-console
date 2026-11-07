@@ -14,14 +14,18 @@ package com.alibaba.higress.console.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
@@ -33,21 +37,33 @@ import com.google.common.hash.Hashing;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Shared session store backed by one Kubernetes Secret per session.
  */
 @Service
+@Slf4j
 public class KubernetesSessionStore implements SessionStore {
 
     static final String SESSION_SECRET_TYPE = "higress.io/console-session";
 
     private static final String SESSION_SECRET_NAME_PREFIX = "higress-console-session-";
+    private static final String SESSION_SECRET_LABEL_KEY = "higress.io/console-session";
+    private static final String SESSION_SECRET_LABEL_VALUE = "true";
+    private static final Map<String, String> SESSION_SECRET_LABELS =
+        Collections.singletonMap(SESSION_SECRET_LABEL_KEY, SESSION_SECRET_LABEL_VALUE);
+    private static final String CREDENTIAL_SECRET_TYPE = "higress.io/console-user-credential";
+    private static final String CREDENTIAL_SECRET_NAME_PREFIX = "higress-console-user-credential-";
     private static final String USERNAME_KEY = "username";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String LAST_ACCESS_AT_KEY = "lastAccessAt";
+    private static final String CREDENTIAL_VERSION_KEY = "credentialVersion";
+    private static final String VERSION_KEY = "version";
     private static final int MAX_MUTATION_ATTEMPTS = 5;
     private static final long CONFLICT_BACKOFF_MILLIS = 10L;
+    static final long CREDENTIAL_VERSION_CACHE_TTL_MILLIS = 10_000L;
+    static final long SESSION_CLEANUP_INTERVAL_MILLIS = 10 * 60 * 1000L;
 
     private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
 
@@ -55,6 +71,7 @@ public class KubernetesSessionStore implements SessionStore {
 
     private KubernetesClientService kubernetesClientService;
     private Clock clock = Clock.systemUTC();
+    private final Map<String, CachedCredentialVersion> credentialVersionCache = new ConcurrentHashMap<>();
 
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
@@ -83,7 +100,7 @@ public class KubernetesSessionStore implements SessionStore {
     public void create(String sessionId, SessionData session) {
         mutateWithRetry("Unable to create session secret in K8s.", () -> {
             V1Secret secret = new V1Secret();
-            secret.setMetadata(new V1ObjectMeta().name(getResourceName(sessionId)));
+            secret.setMetadata(new V1ObjectMeta().name(getResourceName(sessionId)).labels(SESSION_SECRET_LABELS));
             secret.setType(SESSION_SECRET_TYPE);
             secret.setData(toSecretData(session));
             kubernetesClientService.createSecret(secret);
@@ -106,7 +123,12 @@ public class KubernetesSessionStore implements SessionStore {
             if (secret == null) {
                 return;
             }
-            secret.setData(toSecretData(session));
+            SessionData existing = toSession(secret);
+            if (existing == null) {
+                return;
+            }
+            existing.setLastAccessAt(Math.max(session.getLastAccessAt(), existing.getLastAccessAt()));
+            secret.setData(toSecretData(existing));
             kubernetesClientService.replaceSecret(secret);
         });
     }
@@ -138,6 +160,91 @@ public class KubernetesSessionStore implements SessionStore {
         } catch (ApiException e) {
             throw new BusinessException("Unable to delete user session secrets from K8s.", e);
         }
+    }
+
+    @Override
+    public String getCredentialVersion(String username) {
+        long now = clock.millis();
+        CachedCredentialVersion cached = credentialVersionCache.get(username);
+        if (cached != null && now >= cached.cachedAt && now - cached.cachedAt < CREDENTIAL_VERSION_CACHE_TTL_MILLIS) {
+            return cached.version;
+        }
+        return resolveCredentialVersion(username, false, "Unable to load user credential version from K8s.");
+    }
+
+    @Override
+    public void bumpCredentialVersion(String username) {
+        resolveCredentialVersion(username, true, "Unable to update user credential version in K8s.");
+    }
+
+    @Scheduled(fixedDelay = SESSION_CLEANUP_INTERVAL_MILLIS)
+    public void cleanupExpiredSessions() {
+        List<V1Secret> secrets;
+        try {
+            secrets = kubernetesClientService.listSecret(SESSION_SECRET_TYPE, SESSION_SECRET_LABELS);
+        } catch (ApiException e) {
+            log.warn("Unable to list console session secrets for cleanup.", e);
+            return;
+        }
+        int deletedCount = 0;
+        if (secrets != null) {
+            long now = clock.millis();
+            for (V1Secret secret : secrets) {
+                SessionData session = toSession(secret);
+                if (session == null || secret.getMetadata() == null
+                    || !session.isExpired(now, idleTimeout, absoluteTimeout)) {
+                    continue;
+                }
+                try {
+                    deleteSecret(secret.getMetadata().getName());
+                    deletedCount++;
+                } catch (RuntimeException e) {
+                    log.warn("Unable to delete expired console session secret {}.", secret.getMetadata().getName(), e);
+                }
+            }
+        }
+        log.info("Console session cleanup completed; deleted {} expired session secrets.", deletedCount);
+    }
+
+    private String resolveCredentialVersion(String username, boolean forceNewVersion, String errorMessage) {
+        String resourceName = getCredentialResourceName(username);
+        String newVersion = UUID.randomUUID().toString();
+        for (int attempt = 1; attempt <= MAX_MUTATION_ATTEMPTS; attempt++) {
+            try {
+                V1Secret secret = kubernetesClientService.readSecret(resourceName);
+                String currentVersion = getCredentialVersion(secret);
+                if (!forceNewVersion && StringUtils.isNotBlank(currentVersion)) {
+                    credentialVersionCache.put(username, new CachedCredentialVersion(currentVersion, clock.millis()));
+                    return currentVersion;
+                }
+
+                Map<String, byte[]> data =
+                    secret == null || secret.getData() == null ? new HashMap<>() : new HashMap<>(secret.getData());
+                data.put(VERSION_KEY, newVersion.getBytes(StandardCharsets.UTF_8));
+                if (secret == null) {
+                    secret = new V1Secret();
+                    secret.setMetadata(new V1ObjectMeta().name(resourceName));
+                    secret.setType(CREDENTIAL_SECRET_TYPE);
+                    secret.setData(data);
+                    kubernetesClientService.createSecret(secret);
+                } else {
+                    secret.setType(CREDENTIAL_SECRET_TYPE);
+                    secret.setData(data);
+                    kubernetesClientService.replaceSecret(secret);
+                }
+                credentialVersionCache.put(username, new CachedCredentialVersion(newVersion, clock.millis()));
+                return newVersion;
+            } catch (ApiException e) {
+                if (e.getCode() != HttpStatus.CONFLICT) {
+                    throw new BusinessException(errorMessage, e);
+                }
+                if (attempt == MAX_MUTATION_ATTEMPTS) {
+                    throw new SessionStoreRetryableException(errorMessage, e);
+                }
+                backoff(attempt, errorMessage, e);
+            }
+        }
+        throw new IllegalStateException("Unreachable credential version update state.");
     }
 
     private void deleteSecret(String name) {
@@ -181,11 +288,19 @@ public class KubernetesSessionStore implements SessionStore {
         return SESSION_SECRET_NAME_PREFIX + idHash;
     }
 
+    private static String getCredentialResourceName(String username) {
+        String usernameHash = Hashing.sha256().hashString(username, StandardCharsets.UTF_8).toString();
+        return CREDENTIAL_SECRET_NAME_PREFIX + usernameHash;
+    }
+
     private static Map<String, byte[]> toSecretData(SessionData session) {
         Map<String, byte[]> data = new HashMap<>();
         data.put(USERNAME_KEY, session.getUsername().getBytes(StandardCharsets.UTF_8));
         data.put(CREATED_AT_KEY, String.valueOf(session.getCreatedAt()).getBytes(StandardCharsets.UTF_8));
         data.put(LAST_ACCESS_AT_KEY, String.valueOf(session.getLastAccessAt()).getBytes(StandardCharsets.UTF_8));
+        if (session.getCredentialVersion() != null) {
+            data.put(CREDENTIAL_VERSION_KEY, session.getCredentialVersion().getBytes(StandardCharsets.UTF_8));
+        }
         return data;
     }
 
@@ -197,19 +312,35 @@ public class KubernetesSessionStore implements SessionStore {
         String username = getString(data, USERNAME_KEY);
         String createdAt = getString(data, CREATED_AT_KEY);
         String lastAccessAt = getString(data, LAST_ACCESS_AT_KEY);
+        String credentialVersion = getString(data, CREDENTIAL_VERSION_KEY);
         if (StringUtils.isAnyBlank(username, createdAt, lastAccessAt)) {
             return null;
         }
         try {
             return SessionData.builder().username(username).createdAt(Long.parseLong(createdAt))
-                .lastAccessAt(Long.parseLong(lastAccessAt)).build();
+                .lastAccessAt(Long.parseLong(lastAccessAt)).credentialVersion(credentialVersion).build();
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
+    private static String getCredentialVersion(V1Secret secret) {
+        return secret == null || secret.getData() == null ? null : getString(secret.getData(), VERSION_KEY);
+    }
+
     private static String getString(Map<String, byte[]> data, String key) {
         byte[] value = data.get(key);
         return value == null ? null : new String(value, StandardCharsets.UTF_8);
+    }
+
+    private static final class CachedCredentialVersion {
+
+        private final String version;
+        private final long cachedAt;
+
+        private CachedCredentialVersion(String version, long cachedAt) {
+            this.version = version;
+            this.cachedAt = cachedAt;
+        }
     }
 }

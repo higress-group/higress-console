@@ -32,6 +32,8 @@ public class SessionData {
 
     private long lastAccessAt;
 
+    private String credentialVersion;
+
     public boolean isExpired(long now, long idleTimeout, long absoluteTimeout) {
         return idleTimeout > 0 && now - lastAccessAt >= idleTimeout
             || absoluteTimeout > 0 && now - createdAt >= absoluteTimeout;

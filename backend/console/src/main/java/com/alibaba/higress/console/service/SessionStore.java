@@ -30,4 +30,8 @@ public interface SessionStore {
     void delete(String sessionId);
 
     void deleteByUsername(String username);
+
+    String getCredentialVersion(String username);
+
+    void bumpCredentialVersion(String username);
 }

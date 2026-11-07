@@ -3,6 +3,7 @@
 import { ChangePasswordParams } from '@/interfaces/user';
 import { changePassword } from '@/services';
 import store from '@/store';
+import { clearConfigDraft } from '@/utils/configDraft';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Button, Form, Input, Modal } from 'antd';
 import { history } from 'ice';
@@ -34,6 +35,7 @@ const ChangePasswordForm: React.FC = () => {
   };
 
   const relogin = () => {
+    clearConfigDraft(userState.currentUser.name);
     userDispatcher.updateCurrentUser({});
     history?.push(`/login`);
   };

@@ -45,11 +45,13 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author CH3CHO
  */
 @Service
+@Slf4j
 public class SessionServiceImpl implements SessionService {
 
     private static final String USERNAME_KEY = "adminUsername";
@@ -62,6 +64,7 @@ public class SessionServiceImpl implements SessionService {
     private static final int SESSION_ID_BYTES = 32;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String SESSION_COOKIE_SAME_SITE = "Lax";
+    static final long SESSION_TOUCH_INTERVAL_MILLIS = 60_000L;
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -192,7 +195,8 @@ public class SessionServiceImpl implements SessionService {
     public void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent) {
         String sessionId = generateSessionId();
         long now = clock.millis();
-        SessionData session = SessionData.builder().username(user.getName()).createdAt(now).lastAccessAt(now).build();
+        SessionData session = SessionData.builder().username(user.getName()).createdAt(now).lastAccessAt(now)
+            .credentialVersion(sessionStore.getCredentialVersion(user.getName())).build();
         sessionStore.create(sessionId, session);
         addSessionCookie(request, response, sessionId, persistent ? Long.valueOf(cookieMaxAge) : null);
     }
@@ -236,8 +240,19 @@ public class SessionServiceImpl implements SessionService {
             sessionStore.delete(sessionId);
             return null;
         }
-        session.setLastAccessAt(now);
-        sessionStore.update(sessionId, session);
+        String credentialVersion = sessionStore.getCredentialVersion(session.getUsername());
+        if (!StringUtils.equals(session.getCredentialVersion(), credentialVersion)) {
+            sessionStore.delete(sessionId);
+            return null;
+        }
+        if (now - session.getLastAccessAt() >= SESSION_TOUCH_INTERVAL_MILLIS) {
+            session.setLastAccessAt(Math.max(now, session.getLastAccessAt()));
+            try {
+                sessionStore.update(sessionId, session);
+            } catch (RuntimeException e) {
+                log.warn("Unable to update session last access time; authentication will continue.", e);
+            }
+        }
         return config.toUser();
     }
 
@@ -306,8 +321,6 @@ public class SessionServiceImpl implements SessionService {
         assert secret != null;
         assert MapUtils.isNotEmpty(secret.getData());
 
-        sessionStore.deleteByUsername(username);
-
         Map<String, byte[]> newData = new HashMap<>(secret.getData());
         newData.put(PASSWORD_KEY, newPassword.getBytes());
         secret.setData(newData);
@@ -319,6 +332,8 @@ public class SessionServiceImpl implements SessionService {
         }
 
         adminConfigCache.set(null);
+        sessionStore.bumpCredentialVersion(username);
+        sessionStore.deleteByUsername(username);
     }
 
     private void addSessionCookie(HttpServletRequest request, HttpServletResponse response, String value,

@@ -3,19 +3,24 @@ import { Mode } from '@/interfaces/config';
 import { getHigressConfig, updateHigressConfig } from '@/services/system';
 import store from '@/store';
 import { stripTrailingSpaces } from '@/utils';
+import { getConfigDraftStorageKey } from '@/utils/configDraft';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Form, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const CONFIG_DRAFT_STORAGE_KEY = 'higress-console.system.config-draft';
-
 const SystemSettings: React.FC = () => {
   const { t } = useTranslation();
 
+  const [userState] = store.useModel('user');
+  const configDraftStorageKey = userState.currentUser.name
+    ? getConfigDraftStorageKey(userState.currentUser.name)
+    : null;
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [configYaml, setConfigYaml] = useState<string>(() => sessionStorage.getItem(CONFIG_DRAFT_STORAGE_KEY) || "");
+  const [configYaml, setConfigYaml] = useState<string>(() =>
+    configDraftStorageKey ? sessionStorage.getItem(configDraftStorageKey) || '' : '',
+  );
   const [mode, setMode] = useState<string>(Mode.K8S);
   const [form] = Form.useForm();
   const codeEditorRef = useRef<CodeEditorRef>();
@@ -29,7 +34,7 @@ const SystemSettings: React.FC = () => {
   useRequest(getHigressConfig, {
     onSuccess: (result, params) => {
       setLoaded(true);
-      const draft = sessionStorage.getItem(CONFIG_DRAFT_STORAGE_KEY);
+      const draft = configDraftStorageKey ? sessionStorage.getItem(configDraftStorageKey) : null;
       if (draft !== null) {
         message.info(t('system.higress-config.draftRestored'));
       } else {
@@ -41,9 +46,13 @@ const SystemSettings: React.FC = () => {
   const handleSubmit = async () => {
     try {
       const cleanedConfigYaml = stripTrailingSpaces(configYaml);
-      sessionStorage.setItem(CONFIG_DRAFT_STORAGE_KEY, configYaml);
+      if (configDraftStorageKey) {
+        sessionStorage.setItem(configDraftStorageKey, configYaml);
+      }
       const updatedConfigYaml = await updateHigressConfig(cleanedConfigYaml);
-      sessionStorage.removeItem(CONFIG_DRAFT_STORAGE_KEY);
+      if (configDraftStorageKey) {
+        sessionStorage.removeItem(configDraftStorageKey);
+      }
       setConfigYaml(updatedConfigYaml);
       codeEditorRef.current?.pushContent(updatedConfigYaml);
       message.success(t('plugins.saveSuccess'));

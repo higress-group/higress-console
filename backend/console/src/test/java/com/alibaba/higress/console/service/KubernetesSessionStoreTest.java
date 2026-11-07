@@ -14,6 +14,7 @@ package com.alibaba.higress.console.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,20 +26,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
-import com.alibaba.higress.console.aop.ApiStandardizationAspect;
-import com.alibaba.higress.console.controller.SessionController;
-import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.http.HttpStatus;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
 import com.google.common.hash.Hashing;
 
@@ -54,7 +51,8 @@ class KubernetesSessionStoreTest {
         KubernetesSessionStore store = new KubernetesSessionStore();
         store.setKubernetesClientService(client);
         String sessionId = "opaque-session-id-that-must-not-be-a-resource-name";
-        SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(2000L).build();
+        SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(2000L)
+            .credentialVersion("credential-version").build();
 
         store.create(sessionId, session);
 
@@ -64,10 +62,12 @@ class KubernetesSessionStoreTest {
         String expectedHash = Hashing.sha256().hashString(sessionId, StandardCharsets.UTF_8).toString();
         assertEquals("higress-console-session-" + expectedHash, secret.getMetadata().getName());
         assertEquals(KubernetesSessionStore.SESSION_SECRET_TYPE, secret.getType());
-        assertEquals(3, secret.getData().size());
+        assertEquals(4, secret.getData().size());
         assertEquals("admin", value(secret, "username"));
         assertEquals("1000", value(secret, "createdAt"));
         assertEquals("2000", value(secret, "lastAccessAt"));
+        assertEquals("credential-version", value(secret, "credentialVersion"));
+        assertEquals("true", secret.getMetadata().getLabels().get("higress.io/console-session"));
         assertFalse(secret.getData().containsKey("password"));
         assertFalse(secret.getData().containsKey("adminPassword"));
         assertFalse(secret.getMetadata().getName().contains(sessionId));
@@ -93,9 +93,9 @@ class KubernetesSessionStoreTest {
         store.setKubernetesClientService(client);
         String sessionId = "session-id";
         String resourceName = resourceName(sessionId);
-        V1Secret original = sessionSecret(resourceName, "admin");
+        V1Secret original = sessionSecret(resourceName, "admin", 1000L, 2000L);
         original.getMetadata().setResourceVersion("1");
-        V1Secret concurrentlyUpdated = sessionSecret(resourceName, "admin");
+        V1Secret concurrentlyUpdated = sessionSecret(resourceName, "admin", 1000L, 4000L);
         concurrentlyUpdated.getMetadata().setResourceVersion("2");
         when(client.readSecret(resourceName)).thenReturn(original, concurrentlyUpdated);
         when(client.replaceSecret(any(V1Secret.class))).thenThrow(conflict()).thenReturn(concurrentlyUpdated);
@@ -109,11 +109,27 @@ class KubernetesSessionStoreTest {
         assertSame(original, captor.getAllValues().get(0));
         assertSame(concurrentlyUpdated, captor.getAllValues().get(1));
         assertEquals("2", captor.getAllValues().get(1).getMetadata().getResourceVersion());
-        assertEquals("3000", value(concurrentlyUpdated, "lastAccessAt"));
+        assertEquals("4000", value(concurrentlyUpdated, "lastAccessAt"));
     }
 
     @Test
-    void updateExhaustsRetriesAndMapsToServiceUnavailable() throws Throwable {
+    void updateDoesNotRollBackLastAccessTime() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String resourceName = resourceName("session-id");
+        V1Secret existing = sessionSecret(resourceName, "admin", 1000L, 5000L);
+        when(client.readSecret(resourceName)).thenReturn(existing);
+        SessionData older = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(3000L).build();
+
+        store.update("session-id", older);
+
+        assertEquals("5000", value(existing, "lastAccessAt"));
+        verify(client).replaceSecret(existing);
+    }
+
+    @Test
+    void updateExhaustsRetriesAndRereadsEveryAttempt() throws Exception {
         KubernetesClientService client = mock(KubernetesClientService.class);
         KubernetesSessionStore store = new KubernetesSessionStore();
         store.setKubernetesClientService(client);
@@ -123,9 +139,7 @@ class KubernetesSessionStoreTest {
         when(client.replaceSecret(any(V1Secret.class))).thenThrow(conflict());
         SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(3000L).build();
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> store.update(sessionId, session));
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, httpStatus(exception));
+        assertThrows(SessionStoreRetryableException.class, () -> store.update(sessionId, session));
         verify(client, times(5)).readSecret(resourceName);
         verify(client, times(5)).replaceSecret(any(V1Secret.class));
     }
@@ -197,6 +211,95 @@ class KubernetesSessionStoreTest {
     }
 
     @Test
+    void credentialVersionIsCreatedWhenMissing() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String resourceName = credentialResourceName("admin");
+        when(client.readSecret(resourceName)).thenReturn(null);
+
+        String version = store.getCredentialVersion("admin");
+
+        ArgumentCaptor<V1Secret> captor = ArgumentCaptor.forClass(V1Secret.class);
+        verify(client).createSecret(captor.capture());
+        assertEquals(resourceName, captor.getValue().getMetadata().getName());
+        assertEquals(version, value(captor.getValue(), "version"));
+    }
+
+    @Test
+    void credentialVersionCacheExpiresAfterTenSeconds() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        Clock clock = mock(Clock.class);
+        when(clock.millis()).thenReturn(1000L, 1000L, 5000L, 11_001L, 11_001L);
+        store.setClock(clock);
+        String resourceName = credentialResourceName("admin");
+        when(client.readSecret(resourceName)).thenReturn(credentialSecret("version-1"), credentialSecret("version-2"));
+
+        assertEquals("version-1", store.getCredentialVersion("admin"));
+        assertEquals("version-1", store.getCredentialVersion("admin"));
+        assertEquals("version-2", store.getCredentialVersion("admin"));
+        verify(client, times(2)).readSecret(resourceName);
+    }
+
+    @Test
+    void bumpCredentialVersionPersistsAndCachesNewVersion() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String resourceName = credentialResourceName("admin");
+        when(client.readSecret(resourceName)).thenReturn(credentialSecret("version-1"));
+
+        store.bumpCredentialVersion("admin");
+
+        ArgumentCaptor<V1Secret> captor = ArgumentCaptor.forClass(V1Secret.class);
+        verify(client).replaceSecret(captor.capture());
+        String newVersion = value(captor.getValue(), "version");
+        assertNotEquals("version-1", newVersion);
+        assertEquals(newVersion, store.getCredentialVersion("admin"));
+        verify(client, times(1)).readSecret(resourceName);
+    }
+
+    @Test
+    void cleanupDeletesExpiredSessionsListedByLabel() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        long now = 100_000L;
+        Clock clock = mock(Clock.class);
+        when(clock.millis()).thenReturn(now);
+        store.setClock(clock);
+        store.setIdleTimeout(1000L);
+        store.setAbsoluteTimeout(0);
+        V1Secret active = sessionSecret("session-active", "admin", now, now);
+        V1Secret expired = sessionSecret("session-expired", "admin", now, now - 1000L);
+        when(client.listSecret(KubernetesSessionStore.SESSION_SECRET_TYPE, sessionLabels()))
+            .thenReturn(Arrays.asList(active, expired));
+
+        store.cleanupExpiredSessions();
+
+        verify(client).deleteSecret("session-expired");
+        verify(client, never()).deleteSecret("session-active");
+    }
+
+    @Test
+    void cleanupDoesNotDeleteOldSessionsWhenTimeoutsAreDisabled() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        store.setIdleTimeout(0);
+        store.setAbsoluteTimeout(0);
+        V1Secret old = sessionSecret("session-old", "admin", 1000L, 2000L);
+        when(client.listSecret(KubernetesSessionStore.SESSION_SECRET_TYPE, sessionLabels()))
+            .thenReturn(Collections.singletonList(old));
+
+        store.cleanupExpiredSessions();
+
+        verify(client, never()).deleteSecret("session-old");
+    }
+
+    @Test
     void negativeTimeoutsAreRejected() {
         KubernetesSessionStore store = new KubernetesSessionStore();
 
@@ -221,8 +324,15 @@ class KubernetesSessionStoreTest {
         return secret;
     }
 
+    private static V1Secret credentialSecret(String version) {
+        V1Secret secret = new V1Secret();
+        secret.setMetadata(new V1ObjectMeta().name(credentialResourceName("admin")));
+        secret.setData(new HashMap<>(Collections.singletonMap("version", version.getBytes(StandardCharsets.UTF_8))));
+        return secret;
+    }
+
     private static ApiException conflict() {
-        return new ApiException(HttpStatus.CONFLICT.value(), "Conflict");
+        return new ApiException(HttpStatus.CONFLICT, "Conflict");
     }
 
     private static String resourceName(String sessionId) {
@@ -230,18 +340,13 @@ class KubernetesSessionStoreTest {
         return "higress-console-session-" + idHash;
     }
 
-    private static HttpStatus httpStatus(BusinessException exception) throws Throwable {
-        ProceedingJoinPoint point = mock(ProceedingJoinPoint.class);
-        Signature signature = mock(Signature.class);
-        when(point.getTarget()).thenReturn(new SessionController());
-        when(point.getSignature()).thenReturn(signature);
-        when(signature.getDeclaringTypeName()).thenReturn(SessionController.class.getName());
-        when(signature.getName()).thenReturn("login");
-        when(point.proceed()).thenThrow(exception);
+    private static String credentialResourceName(String username) {
+        String usernameHash = Hashing.sha256().hashString(username, StandardCharsets.UTF_8).toString();
+        return "higress-console-user-credential-" + usernameHash;
+    }
 
-        Object result = new ApiStandardizationAspect().intercept(point);
-
-        return ((ResponseEntity<?>)result).getStatusCode();
+    private static Map<String, String> sessionLabels() {
+        return Collections.singletonMap("higress.io/console-session", "true");
     }
 
     private static String value(V1Secret secret, String key) {

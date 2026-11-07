@@ -37,6 +37,7 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
@@ -187,7 +188,19 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void failedRevocationDoesNotCommitPasswordAndLeavesOldSessionValid() throws ApiException {
+    void sessionCreatedWithOldCredentialVersionIsRejectedAfterBump() {
+        Cookie sessionCookie = createSession(sessionService, ADMIN, false);
+        SessionData staleSession = sessionStore.find(sessionCookie.getValue());
+
+        sessionStore.bumpCredentialVersion(ADMIN);
+        sessionStore.create(sessionCookie.getValue(), staleSession);
+
+        assertNull(sessionService.validateSession(requestWith(sessionCookie)));
+        assertNull(sessionStore.find(sessionCookie.getValue()));
+    }
+
+    @Test
+    void failedSessionRevocationAfterPasswordCommitStillInvalidatesOldCredentialVersion() throws ApiException {
         InMemorySessionStore store = spy(new InMemorySessionStore());
         V1Secret adminSecret = adminSecret();
         KubernetesClientService client = mock(KubernetesClientService.class);
@@ -198,10 +211,39 @@ class SessionServiceImplTest {
 
         assertThrows(IllegalStateException.class, () -> service.changePassword(ADMIN, OLD_PASSWORD, "new-password"));
 
+        assertNull(service.validateSession(requestWith(sessionCookie)));
+        assertNull(service.login(ADMIN, OLD_PASSWORD));
+        assertNotNull(service.login(ADMIN, "new-password"));
+        assertAll(() -> verify(client).replaceSecret(any(V1Secret.class)),
+            () -> assertEquals("new-password",
+                new String(adminSecret.getData().get("adminPassword"), StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    void touchFailureDoesNotFailAuthentication() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
+        Cookie sessionCookie = createSession(service, ADMIN, false);
+        doThrow(new IllegalStateException("CAS retries exhausted")).when(store).update(any(), any());
+        clock.advance(Duration.ofMillis(SessionServiceImpl.SESSION_TOUCH_INTERVAL_MILLIS + 1));
+
         assertNotNull(service.validateSession(requestWith(sessionCookie)));
-        assertNotNull(service.login(ADMIN, OLD_PASSWORD));
-        assertAll(() -> verify(client, never()).replaceSecret(any(V1Secret.class)),
-            () -> assertEquals(OLD_PASSWORD, new String(adminSecret.getData().get("adminPassword"), StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    void touchesAreThrottledToOncePerInterval() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
+        Cookie sessionCookie = createSession(service, ADMIN, false);
+
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        clock.advance(Duration.ofSeconds(30));
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        verify(store, never()).update(any(), any());
+
+        clock.advance(Duration.ofSeconds(31));
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        verify(store).update(any(), any());
     }
 
     @Test
@@ -441,6 +483,7 @@ class SessionServiceImplTest {
     private static class InMemorySessionStore implements SessionStore {
 
         private final Map<String, SessionData> sessions = new ConcurrentHashMap<>();
+        private final Map<String, String> credentialVersions = new ConcurrentHashMap<>();
 
         @Override
         public void create(String sessionId, SessionData session) {
@@ -467,12 +510,22 @@ class SessionServiceImplTest {
             sessions.entrySet().removeIf(entry -> username.equals(entry.getValue().getUsername()));
         }
 
+        @Override
+        public String getCredentialVersion(String username) {
+            return credentialVersions.computeIfAbsent(username, key -> UUID.randomUUID().toString());
+        }
+
+        @Override
+        public void bumpCredentialVersion(String username) {
+            credentialVersions.put(username, UUID.randomUUID().toString());
+        }
+
         private static SessionData copy(SessionData session) {
             if (session == null) {
                 return null;
             }
             return SessionData.builder().username(session.getUsername()).createdAt(session.getCreatedAt())
-                .lastAccessAt(session.getLastAccessAt()).build();
+                .lastAccessAt(session.getLastAccessAt()).credentialVersion(session.getCredentialVersion()).build();
         }
     }
 }
