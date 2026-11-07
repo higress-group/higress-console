@@ -69,12 +69,8 @@ public class SessionServiceImpl implements SessionService {
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT + "}")
     private int cookieMaxAge = SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
 
-    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
-        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
     private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
 
-    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
-        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
     private long absoluteTimeout = SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT;
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_SECURE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_SECURE_DEFAULT + "}")
@@ -115,6 +111,19 @@ public class SessionServiceImpl implements SessionService {
     @Resource
     public void setClock(Clock clock) {
         this.clock = clock;
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
+    public void setIdleTimeout(long idleTimeout) {
+        this.idleTimeout = SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY, idleTimeout);
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
+    public void setAbsoluteTimeout(long absoluteTimeout) {
+        this.absoluteTimeout =
+            SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY, absoluteTimeout);
     }
 
     @Override
@@ -217,7 +226,7 @@ public class SessionServiceImpl implements SessionService {
             return null;
         }
         long now = clock.millis();
-        if (isExpired(session, now)) {
+        if (session.isExpired(now, idleTimeout, absoluteTimeout)) {
             sessionStore.delete(sessionId);
             return null;
         }
@@ -230,10 +239,6 @@ public class SessionServiceImpl implements SessionService {
         session.setLastAccessAt(now);
         sessionStore.update(sessionId, session);
         return config.toUser();
-    }
-
-    private boolean isExpired(SessionData session, long now) {
-        return now - session.getLastAccessAt() >= idleTimeout || now - session.getCreatedAt() >= absoluteTimeout;
     }
 
     private String getSessionId(HttpServletRequest request) {

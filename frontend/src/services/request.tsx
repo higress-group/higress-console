@@ -53,11 +53,10 @@ request.interceptors.response.use(
           return;
         }
         // Unauthorized. Jump to the login page.
-        Promise.reject(error);
         if (window.location.href.indexOf('/init') === -1 && window.location.href.indexOf('/login') === -1) {
           window.location.href = `/login?redirect=${window.location.pathname}`;
         }
-        return;
+        return Promise.reject(error);
       }
       const messageKeys = [`request.error.${status}_${config.method}`, `request.error.${status}`];
       for (const key of messageKeys) {

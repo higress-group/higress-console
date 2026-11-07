@@ -31,4 +31,17 @@ public class SessionData {
     private long createdAt;
 
     private long lastAccessAt;
+
+    public boolean isExpired(long now, long idleTimeout, long absoluteTimeout) {
+        return idleTimeout > 0 && now - lastAccessAt >= idleTimeout
+            || absoluteTimeout > 0 && now - createdAt >= absoluteTimeout;
+    }
+
+    public static long validateTimeout(String propertyName, long timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException(
+                "Configuration property '" + propertyName + "' must be at least 0 milliseconds, but was " + timeout);
+        }
+        return timeout;
+    }
 }

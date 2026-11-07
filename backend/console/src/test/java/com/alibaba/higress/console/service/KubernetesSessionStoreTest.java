@@ -178,6 +178,32 @@ class KubernetesSessionStoreTest {
         verify(client, never()).deleteSecret("session-other");
     }
 
+    @Test
+    void deleteByUsernameDoesNotSweepSessionsWhenTimeoutsAreDisabled() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        store.setIdleTimeout(0);
+        store.setAbsoluteTimeout(0);
+        V1Secret adminSession = sessionSecret("session-admin", "admin");
+        V1Secret oldOtherSession = sessionSecret("session-old-other", "other", 1000L, 2000L);
+        when(client.listSecret(KubernetesSessionStore.SESSION_SECRET_TYPE))
+            .thenReturn(Arrays.asList(adminSession, oldOtherSession));
+
+        store.deleteByUsername("admin");
+
+        verify(client).deleteSecret("session-admin");
+        verify(client, never()).deleteSecret("session-old-other");
+    }
+
+    @Test
+    void negativeTimeoutsAreRejected() {
+        KubernetesSessionStore store = new KubernetesSessionStore();
+
+        assertThrows(IllegalArgumentException.class, () -> store.setIdleTimeout(-1));
+        assertThrows(IllegalArgumentException.class, () -> store.setAbsoluteTimeout(-1));
+    }
+
     private static V1Secret sessionSecret(String name, String username) {
         long now = System.currentTimeMillis();
         return sessionSecret(name, username, now, now);

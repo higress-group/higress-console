@@ -8,15 +8,15 @@ Installs the console components of cloud-native gateway [Higress](http://higress
 
 Console sessions are stored server-side in the shared Kubernetes API, with one Secret per session in the console namespace. All console replicas use this store, and the console service account must retain its Secret read, write, list, and delete permissions. Session Secrets contain only the username and creation/last-access timestamps. The bearer session ID is represented by a SHA-256 hash in the Secret name and is not stored in the Secret data.
 
-After upgrading to the server-side session store, previous console cookies are not accepted and all users must log in again.
+Upgrading to the server-side session store invalidates all existing console sessions. Each user must log in once after the upgrade.
 
-| Configuration key | Default | Meaning |
-| --- | --- | --- |
-| `higress-console.admin.session.idle-timeout` | `1800000` ms (30 minutes) | Maximum time between requests before the server removes a session. |
-| `higress-console.admin.session.absolute-timeout` | `28800000` ms (8 hours) | Maximum session lifetime, regardless of request activity. |
-| `higress-console.admin.cookie.max-age` | `2592000` seconds (30 days) | Cookie `Max-Age` used only when login requests set `autoLogin` to `true`. |
+| Configuration key | Environment variable | Default | Meaning |
+| --- | --- | --- | --- |
+| `higress-console.admin.session.idle-timeout` | `HIGRESS_CONSOLE_ADMIN_SESSION_IDLE_TIMEOUT` | `1800000` ms (30 minutes) | Maximum time between requests before the server removes a session. Set to `0` to disable idle expiry. |
+| `higress-console.admin.session.absolute-timeout` | `HIGRESS_CONSOLE_ADMIN_SESSION_ABSOLUTE_TIMEOUT` | `28800000` ms (8 hours) | Maximum session lifetime, regardless of request activity. Set to `0` to disable absolute expiry. |
+| `higress-console.admin.cookie.max-age` | `HIGRESS_CONSOLE_ADMIN_COOKIE_MAX_AGE` | `2592000` seconds (30 days) | Cookie `Max-Age` used only when login requests set `autoLogin` to `true`. |
 
-When `autoLogin` is `false`, the browser receives a session cookie without `Max-Age`. `autoLogin` and the cookie maximum age do not change either server-side timeout; in particular, a persistent cookie cannot extend the eight-hour absolute session lifetime.
+Both session timeout values are expressed in milliseconds. Negative values are rejected. When `autoLogin` is `false`, the browser receives a session cookie without `Max-Age`. `autoLogin` and the cookie maximum age do not change either server-side timeout; in particular, a persistent cookie cannot extend a configured absolute session lifetime.
 
 ## TLS and authentication
 

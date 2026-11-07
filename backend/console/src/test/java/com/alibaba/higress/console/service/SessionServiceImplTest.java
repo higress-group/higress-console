@@ -116,6 +116,38 @@ class SessionServiceImplTest {
     }
 
     @Test
+    void zeroIdleTimeoutDisablesIdleExpiry() {
+        sessionService.setIdleTimeout(0);
+        Cookie sessionCookie = createSession(sessionService, ADMIN, false);
+
+        clock.advance(Duration.ofHours(1));
+
+        assertNotNull(sessionService.validateSession(requestWith(sessionCookie)));
+    }
+
+    @Test
+    void zeroAbsoluteTimeoutDisablesAbsoluteExpiry() {
+        sessionService.setIdleTimeout(Duration.ofDays(1).toMillis());
+        sessionService.setAbsoluteTimeout(0);
+        Cookie sessionCookie = createSession(sessionService, ADMIN, false);
+
+        clock.advance(Duration.ofHours(9));
+
+        assertNotNull(sessionService.validateSession(requestWith(sessionCookie)));
+    }
+
+    @Test
+    void negativeTimeoutsAreRejected() {
+        IllegalArgumentException idleException =
+            assertThrows(IllegalArgumentException.class, () -> sessionService.setIdleTimeout(-1));
+        IllegalArgumentException absoluteException =
+            assertThrows(IllegalArgumentException.class, () -> sessionService.setAbsoluteTimeout(-1));
+
+        assertTrue(idleException.getMessage().contains(SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY));
+        assertTrue(absoluteException.getMessage().contains(SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY));
+    }
+
+    @Test
     void logoutRevokesPresentedSessionAndReplayReturnsUnauthorized() {
         Cookie sessionCookie = createSession(sessionService, ADMIN, false);
         MockHttpServletResponse logoutResponse = new MockHttpServletResponse();
@@ -323,8 +355,8 @@ class SessionServiceImplTest {
 
     private static Cookie createSession(SessionServiceImpl service, String username, boolean persistent) {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        service.saveSession(request(false), response, User.builder().name(username).displayName("Administrator").build(),
-            persistent);
+        User user = User.builder().name(username).displayName("Administrator").build();
+        service.saveSession(request(false), response, user, persistent);
         Cookie cookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
         String setCookie = setCookie(response);
         String maxAgeAttribute = "Max-Age=";
@@ -332,7 +364,8 @@ class SessionServiceImplTest {
         if (maxAgeStart >= 0) {
             int valueStart = maxAgeStart + maxAgeAttribute.length();
             int valueEnd = setCookie.indexOf(';', valueStart);
-            cookie.setMaxAge(Integer.parseInt(setCookie.substring(valueStart, valueEnd >= 0 ? valueEnd : setCookie.length())));
+            String maxAge = setCookie.substring(valueStart, valueEnd >= 0 ? valueEnd : setCookie.length());
+            cookie.setMaxAge(Integer.parseInt(maxAge));
         }
         return cookie;
     }

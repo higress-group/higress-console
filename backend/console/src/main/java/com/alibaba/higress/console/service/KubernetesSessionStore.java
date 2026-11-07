@@ -49,12 +49,8 @@ public class KubernetesSessionStore implements SessionStore {
     private static final int MAX_MUTATION_ATTEMPTS = 5;
     private static final long CONFLICT_BACKOFF_MILLIS = 10L;
 
-    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
-        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
     private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
 
-    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
-        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
     private long absoluteTimeout = SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT;
 
     private KubernetesClientService kubernetesClientService;
@@ -68,6 +64,19 @@ public class KubernetesSessionStore implements SessionStore {
     @Resource
     public void setClock(Clock clock) {
         this.clock = clock;
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
+    public void setIdleTimeout(long idleTimeout) {
+        this.idleTimeout = SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY, idleTimeout);
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
+    public void setAbsoluteTimeout(long absoluteTimeout) {
+        this.absoluteTimeout =
+            SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY, absoluteTimeout);
     }
 
     @Override
@@ -122,17 +131,13 @@ public class KubernetesSessionStore implements SessionStore {
                     continue;
                 }
                 // Listing also performs a lazy amortized sweep of every expired session encountered.
-                if (isExpired(session, now) || username.equals(session.getUsername())) {
+                if (session.isExpired(now, idleTimeout, absoluteTimeout) || username.equals(session.getUsername())) {
                     deleteSecret(secret.getMetadata().getName());
                 }
             }
         } catch (ApiException e) {
             throw new BusinessException("Unable to delete user session secrets from K8s.", e);
         }
-    }
-
-    private boolean isExpired(SessionData session, long now) {
-        return now - session.getLastAccessAt() >= idleTimeout || now - session.getCreatedAt() >= absoluteTimeout;
     }
 
     private void deleteSecret(String name) {
