@@ -714,14 +714,6 @@ export const aiModelProviders = [
       'us-west-2',
     ],
     useCustomCredentials: true,
-    getCredentialsForDisplay: (record): string[] => {
-      if (!record.rawConfigs) {
-        return [];
-      }
-      const accessKey = record.rawConfigs.awsAccessKey;
-      const secretKey = record.rawConfigs.awsSecretKey;
-      return accessKey && secretKey ? [`${accessKey}:${secretKey}`] : [];
-    },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.awsRegion;
       return (region && [`https://bedrock-runtime.${region}.amazonaws.com`]) || [];
@@ -797,24 +789,6 @@ export const aiModelProviders = [
       ],
     },
     useCustomCredentials: true,
-    getCredentialsForDisplay: (record): string[] => {
-      if (!record.rawConfigs) {
-        return [];
-      }
-      const authKey = record.rawConfigs.vertexAuthKey;
-      if (!authKey) {
-        return [];
-      }
-      try {
-        const authKeyObj = JSON.parse(authKey);
-        if (typeof authKeyObj !== 'object' || !authKeyObj.client_email || !authKeyObj.private_key_id) {
-          return [];
-        }
-        return [`${authKeyObj.client_email}:${authKeyObj.private_key_id}`];
-      } catch (e) {
-        return [];
-      }
-    },
     getProviderEndpoints: (record): string[] => {
       const region = record.rawConfigs && record.rawConfigs.vertexRegion;
       if (!region) {

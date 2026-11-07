@@ -109,6 +109,16 @@ http://localhost:8080
 http://localhost:8080/swagger-ui/index.html
 ```
 
+## 升级说明：凭证类 API 响应变更
+
+自该版本起，控制台对 LLM Provider 与 Consumer 的凭证采用只写（write-only）语义：
+
+- `GET /v1/ai/providers`、`GET /v1/ai/providers/{name}`、`PUT /v1/ai/providers/{name}` 不再返回 `tokens`，`rawConfigs` 中的 `apiTokens`、`awsAccessKey`、`awsSecretKey`、`vertexAuthKey` 等凭证字段也会被移除；仅返回 `tokenCount`、`awsAccessKeyConfigured` 等脱敏元数据。
+- `GET /v1/consumers`、`GET /v1/consumers/{name}`、`PUT /v1/consumers/{name}` 不再返回 key-auth 凭证的 `values`，仅返回 `credentialCount` 等元数据。
+- `POST /v1/ai/providers` 与 `POST /v1/consumers` 仅用于创建新资源，不再隐式更新同名资源。名称已存在时返回 `409 Conflict`，且不会返回任何已存储的凭证。创建成功时会在响应中一次性返回本次提交的凭证（provider 的 `tokens` 以及 `rawConfigs` 中的凭证字段，consumer 的 `values`）。之后无法通过 API 再次读取。
+- 继续使用 `POST` 做“存在则更新”的外部脚本必须改为：创建使用 `POST`，更新使用 `PUT /v1/ai/providers/{name}` 或 `PUT /v1/consumers/{name}`。
+- 如果外部脚本依赖读取后再写回（read-modify-write）凭证字段，需要改为在更新时省略凭证字段以保留原值、提交新值以替换、显式提交空值以清除，或直接保存创建响应中的凭证。
+
 ## 开发规范
 
 ### 后端项目

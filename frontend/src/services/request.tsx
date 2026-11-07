@@ -3,6 +3,7 @@ import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
 import { resolveRequestTimeout } from './timeout';
+import { redactSensitiveData } from '@/utils/redact-secrets';
 
 const request = axios.create({
   timeout: resolveRequestTimeout(),
@@ -75,7 +76,7 @@ request.interceptors.response.use(
         config.data = typeof data === 'string' ? data : JSON.stringify(data);
       }
     }
-    showErrorModal(message, config, code);
+    showErrorModal(message, redactSensitiveData(config), code);
     return Promise.reject(error);
   },
 );
