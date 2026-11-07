@@ -14,8 +14,10 @@ package com.alibaba.higress.console;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = {"com.alibaba.higress"})
+@EnableScheduling
 public class HigressConsoleApplication {
 
     public static void main(String[] args) {

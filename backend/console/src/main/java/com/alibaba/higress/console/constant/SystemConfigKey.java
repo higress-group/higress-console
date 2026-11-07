@@ -64,6 +64,14 @@ public class SystemConfigKey {
 
     public static final int ADMIN_COOKIE_MAX_AGE_DEFAULT = 30 * 24 * 60 * 60;
 
+    public static final String ADMIN_SESSION_IDLE_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "admin.session.idle-timeout";
+
+    public static final long ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT = 30 * 60 * 1000L;
+
+    public static final String ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "admin.session.absolute-timeout";
+
+    public static final long ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT = 8 * 60 * 60 * 1000L;
+
     public static final String ADMIN_COOKIE_SECURE_KEY = CONFIG_KEY_PREFIX + "admin.cookie.secure";
 
     public static final boolean ADMIN_COOKIE_SECURE_DEFAULT = false;

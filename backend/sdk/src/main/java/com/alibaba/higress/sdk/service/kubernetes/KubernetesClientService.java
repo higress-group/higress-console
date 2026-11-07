@@ -475,13 +475,18 @@ public class KubernetesClientService {
     }
 
     public List<V1Secret> listSecret(String type) throws ApiException {
+        return listSecret(type, null);
+    }
+
+    public List<V1Secret> listSecret(String type, Map<String, String> labelSelectors) throws ApiException {
         CoreV1Api coreV1Api = new CoreV1Api(client);
         String fieldSelectors = null;
         if (StringUtils.isNotEmpty(type)) {
             fieldSelectors = KubernetesConstants.TYPE_FIELD + Separators.EQUALS_SIGN + type;
         }
-        V1SecretList list = coreV1Api.listNamespacedSecret(controllerNamespace, null, null, null, fieldSelectors, null,
-            null, null, null, null, null);
+        String labelSelectorsStr = KubernetesUtil.buildLabelSelectors(labelSelectors);
+        V1SecretList list = coreV1Api.listNamespacedSecret(controllerNamespace, null, null, null, fieldSelectors,
+            labelSelectorsStr, null, null, null, null, null);
         return sortKubernetesObjects(Optional.ofNullable(list.getItems()).orElse(Collections.emptyList()));
     }
 

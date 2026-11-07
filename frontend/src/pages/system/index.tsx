@@ -3,6 +3,7 @@ import { Mode } from '@/interfaces/config';
 import { getHigressConfig, updateHigressConfig } from '@/services/system';
 import store from '@/store';
 import { stripTrailingSpaces } from '@/utils';
+import { getConfigDraftStorageKey } from '@/utils/configDraft';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import { Button, Form, message } from 'antd';
@@ -12,8 +13,17 @@ import { useTranslation } from 'react-i18next';
 const SystemSettings: React.FC = () => {
   const { t } = useTranslation();
 
+  const [userState] = store.useModel('user');
+  const configDraftStorageKey = userState.currentUser.name
+    ? getConfigDraftStorageKey(userState.currentUser.name)
+    : null;
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [configYaml, setConfigYaml] = useState<string>("");
+  const [configYaml, setConfigYaml] = useState<string>(() => {
+    if (configDraftStorageKey) {
+      return sessionStorage.getItem(configDraftStorageKey) || '';
+    }
+    return '';
+  });
   const [mode, setMode] = useState<string>(Mode.K8S);
   const [form] = Form.useForm();
   const codeEditorRef = useRef<CodeEditorRef>();
@@ -27,14 +37,25 @@ const SystemSettings: React.FC = () => {
   useRequest(getHigressConfig, {
     onSuccess: (result, params) => {
       setLoaded(true);
-      setConfigYaml(result);
+      const draft = configDraftStorageKey ? sessionStorage.getItem(configDraftStorageKey) : null;
+      if (draft !== null) {
+        message.info(t('system.higress-config.draftRestored'));
+      } else {
+        setConfigYaml(result);
+      }
     },
   });
 
   const handleSubmit = async () => {
     try {
       const cleanedConfigYaml = stripTrailingSpaces(configYaml);
+      if (configDraftStorageKey) {
+        sessionStorage.setItem(configDraftStorageKey, configYaml);
+      }
       const updatedConfigYaml = await updateHigressConfig(cleanedConfigYaml);
+      if (configDraftStorageKey) {
+        sessionStorage.removeItem(configDraftStorageKey);
+      }
       setConfigYaml(updatedConfigYaml);
       codeEditorRef.current?.pushContent(updatedConfigYaml);
       message.success(t('plugins.saveSuccess'));

@@ -54,11 +54,10 @@ request.interceptors.response.use(
           return;
         }
         // Unauthorized. Jump to the login page.
-        Promise.reject(error);
         if (window.location.href.indexOf('/init') === -1 && window.location.href.indexOf('/login') === -1) {
           window.location.href = `/login?redirect=${window.location.pathname}`;
         }
-        return;
+        return Promise.reject(error);
       }
       if (status === 429 && config.url.indexOf('/login') !== -1) {
         return Promise.reject(error);

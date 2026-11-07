@@ -811,7 +811,8 @@
     "higress-config": {
       "title": "Edit Global Configuration: higress-config",
       "note_k8s": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress Gateway is restarted.",
-      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted."
+      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted.",
+      "draftRestored": "Unsaved configuration from the previous session has been restored. Review it and submit again to save it."
     }
   },
   "tlsCertificate": {

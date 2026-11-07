@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -34,6 +35,10 @@ final class MutableClock extends Clock {
 
     void advanceMillis(long millis) {
         this.millis += millis;
+    }
+
+    void advance(Duration duration) {
+        advanceMillis(duration.toMillis());
     }
 
     void advanceSeconds(long seconds) {
