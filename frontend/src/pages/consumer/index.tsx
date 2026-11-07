@@ -3,6 +3,7 @@
 import CreatedSecretModal, { SecretEntry } from '@/components/CreatedSecretModal';
 import { Consumer, CredentialType, ServiceSourceFormProps as FormProps } from '@/interfaces/consumer';
 import { addConsumer, deleteConsumer, getConsumers, updateConsumer } from '@/services/consumer';
+import { redactForLog } from '@/utils/redact-secrets';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -149,7 +150,7 @@ const ConsumerList: React.FC = () => {
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      console.error('Save failed: ', redactForLog(errInfo));
     }
   };
 

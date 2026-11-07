@@ -74,7 +74,7 @@ public class LlmProvidersController {
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<LlmProviderResponse>> add(@RequestBody LlmProvider provider) {
         provider.validate(false);
-        LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
+        LlmProvider newProvider = llmProviderService.add(provider);
         return ControllerUtil.buildResponseEntity(LlmProviderResponse.fromForCreate(newProvider));
     }
 

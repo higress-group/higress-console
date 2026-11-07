@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +35,7 @@ import org.mockito.Mockito;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -91,6 +93,54 @@ public class LlmProviderServiceImplTest {
 
         verify(wasmPluginInstanceService).addOrUpdateAll(any());
         verify(serviceSourceService).addOrUpdate(any(ServiceSource.class));
+    }
+
+    @Test
+    public void add_existingProvider_throwsConflictWithoutReturningStoredSecrets() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.OPENAI);
+        providerConfig.put(AiProxyConfig.PROVIDER_API_TOKENS, Lists.newArrayList("stored-token"));
+        providerConfig.put("model", "gpt-4");
+        providerConfig.put("apiKey", "stored-api-key");
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.setTokens(Lists.newArrayList("new-token"));
+
+        ResourceConflictException exception = Assertions.assertThrows(ResourceConflictException.class,
+            () -> service.add(provider));
+        Assertions.assertTrue(exception.getMessage().contains(TEST_PROVIDER_NAME));
+        Assertions.assertFalse(exception.getMessage().contains("stored-token"));
+        Assertions.assertFalse(exception.getMessage().contains("stored-api-key"));
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
+    }
+
+    @Test
+    public void add_providerWithOnlyRawConfigsApiTokens_persistsAndReturnsNormalizedTokens() {
+        AtomicReference<WasmPluginInstance> globalInstanceRef = new AtomicReference<>();
+        when(wasmPluginInstanceService.list(eq(BuiltInPluginName.AI_PROXY), anyBoolean()))
+            .thenReturn(Collections.emptyList());
+        when(wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.AI_PROXY)).thenAnswer(invocation -> {
+            WasmPluginInstance instance = createEmptyGlobalInstance();
+            globalInstanceRef.set(instance);
+            return instance;
+        });
+        when(wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.AI_PROXY, true))
+            .thenAnswer(invocation -> globalInstanceRef.get());
+        when(aiRouteService.list(any(CommonPageQuery.class))).thenReturn(createEmptyPaginatedResult());
+        when(wasmPluginInstanceService.addOrUpdateAll(any())).thenReturn(Collections.emptyList());
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.getRawConfigs().put(AiProxyConfig.PROVIDER_API_TOKENS,
+            Lists.newArrayList("raw-token-1", "raw-token-2"));
+
+        LlmProvider created = service.add(provider);
+
+        Assertions.assertEquals(Lists.newArrayList("raw-token-1", "raw-token-2"), created.getTokens());
+        Assertions.assertEquals(Lists.newArrayList("raw-token-1", "raw-token-2"),
+            getProviderConfig(globalInstanceRef.get()).get(AiProxyConfig.PROVIDER_API_TOKENS));
     }
 
     @Test

@@ -15,9 +15,12 @@ package com.alibaba.higress.console.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -34,6 +37,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import com.alibaba.higress.console.context.HttpContext;
 import com.alibaba.higress.console.controller.ai.LlmProvidersController;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.ai.LlmProvider;
 import com.alibaba.higress.sdk.model.ai.LlmProviderType;
@@ -95,11 +99,27 @@ class WriteOnlyResponseTest {
     @Test
     void providerPostRootIncludesCredentialValuesOnce() throws Exception {
         initContext(HttpMethod.POST);
-        when(llmProviderService.addOrUpdate(any())).thenReturn(createSecretProvider());
+        when(llmProviderService.add(any())).thenReturn(createSecretProvider());
 
         Object body = llmProvidersController.add(createProviderRequest()).getBody();
 
         assertProviderCreateResponse(serialize(body));
+    }
+
+    @Test
+    void providerPostExistingProviderThrowsConflictWithoutSecrets() {
+        initContext(HttpMethod.POST);
+        when(llmProviderService.add(any())).thenThrow(
+            new ResourceConflictException("Provider " + PROVIDER_NAME + " already exists. Use PUT to update it."));
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> llmProvidersController.add(createProviderRequest()));
+
+        assertFalse(exception.getMessage().contains("provider-token"));
+        assertFalse(exception.getMessage().contains("aws-access"));
+        assertFalse(exception.getMessage().contains("vertex-secret"));
+        verify(llmProviderService).add(any());
+        verify(llmProviderService, never()).addOrUpdate(any());
     }
 
     @Test
@@ -135,11 +155,25 @@ class WriteOnlyResponseTest {
     @Test
     void consumerPostRootIncludesCredentialValuesOnce() throws Exception {
         initContext(HttpMethod.POST);
-        when(consumerService.addOrUpdate(any())).thenReturn(createSecretConsumer());
+        when(consumerService.add(any())).thenReturn(createSecretConsumer());
 
         Object body = consumersController.add(createConsumerRequest()).getBody();
 
         assertConsumerCreateResponse(serialize(body));
+    }
+
+    @Test
+    void consumerPostExistingConsumerThrowsConflictWithoutSecrets() {
+        initContext(HttpMethod.POST);
+        when(consumerService.add(any())).thenThrow(
+            new ResourceConflictException("Consumer " + CONSUMER_NAME + " already exists. Use PUT to update it."));
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> consumersController.add(createConsumerRequest()));
+
+        assertFalse(exception.getMessage().contains("consumer-secret"));
+        verify(consumerService).add(any());
+        verify(consumerService, never()).addOrUpdate(any());
     }
 
     @Test

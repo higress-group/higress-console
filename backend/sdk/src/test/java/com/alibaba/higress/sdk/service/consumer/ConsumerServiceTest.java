@@ -46,6 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -144,6 +145,28 @@ public class ConsumerServiceTest {
         assertEquals(true, consumerConfig.get("in_header"), "Consumer should be configured for header authentication");
         assertEquals(Lists.newArrayList("test-key"), consumerConfig.get("credentials"),
             "Credentials should match the added consumer's credentials");
+    }
+
+    @Test
+    void testAdd_ExistingConsumer_ThrowsConflictWithoutReturningStoredCredentials() {
+        String consumerName = "testUser";
+        WasmPluginInstance instance = createTestInstance();
+        instance.setGlobalTarget();
+        Map<String, Object> config = new HashMap<>();
+        config.put("consumers", Lists.newArrayList(ImmutableMap.of("name", consumerName,
+            "keys", Lists.newArrayList("Authorization"), "in_header", true, "credentials",
+            Lists.newArrayList("stored-secret"))));
+        instance.setConfigurations(config);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+
+        Consumer consumer = createTestConsumer(consumerName);
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> consumerService.add(consumer));
+        assertTrue(exception.getMessage().contains(consumerName));
+        assertFalse(exception.getMessage().contains("stored-secret"));
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
     }
 
     private void validateDefaultGlobalConfig(Map<String, Object> configurations) {

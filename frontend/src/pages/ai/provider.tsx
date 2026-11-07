@@ -1,6 +1,7 @@
 import CreatedSecretModal, { SecretEntry } from '@/components/CreatedSecretModal';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
+import { redactForLog } from '@/utils/redact-secrets';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -175,7 +176,7 @@ const LlmProviderList: React.FC = () => {
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      console.error('Save failed: ', redactForLog(errInfo));
     }
   };
 

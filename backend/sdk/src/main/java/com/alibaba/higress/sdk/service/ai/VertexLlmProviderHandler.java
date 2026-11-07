@@ -97,7 +97,8 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
             try {
                 authKeyObject = JSON.parseObject(authKey);
             } catch (JSONException ex) {
-                throw new ValidationException(VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object.", ex);
+                // Do not attach the parse exception or the submitted value: either may contain the auth key.
+                throw new ValidationException(VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object.");
             }
             final BiConsumer<JSONObject, String> ensureJsonStringProperty = (jsonObject, key) -> {
                 Object value = jsonObject.get(key);

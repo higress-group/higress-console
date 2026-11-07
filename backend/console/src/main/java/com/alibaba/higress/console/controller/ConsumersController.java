@@ -69,10 +69,11 @@ public class ConsumersController {
     @Operation(summary = "Add a consumer")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Consumer added successfully"),
         @ApiResponse(responseCode = "400", description = "Consumer data is not valid"),
+        @ApiResponse(responseCode = "409", description = "Consumer already existed with the same name."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<ConsumerResponse>> add(@RequestBody Consumer consumer) {
         consumer.validate(false);
-        Consumer newConsumer = consumerService.addOrUpdate(consumer);
+        Consumer newConsumer = consumerService.add(consumer);
         return ControllerUtil.buildResponseEntity(ConsumerResponse.fromForCreate(newConsumer));
     }
 
