@@ -20,11 +20,7 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
 
   const doLogout = async () => {
     await logout();
-    const pathname = history?.location?.pathname;
-    history?.push({
-      pathname: '/login',
-      search: pathname ? `redirect=${pathname}` : '',
-    });
+    history?.push('/login');
   };
 
   const onLogoutClick = useCallback((event: MenuInfo) => {
