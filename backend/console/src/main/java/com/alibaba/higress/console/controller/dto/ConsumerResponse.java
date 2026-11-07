@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console.controller.dto;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
 import com.alibaba.higress.sdk.model.consumer.Credential;
 import com.alibaba.higress.sdk.model.consumer.KeyAuthCredential;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -32,7 +34,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Service consumer response without credential values")
+@Schema(description = "Service consumer response. Credential values are only included in the create response.")
 public class ConsumerResponse {
 
     @Schema(description = "Consumer name")
@@ -41,12 +43,21 @@ public class ConsumerResponse {
     private List<CredentialResponse> credentials;
 
     public static ConsumerResponse from(Consumer consumer) {
+        return from(consumer, false);
+    }
+
+    public static ConsumerResponse fromForCreate(Consumer consumer) {
+        return from(consumer, true);
+    }
+
+    private static ConsumerResponse from(Consumer consumer, boolean includeSecrets) {
         if (consumer == null) {
             return null;
         }
         List<CredentialResponse> credentials = Collections.emptyList();
         if (CollectionUtils.isNotEmpty(consumer.getCredentials())) {
-            credentials = consumer.getCredentials().stream().map(CredentialResponse::from).collect(Collectors.toList());
+            credentials = consumer.getCredentials().stream()
+                .map(credential -> CredentialResponse.from(credential, includeSecrets)).collect(Collectors.toList());
         }
         return ConsumerResponse.builder().name(consumer.getName()).credentials(credentials).build();
     }
@@ -55,7 +66,7 @@ public class ConsumerResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(description = "Consumer credential metadata without credential values")
+    @Schema(description = "Consumer credential metadata. Credential values are only included in the create response.")
     public static class CredentialResponse {
 
         @Schema(description = "Credential type", ref = "CredentialType")
@@ -64,15 +75,25 @@ public class ConsumerResponse {
         private String source;
         @Schema(description = "Credential key")
         private String key;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "Key-auth credential values. Only included in the create response.")
+        private List<String> values;
         @Schema(description = "Number of configured key-auth credentials")
         private int credentialCount;
 
         public static CredentialResponse from(Credential credential) {
+            return from(credential, false);
+        }
+
+        public static CredentialResponse from(Credential credential, boolean includeSecrets) {
             if (credential instanceof KeyAuthCredential) {
                 KeyAuthCredential keyAuthCredential = (KeyAuthCredential)credential;
-                int credentialCount = keyAuthCredential.getValues() != null ? keyAuthCredential.getValues().size() : 0;
-                return CredentialResponse.builder().type(keyAuthCredential.getType()).source(keyAuthCredential.getSource())
-                    .key(keyAuthCredential.getKey()).credentialCount(credentialCount).build();
+                List<String> values = keyAuthCredential.getValues();
+                int credentialCount = values != null ? values.size() : 0;
+                List<String> responseValues = includeSecrets && values != null ? new ArrayList<>(values) : null;
+                return CredentialResponse.builder().type(keyAuthCredential.getType())
+                    .source(keyAuthCredential.getSource()).key(keyAuthCredential.getKey()).values(responseValues)
+                    .credentialCount(credentialCount).build();
             }
             return CredentialResponse.builder().type(credential.getType()).build();
         }

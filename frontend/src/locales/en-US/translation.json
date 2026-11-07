@@ -131,6 +131,13 @@
       "reset": "Reset"
     }
   },
+  "createdSecret": {
+    "title": "Copy the secret now",
+    "description": "This value will not be shown again. Copy it and store it securely before closing this dialog.",
+    "confirm": "I have saved it",
+    "providerToken": "Token {{index}}",
+    "consumerCredential": "Credential {{index}}"
+  },
   "consumer": {
     "columns": {
       "name": "Name",

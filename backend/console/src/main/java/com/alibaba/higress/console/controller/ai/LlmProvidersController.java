@@ -75,7 +75,7 @@ public class LlmProvidersController {
     public ResponseEntity<Response<LlmProviderResponse>> add(@RequestBody LlmProvider provider) {
         provider.validate(false);
         LlmProvider newProvider = llmProviderService.addOrUpdate(provider);
-        return ControllerUtil.buildResponseEntity(LlmProviderResponse.from(newProvider));
+        return ControllerUtil.buildResponseEntity(LlmProviderResponse.fromForCreate(newProvider));
     }
 
     @GetMapping(value = "/{name}")

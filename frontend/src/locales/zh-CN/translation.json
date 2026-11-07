@@ -131,6 +131,13 @@
       "reset": "重置"
     }
   },
+  "createdSecret": {
+    "title": "请立即复制凭证",
+    "description": "该凭证不会再次显示。请先复制并妥善保存，然后再关闭此对话框。",
+    "confirm": "我已保存",
+    "providerToken": "令牌 {{index}}",
+    "consumerCredential": "凭证 {{index}}"
+  },
   "consumer": {
     "columns": {
       "name": "消费者名称",

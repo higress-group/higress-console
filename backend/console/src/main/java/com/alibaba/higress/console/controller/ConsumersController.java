@@ -73,7 +73,7 @@ public class ConsumersController {
     public ResponseEntity<Response<ConsumerResponse>> add(@RequestBody Consumer consumer) {
         consumer.validate(false);
         Consumer newConsumer = consumerService.addOrUpdate(consumer);
-        return ControllerUtil.buildResponseEntity(ConsumerResponse.from(newConsumer));
+        return ControllerUtil.buildResponseEntity(ConsumerResponse.fromForCreate(newConsumer));
     }
 
     @GetMapping(value = "/{name}")

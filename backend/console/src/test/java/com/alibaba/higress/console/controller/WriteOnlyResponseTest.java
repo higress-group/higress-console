@@ -93,13 +93,13 @@ class WriteOnlyResponseTest {
     }
 
     @Test
-    void providerPostRootOmitsCredentialValues() throws Exception {
+    void providerPostRootIncludesCredentialValuesOnce() throws Exception {
         initContext(HttpMethod.POST);
         when(llmProviderService.addOrUpdate(any())).thenReturn(createSecretProvider());
 
         Object body = llmProvidersController.add(createProviderRequest()).getBody();
 
-        assertProviderResponse(serialize(body));
+        assertProviderCreateResponse(serialize(body));
     }
 
     @Test
@@ -133,13 +133,13 @@ class WriteOnlyResponseTest {
     }
 
     @Test
-    void consumerPostRootOmitsCredentialValues() throws Exception {
+    void consumerPostRootIncludesCredentialValuesOnce() throws Exception {
         initContext(HttpMethod.POST);
         when(consumerService.addOrUpdate(any())).thenReturn(createSecretConsumer());
 
         Object body = consumersController.add(createConsumerRequest()).getBody();
 
-        assertConsumerResponse(serialize(body));
+        assertConsumerCreateResponse(serialize(body));
     }
 
     @Test
@@ -176,6 +176,26 @@ class WriteOnlyResponseTest {
         assertFalse(provider.toString().contains("vertex-secret"));
     }
 
+    private static void assertProviderCreateResponse(JsonNode provider) {
+        assertNotNull(provider);
+        JsonNode tokens = provider.get("tokens");
+        assertNotNull(tokens);
+        assertEquals(2, tokens.size());
+        assertEquals("provider-token-1", tokens.get(0).asText());
+        assertEquals("provider-token-2", tokens.get(1).asText());
+        assertEquals(2, provider.get("tokenCount").asInt());
+        assertTrue(provider.get("awsAccessKeyConfigured").asBoolean());
+        assertTrue(provider.get("awsSecretKeyConfigured").asBoolean());
+        assertTrue(provider.get("vertexAuthKeyConfigured").asBoolean());
+        JsonNode rawConfigs = provider.get("rawConfigs");
+        assertNotNull(rawConfigs);
+        assertEquals(2, rawConfigs.get("apiTokens").size());
+        assertEquals("aws-access", rawConfigs.get("awsAccessKey").asText());
+        assertEquals("aws-secret", rawConfigs.get("awsSecretKey").asText());
+        assertEquals("vertex-secret", rawConfigs.get("vertexAuthKey").asText());
+        assertEquals("visible", rawConfigs.get("nonSecret").asText());
+    }
+
     private static void assertConsumerResponse(JsonNode consumer) {
         assertNotNull(consumer);
         JsonNode credential = consumer.get("credentials").get(0);
@@ -183,6 +203,18 @@ class WriteOnlyResponseTest {
         assertEquals(2, credential.get("credentialCount").asInt());
         assertEquals("x-api-key", credential.get("key").asText());
         assertFalse(consumer.toString().contains("consumer-secret"));
+    }
+
+    private static void assertConsumerCreateResponse(JsonNode consumer) {
+        assertNotNull(consumer);
+        JsonNode credential = consumer.get("credentials").get(0);
+        JsonNode values = credential.get("values");
+        assertNotNull(values);
+        assertEquals(2, values.size());
+        assertEquals("consumer-secret-1", values.get(0).asText());
+        assertEquals("consumer-secret-2", values.get(1).asText());
+        assertEquals(2, credential.get("credentialCount").asInt());
+        assertEquals("x-api-key", credential.get("key").asText());
     }
 
     private static PaginatedResult<LlmProvider> providerPage() {
