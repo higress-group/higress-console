@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
@@ -58,11 +57,11 @@ public class KubernetesSessionStore implements SessionStore {
     private static final String USERNAME_KEY = "username";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String LAST_ACCESS_AT_KEY = "lastAccessAt";
-    private static final String CREDENTIAL_VERSION_KEY = "credentialVersion";
-    private static final String VERSION_KEY = "version";
+    private static final String CREDENTIAL_FINGERPRINT_KEY = "credentialFingerprint";
+    private static final String FINGERPRINT_KEY = "fingerprint";
     private static final int MAX_MUTATION_ATTEMPTS = 5;
     private static final long CONFLICT_BACKOFF_MILLIS = 10L;
-    static final long CREDENTIAL_VERSION_CACHE_TTL_MILLIS = 10_000L;
+    static final long CREDENTIAL_FINGERPRINT_CACHE_TTL_MILLIS = 10_000L;
     static final long SESSION_CLEANUP_INTERVAL_MILLIS = 10 * 60 * 1000L;
 
     private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
@@ -71,7 +70,7 @@ public class KubernetesSessionStore implements SessionStore {
 
     private KubernetesClientService kubernetesClientService;
     private Clock clock = Clock.systemUTC();
-    private final Map<String, CachedCredentialVersion> credentialVersionCache = new ConcurrentHashMap<>();
+    private final Map<String, CachedCredentialFingerprint> credentialFingerprintCache = new ConcurrentHashMap<>();
 
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
@@ -163,18 +162,21 @@ public class KubernetesSessionStore implements SessionStore {
     }
 
     @Override
-    public String getCredentialVersion(String username) {
+    public String getOrCreateCredentialFingerprint(String username, String bootstrapFingerprint) {
         long now = clock.millis();
-        CachedCredentialVersion cached = credentialVersionCache.get(username);
-        if (cached != null && now >= cached.cachedAt && now - cached.cachedAt < CREDENTIAL_VERSION_CACHE_TTL_MILLIS) {
-            return cached.version;
+        CachedCredentialFingerprint cached = credentialFingerprintCache.get(username);
+        if (cached != null && now >= cached.cachedAt
+            && now - cached.cachedAt < CREDENTIAL_FINGERPRINT_CACHE_TTL_MILLIS) {
+            return cached.fingerprint;
         }
-        return resolveCredentialVersion(username, false, "Unable to load user credential version from K8s.");
+        return resolveCredentialFingerprint(username, bootstrapFingerprint, false,
+            "Unable to load user credential fingerprint from K8s.");
     }
 
     @Override
-    public void bumpCredentialVersion(String username) {
-        resolveCredentialVersion(username, true, "Unable to update user credential version in K8s.");
+    public void updateCredentialFingerprint(String username, String credentialFingerprint) {
+        resolveCredentialFingerprint(username, credentialFingerprint, true,
+            "Unable to update user credential fingerprint in K8s.");
     }
 
     @Scheduled(fixedDelay = SESSION_CLEANUP_INTERVAL_MILLIS)
@@ -206,21 +208,22 @@ public class KubernetesSessionStore implements SessionStore {
         log.info("Console session cleanup completed; deleted {} expired session secrets.", deletedCount);
     }
 
-    private String resolveCredentialVersion(String username, boolean forceNewVersion, String errorMessage) {
+    private String resolveCredentialFingerprint(String username, String credentialFingerprint, boolean forceUpdate,
+        String errorMessage) {
         String resourceName = getCredentialResourceName(username);
-        String newVersion = UUID.randomUUID().toString();
         for (int attempt = 1; attempt <= MAX_MUTATION_ATTEMPTS; attempt++) {
             try {
                 V1Secret secret = kubernetesClientService.readSecret(resourceName);
-                String currentVersion = getCredentialVersion(secret);
-                if (!forceNewVersion && StringUtils.isNotBlank(currentVersion)) {
-                    credentialVersionCache.put(username, new CachedCredentialVersion(currentVersion, clock.millis()));
-                    return currentVersion;
+                String currentFingerprint = getCredentialFingerprint(secret);
+                if (!forceUpdate && StringUtils.isNotBlank(currentFingerprint)) {
+                    credentialFingerprintCache.put(username,
+                        new CachedCredentialFingerprint(currentFingerprint, clock.millis()));
+                    return currentFingerprint;
                 }
 
                 Map<String, byte[]> data =
                     secret == null || secret.getData() == null ? new HashMap<>() : new HashMap<>(secret.getData());
-                data.put(VERSION_KEY, newVersion.getBytes(StandardCharsets.UTF_8));
+                data.put(FINGERPRINT_KEY, credentialFingerprint.getBytes(StandardCharsets.UTF_8));
                 if (secret == null) {
                     secret = new V1Secret();
                     secret.setMetadata(new V1ObjectMeta().name(resourceName));
@@ -232,8 +235,9 @@ public class KubernetesSessionStore implements SessionStore {
                     secret.setData(data);
                     kubernetesClientService.replaceSecret(secret);
                 }
-                credentialVersionCache.put(username, new CachedCredentialVersion(newVersion, clock.millis()));
-                return newVersion;
+                credentialFingerprintCache.put(username,
+                    new CachedCredentialFingerprint(credentialFingerprint, clock.millis()));
+                return credentialFingerprint;
             } catch (ApiException e) {
                 if (e.getCode() != HttpStatus.CONFLICT) {
                     throw new BusinessException(errorMessage, e);
@@ -244,7 +248,7 @@ public class KubernetesSessionStore implements SessionStore {
                 backoff(attempt, errorMessage, e);
             }
         }
-        throw new IllegalStateException("Unreachable credential version update state.");
+        throw new IllegalStateException("Unreachable credential fingerprint update state.");
     }
 
     private void deleteSecret(String name) {
@@ -298,8 +302,8 @@ public class KubernetesSessionStore implements SessionStore {
         data.put(USERNAME_KEY, session.getUsername().getBytes(StandardCharsets.UTF_8));
         data.put(CREATED_AT_KEY, String.valueOf(session.getCreatedAt()).getBytes(StandardCharsets.UTF_8));
         data.put(LAST_ACCESS_AT_KEY, String.valueOf(session.getLastAccessAt()).getBytes(StandardCharsets.UTF_8));
-        if (session.getCredentialVersion() != null) {
-            data.put(CREDENTIAL_VERSION_KEY, session.getCredentialVersion().getBytes(StandardCharsets.UTF_8));
+        if (session.getCredentialFingerprint() != null) {
+            data.put(CREDENTIAL_FINGERPRINT_KEY, session.getCredentialFingerprint().getBytes(StandardCharsets.UTF_8));
         }
         return data;
     }
@@ -312,20 +316,20 @@ public class KubernetesSessionStore implements SessionStore {
         String username = getString(data, USERNAME_KEY);
         String createdAt = getString(data, CREATED_AT_KEY);
         String lastAccessAt = getString(data, LAST_ACCESS_AT_KEY);
-        String credentialVersion = getString(data, CREDENTIAL_VERSION_KEY);
+        String credentialFingerprint = getString(data, CREDENTIAL_FINGERPRINT_KEY);
         if (StringUtils.isAnyBlank(username, createdAt, lastAccessAt)) {
             return null;
         }
         try {
             return SessionData.builder().username(username).createdAt(Long.parseLong(createdAt))
-                .lastAccessAt(Long.parseLong(lastAccessAt)).credentialVersion(credentialVersion).build();
+                .lastAccessAt(Long.parseLong(lastAccessAt)).credentialFingerprint(credentialFingerprint).build();
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    private static String getCredentialVersion(V1Secret secret) {
-        return secret == null || secret.getData() == null ? null : getString(secret.getData(), VERSION_KEY);
+    private static String getCredentialFingerprint(V1Secret secret) {
+        return secret == null || secret.getData() == null ? null : getString(secret.getData(), FINGERPRINT_KEY);
     }
 
     private static String getString(Map<String, byte[]> data, String key) {
@@ -333,13 +337,13 @@ public class KubernetesSessionStore implements SessionStore {
         return value == null ? null : new String(value, StandardCharsets.UTF_8);
     }
 
-    private static final class CachedCredentialVersion {
+    private static final class CachedCredentialFingerprint {
 
-        private final String version;
+        private final String fingerprint;
         private final long cachedAt;
 
-        private CachedCredentialVersion(String version, long cachedAt) {
-            this.version = version;
+        private CachedCredentialFingerprint(String fingerprint, long cachedAt) {
+            this.fingerprint = fingerprint;
             this.cachedAt = cachedAt;
         }
     }

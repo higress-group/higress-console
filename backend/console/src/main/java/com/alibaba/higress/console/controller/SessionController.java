@@ -58,6 +58,7 @@ public class SessionController {
     @Operation(summary = "Login")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Logged in successfully."),
         @ApiResponse(responseCode = "400", description = "Missing user name or password."),
+        @ApiResponse(responseCode = "429", description = "Too many failed login attempts."),
         @ApiResponse(responseCode = "500", description = "Internal server error")})
     public ResponseEntity<Response<User>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest,
         HttpServletResponse response) {

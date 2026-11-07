@@ -31,7 +31,7 @@ public interface SessionStore {
 
     void deleteByUsername(String username);
 
-    String getCredentialVersion(String username);
+    String getOrCreateCredentialFingerprint(String username, String bootstrapFingerprint);
 
-    void bumpCredentialVersion(String username);
+    void updateCredentialFingerprint(String username, String credentialFingerprint);
 }

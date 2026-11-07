@@ -14,7 +14,6 @@ package com.alibaba.higress.console.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +51,7 @@ class KubernetesSessionStoreTest {
         store.setKubernetesClientService(client);
         String sessionId = "opaque-session-id-that-must-not-be-a-resource-name";
         SessionData session = SessionData.builder().username("admin").createdAt(1000L).lastAccessAt(2000L)
-            .credentialVersion("credential-version").build();
+            .credentialFingerprint("credential-fingerprint").build();
 
         store.create(sessionId, session);
 
@@ -66,7 +65,7 @@ class KubernetesSessionStoreTest {
         assertEquals("admin", value(secret, "username"));
         assertEquals("1000", value(secret, "createdAt"));
         assertEquals("2000", value(secret, "lastAccessAt"));
-        assertEquals("credential-version", value(secret, "credentialVersion"));
+        assertEquals("credential-fingerprint", value(secret, "credentialFingerprint"));
         assertEquals("true", secret.getMetadata().getLabels().get("higress.io/console-session"));
         assertFalse(secret.getData().containsKey("password"));
         assertFalse(secret.getData().containsKey("adminPassword"));
@@ -211,23 +210,40 @@ class KubernetesSessionStoreTest {
     }
 
     @Test
-    void credentialVersionIsCreatedWhenMissing() throws Exception {
+    void credentialFingerprintIsCreatedWhenMissing() throws Exception {
         KubernetesClientService client = mock(KubernetesClientService.class);
         KubernetesSessionStore store = new KubernetesSessionStore();
         store.setKubernetesClientService(client);
         String resourceName = credentialResourceName("admin");
         when(client.readSecret(resourceName)).thenReturn(null);
 
-        String version = store.getCredentialVersion("admin");
+        String fingerprint = store.getOrCreateCredentialFingerprint("admin", "bootstrap-fingerprint");
 
         ArgumentCaptor<V1Secret> captor = ArgumentCaptor.forClass(V1Secret.class);
         verify(client).createSecret(captor.capture());
         assertEquals(resourceName, captor.getValue().getMetadata().getName());
-        assertEquals(version, value(captor.getValue(), "version"));
+        assertEquals(fingerprint, value(captor.getValue(), "fingerprint"));
     }
 
     @Test
-    void credentialVersionCacheExpiresAfterTenSeconds() throws Exception {
+    void concurrentCredentialBootstrapRereadsAfterCreateConflict() throws Exception {
+        KubernetesClientService client = mock(KubernetesClientService.class);
+        KubernetesSessionStore store = new KubernetesSessionStore();
+        store.setKubernetesClientService(client);
+        String resourceName = credentialResourceName("admin");
+        when(client.readSecret(resourceName)).thenReturn(null, credentialSecret("concurrent-fingerprint"));
+        when(client.createSecret(any(V1Secret.class))).thenThrow(conflict());
+
+        String fingerprint = store.getOrCreateCredentialFingerprint("admin", "bootstrap-fingerprint");
+
+        assertEquals("concurrent-fingerprint", fingerprint);
+        verify(client, times(2)).readSecret(resourceName);
+        verify(client).createSecret(any(V1Secret.class));
+        verify(client, never()).replaceSecret(any(V1Secret.class));
+    }
+
+    @Test
+    void credentialFingerprintCacheExpiresAfterTenSeconds() throws Exception {
         KubernetesClientService client = mock(KubernetesClientService.class);
         KubernetesSessionStore store = new KubernetesSessionStore();
         store.setKubernetesClientService(client);
@@ -235,29 +251,29 @@ class KubernetesSessionStoreTest {
         when(clock.millis()).thenReturn(1000L, 1000L, 5000L, 11_001L, 11_001L);
         store.setClock(clock);
         String resourceName = credentialResourceName("admin");
-        when(client.readSecret(resourceName)).thenReturn(credentialSecret("version-1"), credentialSecret("version-2"));
+        when(client.readSecret(resourceName)).thenReturn(credentialSecret("fingerprint-1"),
+            credentialSecret("fingerprint-2"));
 
-        assertEquals("version-1", store.getCredentialVersion("admin"));
-        assertEquals("version-1", store.getCredentialVersion("admin"));
-        assertEquals("version-2", store.getCredentialVersion("admin"));
+        assertEquals("fingerprint-1", store.getOrCreateCredentialFingerprint("admin", "bootstrap-1"));
+        assertEquals("fingerprint-1", store.getOrCreateCredentialFingerprint("admin", "bootstrap-1"));
+        assertEquals("fingerprint-2", store.getOrCreateCredentialFingerprint("admin", "bootstrap-2"));
         verify(client, times(2)).readSecret(resourceName);
     }
 
     @Test
-    void bumpCredentialVersionPersistsAndCachesNewVersion() throws Exception {
+    void updateCredentialFingerprintPersistsAndCachesNewFingerprint() throws Exception {
         KubernetesClientService client = mock(KubernetesClientService.class);
         KubernetesSessionStore store = new KubernetesSessionStore();
         store.setKubernetesClientService(client);
         String resourceName = credentialResourceName("admin");
-        when(client.readSecret(resourceName)).thenReturn(credentialSecret("version-1"));
+        when(client.readSecret(resourceName)).thenReturn(credentialSecret("fingerprint-1"));
 
-        store.bumpCredentialVersion("admin");
+        store.updateCredentialFingerprint("admin", "fingerprint-2");
 
         ArgumentCaptor<V1Secret> captor = ArgumentCaptor.forClass(V1Secret.class);
         verify(client).replaceSecret(captor.capture());
-        String newVersion = value(captor.getValue(), "version");
-        assertNotEquals("version-1", newVersion);
-        assertEquals(newVersion, store.getCredentialVersion("admin"));
+        assertEquals("fingerprint-2", value(captor.getValue(), "fingerprint"));
+        assertEquals("fingerprint-2", store.getOrCreateCredentialFingerprint("admin", "bootstrap-fingerprint"));
         verify(client, times(1)).readSecret(resourceName);
     }
 
@@ -324,10 +340,11 @@ class KubernetesSessionStoreTest {
         return secret;
     }
 
-    private static V1Secret credentialSecret(String version) {
+    private static V1Secret credentialSecret(String fingerprint) {
         V1Secret secret = new V1Secret();
         secret.setMetadata(new V1ObjectMeta().name(credentialResourceName("admin")));
-        secret.setData(new HashMap<>(Collections.singletonMap("version", version.getBytes(StandardCharsets.UTF_8))));
+        secret.setData(
+            new HashMap<>(Collections.singletonMap("fingerprint", fingerprint.getBytes(StandardCharsets.UTF_8))));
         return secret;
     }
 

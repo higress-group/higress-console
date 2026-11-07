@@ -18,9 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -31,16 +33,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.Cookie;
 
@@ -49,6 +55,8 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +69,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.alibaba.higress.console.aop.ApiStandardizationAspect;
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.controller.UserController;
+import com.alibaba.higress.console.controller.exception.LoginRateLimitException;
 import com.alibaba.higress.console.model.User;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -72,6 +82,8 @@ class SessionServiceImplTest {
 
     private static final String ADMIN = "admin";
     private static final String OLD_PASSWORD = "old-password";
+    private static final String PASSWORD = OLD_PASSWORD;
+    private static final String CLIENT_IP = "192.0.2.10";
 
     private MutableClock clock;
     private InMemorySessionStore sessionStore;
@@ -79,7 +91,7 @@ class SessionServiceImplTest {
 
     @BeforeEach
     void setUp() throws ApiException {
-        clock = new MutableClock(1_700_000_000_000L, ZoneOffset.UTC);
+        clock = new MutableClock(1_700_000_000_000L);
         sessionStore = new InMemorySessionStore();
         sessionService = newService(sessionStore);
     }
@@ -190,11 +202,12 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void sessionCreatedWithOldCredentialVersionIsRejectedAfterBump() {
+    void sessionCreatedWithOldCredentialFingerprintIsRejectedAfterUpdate() {
         Cookie sessionCookie = createSession(sessionService, ADMIN, false);
         SessionData staleSession = sessionStore.find(sessionCookie.getValue());
 
-        sessionStore.bumpCredentialVersion(ADMIN);
+        sessionStore.updateCredentialFingerprint(ADMIN,
+            SessionServiceImpl.credentialFingerprint(ADMIN, "new-password"));
         sessionStore.create(sessionCookie.getValue(), staleSession);
 
         assertNull(sessionService.validateSession(requestWith(sessionCookie)));
@@ -202,7 +215,7 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void failedSessionRevocationAfterPasswordCommitStillInvalidatesOldCredentialVersion() throws ApiException {
+    void failedSessionRevocationAfterPasswordCommitStillInvalidatesOldCredentialFingerprint() throws ApiException {
         InMemorySessionStore store = spy(new InMemorySessionStore());
         V1Secret adminSecret = adminSecret();
         KubernetesClientService client = mock(KubernetesClientService.class);
@@ -267,24 +280,28 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void loginRejectsCredentialVersionChangeBeforeSessionCreation() throws ApiException {
+    void loginRejectsStaleAdminConfigWhenStoredFingerprintHasChanged() throws ApiException {
         InMemorySessionStore store = spy(new InMemorySessionStore());
         SessionServiceImpl service = newService(store);
-        doReturn("version-0", "version-1").when(store).getCredentialVersion(ADMIN);
+        String oldFingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, OLD_PASSWORD);
+        String newFingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, "new-password");
+        doReturn(newFingerprint).when(store).getOrCreateCredentialFingerprint(ADMIN, oldFingerprint);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         assertNull(service.login(ADMIN, OLD_PASSWORD, request(false), response, false));
 
         assertNull(response.getHeader(HttpHeaders.SET_COOKIE));
         verify(store, never()).create(any(), any());
+        verify(store).getOrCreateCredentialFingerprint(ADMIN, oldFingerprint);
     }
 
     @Test
-    void sessionCreatedDuringCredentialVersionChangeUsesAuthenticatedVersion() throws ApiException {
+    void sessionCreatedDuringFingerprintChangeUsesAuthenticatedFingerprint() throws ApiException {
         InMemorySessionStore store = new InMemorySessionStore() {
             @Override
             public void create(String sessionId, SessionData session) {
-                bumpCredentialVersion(session.getUsername());
+                updateCredentialFingerprint(session.getUsername(),
+                    SessionServiceImpl.credentialFingerprint(session.getUsername(), "new-password"));
                 super.create(sessionId, session);
             }
         };
@@ -296,26 +313,59 @@ class SessionServiceImplTest {
         Cookie sessionCookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
         SessionData session = store.find(sessionCookie.getValue());
         assertNotNull(session);
-        assertNotEquals(store.getCredentialVersion(ADMIN), session.getCredentialVersion());
+        String currentFingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, "new-password");
+        assertNotEquals(store.getOrCreateCredentialFingerprint(ADMIN, currentFingerprint),
+            session.getCredentialFingerprint());
         assertNull(service.validateSession(requestWith(sessionCookie)));
         assertNull(store.find(sessionCookie.getValue()));
     }
 
     @Test
-    void normalLoginCreatesSessionWithVerifiedCredentialVersion() throws ApiException {
+    void sessionWithOldFingerprintIsRejectedAfterStaleCacheRefreshes() throws ApiException {
         InMemorySessionStore store = spy(new InMemorySessionStore());
         SessionServiceImpl service = newService(store);
-        doReturn("version-0").when(store).getCredentialVersion(ADMIN);
+        String oldFingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, OLD_PASSWORD);
+        String newFingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, "new-password");
+        doReturn(oldFingerprint, oldFingerprint, newFingerprint).when(store)
+            .getOrCreateCredentialFingerprint(ADMIN, oldFingerprint);
+        Cookie sessionCookie = createSession(service, ADMIN, false);
+
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        assertNull(service.validateSession(requestWith(sessionCookie)));
+        assertNull(store.find(sessionCookie.getValue()));
+    }
+
+    @Test
+    void normalLoginCreatesSessionWithVerifiedCredentialFingerprint() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
         MockHttpServletResponse response = new MockHttpServletResponse();
+        String fingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, OLD_PASSWORD);
 
         User user = service.login(ADMIN, OLD_PASSWORD, request(false), response, false);
 
         assertNotNull(user);
         assertEquals(ADMIN, user.getName());
-        verify(store, times(2)).getCredentialVersion(ADMIN);
+        verify(store).getOrCreateCredentialFingerprint(ADMIN, fingerprint);
         Cookie sessionCookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
-        assertEquals("version-0", store.find(sessionCookie.getValue()).getCredentialVersion());
+        assertEquals(fingerprint, store.find(sessionCookie.getValue()).getCredentialFingerprint());
         assertNotNull(service.validateSession(requestWith(sessionCookie)));
+    }
+
+    @Test
+    void fingerprintIsNotExposedInResponsesCookiesOrSessionStrings() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        User user = sessionService.login(ADMIN, OLD_PASSWORD, request(false), response, false);
+        String fingerprint = SessionServiceImpl.credentialFingerprint(ADMIN, OLD_PASSWORD);
+        Cookie sessionCookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
+        SessionData session = sessionStore.find(sessionCookie.getValue());
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        assertNotNull(user);
+        assertAll(() -> assertFalse(objectMapper.writeValueAsString(user).contains(fingerprint)),
+            () -> assertFalse(objectMapper.writeValueAsString(session).contains(fingerprint)),
+            () -> assertFalse(setCookie(response).contains(fingerprint)),
+            () -> assertFalse(session.toString().contains(fingerprint)));
     }
 
     @Test
@@ -445,6 +495,8 @@ class SessionServiceImplTest {
         service.setSessionStore(store);
         service.setConfigService(mock(ConfigService.class));
         service.setKubernetesClientService(client);
+        service.setLoginFailureBudgetService(
+            LoginFailureBudgetServiceTest.createService(new InMemoryLoginAttemptStore(), clock));
         return service;
     }
 
@@ -492,14 +544,270 @@ class SessionServiceImplTest {
     private static MockHttpServletRequest request(boolean secure) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setSecure(secure);
+        request.setRemoteAddr(CLIENT_IP);
         return request;
     }
 
+    private static MockHttpServletRequest request() {
+        return request(false);
+    }
+
+    @Test
+    void basicLockDoesNotAffectFormLogin() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 5; i++) {
+            failedBasic();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+
+        assertNotNull(formLogin(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void formLockDoesNotAffectBasicLogin() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+
+        assertNotNull(sessionService.validateSession(basicRequest(ADMIN, PASSWORD)));
+    }
+
+    @Test
+    void successfulFormLoginResetsOnlyFormBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+            failedBasic();
+        }
+
+        assertNotNull(formLogin(ADMIN, PASSWORD, request()));
+
+        failedLogin();
+        failedBasic();
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+        for (int i = 0; i < 3; i++) {
+            failedLogin();
+        }
+        failedLogin();
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+    }
+
+    @Test
+    void successfulBasicLoginResetsOnlyBasicBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+            failedBasic();
+        }
+
+        assertNotNull(sessionService.validateSession(basicRequest(ADMIN, PASSWORD)));
+
+        failedBasic();
+        failedLogin();
+        assertThrows(LoginRateLimitException.class, this::failedLogin);
+        for (int i = 0; i < 3; i++) {
+            failedBasic();
+        }
+        failedBasic();
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+    }
+
+    @Test
+    void missingAndMalformedCredentialsDoNotConsumeBudget() {
+        ReflectionTestUtils.setField(sessionService, "basicAuthEnabled", true);
+        assertNull(formLogin("", PASSWORD, request()));
+        assertNull(formLogin(ADMIN, "", request()));
+        assertNull(sessionService.validateSession(request()));
+        assertNull(sessionService.validateSession(authorizationRequest("Basic not-base64")));
+        assertNull(sessionService.validateSession(basicValueRequest("missing-separator")));
+        assertNull(sessionService.validateSession(basicValueRequest(":password")));
+        assertNull(sessionService.validateSession(basicValueRequest("admin:")));
+        assertNull(sessionService.validateSession(authorizationRequest("Bearer credentials")));
+
+        for (int i = 0; i < 4; i++) {
+            failedBasic();
+        }
+        failedBasic();
+        assertThrows(LoginRateLimitException.class, this::failedBasic);
+    }
+
+    @Test
+    void forwardedHeadersDoNotChangeTheDirectPeerBudgetWhenForwardingIsDisabled() throws Exception {
+        Properties properties = PropertiesLoaderUtils.loadProperties(new ClassPathResource("application.properties"));
+        assertEquals("none", properties.getProperty("server.forward-headers-strategy"));
+
+        for (int i = 0; i < 4; i++) {
+            MockHttpServletRequest request = request();
+            request.addHeader("X-Forwarded-For", "198.51.100." + i);
+            assertNull(formLogin(ADMIN, "incorrect", request));
+        }
+        MockHttpServletRequest request = request();
+        request.addHeader("X-Forwarded-For", "203.0.113.100");
+        assertNull(formLogin(ADMIN, "incorrect", request));
+
+        MockHttpServletRequest spoofedRequest = request();
+        spoofedRequest.addHeader("X-Forwarded-For", "203.0.113.101");
+        assertThrows(LoginRateLimitException.class,
+            () -> formLogin(ADMIN, PASSWORD, spoofedRequest));
+    }
+
+    @Test
+    void sequentialCorrectLoginsNeverConsumeFailureBudget() {
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+        for (int i = 0; i < 20; i++) {
+            assertNotNull(formLogin(ADMIN, PASSWORD, request()));
+        }
+
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+        assertNotNull(formLogin(ADMIN, PASSWORD, request()));
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, () -> formLogin(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void parallelCorrectLoginsNeverConsumeFailureBudget() throws Exception {
+        int taskCount = 12;
+        LoginFailureBudgetService budgetService = LoginFailureBudgetServiceTest
+            .createService(new InMemoryLoginAttemptStore(), new MutableClock(1_000_000L));
+        sessionService.setLoginFailureBudgetService(budgetService);
+        for (int i = 0; i < 4; i++) {
+            failedLogin();
+        }
+
+        LoginFailureBudgetService concurrentBudgetService = spy(budgetService);
+        CountDownLatch successfulResets = new CountDownLatch(taskCount);
+        doAnswer(invocation -> {
+            successfulResets.countDown();
+            assertTrue(successfulResets.await(10, TimeUnit.SECONDS));
+            invocation.callRealMethod();
+            return null;
+        }).when(concurrentBudgetService).reset(any(LoginAttemptKey.class));
+        sessionService.setLoginFailureBudgetService(concurrentBudgetService);
+
+        ExecutorService executor = Executors.newFixedThreadPool(taskCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<User>> results = new ArrayList<>();
+        try {
+            for (int i = 0; i < taskCount; i++) {
+                results.add(executor.submit(() -> {
+                    start.await();
+                    return formLogin(ADMIN, PASSWORD, request());
+                }));
+            }
+            start.countDown();
+            for (Future<User> result : results) {
+                assertNotNull(result.get(15, TimeUnit.SECONDS));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        for (int i = 0; i < 5; i++) {
+            failedLogin();
+        }
+        assertThrows(LoginRateLimitException.class, () -> formLogin(ADMIN, PASSWORD, request()));
+    }
+
+    @Test
+    void blankAndNullRemoteAddressesShareAFailureBudget() {
+        MockHttpServletRequest blankRequest = request();
+        blankRequest.setRemoteAddr("  ");
+        MockHttpServletRequest nullRequest = request();
+        nullRequest.setRemoteAddr(null);
+
+        for (int i = 0; i < 2; i++) {
+            assertNull(formLogin(ADMIN, "incorrect", blankRequest));
+        }
+        for (int i = 0; i < 3; i++) {
+            assertNull(formLogin(ADMIN, "incorrect", nullRequest));
+        }
+
+        assertThrows(LoginRateLimitException.class, () -> formLogin(ADMIN, PASSWORD, blankRequest));
+        assertThrows(LoginRateLimitException.class, () -> formLogin(ADMIN, PASSWORD, nullRequest));
+    }
+
+    @Test
+    void concurrentFailuresAreCountedAfterCredentialVerification() throws Exception {
+        KubernetesClientService kubernetesClientService = mock(KubernetesClientService.class);
+        AtomicInteger verifications = new AtomicInteger();
+        int taskCount = 8;
+        CountDownLatch verificationsStarted = new CountDownLatch(taskCount);
+        when(kubernetesClientService.readSecret(anyString())).thenAnswer(invocation -> {
+            verifications.incrementAndGet();
+            verificationsStarted.countDown();
+            assertTrue(verificationsStarted.await(10, TimeUnit.SECONDS));
+            return adminSecret();
+        });
+        SessionServiceImpl concurrentService = new SessionServiceImpl();
+        concurrentService.setKubernetesClientService(kubernetesClientService);
+        concurrentService.setLoginFailureBudgetService(LoginFailureBudgetServiceTest
+            .createService(new InMemoryLoginAttemptStore(), new MutableClock(1_000_000L)));
+
+        ExecutorService executor = Executors.newFixedThreadPool(taskCount);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<Boolean>> results = new ArrayList<>();
+        try {
+            for (int i = 0; i < taskCount; i++) {
+                results.add(executor.submit(() -> {
+                    start.await();
+                    try {
+                        formLogin(concurrentService, ADMIN, "incorrect", request());
+                        return true;
+                    } catch (LoginRateLimitException e) {
+                        return false;
+                    }
+                }));
+            }
+            start.countDown();
+            for (Future<Boolean> result : results) {
+                assertTrue(result.get(15, TimeUnit.SECONDS));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        assertEquals(taskCount, verifications.get());
+        assertThrows(LoginRateLimitException.class,
+            () -> formLogin(concurrentService, ADMIN, PASSWORD, request()));
+    }
+
+    private void failedLogin() {
+        assertNull(formLogin(ADMIN, "incorrect", request()));
+    }
+
+    private User formLogin(String username, String password, MockHttpServletRequest request) {
+        return formLogin(sessionService, username, password, request);
+    }
+
+    private static User formLogin(SessionServiceImpl service, String username, String password,
+        MockHttpServletRequest request) {
+        return service.login(username, password, request, new MockHttpServletResponse(), false);
+    }
+
+    private void failedBasic() {
+        assertNull(sessionService.validateSession(basicRequest(ADMIN, "incorrect")));
+    }
+
     private static MockHttpServletRequest basicRequest(String username, String password) {
-        MockHttpServletRequest request = request(false);
-        String credentials = Base64.getEncoder()
-            .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + credentials);
+        return basicValueRequest(username + ":" + password);
+    }
+
+    private static MockHttpServletRequest basicValueRequest(String value) {
+        String encoded = Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+        return authorizationRequest("Basic " + encoded);
+    }
+
+    private static MockHttpServletRequest authorizationRequest(String value) {
+        MockHttpServletRequest request = request();
+        request.addHeader(HttpHeaders.AUTHORIZATION, value);
         return request;
     }
 
@@ -516,41 +824,11 @@ class SessionServiceImplTest {
         return setCookie.substring(prefix.length(), end >= 0 ? end : setCookie.length());
     }
 
-    private static final class MutableClock extends Clock {
-
-        private long millis;
-        private final ZoneId zone;
-
-        private MutableClock(long millis, ZoneId zone) {
-            this.millis = millis;
-            this.zone = zone;
-        }
-
-        private void advance(Duration duration) {
-            millis += duration.toMillis();
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return zone;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return new MutableClock(millis, zone);
-        }
-
-        @Override
-        public Instant instant() {
-            return Instant.ofEpochMilli(millis);
-        }
-    }
-
     /** Test-only store shared explicitly between service instances. */
     private static class InMemorySessionStore implements SessionStore {
 
         private final Map<String, SessionData> sessions = new ConcurrentHashMap<>();
-        private final Map<String, String> credentialVersions = new ConcurrentHashMap<>();
+        private final Map<String, String> credentialFingerprints = new ConcurrentHashMap<>();
 
         @Override
         public void create(String sessionId, SessionData session) {
@@ -578,13 +856,13 @@ class SessionServiceImplTest {
         }
 
         @Override
-        public String getCredentialVersion(String username) {
-            return credentialVersions.computeIfAbsent(username, key -> UUID.randomUUID().toString());
+        public String getOrCreateCredentialFingerprint(String username, String bootstrapFingerprint) {
+            return credentialFingerprints.computeIfAbsent(username, key -> bootstrapFingerprint);
         }
 
         @Override
-        public void bumpCredentialVersion(String username) {
-            credentialVersions.put(username, UUID.randomUUID().toString());
+        public void updateCredentialFingerprint(String username, String credentialFingerprint) {
+            credentialFingerprints.put(username, credentialFingerprint);
         }
 
         private static SessionData copy(SessionData session) {
@@ -592,7 +870,8 @@ class SessionServiceImplTest {
                 return null;
             }
             return SessionData.builder().username(session.getUsername()).createdAt(session.getCreatedAt())
-                .lastAccessAt(session.getLastAccessAt()).credentialVersion(session.getCredentialVersion()).build();
+                .lastAccessAt(session.getLastAccessAt()).credentialFingerprint(session.getCredentialFingerprint())
+                .build();
         }
     }
 }

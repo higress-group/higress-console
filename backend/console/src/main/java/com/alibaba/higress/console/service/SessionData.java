@@ -12,10 +12,13 @@
  */
 package com.alibaba.higress.console.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Server-side session state. Authentication credentials are deliberately not part of this model.
@@ -32,7 +35,9 @@ public class SessionData {
 
     private long lastAccessAt;
 
-    private String credentialVersion;
+    @JsonIgnore
+    @ToString.Exclude
+    private String credentialFingerprint;
 
     public boolean isExpired(long now, long idleTimeout, long absoluteTimeout) {
         return idleTimeout > 0 && now - lastAccessAt >= idleTimeout

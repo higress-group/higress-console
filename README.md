@@ -7,6 +7,39 @@
 Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能力集成，首个可用版本考虑基于 kubernetes 部署环境，预期包含服务管理、路由管理、域名管理等基础能力。
 后续规划逐步迭代可观测能力、插件能力、登录管理能力，感兴趣的小伙伴一起 Hi~ gress~
 
+## Authentication attempts and rate limiting
+
+The console limits failed password authentication for both the form login endpoint and HTTP Basic authentication. The
+defaults are 5 failures within 10 minutes for each budget, followed by a 15-minute lock. When a budget is exhausted the
+API returns HTTP 429 with a `Retry-After` header, and the login page shows the remaining lock time.
+
+| Environment variable | Spring property | Default | Description |
+| --- | --- | --- | --- |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_LIMIT` | `higress-console.login.failure-limit` | `5` | Failures allowed within the window before the budget is locked. |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_WINDOW_SECONDS` | `higress-console.login.failure-window-seconds` | `600` | Length of the failure accounting window in seconds. |
+| `HIGRESS_CONSOLE_LOGIN_LOCK_SECONDS` | `higress-console.login.lock-seconds` | `900` | Lock duration in seconds after the failure limit is reached. |
+
+All three values must be at least 1. `0` (and negative values) is invalid and is treated as `1`.
+
+Budgets are keyed by authentication source, account and client address, so the form login and Basic authentication
+budgets are independent (`form:<username>:<ip>` and `basic:<username>:<ip>`). A script retrying old credentials over
+Basic authentication cannot lock out a human using the form login for the same account and address, and vice versa. A
+successful authentication resets only the budget of the source that authenticated. The lock check happens before
+password verification, and only verified failures increment the failure count; correct credentials never consume the
+budget. Writes prune expired states first. If the shared store is full, a new key evicts the oldest state without an
+active lock; active locks are never evicted. If every entry is actively locked, the new key is not tracked and fails
+open until capacity is available, while all existing locks remain enforced. This saturation behavior does not return
+HTTP 503.
+
+The client address is taken from the direct peer (`HttpServletRequest.getRemoteAddr()`). The console ships with
+`server.forward-headers-strategy=none`, so forwarding headers do not create separate budgets. Behind a reverse proxy,
+all requests can therefore appear to come from the proxy address and share one budget per account and source. If the
+proxy is trusted, configure `server.forward-headers-strategy` (for example, via the `SERVER_FORWARD_HEADERS_STRATEGY`
+environment variable) so that the real client address is used. Enable forwarded-header handling only when untrusted
+clients cannot reach the console directly, because clients can otherwise spoof these headers.
+If the client address is missing or blank, the console uses `unknown`, so those requests remain subject to a shared
+budget per account and source.
+
 ## 前置介绍
 
 此项目包含前端（NodeJS）、后端（Java）两个部分，前端（frontend）部分在构建完成后会随着后端代码（SpringBoot）一起部署。
