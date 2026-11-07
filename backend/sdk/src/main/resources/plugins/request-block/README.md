@@ -39,7 +39,7 @@ case_sensitive: false
 
 ```bash
 curl http://example.com?foo=Bar
-curl http://exmaple.com/Swagger.html
+curl http://example.com/Swagger.html
 ```
 
 
@@ -54,7 +54,7 @@ case_sensitive: false
 根据该配置，下列请求将被禁止访问：
 
 ```bash
-curl http://exmaple.com/Swagger.html?foo=Bar
+curl http://example.com/Swagger.html?foo=Bar
 ```
 
 ### 屏蔽正则匹配的请求 url 路径
@@ -68,7 +68,7 @@ case_sensitive: false
 根据该配置，下列请求将被禁止访问：
 
 ```bash
-curl http://exmaple.com/Swagger.html?foo=Bar
+curl http://example.com/Swagger.html?foo=Bar
 ```
 
 ### 屏蔽请求 header
@@ -82,7 +82,7 @@ block_headers:
 
 ```bash
 curl http://example.com -H 'example-key: 123'
-curl http://exmaple.com -H 'my-header: example-value'
+curl http://example.com -H 'my-header: example-value'
 ```
 
 ### 屏蔽请求 body
@@ -96,7 +96,7 @@ case_sensitive: false
 
 ```bash
 curl http://example.com -d 'Hello World'
-curl http://exmaple.com -d 'hello world'
+curl http://example.com -d 'hello world'
 ```
 
 
