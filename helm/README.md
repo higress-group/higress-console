@@ -18,6 +18,8 @@ Upgrading to the server-side session store invalidates all existing console sess
 
 Both session timeout values are expressed in milliseconds. Negative values are rejected. When `autoLogin` is `false`, the browser receives a session cookie without `Max-Age`. `autoLogin` and the cookie maximum age do not change either server-side timeout; in particular, a persistent cookie cannot extend a configured absolute session lifetime.
 
+To reduce session-store writes, persisting `lastAccessAt` is throttled to `min(60000 ms, idle-timeout / 2)` when idle expiry is enabled. This keeps the persisted timestamp at most half an idle window behind request activity. When `idle-timeout` is `0`, idle expiry is disabled and the touch interval remains 60 seconds. Absolute expiry is checked independently and is not extended by touches.
+
 ## TLS and authentication
 
 The console container serves plain HTTP on port 8080. For production deployments, terminate TLS at an Ingress or another trusted reverse proxy instead of exposing the Service directly. Direct Service access and `kubectl port-forward` do not provide transport encryption.

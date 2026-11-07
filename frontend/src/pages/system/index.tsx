@@ -18,9 +18,12 @@ const SystemSettings: React.FC = () => {
     ? getConfigDraftStorageKey(userState.currentUser.name)
     : null;
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [configYaml, setConfigYaml] = useState<string>(() =>
-    configDraftStorageKey ? sessionStorage.getItem(configDraftStorageKey) || '' : '',
-  );
+  const [configYaml, setConfigYaml] = useState<string>(() => {
+    if (configDraftStorageKey) {
+      return sessionStorage.getItem(configDraftStorageKey) || '';
+    }
+    return '';
+  });
   const [mode, setMode] = useState<string>(Mode.K8S);
   const [form] = Form.useForm();
   const codeEditorRef = useRef<CodeEditorRef>();

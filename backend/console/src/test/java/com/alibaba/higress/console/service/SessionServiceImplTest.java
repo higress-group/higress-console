@@ -21,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -212,8 +214,8 @@ class SessionServiceImplTest {
         assertThrows(IllegalStateException.class, () -> service.changePassword(ADMIN, OLD_PASSWORD, "new-password"));
 
         assertNull(service.validateSession(requestWith(sessionCookie)));
-        assertNull(service.login(ADMIN, OLD_PASSWORD));
-        assertNotNull(service.login(ADMIN, "new-password"));
+        assertNull(service.login(ADMIN, OLD_PASSWORD, request(false), new MockHttpServletResponse(), false));
+        assertNotNull(service.login(ADMIN, "new-password", request(false), new MockHttpServletResponse(), false));
         assertAll(() -> verify(client).replaceSecret(any(V1Secret.class)),
             () -> assertEquals("new-password",
                 new String(adminSecret.getData().get("adminPassword"), StandardCharsets.UTF_8)));
@@ -244,6 +246,76 @@ class SessionServiceImplTest {
         clock.advance(Duration.ofSeconds(31));
         assertNotNull(service.validateSession(requestWith(sessionCookie)));
         verify(store).update(any(), any());
+    }
+
+    @Test
+    void activeSessionIsTouchedWithinShortIdleTimeout() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
+        service.setIdleTimeout(Duration.ofSeconds(45).toMillis());
+        Cookie sessionCookie = createSession(service, ADMIN, false);
+
+        clock.advance(Duration.ofSeconds(30));
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        assertEquals(clock.millis(), store.find(sessionCookie.getValue()).getLastAccessAt());
+        verify(store).update(any(), any());
+
+        clock.advance(Duration.ofSeconds(30));
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
+        assertEquals(clock.millis(), store.find(sessionCookie.getValue()).getLastAccessAt());
+        verify(store, times(2)).update(any(), any());
+    }
+
+    @Test
+    void loginRejectsCredentialVersionChangeBeforeSessionCreation() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
+        doReturn("version-0", "version-1").when(store).getCredentialVersion(ADMIN);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertNull(service.login(ADMIN, OLD_PASSWORD, request(false), response, false));
+
+        assertNull(response.getHeader(HttpHeaders.SET_COOKIE));
+        verify(store, never()).create(any(), any());
+    }
+
+    @Test
+    void sessionCreatedDuringCredentialVersionChangeUsesAuthenticatedVersion() throws ApiException {
+        InMemorySessionStore store = new InMemorySessionStore() {
+            @Override
+            public void create(String sessionId, SessionData session) {
+                bumpCredentialVersion(session.getUsername());
+                super.create(sessionId, session);
+            }
+        };
+        SessionServiceImpl service = newService(store);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertNotNull(service.login(ADMIN, OLD_PASSWORD, request(false), response, false));
+
+        Cookie sessionCookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
+        SessionData session = store.find(sessionCookie.getValue());
+        assertNotNull(session);
+        assertNotEquals(store.getCredentialVersion(ADMIN), session.getCredentialVersion());
+        assertNull(service.validateSession(requestWith(sessionCookie)));
+        assertNull(store.find(sessionCookie.getValue()));
+    }
+
+    @Test
+    void normalLoginCreatesSessionWithVerifiedCredentialVersion() throws ApiException {
+        InMemorySessionStore store = spy(new InMemorySessionStore());
+        SessionServiceImpl service = newService(store);
+        doReturn("version-0").when(store).getCredentialVersion(ADMIN);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        User user = service.login(ADMIN, OLD_PASSWORD, request(false), response, false);
+
+        assertNotNull(user);
+        assertEquals(ADMIN, user.getName());
+        verify(store, times(2)).getCredentialVersion(ADMIN);
+        Cookie sessionCookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
+        assertEquals("version-0", store.find(sessionCookie.getValue()).getCredentialVersion());
+        assertNotNull(service.validateSession(requestWith(sessionCookie)));
     }
 
     @Test
@@ -280,7 +352,7 @@ class SessionServiceImplTest {
     void saveSessionOverHttpUsesLaxHttpOnlyCookieWithoutSecure() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        sessionService.saveSession(request(false), response, user(), false);
+        sessionService.login(ADMIN, OLD_PASSWORD, request(false), response, false);
 
         String setCookie = setCookie(response);
         assertTrue(setCookie.startsWith(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "="));
@@ -295,7 +367,7 @@ class SessionServiceImplTest {
     void saveSessionOverHttpsAddsSecure() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        sessionService.saveSession(request(true), response, user(), false);
+        sessionService.login(ADMIN, OLD_PASSWORD, request(true), response, false);
 
         String setCookie = setCookie(response);
         assertTrue(setCookie.contains("Secure"));
@@ -308,7 +380,7 @@ class SessionServiceImplTest {
         ReflectionTestUtils.setField(sessionService, "cookieSecure", true);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        sessionService.saveSession(request(false), response, user(), false);
+        sessionService.login(ADMIN, OLD_PASSWORD, request(false), response, false);
 
         assertTrue(setCookie(response).contains("Secure"));
     }
@@ -317,7 +389,7 @@ class SessionServiceImplTest {
     void persistentSessionKeepsConfiguredMaxAge() {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        sessionService.saveSession(request(false), response, user(), true);
+        sessionService.login(ADMIN, OLD_PASSWORD, request(false), response, true);
 
         assertTrue(setCookie(response).contains("Max-Age=" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT));
     }
@@ -397,8 +469,7 @@ class SessionServiceImplTest {
 
     private static Cookie createSession(SessionServiceImpl service, String username, boolean persistent) {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        User user = User.builder().name(username).displayName("Administrator").build();
-        service.saveSession(request(false), response, user, persistent);
+        assertNotNull(service.login(username, OLD_PASSWORD, request(false), response, persistent));
         Cookie cookie = new Cookie(SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT, cookieValue(response));
         String setCookie = setCookie(response);
         String maxAgeAttribute = "Max-Age=";
@@ -430,10 +501,6 @@ class SessionServiceImplTest {
             .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
         request.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + credentials);
         return request;
-    }
-
-    private static User user() {
-        return User.builder().name(ADMIN).displayName("Administrator").build();
     }
 
     private static String setCookie(MockHttpServletResponse response) {

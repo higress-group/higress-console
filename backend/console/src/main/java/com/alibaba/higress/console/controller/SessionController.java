@@ -65,11 +65,11 @@ public class SessionController {
             throw new ValidationException("Missing user name or password.");
         }
 
-        User user = sessionService.login(request.getUsername(), request.getPassword());
+        User user = sessionService.login(request.getUsername(), request.getPassword(), httpRequest, response,
+            Boolean.TRUE.equals(request.getAutoLogin()));
         if (user == null) {
             throw new AuthException("Incorrect username or password");
         }
-        sessionService.saveSession(httpRequest, response, user, Boolean.TRUE.equals(request.getAutoLogin()));
         return ControllerUtil.buildResponseEntity(user);
     }
 

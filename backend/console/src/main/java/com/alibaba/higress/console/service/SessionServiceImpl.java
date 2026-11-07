@@ -183,20 +183,27 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public User login(String username, String password) {
+    public User login(String username, String password, HttpServletRequest request, HttpServletResponse response,
+        boolean persistent) {
         AdminConfig config = getAdminConfig();
+        String credentialVersion = sessionStore.getCredentialVersion(config.getUsername());
         if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
             return null;
         }
-        return config.toUser();
+        if (!StringUtils.equals(credentialVersion, sessionStore.getCredentialVersion(config.getUsername()))) {
+            return null;
+        }
+        User user = config.toUser();
+        saveSession(request, response, user, persistent, credentialVersion);
+        return user;
     }
 
-    @Override
-    public void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent) {
+    private void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent,
+        String credentialVersion) {
         String sessionId = generateSessionId();
         long now = clock.millis();
         SessionData session = SessionData.builder().username(user.getName()).createdAt(now).lastAccessAt(now)
-            .credentialVersion(sessionStore.getCredentialVersion(user.getName())).build();
+            .credentialVersion(credentialVersion).build();
         sessionStore.create(sessionId, session);
         addSessionCookie(request, response, sessionId, persistent ? Long.valueOf(cookieMaxAge) : null);
     }
@@ -245,7 +252,10 @@ public class SessionServiceImpl implements SessionService {
             sessionStore.delete(sessionId);
             return null;
         }
-        if (now - session.getLastAccessAt() >= SESSION_TOUCH_INTERVAL_MILLIS) {
+        long touchInterval = idleTimeout > 0
+            ? Math.min(SESSION_TOUCH_INTERVAL_MILLIS, idleTimeout / 2)
+            : SESSION_TOUCH_INTERVAL_MILLIS;
+        if (now - session.getLastAccessAt() >= touchInterval) {
             session.setLastAccessAt(Math.max(now, session.getLastAccessAt()));
             try {
                 sessionStore.update(sessionId, session);
