@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console.service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -64,6 +65,7 @@ public class SessionServiceImpl implements SessionService {
     private static final int ENCRYPT_IV_LENGTH = 16;
     private static final String TOKEN_PART_SEPARATOR = "\1";
     private static final String SESSION_COOKIE_SAME_SITE = "Lax";
+    private static final String UNKNOWN_CLIENT_IP = "unknown";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
@@ -86,6 +88,7 @@ public class SessionServiceImpl implements SessionService {
 
     private ConfigService configService;
     private KubernetesClientService kubernetesClientService;
+    private LoginFailureBudgetService loginFailureBudgetService;
 
     private final AtomicReference<AdminConfig> adminConfigCache = new AtomicReference<>();
 
@@ -97,6 +100,11 @@ public class SessionServiceImpl implements SessionService {
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
+    }
+
+    @Resource
+    public void setLoginFailureBudgetService(LoginFailureBudgetService loginFailureBudgetService) {
+        this.loginFailureBudgetService = loginFailureBudgetService;
     }
 
     @Override
@@ -153,12 +161,15 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public User login(String username, String password) {
-        AdminConfig config = getAdminConfig();
-        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
+    public User login(String username, String password, HttpServletRequest request) {
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return null;
         }
-        return config.toUser();
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.FORM, username, request);
+        loginFailureBudgetService.ensureNotLocked(key);
+        AdminConfig config = getAdminConfig();
+        User user = config.getUsername().equals(username) && config.getPassword().equals(password) ? config.toUser() : null;
+        return completeAuthentication(key, user);
     }
 
     @Override
@@ -223,12 +234,36 @@ public class SessionServiceImpl implements SessionService {
         if (parts.length != 2 || !"Basic".equals(parts[0])) {
             return null;
         }
-        String decoded = new String(Base64.getDecoder().decode(parts[1]));
-        String[] credentials = decoded.split(":");
-        if (credentials.length != 2) {
+        String decoded;
+        try {
+            decoded = new String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
             return null;
         }
-        return validateCredential(credentials[0], credentials[1]);
+        int separator = decoded.indexOf(':');
+        if (separator <= 0 || separator == decoded.length() - 1) {
+            return null;
+        }
+        String username = decoded.substring(0, separator);
+        String password = decoded.substring(separator + 1);
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.BASIC, username, request);
+        loginFailureBudgetService.ensureNotLocked(key);
+        return completeAuthentication(key, validateCredential(username, password));
+    }
+
+    private LoginAttemptKey createLoginAttemptKey(LoginAuthSource source, String username,
+        HttpServletRequest request) {
+        String clientIp = request != null ? request.getRemoteAddr() : null;
+        return new LoginAttemptKey(source, username, StringUtils.defaultIfBlank(clientIp, UNKNOWN_CLIENT_IP));
+    }
+
+    private User completeAuthentication(LoginAttemptKey key, User user) {
+        if (user != null) {
+            loginFailureBudgetService.reset(key);
+        } else {
+            loginFailureBudgetService.recordFailure(key);
+        }
+        return user;
     }
 
     private User validateCredential(String username, String password) {

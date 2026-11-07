@@ -76,6 +76,29 @@ public class SystemConfigKey {
 
     public static final long ADMIN_CONFIG_TTL_DEFAULT = 10 * 1000;
 
+    /**
+     * Maximum failures allowed per {@code form} or {@code basic} authentication source, account and client address
+     * within the failure window. Must be at least 1; values below 1 are treated as 1.
+     */
+    public static final String LOGIN_FAILURE_LIMIT_KEY = CONFIG_KEY_PREFIX + "login.failure-limit";
+
+    public static final int LOGIN_FAILURE_LIMIT_DEFAULT = 5;
+
+    /**
+     * Length of the failure accounting window in seconds. Must be at least 1; values below 1 are treated as 1.
+     */
+    public static final String LOGIN_FAILURE_WINDOW_SECONDS_KEY = CONFIG_KEY_PREFIX + "login.failure-window-seconds";
+
+    public static final long LOGIN_FAILURE_WINDOW_SECONDS_DEFAULT = 10 * 60;
+
+    /**
+     * Lock duration in seconds after the failure limit is reached. Must be at least 1; values below 1 are treated as
+     * 1.
+     */
+    public static final String LOGIN_LOCK_SECONDS_KEY = CONFIG_KEY_PREFIX + "login.lock-seconds";
+
+    public static final long LOGIN_LOCK_SECONDS_DEFAULT = 15 * 60;
+
     public static final String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY =
         CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";
     public static final boolean DASHBOARD_OVERWRITE_WHEN_STARTUP_DEFAULT = true;
