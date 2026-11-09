@@ -16,10 +16,11 @@ const CONFIG = {
   // 忽略的目录
   ignoreDirs: ['node_modules', 'dist', 'build', '.git'],
   // 国际化函数调用模式
+  // 左侧用 (?<![\w.$]) 限定，避免 request("/x")、format("x") 这类调用的结尾 "t(" 被当成 t()
   i18nPatterns: [
-    /t\(['"`]([^'"`]+)['"`]\)/g, // t('key') 或 t("key")
-    /t\(['"`]([^'"`]+)['"`]\s*\|\|\s*['"`]([^'"`]+)['"`]\)/g, // t('key') || 'fallback'
-    /t\(`([^`]+)`\)/g, // t(`key`)
+    /(?<![\w.$])t\(['"`]([^'"`]+)['"`]\)/g, // t('key') 或 t("key")
+    /(?<![\w.$])t\(['"`]([^'"`]+)['"`]\s*\|\|\s*['"`]([^'"`]+)['"`]\)/g, // t('key') || 'fallback'
+    /(?<![\w.$])t\(`([^`]+)`\)/g, // t(`key`)
   ],
 };
 
@@ -61,6 +62,7 @@ function isValidI18nKey(key) {
     /^[^a-zA-Z_]+$/, // 不包含字母和下划线的字符串
     /^\${.*}$/, // 模板字符串变量
     /^[^a-zA-Z_][^a-zA-Z0-9_.]*$/, // 不以字母或下划线开头的键
+    /\$\{.*\}/, // 模板变量的动态键，如 t(`plugins.categories.${key}`)
   ];
 
   return !invalidPatterns.some((pattern) => pattern.test(key));
@@ -173,7 +175,10 @@ function checkI18n() {
       if (unusedKeys.length > 10) {
         console.log(`    ... 还有 ${unusedKeys.length - 10} 个未使用的键`);
       }
-      hasIssues = true;
+      // 未使用的键只是清理线索：默认不判失败，用 --strict 时才和多语言缺失一样算问题
+      if (process.argv.includes('--strict')) {
+        hasIssues = true;
+      }
       unusedKeys.forEach((key) => allUnusedKeys.add(key));
     } else {
       console.log(`  ✅ 没有未使用的键`);
