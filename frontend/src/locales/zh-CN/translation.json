@@ -575,7 +575,8 @@
       "unspecified": "默认策略",
       "ifNotPresent": "仅本地不存在时拉取",
       "always": "总是拉取"
-    }
+    },
+    "noPlugins": "暂无插件"
   },
   "service": {
     "columns": {
@@ -794,7 +795,9 @@
       "targetService": "目标服务",
       "targetServiceRequired": "请选择目标服务",
       "targetServiceNamedPlaceholder": "搜索服务名称选择服务，可多选",
-      "weightConfig": "权重配置"
+      "weightConfig": "权重配置",
+      "refreshDomains": "刷新域名列表",
+      "refreshServices": "刷新服务列表"
     },
     "weightTable": {
       "serviceName": "服务名",
@@ -996,7 +999,9 @@
       "dbOtherParamsPlaceholder": "格式：key1=value1&key2=value2",
       "ssePathRule": "路径 (SSE) : /mcp-servers/<1>{{currentMcpServerName}}</1>/sse",
       "httpPathRule": "路径 (Streamable HTTP) : /mcp-servers/<1>{{currentMcpServerName}}</1>",
-      "nameDefault": "MCP服务名称"
+      "nameDefault": "MCP服务名称",
+      "dbPortInvalid": "请输入有效的端口号 (1-65535)",
+      "dbPortPlaceholder": "请输入数据库端口号"
     },
     "deleteConfirm": "确定删除 <1>{{currentMcpServerName}}</1> 吗？",
     "detail": {
