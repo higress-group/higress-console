@@ -5,4 +5,4 @@ HTTP 请求头或响应头，方便在网关侧配置日志、路由与策略匹
 `json-converter`，对应的正式插件镜像名称为 `jsonrpc-converter`。
 
 详细字段、生成的请求头及示例请参见
-[插件文档](../../../wasm-go/extensions/jsonrpc-converter/README.md)。
+[插件文档](https://github.com/alibaba/higress/blob/main/plugins/wasm-go/extensions/jsonrpc-converter/README.md)。
