@@ -9,6 +9,7 @@ const SECRET_KEY_NAMES = new Set([
   'awssecretkey',
   'vertexauthkey',
   'values',
+  'additionalvalues',
   'authorization',
   'cookie',
   'setcookie',
@@ -23,7 +24,7 @@ const SECRET_KEY_NAMES = new Set([
 ]);
 
 const SENSITIVE_JSON_KEY_PATTERN =
-  /"(tokens?|api[-_]?tokens?|awsAccessKey|awsSecretKey|vertexAuthKey|values|authorization|password)"\s*:/i;
+  /"(tokens?|api[-_]?tokens?|awsAccessKey|awsSecretKey|vertexAuthKey|values|additionalValues|authorization|password)"\s*:/i;
 
 const MAX_DEPTH = 12;
 

@@ -524,6 +524,22 @@ public class KeyAuthCredentialHandlerTest {
     }
 
     @Test
+    public void saveConsumerTestDuplicateAdditionalCredential() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Consumer consumer1 = new Consumer("user1", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("same-key"))));
+        handler.saveConsumer(instance, consumer1);
+        Consumer consumer2 = new Consumer("user2", Lists.newArrayList(
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-KEY", Lists.newArrayList("other-key"))));
+        handler.saveConsumer(instance, consumer2);
+        KeyAuthCredential additionalCredential = new KeyAuthCredential();
+        additionalCredential.setAdditionalValues(Lists.newArrayList("same-key"));
+        Consumer update = new Consumer("user2", Lists.newArrayList(additionalCredential));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> handler.saveConsumer(instance, update));
+    }
+
+    @Test
     public void saveConsumerTestValidationFailure() {
         WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
 

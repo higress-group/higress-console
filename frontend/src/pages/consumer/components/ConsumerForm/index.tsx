@@ -1,5 +1,5 @@
 import { CredentialType } from '@/interfaces/consumer';
-import { resolveWriteOnlyList } from '@/utils/write-only';
+import { resolveConsumerFormInitialValues, resolveConsumerKeyAuthPayload } from '@/utils/write-only';
 import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Tabs, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
@@ -21,17 +21,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
   credentialEnabledCheckers[CredentialType.KEY_AUTH.key] = () => true;
 
   useEffect(() => {
-    let formValues: object | null = null
+    const formValues = resolveConsumerFormInitialValues(value);
     let activeTabKey_ = '';
     if (value) {
-      const credentials = {};
       if (value.credentials) {
         for (const credential of value.credentials) {
-          credentials[credential.type] = { ...credential, values: [''] };
           activeTabKey_ = activeTabKey_ || credential.type;
         }
       }
-      formValues = Object.assign({}, value, { credentials });
     }
     formValues ? form.setFieldsValue(formValues) : form.resetFields();
     setClearKeyAuthRequested(false);
@@ -54,7 +51,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         }
         credential.type = key;
         if (key === CredentialType.KEY_AUTH.key) {
-          credential.values = resolveWriteOnlyList(credential.values, clearKeyAuthRequested);
+          const credentialValues = credential.values;
+          delete credential.values;
+          delete credential.additionalValues;
+          Object.assign(credential, resolveConsumerKeyAuthPayload(
+            credentialValues,
+            !!value,
+            clearKeyAuthRequested,
+          ));
         }
         const checker = credentialEnabledCheckers[key];
         if (!checker || checker(credential)) {
@@ -81,7 +85,7 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
     if (!clearRequested) {
       return;
     }
-    form.setFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'values'], ['']);
+    form.setFieldValue(['credentials', CredentialType.KEY_AUTH.key, 'values'], []);
   };
 
   const toggleKeyAuthClearRequest = () => {

@@ -186,6 +186,25 @@ class WriteOnlyResponseTest {
         assertConsumerResponse(serialize(body));
     }
 
+    @Test
+    void consumerPutAcceptsAdditionalValuesWithoutReturningSecrets() throws Exception {
+        initContext(HttpMethod.PUT);
+        Consumer request = createConsumerRequest();
+        KeyAuthCredential credential = (KeyAuthCredential)request.getCredentials().get(0);
+        credential.setValues(null);
+        credential.setAdditionalValues(Collections.singletonList("new-consumer-secret"));
+        when(consumerService.addOrUpdate(any())).thenAnswer(invocation -> {
+            Consumer update = invocation.getArgument(0);
+            KeyAuthCredential updateCredential = (KeyAuthCredential)update.getCredentials().get(0);
+            assertEquals(Collections.singletonList("new-consumer-secret"), updateCredential.getAdditionalValues());
+            return createSecretConsumer();
+        });
+
+        Object body = consumersController.put(CONSUMER_NAME, request).getBody();
+
+        assertConsumerResponse(serialize(body));
+    }
+
     private JsonNode serialize(Object body) throws Exception {
         return objectMapper.readTree(objectMapper.writeValueAsString(body));
     }
@@ -234,6 +253,7 @@ class WriteOnlyResponseTest {
         assertNotNull(consumer);
         JsonNode credential = consumer.get("credentials").get(0);
         assertFalse(credential.has("values"));
+        assertFalse(credential.has("additionalValues"));
         assertEquals(2, credential.get("credentialCount").asInt());
         assertEquals("x-api-key", credential.get("key").asText());
         assertFalse(consumer.toString().contains("consumer-secret"));
@@ -247,6 +267,7 @@ class WriteOnlyResponseTest {
         assertEquals(2, values.size());
         assertEquals("consumer-secret-1", values.get(0).asText());
         assertEquals("consumer-secret-2", values.get(1).asText());
+        assertFalse(credential.has("additionalValues"));
         assertEquals(2, credential.get("credentialCount").asInt());
         assertEquals("x-api-key", credential.get("key").asText());
     }

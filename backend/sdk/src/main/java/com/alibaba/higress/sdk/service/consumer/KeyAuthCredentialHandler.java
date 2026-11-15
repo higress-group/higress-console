@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -162,22 +163,33 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
             if (consumer.getName().equals(existedConsumer.getName())) {
                 consumerConfig = consumerMap;
-            } else if (hasSameCredential(existedConsumer, keyAuthCredential)) {
-                throw new IllegalArgumentException(
-                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
             }
         }
 
         boolean forUpdate = consumerConfig != null;
-        if (consumerConfig == null) {
+        keyAuthCredential.validateValues(forUpdate);
+        if (forUpdate) {
+            keyAuthCredential = mergeExistedConfig(keyAuthCredential, consumerConfig);
+        }
+        keyAuthCredential.validate(forUpdate);
+        for (Object consumerObj : consumers) {
+            if (!(consumerObj instanceof Map<?, ?>)) {
+                continue;
+            }
+            Consumer existedConsumer = extractConsumer((Map<String, Object>)consumerObj);
+            if (existedConsumer == null || consumer.getName().equals(existedConsumer.getName())) {
+                continue;
+            }
+            if (hasSameCredential(existedConsumer, keyAuthCredential)) {
+                throw new IllegalArgumentException(
+                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
+            }
+        }
+        if (!forUpdate) {
             consumerConfig = new HashMap<>();
             consumerConfig.put(CONSUMER_NAME, consumer.getName());
             consumers.add(consumerConfig);
-        } else {
-            keyAuthCredential = mergeExistedConfig(keyAuthCredential, consumerConfig);
         }
-
-        keyAuthCredential.validate(forUpdate);
 
         KeyAuthCredentialSource sourceEnum = KeyAuthCredentialSource.parse(keyAuthCredential.getSource());
         if (sourceEnum == null) {
@@ -347,10 +359,18 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             return keyAuthCredential;
         }
 
+        List<String> values;
+        if (keyAuthCredential.getAdditionalValues() != null) {
+            LinkedHashSet<String> mergedValues = new LinkedHashSet<>(existedCredential.getValues());
+            mergedValues.addAll(keyAuthCredential.getAdditionalValues());
+            values = new ArrayList<>(mergedValues);
+        } else {
+            values = keyAuthCredential.getValues() != null ? keyAuthCredential.getValues()
+                : existedCredential.getValues();
+        }
         return new KeyAuthCredential(
             StringUtils.firstNonBlank(keyAuthCredential.getSource(), existedCredential.getSource()),
-            StringUtils.firstNonBlank(keyAuthCredential.getKey(), existedCredential.getKey()),
-            keyAuthCredential.getValues() != null ? keyAuthCredential.getValues() : existedCredential.getValues());
+            StringUtils.firstNonBlank(keyAuthCredential.getKey(), existedCredential.getKey()), values);
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {

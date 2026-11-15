@@ -18,6 +18,7 @@ export interface KeyAuthCredential extends Credential {
   source: string;
   key?: string;
   values?: string[];
+  additionalValues?: string[];
   credentialCount?: number;
 }
 

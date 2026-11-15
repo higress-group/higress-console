@@ -23,7 +23,6 @@ import com.alibaba.higress.sdk.exception.ValidationException;
 import com.google.common.collect.Sets;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -31,7 +30,6 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "KeyAuth Credential")
 public class KeyAuthCredential extends Credential {
 
@@ -44,6 +42,14 @@ public class KeyAuthCredential extends Credential {
     private String key;
     @Schema(description = "Credential Values")
     private List<String> values;
+    @Schema(description = "Additional credential values to append during an update. Cannot be used with values.")
+    private List<String> additionalValues;
+
+    public KeyAuthCredential(String source, String key, List<String> values) {
+        this.source = source;
+        this.key = key;
+        this.values = values != null ? new ArrayList<>(values) : null;
+    }
 
     public KeyAuthCredential(String type, String source, String key, List<String> values) {
         super(type);
@@ -80,8 +86,23 @@ public class KeyAuthCredential extends Credential {
             throw new ValidationException("key cannot be blank.");
         }
 
+        validateValues(forUpdate);
+    }
+
+    public void validateValues(boolean forUpdate) {
         if (!forUpdate && CollectionUtils.isEmpty(values)) {
             throw new ValidationException("value cannot be blank.");
+        }
+        if (CollectionUtils.isNotEmpty(additionalValues)) {
+            if (!forUpdate) {
+                throw new ValidationException("additionalValues is only supported when updating.");
+            }
+            if (values != null) {
+                throw new ValidationException("values and additionalValues cannot be used together.");
+            }
+            if (additionalValues.stream().anyMatch(StringUtils::isBlank)) {
+                throw new ValidationException("additionalValues cannot contain blank values.");
+            }
         }
     }
 }

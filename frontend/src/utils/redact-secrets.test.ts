@@ -13,7 +13,12 @@ test('redacts provider and consumer credential fields in nested payloads', () =>
       vertexAuthKey: 'vertex-secret',
       model: 'gpt-4',
     },
-    credentials: [{ type: 'key-auth', values: ['consumer-secret'], key: 'x-api-key' }],
+    credentials: [{
+      type: 'key-auth',
+      values: ['consumer-secret'],
+      additionalValues: ['new-consumer-secret'],
+      key: 'x-api-key',
+    }],
   });
 
   assert.equal(redacted.tokens, REDACTED_VALUE);
@@ -23,7 +28,9 @@ test('redacts provider and consumer credential fields in nested payloads', () =>
   assert.equal(redacted.rawConfigs.vertexAuthKey, REDACTED_VALUE);
   assert.equal(redacted.rawConfigs.model, 'gpt-4');
   assert.equal(redacted.credentials[0].values, REDACTED_VALUE);
+  assert.equal(redacted.credentials[0].additionalValues, REDACTED_VALUE);
   assert.equal(redacted.credentials[0].key, 'x-api-key');
+  assert.equal(JSON.stringify(redacted).includes('new-consumer-secret'), false);
   assert.equal(JSON.stringify(redacted).includes('token-1'), false);
   assert.equal(JSON.stringify(redacted).includes('aws-access'), false);
 });
@@ -45,6 +52,7 @@ test('redacts JSON request bodies serialized as strings', () => {
     name: 'provider',
     tokens: ['request-secret'],
     rawConfigs: { apiTokens: ['request-secret'], model: 'gpt-4' },
+    credentials: [{ additionalValues: ['new-request-secret'] }],
   });
 
   const redacted = redactSensitiveData({ data });
@@ -54,6 +62,7 @@ test('redacts JSON request bodies serialized as strings', () => {
     name: 'provider',
     tokens: REDACTED_VALUE,
     rawConfigs: { apiTokens: REDACTED_VALUE, model: 'gpt-4' },
+    credentials: [{ additionalValues: REDACTED_VALUE }],
   });
 });
 

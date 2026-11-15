@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { resolveWriteOnlyList, resolveWriteOnlyScalar } from './write-only.ts';
+import {
+  resolveConsumerFormInitialValues,
+  resolveConsumerKeyAuthPayload,
+  resolveWriteOnlyList,
+  resolveWriteOnlyScalar,
+} from './write-only.ts';
 
 test('omitted and empty edit lists keep existing values', () => {
   assert.equal(resolveWriteOnlyList(undefined), null);
@@ -33,23 +38,38 @@ test('an explicit scalar clear submits an empty string', () => {
   assert.equal(resolveWriteOnlyScalar('ignored', true), '');
 });
 
-test('an unchanged consumer save submits the keep payload', () => {
-  assert.deepEqual(
-    { type: 'key-auth', values: resolveWriteOnlyList(['']) },
-    { type: 'key-auth', values: null },
-  );
+test('consumer edit initialization does not fabricate stored values', () => {
+  const consumer = {
+    name: 'consumer',
+    credentials: [{ type: 'key-auth', source: 'HEADER', key: 'x-api-key', credentialCount: 2 }],
+  };
+
+  assert.deepEqual(resolveConsumerFormInitialValues(consumer), {
+    name: 'consumer',
+    credentials: {
+      'key-auth': { type: 'key-auth', source: 'HEADER', key: 'x-api-key', credentialCount: 2, values: [] },
+    },
+  });
+  assert.equal(consumer.credentials[0].credentialCount, 2);
+  assert.equal('values' in consumer.credentials[0], false);
 });
 
-test('an explicit consumer clear submits the clear payload', () => {
-  assert.deepEqual(
-    { type: 'key-auth', values: resolveWriteOnlyList([''], true) },
-    { type: 'key-auth', values: [] },
-  );
+test('consumer edit submits only additional values and filters blank placeholders', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload(['new-key', '', null], true), {
+    additionalValues: ['new-key'],
+  });
+  assert.deepEqual(resolveConsumerKeyAuthPayload([''], true), { additionalValues: [] });
+  assert.deepEqual(resolveConsumerKeyAuthPayload(undefined, true), { additionalValues: [] });
 });
 
-test('a consumer replacement submits only the new credential values', () => {
-  assert.deepEqual(
-    { type: 'key-auth', values: resolveWriteOnlyList(['new-key', '']) },
-    { type: 'key-auth', values: ['new-key'] },
-  );
+test('consumer create still submits the complete values list', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload(['first-key', 'second-key'], false), {
+    values: ['first-key', 'second-key'],
+  });
+  assert.deepEqual(resolveConsumerKeyAuthPayload([''], false), { values: null });
+});
+
+test('consumer explicit clear still submits an empty replacement list', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload([''], true, true), { values: [] });
+  assert.deepEqual(resolveConsumerKeyAuthPayload(['ignored'], true, true), { values: [] });
 });

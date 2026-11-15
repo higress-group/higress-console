@@ -34,6 +34,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.collections4.MapUtils;
@@ -98,7 +106,7 @@ public class ConsumerServiceTest {
         Consumer result = consumerService.addOrUpdate(consumer);
 
         // Then
-        verify(wasmPluginInstanceService).addOrUpdateAll(Collections.singletonList(instance));
+        verify(wasmPluginInstanceService).addOrUpdateAll(Collections.singletonList(instance), false);
         assertNotNull(result);
         assertEquals(result, consumer);
     }
@@ -113,7 +121,7 @@ public class ConsumerServiceTest {
 
         when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
             eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenAnswer(a -> globalInstanceRef.get());
-        when(wasmPluginInstanceService.addOrUpdateAll(any())).thenAnswer(a -> {
+        when(wasmPluginInstanceService.addOrUpdateAll(any(), eq(false))).thenAnswer(a -> {
             List<WasmPluginInstance> instance = a.getArgument(0);
             globalInstanceRef.set(instance.get(0));
             return instance;
@@ -125,7 +133,7 @@ public class ConsumerServiceTest {
         // Then
         assertNotNull(result);
         ArgumentCaptor<List<WasmPluginInstance>> captor = ArgumentCaptor.forClass(List.class);
-        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture());
+        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture(), eq(false));
 
         List<WasmPluginInstance> actualInstances = captor.getValue();
         assertNotNull(actualInstances);
@@ -166,7 +174,7 @@ public class ConsumerServiceTest {
             () -> consumerService.add(consumer));
         assertTrue(exception.getMessage().contains(consumerName));
         assertFalse(exception.getMessage().contains("stored-secret"));
-        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any(), eq(false));
     }
 
     private void validateDefaultGlobalConfig(Map<String, Object> configurations) {
@@ -835,6 +843,114 @@ public class ConsumerServiceTest {
     }
 
     @Test
+    void testAddOrUpdate_AdditionalKeyAuthValuesAppendAndDeduplicate() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance("old-key", "second-key");
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createConsumerWithAdditionalValues("new-key", "old-key", "new-key");
+
+        Consumer result = consumerService.addOrUpdate(consumer);
+
+        List<String> expectedValues = Lists.newArrayList("old-key", "second-key", "new-key");
+        assertEquals(expectedValues, getConsumerConfig(instance).get("credentials"));
+        assertEquals(expectedValues, ((KeyAuthCredential)result.getCredentials().get(0)).getValues());
+    }
+
+    @Test
+    void testAddOrUpdate_EmptyAdditionalKeyAuthValuesKeepExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance("old-key", "second-key");
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createConsumerWithAdditionalValues();
+
+        consumerService.addOrUpdate(consumer);
+
+        assertEquals(Lists.newArrayList("old-key", "second-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_BlankAdditionalKeyAuthValueIsRejectedWithoutChanges() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance("old-key", "second-key");
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createConsumerWithAdditionalValues("new-key", " ");
+
+        assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
+
+        assertEquals(Lists.newArrayList("old-key", "second-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_ValuesAndAdditionalValuesAreRejected() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance("old-key", "second-key");
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createConsumerWithAdditionalValues("new-key");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Lists.newArrayList("replacement"));
+
+        assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
+
+        assertEquals(Lists.newArrayList("old-key", "second-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_NewConsumerRejectsAdditionalValuesWithoutValues() {
+        Consumer consumer = createConsumerWithAdditionalValues("new-key");
+
+        assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testAddOrUpdate_ConcurrentAdditionalValuesAreRebased() throws Exception {
+        WasmPluginInstance initialInstance = createExistingKeyAuthInstance("old-key", "second-key");
+        initialInstance.setVersion("1");
+        AtomicReference<WasmPluginInstance> instanceRef = new AtomicReference<>(copyInstance(initialInstance));
+        CountDownLatch initialReads = new CountDownLatch(2);
+        Set<String> readingThreads = ConcurrentHashMap.newKeySet();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenAnswer(a -> {
+                WasmPluginInstance snapshot = copyInstance(instanceRef.get());
+                if (readingThreads.add(Thread.currentThread().getName())) {
+                    initialReads.countDown();
+                    assertTrue(initialReads.await(5, TimeUnit.SECONDS));
+                }
+                return snapshot;
+            });
+        when(wasmPluginInstanceService.addOrUpdateAll(any(), eq(false))).thenAnswer(a -> {
+            List<WasmPluginInstance> instances = a.getArgument(0);
+            WasmPluginInstance requested = copyInstance(instances.get(0));
+            WasmPluginInstance current = instanceRef.get();
+            if (!Objects.equals(current.getVersion(), requested.getVersion())) {
+                throw new ResourceConflictException("stale version");
+            }
+            requested.setVersion(Integer.toString(Integer.parseInt(current.getVersion()) + 1));
+            if (!instanceRef.compareAndSet(current, requested)) {
+                throw new ResourceConflictException("concurrent update");
+            }
+            return Collections.singletonList(copyInstance(requested));
+        });
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Consumer> first =
+                executor.submit(() -> consumerService.addOrUpdate(createConsumerWithAdditionalValues("third-key")));
+            Future<Consumer> second =
+                executor.submit(() -> consumerService.addOrUpdate(createConsumerWithAdditionalValues("fourth-key")));
+            assertTrue(((KeyAuthCredential)first.get(10, TimeUnit.SECONDS).getCredentials().get(0)).getValues()
+                .contains("third-key"));
+            assertTrue(((KeyAuthCredential)second.get(10, TimeUnit.SECONDS).getCredentials().get(0)).getValues()
+                .contains("fourth-key"));
+        } finally {
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+        }
+
+        List<String> storedValues = (List<String>)getConsumerConfig(instanceRef.get()).get("credentials");
+        assertEquals(4, storedValues.size());
+        assertTrue(storedValues.containsAll(Lists.newArrayList("old-key", "second-key", "third-key", "fourth-key")));
+    }
+
+    @Test
     void testAddOrUpdate_NewConsumerStillRequiresKeyAuthValues() {
         Consumer consumer = createTestConsumer("testUser");
         ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Collections.emptyList());
@@ -842,14 +958,15 @@ public class ConsumerServiceTest {
         assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
     }
 
-    private static WasmPluginInstance createExistingKeyAuthInstance() {
+    private static WasmPluginInstance createExistingKeyAuthInstance(String... values) {
         WasmPluginInstance instance = createTestInstance();
         instance.setGlobalTarget();
         Map<String, Object> consumerConfig = new HashMap<>();
         consumerConfig.put("name", "testUser");
         consumerConfig.put("keys", Lists.newArrayList("Authorization"));
         consumerConfig.put("in_header", true);
-        consumerConfig.put("credentials", Lists.newArrayList("old-key"));
+        consumerConfig.put("credentials",
+            values.length == 0 ? Lists.newArrayList("old-key") : Lists.newArrayList(values));
         Map<String, Object> configurations = new HashMap<>();
         configurations.put("consumers", Lists.newArrayList(consumerConfig));
         instance.setConfigurations(configurations);
@@ -861,6 +978,34 @@ public class ConsumerServiceTest {
         List<Map<String, Object>> consumers =
             (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
         return consumers.get(0);
+    }
+
+    private static Consumer createConsumerWithAdditionalValues(String... values) {
+        Consumer consumer = createTestConsumer("testUser");
+        KeyAuthCredential credential = (KeyAuthCredential)consumer.getCredentials().get(0);
+        credential.setValues(null);
+        credential.setAdditionalValues(Lists.newArrayList(values));
+        return consumer;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static WasmPluginInstance copyInstance(WasmPluginInstance source) {
+        WasmPluginInstance copy = createTestInstance();
+        copy.setVersion(source.getVersion());
+        copy.setTargets(source.getTargets() != null ? new HashMap<>(source.getTargets()) : null);
+        Map<String, Object> configurations = new HashMap<>(source.getConfigurations());
+        List<Map<String, Object>> consumers =
+            (List<Map<String, Object>>)configurations.get("consumers");
+        List<Map<String, Object>> copiedConsumers = new ArrayList<>();
+        for (Map<String, Object> consumer : consumers) {
+            Map<String, Object> copiedConsumer = new HashMap<>(consumer);
+            copiedConsumer.put("credentials", new ArrayList<>((List<String>)consumer.get("credentials")));
+            copiedConsumer.put("keys", new ArrayList<>((List<String>)consumer.get("keys")));
+            copiedConsumers.add(copiedConsumer);
+        }
+        configurations.put("consumers", copiedConsumers);
+        copy.setConfigurations(configurations);
+        return copy;
     }
 
     private static Consumer createTestConsumer(String name) {
