@@ -24,6 +24,8 @@ import com.alibaba.higress.sdk.model.consumer.Consumer;
 
 public interface ConsumerService {
 
+    Consumer add(Consumer consumer);
+
     Consumer addOrUpdate(Consumer consumer);
 
     PaginatedResult<Consumer> list(CommonPageQuery query);

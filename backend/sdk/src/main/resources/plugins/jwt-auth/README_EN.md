@@ -17,6 +17,9 @@ Plugin execution priority: `340`
 **Note:**
 - In one rule, authentication configuration and authorization configuration cannot coexist.
 - For requests authenticated through authentication and authorization, the request header will be augmented with an `X-Mse-Consumer` field to identify the caller's name.
+  The gateway **replaces** this header instead of appending to it: any client-supplied `X-Mse-Consumer` is removed
+  before the consumer name from this authentication is set. Downstream therefore always reads the gateway's own
+  assertion, so a caller cannot forge its identity by sending the header itself.
 
 ### Authentication Configuration
 | Name        | Data Type        | Requirements                                   | Default Value | Description                                                  |
@@ -36,9 +39,20 @@ The configuration fields for each item in `consumers` are as follows:
 | `from_cookies`          | array of string    | Optional     | -                                                  | Extract JWT from the specified cookies. |
 | `clock_skew_seconds`    | number             | Optional     | 60                                               | The allowed clock skew when validating the `exp` and `iat` fields of the JWT, measured in seconds. |
 | `keep_token`            | bool               | Optional     | true                                             | Whether to retain the JWT when forwarding to the backend. |
+| `remote_jwks`           | object             | Optional     | -                                                | Remote JWKS service reference (supported by the wasm-cpp implementation; when set, `jwks` can be omitted). |
 
 **Note:**
 - The default values will only be used when `from_headers`, `from_params`, and `from_cookies` are not all configured.
+- The wasm-cpp implementation supports fetching and caching the JWKS from a remote service via `remote_jwks`; at least one of `jwks` and `remote_jwks` must be configured.
+
+The configuration fields for `remote_jwks` in the wasm-cpp implementation are as follows:
+| Name      | Data Type | Requirements | Default Value | Description                                        |
+| --------- | --------- | ------------ | ------------- | -------------------------------------------------- |
+| `uri`     | string    | Required     | -             | The request path of the JWKS, e.g. `/.well-known/jwks.json` |
+| `service` | string    | Required     | -             | The service name used to build the outbound cluster. |
+| `port`    | string    | Required     | -             | The service port used by the JWKS request.         |
+| `timeout` | number    | Optional     | 1000          | Fetch timeout in milliseconds.                     |
+| `ttl`     | number    | Optional     | 30000         | Cache TTL in milliseconds.                         |
 The configuration fields for each item in `from_headers` are as follows:
 | Name            | Data Type        | Requirements | Default Value | Description                                     |
 | --------------- | ---------------- | ------------ | ------------- | ----------------------------------------------- |

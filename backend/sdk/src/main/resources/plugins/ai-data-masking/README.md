@@ -60,7 +60,7 @@ deny_code: 200
 deny_message: "提问或回答中包含敏感词，已被屏蔽"
 deny_raw_message: "{\"errmsg\":\"提问或回答中包含敏感词，已被屏蔽\"}"
 deny_content_type: "application/json"
-deny_words: 
+deny_words:
   - "自定义敏感词1"
   - "自定义敏感词2"
 replace_roles:
@@ -148,4 +148,3 @@ curl -X POST \
  - 流模式中，如果敏感词语被多个chunk拆分，可能会有敏感词的一部分返回给用户的情况
  - grok 内置规则列表 https://help.aliyun.com/zh/sls/user-guide/grok-patterns
  - 内置敏感词库数据来源 https://github.com/houbb/sensitive-word/tree/master/src/main/resources
- 

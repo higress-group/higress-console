@@ -2,9 +2,11 @@ import { RightOutlined } from '@ant-design/icons';
 import { get, isNil } from 'lodash';
 import { useState } from "react";
 import { Trans, useTranslation } from 'react-i18next';
+import { redactSensitiveData } from '@/utils/redact-secrets';
 
 export const ErrorComp = ({ content, options, code }) => {
   const { t } = useTranslation();
+  const safeOptions = redactSensitiveData(options);
 
   const [isShow, setIsShow] = useState(false);
   return (
@@ -31,31 +33,31 @@ export const ErrorComp = ({ content, options, code }) => {
         )
       }
       {
-        isShow && options && (
+        isShow && safeOptions && (
           <div style={{ lineHeight: '20px' }}>
             {
-              get(options, 'method') && (
-                <div>Method: {`${options.method}`}</div>
+              get(safeOptions, 'method') && (
+                <div>Method: {`${safeOptions.method}`}</div>
               )
             }
             {
-              get(options, 'url') && (
-                <div>RequestURL: {`${window.location.origin}${options.baseURL}${options.url}`}</div>
+              get(safeOptions, 'url') && (
+                <div>RequestURL: {`${window.location.origin}${safeOptions.baseURL}${safeOptions.url}`}</div>
               )
             }
             {
-              get(options, 'headers') && (
-                <div>Headers: {`${JSON.stringify(options.headers)}`}</div>
+              get(safeOptions, 'headers') && (
+                <div>Headers: {`${JSON.stringify(safeOptions.headers)}`}</div>
               )
             }
             {
-              get(options, 'params') && (
-                <div>Params: {`${JSON.stringify(options.params)}`}</div>
+              get(safeOptions, 'params') && (
+                <div>Params: {`${JSON.stringify(safeOptions.params)}`}</div>
               )
             }
             {
-              get(options, 'data') && (
-                <div>Data: {`${options.data}`}</div>
+              get(safeOptions, 'data') && (
+                <div>Data: {`${safeOptions.data}`}</div>
               )
             }
           </div>

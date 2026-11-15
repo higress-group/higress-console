@@ -30,6 +30,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -59,6 +60,15 @@ public class ConsumerServiceImpl implements ConsumerService {
 
     public ConsumerServiceImpl(WasmPluginInstanceService wasmPluginInstanceService) {
         this.wasmPluginInstanceService = wasmPluginInstanceService;
+    }
+
+    @Override
+    public Consumer add(Consumer consumer) {
+        if (query(consumer.getName()) != null) {
+            throw new ResourceConflictException(
+                "Consumer " + consumer.getName() + " already exists. Use PUT to update it.");
+        }
+        return addOrUpdate(consumer);
     }
 
     @Override

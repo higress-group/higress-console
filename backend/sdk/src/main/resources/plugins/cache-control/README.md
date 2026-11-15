@@ -34,6 +34,5 @@ curl http://exmaple.com/test.jpg
 ```
 2. 缓存所有文件，且缓存至最大时间 `“Thu, 31 Dec 2037 23:55:55 GMT”`
 ```yaml
-expires: max 
+expires: max
 ```
-

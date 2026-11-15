@@ -7,7 +7,7 @@ description: AI Token Rate Limiting Plugin Configuration Reference
 The `ai-token-ratelimit` plugin implements token rate limiting based on specific key values. The key values can come from URL parameters, HTTP request headers, client IP addresses, consumer names, or key names in cookies.
 
 ## Runtime Attributes
-Plugin execution phase: `default phase`  
+Plugin execution phase: `default phase`
 Plugin execution priority: `600`
 
 ## Configuration Description

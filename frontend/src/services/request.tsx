@@ -2,9 +2,11 @@ import { Modal } from "antd";
 import axios from "axios";
 import i18next from 'i18next';
 import { ErrorComp } from './exception';
+import { resolveRequestTimeout } from './timeout';
+import { redactSensitiveData } from '@/utils/redact-secrets';
 
 const request = axios.create({
-  timeout: 5 * 1000,
+  timeout: resolveRequestTimeout(),
   baseURL: process.env.ICE_CORE_MODE === "development" ? "/api" : "",
   headers: {
     "Content-Type": "application/json",
@@ -52,11 +54,13 @@ request.interceptors.response.use(
           return;
         }
         // Unauthorized. Jump to the login page.
-        Promise.reject(error);
         if (window.location.href.indexOf('/init') === -1 && window.location.href.indexOf('/login') === -1) {
           window.location.href = `/login?redirect=${window.location.pathname}`;
         }
-        return;
+        return Promise.reject(error);
+      }
+      if (status === 429 && config.url.indexOf('/login') !== -1) {
+        return Promise.reject(error);
       }
       const messageKeys = [`request.error.${status}_${config.method}`, `request.error.${status}`];
       for (const key of messageKeys) {
@@ -71,7 +75,7 @@ request.interceptors.response.use(
         config.data = typeof data === 'string' ? data : JSON.stringify(data);
       }
     }
-    showErrorModal(message, config, code);
+    showErrorModal(message, redactSensitiveData(config), code);
     return Promise.reject(error);
   },
 );

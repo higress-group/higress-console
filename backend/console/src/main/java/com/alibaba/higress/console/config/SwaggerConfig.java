@@ -12,6 +12,7 @@
  */
 package com.alibaba.higress.console.config;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,11 +34,14 @@ import com.alibaba.higress.sdk.model.route.RoutePredicateTypeEnum;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
 public class SwaggerConfig {
@@ -54,9 +58,26 @@ public class SwaggerConfig {
         Info apiInfo = new Info().title("Higress Console")
             .contact(new Contact().name("Higress Authors").url("https://github.com/higress-group/higress-console"))
             .description(
-                "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices.")
+                "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices."
+                    + "\n\n## API Authentication\n\n"
+                    + "Most operations in this console API require authentication. "
+                    + "Sign in through the console first to use its session cookie. "
+                    + "When the Basic authentication fallback is enabled, HTTP **Basic Auth** with the administrator "
+                    + "account's username and password is also accepted, either directly or via the **Authorize** "
+                    + "button at the top right of the page. "
+                    + "A few endpoints (such as login and system initialization) are anonymous and do not require credentials.")
             .license(new License().name("Apache 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
         openApi.info(apiInfo);
+
+        Components components = openApi.getComponents();
+        if (components == null) {
+            components = new Components();
+            openApi.components(components);
+        }
+        components.addSecuritySchemes("basicAuth",
+            new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")
+                .description("Optional HTTP Basic Auth using the administrator account's username and password. "
+                    + "Only accepted when the Basic authentication fallback is enabled."));
 
         registerClassSchema(openApi, CapabilityKey.class);
         registerClassSchema(openApi, RoutePredicateTypeEnum.class);
@@ -70,6 +91,10 @@ public class SwaggerConfig {
 
         Map<String, Schema> schemas = openApi.getComponents().getSchemas();
         openApi.getComponents().setSchemas(new TreeMap<>(schemas));
+
+        SecurityRequirement securityRequirement = new SecurityRequirement();
+        securityRequirement.addList("basicAuth");
+        openApi.setSecurity(Collections.singletonList(securityRequirement));
     }
 
     private void registerClassSchema(OpenAPI openApi, Class<?> clazz) {

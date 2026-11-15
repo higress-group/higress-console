@@ -47,8 +47,8 @@ The meanings of various values for `value_source` ​​are as follows:
 
 When `value_source` is `response_streaming_body`, `rule` should be configured to specify how to obtain the specified value from the streaming body. The meaning of the value is as follows:
 
-- `first`: extract value from the first valid chunk 
-- `replace`: extract value from the last valid chunk 
+- `first`: extract value from the first valid chunk
+- `replace`: extract value from the last valid chunk
 - `append`: join value pieces from all valid chunks
 
 ## Configuration example
@@ -110,7 +110,7 @@ route_upstream_model_metric_llm_duration_count{ai_route="bailian",ai_cluster="qw
 #### Log
 ```json
 {
-  "ai_log": "{\"model\":\"qwen-max\",\"input_token\":\"343\",\"output_token\":\"153\",\"llm_service_duration\":\"19110\"}"  
+  "ai_log": "{\"model\":\"qwen-max\",\"input_token\":\"343\",\"output_token\":\"153\",\"llm_service_duration\":\"19110\"}"
 }
 ```
 
@@ -129,7 +129,7 @@ attributes:
 ### Record questions and answers
 ```yaml
 attributes:
-  - key: question 
+  - key: question
     value_source: request_body
     value: messages.@reverse.0.content
     apply_to_log: true

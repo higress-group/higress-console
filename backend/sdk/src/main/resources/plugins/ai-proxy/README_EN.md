@@ -12,7 +12,7 @@ description: AI Proxy plugin configuration reference
 > When the request path suffix matches `/v1/embeddings`, corresponding to text vector scenarios, the request body will be parsed using OpenAI's text vector protocol and then converted to the corresponding LLM vendor's text vector protocol.
 
 ## Running Attributes
-Plugin execution phase: `Default phase`  
+Plugin execution phase: `Default phase`
 Plugin execution priority: `100`
 
 ## Configuration Fields
@@ -60,7 +60,7 @@ Custom settings will follow the table below to replace corresponding fields base
 | top_k        | none        | none               | top_k       | none        | topK             | none        | top_k       | none               |
 | seed         | seed        | none               | none        | seed        | none             | none        | none        | none               |
 
-If raw mode is enabled, custom settings will directly use the input `name` and `value` to change the JSON content of the request without any restrictions or modifications to the parameter names. 
+If raw mode is enabled, custom settings will directly use the input `name` and `value` to change the JSON content of the request without any restrictions or modifications to the parameter names.
 
 For most protocols, custom settings will modify or fill parameters at the root path of the JSON content. For the `qwen` protocol, the ai-proxy will configure under the `parameters` sub-path in JSON. For the `gemini` protocol, it will be configured under the `generation_config` sub-path.
 
@@ -161,7 +161,7 @@ The `type` corresponding to Cloudflare Workers AI is `cloudflare`. Its specific 
 | `cloudflareAccountId`  | string    | Required    | -             | [Cloudflare Account ID](https://developers.cloudflare.com/workers-ai/get-started/rest-api/#1-get-api-token-and-account-id) |
 
 #### Spark
-The `type` corresponding to Spark is `spark`. It has no specific configuration fields. 
+The `type` corresponding to Spark is `spark`. It has no specific configuration fields.
 
 The `apiTokens` field value for iFlytek’s Spark cognitive large model is `APIKey:APISecret`. That is, fill in your own APIKey and APISecret, separated by `:`.
 

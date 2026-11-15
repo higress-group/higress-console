@@ -6,7 +6,7 @@ import { getConsumers } from '@/services/consumer';
 import { getGatewayDomains } from '@/services/domain';
 import { getMcpServer } from '@/services/mcp';
 import { getGatewayServices } from '@/services/service';
-import { RedoOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
 import { Button, Drawer, Form, Input, Select, Space, Switch, message } from 'antd';
 import { useWatch } from 'antd/es/form/Form';
 import React, { useEffect, useState } from 'react';
@@ -601,11 +601,11 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
               <Form.List name="directRoute_headers">
                 {(fields, { add, remove }) => (
                   <>
-                    {fields.map(({ key, name, ...restField }) => (
+                    {fields.map(({ key, name: fieldName, ...restField }) => (
                       <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                         <Form.Item
                           {...restField}
-                          name={[name, 'key']}
+                          name={[fieldName, 'key']}
                           style={{ flex: 1, marginBottom: 0 }}
                           rules={[{ required: true, message: t('mcp.form.headerKeyRequired')! }]}
                         >
@@ -613,17 +613,23 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                         </Form.Item>
                         <Form.Item
                           {...restField}
-                          name={[name, 'value']}
+                          name={[fieldName, 'value']}
                           style={{ flex: 2, marginBottom: 0 }}
                           rules={[{ required: true, message: t('mcp.form.headerValueRequired')! }]}
                         >
                           <Input placeholder={t('mcp.form.headerValuePlaceholder')!} />
                         </Form.Item>
-                        <Button onClick={() => remove(name)}>-</Button>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          aria-label={t('mcp.form.removeHeader')!}
+                          onClick={() => remove(fieldName)}
+                        />
                       </div>
                     ))}
-                    <Button type="dashed" onClick={() => add()} block>
-                      + {t('mcp.form.addHeader')}
+                    <Button type="dashed" icon={<PlusOutlined />} onClick={() => add()} block>
+                      {t('mcp.form.addHeader')}
                     </Button>
                   </>
                 )}

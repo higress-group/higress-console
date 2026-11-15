@@ -53,6 +53,10 @@ public class WasmPlugin implements VersionedDto {
     @Schema(description = "Whether the plugin is built-in")
     private Boolean builtIn;
 
+    @Schema(description = "Whether the plugin configuration is managed by a dedicated Console product feature. "
+        + "Manually enabling such a plugin is not recommended while the corresponding product feature is in use.")
+    private Boolean productCovered;
+
     @Schema(description = "Plugin icon URL")
     private String icon;
 

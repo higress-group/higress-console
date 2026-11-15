@@ -44,7 +44,7 @@ curl https://example.com/v1/chat/completions/quota/refresh -H "Authorization: Be
 The value of the key `chat_quota:consumer1` in Redis will be refreshed to 10000.
 
 ### Query Quota
-To query the quota of a specific user, you can use: 
+To query the quota of a specific user, you can use:
 curl https://example.com/v1/chat/completions/quota?consumer=consumer1 -H "Authorization: Bearer credential3"
 The response will return: {"quota": 10000, "consumer": "consumer1"}
 

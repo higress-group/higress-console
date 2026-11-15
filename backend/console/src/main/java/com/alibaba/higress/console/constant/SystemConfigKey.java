@@ -64,9 +64,48 @@ public class SystemConfigKey {
 
     public static final int ADMIN_COOKIE_MAX_AGE_DEFAULT = 30 * 24 * 60 * 60;
 
+    public static final String ADMIN_SESSION_IDLE_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "admin.session.idle-timeout";
+
+    public static final long ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT = 30 * 60 * 1000L;
+
+    public static final String ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY = CONFIG_KEY_PREFIX + "admin.session.absolute-timeout";
+
+    public static final long ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT = 8 * 60 * 60 * 1000L;
+
+    public static final String ADMIN_COOKIE_SECURE_KEY = CONFIG_KEY_PREFIX + "admin.cookie.secure";
+
+    public static final boolean ADMIN_COOKIE_SECURE_DEFAULT = false;
+
+    public static final String ADMIN_BASIC_AUTH_ENABLED_KEY = CONFIG_KEY_PREFIX + "admin.basic-auth.enabled";
+
+    public static final boolean ADMIN_BASIC_AUTH_ENABLED_DEFAULT = false;
+
     public static final String ADMIN_CONFIG_TTL_KEY = CONFIG_KEY_PREFIX + "admin.config-ttl";
 
     public static final long ADMIN_CONFIG_TTL_DEFAULT = 10 * 1000;
+
+    /**
+     * Maximum failures allowed per {@code form} or {@code basic} authentication source, account and client address
+     * within the failure window. Must be at least 1; values below 1 are treated as 1.
+     */
+    public static final String LOGIN_FAILURE_LIMIT_KEY = CONFIG_KEY_PREFIX + "login.failure-limit";
+
+    public static final int LOGIN_FAILURE_LIMIT_DEFAULT = 5;
+
+    /**
+     * Length of the failure accounting window in seconds. Must be at least 1; values below 1 are treated as 1.
+     */
+    public static final String LOGIN_FAILURE_WINDOW_SECONDS_KEY = CONFIG_KEY_PREFIX + "login.failure-window-seconds";
+
+    public static final long LOGIN_FAILURE_WINDOW_SECONDS_DEFAULT = 10 * 60;
+
+    /**
+     * Lock duration in seconds after the failure limit is reached. Must be at least 1; values below 1 are treated as
+     * 1.
+     */
+    public static final String LOGIN_LOCK_SECONDS_KEY = CONFIG_KEY_PREFIX + "login.lock-seconds";
+
+    public static final long LOGIN_LOCK_SECONDS_DEFAULT = 15 * 60;
 
     public static final String DASHBOARD_OVERWRITE_WHEN_STARTUP_KEY =
         CONFIG_KEY_PREFIX + "dashboard.overwrite-when-startup";

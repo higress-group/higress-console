@@ -17,7 +17,8 @@ export const CredentialType = {
 export interface KeyAuthCredential extends Credential {
   source: string;
   key?: string;
-  value: string;
+  values?: string[];
+  credentialCount?: number;
 }
 
 export enum KeyAuthCredentialSource {

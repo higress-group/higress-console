@@ -168,6 +168,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
         }
 
+        boolean forUpdate = consumerConfig != null;
         if (consumerConfig == null) {
             consumerConfig = new HashMap<>();
             consumerConfig.put(CONSUMER_NAME, consumer.getName());
@@ -176,7 +177,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             keyAuthCredential = mergeExistedConfig(keyAuthCredential, consumerConfig);
         }
 
-        keyAuthCredential.validate(false);
+        keyAuthCredential.validate(forUpdate);
 
         KeyAuthCredentialSource sourceEnum = KeyAuthCredentialSource.parse(keyAuthCredential.getSource());
         if (sourceEnum == null) {
@@ -349,8 +350,7 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         return new KeyAuthCredential(
             StringUtils.firstNonBlank(keyAuthCredential.getSource(), existedCredential.getSource()),
             StringUtils.firstNonBlank(keyAuthCredential.getKey(), existedCredential.getKey()),
-            CollectionUtils.isNotEmpty(keyAuthCredential.getValues()) ? keyAuthCredential.getValues()
-                : existedCredential.getValues());
+            keyAuthCredential.getValues() != null ? keyAuthCredential.getValues() : existedCredential.getValues());
     }
 
     private static KeyAuthCredential parseCredential(Map<String, Object> consumerMap) {

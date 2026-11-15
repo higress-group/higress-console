@@ -200,7 +200,7 @@ http://foo.bar.com/oauth2/sign_out?rd=https%3A%2F%2Fdev-o43xb1mz7ya7ach4.us.auth
 
 #### Step 1: Get started with keycloak on docker
 
-<https://www.keycloak.org/getting-started/getting-started-docker> 
+<https://www.keycloak.org/getting-started/getting-started-docker>
 
 **注**：需填写Valid redirect URIs, Valid post logout URIs, Web origins配置项，否则 OIDC Provider 会认为用户跳转的重定向 URL 或登出 URL 无效
 
@@ -423,4 +423,3 @@ curl -X POST \
 
 4. 携带 Authorization 的标头对应 access_token 访问对应 API
 5. 后端服务根据 access_token 获取用户授权信息并返回对应的 HTTP 响应
-

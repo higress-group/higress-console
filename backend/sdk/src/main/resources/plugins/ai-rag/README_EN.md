@@ -8,8 +8,8 @@ Implement LLM-RAG by integrating with Alibaba Cloud Vector Search Service, as sh
 <img src="https://img.alicdn.com/imgextra/i1/O1CN01LuRVs41KhoeuzakeF_!!6000000001196-0-tps-1926-1316.jpg" width=600>
 
 ## Running Attributes
-Plugin execution phase: `Default Phase`  
-Plugin execution priority: `400`  
+Plugin execution phase: `Default Phase`
+Plugin execution priority: `400`
 
 ## Configuration Description
 | Name                     | Data Type | Requirement | Default Value | Description                                                                               |

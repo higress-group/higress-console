@@ -17,7 +17,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
@@ -30,6 +32,9 @@ import com.alibaba.higress.sdk.model.Route;
 import com.alibaba.higress.sdk.model.mcp.McpServer;
 import com.alibaba.higress.sdk.model.mcp.McpServerConfigMap;
 import com.alibaba.higress.sdk.model.mcp.McpServerConstants;
+import com.alibaba.higress.sdk.model.route.Header;
+import com.alibaba.higress.sdk.model.route.HeaderControlConfig;
+import com.alibaba.higress.sdk.model.route.HeaderControlStageConfig;
 import com.alibaba.higress.sdk.model.route.RewriteConfig;
 import com.alibaba.higress.sdk.service.RouteService;
 import com.alibaba.higress.sdk.service.consumer.ConsumerService;
@@ -151,6 +156,36 @@ public class DirectRoutingDetailStrategyTest {
         Assertions.assertNotNull(mcpServer);
         Assertions.assertNotNull(mcpServer.getDirectRouteConfig());
         Assertions.assertEquals("/sse", mcpServer.getDirectRouteConfig().getPath());
+    }
+
+    @Test
+    @DisplayName("restores custom upstream headers from request header set rules")
+    public void completeInfo_requestHeaderSet_restoresCustomHeaders() throws Exception {
+        Route route = buildRoute(ROUTE_NAME, "/mcp-servers/foo", MCP_TRANSPORT_SSE);
+        List<Header> headers = Collections.singletonList(new Header("Authorization", "Bearer upstream"));
+        route.setHeaderControl(HeaderControlConfig.builder()
+            .request(HeaderControlStageConfig.builder().set(headers).build())
+            .build());
+        stubRouteAndConfigMap(route, SSE_PATH_SUFFIX);
+
+        McpServer mcpServer = strategy.query(MCP_SERVER_NAME);
+
+        Assertions.assertEquals(headers, mcpServer.getDirectRouteConfig().getHeaders());
+    }
+
+    @Test
+    @DisplayName("restores legacy custom upstream headers from request header add rules")
+    public void completeInfo_legacyRequestHeaderAdd_restoresCustomHeaders() throws Exception {
+        Route route = buildRoute(ROUTE_NAME, "/mcp-servers/foo", MCP_TRANSPORT_SSE);
+        List<Header> headers = Collections.singletonList(new Header("X-Legacy-Token", "legacy-token"));
+        route.setHeaderControl(HeaderControlConfig.builder()
+            .request(HeaderControlStageConfig.builder().add(headers).build())
+            .build());
+        stubRouteAndConfigMap(route, SSE_PATH_SUFFIX);
+
+        McpServer mcpServer = strategy.query(MCP_SERVER_NAME);
+
+        Assertions.assertEquals(headers, mcpServer.getDirectRouteConfig().getHeaders());
     }
 
     private Route buildRoute(String name, String rewritePath, String transportType) {

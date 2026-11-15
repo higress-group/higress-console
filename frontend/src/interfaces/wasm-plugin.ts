@@ -7,6 +7,7 @@ export interface WasmPluginData {
   description?: string;
   icon?: string;
   builtIn?: boolean;
+  productCovered?: boolean;
   imageRepository?: string;
   imageVersion?: string;
   phase?: string;
