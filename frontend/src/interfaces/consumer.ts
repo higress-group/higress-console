@@ -19,6 +19,7 @@ export interface KeyAuthCredential extends Credential {
   key?: string;
   values?: string[];
   credentialCount?: number;
+  append?: boolean;
 }
 
 export enum KeyAuthCredentialSource {

@@ -50,6 +50,119 @@ public class KeyAuthCredentialHandlerTest {
         handler = null;
     }
 
+    @Test
+    public void appendConsumerKeysKeepsExistingValuesAndDeduplicates() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-A", "Bearer old-B");
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null,
+            Lists.newArrayList("old-A", "new.C", "new.C"));
+        credential.setAppend(true);
+
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+
+        Map<String, Object> consumer = ((List<Map<String, Object>>)instance.getConfigurations().get("consumers")).get(0);
+        Assertions.assertEquals(Lists.newArrayList("Bearer old-A", "Bearer old-B", "Bearer new.C"),
+            consumer.get("credentials"));
+        Assertions.assertFalse(consumer.containsKey("append"));
+    }
+
+    @Test
+    public void appendConsumerKeysMigratesLegacyCredential() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", true, "Bearer old-A");
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("new-C"));
+        credential.setAppend(true);
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        Map<String, Object> consumer = ((List<Map<String, Object>>)instance.getConfigurations().get("consumers")).get(0);
+        Assertions.assertEquals(Lists.newArrayList("Bearer old-A", "Bearer new-C"), consumer.get("credentials"));
+        Assertions.assertFalse(consumer.containsKey("credential"));
+    }
+
+    @Test
+    public void emptyAppendDoesNotClearExistingValues() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-A");
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, null);
+        credential.setAppend(true);
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        credential.setValues(Lists.newArrayList());
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        Map<String, Object> consumer = ((List<Map<String, Object>>)instance.getConfigurations().get("consumers")).get(0);
+        Assertions.assertEquals(Lists.newArrayList("Bearer old-A"), consumer.get("credentials"));
+    }
+
+    @Test
+    public void ordinaryUpdateStillReplacesAndClearsValues() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-A", "Bearer old-B");
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("replacement"));
+        Assertions.assertFalse(credential.isAppend());
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        Map<String, Object> consumer = ((List<Map<String, Object>>)instance.getConfigurations().get("consumers")).get(0);
+        Assertions.assertEquals(Lists.newArrayList("Bearer replacement"), consumer.get("credentials"));
+        credential.setValues(null);
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        Assertions.assertEquals(Lists.newArrayList("Bearer replacement"), consumer.get("credentials"));
+        credential.setValues(Lists.newArrayList());
+        handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+        Assertions.assertEquals(Lists.newArrayList(), consumer.get("credentials"));
+    }
+
+    @Test
+    public void appendDoesNotChangeCredentialSourceOrKey() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "X-API-Key", "old-A");
+        for (KeyAuthCredential credential : Lists.newArrayList(
+            new KeyAuthCredential("QUERY", "X-API-Key", Lists.newArrayList("new-C")),
+            new KeyAuthCredential("HEADER", "X-Different-Key", Lists.newArrayList("new-C")))) {
+            credential.setAppend(true);
+            Assertions.assertThrows(ValidationException.class,
+                () -> handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential))));
+        }
+    }
+
+    @Test
+    public void appendRejectsCredentialAlreadyOwnedByAnotherConsumer() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-A");
+        addConsumer(instance, "another", true, false, "Authorization", "Bearer occupied");
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("occupied"));
+        credential.setAppend(true);
+        Assertions.assertThrows(IllegalArgumentException.class,
+            () -> handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential))));
+    }
+
+    @Test
+    public void appendIsOnlyForExistingConsumers() {
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("new-C"));
+        credential.setAppend(true);
+        Assertions.assertThrows(ValidationException.class, () -> credential.validate(false));
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        Assertions.assertThrows(ValidationException.class,
+            () -> handler.saveConsumer(instance, new Consumer("missing", Lists.newArrayList(credential))));
+    }
+
+    @Test
+    public void appendRejectsBlankValues() {
+        KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("  "));
+        credential.setAppend(true);
+        Assertions.assertThrows(ValidationException.class, () -> credential.validate(true));
+    }
+
+    @Test
+    public void appendHeaderAndQueryKeepExistingKeys() {
+        for (KeyAuthCredentialSource source : Lists.newArrayList(KeyAuthCredentialSource.HEADER, KeyAuthCredentialSource.QUERY)) {
+            WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+            addConsumer(instance, "testuser", source == KeyAuthCredentialSource.HEADER,
+                source == KeyAuthCredentialSource.QUERY, "api-key", "old-A");
+            KeyAuthCredential credential = new KeyAuthCredential(source.name(), "api-key", Lists.newArrayList("new-C"));
+            credential.setAppend(true);
+            handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential)));
+            Map<String, Object> consumer = ((List<Map<String, Object>>)instance.getConfigurations().get("consumers")).get(0);
+            Assertions.assertEquals(Lists.newArrayList("old-A", "new-C"), consumer.get("credentials"));
+        }
+    }
+
     // Test case of isConsumerInUse method, not used
 
     @Test

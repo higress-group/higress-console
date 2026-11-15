@@ -55,6 +55,8 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         credential.type = key;
         if (key === CredentialType.KEY_AUTH.key) {
           credential.values = resolveWriteOnlyList(credential.values, clearKeyAuthRequested);
+          // 编辑框不回显旧密钥，非空输入必须明确追加，不能覆盖服务器中已有的密钥。
+          credential.append = Boolean(value && credential.values?.length && !clearKeyAuthRequested);
         }
         const checker = credentialEnabledCheckers[key];
         if (!checker || checker(credential)) {
@@ -159,6 +161,8 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
                             {t('consumer.consumerForm.configuredCount', { count: keyAuthCredentialCount })}
                             {' '}
                             {t('consumer.consumerForm.leaveBlankToKeep')}
+                            {' '}
+                            {t('consumer.consumerForm.appendToExisting')}
                           </Text>
                           {!!keyAuthCredentialCount && (
                             <Link

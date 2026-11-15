@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
 import com.alibaba.higress.sdk.model.consumer.AllowListOperation;
 import com.alibaba.higress.sdk.model.consumer.Consumer;
@@ -345,6 +347,22 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         KeyAuthCredential existedCredential = parseCredential(consumerConfig);
         if (existedCredential == null) {
             return keyAuthCredential;
+        }
+
+        if (keyAuthCredential.isAppend()) {
+            // Appending must not reinterpret existing keys using a different credential source.
+            String source = StringUtils.firstNonBlank(keyAuthCredential.getSource(), existedCredential.getSource());
+            String key = StringUtils.firstNonBlank(keyAuthCredential.getKey(), existedCredential.getKey());
+            if (!StringUtils.equals(source, existedCredential.getSource())
+                || !StringUtils.equals(key, existedCredential.getKey())) {
+                throw new ValidationException("Cannot change credential source or key while appending values.");
+            }
+            keyAuthCredential.validate(true);
+            LinkedHashSet<String> values = new LinkedHashSet<>(existedCredential.getValues());
+            if (keyAuthCredential.getValues() != null) {
+                values.addAll(keyAuthCredential.getValues());
+            }
+            return new KeyAuthCredential(source, key, new ArrayList<>(values));
         }
 
         return new KeyAuthCredential(
