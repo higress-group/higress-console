@@ -164,9 +164,6 @@ class KeyAuthCredentialHandler implements CredentialHandler {
             }
             if (consumer.getName().equals(existedConsumer.getName())) {
                 consumerConfig = consumerMap;
-            } else if (hasSameCredential(existedConsumer, keyAuthCredential)) {
-                throw new IllegalArgumentException(
-                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
             }
         }
 
@@ -180,6 +177,19 @@ class KeyAuthCredentialHandler implements CredentialHandler {
         }
 
         keyAuthCredential.validate(forUpdate);
+        for (Object consumerObj : consumers) {
+            if (!(consumerObj instanceof Map<?, ?>)) {
+                continue;
+            }
+            Consumer existedConsumer = extractConsumer((Map<String, Object>)consumerObj);
+            if (existedConsumer == null || consumer.getName().equals(existedConsumer.getName())) {
+                continue;
+            }
+            if (hasSameCredential(existedConsumer, keyAuthCredential)) {
+                throw new IllegalArgumentException(
+                    "Key auth credential already in use by consumer: " + existedConsumer.getName());
+            }
+        }
 
         KeyAuthCredentialSource sourceEnum = KeyAuthCredentialSource.parse(keyAuthCredential.getSource());
         if (sourceEnum == null) {
@@ -357,12 +367,13 @@ class KeyAuthCredentialHandler implements CredentialHandler {
                 || !StringUtils.equals(key, existedCredential.getKey())) {
                 throw new ValidationException("Cannot change credential source or key while appending values.");
             }
-            keyAuthCredential.validate(true);
             LinkedHashSet<String> values = new LinkedHashSet<>(existedCredential.getValues());
             if (keyAuthCredential.getValues() != null) {
                 values.addAll(keyAuthCredential.getValues());
             }
-            return new KeyAuthCredential(source, key, new ArrayList<>(values));
+            KeyAuthCredential mergedCredential = new KeyAuthCredential(source, key, new ArrayList<>(values));
+            mergedCredential.setAppend(true);
+            return mergedCredential;
         }
 
         return new KeyAuthCredential(

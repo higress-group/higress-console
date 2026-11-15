@@ -133,6 +133,23 @@ public class KeyAuthCredentialHandlerTest {
     }
 
     @Test
+    public void appendRejectsDuplicateAfterMergingOmittedSourceAndKey() {
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "old-A");
+        addConsumer(instance, "another", true, false, "Authorization", "occupied");
+        KeyAuthCredential credential = new KeyAuthCredential(null, null, Lists.newArrayList("occupied"));
+        credential.setAppend(true);
+
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class,
+            () -> handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential))));
+
+        Assertions.assertEquals("Key auth credential already in use by consumer: another", exception.getMessage());
+        List<Map<String, Object>> consumers =
+            (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
+        Assertions.assertEquals(Lists.newArrayList("old-A"), consumers.get(0).get("credentials"));
+    }
+
+    @Test
     public void appendIsOnlyForExistingConsumers() {
         KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("new-C"));
         credential.setAppend(true);
@@ -147,6 +164,10 @@ public class KeyAuthCredentialHandlerTest {
         KeyAuthCredential credential = new KeyAuthCredential("BEARER", null, Lists.newArrayList("  "));
         credential.setAppend(true);
         Assertions.assertThrows(ValidationException.class, () -> credential.validate(true));
+        WasmPluginInstance instance = createInstance(WasmPluginInstanceScope.GLOBAL, null);
+        addConsumer(instance, "testuser", true, false, "Authorization", "Bearer old-A");
+        Assertions.assertThrows(ValidationException.class,
+            () -> handler.saveConsumer(instance, new Consumer("testuser", Lists.newArrayList(credential))));
     }
 
     @Test

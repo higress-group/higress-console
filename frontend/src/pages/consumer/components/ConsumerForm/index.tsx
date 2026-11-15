@@ -1,5 +1,5 @@
 import { CredentialType } from '@/interfaces/consumer';
-import { resolveWriteOnlyList } from '@/utils/write-only';
+import { resolveConsumerKeyAuthPayload } from '@/utils/write-only';
 import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Tabs, Typography } from 'antd';
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
@@ -54,9 +54,14 @@ const ConsumerForm: React.FC = forwardRef((props, ref) => {
         }
         credential.type = key;
         if (key === CredentialType.KEY_AUTH.key) {
-          credential.values = resolveWriteOnlyList(credential.values, clearKeyAuthRequested);
+          const keyAuthPayload = resolveConsumerKeyAuthPayload(
+            credential.values,
+            Boolean(value),
+            clearKeyAuthRequested,
+          );
+          credential.values = keyAuthPayload.values;
           // 编辑框不回显旧密钥，非空输入必须明确追加，不能覆盖服务器中已有的密钥。
-          credential.append = Boolean(value && credential.values?.length && !clearKeyAuthRequested);
+          credential.append = keyAuthPayload.append;
         }
         const checker = credentialEnabledCheckers[key];
         if (!checker || checker(credential)) {
