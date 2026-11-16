@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { resolveWriteOnlyList, resolveWriteOnlyScalar } from './write-only.ts';
+import { resolveConsumerKeyAuthPayload, resolveWriteOnlyList, resolveWriteOnlyScalar } from './write-only.ts';
 
 test('omitted and empty edit lists keep existing values', () => {
   assert.equal(resolveWriteOnlyList(undefined), null);
@@ -52,4 +52,32 @@ test('a consumer replacement submits only the new credential values', () => {
     { type: 'key-auth', values: resolveWriteOnlyList(['new-key', '']) },
     { type: 'key-auth', values: ['new-key'] },
   );
+});
+
+test('consumer creation submits values without append', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload(['new-key'], false), {
+    values: ['new-key'],
+    append: false,
+  });
+});
+
+test('consumer editing appends newly entered values', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload(['new-key'], true), {
+    values: ['new-key'],
+    append: true,
+  });
+});
+
+test('consumer name-only editing preserves values without append', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload([''], true), {
+    values: null,
+    append: false,
+  });
+});
+
+test('consumer explicit clear submits an empty list without append', () => {
+  assert.deepEqual(resolveConsumerKeyAuthPayload([''], true, true), {
+    values: [],
+    append: false,
+  });
 });

@@ -44,6 +44,12 @@ public class KeyAuthCredential extends Credential {
     private String key;
     @Schema(description = "Credential Values")
     private List<String> values;
+    @Schema(description = "Append values to an existing consumer instead of replacing them. Defaults to false.")
+    private boolean append;
+
+    public KeyAuthCredential(String source, String key, List<String> values) {
+        this(source, key, values, false);
+    }
 
     public KeyAuthCredential(String type, String source, String key, List<String> values) {
         super(type);
@@ -67,6 +73,12 @@ public class KeyAuthCredential extends Credential {
     @Override
     public void validate(boolean forUpdate) {
         super.validate(forUpdate);
+        if (append && !forUpdate) {
+            throw new ValidationException("append is only supported when updating an existing consumer.");
+        }
+        if (append && values != null && values.stream().anyMatch(StringUtils::isBlank)) {
+            throw new ValidationException("appended credential values cannot be blank.");
+        }
         if (StringUtils.isBlank(source)) {
             throw new ValidationException("source cannot be blank.");
         }
