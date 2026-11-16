@@ -158,6 +158,7 @@
       "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters.",
       "configuredCount": "{{count}} configured",
       "leaveBlankToKeep": "Leave blank to keep the current credentials.",
+      "appendToExisting": "New keys won’t replace existing keys.",
       "keepCredentials": "Keep credentials",
       "clearCredentials": "Clear credentials"
     },

@@ -120,6 +120,7 @@ http://localhost:8080/swagger-ui/index.html
 - `POST /v1/ai/providers` 与 `POST /v1/consumers` 仅用于创建新资源，不再隐式更新同名资源。名称已存在时返回 `409 Conflict`，且不会返回任何已存储的凭证。创建成功时会在响应中一次性返回本次提交的凭证（provider 的 `tokens` 以及 `rawConfigs` 中的凭证字段，consumer 的 `values`）。之后无法通过 API 再次读取。
 - 继续使用 `POST` 做“存在则更新”的外部脚本必须改为：创建使用 `POST`，更新使用 `PUT /v1/ai/providers/{name}` 或 `PUT /v1/consumers/{name}`。
 - 如果外部脚本依赖读取后再写回（read-modify-write）凭证字段，需要改为在更新时省略凭证字段以保留原值、提交新值以替换、显式提交空值以清除，或直接保存创建响应中的凭证。
+- 消费者编辑页面的新密钥会追加到已有凭证，不回显旧密钥。API 调用方可在 `PUT /v1/consumers/{name}` 的 key-auth 凭证中显式设置 `append: true`，将 `values` 追加并去重；追加时不能改变 `source` 或 `key`，且仅支持已有消费者。不设置 `append` 的旧调用仍保持替换语义，`values: null` 保留、`values: []` 清空；供应商密钥更新语义不变。
 
 ## 开发规范
 
