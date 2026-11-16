@@ -162,8 +162,16 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<WasmPluginInstance> addOrUpdateAll(List<WasmPluginInstance> instances) {
+        return addOrUpdateAll(instances, MAX_UPDATE_ATTEMPTS);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<WasmPluginInstance> addOrUpdateAll(List<WasmPluginInstance> instances, int maxUpdateAttempts) {
+        if (maxUpdateAttempts <= 0) {
+            throw new IllegalArgumentException("maxUpdateAttempts must be positive.");
+        }
         Map<String, WasmPlugin> pluginsToUpdate = new HashMap<>();
         ListValuedMap<WasmPluginInstanceGroupKey, WasmPluginInstance> groupedInstances = new ArrayListValuedHashMap<>();
         for (WasmPluginInstance instance : instances) {
@@ -216,7 +224,8 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                 instance.setConfigurations(configurations);
             }
 
-            V1alpha1WasmPlugin result = addOrUpdateGroupWithRetry(name, version, internal, plugin, instancesToUpdate);
+            V1alpha1WasmPlugin result =
+                addOrUpdateGroupWithRetry(name, version, internal, plugin, instancesToUpdate, maxUpdateAttempts);
 
             for (WasmPluginInstance instance : instancesToUpdate) {
                 beforeToAfterMap.put(instance,
@@ -228,8 +237,8 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
     }
 
     private V1alpha1WasmPlugin addOrUpdateGroupWithRetry(String name, String version, boolean internal,
-        WasmPlugin plugin, List<WasmPluginInstance> instancesToUpdate) {
-        for (int attempt = 1; attempt <= MAX_UPDATE_ATTEMPTS; attempt++) {
+        WasmPlugin plugin, List<WasmPluginInstance> instancesToUpdate, int maxUpdateAttempts) {
+        for (int attempt = 1; attempt <= maxUpdateAttempts; attempt++) {
             V1alpha1WasmPlugin existedCr = getExistingCr(name, version, internal);
             V1alpha1WasmPlugin result = buildCrForUpdate(version, internal, plugin, existedCr);
             for (WasmPluginInstance instance : instancesToUpdate) {
@@ -244,9 +253,9 @@ class WasmPluginInstanceServiceImpl implements WasmPluginInstanceService {
                     throw new BusinessException(
                         "Error occurs when adding or updating the WasmPlugin CR with name: " + plugin.getName(), e);
                 }
-                if (attempt == MAX_UPDATE_ATTEMPTS) {
+                if (attempt == maxUpdateAttempts) {
                     throw new ResourceConflictException("Failed to add or update WasmPlugin " + name + " (internal="
-                        + internal + ") after " + MAX_UPDATE_ATTEMPTS + " attempts due to concurrent updates.");
+                        + internal + ") after " + maxUpdateAttempts + " attempts due to concurrent updates.");
                 }
                 log.warn("Conflict while updating WasmPlugin {} on attempt {}. Retrying with the latest resource.",
                     name, attempt);
