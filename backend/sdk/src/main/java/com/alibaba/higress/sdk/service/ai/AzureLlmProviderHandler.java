@@ -56,7 +56,9 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
             throw new ValidationException("Azure service URL must have a valid scheme.");
         }
-        if (StringUtils.isEmpty(url.queryParameter(API_VERSION_QUERY_PARAM))) {
+        String path = url.encodedPath();
+        if (!path.equals("/openai/v1") && !path.startsWith("/openai/v1/")
+            && StringUtils.isEmpty(url.queryParameter(API_VERSION_QUERY_PARAM))) {
             throw new ValidationException("Azure service URL must have a non-empty " + API_VERSION_QUERY_PARAM + " query parameter.");
         }
     }

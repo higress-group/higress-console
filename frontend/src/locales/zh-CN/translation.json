@@ -341,7 +341,7 @@
         "protocol": "请选择请求协议",
         "successThresholdRequired": "请输入最小连续健康检测成功次数",
         "azureServiceUrlRequired": "请输入 Azure 服务 URL",
-        "azureServiceUrlMissingApiVersion": "Azure 服务 URL 必须包含 api-version 查询参数且其值不能为空",
+        "azureServiceUrlMissingApiVersion": "旧版 Azure 服务 URL 必须包含非空的 api-version 查询参数",
         "azureServiceUrlInvalid": "Azure 服务 URL 格式不合法",
         "ollamaServerHostRequired": "请输入 Ollama 服务主机名",
         "ollamaServerPortRequired": "请输入 Ollama 服务端口",
@@ -391,7 +391,7 @@
         "firstByteTimeoutTooltip": "流式请求中收到上游服务第一个响应包的超时时间（毫秒）。留空（0）表示不开启。"
       },
       "placeholder": {
-        "azureServiceUrlPlaceholder": "需包含“/chat/completions”路径和“api-version”查询参数",
+        "azureServiceUrlPlaceholder": "Azure /openai/v1 基础或 API URL，或带 api-version 的旧版 URL",
         "ollamaServerHostPlaceholder": "请填写机器名、域名或 IP 地址",
         "openaiCustomUrlPlaceholder": "示例：https://api.openai.com/v1",
         "openaiCustomServiceHostPlaceholder": "示例：api.openai.com",
