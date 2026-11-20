@@ -39,5 +39,5 @@ ip_source_type: header
 ip_header_name: x-real-iP
 deny:
   - 10.0.0.1
-  - 192.169.0.0/16   
+  - 192.169.0.0/16
 ```

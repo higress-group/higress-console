@@ -173,4 +173,3 @@ grayDeployments:
 - `/js/template/a.js` => `/mfe/app1/v1.0.0/js/template/a.js`
 - `/app1/js/a.js` => `/mfe/app1/v1.0.0/js/a.js`
 - `/app1/js/template/a.js` => `/mfe/app1/v1.0.0/js/template/a.js`
-

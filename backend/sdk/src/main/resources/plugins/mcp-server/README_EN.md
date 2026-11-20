@@ -545,15 +545,15 @@ tools:
       ## Future Forecast
       {{range $index, $day := .forecast.forecastday}}
       ### {{$day.date}} ({{dateFormat "Monday" $day.date_epoch | title}})
-      
+
       {{if gt $day.day.maxtemp_c 30}}**High Temperature Alert!**{{end}}
       {{if lt $day.day.mintemp_c 0}}**Low Temperature Alert!**{{end}}
-      
+
       - **Max Temperature**: {{$day.day.maxtemp_c}}°C
       - **Min Temperature**: {{$day.day.mintemp_c}}°C
       - **Chance of Rain**: {{$day.day.daily_chance_of_rain}}%
       - **Conditions**: {{$day.day.condition.text}}
-      
+
       #### Hourly Forecast
       {{range $hour := slice $day.hour 6 24 3}}
       - **{{dateFormat "15:04" $hour.time_epoch}}**: {{$hour.temp_c}}°C, {{$hour.condition.text}}
@@ -593,9 +593,9 @@ tools:
   responseTemplate:
     prependBody: |
       # Product Information
-      
+
       Below is the detailed product information returned in JSON format. Field descriptions:
-      
+
       - **id**: Unique product identifier
       - **name**: Product name
       - **description**: Product description
@@ -607,11 +607,11 @@ tools:
       - **ratings**: List of user ratings
         - **score**: Rating (1-5)
         - **comment**: Review content
-      
+
       Original JSON response:
-      
+
     appendBody: |
-      
+
       You can use this information to understand the product's details, pricing, inventory status, and user reviews.
 ```
 
@@ -763,13 +763,13 @@ tools:
     # OR
     # prependBody: |
     #   # API Response Description
-    #   
+    #
     #   Below is the original JSON response, with field meanings:
     #   - field1: Meaning of field 1
     #   - field2: Meaning of field 2
-    #   
+    #
     # appendBody: |
-    #   
+    #
     #   You can use this data to...
 ```
 

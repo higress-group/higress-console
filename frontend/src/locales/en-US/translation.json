@@ -45,6 +45,8 @@
     "buttonText": "Login",
     "loginSuccess": "Login successful!",
     "loginFailed": "Login failed. Please try again.",
+    "rateLimited": "Too many failed login attempts. Try again in {{seconds}} seconds.",
+    "rateLimitedWithoutRetryAfter": "Too many failed login attempts. Try again later.",
     "autoLogin": "Auto login",
     "forgotPassword": "Forgot password",
     "usernamePlaceholder": "Username",
@@ -118,7 +120,25 @@
     "usage": "Usage",
     "aiRouteUsage": "AI Route Usage",
     "aiRouteUsageContent": "You can send a test request using the command below:",
-    "searchPlaceholder": "Search routes by route name, domain, routing conditions and target providers."
+    "search": {
+      "name": "Search by name",
+      "domain": "Search by domain",
+      "provider": "Search by AI service",
+      "pathLabel": "Path",
+      "path": "Search by path",
+      "consumerLabel": "Consumer",
+      "consumer": "Search by authorized consumer",
+      "authState": "Auth State",
+      "authEnabled": "Enabled with consumers",
+      "reset": "Reset"
+    }
+  },
+  "createdSecret": {
+    "title": "Copy the secret now",
+    "description": "This value will not be shown again. Copy it and store it securely before closing this dialog.",
+    "confirm": "I have saved it",
+    "providerToken": "Token {{index}}",
+    "consumerCredential": "Credential {{index}}"
   },
   "consumer": {
     "columns": {
@@ -135,7 +155,12 @@
       "authTokenRequired": "Please input auth token",
       "headerNameRequired": "Please input header name",
       "paramNameRequired": "Please input parameter key",
-      "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters."
+      "invalidNamePattern": "Only letters (a-z, A-Z), numbers (0-9), hyphens (-), and dots (.) are allowed. Cannot start or end with special characters. Maximum length is 63 characters.",
+      "configuredCount": "{{count}} configured",
+      "leaveBlankToKeep": "Leave blank to keep the current credentials.",
+      "appendToExisting": "New keys won’t replace existing keys.",
+      "keepCredentials": "Keep credentials",
+      "clearCredentials": "Clear credentials"
     },
     "selectBEARER": "Authorization: Bearer ${value}",
     "selectHEADER": "Custom HTTP Header",
@@ -210,8 +235,12 @@
     "columns": {
       "type": "Type",
       "name": "Name",
-      "tokens": "Tokens"
+      "tokens": "Tokens",
+      "credentials": "Credentials"
     },
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "configuredCount": "{{count}} configured",
     "providerTypes": {
       "openai": "OpenAI/OpenAI Compatible",
       "qwen": "Tongyi Qianwen",
@@ -295,6 +324,11 @@
         "reasoningModeConcat": "Concatenate (concat)",
         "firstByteTimeout": "First-packet Timeout (ms)"
       },
+      "leaveBlankToKeep": "Leave blank to keep the current credentials.",
+      "keepTokens": "Keep tokens",
+      "clearTokens": "Clear tokens",
+      "keepCredentials": "Keep credentials",
+      "clearCredentials": "Clear credentials",
       "rules": {
         "tokenRequired": "Please input auth token",
         "typeRequired": "Please select a LLM provider",
@@ -426,6 +460,8 @@
       "custom": "Custom"
     },
     "enabled": "Enabled",
+    "productCovered": "Not Recommended",
+    "productCoveredTip": "This plugin is managed by a dedicated product feature (e.g. AI Route, MCP Server, Consumer). Manually enabling it here is not recommended. If you must use it, do not enable it together with the corresponding product feature, or conflicts may occur.",
     "emptyPlugins": "No plugins configured.",
     "addPlugin": "Add Plugin",
     "editPlugin": "Edit Plugin",
@@ -776,7 +812,8 @@
     "higress-config": {
       "title": "Edit Global Configuration: higress-config",
       "note_k8s": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress Gateway is restarted.",
-      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted."
+      "note_standalone": "Note: Changes to \"mesh\" or \"meshNetworks\" won't come effective until Higress is completely restarted.",
+      "draftRestored": "Unsaved configuration from the previous session has been restored. Review it and submit again to save it."
     }
   },
   "tlsCertificate": {

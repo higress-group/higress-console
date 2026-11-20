@@ -57,7 +57,7 @@
 		<guava.version>31.1-jre</guava.version>
 		<commons-lang3.version>3.13.0</commons-lang3.version>
 		<commons-collection4.version>4.4</commons-collection4.version>
-		<fastjson.version>1.2.83</fastjson.version>
+		<fastjson.version>1.2.83_noneautotype</fastjson.version>
 		<!-- https://github.com/kubernetes-client/java/wiki/2.-Versioning-and-Compatibility -->
 		<k8s-client.version>17.0.0</k8s-client.version>
 		<bouncycastle.version>1.46</bouncycastle.version>

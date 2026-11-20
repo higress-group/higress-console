@@ -94,7 +94,7 @@ Second Round Request:
 ```
 After Request Fill:
 > Second round request, automatically filled with the historical dialogue from the previous round.
-``` 
+```
  curl 'http://example.com/api/openai/v1/chat/completions?fill_history_cnt=3' \
   -H 'Accept: application/json, text/event-stream' \
   -H 'Content-Type: application/json' \

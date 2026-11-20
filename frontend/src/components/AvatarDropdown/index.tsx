@@ -1,5 +1,6 @@
 import { logout } from '@/services';
 import store from '@/store';
+import { clearConfigDraft } from '@/utils/configDraft';
 import { LockOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown } from 'antd';
 import { definePageConfig, history } from 'ice';
@@ -14,7 +15,7 @@ interface AvatarDropdownProps {
 }
 
 const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
-  const [, userDispatcher] = store.useModel('user');
+  const [userState, userDispatcher] = store.useModel('user');
 
   const { t } = useTranslation();
 
@@ -28,9 +29,10 @@ const AvatarDropdown: React.FC<AvatarDropdownProps> = ({ name, avatar }) => {
   };
 
   const onLogoutClick = useCallback((event: MenuInfo) => {
+    clearConfigDraft(userState.currentUser.name);
     userDispatcher.updateCurrentUser({});
     doLogout();
-  }, []);
+  }, [userState.currentUser.name]);
 
   const onChangePasswordClick = useCallback((event: MenuInfo) => {
     history?.push(`/user/changePassword`);

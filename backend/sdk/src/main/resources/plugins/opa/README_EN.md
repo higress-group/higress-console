@@ -7,7 +7,7 @@ description: OPA policy control plugin configuration reference
 This plugin implements `OPA` policy control.
 
 ## Running Attributes
-Plugin Execution Phase: `Authentication Phase`  
+Plugin Execution Phase: `Authentication Phase`
 Plugin Execution Priority: `225`
 
 ## Configuration Fields

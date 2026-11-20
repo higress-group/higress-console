@@ -298,7 +298,7 @@ reqRules:
   body:
   - key: a1
 - operate: rename
-  body: 
+  body:
   - oldKey: a2
     newKey: a2-new
 - operate: replace
@@ -556,7 +556,7 @@ $ curl -v -X POST console.higress.io/post \
 {
   "users": [
     {
-      "name": "zhangsan", 
+      "name": "zhangsan",
       "age": 18
     },
     {

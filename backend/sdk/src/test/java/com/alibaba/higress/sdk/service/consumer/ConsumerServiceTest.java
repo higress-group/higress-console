@@ -25,6 +25,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,8 +33,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.collections4.MapUtils;
@@ -46,6 +54,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
+import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -60,6 +70,8 @@ import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.util.MapUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+
+import io.swagger.v3.core.util.Yaml;
 
 @ExtendWith(MockitoExtension.class)
 public class ConsumerServiceTest {
@@ -96,7 +108,7 @@ public class ConsumerServiceTest {
         Consumer result = consumerService.addOrUpdate(consumer);
 
         // Then
-        verify(wasmPluginInstanceService).addOrUpdateAll(Collections.singletonList(instance));
+        verify(wasmPluginInstanceService).addOrUpdateAll(Collections.singletonList(instance), 1);
         assertNotNull(result);
         assertEquals(result, consumer);
     }
@@ -111,7 +123,7 @@ public class ConsumerServiceTest {
 
         when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
             eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenAnswer(a -> globalInstanceRef.get());
-        when(wasmPluginInstanceService.addOrUpdateAll(any())).thenAnswer(a -> {
+        when(wasmPluginInstanceService.addOrUpdateAll(any(), eq(1))).thenAnswer(a -> {
             List<WasmPluginInstance> instance = a.getArgument(0);
             globalInstanceRef.set(instance.get(0));
             return instance;
@@ -123,7 +135,7 @@ public class ConsumerServiceTest {
         // Then
         assertNotNull(result);
         ArgumentCaptor<List<WasmPluginInstance>> captor = ArgumentCaptor.forClass(List.class);
-        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture());
+        verify(wasmPluginInstanceService).addOrUpdateAll(captor.capture(), eq(1));
 
         List<WasmPluginInstance> actualInstances = captor.getValue();
         assertNotNull(actualInstances);
@@ -143,6 +155,28 @@ public class ConsumerServiceTest {
         assertEquals(true, consumerConfig.get("in_header"), "Consumer should be configured for header authentication");
         assertEquals(Lists.newArrayList("test-key"), consumerConfig.get("credentials"),
             "Credentials should match the added consumer's credentials");
+    }
+
+    @Test
+    void testAdd_ExistingConsumer_ThrowsConflictWithoutReturningStoredCredentials() {
+        String consumerName = "testUser";
+        WasmPluginInstance instance = createTestInstance();
+        instance.setGlobalTarget();
+        Map<String, Object> config = new HashMap<>();
+        config.put("consumers", Lists.newArrayList(ImmutableMap.of("name", consumerName,
+            "keys", Lists.newArrayList("Authorization"), "in_header", true, "credentials",
+            Lists.newArrayList("stored-secret"))));
+        instance.setConfigurations(config);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+
+        Consumer consumer = createTestConsumer(consumerName);
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> consumerService.add(consumer));
+        assertTrue(exception.getMessage().contains(consumerName));
+        assertFalse(exception.getMessage().contains("stored-secret"));
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any(), eq(1));
     }
 
     private void validateDefaultGlobalConfig(Map<String, Object> configurations) {
@@ -768,6 +802,235 @@ public class ConsumerServiceTest {
         assertNotNull(targetInstance);
         assertEquals(targets, targetInstance.getTargets());
         assertFalse(targetInstance.getEnabled(), "Auth should be disabled by default when not explicitly set");
+    }
+
+    @Test
+    void testAddOrUpdate_NullKeyAuthValuesKeepExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(null);
+
+        consumerService.addOrUpdate(consumer);
+
+        assertEquals(Lists.newArrayList("old-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_EmptyKeyAuthValuesClearExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Collections.emptyList());
+
+        Consumer result = consumerService.addOrUpdate(consumer);
+
+        assertEquals(Collections.emptyList(), getConsumerConfig(instance).get("credentials"));
+        assertEquals(Collections.emptyList(), ((KeyAuthCredential)result.getCredentials().get(0)).getValues());
+    }
+
+    @Test
+    void testAddOrUpdate_NewKeyAuthValuesReplaceExistingValues() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Lists.newArrayList("new-key"));
+
+        consumerService.addOrUpdate(consumer);
+
+        assertEquals(Lists.newArrayList("new-key"), getConsumerConfig(instance).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_NewConsumerStillRequiresKeyAuthValues() {
+        Consumer consumer = createTestConsumer("testUser");
+        ((KeyAuthCredential)consumer.getCredentials().get(0)).setValues(Collections.emptyList());
+
+        assertThrows(ValidationException.class, () -> consumerService.addOrUpdate(consumer));
+    }
+
+    @Test
+    void testAddOrUpdate_AppendDuplicateWithOmittedSourceAndKeyDoesNotWrite() {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        Map<String, Object> otherConsumer = new HashMap<>();
+        otherConsumer.put("name", "anotherUser");
+        otherConsumer.put("keys", Lists.newArrayList("Authorization"));
+        otherConsumer.put("in_header", true);
+        otherConsumer.put("credentials", Lists.newArrayList("occupied-key"));
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> consumers = (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
+        consumers.add(otherConsumer);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenReturn(instance);
+        KeyAuthCredential credential = new KeyAuthCredential(null, null, Lists.newArrayList("occupied-key"));
+        credential.setAppend(true);
+        Consumer consumer = new Consumer("testUser", Lists.newArrayList(credential));
+
+        IllegalArgumentException exception =
+            assertThrows(IllegalArgumentException.class, () -> consumerService.addOrUpdate(consumer));
+
+        assertEquals("Key auth credential already in use by consumer: anotherUser", exception.getMessage());
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any(), eq(1));
+        assertEquals(Lists.newArrayList("old-key"), getConsumerConfig(instance).get("credentials"));
+        assertEquals(Lists.newArrayList("occupied-key"), consumers.get(1).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_ConcurrentAppendsPreserveUnion() throws Exception {
+        WasmPluginInstance initial = createConcurrentKeyAuthInstance("A", "B");
+
+        WasmPluginInstance result = runConcurrentUpdates(initial, keyAuthConsumer(Lists.newArrayList("C"), true),
+            keyAuthConsumer(Lists.newArrayList("D"), true), false);
+
+        List<?> credentials = (List<?>)getConsumerConfig(result).get("credentials");
+        assertEquals(4, credentials.size());
+        assertEquals(new HashSet<>(Arrays.asList("A", "B", "C", "D")), new HashSet<>(credentials));
+    }
+
+    @Test
+    void testAddOrUpdate_ConcurrentAppendDoesNotRestoreClearedValues() throws Exception {
+        WasmPluginInstance initial = createConcurrentKeyAuthInstance("A", "B");
+
+        WasmPluginInstance result = runConcurrentUpdates(initial, keyAuthConsumer(Lists.newArrayList("D"), true),
+            keyAuthConsumer(Collections.emptyList(), false), true);
+
+        assertEquals(Lists.newArrayList("D"), getConsumerConfig(result).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_ConcurrentAppendDoesNotRestoreReplacedValues() throws Exception {
+        WasmPluginInstance initial = createConcurrentKeyAuthInstance("A", "B");
+
+        WasmPluginInstance result = runConcurrentUpdates(initial, keyAuthConsumer(Lists.newArrayList("D"), true),
+            keyAuthConsumer(Lists.newArrayList("R"), false), true);
+
+        assertEquals(Lists.newArrayList("R", "D"), getConsumerConfig(result).get("credentials"));
+    }
+
+    @Test
+    void testAddOrUpdate_RepeatedConflictsReturnConflictAfterBoundedRetries() {
+        WasmPluginInstance initial = createConcurrentKeyAuthInstance("A", "B");
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenAnswer(invocation -> copyInstance(initial));
+        when(wasmPluginInstanceService.addOrUpdateAll(any(), eq(1)))
+            .thenThrow(new ResourceConflictException("resourceVersion conflict"));
+
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> consumerService.addOrUpdate(keyAuthConsumer(Lists.newArrayList("D"), true)));
+
+        assertTrue(exception.getMessage().contains("3 attempts"));
+        verify(wasmPluginInstanceService, times(3)).addOrUpdateAll(any(), eq(1));
+        verify(wasmPluginInstanceService, times(3)).query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true));
+    }
+
+    private WasmPluginInstance runConcurrentUpdates(WasmPluginInstance initial, Consumer first, Consumer second,
+        boolean deferAppend) throws Exception {
+        AtomicReference<WasmPluginInstance> store = new AtomicReference<>(copyInstance(initial));
+        CountDownLatch initialReads = new CountDownLatch(2);
+        CountDownLatch otherWriteCommitted = new CountDownLatch(1);
+        when(wasmPluginInstanceService.query(eq(WasmPluginInstanceScope.GLOBAL), isNull(),
+            eq(BuiltInPluginName.KEY_AUTH), eq(true))).thenAnswer(invocation -> {
+                WasmPluginInstance snapshot = copyInstance(store.get());
+                if (Objects.equals(initial.getVersion(), snapshot.getVersion())) {
+                    initialReads.countDown();
+                    awaitLatch(initialReads);
+                }
+                return snapshot;
+            });
+        when(wasmPluginInstanceService.addOrUpdateAll(any(), eq(1))).thenAnswer(invocation -> {
+            List<WasmPluginInstance> instances = invocation.getArgument(0);
+            WasmPluginInstance candidate = copyInstance(instances.get(0));
+            boolean deferred = deferAppend && Objects.equals(initial.getVersion(), candidate.getVersion())
+                && hasCredentialValue(candidate, "D");
+            if (deferred) {
+                awaitLatch(otherWriteCommitted);
+            }
+            synchronized (store) {
+                WasmPluginInstance current = store.get();
+                if (!Objects.equals(current.getVersion(), candidate.getVersion())) {
+                    throw new ResourceConflictException("resourceVersion conflict");
+                }
+                candidate.setVersion(Integer.toString(Integer.parseInt(current.getVersion()) + 1));
+                store.set(copyInstance(candidate));
+            }
+            if (deferAppend && !deferred) {
+                otherWriteCommitted.countDown();
+            }
+            return instances;
+        });
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Consumer> firstResult = executor.submit(() -> consumerService.addOrUpdate(first));
+            Future<Consumer> secondResult = executor.submit(() -> consumerService.addOrUpdate(second));
+            assertNotNull(firstResult.get(10, TimeUnit.SECONDS));
+            assertNotNull(secondResult.get(10, TimeUnit.SECONDS));
+            return copyInstance(store.get());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static void awaitLatch(CountDownLatch latch) {
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for concurrent consumer update");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(e);
+        }
+    }
+
+    private static Consumer keyAuthConsumer(List<String> values, boolean append) {
+        KeyAuthCredential credential =
+            new KeyAuthCredential(KeyAuthCredentialSource.HEADER.name(), "X-API-Key", values);
+        credential.setAppend(append);
+        return new Consumer("testUser", Lists.newArrayList(credential));
+    }
+
+    private static WasmPluginInstance createConcurrentKeyAuthInstance(String... values) {
+        WasmPluginInstance instance = createExistingKeyAuthInstance();
+        getConsumerConfig(instance).put("keys", Lists.newArrayList("X-API-Key"));
+        getConsumerConfig(instance).put("credentials", Lists.newArrayList(values));
+        instance.setVersion("1");
+        return instance;
+    }
+
+    private static boolean hasCredentialValue(WasmPluginInstance instance, String value) {
+        return ((List<?>)getConsumerConfig(instance).get("credentials")).contains(value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static WasmPluginInstance copyInstance(WasmPluginInstance source) {
+        Map<String, Object> configurations = source.getConfigurations() != null
+            ? Yaml.mapper().convertValue(source.getConfigurations(), Map.class) : null;
+        return WasmPluginInstance.builder().version(source.getVersion()).pluginName(source.getPluginName())
+            .pluginVersion(source.getPluginVersion()).internal(source.getInternal()).enabled(source.getEnabled())
+            .targets(source.getTargets() != null ? new HashMap<>(source.getTargets()) : null)
+            .configurations(configurations).build();
+    }
+
+    private static WasmPluginInstance createExistingKeyAuthInstance() {
+        WasmPluginInstance instance = createTestInstance();
+        instance.setGlobalTarget();
+        Map<String, Object> consumerConfig = new HashMap<>();
+        consumerConfig.put("name", "testUser");
+        consumerConfig.put("keys", Lists.newArrayList("Authorization"));
+        consumerConfig.put("in_header", true);
+        consumerConfig.put("credentials", Lists.newArrayList("old-key"));
+        Map<String, Object> configurations = new HashMap<>();
+        configurations.put("consumers", Lists.newArrayList(consumerConfig));
+        instance.setConfigurations(configurations);
+        return instance;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> getConsumerConfig(WasmPluginInstance instance) {
+        List<Map<String, Object>> consumers =
+            (List<Map<String, Object>>)instance.getConfigurations().get("consumers");
+        return consumers.get(0);
     }
 
     private static Consumer createTestConsumer(String name) {

@@ -110,7 +110,7 @@ rule_items:
     query_per_minute: 100
   # 兜底用，匹配所有请求，每个 apikey 对应的请求 1000qdh
   - key: "*"
-    query_per_hour: 1000            
+    query_per_hour: 1000
 redis:
   service_name: redis.static
 show_limit_quota_header: true
@@ -158,10 +158,10 @@ rule_items:
     query_per_minute: 100
   # 兜底用，匹配所有请求，每个 consumer 对应的请求 1000qdh
   - key: "*"
-    query_per_hour: 1000     
+    query_per_hour: 1000
 redis:
   service_name: redis.static
-show_limit_quota_header: true 
+show_limit_quota_header: true
 ```
 
 ### 识别 Cookie 中的键值对，进行区别限流

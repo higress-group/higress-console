@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +35,7 @@ import org.mockito.Mockito;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
 import com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -46,6 +48,7 @@ import com.alibaba.higress.sdk.model.ai.LlmProviderType;
 import com.alibaba.higress.sdk.service.ServiceSourceService;
 import com.alibaba.higress.sdk.service.WasmPluginInstanceService;
 import com.alibaba.higress.sdk.util.MapUtil;
+import com.google.common.collect.Lists;
 
 public class LlmProviderServiceImplTest {
 
@@ -93,6 +96,54 @@ public class LlmProviderServiceImplTest {
     }
 
     @Test
+    public void add_existingProvider_throwsConflictWithoutReturningStoredSecrets() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.OPENAI);
+        providerConfig.put(AiProxyConfig.PROVIDER_API_TOKENS, Lists.newArrayList("stored-token"));
+        providerConfig.put("model", "gpt-4");
+        providerConfig.put("apiKey", "stored-api-key");
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.setTokens(Lists.newArrayList("new-token"));
+
+        ResourceConflictException exception = Assertions.assertThrows(ResourceConflictException.class,
+            () -> service.add(provider));
+        Assertions.assertTrue(exception.getMessage().contains(TEST_PROVIDER_NAME));
+        Assertions.assertFalse(exception.getMessage().contains("stored-token"));
+        Assertions.assertFalse(exception.getMessage().contains("stored-api-key"));
+        verify(wasmPluginInstanceService, never()).addOrUpdateAll(any());
+    }
+
+    @Test
+    public void add_providerWithOnlyRawConfigsApiTokens_persistsAndReturnsNormalizedTokens() {
+        AtomicReference<WasmPluginInstance> globalInstanceRef = new AtomicReference<>();
+        when(wasmPluginInstanceService.list(eq(BuiltInPluginName.AI_PROXY), anyBoolean()))
+            .thenReturn(Collections.emptyList());
+        when(wasmPluginInstanceService.createEmptyInstance(BuiltInPluginName.AI_PROXY)).thenAnswer(invocation -> {
+            WasmPluginInstance instance = createEmptyGlobalInstance();
+            globalInstanceRef.set(instance);
+            return instance;
+        });
+        when(wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.AI_PROXY, true))
+            .thenAnswer(invocation -> globalInstanceRef.get());
+        when(aiRouteService.list(any(CommonPageQuery.class))).thenReturn(createEmptyPaginatedResult());
+        when(wasmPluginInstanceService.addOrUpdateAll(any())).thenReturn(Collections.emptyList());
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.getRawConfigs().put(AiProxyConfig.PROVIDER_API_TOKENS,
+            Lists.newArrayList("raw-token-1", "raw-token-2"));
+
+        LlmProvider created = service.add(provider);
+
+        Assertions.assertEquals(Lists.newArrayList("raw-token-1", "raw-token-2"), created.getTokens());
+        Assertions.assertEquals(Lists.newArrayList("raw-token-1", "raw-token-2"),
+            getProviderConfig(globalInstanceRef.get()).get(AiProxyConfig.PROVIDER_API_TOKENS));
+    }
+
+    @Test
     public void addOrUpdate_existingProvider_callsAddOrUpdateAll() {
         WasmPluginInstance existingGlobalInstance = createGlobalInstance();
 
@@ -127,7 +178,7 @@ public class LlmProviderServiceImplTest {
             .rawConfigs(null)
             .build();
 
-        Assertions.assertDoesNotThrow(() -> service.addOrUpdate(provider));
+        service.addOrUpdate(provider);
     }
 
     @Test
@@ -174,6 +225,147 @@ public class LlmProviderServiceImplTest {
         Assertions.assertTrue(hasServiceInstance, "Should contain service instance");
     }
 
+    @Test
+    public void addOrUpdate_tokensSupportKeepReplaceAndClear() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.OPENAI);
+        providerConfig.put(AiProxyConfig.PROVIDER_API_TOKENS, Lists.newArrayList("old-token"));
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.getRawConfigs().put(AiProxyConfig.PROVIDER_API_TOKENS, null);
+        service.addOrUpdate(provider);
+        Assertions.assertEquals(Lists.newArrayList("old-token"),
+            getProviderConfig(globalInstance).get(AiProxyConfig.PROVIDER_API_TOKENS));
+
+        provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.setTokens(Lists.newArrayList("new-token"));
+        service.addOrUpdate(provider);
+        Assertions.assertEquals(Lists.newArrayList("new-token"),
+            getProviderConfig(globalInstance).get(AiProxyConfig.PROVIDER_API_TOKENS));
+
+        provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.OPENAI);
+        provider.setTokens(Collections.emptyList());
+        service.addOrUpdate(provider);
+        Assertions.assertFalse(getProviderConfig(globalInstance).containsKey(AiProxyConfig.PROVIDER_API_TOKENS));
+    }
+
+    @Test
+    public void addOrUpdate_bedrockSecretsMergeBeforeValidationAndCanBeCleared() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.BEDROCK);
+        providerConfig.put("awsRegion", "us-east-1");
+        providerConfig.put("awsAccessKey", "old-access-key");
+        providerConfig.put("awsSecretKey", "old-secret-key");
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.BEDROCK);
+        provider.getRawConfigs().put("awsRegion", "us-east-1");
+        service.addOrUpdate(provider);
+        Assertions.assertEquals("old-access-key", getProviderConfig(globalInstance).get("awsAccessKey"));
+        Assertions.assertEquals("old-secret-key", getProviderConfig(globalInstance).get("awsSecretKey"));
+
+        provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.BEDROCK);
+        provider.getRawConfigs().put("awsRegion", "us-east-1");
+        provider.getRawConfigs().put("awsAccessKey", "");
+        provider.getRawConfigs().put("awsSecretKey", "");
+        service.addOrUpdate(provider);
+        Assertions.assertEquals("", getProviderConfig(globalInstance).get("awsAccessKey"));
+        Assertions.assertEquals("", getProviderConfig(globalInstance).get("awsSecretKey"));
+    }
+
+    @Test
+    public void addOrUpdate_bedrockSecretsCanBeReplaced() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.BEDROCK);
+        providerConfig.put("awsRegion", "us-east-1");
+        providerConfig.put("awsAccessKey", "old-access-key");
+        providerConfig.put("awsSecretKey", "old-secret-key");
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.BEDROCK);
+        provider.getRawConfigs().put("awsRegion", "us-east-1");
+        provider.getRawConfigs().put("awsAccessKey", "new-access-key");
+        provider.getRawConfigs().put("awsSecretKey", "new-secret-key");
+        service.addOrUpdate(provider);
+
+        Assertions.assertEquals("new-access-key", getProviderConfig(globalInstance).get("awsAccessKey"));
+        Assertions.assertEquals("new-secret-key", getProviderConfig(globalInstance).get("awsSecretKey"));
+    }
+
+    @Test
+    public void addOrUpdate_vertexSecretMergesBeforeValidationAndCanBeCleared() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.VERTEX);
+        providerConfig.put("vertexRegion", "us-central1");
+        providerConfig.put("vertexProjectId", "project");
+        providerConfig.put("vertexAuthKey", createVertexAuthKey());
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.VERTEX);
+        provider.getRawConfigs().put("vertexRegion", "us-central1");
+        provider.getRawConfigs().put("vertexProjectId", "project");
+        service.addOrUpdate(provider);
+        Assertions.assertEquals(createVertexAuthKey(), getProviderConfig(globalInstance).get("vertexAuthKey"));
+
+        provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.VERTEX);
+        provider.getRawConfigs().put("vertexRegion", "us-central1");
+        provider.getRawConfigs().put("vertexProjectId", "project");
+        provider.getRawConfigs().put("vertexAuthKey", "");
+        service.addOrUpdate(provider);
+        Assertions.assertEquals("", getProviderConfig(globalInstance).get("vertexAuthKey"));
+    }
+
+    @Test
+    public void addOrUpdate_vertexSecretCanBeReplaced() {
+        Map<String, Object> providerConfig = new HashMap<>();
+        providerConfig.put(AiProxyConfig.PROVIDER_ID, TEST_PROVIDER_NAME);
+        providerConfig.put(AiProxyConfig.PROVIDER_TYPE, LlmProviderType.VERTEX);
+        providerConfig.put("vertexRegion", "us-central1");
+        providerConfig.put("vertexProjectId", "project");
+        providerConfig.put("vertexAuthKey", createVertexAuthKey());
+        WasmPluginInstance globalInstance = createGlobalInstance(providerConfig);
+        prepareExistingProvider(globalInstance);
+
+        String replacementAuthKey = "{\"client_email\":\"replacement@example.com\","
+            + "\"private_key_id\":\"replacement-key-id\",\"private_key\":\"replacement-private-key\","
+            + "\"token_uri\":\"https://oauth2.googleapis.com/token\"}";
+        LlmProvider provider = buildProvider(TEST_PROVIDER_NAME, LlmProviderType.VERTEX);
+        provider.getRawConfigs().put("vertexRegion", "us-central1");
+        provider.getRawConfigs().put("vertexProjectId", "project");
+        provider.getRawConfigs().put("vertexAuthKey", replacementAuthKey);
+        service.addOrUpdate(provider);
+
+        Assertions.assertEquals(replacementAuthKey, getProviderConfig(globalInstance).get("vertexAuthKey"));
+    }
+
+    private void prepareExistingProvider(WasmPluginInstance globalInstance) {
+        when(wasmPluginInstanceService.query(WasmPluginInstanceScope.GLOBAL, null, BuiltInPluginName.AI_PROXY, true))
+            .thenReturn(globalInstance);
+        when(wasmPluginInstanceService.list(eq(BuiltInPluginName.AI_PROXY), anyBoolean()))
+            .thenReturn(Collections.singletonList(globalInstance));
+        when(aiRouteService.list(any(CommonPageQuery.class))).thenReturn(createEmptyPaginatedResult());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getProviderConfig(WasmPluginInstance globalInstance) {
+        List<Object> providers = (List<Object>)globalInstance.getConfigurations().get(AiProxyConfig.PROVIDERS);
+        return (Map<String, Object>)providers.get(0);
+    }
+
+    private static String createVertexAuthKey() {
+        return "{\"client_email\":\"test@example.com\",\"private_key_id\":\"key-id\","
+            + "\"private_key\":\"private-key\",\"token_uri\":\"https://oauth2.googleapis.com/token\"}";
+    }
+
     private PaginatedResult<AiRoute> createEmptyPaginatedResult() {
         PaginatedResult<AiRoute> result = new PaginatedResult<>();
         result.setData(Collections.emptyList());
@@ -201,6 +393,14 @@ public class LlmProviderServiceImplTest {
         instance.setEnabled(true);
         instance.setTargets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null));
         instance.setConfigurations(new HashMap<>());
+        return instance;
+    }
+
+    @SuppressWarnings("unchecked")
+    private WasmPluginInstance createGlobalInstance(Map<String, Object> providerConfig) {
+        WasmPluginInstance instance = createGlobalInstance();
+        List<Object> providers = (List<Object>)instance.getConfigurations().get(AiProxyConfig.PROVIDERS);
+        providers.add(providerConfig);
         return instance;
     }
 

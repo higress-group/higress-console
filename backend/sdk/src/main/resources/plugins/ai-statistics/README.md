@@ -111,7 +111,7 @@ route_upstream_model_metric_llm_duration_count{ai_route="bailian",ai_cluster="qw
 此配置下日志效果如下：
 ```json
 {
-  "ai_log": "{\"model\":\"qwen-max\",\"input_token\":\"343\",\"output_token\":\"153\",\"llm_service_duration\":\"19110\"}"  
+  "ai_log": "{\"model\":\"qwen-max\",\"input_token\":\"343\",\"output_token\":\"153\",\"llm_service_duration\":\"19110\"}"
 }
 ```
 
@@ -119,7 +119,7 @@ route_upstream_model_metric_llm_duration_count{ai_route="bailian",ai_cluster="qw
 链路追踪的 span 中可以看到 model, input_token, output_token 三个额外的 attribute
 
 ### 配合认证鉴权记录consumer
-举例如下： 
+举例如下：
 ```yaml
 attributes:
   - key: consumer # 配合认证鉴权记录consumer

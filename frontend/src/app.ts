@@ -42,7 +42,7 @@ export const dataLoader = defineDataLoader(async () => {
     userInfo = await getUserInfo();
   } catch (e) {
     userInfo = {
-      username: '',
+      name: '',
       displayName: '',
     };
   }

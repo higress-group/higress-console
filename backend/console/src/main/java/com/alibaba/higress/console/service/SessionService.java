@@ -26,11 +26,10 @@ public interface SessionService {
 
     void initializeAdmin(User user);
 
-    User login(String username, String password);
+    User login(String username, String password, HttpServletRequest request, HttpServletResponse response,
+        boolean persistent);
 
-    void saveSession(HttpServletResponse response, User user, boolean persistent);
-
-    void clearSession(HttpServletResponse response);
+    void clearSession(HttpServletRequest request, HttpServletResponse response);
 
     User validateSession(HttpServletRequest request);
 

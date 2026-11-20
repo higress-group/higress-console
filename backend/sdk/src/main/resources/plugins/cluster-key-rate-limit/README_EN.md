@@ -4,13 +4,13 @@ keywords: [higress, rate-limit]
 description: Configuration reference for the Key-Based Cluster Rate Limiting plugin
 ---
 ## Function Description
-The `cluster-key-rate-limit` plugin implements cluster rate limiting based on Redis, suitable for scenarios that require global consistent rate limiting across multiple Higress Gateway instances. 
+The `cluster-key-rate-limit` plugin implements cluster rate limiting based on Redis, suitable for scenarios that require global consistent rate limiting across multiple Higress Gateway instances.
 
-The Key used for rate limiting can originate from URL parameters, HTTP request headers, client IP addresses, consumer names, or keys in cookies. 
+The Key used for rate limiting can originate from URL parameters, HTTP request headers, client IP addresses, consumer names, or keys in cookies.
 
 ## Execution Attributes
-Plugin Execution Phase: `default phase`  
-Plugin Execution Priority: `20` 
+Plugin Execution Phase: `default phase`
+Plugin Execution Priority: `20`
 
 ## Configuration Description
 | Configuration Item        | Type          | Required | Default Value | Description                                                                               |

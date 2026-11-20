@@ -12,6 +12,9 @@
  */
 package com.alibaba.higress.console.controller.util;
 
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpMethod;
@@ -41,6 +44,14 @@ public class ControllerUtil {
     @SuppressWarnings("unchecked")
     public static <T> ResponseEntity<PaginatedResponse<T>> buildResponseEntity(PaginatedResult<T> result) {
         return (ResponseEntity<PaginatedResponse<T>>)doBuildResponseEntity(result);
+    }
+
+    public static <T, R> ResponseEntity<PaginatedResponse<R>> buildResponseEntity(PaginatedResult<T> result,
+        Function<T, R> converter) {
+        PaginatedResult<R> convertedResult = PaginatedResult.<R>builder().pageNum(result.getPageNum())
+            .pageSize(result.getPageSize()).total(result.getTotal())
+            .data(result.getData().stream().map(converter).collect(Collectors.toList())).build();
+        return buildResponseEntity(convertedResult);
     }
 
     private static ResponseEntity<?> doBuildResponseEntity(Object result) {

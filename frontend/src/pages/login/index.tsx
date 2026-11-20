@@ -53,6 +53,15 @@ const Login: React.FC = () => {
       history?.push(redirectUrl);
       return;
     } catch (error) {
+      if (error?.response?.status === 429) {
+        const retryAfter = Number(error.response.headers?.['retry-after']);
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          message.error(t('login.rateLimited', { seconds: Math.ceil(retryAfter) }));
+        } else {
+          message.error(t('login.rateLimitedWithoutRetryAfter'));
+        }
+        return;
+      }
       message.error(t('login.loginFailed'));
     }
   }

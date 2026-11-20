@@ -545,15 +545,15 @@ tools:
       ## 未来预报
       {{range $index, $day := .forecast.forecastday}}
       ### {{$day.date}} ({{dateFormat "Monday" $day.date_epoch | title}})
-      
+
       {{if gt $day.day.maxtemp_c 30}}**高温预警!**{{end}}
       {{if lt $day.day.mintemp_c 0}}**低温预警!**{{end}}
-      
+
       - **最高温度**: {{$day.day.maxtemp_c}}°C
       - **最低温度**: {{$day.day.mintemp_c}}°C
       - **降水概率**: {{$day.day.daily_chance_of_rain}}%
       - **天气状况**: {{$day.day.condition.text}}
-      
+
       #### 分时预报
       {{range $hour := slice $day.hour 6 24 3}}
       - **{{dateFormat "15:04" $hour.time_epoch}}**: {{$hour.temp_c}}°C, {{$hour.condition.text}}
@@ -593,9 +593,9 @@ tools:
   responseTemplate:
     prependBody: |
       # 产品信息
-      
+
       以下是产品的详细信息，以JSON格式返回。字段说明：
-      
+
       - **id**: 产品唯一标识符
       - **name**: 产品名称
       - **description**: 产品描述
@@ -607,11 +607,11 @@ tools:
       - **ratings**: 用户评分列表
         - **score**: 评分（1-5）
         - **comment**: 评论内容
-      
+
       原始JSON响应：
-      
+
     appendBody: |
-      
+
       您可以使用这些信息来了解产品的详细信息、价格、库存状态和用户评价。
 ```
 
@@ -764,13 +764,13 @@ tools:
     # 或者
     # prependBody: |
     #   # API响应说明
-    #   
+    #
     #   以下是原始JSON响应，字段含义如下：
     #   - field1: 字段1的含义
     #   - field2: 字段2的含义
-    #   
+    #
     # appendBody: |
-    #   
+    #
     #   您可以使用这些数据来...
 ```
 

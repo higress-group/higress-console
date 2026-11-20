@@ -1,5 +1,5 @@
 export interface UserInfo {
-  username: string;
+  name: string;
   displayName: string;
   type?: 'user' | 'admin' | 'guest';
   avatarUrl?: string;

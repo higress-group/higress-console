@@ -7,7 +7,7 @@ description: Request response transformation plugin configuration reference
 The `transformer` plugin can transform request/response headers, request query parameters, and request/response body parameters. Supported transformation operation types include deletion, renaming, updating, adding, appending, mapping, and deduplication.
 
 ## Execution Attributes
-Plugin execution phase: `authentication phase`  
+Plugin execution phase: `authentication phase`
 Plugin execution priority: `410`
 
 ## Configuration Fields
@@ -81,7 +81,7 @@ reqRules:
 ```
 This rule extracts the `userId` from the request body and sets it in the request header `x-user-id`. This allows routing based on body parameters using Higress's ability to match on request headers.
 
-This configuration supports both `application/json` and `application/x-www-form-urlencoded` types of request bodies. 
+This configuration supports both `application/json` and `application/x-www-form-urlencoded` types of request bodies.
 
 For example:
 **For application/json type body**
@@ -101,7 +101,7 @@ The value of the `userId` field will be extracted from the form format `k1=v1&k2
 After the plugin adds this header, the gateway will recalculate the routes, allowing the routing configuration to match the specific target service based on this request header.
 
 #### JSON Path Support
-You can extract fields from complex JSON according to [GJSON Path syntax](https://github.com/tidwall/gjson/blob/master/SYNTAX.md). 
+You can extract fields from complex JSON according to [GJSON Path syntax](https://github.com/tidwall/gjson/blob/master/SYNTAX.md).
 
 Common operations include, for the following JSON:
 ```json
