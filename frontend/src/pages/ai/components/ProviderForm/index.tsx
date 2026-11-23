@@ -880,8 +880,9 @@ const ProviderForm: React.FC = forwardRef((props: { value: any }, ref) => {
                     }
                     try {
                       const url = new URL(value);
+                      const isOpenAiV1 = url.pathname === '/openai/v1' || url.pathname.startsWith('/openai/v1/');
                       const apiVersion = url.searchParams.get('api-version');
-                      if (!apiVersion || apiVersion.trim() === '') {
+                      if (!isOpenAiV1 && (!apiVersion || apiVersion.trim() === '')) {
                         return Promise.reject(t('llmProvider.providerForm.rules.azureServiceUrlMissingApiVersion'));
                       }
                       return Promise.resolve();
