@@ -30,6 +30,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.exception.BusinessException;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
 import com.alibaba.higress.sdk.model.WasmPluginInstance;
@@ -45,6 +46,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConsumerServiceImpl implements ConsumerService {
+
+    private static final int MAX_UPDATE_ATTEMPTS = 3;
 
     private static final List<String> DEFAULT_CREDENTIAL_TYPES = Collections.singletonList(CredentialType.KEY_AUTH);
 
@@ -62,7 +65,32 @@ public class ConsumerServiceImpl implements ConsumerService {
     }
 
     @Override
+    public Consumer add(Consumer consumer) {
+        if (query(consumer.getName()) != null) {
+            throw new ResourceConflictException(
+                "Consumer " + consumer.getName() + " already exists. Use PUT to update it.");
+        }
+        return addOrUpdate(consumer);
+    }
+
+    @Override
     public Consumer addOrUpdate(Consumer consumer) {
+        for (int attempt = 1; attempt <= MAX_UPDATE_ATTEMPTS; attempt++) {
+            try {
+                return addOrUpdateOnce(consumer);
+            } catch (ResourceConflictException e) {
+                if (attempt == MAX_UPDATE_ATTEMPTS) {
+                    throw new ResourceConflictException("Failed to add or update consumer " + consumer.getName()
+                        + " after " + MAX_UPDATE_ATTEMPTS + " attempts due to concurrent updates.");
+                }
+                log.warn("Conflict while updating consumer {} on attempt {}. Retrying with the latest configuration.",
+                    consumer.getName(), attempt);
+            }
+        }
+        throw new IllegalStateException("Unreachable consumer update retry state.");
+    }
+
+    private Consumer addOrUpdateOnce(Consumer consumer) {
         List<WasmPluginInstance> instancesToUpdate = new ArrayList<>(CREDENTIAL_HANDLERS.size());
         for (CredentialHandler handler : CREDENTIAL_HANDLERS.values()) {
             WasmPluginInstance instance = getGlobalPluginInstance(handler);
@@ -74,7 +102,7 @@ public class ConsumerServiceImpl implements ConsumerService {
                 instancesToUpdate.add(instance);
             }
         }
-        wasmPluginInstanceService.addOrUpdateAll(instancesToUpdate);
+        wasmPluginInstanceService.addOrUpdateAll(instancesToUpdate, 1);
         return query(consumer.getName());
     }
 

@@ -39,6 +39,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.alibaba.higress.sdk.constant.KubernetesConstants;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.NotFoundException;
 import com.alibaba.higress.sdk.exception.ResourceConflictException;
@@ -344,16 +345,11 @@ class WasmPluginServiceImpl implements WasmPluginService {
             List<V1alpha1WasmPlugin> crs = kubernetesClientService.listWasmPlugin();
             for (V1alpha1WasmPlugin cr : crs) {
                 WasmPlugin plugin = kubernetesModelConverter.wasmPluginFromCr(cr);
-                if (plugin.getBuiltIn()) {
+                if (Boolean.TRUE.equals(plugin.getBuiltIn())) {
                     WasmPlugin builtInPlugin =
                         plugins.stream().filter(p -> p.getName().equals(plugin.getName())).findFirst().orElse(null);
                     if (builtInPlugin != null) {
-                        builtInPlugin.setImageRepository(plugin.getImageRepository());
-                        builtInPlugin.setImageVersion(plugin.getImageVersion());
-                        builtInPlugin.setPhase(plugin.getPhase());
-                        builtInPlugin.setPriority(plugin.getPriority());
-                        builtInPlugin.setImagePullPolicy(plugin.getImagePullPolicy());
-                        builtInPlugin.setImagePullSecret(plugin.getImagePullSecret());
+                        overlayBuiltInPlugin(builtInPlugin, plugin);
                         continue;
                     }
                 }
@@ -374,7 +370,20 @@ class WasmPluginServiceImpl implements WasmPluginService {
         // Built-in plugin
         PluginCacheItem item = builtInPlugins.stream().filter(p -> name.equals(p.name)).findFirst().orElse(null);
         if (item != null) {
-            return item.buildWasmPlugin(language);
+            WasmPlugin plugin = item.buildWasmPlugin(language);
+            try {
+                List<V1alpha1WasmPlugin> crs = kubernetesClientService.listWasmPlugin(name, null, true);
+                for (V1alpha1WasmPlugin cr : crs) {
+                    WasmPlugin pluginFromCr = kubernetesModelConverter.wasmPluginFromCr(cr);
+                    if (Boolean.TRUE.equals(pluginFromCr.getBuiltIn())
+                        && StringUtils.equals(name, pluginFromCr.getName())) {
+                        overlayBuiltInPlugin(plugin, pluginFromCr);
+                    }
+                }
+            } catch (ApiException e) {
+                throw new BusinessException("Error occurs when querying the Wasm plugin with name " + name, e);
+            }
+            return plugin;
         }
 
         // Custom plugin
@@ -467,10 +476,12 @@ class WasmPluginServiceImpl implements WasmPluginService {
             throw new ResourceConflictException("No built-in plugin is found with the given name: " + name);
         }
 
+        final String pluginVersion = cachedBuiltInPlugin.getPlugin().getInfo().getVersion();
         List<V1alpha1WasmPlugin> existedCrs;
         try {
-            final String pluginVersion = cachedBuiltInPlugin.getPlugin().getInfo().getVersion();
-            existedCrs = kubernetesClientService.listWasmPlugin(name, pluginVersion, true);
+            // Internal CRs keep the version label of the release that created them. Query all built-in CRs
+            // of this plugin name so an upgraded deployment updates the internal CR as well.
+            existedCrs = kubernetesClientService.listWasmPlugin(name, null, true);
         } catch (ApiException e) {
             throw new BusinessException("Error occurs when checking existed Wasm plugins with name " + name, e);
         }
@@ -506,10 +517,16 @@ class WasmPluginServiceImpl implements WasmPluginService {
             }
             ImageUrl imageUrl = new ImageUrl(plugin.getImageRepository(), plugin.getImageVersion());
             spec.setUrl(imageUrl.toUrlString());
-            spec.setPhase(plugin.getPhase());
-            spec.setPriority(plugin.getPriority());
-            spec.setImagePullPolicy(plugin.getImagePullPolicy());
-            spec.setImagePullSecret(plugin.getImagePullSecret());
+            String existedVersion = KubernetesUtil.getLabel(existedCr,
+                KubernetesConstants.Label.WASM_PLUGIN_VERSION_KEY);
+            // CRs created by an older built-in version only need the image address synced. Keep their
+            // version labels and version-specific settings unchanged.
+            if (StringUtils.equals(pluginVersion, existedVersion)) {
+                spec.setPhase(plugin.getPhase());
+                spec.setPriority(plugin.getPriority());
+                spec.setImagePullPolicy(plugin.getImagePullPolicy());
+                spec.setImagePullSecret(plugin.getImagePullSecret());
+            }
             try {
                 updatedCr = kubernetesClientService.replaceWasmPlugin(existedCr);
             } catch (ApiException e) {
@@ -524,6 +541,15 @@ class WasmPluginServiceImpl implements WasmPluginService {
         assert updatedCr != null;
 
         return kubernetesModelConverter.wasmPluginFromCr(updatedCr);
+    }
+
+    private static void overlayBuiltInPlugin(WasmPlugin target, WasmPlugin source) {
+        target.setImageRepository(source.getImageRepository());
+        target.setImageVersion(source.getImageVersion());
+        target.setPhase(source.getPhase());
+        target.setPriority(source.getPriority());
+        target.setImagePullPolicy(source.getImagePullPolicy());
+        target.setImagePullSecret(source.getImagePullSecret());
     }
 
     @Override

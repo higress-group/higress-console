@@ -13,6 +13,7 @@
 package com.alibaba.higress.console.config;
 
 import java.io.IOException;
+import java.time.Clock;
 
 import javax.annotation.PostConstruct;
 
@@ -90,6 +91,11 @@ public class SdkConfig {
             .withControllerAccessToken(controllerAccessToken).withClusterDomainSuffix(clusterDomainSuffix)
             .withWasmPluginServiceConfig(WasmPluginServiceConfig.buildFromEnv()).build();
         serviceProvider = HigressServiceProvider.create(config);
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 
     @Bean

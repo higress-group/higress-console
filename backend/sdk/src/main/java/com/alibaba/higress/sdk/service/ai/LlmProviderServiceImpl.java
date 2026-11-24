@@ -14,6 +14,7 @@ package com.alibaba.higress.sdk.service.ai;
 
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.ACTIVE_PROVIDER_ID;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDERS;
+import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_API_TOKENS;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_ID;
 import static com.alibaba.higress.sdk.constant.plugin.config.AiProxyConfig.PROVIDER_TYPE;
 
@@ -32,6 +33,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.higress.sdk.constant.plugin.BuiltInPluginName;
+import com.alibaba.higress.sdk.exception.ResourceConflictException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.model.CommonPageQuery;
 import com.alibaba.higress.sdk.model.PaginatedResult;
@@ -101,18 +103,39 @@ public class LlmProviderServiceImpl implements LlmProviderService {
     }
 
     @Override
+    public LlmProvider add(LlmProvider provider) {
+        return save(provider, true);
+    }
+
+    @Override
     public LlmProvider addOrUpdate(LlmProvider provider) {
+        return save(provider, false);
+    }
+
+    private LlmProvider save(LlmProvider provider, boolean createOnly) {
         LlmProviderHandler handler = PROVIDER_HANDLERS.get(provider.getType());
         if (handler == null) {
             throw new ValidationException("Provider type " + provider.getType() + " is not supported");
         }
+
+        LlmProvider existedProvider = query(provider.getName());
+        if (createOnly && existedProvider != null) {
+            throw new ResourceConflictException(
+                "Provider " + provider.getName() + " already exists. Use PUT to update it.");
+        }
+        boolean forUpdate = existedProvider != null;
 
         // Ensure rawConfigs is not null before normalization
         if (provider.getRawConfigs() == null) {
             provider.setRawConfigs(new HashMap<>());
         }
 
-        handler.normalizeConfigs(provider.getRawConfigs());
+        if (forUpdate) {
+            mergeExistedSecrets(provider, existedProvider);
+        }
+        normalizeTokens(provider, forUpdate ? existedProvider : null);
+
+        handler.normalizeConfigs(provider.getRawConfigs(), forUpdate);
 
         fillDefaultValues(provider);
 
@@ -453,6 +476,53 @@ public class LlmProviderServiceImpl implements LlmProviderService {
             if (serviceSource != null) {
                 provider.setProxyName(serviceSource.getProxyName());
             }
+        }
+    }
+
+    private static void mergeExistedSecrets(LlmProvider provider, LlmProvider existedProvider) {
+        if (!StringUtils.equals(provider.getType(), existedProvider.getType())) {
+            return;
+        }
+
+        Map<String, Object> rawConfigs = provider.getRawConfigs();
+        if (rawConfigs == null) {
+            rawConfigs = new HashMap<>();
+            provider.setRawConfigs(rawConfigs);
+        }
+        Map<String, Object> existedRawConfigs = existedProvider.getRawConfigs();
+
+        mergeExistedRawSecret(rawConfigs, existedRawConfigs, PROVIDER_API_TOKENS);
+        mergeExistedRawSecret(rawConfigs, existedRawConfigs, "awsAccessKey");
+        mergeExistedRawSecret(rawConfigs, existedRawConfigs, "awsSecretKey");
+        mergeExistedRawSecret(rawConfigs, existedRawConfigs, "vertexAuthKey");
+    }
+
+    private static void normalizeTokens(LlmProvider provider, LlmProvider fallbackProvider) {
+        if (provider.getTokens() != null) {
+            return;
+        }
+        Map<String, Object> rawConfigs = provider.getRawConfigs();
+        Object rawTokens = rawConfigs != null ? rawConfigs.get(PROVIDER_API_TOKENS) : null;
+        if (rawTokens instanceof List<?>) {
+            provider.setTokens(((List<?>)rawTokens).stream().filter(String.class::isInstance)
+                .map(String.class::cast).collect(Collectors.toList()));
+            return;
+        }
+        if (fallbackProvider != null && fallbackProvider.getTokens() != null) {
+            provider.setTokens(new ArrayList<>(fallbackProvider.getTokens()));
+        }
+    }
+
+    private static void mergeExistedRawSecret(Map<String, Object> rawConfigs, Map<String, Object> existedRawConfigs,
+        String key) {
+        if (rawConfigs.containsKey(key) && rawConfigs.get(key) != null) {
+            return;
+        }
+        Object existedValue = existedRawConfigs != null ? existedRawConfigs.get(key) : null;
+        if (existedValue != null) {
+            rawConfigs.put(key, existedValue);
+        } else {
+            rawConfigs.remove(key);
         }
     }
 

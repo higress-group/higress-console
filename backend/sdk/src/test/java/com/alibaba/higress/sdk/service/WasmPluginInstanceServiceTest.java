@@ -591,6 +591,24 @@ public class WasmPluginInstanceServiceTest {
     }
 
     @Test
+    public void addOrUpdateAllWithSingleAttemptPropagatesConflict() throws Exception {
+        V1alpha1WasmPlugin existedCr = buildWasmPluginResource(TEST_BUILT_IN_PLUGIN_NAME, true, true);
+        when(kubernetesClientService.listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME)))
+            .thenReturn(Lists.newArrayList(existedCr));
+        when(kubernetesClientService.replaceWasmPlugin(any()))
+            .thenThrow(new ApiException(HttpStatus.CONFLICT, "Conflict"));
+        WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
+            .pluginVersion(DEFAULT_VERSION).targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)
+            .configurations(MapUtil.of("requested", "config")).internal(true).build();
+
+        Assertions.assertThrows(ResourceConflictException.class,
+            () -> service.addOrUpdateAll(Lists.newArrayList(instance), 1));
+
+        verify(kubernetesClientService, times(1)).listWasmPlugin(eq(TEST_BUILT_IN_PLUGIN_NAME));
+        verify(kubernetesClientService, times(1)).replaceWasmPlugin(any());
+    }
+
+    @Test
     public void addOrUpdateAllTestVersionMismatch() {
         WasmPluginInstance instance = WasmPluginInstance.builder().pluginName(TEST_BUILT_IN_PLUGIN_NAME)
             .pluginVersion("3.0.0").targets(MapUtil.of(WasmPluginInstanceScope.GLOBAL, null)).enabled(true)

@@ -60,9 +60,11 @@ public class SwaggerConfig {
             .description(
                 "Higress is a next-generation cloud-native gateway based on Alibaba's internal gateway practices."
                     + "\n\n## API Authentication\n\n"
-                    + "Most operations in this console API require authentication via HTTP **Basic Auth**. "
-                    + "Use the administrator account's username and password as credentials, "
-                    + "or enter the credentials via the **Authorize** button at the top right of the page before making a request. "
+                    + "Most operations in this console API require authentication. "
+                    + "Sign in through the console first to use its session cookie. "
+                    + "When the Basic authentication fallback is enabled, HTTP **Basic Auth** with the administrator "
+                    + "account's username and password is also accepted, either directly or via the **Authorize** "
+                    + "button at the top right of the page. "
                     + "A few endpoints (such as login and system initialization) are anonymous and do not require credentials.")
             .license(new License().name("Apache 2.0").url("http://www.apache.org/licenses/LICENSE-2.0"));
         openApi.info(apiInfo);
@@ -74,7 +76,8 @@ public class SwaggerConfig {
         }
         components.addSecuritySchemes("basicAuth",
             new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")
-                .description("Use HTTP Basic Auth to provide the administrator account's username and password"));
+                .description("Optional HTTP Basic Auth using the administrator account's username and password. "
+                    + "Only accepted when the Basic authentication fallback is enabled."));
 
         registerClassSchema(openApi, CapabilityKey.class);
         registerClassSchema(openApi, RoutePredicateTypeEnum.class);

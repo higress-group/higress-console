@@ -1,5 +1,7 @@
+import CreatedSecretModal, { SecretEntry } from '@/components/CreatedSecretModal';
 import { LlmProvider } from '@/interfaces/llm-provider';
 import { addLlmProvider, deleteLlmProvider, getLlmProviders, updateLlmProvider } from '@/services/llm-provider';
+import { redactForLog } from '@/utils/redact-secrets';
 import { ExclamationCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
@@ -7,7 +9,6 @@ import { Button, Col, Drawer, Form, Modal, Row, Space, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import ProviderForm from './components/ProviderForm';
-import TokenList from './components/TokenList';
 import { aiModelProviders } from './configs';
 
 interface FormRef {
@@ -56,19 +57,19 @@ const LlmProviderList: React.FC = () => {
       },
     },
     {
-      title: t('llmProvider.columns.tokens'),
-      dataIndex: 'tokens',
-      key: 'tokens',
-      width: 300,
-      render: (value, record) => {
-        const providerConfig = aiModelProviders.find(p => p.value === record.type);
-        if (providerConfig && providerConfig.useCustomCredentials) {
-          value = providerConfig.getCredentialsForDisplay(record);
+      title: t('llmProvider.columns.credentials'),
+      dataIndex: 'tokenCount',
+      key: 'credentials',
+      width: 180,
+      render: (_, record) => {
+        if (record.type === 'bedrock') {
+          const count = [record.awsAccessKeyConfigured, record.awsSecretKeyConfigured].filter(Boolean).length;
+          return t('llmProvider.configuredCount', { count });
         }
-        if (!Array.isArray(value) || !value.length) {
-          return '-';
+        if (record.type === 'vertex') {
+          return t(record.vertexAuthKeyConfigured ? 'llmProvider.configured' : 'llmProvider.notConfigured');
         }
-        return <TokenList tokens={value} />;
+        return t('llmProvider.configuredCount', { count: record.tokenCount || 0 });
       },
     },
     {
@@ -101,6 +102,8 @@ const LlmProviderList: React.FC = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [createdSecretVisible, setCreatedSecretVisible] = useState(false);
+  const [createdSecrets, setCreatedSecrets] = useState<SecretEntry[]>([]);
 
   const { loading, run, refresh } = useRequest(getLlmProviders, {
     manual: true,
@@ -128,6 +131,23 @@ const LlmProviderList: React.FC = () => {
     setCurrentLlmProvider(null);
   };
 
+  const collectProviderSecrets = (created: LlmProvider): SecretEntry[] => {
+    const secrets: SecretEntry[] = [];
+    (created?.tokens || []).forEach((token, index) => {
+      if (typeof token === 'string' && token) {
+        secrets.push({ label: t('createdSecret.providerToken', { index: index + 1 }), value: token });
+      }
+    });
+    const rawConfigs = created?.rawConfigs || {};
+    ['awsAccessKey', 'awsSecretKey', 'vertexAuthKey'].forEach((key) => {
+      const value = rawConfigs[key];
+      if (typeof value === 'string' && value) {
+        secrets.push({ label: key, value });
+      }
+    });
+    return secrets;
+  };
+
   const handleDrawerOK = async () => {
     const values = formRef.current ? await formRef.current.handleSubmit() : {};
     if (!values) {
@@ -139,16 +159,33 @@ const LlmProviderList: React.FC = () => {
         // version 进行创建或强制更新操作时需设置为 0。
         const params: LlmProvider = { version: 0, ...values };
         await updateLlmProvider(params);
-      } else {
-        await addLlmProvider(values as LlmProvider);
+        setOpenDrawer(false);
+        formRef.current && formRef.current.reset();
+        refresh();
+        return;
       }
 
+      const created = await addLlmProvider(values as LlmProvider);
+      const secrets = collectProviderSecrets(created);
+      refresh();
+      if (secrets.length > 0) {
+        setCreatedSecrets(secrets);
+        setCreatedSecretVisible(true);
+        return;
+      }
       setOpenDrawer(false);
       formRef.current && formRef.current.reset();
-      refresh();
     } catch (errInfo) {
-      console.log('Save failed: ', errInfo);
+      console.error('Save failed: ', redactForLog(errInfo));
     }
+  };
+
+  const handleCreatedSecretConfirm = () => {
+    setCreatedSecretVisible(false);
+    setCreatedSecrets([]);
+    setOpenDrawer(false);
+    formRef.current && formRef.current.reset();
+    setCurrentLlmProvider(null);
   };
 
   const handleDrawerCancel = () => {
@@ -250,6 +287,11 @@ const LlmProviderList: React.FC = () => {
           </Trans>
         </p>
       </Modal>
+      <CreatedSecretModal
+        open={createdSecretVisible}
+        entries={createdSecrets}
+        onConfirm={handleCreatedSecretConfirm}
+      />
     </PageContainer>
   );
 };

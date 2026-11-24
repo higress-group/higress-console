@@ -4,7 +4,12 @@ export interface LlmProvider {
   type: string;
   protocol?: string;
   proxyName?: string;
-  tokens: string[];
+  tokens?: string[];
+  tokenCount?: number;
+  awsAccessKeyConfigured?: boolean;
+  awsSecretKeyConfigured?: boolean;
+  vertexAuthKeyConfigured?: boolean;
+  rawConfigs?: Record<string, any>;
   tokenFailoverConfig?: TokeFailoverConfig;
 }
 

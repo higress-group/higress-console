@@ -12,7 +12,10 @@
  */
 package com.alibaba.higress.console.service;
 
-import java.security.GeneralSecurityException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -29,20 +32,20 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.higress.console.constant.SystemConfigKey;
 import com.alibaba.higress.console.constant.UserConfigKey;
 import com.alibaba.higress.console.model.User;
-import com.alibaba.higress.console.util.AesUtil;
 import com.alibaba.higress.sdk.exception.BusinessException;
 import com.alibaba.higress.sdk.exception.ValidationException;
 import com.alibaba.higress.sdk.service.kubernetes.KubernetesClientService;
+import com.google.common.hash.Hashing;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.util.Strings;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +53,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author CH3CHO
  */
-@Slf4j
 @Service
+@Slf4j
 public class SessionServiceImpl implements SessionService {
 
     private static final String USERNAME_KEY = "adminUsername";
@@ -61,13 +64,28 @@ public class SessionServiceImpl implements SessionService {
     private static final int ENCRYPT_KEY_LENGTH = 32;
     private static final String ENCRYPT_IV_KEY = "iv";
     private static final int ENCRYPT_IV_LENGTH = 16;
-    private static final String TOKEN_PART_SEPARATOR = "\1";
+    private static final int SESSION_ID_BYTES = 32;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String SESSION_COOKIE_SAME_SITE = "Lax";
+    static final long SESSION_TOUCH_INTERVAL_MILLIS = 60_000L;
+    private static final String UNKNOWN_CLIENT_IP = "unknown";
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_NAME_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT + "}")
     private String cookieName = SystemConfigKey.ADMIN_COOKIE_NAME_DEFAULT;
 
     @Value("${" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT + "}")
     private int cookieMaxAge = SystemConfigKey.ADMIN_COOKIE_MAX_AGE_DEFAULT;
+
+    private long idleTimeout = SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT;
+
+    private long absoluteTimeout = SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT;
+
+    @Value("${" + SystemConfigKey.ADMIN_COOKIE_SECURE_KEY + ":" + SystemConfigKey.ADMIN_COOKIE_SECURE_DEFAULT + "}")
+    private boolean cookieSecure = SystemConfigKey.ADMIN_COOKIE_SECURE_DEFAULT;
+
+    @Value("${" + SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_KEY + ":"
+        + SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_DEFAULT + "}")
+    private boolean basicAuthEnabled = SystemConfigKey.ADMIN_BASIC_AUTH_ENABLED_DEFAULT;
 
     @Value("${" + SystemConfigKey.SECRET_NAME_KEY + ":" + SystemConfigKey.SECRET_NAME_DEFAULT + "}")
     private String secretName = SystemConfigKey.SECRET_NAME_DEFAULT;
@@ -77,6 +95,9 @@ public class SessionServiceImpl implements SessionService {
 
     private ConfigService configService;
     private KubernetesClientService kubernetesClientService;
+    private SessionStore sessionStore;
+    private Clock clock = Clock.systemUTC();
+    private LoginFailureBudgetService loginFailureBudgetService;
 
     private final AtomicReference<AdminConfig> adminConfigCache = new AtomicReference<>();
 
@@ -88,6 +109,34 @@ public class SessionServiceImpl implements SessionService {
     @Resource
     public void setKubernetesClientService(KubernetesClientService kubernetesClientService) {
         this.kubernetesClientService = kubernetesClientService;
+    }
+
+    @Resource
+    public void setSessionStore(SessionStore sessionStore) {
+        this.sessionStore = sessionStore;
+    }
+
+    @Resource
+    public void setClock(Clock clock) {
+        this.clock = clock;
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_DEFAULT + "}")
+    public void setIdleTimeout(long idleTimeout) {
+        this.idleTimeout = SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_IDLE_TIMEOUT_KEY, idleTimeout);
+    }
+
+    @Value("${" + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY + ":"
+        + SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_DEFAULT + "}")
+    public void setAbsoluteTimeout(long absoluteTimeout) {
+        this.absoluteTimeout =
+            SessionData.validateTimeout(SystemConfigKey.ADMIN_SESSION_ABSOLUTE_TIMEOUT_KEY, absoluteTimeout);
+    }
+
+    @Resource
+    public void setLoginFailureBudgetService(LoginFailureBudgetService loginFailureBudgetService) {
+        this.loginFailureBudgetService = loginFailureBudgetService;
     }
 
     @Override
@@ -144,29 +193,48 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public User login(String username, String password) {
-        AdminConfig config = getAdminConfig();
-        if (!config.getUsername().equals(username) || !config.getPassword().equals(password)) {
+    public User login(String username, String password, HttpServletRequest request, HttpServletResponse response,
+        boolean persistent) {
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return null;
         }
-        return config.toUser();
-    }
-
-    @Override
-    public void saveSession(HttpServletResponse response, User user, boolean persistent) {
-        Cookie cookie = buildEmptyCookie();
-        cookie.setValue(generateToken(user));
-        if (persistent) {
-            cookie.setMaxAge(cookieMaxAge);
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.FORM, username, request);
+        loginFailureBudgetService.ensureNotLocked(key);
+        AdminConfig config = getAdminConfig();
+        User user = null;
+        String credentialFingerprint = null;
+        if (config.getUsername().equals(username) && config.getPassword().equals(password)) {
+            credentialFingerprint = credentialFingerprint(username, password);
+            String storedFingerprint =
+                sessionStore.getOrCreateCredentialFingerprint(config.getUsername(), credentialFingerprint);
+            if (fingerprintsMatch(credentialFingerprint, storedFingerprint)) {
+                user = config.toUser();
+            }
         }
-        response.addCookie(cookie);
+        user = completeAuthentication(key, user);
+        if (user != null) {
+            saveSession(request, response, user, persistent, credentialFingerprint);
+        }
+        return user;
+    }
+
+    private void saveSession(HttpServletRequest request, HttpServletResponse response, User user, boolean persistent,
+        String credentialFingerprint) {
+        String sessionId = generateSessionId();
+        long now = clock.millis();
+        SessionData session = SessionData.builder().username(user.getName()).createdAt(now).lastAccessAt(now)
+            .credentialFingerprint(credentialFingerprint).build();
+        sessionStore.create(sessionId, session);
+        addSessionCookie(request, response, sessionId, persistent ? Long.valueOf(cookieMaxAge) : null);
     }
 
     @Override
-    public void clearSession(HttpServletResponse response) {
-        Cookie cookie = buildEmptyCookie();
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+    public void clearSession(HttpServletRequest request, HttpServletResponse response) {
+        String sessionId = getSessionId(request);
+        if (StringUtils.isNotBlank(sessionId)) {
+            sessionStore.delete(sessionId);
+        }
+        addSessionCookie(request, response, StringUtils.EMPTY, 0L);
     }
 
     @Override
@@ -179,37 +247,60 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private User tryExtractUserFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null || cookies.length == 0) {
+        String sessionId = getSessionId(request);
+        if (StringUtils.isBlank(sessionId)) {
             return null;
         }
-        String token = Arrays.stream(cookies).filter(c -> cookieName.equals(c.getName())).map(Cookie::getValue)
-            .findFirst().orElse(null);
-        if (Strings.isNullOrEmpty(token)) {
+
+        SessionData session = sessionStore.find(sessionId);
+        if (session == null) {
+            return null;
+        }
+        long now = clock.millis();
+        if (session.isExpired(now, idleTimeout, absoluteTimeout)) {
+            sessionStore.delete(sessionId);
             return null;
         }
 
         AdminConfig config = tryGetAdminConfig();
-        if (config == null) {
+        if (config == null || !config.getUsername().equals(session.getUsername())) {
+            sessionStore.delete(sessionId);
             return null;
         }
+        String currentFingerprint = credentialFingerprint(config.getUsername(), config.getPassword());
+        String storedFingerprint =
+            sessionStore.getOrCreateCredentialFingerprint(session.getUsername(), currentFingerprint);
+        if (!fingerprintsMatch(session.getCredentialFingerprint(), storedFingerprint)) {
+            sessionStore.delete(sessionId);
+            return null;
+        }
+        long touchInterval = idleTimeout > 0
+            ? Math.min(SESSION_TOUCH_INTERVAL_MILLIS, idleTimeout / 2)
+            : SESSION_TOUCH_INTERVAL_MILLIS;
+        if (now - session.getLastAccessAt() >= touchInterval) {
+            session.setLastAccessAt(Math.max(now, session.getLastAccessAt()));
+            try {
+                sessionStore.update(sessionId, session);
+            } catch (RuntimeException e) {
+                log.warn("Unable to update session last access time; authentication will continue.", e);
+            }
+        }
+        return config.toUser();
+    }
 
-        String rawToken;
-        try {
-            rawToken = AesUtil.decrypt(config.getEncryptKey(), config.getEncryptIv(), token);
-        } catch (GeneralSecurityException e) {
-            log.warn("Error occurs when decrypting token: " + token, e);
+    private String getSessionId(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null || cookies.length == 0) {
             return null;
         }
-
-        String[] segments = rawToken.split(TOKEN_PART_SEPARATOR);
-        if (segments.length < 3) {
-            return null;
-        }
-        return validateCredential(segments[0], segments[1]);
+        return Arrays.stream(cookies).filter(c -> cookieName.equals(c.getName())).map(Cookie::getValue).findFirst()
+            .orElse(null);
     }
 
     private User tryExtractUserFromAuthHeader(HttpServletRequest request) {
+        if (!basicAuthEnabled) {
+            return null;
+        }
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.isBlank(header)) {
             return null;
@@ -218,12 +309,36 @@ public class SessionServiceImpl implements SessionService {
         if (parts.length != 2 || !"Basic".equals(parts[0])) {
             return null;
         }
-        String decoded = new String(Base64.getDecoder().decode(parts[1]));
-        String[] credentials = decoded.split(":");
-        if (credentials.length != 2) {
+        String decoded;
+        try {
+            decoded = new String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
             return null;
         }
-        return validateCredential(credentials[0], credentials[1]);
+        int separator = decoded.indexOf(':');
+        if (separator <= 0 || separator == decoded.length() - 1) {
+            return null;
+        }
+        String username = decoded.substring(0, separator);
+        String password = decoded.substring(separator + 1);
+        LoginAttemptKey key = createLoginAttemptKey(LoginAuthSource.BASIC, username, request);
+        loginFailureBudgetService.ensureNotLocked(key);
+        return completeAuthentication(key, validateCredential(username, password));
+    }
+
+    private LoginAttemptKey createLoginAttemptKey(LoginAuthSource source, String username,
+        HttpServletRequest request) {
+        String clientIp = request != null ? request.getRemoteAddr() : null;
+        return new LoginAttemptKey(source, username, StringUtils.defaultIfBlank(clientIp, UNKNOWN_CLIENT_IP));
+    }
+
+    private User completeAuthentication(LoginAttemptKey key, User user) {
+        if (user != null) {
+            loginFailureBudgetService.reset(key);
+        } else {
+            loginFailureBudgetService.recordFailure(key);
+        }
+        return user;
     }
 
     private User validateCredential(String username, String password) {
@@ -273,27 +388,36 @@ public class SessionServiceImpl implements SessionService {
         }
 
         adminConfigCache.set(null);
+        sessionStore.updateCredentialFingerprint(username, credentialFingerprint(username, newPassword));
+        sessionStore.deleteByUsername(username);
     }
 
-    private Cookie buildEmptyCookie() {
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        return cookie;
+    static String credentialFingerprint(String username, String password) {
+        return Hashing.sha256().hashString("v1\0" + username + "\0" + password, StandardCharsets.UTF_8).toString();
     }
 
-    private String generateToken(User user) {
-        AdminConfig config = getAdminConfig();
-        if (!config.getUsername().equals(user.getName())) {
-            return null;
+    private static boolean fingerprintsMatch(String first, String second) {
+        if (first == null || second == null) {
+            return false;
         }
-        String rawToken = String.join(TOKEN_PART_SEPARATOR, config.getUsername(), config.getPassword(),
-            String.valueOf(System.currentTimeMillis()));
-        try {
-            return AesUtil.encrypt(config.getEncryptKey(), config.getEncryptIv(), rawToken);
-        } catch (GeneralSecurityException e) {
-            throw new BusinessException("Error occurs when generating token for user " + user.getName(), e);
+        return MessageDigest.isEqual(first.getBytes(StandardCharsets.UTF_8), second.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void addSessionCookie(HttpServletRequest request, HttpServletResponse response, String value,
+        Long maxAge) {
+        ResponseCookie.ResponseCookieBuilder builder =
+            ResponseCookie.from(cookieName, StringUtils.defaultString(value)).httpOnly(true).path("/")
+                .sameSite(SESSION_COOKIE_SAME_SITE).secure(cookieSecure || request.isSecure());
+        if (maxAge != null) {
+            builder.maxAge(maxAge);
         }
+        response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
+    }
+
+    private static String generateSessionId() {
+        byte[] id = new byte[SESSION_ID_BYTES];
+        SECURE_RANDOM.nextBytes(id);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(id);
     }
 
     private AdminConfig getAdminConfig() {
@@ -306,7 +430,7 @@ public class SessionServiceImpl implements SessionService {
 
     private AdminConfig tryGetAdminConfig() {
         AdminConfig localAdminConfig = adminConfigCache.get();
-        if (localAdminConfig == null || !localAdminConfig.isExpired(configTtl)) {
+        if (localAdminConfig == null || localAdminConfig.isExpired(configTtl)) {
             localAdminConfig = loadAdminConfig();
             if (localAdminConfig != null && localAdminConfig.isValid()) {
                 localAdminConfig.setLastUpdateTimestamp(System.currentTimeMillis());

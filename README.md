@@ -7,6 +7,39 @@
 Higress Console 用于管理 Higress 的配置规则及其他开箱即用的能力集成，首个可用版本考虑基于 kubernetes 部署环境，预期包含服务管理、路由管理、域名管理等基础能力。
 后续规划逐步迭代可观测能力、插件能力、登录管理能力，感兴趣的小伙伴一起 Hi~ gress~
 
+## Authentication attempts and rate limiting
+
+The console limits failed password authentication for both the form login endpoint and HTTP Basic authentication. The
+defaults are 5 failures within 10 minutes for each budget, followed by a 15-minute lock. When a budget is exhausted the
+API returns HTTP 429 with a `Retry-After` header, and the login page shows the remaining lock time.
+
+| Environment variable | Spring property | Default | Description |
+| --- | --- | --- | --- |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_LIMIT` | `higress-console.login.failure-limit` | `5` | Failures allowed within the window before the budget is locked. |
+| `HIGRESS_CONSOLE_LOGIN_FAILURE_WINDOW_SECONDS` | `higress-console.login.failure-window-seconds` | `600` | Length of the failure accounting window in seconds. |
+| `HIGRESS_CONSOLE_LOGIN_LOCK_SECONDS` | `higress-console.login.lock-seconds` | `900` | Lock duration in seconds after the failure limit is reached. |
+
+All three values must be at least 1. `0` (and negative values) is invalid and is treated as `1`.
+
+Budgets are keyed by authentication source, account and client address, so the form login and Basic authentication
+budgets are independent (`form:<username>:<ip>` and `basic:<username>:<ip>`). A script retrying old credentials over
+Basic authentication cannot lock out a human using the form login for the same account and address, and vice versa. A
+successful authentication resets only the budget of the source that authenticated. The lock check happens before
+password verification, and only verified failures increment the failure count; correct credentials never consume the
+budget. Writes prune expired states first. If the shared store is full, a new key evicts the oldest state without an
+active lock; active locks are never evicted. If every entry is actively locked, the new key is not tracked and fails
+open until capacity is available, while all existing locks remain enforced. This saturation behavior does not return
+HTTP 503.
+
+The client address is taken from the direct peer (`HttpServletRequest.getRemoteAddr()`). The console ships with
+`server.forward-headers-strategy=none`, so forwarding headers do not create separate budgets. Behind a reverse proxy,
+all requests can therefore appear to come from the proxy address and share one budget per account and source. If the
+proxy is trusted, configure `server.forward-headers-strategy` (for example, via the `SERVER_FORWARD_HEADERS_STRATEGY`
+environment variable) so that the real client address is used. Enable forwarded-header handling only when untrusted
+clients cannot reach the console directly, because clients can otherwise spoof these headers.
+If the client address is missing or blank, the console uses `unknown`, so those requests remain subject to a shared
+budget per account and source.
+
 ## 前置介绍
 
 此项目包含前端（NodeJS）、后端（Java）两个部分，前端（frontend）部分在构建完成后会随着后端代码（SpringBoot）一起部署。
@@ -77,6 +110,17 @@ http://localhost:8080
 ```html
 http://localhost:8080/swagger-ui/index.html
 ```
+
+## 升级说明：凭证类 API 响应变更
+
+自该版本起，控制台对 LLM Provider 与 Consumer 的凭证采用只写（write-only）语义：
+
+- `GET /v1/ai/providers`、`GET /v1/ai/providers/{name}`、`PUT /v1/ai/providers/{name}` 不再返回 `tokens`，`rawConfigs` 中的 `apiTokens`、`awsAccessKey`、`awsSecretKey`、`vertexAuthKey` 等凭证字段也会被移除；仅返回 `tokenCount`、`awsAccessKeyConfigured` 等脱敏元数据。
+- `GET /v1/consumers`、`GET /v1/consumers/{name}`、`PUT /v1/consumers/{name}` 不再返回 key-auth 凭证的 `values`，仅返回 `credentialCount` 等元数据。
+- `POST /v1/ai/providers` 与 `POST /v1/consumers` 仅用于创建新资源，不再隐式更新同名资源。名称已存在时返回 `409 Conflict`，且不会返回任何已存储的凭证。创建成功时会在响应中一次性返回本次提交的凭证（provider 的 `tokens` 以及 `rawConfigs` 中的凭证字段，consumer 的 `values`）。之后无法通过 API 再次读取。
+- 继续使用 `POST` 做“存在则更新”的外部脚本必须改为：创建使用 `POST`，更新使用 `PUT /v1/ai/providers/{name}` 或 `PUT /v1/consumers/{name}`。
+- 如果外部脚本依赖读取后再写回（read-modify-write）凭证字段，需要改为在更新时省略凭证字段以保留原值、提交新值以替换、显式提交空值以清除，或直接保存创建响应中的凭证。
+- 消费者编辑页面的新密钥会追加到已有凭证，不回显旧密钥。API 调用方可在 `PUT /v1/consumers/{name}` 的 key-auth 凭证中显式设置 `append: true`，将 `values` 追加并去重；追加时不能改变 `source` 或 `key`，且仅支持已有消费者。不设置 `append` 的旧调用仍保持替换语义，`values: null` 保留、`values: []` 清空；供应商密钥更新语义不变。
 
 ## 开发规范
 

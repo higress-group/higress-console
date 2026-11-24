@@ -39,6 +39,11 @@ public class BedrockLlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
+        normalizeConfigs(configurations, false);
+    }
+
+    @Override
+    public void normalizeConfigs(Map<String, Object> configurations, boolean forUpdate) {
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Bedrock specific configurations.");
         }
@@ -48,14 +53,15 @@ public class BedrockLlmProviderHandler extends AbstractLlmProviderHandler {
             throw new ValidationException(AWS_REGION_KEY + " cannot be empty.");
         }
 
-        String accessKey = MapUtils.getString(configurations, AWS_ACCESS_KEY_KEY);
-        if (StringUtils.isEmpty(accessKey)) {
-            throw new ValidationException(AWS_ACCESS_KEY_KEY + " cannot be empty.");
-        }
+        validateCredential(configurations, AWS_ACCESS_KEY_KEY, forUpdate);
+        validateCredential(configurations, AWS_SECRET_KEY_KEY, forUpdate);
+    }
 
-        String secretKey = MapUtils.getString(configurations, AWS_SECRET_KEY_KEY);
-        if (StringUtils.isEmpty(secretKey)) {
-            throw new ValidationException(AWS_SECRET_KEY_KEY + " cannot be empty.");
+    private static void validateCredential(Map<String, Object> configurations, String key, boolean forUpdate) {
+        String value = MapUtils.getString(configurations, key);
+        boolean explicitClear = forUpdate && configurations.get(key) instanceof String && StringUtils.isEmpty(value);
+        if (StringUtils.isEmpty(value) && !explicitClear) {
+            throw new ValidationException(key + " cannot be empty.");
         }
     }
 

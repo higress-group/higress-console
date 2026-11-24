@@ -66,6 +66,11 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
 
     @Override
     public void normalizeConfigs(Map<String, Object> configurations) {
+        normalizeConfigs(configurations, false);
+    }
+
+    @Override
+    public void normalizeConfigs(Map<String, Object> configurations, boolean forUpdate) {
         if (MapUtils.isEmpty(configurations)) {
             throw new ValidationException("Missing Vertex specific configurations.");
         }
@@ -82,26 +87,31 @@ public class VertexLlmProviderHandler extends AbstractLlmProviderHandler {
         }
 
         String authKey = MapUtils.getString(configurations, VERTEX_AUTH_KEY_KEY);
-        if (StringUtils.isEmpty(authKey)) {
+        boolean clearAuthKey = forUpdate && configurations.get(VERTEX_AUTH_KEY_KEY) instanceof String
+            && StringUtils.isEmpty(authKey);
+        if (StringUtils.isEmpty(authKey) && !clearAuthKey) {
             throw new ValidationException(VERTEX_AUTH_KEY_KEY + " cannot be empty.");
         }
-        JSONObject authKeyObject;
-        try {
-            authKeyObject = JSON.parseObject(authKey);
-        } catch (JSONException ex) {
-            throw new ValidationException(VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object.", ex);
-        }
-        final BiConsumer<JSONObject, String> ensureJsonStringProperty = (jsonObject, key) -> {
-            Object value = jsonObject.get(key);
-            if (!(value instanceof String)) {
-                throw new ValidationException(
-                    VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object with a string property: " + key);
+        if (!clearAuthKey) {
+            JSONObject authKeyObject;
+            try {
+                authKeyObject = JSON.parseObject(authKey);
+            } catch (JSONException ex) {
+                // Do not attach the parse exception or the submitted value: either may contain the auth key.
+                throw new ValidationException(VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object.");
             }
-        };
-        ensureJsonStringProperty.accept(authKeyObject, "client_email");
-        ensureJsonStringProperty.accept(authKeyObject, "private_key_id");
-        ensureJsonStringProperty.accept(authKeyObject, "private_key");
-        ensureJsonStringProperty.accept(authKeyObject, "token_uri");
+            final BiConsumer<JSONObject, String> ensureJsonStringProperty = (jsonObject, key) -> {
+                Object value = jsonObject.get(key);
+                if (!(value instanceof String)) {
+                    throw new ValidationException(
+                        VERTEX_AUTH_KEY_KEY + " must contain a valid JSON object with a string property: " + key);
+                }
+            };
+            ensureJsonStringProperty.accept(authKeyObject, "client_email");
+            ensureJsonStringProperty.accept(authKeyObject, "private_key_id");
+            ensureJsonStringProperty.accept(authKeyObject, "private_key");
+            ensureJsonStringProperty.accept(authKeyObject, "token_uri");
+        }
 
         Integer tokenRefreshAhead = MapUtils.getInteger(configurations, VERTEX_TOKEN_REFRESH_AHEAD_KEY);
         if (tokenRefreshAhead != null && tokenRefreshAhead < 0) {
