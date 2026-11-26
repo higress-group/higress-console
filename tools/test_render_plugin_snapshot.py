@@ -160,8 +160,9 @@ class RenderTest(unittest.TestCase):
                                          hashlib.sha256((ROOT / source).read_bytes()).hexdigest())
                         self.assertEqual(record["destinationSha256"],
                                          hashlib.sha256((resources / resource / record["targetPath"]).read_bytes()).hexdigest())
+            self.assertNotIn('"history"', lock_text)
+            self.assertNotIn("history", property_keys)
             for output in (lock_text, properties):
-                self.assertNotIn("history", output)
                 self.assertNotIn("2.0.0", output)
             self.assertEqual({path.relative_to(resources) for path in resources.rglob("*")}, original_paths)
             first = tree_hash(work)
