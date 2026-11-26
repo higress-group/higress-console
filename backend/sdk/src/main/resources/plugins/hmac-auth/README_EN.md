@@ -10,6 +10,10 @@ The `hmac-auth` plugin implements the generation of tamper-proof signatures for 
 Plugin execution phase: `Authentication phase`
 Plugin execution priority: `330`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 **Note:**  
 - In a rule, authentication and authorization configurations cannot coexist.  

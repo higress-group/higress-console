@@ -58,7 +58,7 @@ import io.kubernetes.client.openapi.ApiException;
 public class WasmPluginInstanceServiceTest {
 
     private static final String TEST_BUILT_IN_PLUGIN_NAME = "basic-auth";
-    private static final String DEFAULT_VERSION = "2.0.0";
+    private static final String DEFAULT_VERSION = "2.0.1";
     private static final String OLD_VERSION = "0.9.0";
     private static final String TEST_BUILT_IN_PLUGIN_USER_CR_NAME =
         TEST_BUILT_IN_PLUGIN_NAME + Separators.DASH + DEFAULT_VERSION;

@@ -11,6 +11,10 @@ The `key-rate-limit` plugin implements rate limiting based on specific key value
 Plugin execution phase: `default phase`
 Plugin execution priority: `10`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 
 | Name            | Data Type       | Required                                                      | Default Value | Description                                                                            |
