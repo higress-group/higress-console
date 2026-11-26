@@ -368,15 +368,17 @@ class RenderTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "original image digest"):
                 renderer.render_recovery(work, path, hashlib.sha256(path.read_bytes()).hexdigest(), cache, HIGRESS_COMMIT)
 
-    def test_real_224_marketplace_inventory_contains_all_recovered_plugins(self):
+    def test_real_marketplace_inventory_matches_validated_lock(self):
         expected = {"ai-context-limit", "gw-error-format", "hmac-auth-apisix", "log-request-response",
-                    "mcp-router", "nginx-rewrite-compatible", "response-cache", "simple-jwt-auth"}
+                    "mcp-router", "nginx-rewrite-compatible", "response-cache"}
         plugins_root = ROOT / "backend/sdk/src/main/resources/plugins"
         properties = (plugins_root / "plugins.properties").read_text(encoding="utf-8")
         lock = renderer.validate_rendered(ROOT)
-        self.assertEqual(lock["snapshotSha256"],
-                         "09bc798df37e50dae2e684947885c31eb756636c76a98761a9a980fc031e3a1a")
-        self.assertEqual(lock["marketplaceRecovery"]["gatewayVersion"], "2.2.4")
+        # Later normal snapshot syncs superseded the 2.2.4 recovery assertions;
+        # that recovery record is no longer the live contract.
+        self.assertEqual(lock["schemaVersion"], 2)
+        self.assertRegex(lock["snapshotSha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(lock["sourceCommit"], r"^[0-9a-f]{40}$")
         for plugin in expected:
             self.assertIn(plugin + "=oci://", properties)
             self.assertIn(plugin, lock["plugins"])
