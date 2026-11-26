@@ -10,6 +10,10 @@ description: OAuth2 authentication plugin configuration reference
 Plugin execution phase: `Authentication Phase`
 Plugin execution priority: `350`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 ### Authentication Configuration
 | Name                 | Data Type        | Requirement                                 | Default Value    | Description                                                                                                                                                                       |

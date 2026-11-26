@@ -13,6 +13,10 @@ The difference between this plugin and the JWT authentication in `Security Capab
 Plugin execution phase: `Authentication Phase`
 Plugin execution priority: `340`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 **Note:**
 - In one rule, authentication configuration and authorization configuration cannot coexist.

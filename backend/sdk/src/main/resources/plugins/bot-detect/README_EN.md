@@ -10,6 +10,10 @@ The `bot-detect` plugin can be used to identify and block internet crawlers from
 Plugin Execution Phase: `Authorization Phase`
 Plugin Execution Priority: `310`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 | Name              | Data Type           | Required      | Default Value | Description                                                |
 | ----------------- | ------------------- | --------------| --------------| ---------------------------------------------------------- |

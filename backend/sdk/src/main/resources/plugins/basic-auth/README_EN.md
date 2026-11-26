@@ -10,6 +10,10 @@ The `basic-auth` plugin implements authentication and authorization based on the
 Plugin execution stage: `Authentication Phase`  
 Plugin execution priority: `320`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 **Note:**
 - In one rule, authentication configurations and authorization configurations cannot coexist.

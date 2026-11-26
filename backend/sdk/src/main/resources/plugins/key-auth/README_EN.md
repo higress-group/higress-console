@@ -10,6 +10,10 @@ The `key-auth` plugin implements authentication based on API Key, supporting the
 Plugin Execution Phase: `Authentication Phase`
 Plugin Execution Priority: `310`
 
+## Version Compatibility
+
+`2.0.1` keeps the same configuration schema and execution phase as `2.0.0`; existing configuration requires no migration, and upgrading only switches the plugin Wasm artifact to `2.0.1`.
+
 ## Configuration Fields
 **Note:**
 - Authentication and authorization configurations cannot coexist within a single rule.
