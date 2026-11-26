@@ -6,7 +6,7 @@ import { getConsumers } from '@/services/consumer';
 import { getGatewayDomains } from '@/services/domain';
 import { getMcpServer } from '@/services/mcp';
 import { getGatewayServices } from '@/services/service';
-import { RedoOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
 import { Button, Drawer, Form, Input, Select, Space, Switch, message } from 'antd';
 import { useWatch } from 'antd/es/form/Form';
 import React, { useEffect, useState } from 'react';
@@ -124,6 +124,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
           formValues.directRoute_service = record?.services?.[0]?.name;
           formValues.directRoute_transportType = record.directRouteConfig.transportType;
           formValues.directRoute_path = record.directRouteConfig.path;
+          formValues.directRoute_headers = record.directRouteConfig.headers || [];
         }
 
         form.setFieldsValue(formValues);
@@ -282,6 +283,7 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
       submitData.directRouteConfig = {
         path: values.directRoute_path,
         transportType: values.directRoute_transportType,
+        headers: values.directRoute_headers || [],
       };
     }
 
@@ -591,6 +593,48 @@ const McpFormDrawer: React.FC<McpFormDrawerProps> = ({ visible, mode, name, onCl
                 {t('mcp.form.ssePathTip') || 'SSE 传输路径必须以 /sse 结尾'}
               </div>
             )}
+            {/* 向上游发送的自定义请求头 */}
+            <div style={{ marginTop: 16 }}>
+              <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                {t('mcp.form.customHeaders')}
+              </div>
+              <Form.List name="directRoute_headers">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name: fieldName, ...restField }) => (
+                      <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, 'key']}
+                          style={{ flex: 1, marginBottom: 0 }}
+                          rules={[{ required: true, message: t('mcp.form.headerKeyRequired')! }]}
+                        >
+                          <Input placeholder={t('mcp.form.headerKeyPlaceholder')!} />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, 'value']}
+                          style={{ flex: 2, marginBottom: 0 }}
+                          rules={[{ required: true, message: t('mcp.form.headerValueRequired')! }]}
+                        >
+                          <Input placeholder={t('mcp.form.headerValuePlaceholder')!} />
+                        </Form.Item>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          aria-label={t('mcp.form.removeHeader')!}
+                          onClick={() => remove(fieldName)}
+                        />
+                      </div>
+                    ))}
+                    <Button type="dashed" icon={<PlusOutlined />} onClick={() => add()} block>
+                      {t('mcp.form.addHeader')}
+                    </Button>
+                  </>
+                )}
+              </Form.List>
+            </div>
           </div>
         )}
 
