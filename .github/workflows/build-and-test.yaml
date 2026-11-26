@@ -21,6 +21,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: "Test immutable plugin renderer"
+        run: python3 tools/test_render_plugin_snapshot.py
+
       - name: Build Higress Console Package
         run: mvn clean package -f ./backend/pom.xml -Dpmd.language=en
 

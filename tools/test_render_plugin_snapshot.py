@@ -27,6 +27,8 @@ renderer = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(renderer)
 HIGRESS_COMMIT = "a" * 40
 CONSOLE_COMMIT = "b" * 40
+CPP_RESOURCES = ("basic-auth", "bot-detect", "custom-response", "hmac-auth", "jwt-auth",
+                 "key-auth", "key-rate-limit", "oauth", "request-block")
 
 
 class RenderTest(unittest.TestCase):
@@ -62,6 +64,27 @@ class RenderTest(unittest.TestCase):
                 "consumers": {"console": {"propertyKey": name, "resourceDir": name,
                                              "urlForm": "oci", "marketplace": bundle}}}
 
+    def cpp_bundles(self, temp):
+        repository = "higress-group/higress-console"
+        cache = pathlib.Path(temp) / "cache"
+        plugins = []
+        for resource in CPP_RESOURCES:
+            files = []
+            for target in ("spec.yaml", "README.md", "README_EN.md"):
+                source = pathlib.Path("backend/sdk/src/main/resources/plugins") / resource / target
+                cached = cache / repository.replace("/", "__") / CONSOLE_COMMIT / source
+                cached.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / source, cached)
+                files.append({"sourcePath": source.as_posix(), "targetPath": target,
+                              "sha256": hashlib.sha256((ROOT / source).read_bytes()).hexdigest()})
+            bundle = {"repository": repository, "sourceCommit": CONSOLE_COMMIT, "files": files}
+            plugin = self.plugin(bundle, resource, "2.0.1")
+            plugin["history"] = [{"version": "2.0.0",
+                                  "ociRef": "registry.example/plugins/%s:2.0.0" % resource,
+                                  "digest": "sha256:" + "d" * 64, "wasmSha256": "e" * 64}]
+            plugins.append(plugin)
+        return cache, plugins
+
     def write_document(self, temp, plugins, source_commit=None):
         path = pathlib.Path(temp) / "snapshot.json"
         path.write_text(json.dumps({"schemaVersion": 1, "sourceCommit": source_commit or HIGRESS_COMMIT,
@@ -87,6 +110,81 @@ class RenderTest(unittest.TestCase):
             self.assertTrue((resource / "README_EN.md").is_file())
             lock = renderer.validate_rendered(work)
             self.assertEqual(lock["plugins"]["new-plugin"]["marketplace"]["sourceCommit"], HIGRESS_COMMIT)
+
+    def test_nine_cpp_bundles_project_only_current_version_and_reviewed_hashes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            work = self.workspace(temp)
+            resources = work / "backend/sdk/src/main/resources/plugins"
+            original_paths = {path.relative_to(resources) for path in resources.rglob("*")}
+            original_properties = (resources / "plugins.properties").read_text(encoding="utf-8")
+            original_keys = {line.split("=", 1)[0] for line in original_properties.splitlines()
+                             if line and not line.startswith("#")}
+            cache, plugins = self.cpp_bundles(temp)
+            self.assertEqual(len(plugins), 9)
+            self.assertNotEqual(CONSOLE_COMMIT, HIGRESS_COMMIT)
+            path = self.write_document(temp, plugins)
+            document = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(renderer.bundle_sources(document, HIGRESS_COMMIT),
+                             [("higress-group/higress-console", CONSOLE_COMMIT)])
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            renderer.render(work, path, digest, bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+            properties = (resources / "plugins.properties").read_text(encoding="utf-8")
+            property_keys = {line.split("=", 1)[0] for line in properties.splitlines()
+                             if line and not line.startswith("#")}
+            self.assertEqual(property_keys, original_keys)
+            lock_text = (resources / "plugin-snapshot.lock.json").read_text(encoding="utf-8")
+            lock = renderer.validate_rendered(work)
+            self.assertEqual(set(lock["plugins"]), set(CPP_RESOURCES))
+            self.assertEqual(len(lock["plugins"]), 9)
+            self.assertEqual(sum(len(item["marketplace"]["files"]) for item in lock["plugins"].values()), 27)
+            for resource in CPP_RESOURCES:
+                with self.subTest(resource=resource):
+                    spec = (resources / resource / "spec.yaml").read_text(encoding="utf-8")
+                    self.assertEqual([line for line in spec.splitlines() if line.startswith("  version:")],
+                                     ["  version: 2.0.1"])
+                    self.assertIn(resource + "=oci://registry.example/plugins/" + resource + ":2.0.1",
+                                  properties.splitlines())
+                    item = lock["plugins"][resource]
+                    self.assertEqual(item["version"], "2.0.1")
+                    self.assertEqual(item["resourceDir"], resource)
+                    marketplace = item["marketplace"]
+                    self.assertEqual(marketplace["repository"], "higress-group/higress-console")
+                    self.assertEqual(marketplace["sourceCommit"], CONSOLE_COMMIT)
+                    self.assertEqual(len(marketplace["files"]), 3)
+                    self.assertEqual({record["targetPath"] for record in marketplace["files"]},
+                                     {"spec.yaml", "README.md", "README_EN.md"})
+                    for record in marketplace["files"]:
+                        source = pathlib.Path("backend/sdk/src/main/resources/plugins") / resource / record["targetPath"]
+                        self.assertEqual(record["sourcePath"], source.as_posix())
+                        self.assertEqual(record["sourceSha256"],
+                                         hashlib.sha256((ROOT / source).read_bytes()).hexdigest())
+                        self.assertEqual(record["destinationSha256"],
+                                         hashlib.sha256((resources / resource / record["targetPath"]).read_bytes()).hexdigest())
+            for output in (lock_text, properties):
+                self.assertNotIn("history", output)
+                self.assertNotIn("2.0.0", output)
+            self.assertEqual({path.relative_to(resources) for path in resources.rglob("*")}, original_paths)
+            first = tree_hash(work)
+            renderer.render(work, path, digest, bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+            self.assertEqual(tree_hash(work), first)
+
+    def test_nine_cpp_bundles_reject_mutable_or_wrong_hash_sources_before_writing(self):
+        for expected in ("immutable", "hash mismatch"):
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temp:
+                work = self.workspace(temp)
+                cache, plugins = self.cpp_bundles(temp)
+                bundle = plugins[0]["consumers"]["console"]["marketplace"]
+                if expected == "immutable":
+                    del bundle["sourceCommit"]
+                else:
+                    self.assertNotEqual(bundle["files"][-1]["sha256"], "0" * 64)
+                    bundle["files"][-1]["sha256"] = "0" * 64
+                path = self.write_document(temp, plugins)
+                before = tree_hash(work)
+                with self.assertRaisesRegex(ValueError, expected):
+                    renderer.render(work, path, hashlib.sha256(path.read_bytes()).hexdigest(),
+                                    bundle_cache=cache, higress_commit=HIGRESS_COMMIT)
+                self.assertEqual(tree_hash(work), before)
 
     def test_reviewed_markdown_is_projected_without_trailing_whitespace(self):
         raw = b"line with spaces  \n\n\n"
