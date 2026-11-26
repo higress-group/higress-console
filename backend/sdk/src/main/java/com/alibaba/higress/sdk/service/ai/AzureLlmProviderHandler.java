@@ -33,6 +33,8 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
 
     private static final String SERVICE_URL_KEY = "azureServiceUrl";
     private static final String API_VERSION_QUERY_PARAM = "api-version";
+    private static final String OPENAI_V1_PATH = "/openai/v1";
+    private static final String OPENAI_V1_PATH_PREFIX = OPENAI_V1_PATH + "/";
 
     @Override
     public String getType() {
@@ -56,7 +58,9 @@ public class AzureLlmProviderHandler extends AbstractLlmProviderHandler {
         if (!scheme.equals(V1McpBridge.PROTOCOL_HTTP) && !scheme.equals(V1McpBridge.PROTOCOL_HTTPS)) {
             throw new ValidationException("Azure service URL must have a valid scheme.");
         }
-        if (StringUtils.isEmpty(url.queryParameter(API_VERSION_QUERY_PARAM))) {
+        String path = url.encodedPath();
+        boolean notOpenAiV1 = !path.equals(OPENAI_V1_PATH) && !path.startsWith(OPENAI_V1_PATH_PREFIX);
+        if (notOpenAiV1 && StringUtils.isEmpty(url.queryParameter(API_VERSION_QUERY_PARAM))) {
             throw new ValidationException("Azure service URL must have a non-empty " + API_VERSION_QUERY_PARAM + " query parameter.");
         }
     }
